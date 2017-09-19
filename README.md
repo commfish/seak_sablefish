@@ -1,5 +1,11 @@
 ## Code for processing Southeast Alaska sablefish data for population assessments  
 
+Please direct any questions to: 
+Jane Sullivan jane.sullivan1@alaska.gov
+or
+Ben Williams ben.williams@alaska.gov
+
+
 ## DATA SOURCES:  
 1. Commercial fishery:  
     * Total annual catch
