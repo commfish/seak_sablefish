@@ -3,13 +3,14 @@
 # Contact: jane.sullivan1@alaska.gov
 # Last edited: 2017-10-05
 
+# load ----
+source("r_code/helper.R")
 # Fishery cpue ----
 
-fishery_cpue <- read_csv("data/fishery/raw_data/fishery_cpue_1997_2015.csv")
+read_csv("data/fishery/raw_data/fishery_cpue_1997_2015.csv") %>% 
 
-# rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
-# hooks and cpue
-fishery_cpue <- fishery_cpue %>% 
+  # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
+  # hooks and cpue
   mutate(date = dmy(SELL_DATE), #ISO 8601 format
          julian_day = yday(date),
          Gear = factor(LONGLINE_SYSTEM_CODE),
@@ -28,9 +29,8 @@ fishery_cpue <- fishery_cpue %>%
   select(year = YEAR, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
          Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, hooks_per_skate, 
          hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
-         sets = EFFORT_NO, sable_wt_set)
-
-write_csv(fishery_cpue, "data/fishery/fishery_cpue_1997_2015.csv")
+         sets = EFFORT_NO, sable_wt_set) %>% 
+  write_csv("data/fishery/fishery_cpue_1997_2015.csv")
 
 # Fishery harvest, catch time series ----
 
@@ -46,27 +46,20 @@ write_csv(fishery_cpue, "data/fishery/fishery_cpue_1997_2015.csv")
 # Group By Clause																					
 # Order By Clause	year, project_code, trip_no,effort_no,subset_no		
 
-srv_cpue <- read_csv("data/survey/raw_data/survey_cpue_1988_2016.csv")
-str(srv_cpue)
-srv_cpue <- srv_cpue %>% 
+read_csv("data/survey/raw_data/survey_cpue_1988_2016.csv") %>% 
   mutate(year = Year, #numeric
          subset_no = `Subset No`, #*FLAG* no idea what this is
-         subset_condition = `Subset Condition` #*FLAG* no idea what this is
-  ) %>%  
+         subset_condition = `Subset Condition`) %>%  #*FLAG* no idea what this is
   select(year,  trip_no = `Trip No`, Project = Project, 
          set = `Set No`, Stat = `G Stat Area`, Station = `Station No`, 
          subset_condition, no_hooks = `Hooks - Total`, 
          hooks_bait = `Hooks - Baited`, hooks_bare = `Hooks - Bare`, 
          hooks_invalid = `Hooks - Invalid`, hooks_unknown = `Hooks - Uknown`,
-         no_sablefish = Sablefish, sable_per_hook = `Sablefish per Hook`
-  ) %>% 
+         no_sablefish = Sablefish, sable_per_hook = `Sablefish per Hook`) %>% 
   filter(subset_condition == "Valid", #doesn't do anything
          Station < 100, # omit samping stations with 3 digits *FLAG* no documentation
-         !is.na(no_hooks) #doesn't do anything
-  ) 
-
-  
-write_csv(srv_cpue, "data/survey/survey_cpue_1988_2016.csv")
+         !is.na(no_hooks)) %>% #doesn't do anything
+  write_csv(., "data/survey/survey_cpue_1988_2016.csv")
 
 # Survey biological ----
 
