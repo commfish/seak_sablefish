@@ -7,7 +7,7 @@
 
 srv_cpue <- read_csv("data/survey/survey_cpue_1988_2016.csv")
 
-str(srv_cpue)
+glimpse(srv_cpue)
 
 srv_cpue  %>% 
   mutate(Year = factor(year),
@@ -22,20 +22,19 @@ srv_cpue  %>%
                             ifelse(year == 1997, 2.2 * no_hooks * (1 - exp(-0.57 * (72 * 0.0254))),
                                    ifelse( year %in% c(1998, 1999), 2.2 * no_hooks * (1 - exp(-0.57 * (64 * 0.0254))),
                                            2.2 * no_hooks * (1 - exp(-0.57 * (78 * 0.0254)))))),
-         no_sablefish = ifelse(is.na(no_sablefish), 0, no_sablefish), # make any NAs 0 values
-         std_cpue = no_sablefish/std_hooks #*FLAG* this is NPUE, the fishery is a WPUE
-  )
+         no_sablefish = replace(no_sablefish, is.na(no_sablefish), 0), # make any NAs 0 values
+         std_cpue = no_sablefish / std_hooks) -> srv_cpue #*FLAG* this is NPUE, the fishery is a WPUE
+  
 
 
-###############################################################################
-###############################################################################
+
 #
 # SABLEFISH LONGLINE SURVEY CPUE 
 #
 #  Updated 3/3/2016 Kray Van Kirk 
 #
 
-#----------------------------------------------------------------
+#
 # ALEX QUERY CRITERIA FOR SRV_BIO_DATA
 #----------------------------------------------------------------
 #
