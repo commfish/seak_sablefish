@@ -26,8 +26,35 @@ library(broom)
 
 # data ----
 
-cpue <- read_rds("data/fishery/fishery_cpue_1997_2015.rds")
+cpue <- read_csv("data/fishery/fishery_cpue_1997_2015.csv")
 str(cpue)
+
+# clean up data structures, get cpue
+cpue %>% 
+  mutate(Year = factor(year), 
+         Adfg = factor(Adfg),
+         Spp_cde = factor(Spp_cde), 
+         Gear = factor(Gear),
+         Hook_size = factor(Hook_size), 
+         Size = factor(Size),
+         Stat = factor(Stat),
+         std_hooks = 2.2 * no_hooks * (1- exp(-0.57 * (0.0254 * hook_space))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
+         std_cpue = sable_wt_set/std_hooks #standardized cpue
+  ) %>% 
+  #'sets' is a sequence of integers within a unique date/Adfg, the maximum of 
+  #which in the number of total sets in a trip. create new column that is the
+  #number of sets in a trip
+  group_by(date, Adfg) %>% 
+  mutate(no_sets = max(sets)) %>% 
+  group_by(year) %>% 
+  mutate(
+    #The number of vessels participating in the fishery has descreased by 50% from
+    #1997-2015. create new column is the total number of active vessels
+    #participating in a given year
+    total_vessels = n_distinct(Adfg),
+    #Get mean cpue
+    annual_cpue = mean(std_cpue)) -> cpue
+
 
 #Vessel of interest if looking at cpue by vessel for a private request
 VESSEL_REQUESTED <- "21465" # adfg number
@@ -35,31 +62,10 @@ VESSEL_REQUESTED <- "21465" # adfg number
 #individual vessel cpue
 vessel_cpue <- cpue %>% filter(Adfg == VESSEL_REQUESTED)
 
-#'sets' is a sequence of integers within a unique date/Adfg, the maximum of 
-#which in the number of total sets in a trip. create new column that is the
-#number of sets in a trip
-cpue <- merge(cpue,
-              cpue %>% 
-                group_by(date, Adfg) %>% 
-                summarize(no_sets = max(sets)),
-              all=TRUE)
-
-#The number of vessels participating in the fishery has descreased by 50% from
-#1997-2015. create new column is the total number of active vessels
-#participating in a given year
-cpue <- merge(cpue,
-              cpue %>% 
-                group_by(Year) %>% 
-                summarise(total_vessels = n_distinct(Adfg)),
-              all=TRUE)
-
-#Get mean cpue
-overall_cpue <- cpue %>% 
-  group_by(Year) %>% 
-  summarise(overall_cpue = mean(std_cpue)) 
-
 
 # figures ----
+
+# *FLAG* needs updating now that data structure has changed.
 
 # for most figs, the `data` could be inter-changed for vessel_cpue or cpue depending on your interest.
 
