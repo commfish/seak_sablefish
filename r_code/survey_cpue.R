@@ -1,3 +1,32 @@
+# Survey cpue
+# Author: Jane Sullivan
+# Contact: jane.sullivan1@alaska.gov
+# Last edited: 2017-10-05
+
+# data -----
+
+srv_cpue <- read_csv("data/survey/survey_cpue_1988_2016.csv")
+
+str(srv_cpue)
+
+srv_cpue  %>% 
+  mutate(Year = factor(year),
+         Stat = factor(Stat),
+         Station = factor(Station),
+         #standardize hook spacing (Sigler & Lunsford 2001, CJFAS) changes in 
+         #hook spacing. pers. comm. with aaron.baldwin@alaska.gov: 1995 & 1996 -
+         #118 in; 1997 - 72 in.; 1998 & 1999 - 64; 2000-present - 78". This is
+         #different from KVK's code (he assumed 3 m before 1997, 2 m in 1997 and
+         #after)
+         std_hooks = ifelse(year <= 1996, 2.2 * no_hooks * (1 - exp(-0.57 * (118 * 0.0254))),
+                            ifelse(year == 1997, 2.2 * no_hooks * (1 - exp(-0.57 * (72 * 0.0254))),
+                                   ifelse( year %in% c(1998, 1999), 2.2 * no_hooks * (1 - exp(-0.57 * (64 * 0.0254))),
+                                           2.2 * no_hooks * (1 - exp(-0.57 * (78 * 0.0254)))))),
+         no_sablefish = ifelse(is.na(no_sablefish), 0, no_sablefish), # make any NAs 0 values
+         std_cpue = no_sablefish/std_hooks #*FLAG* this is NPUE, the fishery is a WPUE
+  )
+
+
 ###############################################################################
 ###############################################################################
 #
