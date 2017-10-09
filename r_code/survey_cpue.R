@@ -1,11 +1,12 @@
 # Survey cpue
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2017-10-05
+# Last edited: 2017-10-09
 
+# load ----
+source("r_code/helper.R")
 
-source('~/seak_sablefish/r_code/helper.R')
-
+# Explore hook standardization relationship ----
 
 # Standardizing number of hooks based off hook spacing (Sigler & Lunsford 2001,
 # CJFAS)
@@ -51,8 +52,8 @@ ggplot(hk_stand, aes(x = no_hooks, y = std_hooks, col = factor(hook_space))) +
 
 
 
-# data -----
 
+# data -----
 srv_cpue <- read_csv("data/survey/survey_cpue_1988_2016.csv")
 
 glimpse(srv_cpue)
@@ -104,50 +105,6 @@ ggplot(data = filter(srv_cpue, npue_type=="raw_cpue"),
   theme(plot.title = element_text(hjust = .5)) +
   geom_vline(xintercept = 9.5, linetype = 2, col = "grey") +
   theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
-
-
-#
-# SABLEFISH LONGLINE SURVEY CPUE 
-#
-#  Updated 3/3/2016 Kray Van Kirk 
-#
-
-#
-# ALEX QUERY CRITERIA FOR SRV_BIO_DATA
-#----------------------------------------------------------------
-#
-# BIOLOGICAL DATA >> Age Sex Size Sampled at Sea
-#  Base Table	out_g_bio_effort_age_sex_size							
-#  Select Clause	*							
-# Where Clause	year BETWEEN 1988 AND 2015 AND 
-#                   species_code = '710' AND 
-#                   project_code = '03'																	
-#----------------------------------------------------------------
-
-#----------------------------------------------------------------
-# ALEX QUERY CRITERIA FOR CPUE_SRV
-#----------------------------------------------------------------
-#
-# SURVEY >> LONGLINE SURVEY - CATCH AND HOOK ACCOUNTING
-# Base Table	out_g_sur_longline_hooks_catch																				
-# Select Clause	*																				
-#   Where Clause	project_code = '03' AND year IN (1988:present)																				
-# Group By Clause																					
-# Order By Clause	year, project_code, trip_no,effort_no,subset_no																				
-#----------------------------------------------------------------
-
-
-###############################################################################
-# LIBRARIES
-###############################################################################
-library(plyr)
-library(reshape)
-library(lattice)
-library(mgcv)
-library(lubridate)
-library(ggplot2)
-library(dplyr)
-library(gridExtra)
 
 
 ###############################################################################

@@ -5,6 +5,7 @@
 
 # load ----
 source("r_code/helper.R")
+
 # Fishery cpue ----
 
 read_csv("data/fishery/raw_data/fishery_cpue_1997_2015.csv") %>% 
@@ -30,7 +31,7 @@ read_csv("data/fishery/raw_data/fishery_cpue_1997_2015.csv") %>%
          Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, hooks_per_skate, 
          hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
          sets = EFFORT_NO, sable_wt_set) %>% 
-  write_csv("data/fishery/fishery_cpue_1997_2015.csv")
+  write_csv(., "data/fishery/fishery_cpue_1997_2015.csv")
 
 # Fishery harvest, catch time series ----
 
@@ -63,7 +64,9 @@ read_csv("data/survey/raw_data/survey_cpue_1988_2016.csv") %>%
 
 # Survey biological ----
 
-# ALEX QUERY CRITERIA FOR SRV_BIO_DATA:
+# *FLAG* - What does Effort No mean in this context? What day and depth were these collected?Date collected?
+
+# ALEX QUERY CRITERIA FOR SRV_BIO_DATA:  
 # BIOLOGICAL DATA >> Age Sex Size Sampled at Sea
 #  Base Table	out_g_bio_effort_age_sex_size							
 #  Select Clause	*							
@@ -71,6 +74,11 @@ read_csv("data/survey/raw_data/survey_cpue_1988_2016.csv") %>%
 #                   species_code = '710' AND 
 #                   project_code = '03'			
 
-srv_bio <- read_csv("data/survey/raw_data/survey_bio_1988_2016.csv")
-str(srv_bio)
-View(srv_bio)
+read_csv("data/survey/raw_data/survey_bio_1988_2016.csv") %>% 
+  select(year = Year,  trip_no = `Trip No`, Project = Project, 
+         sets = `Effort No`, Stat = `G Stat Area`, Station = `Station No`, 
+         sets = `Effort No`, Sex, Maturity, maturity_cde = maturity_Code,
+         length_mm = `Length Millimeters`, weight_kg = `Weight Kilograms`,
+         age = Age, age_method = `Age Type`, age_readability = `Age Readability`) %>% 
+  write_csv(., "data/survey/survey_bio_1988_2016.csv")
+

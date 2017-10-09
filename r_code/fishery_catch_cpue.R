@@ -20,7 +20,8 @@
 # documentation for the legacy cpue values
 
 
-source("r_code/helper.r")
+# load ----
+source("r_code/helper.R")
 
 
 # data ----
@@ -73,7 +74,8 @@ ggplot() +
   geom_point(data = cpue, aes(Year, annual_cpue)) +
   geom_line(data = cpue,  aes(Year, annual_cpue, group=1)) +
   ylab('Fishery CPUE\n') +
-  xlab('')
+  xlab('') +
+  theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
 
 # catch by julian day
 ggplot(cpue, aes(julian_day, sable_wt_set)) +
@@ -93,7 +95,8 @@ ggplot(cpue, aes(julian_day, std_cpue)) +
 ggplot(cpue, aes(Stat, std_cpue)) +
   geom_boxplot() +
   ylab('Fishery CPUE\n') +
-  xlab('\nStat area') 
+  xlab('\nStat area') +
+  theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
 table(cpue$Stat)
 
 #Plot trends in cpue and catch in core stat areas
@@ -112,12 +115,14 @@ cpue_year_area <- cpue %>%
 p_catch <- ggplot(cpue_year_area, aes(Year, catch, group=1)) +
   geom_point() +
   geom_line() + 
-  facet_wrap(~Stat)
+  facet_wrap(~Stat) +
+  theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
 
 p_cpue <- ggplot(cpue_year_area, aes(Year, cpue, group=1)) +
   geom_point() +
   geom_line() + 
-  facet_wrap(~Stat)
+  facet_wrap(~Stat) +
+  theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
 
 grid.arrange(p_catch, p_cpue)
 
@@ -189,18 +194,21 @@ ggplot() +
 #Number of sets by
 ggplot(cpue %>% filter(Stat %in% core_areas), aes(Year)) +
   geom_bar() + 
-  facet_wrap(~Stat) 
+  facet_wrap(~Stat) +
+  theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
 
 # CPUE and catch by vessel
 plot_cpue <- ggplot(cpue, aes(x=(reorder(Adfg, std_cpue)), y=std_cpue)) +
   geom_boxplot() +
   xlab("Individual vessels in the Chatham Strait longline fishery")+
-  ylab("CPUE") 
+  ylab("CPUE") +
+  theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
 
 plot_catch <- ggplot(cpue, aes(x=(reorder(Adfg, sable_wt_set)), y=sable_wt_set)) +
   geom_boxplot() +
   xlab("Individual vessels in the Chatham Strait longline fishery")+
-  ylab("Catch (lbs)")  #*FLAG* check units
+  ylab("Catch (lbs)") +#*FLAG* check units
+  theme(axis.text.x = element_text(size=10, angle=45, hjust=1))  
 
 grid.arrange(plot_cpue, plot_catch)
 
