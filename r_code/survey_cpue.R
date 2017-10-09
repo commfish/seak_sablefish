@@ -3,12 +3,65 @@
 # Contact: jane.sullivan1@alaska.gov
 # Last edited: 2017-10-05
 
+
+source('~/seak_sablefish/r_code/helper.R')
+
+
+# Standardizing number of hooks based off hook spacing (Sigler & Lunsford 2001,
+# CJFAS)
+
+# range of hook number seen in fishery/survey
+no_hooks <- c(100, 200, 800, 1000, 2000, 4000, 6000, 8000) 
+# spacings observed in fishery/survey - in inches (converted to meters in the
+# formula below)
+hook_space <- seq(20, 120, by = 0.1) 
+hk_stand <- expand.grid(no_hooks = no_hooks, hook_space = hook_space)
+
+hk_stand %>% 
+  mutate(std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * hook_space*0.0254))
+         ) -> hk_stand
+
+ggplot(hk_stand, aes(x = hook_space, y = std_hooks, col = factor(no_hooks))) +
+  geom_line(size = 2) +
+  xlab("\nHook spacing (inches)") +
+  ylab("\nStandardized number of hooks") +
+  scale_color_brewer(palette = "Greys", "Number of\nHooks") +
+  eda_theme
+
+# other, probably clearer way of visualizing this
+
+# range of hook number seen in fishery/survey
+no_hooks <- seq(100, 8000, by = 100) 
+# spacings observed in fishery/survey - in inches (converted to meters in the
+# formula below)
+hook_space <- seq(20, 180, by = 30) 
+hk_stand <- expand.grid(no_hooks = no_hooks, hook_space = hook_space)
+
+hk_stand %>% 
+  mutate(std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * hook_space*0.0254))
+         ) -> hk_stand
+
+ggplot(hk_stand, aes(x = no_hooks, y = std_hooks, col = factor(hook_space))) +
+  geom_line(size = 2) +
+  xlab("\nNumber of hooks (inches)") +
+  ylab("\nStandardized number of hooks") +
+  scale_color_brewer(palette = "Greys", "Hook spacing (in.)") +
+  scale_x_continuous(breaks = seq(0, 15000, by = 1000)) +
+  scale_y_continuous(breaks = seq(0, 15000, by = 1000)) +
+  geom_abline(slope = 1, col = "red", linetype = 2) +
+  # guides(shape = show.legend(override.aes = list(linetype = 0))) +
+  eda_theme
+
+
 # data -----
 
 srv_cpue <- read_csv("data/survey/survey_cpue_1988_2016.csv")
 
+<<<<<<< HEAD
 glimpse(srv_cpue)
 
+=======
+>>>>>>> master
 srv_cpue  %>% 
   mutate(Year = factor(year),
          Stat = factor(Stat),
@@ -18,6 +71,7 @@ srv_cpue  %>%
          #118 in; 1997 - 72 in.; 1998 & 1999 - 64; 2000-present - 78". This is
          #different from KVK's code (he assumed 3 m before 1997, 2 m in 1997 and
          #after)
+<<<<<<< HEAD
          std_hooks = ifelse(year <= 1996, 2.2 * no_hooks * (1 - exp(-0.57 * (118 * 0.0254))),
                             ifelse(year == 1997, 2.2 * no_hooks * (1 - exp(-0.57 * (72 * 0.0254))),
                                    ifelse( year %in% c(1998, 1999), 2.2 * no_hooks * (1 - exp(-0.57 * (64 * 0.0254))),
@@ -26,6 +80,49 @@ srv_cpue  %>%
          std_cpue = no_sablefish / std_hooks) -> srv_cpue #*FLAG* this is NPUE, the fishery is a WPUE
   
 
+=======
+         # std_hooks = ifelse(year <= 1996, 2.2 * no_hooks * (1 - exp(-0.57 * (118 * 0.0254))),
+         #                    ifelse(year == 1997, 2.2 * no_hooks * (1 - exp(-0.57 * (72 * 0.0254))),
+         #                           ifelse( year %in% c(1998, 1999), 2.2 * no_hooks * (1 - exp(-0.57 * (64 * 0.0254))),
+         #                                   2.2 * no_hooks * (1 - exp(-0.57 * (78 * 0.0254)))))),
+         std_hooks = ifelse(year < 1997, 2.2 * no_hooks * (1 - exp(-0.57 * 3)),
+                            2.2 * no_hooks * (1 - exp(-0.57 * 2))),
+         no_sablefish = ifelse(is.na(no_sablefish), 0, no_sablefish), # make any NAs 0 values
+         std_cpue = no_sablefish/std_hooks, #*FLAG* this is NPUE, the fishery is a WPUE
+         raw_cpue = no_sablefish/no_hooks
+  ) %>%
+  gather(key = "npue_type", value = "NPUE", c(std_cpue, raw_cpue)) %>% 
+  group_by(Year, npue_type) %>% 
+  mutate(
+    #mean annual cpue
+    annual_cpue = mean(NPUE)
+  ) -> srv_cpue
+
+# figures
+
+ggplot(data = srv_cpue, aes(Year, annual_cpue, col = npue_type)) +
+  geom_jitter() + 
+  geom_line() +
+  ylab("NPUE\n") +
+  xlab("") +
+  ggtitle("Chatham Sablefish LL Survey") +
+  theme(plot.title = element_text(hjust = .5)) +
+  geom_vline(xintercept = 9.5, linetype = 2, col = "grey") +
+  # geom_jitter(width=.15, height=0) +
+  eda_theme
+
+ggplot(data = filter(srv_cpue, npue_type=="raw_cpue"), 
+       aes(Year, annual_cpue, group=1)) +
+  geom_point() + 
+  geom_line() +
+  ylab("NPUE\n") +
+  xlab("") +
+  ggtitle("Chatham Sablefish LL Survey") +
+  theme(plot.title = element_text(hjust = .5)) +
+  geom_vline(xintercept = 9.5, linetype = 2, col = "grey") +
+  # geom_jitter(width=.15, height=0) +
+  eda_theme
+>>>>>>> master
 
 
 #

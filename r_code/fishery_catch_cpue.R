@@ -38,7 +38,7 @@ cpue %>%
          Hook_size = factor(Hook_size), 
          Size = factor(Size),
          Stat = factor(Stat),
-         std_hooks = 2.2 * no_hooks * (1- exp(-0.57 * (0.0254 * hook_space))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
+         std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (0.0254 * hook_space))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
          std_cpue = sable_wt_set/std_hooks #standardized cpue
   ) %>% 
   #'sets' is a sequence of integers within a unique date/Adfg, the maximum of 
@@ -52,8 +52,10 @@ cpue %>%
     #1997-2015. create new column is the total number of active vessels
     #participating in a given year
     total_vessels = n_distinct(Adfg),
-    #Get mean cpue
-    annual_cpue = mean(std_cpue)) -> cpue
+    #mean annual cpue
+    annual_cpue = mean(std_cpue),
+    annual_catch = sum(sable_wt_set) # lbs
+    ) -> cpue
 
 
 #Vessel of interest if looking at cpue by vessel for a private request
@@ -65,14 +67,14 @@ vessel_cpue <- cpue %>% filter(Adfg == VESSEL_REQUESTED)
 
 # figures ----
 
-# *FLAG* needs updating now that data structure has changed.
-
 # for most figs, the `data` could be inter-changed for vessel_cpue or cpue depending on your interest.
 
 # cpue over time
 ggplot() +
-  geom_point(data = cpue, aes(Year, std_cpue)) + 
-  geom_line(data = overall_cpue,  aes(Year, overall_cpue, group=1)) +
+  geom_point(data = cpue, aes(Year, annual_cpue)) +
+  geom_line(data = cpue,  aes(Year, annual_cpue, group=1)) +
+  ylab('Fishery CPUE\n') +
+  xlab('') +
   # geom_jitter(width=.15, height=0) +
   eda_theme
 
@@ -80,6 +82,8 @@ ggplot() +
 ggplot(cpue, aes(julian_day, sable_wt_set)) +
   geom_jitter() +
   stat_smooth(method='lm', se=FALSE) + 
+  ylab('Catch (lbs)\n') +
+  xlab('\nJulian day') +
   # facet_wrap(~Year) + 
   eda_facet
 
@@ -87,12 +91,16 @@ ggplot(cpue, aes(julian_day, sable_wt_set)) +
 ggplot(cpue, aes(julian_day, std_cpue)) +
   geom_jitter() +
   stat_smooth(method='lm', se=FALSE) + 
+  ylab('Fishery CPUE\n') +
+  xlab('\nJulian day') +
   eda_theme
 
 # cpue by stat area
 ggplot(cpue, aes(Stat, std_cpue)) +
   geom_boxplot() +
-  eda_theme
+  eda_theme +
+  ylab('Fishery CPUE\n') +
+  xlab('\nStat area') 
 table(cpue$Stat)
 
 #Plot trends in cpue and catch in core stat areas
@@ -124,7 +132,9 @@ grid.arrange(p_catch, p_cpue)
 
 ggplot(cpue_year_area, aes(cpue, catch, group=Stat, col=Stat)) +
   geom_point() +
-  geom_smooth(method='gam',  alpha=0.1) +#formula= y ~ s(x, k=12),
+  geom_smooth(method='gam',  alpha=0.1) +#formula= y ~ s(x, k=12), 
+  xlab("CPUE") +
+  ylab("Catch (lbs)") +  
   eda_theme
 
 # cpue by julian day, stat area
@@ -141,6 +151,8 @@ ggplot(vessel_cpue, aes(julian_day, std_cpue, col=Stat, group=1)) +
 ggplot(cpue, aes(depth, std_cpue)) +
   geom_jitter() +
   stat_smooth(method='gam', formula= y ~ s(x, k=4)) + 
+  xlab("\nDepth (meters)") + # *FLAG* - check units
+  ylab("CPUE") +
   eda_theme
 
 # cpue by depth, stat area
