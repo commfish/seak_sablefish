@@ -21,13 +21,12 @@
 
 
 source("r_code/helper.r")
-library(broom)
 
 
 # data ----
 
 cpue <- read_csv("data/fishery/fishery_cpue_1997_2015.csv")
-str(cpue)
+glimpse(cpue)
 
 # clean up data structures, get cpue
 cpue %>% 
@@ -74,31 +73,25 @@ ggplot() +
   geom_point(data = cpue, aes(Year, annual_cpue)) +
   geom_line(data = cpue,  aes(Year, annual_cpue, group=1)) +
   ylab('Fishery CPUE\n') +
-  xlab('') +
-  # geom_jitter(width=.15, height=0) +
-  eda_theme
+  xlab('')
 
 # catch by julian day
 ggplot(cpue, aes(julian_day, sable_wt_set)) +
   geom_jitter() +
   stat_smooth(method='lm', se=FALSE) + 
   ylab('Catch (lbs)\n') +
-  xlab('\nJulian day') +
-  # facet_wrap(~Year) + 
-  eda_facet
+  xlab('\nJulian day') 
 
 # cpue by julian day
 ggplot(cpue, aes(julian_day, std_cpue)) +
   geom_jitter() +
   stat_smooth(method='lm', se=FALSE) + 
   ylab('Fishery CPUE\n') +
-  xlab('\nJulian day') +
-  eda_theme
+  xlab('\nJulian day') 
 
 # cpue by stat area
 ggplot(cpue, aes(Stat, std_cpue)) +
   geom_boxplot() +
-  eda_theme +
   ylab('Fishery CPUE\n') +
   xlab('\nStat area') 
 table(cpue$Stat)
@@ -119,14 +112,12 @@ cpue_year_area <- cpue %>%
 p_catch <- ggplot(cpue_year_area, aes(Year, catch, group=1)) +
   geom_point() +
   geom_line() + 
-  facet_wrap(~Stat) +
-  eda_facet
+  facet_wrap(~Stat)
 
 p_cpue <- ggplot(cpue_year_area, aes(Year, cpue, group=1)) +
   geom_point() +
   geom_line() + 
-  facet_wrap(~Stat) +
-  eda_facet
+  facet_wrap(~Stat)
 
 grid.arrange(p_catch, p_cpue)
 
@@ -134,8 +125,7 @@ ggplot(cpue_year_area, aes(cpue, catch, group=Stat, col=Stat)) +
   geom_point() +
   geom_smooth(method='gam',  alpha=0.1) +#formula= y ~ s(x, k=12), 
   xlab("CPUE") +
-  ylab("Catch (lbs)") +  
-  eda_theme
+  ylab("Catch (lbs)")
 
 # cpue by julian day, stat area
 # png(file='figures/fsh_cpue_day.png', res=300, width=7, height=3.5, units ="in", bg="transparent")  
@@ -143,8 +133,7 @@ ggplot(vessel_cpue, aes(julian_day, std_cpue, col=Stat, group=1)) +
   geom_jitter() +
   stat_smooth(aes(julian_day, std_cpue), alpha=.2, method='lm') +
   xlab("\nJulian day (from start of year)") +
-  ylab("CPUE") +  
-  eda_theme
+  ylab("CPUE") 
 # dev.off()
 
 # cpue by depth
@@ -152,8 +141,7 @@ ggplot(cpue, aes(depth, std_cpue)) +
   geom_jitter() +
   stat_smooth(method='gam', formula= y ~ s(x, k=4)) + 
   xlab("\nDepth (meters)") + # *FLAG* - check units
-  ylab("CPUE") +
-  eda_theme
+  ylab("CPUE") 
 
 # cpue by depth, stat area
 # png(file='figures/fsh_cpue_depth.png', res=300, width=7, height=3.5, units ="in", bg="transparent")  
@@ -161,8 +149,7 @@ ggplot(cpue, aes(depth, std_cpue, col=Stat, group=1)) +
   geom_jitter() +
   stat_smooth(alpha=.2, method='gam', formula= y ~ s(x, k=4)) +
   xlab("\nDepth (meters)") + # *FLAG* - check units
-  ylab("CPUE") +
-  eda_theme
+  ylab("CPUE") 
 # dev.off()
 
 # cpue by number of sets
@@ -170,16 +157,14 @@ ggplot(cpue, aes(no_sets, std_cpue, group=1)) +
   geom_jitter() +
   stat_smooth(alpha=.2, method='gam', formula= y ~ s(x, k=4)) +
   xlab("\nNumber of sets") + # *FLAG* - check units
-  ylab("CPUE") +
-  eda_theme
+  ylab("CPUE")
 
 # catch by depth and hook size
 ggplot(vessel_cpue, aes(depth, sable_wt_set, col=Size, group=1)) +
   geom_jitter()+
   stat_smooth(alpha=.2, method='gam', formula= y ~ s(x, k=4)) +
   xlab("\nDepth (meters)") + 
-  ylab("Catch (lbs)") + 
-  eda_theme 
+  ylab("Catch (lbs)")
 
 # Hook size and cpue - looks like most of the hooks used are 13s and 14s and
 # they don't have a measurable difference in cpue
@@ -187,8 +172,7 @@ ggplot(cpue, aes(Size, std_cpue)) +
   geom_boxplot() +
   # facet_wrap(~Stat) +
   xlab("\nHook Size") +
-  ylab("CPUE") +
-  eda_theme
+  ylab("CPUE") 
 table(cpue$Size)
 
 # Compare vessel cpue with longterm average cpue *FLAG* - this doesn't 
@@ -199,29 +183,24 @@ ggplot() +
   stat_summary(data=vessel_cpue, aes(Year, std_cpue, col="Vessel CPUE"), 
                fun.y='mean', geom="line", group=1, lwd=1.5, lty=2) +
   xlab("\nYear") +
-  ylab("CPUE") +
-  eda_theme 
+  ylab("CPUE") 
 # dev.off()
 
 #Number of sets by
 ggplot(cpue %>% filter(Stat %in% core_areas), aes(Year)) +
   geom_bar() + 
-  facet_wrap(~Stat) +
-  eda_facet
-
+  facet_wrap(~Stat) 
 
 # CPUE and catch by vessel
 plot_cpue <- ggplot(cpue, aes(x=(reorder(Adfg, std_cpue)), y=std_cpue)) +
   geom_boxplot() +
   xlab("Individual vessels in the Chatham Strait longline fishery")+
-  ylab("CPUE") +
-  eda_theme
+  ylab("CPUE") 
 
 plot_catch <- ggplot(cpue, aes(x=(reorder(Adfg, sable_wt_set)), y=sable_wt_set)) +
   geom_boxplot() +
   xlab("Individual vessels in the Chatham Strait longline fishery")+
-  ylab("Catch (lbs)") + #*FLAG* check units
-  eda_theme
+  ylab("Catch (lbs)")  #*FLAG* check units
 
 grid.arrange(plot_cpue, plot_catch)
 
@@ -230,32 +209,30 @@ ggplot(cpue, aes(no_hooks, sable_wt_set, group=1)) +
   geom_point() +
   stat_smooth(method='gam', formula=y~s(x, k=4)) +
   xlab("\nTotal Number of Hooks") +
-  ylab("Catch (lbs)") + #*FLAG check units
-  eda_theme
+  ylab("Catch (lbs)")  #*FLAG check units
+  
 
 # cpue and number of hooks in a set
 ggplot(cpue, aes(no_hooks, std_cpue, group=1)) +
   geom_point() +
   stat_smooth(method='gam', formula=y~s(x, k=4)) +
   xlab("\nTotal Number of Hooks") +
-  ylab("CPUE") + #*FLAG check units
-  eda_theme
+  ylab("CPUE")
+
 
 # catch and number of sets
 ggplot(cpue, aes(sets, sable_wt_set, group=1)) +
   geom_point() +
   stat_smooth(method='gam', formula=y~s(x, k=4)) +
   xlab("\nTotal Number of Sets") +
-  ylab("Catch (lbs)") + #*FLAG check units
-  eda_theme
+  ylab("Catch (lbs)") #*FLAG check units
 
 # catch and number of sets
 ggplot(cpue, aes(sets, std_cpue, group=1)) +
   geom_point() +
   stat_smooth(method='gam', formula=y~s(x, k=4)) +
   xlab("\nTotal Number of Sets") +
-  ylab("CPUE") + #*FLAG check units
-  eda_theme
+  ylab("CPUE") 
 
 # CPUE pdf 
 ggplot(cpue, aes(std_cpue)) +
@@ -266,18 +243,7 @@ ggplot(cpue, aes(std_cpue, fill=Stat)) +
   geom_density(alpha=.3)
 
 
-
-
 # GAM cpue ----
-
-#total catch in a year and stat area
-cpue <- merge(cpue,
-              cpue %>% 
-                group_by(Year) %>%
-                summarise(annual_catch = sum(sable_wt_set)),
-              all=TRUE)
-
-
 
 fit <- gam(std_cpue ~ s(depth, k=4) + s(julian_day, k=4) +  s(total_vessels, k=4) +
              s(no_sets, k=4) + s(Year, bs="re")  + s(Stat, bs="re"), 

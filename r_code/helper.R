@@ -18,7 +18,7 @@ theme_set(theme_bw(base_size=12)+
                   panel.grid.minor = element_blank()))
 
 # # basic eda (exporatory data analysis theme)
-# eda_theme <- theme_classic() + 
+# eda_theme <- theme_classic() +
 #   theme(panel.grid.major = element_line(colour="grey95"),
 #         panel.grid.minor = element_line(colour="grey95"),
 #         strip.text = element_text(size=10),
@@ -27,7 +27,7 @@ theme_set(theme_bw(base_size=12)+
 #         axis.title.x = element_text(size=10),
 #         axis.title.y = element_text(size=10),
 #         legend.background = element_rect(fill = "transparent", colour = NA))
-# 
+
 # # eda theme for faceted figs
 # eda_facet <- theme_bw() + 
 #   theme(strip.text = element_text(size=10),
