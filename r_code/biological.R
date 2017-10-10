@@ -129,12 +129,53 @@ beta_m <- tidy(male_fit)$estimate[2]
 beta_f <- tidy(fem_fit)$estimate[2]
 
 # weight-at-age using Ludwig von Bertalanffy growth model ----
-
-lvb_waa <- function(t, k, W.inf, t0, b) {
-  W.inf * (1 - exp(-k * (t - t0) ) ) ^ b
-}
-# *FLAG* use sex-spec allometric betas. probably going to need to use a
+# use sex-spec allometric betas. probably going to need to use a
 # multiplicative error structure
 
+lvb_waa <- function(weight, t, k, w_inf, t0, b) {
+  pred <- w_inf * (1 - exp(-k * (t - t0) ) ) ^ b
+  pred <- ifelse(pred < 0, abs(pred), pred)
+  log(weight) - log(pred)
+}
+
+srv_bio %>% 
+  filter(Sex %in% c("Female", "Male") &
+           year >= 1997 & #advent of "modern" survey
+           !is.na(age) &
+           !is.na(weight_kg)) %>% 
+  droplevels() -> waa_sub
+
+# starting values from Hanselman et al. 2007 Appendix C Table 5
+START_f <- c(weight = weight_kg, t = age, w_inf = 5.5, k = 0.24, t0 = -1.4, b = beta_f)
+START_m <- c(weight = weight_kg, t = age, w_inf = 3.2, k = 0.36, t0 = -1.1, b = beta_m)
+
+fem_waa <- nls(weight_kg ~ lvb_waa(weight = weight_kg, t = age, 
+                                   w_inf, k, t0, b = beta_f), 
+               data = filter(allom_sub, Sex == "Female"), 
+               start = START_f)
+
+male_waa <- nls(weight_kg ~ lvb_waa(weight = weight_kg, t = age, 
+                                   w_inf, k, t0, b = beta_m), 
+               data = filter(allom_sub, Sex == "Male"), 
+               start = START_m)
+
+ggplot(waa_sub,  
+       aes(x = age, y = weight_kg, col = Sex, shape = Sex)) +
+  geom_jitter() + #alpha = .8
+  stat_function(fun = lvb_waa, 
+                args = START_f,
+                lwd = 2, col = "salmon") + #"salmon"
+  # stat_function(fun = lvb_laa, 
+  #               args = as.list(tidy(fem_fit_log)$estimate),
+  #               lwd = 2, col = "pink") + #"salmon"
+  stat_function(fun = lvb_waa, 
+                args = START_m,
+                lwd = 2, col = "blue") + #"#00BFC4"
+  # stat_function(fun = lvb_laa, 
+  #               args = as.list(tidy(male_fit_log)$estimate),
+  #               lwd = 2, col = "lightblue") + #"#00BFC4"
+  scale_color_manual(values = c("salmon", "blue")) +
+  xlab("\nAge (yrs)") +
+  ylab("Weight (kg)\n")
 # figures ----
 
