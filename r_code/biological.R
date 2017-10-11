@@ -90,8 +90,8 @@ ggplot(laa_sub,
   ylab("Length (cm)\n")
 
 # fit length-based lbv with max likelihood 
-vb_like <- function(obs_length, age, l_inf, k, sigma) { 
-  pred <- l_inf * (1 - exp(-k * age)) # predictions based on von bertalanffy growth curve
+vb_like <- function(obs_length, age, l_inf, k, sigma, t0) { 
+  pred <- l_inf * (1 - exp(-k * (age - t0))) # predictions based on von bertalanffy growth curve
   like <- dnorm(obs_length, pred, sigma) # likelihood
   neg_like <- -1 * (sum(log(like))) # negative log likelihood
   return(neg_like) # returning negative log likelihood
@@ -99,7 +99,7 @@ vb_like <- function(obs_length, age, l_inf, k, sigma) {
 
 vb_mle <- function(obs_length, age) {
   #minimizing negative log likelihood with mle function
-  vb_mle <- mle(vb_like, start = list(l_inf = 80, k = 0.22, sigma = 10), 
+  vb_mle <- mle(vb_like, start = list(l_inf = 80, k = 0.22, sigma = 10, t0 = -1.9), 
              fixed = list(obs_length = obs_length, age = age),
              # # lower and upper bounds for l_inf, k, and sigma
              # lower = c(30, 0.01, 0.6), 
@@ -109,8 +109,9 @@ vb_mle <- function(obs_length, age) {
   l_inf_opt <- coef(summary(vb_mle))[1] #retaining optimized parameter values
   k_opt <- coef(summary(vb_mle))[2]
   sigma_opt <- coef(summary(vb_mle))[3]
+  t0_opt <- coef(summary(vb_mle))[4]
   logl <- attributes(summary(vb_mle))$m2logL/-2
-  pred <- l_inf_opt * (1 - exp(-k_opt * age)) # retaining predicted values
+  pred <- l_inf_opt * (1 - exp(-k_opt * (age - t0_opt))) # retaining predicted values
   resids <- obs_length - pred # retaining residuals
   results <- list(predictions = data.frame(obs_length = obs_length,
                                            age = age, pred = pred, resid = resids),
@@ -121,7 +122,7 @@ vb_mle <- function(obs_length, age) {
 laa_sub %>% ungroup() %>% filter(Sex == "Female") %>% select(length_cm, age) -> laa_f
 vb_mle_out <- vb_mle(obs_length = laa_f$length_cm,
                      age = laa_f$age)
-mle_preds <- vb_mle_out$predictions
+mle_preds2 <- vb_mle_out$predictions
 
 #plot mle results
 ggplot() +
@@ -130,6 +131,9 @@ ggplot() +
   geom_line(data = mle_preds,
             aes(x = age, y = pred, group = 1), 
             lwd = 1, col = "magenta") +
+  geom_line(data = mle_preds2,
+            aes(x = age, y = pred, group = 1), 
+            lwd = 1, col = "blue") +
   xlab("\nAge (yrs)") +
   ylab("Length (cm)\n")
 
