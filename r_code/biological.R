@@ -6,6 +6,7 @@
 # load ----
 source("r_code/helper.R")
 library("broom")
+library("stats4")
 
 # data -----
 srv_bio <- read_csv("data/survey/survey_bio_1988_2016.csv")
@@ -68,6 +69,7 @@ male_fit_log <- nls(log(length_cm) ~ log(lvb_laa(t = age, l_inf, k, t0)),
                 trace = TRUE, algorithm = "port", 
                 lower = c(30, 0.01, -5), upper = c(80, 0.5, 5), start = START_m)
 
+#plot
 ggplot(laa_sub,  
        aes(x = age, y = length_cm, col = Sex, shape = Sex)) +
   geom_jitter() + #alpha = .8
@@ -86,6 +88,51 @@ ggplot(laa_sub,
   scale_color_manual(values = c("salmon", "blue")) +
   xlab("\nAge (yrs)") +
   ylab("Length (cm)\n")
+
+# fit length-based lbv with max likelihood 
+vb_like <- function(obs_length, age, l_inf, k, sigma) { 
+  pred <- l_inf * (1 - exp(-k * age)) # predictions based on von bertalanffy growth curve
+  like <- dnorm(obs_length, pred, sigma) # likelihood
+  neg_like <- -1 * (sum(log(like))) # negative log likelihood
+  return(neg_like) # returning negative log likelihood
+}
+
+vb_mle <- function(obs_length, age) {
+  #minimizing negative log likelihood with mle function
+  vb_mle <- mle(vb_like, start = list(l_inf = 80, k = 0.22, sigma = 10), 
+             fixed = list(obs_length = obs_length, age = age),
+             # # lower and upper bounds for l_inf, k, and sigma
+             # lower = c(30, 0.01, 0.6), 
+             # upper = c(200, 1, 20), 
+             method = "BFGS")
+  print(summary(vb_mle))
+  l_inf_opt <- coef(summary(vb_mle))[1] #retaining optimized parameter values
+  k_opt <- coef(summary(vb_mle))[2]
+  sigma_opt <- coef(summary(vb_mle))[3]
+  logl <- attributes(summary(vb_mle))$m2logL/-2
+  pred <- l_inf_opt * (1 - exp(-k_opt * age)) # retaining predicted values
+  resids <- obs_length - pred # retaining residuals
+  results <- list(predictions = data.frame(obs_length = obs_length,
+                                           age = age, pred = pred, resid = resids),
+                  results = coef(summary(vb_mle)), logl = logl)
+  return(results)
+}
+
+laa_sub %>% ungroup() %>% filter(Sex == "Female") %>% select(length_cm, age) -> laa_f
+vb_mle_out <- vb_mle(obs_length = laa_f$length_cm,
+                     age = laa_f$age)
+mle_preds <- vb_mle_out$predictions
+
+#plot mle results
+ggplot() +
+  geom_jitter(data = mle_preds,  
+       aes(x = age, y = obs_length)) + #alpha = .8
+  geom_line(data = mle_preds,
+            aes(x = age, y = pred, group = 1), 
+            lwd = 1, col = "magenta") +
+  xlab("\nAge (yrs)") +
+  ylab("Length (cm)\n")
+
 
 # weight-length allometry W = alpha * L ^ beta ----
 
@@ -146,8 +193,8 @@ srv_bio %>%
   droplevels() -> waa_sub
 
 # starting values from Hanselman et al. 2007 Appendix C Table 5
-START_f <- c(weight = weight_kg, t = age, w_inf = 5.5, k = 0.24, t0 = -1.4, b = beta_f)
-START_m <- c(weight = weight_kg, t = age, w_inf = 3.2, k = 0.36, t0 = -1.1, b = beta_m)
+START_f <- c(w_inf = 5.5, k = 0.24, t0 = -1.4, b = beta_f)
+START_m <- c(w_inf = 3.2, k = 0.36, t0 = -1.1, b = beta_m)
 
 fem_waa <- nls(weight_kg ~ lvb_waa(weight = weight_kg, t = age, 
                                    w_inf, k, t0, b = beta_f), 
