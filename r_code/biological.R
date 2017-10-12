@@ -89,7 +89,7 @@ ggplot(laa_sub,
   xlab("\nAge (yrs)") +
   ylab("Length (cm)\n")
 
-# fit length-based lbv with max likelihood 
+# fit length-based lvb with max likelihood 
 vb_like <- function(obs_length, age, l_inf, k, t0, sigma) { 
   pred <- l_inf * (1 - exp(-k * (age - t0))) # predictions based on von bertalanffy growth curve
   like <- dnorm(obs_length, pred, sigma) # likelihood
@@ -115,8 +115,6 @@ vb_mle <- function(obs_length, age, starting_vals) {
                   results = coef(summary(vb_mle)), logl = logl)
   return(results)
 }
-
-
 
 laa_sub %>% ungroup() %>% filter(Sex == "Female") -> laa_f
 laa_sub %>% ungroup() %>% filter(Sex == "Male") -> laa_m
@@ -223,8 +221,8 @@ srv_bio %>%
   droplevels() -> waa_sub
 
 # starting values from Hanselman et al. 2007 Appendix C Table 5
-START_f <- c(w_inf = 5.5, k = 0.24, t0 = -1.4, b = beta_f)
-START_m <- c(w_inf = 3.2, k = 0.36, t0 = -1.1, b = beta_m)
+start_f <- c(w_inf = 5.5, k = 0.24, t0 = -1.4, b = beta_f)
+start_m <- c(w_inf = 3.2, k = 0.36, t0 = -1.1, b = beta_m)
 
 fem_waa <- nls(weight_kg ~ lvb_waa(weight = weight_kg, t = age, 
                                    w_inf, k, t0, b = beta_f), 
@@ -254,5 +252,83 @@ ggplot(waa_sub,
   scale_color_manual(values = c("salmon", "blue")) +
   xlab("\nAge (yrs)") +
   ylab("Weight (kg)\n")
-# figures ----
 
+# fit weight-based lvb with a multiplicative error structure using max likelihood estimation
+# log(w_i) = log(w_inf) + beta * log(1 - exp * (-k * (age_i - t0))) + error
+# multiplicative error distrubtion accounts for increasing variability in weight-at-age with age
+wvb_like <- function(obs_weight, age, w_inf, k, t0, b, sigma) { 
+  log_pred <- log(w_inf) + b * log(1 - exp(-k * (age - t0))) # predictions based on von bertalanffy growth curve
+  # pred <- exp(log_pred)
+  like <- dnorm(log(obs_weight), log_pred, sigma) # likelihood
+  neg_like <- -1 * (sum(log(like))) # negative log likelihood
+  return(neg_like) # returning negative log likelihood
+}
+
+wvb_mle <- function(obs_weight, age, b, starting_vals) {
+  #minimizing negative log likelihood with mle function
+  wvb_mle <- mle(wvb_like, start = as.list(starting_vals), 
+                fixed = list(obs_weight = obs_weight, age = age, b = b),
+                method = "BFGS")
+  print(summary(wvb_mle))
+  w_inf_opt <- coef(summary(wvb_mle))[1] #retaining optimized parameter values
+  k_opt <- coef(summary(wvb_mle))[2]
+  t0_opt <- coef(summary(wvb_mle))[3]
+  sigma_opt <- coef(summary(wvb_mle))[4]
+  logl <- attributes(summary(wvb_mle))$m2logL/-2
+  log_pred <- log(w_inf_opt) + b * log(1 - exp(-k_opt * (age - t0_opt))) #  predicted values
+  pred <- exp(log_pred)
+  resids <- obs_weight - pred # retaining residuals
+  results <- list(predictions = data.frame(obs_weight = obs_weight,
+                                           age = age, pred = pred, resid = resids),
+                  results = coef(summary(wvb_mle)), logl = logl)
+  return(results)
+}
+
+
+waa_sub %>% ungroup() %>% filter(Sex == "Female") -> waa_f
+waa_sub %>% ungroup() %>% filter(Sex == "Male") -> waa_m
+
+# starting values from Hanselman et al. 2007 Appendix C Table 5
+start_f <- c(w_inf = 5.5, k = 0.24, t0 = -1.4, sigma = 10)
+start_m <- c(w_inf = 3.2, k = 0.36, t0 = -1.1, sigma = 10)
+
+# mle fit for females
+wvb_mle_f <- wvb_mle(obs_weight = waa_f$weight_kg,
+                   age = waa_f$age,
+                   b = beta_f,
+                   starting_vals = start_f)
+
+wpred_f <- wvb_mle_f$predictions %>% mutate(Sex = "Female")
+
+# mle fit for males
+wvb_mle_m <- wvb_mle(obs_weight = waa_m$weight_kg,
+                   age = waa_m$age,
+                   b = beta_m, 
+                   starting_vals = start_m)
+wpred_m <- wvb_mle_m$predictions %>% mutate(Sex = "Male")
+
+# combine output and plot mle
+pred <- rbind(wpred_f, wpred_m) %>% 
+  mutate(std_resid = resid/sd(resid))
+
+ggplot() +
+  geom_jitter(data = waa_sub, aes(x = age, y = weight_kg, col = Sex)) +
+  geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
+  geom_line(data = pred, aes(x = age, y = pred, group = Sex), col = "black" ) + #"#00BFC4"
+  xlab("\nAge (yrs)") +
+  ylab("Weight (kg))\n")
+
+# residual plots
+ggplot(data = pred) + 
+  geom_histogram(aes(x = std_resid)) +
+  facet_wrap(~ Sex)
+
+ggplot(data = pred) + 
+  geom_point(aes(x = age, y = std_resid)) +
+  geom_hline(aes(yintercept = 0), linetype = 2, col = "red") + 
+  facet_wrap(~ Sex)
+
+ggplot(data = pred) + 
+  geom_point(aes(x = pred, y = std_resid)) +
+  geom_hline(aes(yintercept = 0), linetype = 2, col = "red") + 
+  facet_wrap(~ Sex)
