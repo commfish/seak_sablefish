@@ -26,6 +26,48 @@ srv_bio %>%
          length_mu = mean(length_mm, na.rm = TRUE),
          weight_mu = mean(weight_kg, na.rm = TRUE)) -> srv_bio
 
+# Hanselman et al. 2007 Appendix GOA Sablefish SAFE Appendix 3C for comparison.
+# The coastwide parameters are still used for management, but Southeast
+# slope are informative.
+
+nmfs_laa_lvb <- data.frame(Sex = c(rep("Female", 2),
+                                   rep("Male", 2)),
+                           Survey = c(rep(c("NMFS LL Survey",
+                                            "NMFS LL Survey"), 
+                                          2)),
+                           Region = c(rep(c("Southeast slope",
+                                            "GOA/BS/AI coastwide"), 
+                                          2)),
+                           Years = rep("1996 - 2004", 4),
+                           Linf = c(80.22, 80.92, 67.77, 68.34),
+                           Linf_se = c(0.22, NA, 0.13, NA),
+                           k = c(0.22, 0.27, 0.29, 0.31),
+                           k_se = c(0.01, NA, 0.01, NA),
+                           t0 = c(-1.95, -0.85, -2.27, -1.71),
+                           t0_se = c(0.12, NA, 0.17, NA),
+                           n = c(5767, 515, 4889, 605))
+
+nmfs_waa_allom <- data.frame(Sex = c("Female", "Male"),
+                             Survey = rep("NMFS LL Survey", 2),
+                             Region = rep("GOA/BS/AI coastwide", 2),
+                             Years = rep("1996 - 2004", 2),
+                             alpha = c(1.01e-05, 1.24e-05),
+                             alpha_se = c(NA, NA),
+                             beta = c(3.015, 2.960),
+                             beta_se = c(NA, NA),
+                             n = c(5767, 4889))
+
+nmfs_waa_lvb <- data.frame(Sex = c("Female", "Male"),
+                           Survey = rep("NMFS LL Survey", 2),
+                           Region = rep("GOA/BS/AI coastwide", 2),
+                           Years = rep("1996 - 2004", 2),
+                           Winf = c(5.47, 3.16),
+                           Winf_se = c(NA, NA),
+                           k = c(0.24, 0.36),
+                           k_se = c(NA, NA), 
+                           t0 = c(-1.39, -1.13),
+                           t0_se = c(NA, NA))
+
 # length-at-age using Ludwig von Bertalanffy growth model -----
 
 lvb_laa <- function(t, l_inf, k, t0) {
@@ -141,7 +183,7 @@ pred <- rbind(pred_f, pred_m) %>%
   mutate(std_resid = resid/sd(resid))
 
 ggplot() +
-  geom_jitter(data = laa_sub, aes(x = age, y = length_cm, col = Sex)) +
+  geom_jitter(data = laa_sub, aes(x = age, y = length_cm, col = Sex, shape = Sex)) +
   geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
   geom_line(data = pred, aes(x = age, y = pred, group = Sex), col = "black" ) + #"#00BFC4"
   xlab("\nAge (yrs)") +
@@ -312,7 +354,7 @@ pred <- rbind(wpred_f, wpred_m) %>%
   mutate(std_resid = resid/sd(resid))
 
 ggplot() +
-  geom_jitter(data = waa_sub, aes(x = age, y = weight_kg, col = Sex)) +
+  geom_jitter(data = waa_sub, aes(x = age, y = weight_kg, col = Sex, shape = Sex)) +
   geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
   geom_line(data = pred, aes(x = age, y = pred, group = Sex), col = "black" ) + #"#00BFC4"
   xlab("\nAge (yrs)") +
@@ -332,3 +374,8 @@ ggplot(data = pred) +
   geom_point(aes(x = pred, y = std_resid)) +
   geom_hline(aes(yintercept = 0), linetype = 2, col = "red") + 
   facet_wrap(~ Sex)
+
+# Comparison of Hanselman et al. 2007 values with the Chatham Strait longline
+# survey. Units: length (cm), weight (kg), and age (yrs)
+
+laa_hanselman <- data.frame()
