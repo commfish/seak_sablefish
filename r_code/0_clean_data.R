@@ -64,7 +64,7 @@ read_csv("data/survey/raw_data/survey_cpue_1988_2016.csv") %>%
 
 # Survey biological ----
 
-# *FLAG* - What does Effort No mean in this context? What day and depth were these collected?Date collected?
+# *FLAG* - What does Effort No mean in this context? What day and depth were these collected? Date collected?
 
 # ALEX QUERY CRITERIA FOR SRV_BIO_DATA:  
 # BIOLOGICAL DATA >> Age Sex Size Sampled at Sea
@@ -81,4 +81,26 @@ read_csv("data/survey/raw_data/survey_bio_1988_2016.csv") %>%
          length_mm = `Length Millimeters`, weight_kg = `Weight Kilograms`,
          age = Age, age_method = `Age Type`, age_readability = `Age Readability`) %>% 
   write_csv(., "data/survey/survey_bio_1988_2016.csv")
+
+# Fishery biological ----
+
+# *FLAG* I don't know where this query is. Need an explanation of
+# G_STAT_AREA_GROUP (e.g. NSEI 22, NSEI 15), SPECIMEN_NO, SAMPLE_TYPE_CODE,
+# WEIGHT_KILOGRAMS (round? ice/slime? some of these are really heavy, e.g. 17
+# kg), SEX_CODE (females = 1 or 2?)
+
+read_csv("data/fishery/raw_data/fishery_bio_2000_2016.csv") %>% 
+  mutate(date = mdy(SELL_DATE), #ISO 8601 format
+         julian_day = yday(date),
+         Sex_cde = SEX_CODE,
+         Sex = ifelse(Sex_cde == 1, "Male", 
+                      ifelse(Sex_cde == 2, "Female", "Unknown"))) %>% 
+  select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, 
+         Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
+         Stat = G_STAT_AREA, Mgmt_area = G_MANAGEMENT_AREA_CODE,
+         Sample_type = SAMPLE_TYPE, Spp_cde = SPECIES_CODE, 
+         length_mm = LENGTH_MILLIMETERS, weight_kg = WEIGHT_KILOGRAMS,
+         age = AGE, Sex_cde, Sex, Maturity_cde = MATURITY_CODE,
+         Maturity = MATURITY) %>% 
+  write_csv(., "data/fishery/fishery_bio_2000_2016.csv")
 

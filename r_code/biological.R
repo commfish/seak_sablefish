@@ -1,18 +1,15 @@
-# work up of biological data
+# work up of survey and fishery biological data
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2017-10-09
+# Last edited: 2017-10-16
 
-source("r_code/helper.R")
-library("broom")
-library("stats4")
+source("r_code/helper.r")
+source("r_code/vonb_fxns.r")
 
 # data -----
-srv_bio <- read_csv("data/survey/survey_bio_1988_2016.csv")
 
-glimpse(srv_bio)
-
-srv_bio %>% 
+# survey biological  data
+read_csv("data/survey/survey_bio_1988_2016.csv") %>% 
   mutate(Year = factor(year),
          Project = factor(Project),
          Stat = factor(Stat),
@@ -25,14 +22,30 @@ srv_bio %>%
          length_mu = mean(length_mm, na.rm = TRUE),
          weight_mu = mean(weight_kg, na.rm = TRUE)) -> srv_bio
 
-# Hanselman et al. 2007 Appendix GOA Sablefish SAFE Appendix 3C for comparison.
-# The coastwide parameters are still used for management, but Southeast
+# Hanselman et al. 2007 Appendix GOA Sablefish SAFE Appendix 3C von bertalanffy
+# parameter estimates (length and weight) for comparison with estimates from the
+# survey. The coastwide parameters are still used for management, but Southeast
 # slope are informative.
 noaa_lvb <- read_csv("data/survey/noaa_lvb_params_hanselman2007.csv")
 
-glimpse(noaa_lvb)
+# Fishery biological data
 
-# Length-based Ludwig von Bertalanffy growth model -----
+read_csv("data/fishery/fishery_bio_2000_2016.csv") %>%
+  mutate(Year = factor(year),
+         Project_cde = factor(Project_cde),
+         Adfg = factor(Adfg),
+         Stat = factor(Stat),
+         Sex_cde = factor(Sex_cde),
+         Sex = factor(Sex),
+         Maturity = factor(Maturity),
+         Maturity_cde = factor(Maturity_cde),
+         length_cm = length_mm/10) %>% 
+  group_by(Year, Stat) %>% 
+  mutate(n = length(age),
+         length_mu = mean(length_mm, na.rm = TRUE),
+         weight_mu = mean(weight_kg, na.rm = TRUE)) -> fsh_bio
+
+# length-based Ludwig von Bertalanffy growth model -----
 
 # subsets by length, age, sex
 srv_bio %>% 
@@ -44,37 +57,6 @@ srv_bio %>%
 
 laa_sub %>% ungroup() %>% filter(Sex == "Female") -> laa_f
 laa_sub %>% ungroup() %>% filter(Sex == "Male") -> laa_m
-
-# fit length-based lvb with max likelihood 
-vb_like <- function(obs_length, age, l_inf, k, t0, sigma) { 
-  pred <- l_inf * (1 - exp(-k * (age - t0))) # predictions based on lvb growth curve
-  like <- dnorm(obs_length, pred, sigma) # likelihood
-  neg_like <- -1 * (sum(log(like))) # negative log likelihood
-  return(neg_like) # returning negative log likelihood
-}
-
-vb_mle <- function(obs_length, age, starting_vals, sex) {
-  #minimizing negative log likelihood with mle function
-  vb_mle <- mle(vb_like, start = as.list(starting_vals), 
-             fixed = list(obs_length = obs_length, age = age),
-             method = "BFGS")
-  print(summary(vb_mle))
-  l_inf_opt <- coef(summary(vb_mle))[1] # parameter estimates
-  k_opt <- coef(summary(vb_mle))[2]
-  t0_opt <- coef(summary(vb_mle))[3]
-  sigma_opt <- coef(summary(vb_mle))[4]
-  logl <- attributes(summary(vb_mle))$m2logL/-2
-  pred <- l_inf_opt * (1 - exp(-k_opt * (age - t0_opt))) # retaining predicted values
-  resids <- obs_length - pred # retaining residuals
-  results <- list(predictions = data.frame(obs_length = obs_length,
-                                           age = age, pred = pred, 
-                                           resid = resids, Sex = sex),
-                  results = tidy(coef(summary(vb_mle))) %>% 
-                    select(Parameter = `.rownames`, Estimate, SE = `Std..Error`) %>% 
-                    mutate(Sex = sex), 
-                  logl = logl)
-  return(results)
-}
 
 #sex-specific starting values from Hanselman et al. 2007 (Appendix C, Table 1),
 #except sigma
@@ -108,7 +90,7 @@ lvb_pars <- full_join(
   laa_sub %>% group_by(Sex) %>% summarise(n = n()),
   by = "Sex")
 
-png("figures/length_vonb_chatham_1997_2016.png", height = 4, width = 6, units = "in", res = 300)
+png("figures/length_vonb_chathamllsurvey_1997_2016.png", height = 4, width = 6, units = "in", res = 300)
 ggplot() +
   geom_jitter(data = laa_sub, aes(x = age, y = length_cm, col = Sex, shape = Sex)) +
   geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
@@ -147,9 +129,7 @@ srv_bio %>%
            !is.na(weight_kg)) %>% droplevels() -> allom_sub
 
 # length-weight relationship
-lw_allometry <- function(length, a, b) {
-  a * length ^ b
-}
+lw_allometry <- function(length, a, b) {a * length ^ b}
 
 START <- c(a = 1e-5, b = 3) #Starting values close to Hanselman et al. 2007
 
@@ -176,7 +156,7 @@ allom_pars <- full_join(
   allom_sub %>% group_by(Sex) %>% summarise(n = n()),
   by = "Sex")
 
-png("figures/allometry_chatham_1997_2016.png", height = 4, width = 6, units = "in", res = 300)
+png("figures/allometry_chathamllsurvey_1997_2016.png", height = 4, width = 6, units = "in", res = 300)
 ggplot(allom_sub,  
        aes(x = length_cm, y = weight_kg, col = Sex, shape = Sex)) +
   geom_jitter() + 
@@ -205,38 +185,6 @@ waa_sub %>% ungroup() %>% filter(Sex == "Male") -> waa_m
 
 # fit weight-based lvb with a multiplicative error structure using max likelihood estimation
 # log(w_i) = log(w_inf) + beta * log(1 - exp * (-k * (age_i - t0))) + error
-# multiplicative error distrubtion accounts for increasing variability in weight-at-age with age
-wvb_like <- function(obs_weight, age, w_inf, k, t0, b, sigma) { 
-  log_pred <- log(w_inf) + b * log(1 - exp(-k * (age - t0))) # predictions based on von bertalanffy growth curve
-  # pred <- exp(log_pred)
-  like <- dnorm(log(obs_weight), log_pred, sigma) # likelihood
-  neg_like <- -1 * (sum(log(like))) # negative log likelihood
-  return(neg_like) # returning negative log likelihood
-}
-
-wvb_mle <- function(obs_weight, age, b, starting_vals, sex) {
-  #minimizing negative log likelihood with mle function
-  wvb_mle <- mle(wvb_like, start = as.list(starting_vals), 
-                fixed = list(obs_weight = obs_weight, age = age, b = b),
-                method = "BFGS")
-  print(summary(wvb_mle))
-  w_inf_opt <- coef(summary(wvb_mle))[1] #retaining optimized parameter values
-  k_opt <- coef(summary(wvb_mle))[2]
-  t0_opt <- coef(summary(wvb_mle))[3]
-  sigma_opt <- coef(summary(wvb_mle))[4]
-  logl <- attributes(summary(wvb_mle))$m2logL/-2
-  log_pred <- log(w_inf_opt) + b * log(1 - exp(-k_opt * (age - t0_opt))) #  predicted values
-  pred <- exp(log_pred)
-  resids <- obs_weight - pred # retaining residuals
-  results <- list(predictions = data.frame(obs_weight = obs_weight,
-                            age = age, pred = pred, 
-                            resid = resids, Sex = sex),
-    results = tidy(coef(summary(wvb_mle))) %>% 
-      select(Parameter = `.rownames`, Estimate, SE = `Std..Error`) %>% 
-      mutate(Sex = sex), 
-    logl = logl)
-  return(results)
-}
 
 # starting values from Hanselman et al. 2007 Appendix C Table 5
 start_f <- c(w_inf = 5.5, k = 0.24, t0 = -1.4, sigma = 10)
@@ -272,7 +220,7 @@ wvb_pars <- full_join(
   waa_sub %>% group_by(Sex) %>% summarise(n = n()),
   by = "Sex")
 
-png("figures/weight_vonb_chatham_1997_2016.png", height = 4, width = 6, units = "in", res = 300)
+png("figures/weight_vonb_chathamllsurvey_1997_2016.png", height = 4, width = 6, units = "in", res = 300)
 ggplot() +
   geom_jitter(data = waa_sub, aes(x = age, y = weight_kg, col = Sex, shape = Sex)) +
   geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
@@ -308,4 +256,254 @@ rbind(allom_pars,
 write_csv(rbind(noaa_lvb, adfg_lvb) , 
           "output/compare_vonb_adfg_noaa.csv")
 
+
+# Sex ratios ----
+
+# by age and year in the fishery and survey
+
+fsh_bio %>% ungroup() %>% 
+  filter(Sex %in% c("Female", "Male")) %>% 
+  droplevels() %>% 
+  count(Sex, Year) %>% 
+  group_by(Year) %>% 
+  mutate(prop_byyear = nn / sum(nn)) %>% 
+  View()
+
+fsh_bio %>% ungroup() %>% 
+  filter(Sex %in% c("Female", "Male")) %>% 
+  droplevels() %>% 
+  count(Sex, age) %>% 
+  group_by(age) %>% 
+  mutate(prop_byage = nn / sum(nn)) %>% 
+  View()
+
+fsh_bio %>% ungroup() %>% 
+  filter(Sex %in% c("Female", "Male")) %>% 
+  droplevels() %>% 
+  count(Sex, Year, age) %>% 
+  group_by(Year, age) %>% 
+  mutate(prop_by_yearage = nn / sum(nn)) %>% 
+  View()
+
+
+
+ggplot(fsh_bio, aes(age, length_cm, col = Sex)) +
+  geom_point()
+
+
+# OLD
+
+###############################################################################
+###############################################################################
+#
+# SABLEFISH SEX COMPOSITION GRAPHICS, SURVEY & FISHERY
+#
+#  Updated 3/15/2016 Kray Van Kirk 
+#
+###############################################################################
+###############################################################################
+
+
+###############################################################################
+# LIBRARIES
+###############################################################################
+library(lattice)
+library(nlme)
+library(plyr)
+library(ggplot2)
+library(dplyr)
+
+
+#------------------------------------------------------------------------------
+#  DATA
+#------------------------------------------------------------------------------
+surv<-read.table("data/srv_bio_data.csv",header=TRUE,sep=",")
+fish<-read.table("data/fish_bio_data.csv",header=TRUE,sep=",")
+
+
+#------------------------------------------------------------------------------
+# Subsets and conditions
+#------------------------------------------------------------------------------
+j <- !is.na(surv$SEX) 
+j <- j & !is.na(surv$AGE)
+dats <- surv[j,c("YEAR", "SEX", "AGE", "LENGTH_MILLIMETERS")]
+
+colnames(dats) <- c("year","sex","age","length")
+levels(dats$sex) <- c(NA,"Female", NA, "Male", NA, NA)
+dats$sex <- ordered(dats$sex, c("Male","Female"))
+
+
+j <- is.element(fish$SEX_CODE,c(1,2)) 
+datf <- fish[j,c("YEAR", "SEX_CODE", "AGE", "LENGTH_MILLIMETERS")]
+
+colnames(datf) <- c("year","sex","age","length")
+datf$sex <-as.factor(datf$sex)
+levels(datf$sex) <- c("Male", "Female")
+
+#
+# YEAR
+#
+b <- c(2002:2015)
+c <- c(1988:2015)
+fityra <- gam(I(sex == "Female") ~ s(year), data = dats, family = "quasibinomial")
+fityrb <- gam(I(sex == "Female") ~ s(year), data = datf, family = "quasibinomial")
+
+x <- predict(fityra, newdata = data.frame(year = c), type="response", se=T)
+y <- predict(fityrb, newdata = data.frame(year = b), type="response", se=T)
+
+
+#
+# AGE
+#
+a <- c(2:42)
+
+fitagea <- gam(I(sex == "Female") ~ s(age), data = dats, family = "quasibinomial")
+fitageb <- gam(I(sex == "Female") ~ s(age), data = datf, family = "quasibinomial")
+
+xx <- predict(fitagea, newdata = data.frame(age = a), type="response", se=T)
+yy <- predict(fitageb, newdata = data.frame(age = a), type="response", se=T)
+
+#
+#Data frames
+#
+
+sexy<-as.data.frame(x$fit)
+sexy$x_se<-x$se.fit
+sexy$yfit<-c(rep(0,14),y$fit)
+sexy$y_se<-c(rep(0,14),y$se.fit)
+sexy$Year<-c
+colnames(sexy)<-c("Survey","S_se","Fishery","F_se","Year")
+
+sexa<-as.data.frame(xx$fit)
+sexa$xx_se<-xx$se.fit
+sexa$yyfit<-yy$fit
+sexa$yy_se<-yy$se.fit
+sexa$Age<-a
+colnames(sexa)<-c("Survey","S_se","Fishery","F_se","Age")
+
+
+
+AA<-ggplot(sexa,aes(Age,Survey,colour="Survey"))+geom_line()+
+  geom_line(aes(Age,Fishery,colour="Fishery"))+
+  #scale_x_discrete(limits=c(2, 42), expand = c(0.01, 0.01)) + 
+  ylab("Proportion of females")+
+  geom_line(aes(Age,Fishery+(2*F_se),colour="Fishery"),lty=2)+
+  geom_line(aes(Age,Fishery-(2*F_se),colour="Fishery"),lty=2)+
+  geom_line(aes(Age,Survey+(2*S_se),colour="Survey"),lty=2)+
+  geom_line(aes(Age,Survey-(2*S_se),colour="Survey"),lty=2)+
+  annotate("text", x= 10, y = 0.32, label = paste("ADF&G Longline survey"), colour="blue")+
+  annotate("text", x= 10, y = 0.28, label = paste("Commercial longline fishery"), colour="red")+
+  theme_bw()+
+  theme(legend.position = "bottomleft")+
+  scale_colour_manual(values=c("Survey" = "blue", "Fishery" = "red"))+
+  theme(panel.grid.major = element_line(colour="transparent"))+
+  theme(panel.grid.minor = element_line(colour="transparent"))+
+  theme(strip.text = element_text(size=10))+
+  theme(axis.text.x = element_text(size=10,colour="black"),
+        axis.title.x = element_text(size=10,colour="black"))+
+  theme(axis.text.y = element_text(size=10,colour="black"),
+        axis.title.y = element_text(size=10,colour="black"))+
+  theme(plot.background = element_rect(fill = "transparent",colour = NA))+
+  theme(legend.background = element_rect(fill = "transparent",colour = NA))
+
+BB<-ggplot(sexy,aes(Year,Survey,colour="blue"))+geom_line(colour="blue")+
+  geom_line(data=subset(sexy, Year>2001),aes(Year,Fishery),colour="red")+
+  #scale_x_discrete(limits=c(1988, 2015), expand = c(0.01, 0.01)) + 
+  geom_line(data=subset(sexy, Year>2001),aes(Year,Fishery+(2*F_se)),colour="red",lty=2)+
+  geom_line(data=subset(sexy, Year>2001),aes(Year,Fishery-(2*F_se)),colour="red",lty=2)+
+  geom_line(aes(Year,Survey+(2*S_se)),colour="blue",lty=2)+
+  geom_line(aes(Year,Survey-(2*S_se)),colour="blue",lty=2)+
+  annotate("text", x= 1995, y = 0.4, label = paste("ADF&G Longline survey"), colour="blue")+
+  annotate("text", x= 1995, y = 0.37, label = paste("Commercial longline fishery"), colour="red")+
+  ylab("Proportion of females")+
+  theme_bw()+
+  theme(legend.position = "none")+
+  theme(panel.grid.major = element_line(colour="transparent"))+
+  theme(panel.grid.minor = element_line(colour="transparent"))+
+  theme(strip.text = element_text(size=10))+
+  theme(axis.text.x = element_text(size=10,colour="black"),
+        axis.title.x = element_text(size=10,colour="black"))+
+  theme(axis.text.y = element_text(size=10,colour="black"),
+        axis.title.y = element_text(size=10,colour="black"))+
+  theme(plot.background = element_rect(fill = "transparent",colour = NA))+
+  theme(legend.background = element_rect(fill = "transparent",colour = NA))
+
+png(file='figures/sex_year_age.png', res=300, width=7, height=6., units ="in", bg="transparent")       
+grid.arrange(AA,BB)
+dev.off()
+
+#
+# FIGURES
+#
+
+png(file='figures/sex_year.png', res=300, width=7, height=4., units ="in", bg="transparent")  
+par(oma=c(0,0,0,0), mar=c(5,5,1,1))
+plot(c, x$fit, ylab = "Proportion females by year", xlab = "Year", type="l", ylim = c(0.3, 0.8), cex.lab = 1., col="blue", lwd=2)
+lines(c, x$fit + 2*x$se.fit, lty=2, col = "blue")
+lines(c, x$fit - 2*x$se.fit, lty=2, col = "blue")
+lines(b, y$fit, col="red", lwd=2)
+lines(b, y$fit + 2*y$se.fit, lty=2, col = "red")
+lines(b, y$fit - 2*y$se.fit, lty=2, col = "red")
+legend(2002, 0.4, lty = 1, lwd=2, col=c("blue","red"),c("ADF&G longline survey","Commercial longline fishery"),bty="n")
+abline(h=0.5, lty=3)
+dev.off()
+
+png(file='figures/sex_age.png', res=300, width=7, height=4., units ="in", bg="transparent")  
+par(oma=c(0,0,0,0), mar=c(5,5,1,1))
+plot(a, xx$fit, ylab = "Proportion females by age", xlab = "Age", type="l", ylim = c(0.2, 0.8), cex.lab = 1., col="blue", lwd=2)
+lines(a, xx$fit + 2*xx$se.fit, lty=2, col = "blue")
+lines(a, xx$fit - 2*xx$se.fit, lty=2, col = "blue")
+lines(a, yy$fit, col="red", lwd=2)
+lines(a, yy$fit + 2*yy$se.fit, lty=2, col = "red")
+lines(a, yy$fit - 2*yy$se.fit, lty=2, col = "red")
+legend(5, 0.4, lty = 1, lwd=2, col=c("blue","red"),c("ADF&G longline survey","Commercial longline fishery"),bty="n")
+abline(h=0.5, lty=3)
+dev.off()
+
+
+#----------------------------------------------------------------
+# OLD GRAPHICS FOR 2014 DISCUSSION ON DEPTH, FEMALES, AND SIZE
+#----------------------------------------------------------------
 # 
+# j <- is.element(fish$SEX_CODE,c(2))
+# j <- j & !is.na(fish$AGE)
+# dat2 <- fish[j,c("YEAR", "SEX_CODE", "AGE", "LENGTH_MILLIMETERS")]
+# 
+# j <- is.element(surv$SEX,"Female") 
+# j <- j & !is.na(surv$AGE)
+# dat <- surv[j,c("YEAR", "SEX", "AGE", "LENGTH_MILLIMETERS")]
+# 
+# # Set levels of sex to Male and Female only (all others = NA):
+# levels(dat$SEX) <- c(NA,"Female", NA, "Male", NA, NA, NA)
+# dat$SEX <- ordered(dat$SEX, c("Male","Female"))
+# #dat <- na.omit(dat)
+# 
+# x<-table(dat$AGE)
+# x
+# y<-sum(x)
+# z<-x/y
+# z
+# write.table(round(z,4), "clipboard", row.names=F)
+# a<-table(dat2$AGE)
+# b<-sum(a)
+# c<-a/b
+# c
+# write.table(round(c,4), "clipboard", row.names=F)
+# 
+# 
+# barplot(z$fit)
+# par(new=TRUE)
+# barplot(xf$fit,col="cyan4",yaxt="n")
+# 
+# dat<-dat[dat$AGE<41 &dat$SEX == "Female" ,]
+# dat2<-dat2[dat2$AGE<41 & dat2$SEX=="Female",]
+# plot(table(dat$AGE),col="grey", main="", las=3); abline(h=0.5, lwd=2)
+# par(new=TRUE)
+# plot(table(dat2$AGE), col="cyan4", main="", las=3)
+# 
+
+
+
+
+
+
