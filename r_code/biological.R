@@ -259,15 +259,101 @@ write_csv(rbind(noaa_lvb, adfg_lvb) ,
 
 # Sex ratios ----
 
-# by age and year in the fishery and survey
+# troubleshoot fxn
+data <- srv_bio
+var <- quo(Sex)
+source <- "longline survey"
+proportion_by <- 'age'
 
+# .proportion_by <- "age"
+# predict_over <- c(min(data$proportion_by), max(data$proportion_by))
+
+# Generalized function to get raw proportion by age or year, plus the predicted
+# output from a generalized additive model
+proportion_fem <- function(
+  # biological survey or fishery data, each line in an individual fish. at
+  # minimum, has columns "Sex" (factor with levels "Female" and "Male"), year (numeric), or age (numeric)
+  data, 
+  var, # Sex
+  source, #"longline survey", "longline fishery"
+  proportion_by, # age, year
+  # vector of values over which to predict gam output over. defaults to the
+  # min/max in the data set, but user can change if wanted, for example, if you
+  # wanted to restrict which ages or years of interest
+  predict_over = c(min(data$proportion_by), max(data$proportion_by))#
+) {
+  
+  var <- quo(Sex)
+  proportion_by <- quo(age)
+  
+  # subset with known sex
+  data %>% ungroup() %>% 
+    # UQE = unquote the expression for evaluation while ignoring the environment
+    filter(UQE(var) %in% c("Female", "Male")) %>%
+    droplevels() -> data
+
+  # proportion by
+  
+  data %>% ungroup() %>% 
+    count(!!var, !!proportion_by) %>% View()
+    group_by(!!proportion_by) %>% 
+    mutate(proportion = nn / sum(nn)) %>% 
+    filter(Sex == "Female") -> props
+  
+  # gam 
+  fit <- gam( I(Sex == "Female") ~ s(!!proportion_by), data = data, family = "quasibinomial")
+  
+  # predicted values
+  pred_values <- predict(fit, newdata = data.frame(.proportion_by = predict_over, 
+                                                   type = "response", 
+                                                   se = TRUE))
+  
+}
+
+# subset of both the fishery and the survey data with known sex
 fsh_bio %>% ungroup() %>% 
   filter(Sex %in% c("Female", "Male")) %>% 
-  droplevels() %>% 
+  droplevels() -> fsh_sex
+
+srv_bio %>% 
+  filter(Sex %in% c("Female", "Male")) %>% 
+  droplevels()  -> srv_sex
+
+# proportion of females by age and year in the fishery and survey
+
+fsh_sex %>% 
   count(Sex, Year) %>% 
   group_by(Year) %>% 
   mutate(prop_byyear = nn / sum(nn)) %>% 
-  View()
+  filter(Sex == "Female") -> byyear
+
+fityear <- gam(I(Sex == "Female") ~ s(year), data = fsh_sex, family = "quasibinomial")
+pred_year <- predict(fityear, newdata = data.frame(year = c(2002:2016)), type = "response", se = TRUE)
+
+bind_cols(byyear, tbl_df(do.call(cbind, pred_year))) -> byyear
+
+#
+
+ggplot(byyear, aes(as.numeric(as.character(Year)))) +
+  geom_line(aes(y = fit, group = 1), colour = "black", size = 1) +
+  geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2), fill = "grey70", alpha = 0.3) +
+  geom_point(aes(y = prop_byyear), colour = "red") +
+  expand_limits(y = c(0.30, 0.8)) +
+  scale_x_continuous(breaks = 2002:2016, labels = levels(byyear$Year)) +
+  xlab("")
+  ylab("Proportion of females\n") 
+
+ggplot(byyear, aes(as.numeric(as.character(Year)))) +
+  geom_line(aes(y = fit, group = 1), colour = "black", size = 1) +
+  geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2), fill = "grey70", alpha = 0.3) +
+  geom_point(aes(y = prop_byyear), colour = "red") +
+  expand_limits(y = c(0.30, 0.8)) +
+  scale_x_continuous(breaks = 2002:2016, labels = levels(byyear$Year)) +
+  xlab("")
+  ylab("Proportion of females\n") 
+  
+  
+
 
 fsh_bio %>% ungroup() %>% 
   filter(Sex %in% c("Female", "Male")) %>% 
@@ -277,15 +363,23 @@ fsh_bio %>% ungroup() %>%
   mutate(prop_byage = nn / sum(nn)) %>% 
   View()
 
+fitage <- gam(I(Sex == "Female") ~ s(age), data = fsh_sex, family = "quasibinomial")
+pred_age <- predict(fitage, newdata = data.frame(age = c(2:42)), type = "response", se = TRUE)
+data.frame(age = 2:42, do.call(cbind, pred_age))
+
 fsh_bio %>% ungroup() %>% 
-  filter(Sex %in% c("Female", "Male")) %>% 
+  filter(Sex %in% c("Female", "Male") &
+           age > 2 & age < 30) %>% 
   droplevels() %>% 
-  count(Sex, Year, age) %>% 
-  group_by(Year, age) %>% 
+  count(Sex, year, age) %>% 
+  group_by(year, age) %>% 
   mutate(prop_by_yearage = nn / sum(nn)) %>% 
-  View()
+  filter(Sex == "Female") -> byyearage
 
-
+ggplot(byyearage, aes(x = year, y = prop_by_yearage)) +
+  geom_point() +
+  geom_smooth(method='gam') +
+  expand_limits(y = c(0.1, 1.0))
 
 ggplot(fsh_bio, aes(age, length_cm, col = Sex)) +
   geom_point()
