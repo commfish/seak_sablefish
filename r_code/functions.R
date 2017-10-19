@@ -127,7 +127,7 @@ f_sex_ratio <- function(
     count(!!var, !!!proportion_by) %>%
     group_by(!!!proportion_by) %>%
     mutate(proportion = round(n / sum(n), 2) ,
-           source = src) %>%
+           Source = src) %>%
     filter(Sex == proportion_of) -> props
   
   return(props)

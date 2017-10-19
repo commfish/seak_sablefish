@@ -262,298 +262,116 @@ write_csv(rbind(noaa_lvb, adfg_lvb) ,
 # proportion of females by age in survey and fishery
 
 # restrict age range
-aa <- c(2, 42)
+aa <- c(2:42)
 
 bind_rows(
-  f_sex_ratio(data = filter(srv_bio, between(age, aa[1], aa[2])), 
+  f_sex_ratio(data = filter(srv_bio, age %in% aa), 
               src = "LL survey", age),
-  f_sex_ratio(data = filter(fsh_bio, between(age, aa[1], aa[2])), 
+  f_sex_ratio(data = filter(fsh_bio, age %in% aa), 
               src = "LL fishery", age)
 ) -> byage
 
-ggplot(data = byage, aes(x = age, y = proportion, col = source)) +
-  geom_point()
+# get generalized additive model fits and predictions
+# survey
+srv_fitage <- gam(I(Sex == "Female") ~ s(age), 
+               data = filter(srv_bio, age %in% aa,
+                             Sex %in% c("Female", "Male")),
+               family = "quasibinomial")
 
-# proportion of females by age and year in the fishery and survey
+srv_predage <- predict(srv_fitage, newdata = data.frame(age = aa),
+                       type = "response", se = TRUE)
 
-fsh_sex %>% 
-  count(Sex, Year) %>% 
-  group_by(Year) %>% 
-  mutate(prop_byyear = nn / sum(nn)) %>% 
-  filter(Sex == "Female") -> byyear
+# fishery
+fsh_fitage <- gam(I(Sex == "Female") ~ s(age), 
+               data = filter(fsh_bio, age %in% aa,
+                             Sex %in% c("Female", "Male")),
+               family = "quasibinomial")
 
-fityear <- gam(I(Sex == "Female") ~ s(year), data = fsh_sex, family = "quasibinomial")
+fsh_predage <- predict(fsh_fitage, newdata = data.frame(age = aa),
+                       type = "response", se = TRUE)
 
-pred_year <- predict(fityear, newdata = data.frame(year = c(2002:2016)), type = "response", se = TRUE)
+# combine with the sex_ratio df
+# *FLAG* bind_cols goes by col position, make sure survey is first
+bind_cols(
+  byage,
+  #do.call cbinds each vector in the predict() output list 
+  bind_rows(tbl_df(do.call(cbind, srv_predage))%>% mutate(source_check = "LL survey"),
+            tbl_df(do.call(cbind, fsh_predage))%>% mutate(source_check = "LL fishery") ) 
+  ) -> byage
 
-bind_cols(byyear, tbl_df(do.call(cbind, pred_year))) -> byyear
-
-#
-
-ggplot(byyear, aes(as.numeric(as.character(Year)))) +
-  geom_line(aes(y = fit, group = 1), colour = "black", size = 1) +
-  geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2), fill = "grey70", alpha = 0.3) +
-  geom_point(aes(y = prop_byyear), colour = "red") +
+# plot
+png("figures/proportion_fembyage.png", height = 4, width = 6, units = "in", res = 300)
+ggplot(data = byage, aes(x = age)) +
+  geom_line(aes(y = fit, col = Source), size = 1) +
+  geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, fill = Source, col = Source),  alpha = 0.2) +
+  geom_point(aes(y = proportion, col = Source)) +  
   expand_limits(y = c(0.30, 0.8)) +
-  scale_x_continuous(breaks = 2002:2016, labels = levels(byyear$Year)) +
-  xlab("")
+  xlab("\nAge") +
   ylab("Proportion of females\n") 
-
-ggplot(byyear, aes(as.numeric(as.character(Year)))) +
-  geom_line(aes(y = fit, group = 1), colour = "black", size = 1) +
-  geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2), fill = "grey70", alpha = 0.3) +
-  geom_point(aes(y = prop_byyear), colour = "red") +
-  expand_limits(y = c(0.30, 0.8)) +
-  scale_x_continuous(breaks = 2002:2016, labels = levels(byyear$Year)) +
-  xlab("")
-  ylab("Proportion of females\n") 
-  
-  
-
-
-fsh_bio %>% ungroup() %>% 
-  filter(Sex %in% c("Female", "Male")) %>% 
-  droplevels() %>% 
-  count(Sex, age) %>% 
-  group_by(age) %>% 
-  mutate(prop_byage = nn / sum(nn)) %>% 
-  View()
-
-fitage <- gam(I(Sex == "Female") ~ s(age), data = fsh_sex, family = "quasibinomial")
-pred_age <- predict(fitage, newdata = data.frame(age = c(2:42)), type = "response", se = TRUE)
-data.frame(age = 2:42, do.call(cbind, pred_age))
-
-fsh_bio %>% ungroup() %>% 
-  filter(Sex %in% c("Female", "Male") &
-           age > 2 & age < 30) %>% 
-  droplevels() %>% 
-  count(Sex, year, age) %>% 
-  group_by(year, age) %>% 
-  mutate(prop_by_yearage = nn / sum(nn)) %>% 
-  filter(Sex == "Female") -> byyearage
-
-ggplot(byyearage, aes(x = year, y = prop_by_yearage)) +
-  geom_point() +
-  geom_smooth(method='gam') +
-  expand_limits(y = c(0.1, 1.0))
-
-ggplot(fsh_bio, aes(age, length_cm, col = Sex)) +
-  geom_point()
-
-
-# OLD
-
-###############################################################################
-###############################################################################
-#
-# SABLEFISH SEX COMPOSITION GRAPHICS, SURVEY & FISHERY
-#
-#  Updated 3/15/2016 Kray Van Kirk 
-#
-###############################################################################
-###############################################################################
-
-
-###############################################################################
-# LIBRARIES
-###############################################################################
-library(lattice)
-library(nlme)
-library(plyr)
-library(ggplot2)
-library(dplyr)
-
-
-#------------------------------------------------------------------------------
-#  DATA
-#------------------------------------------------------------------------------
-surv<-read.table("data/srv_bio_data.csv",header=TRUE,sep=",")
-fish<-read.table("data/fish_bio_data.csv",header=TRUE,sep=",")
-
-
-#------------------------------------------------------------------------------
-# Subsets and conditions
-#------------------------------------------------------------------------------
-j <- !is.na(surv$SEX) 
-j <- j & !is.na(surv$AGE)
-dats <- surv[j,c("YEAR", "SEX", "AGE", "LENGTH_MILLIMETERS")]
-
-colnames(dats) <- c("year","sex","age","length")
-levels(dats$sex) <- c(NA,"Female", NA, "Male", NA, NA)
-dats$sex <- ordered(dats$sex, c("Male","Female"))
-
-
-j <- is.element(fish$SEX_CODE,c(1,2)) 
-datf <- fish[j,c("YEAR", "SEX_CODE", "AGE", "LENGTH_MILLIMETERS")]
-
-colnames(datf) <- c("year","sex","age","length")
-datf$sex <-as.factor(datf$sex)
-levels(datf$sex) <- c("Male", "Female")
-
-#
-# YEAR
-#
-b <- c(2002:2015)
-c <- c(1988:2015)
-fityra <- gam(I(sex == "Female") ~ s(year), data = dats, family = "quasibinomial")
-fityrb <- gam(I(sex == "Female") ~ s(year), data = datf, family = "quasibinomial")
-
-x <- predict(fityra, newdata = data.frame(year = c), type="response", se=T)
-y <- predict(fityrb, newdata = data.frame(year = b), type="response", se=T)
-
-
-#
-# AGE
-#
-a <- c(2:42)
-
-fitagea <- gam(I(sex == "Female") ~ s(age), data = dats, family = "quasibinomial")
-fitageb <- gam(I(sex == "Female") ~ s(age), data = datf, family = "quasibinomial")
-
-xx <- predict(fitagea, newdata = data.frame(age = a), type="response", se=T)
-yy <- predict(fitageb, newdata = data.frame(age = a), type="response", se=T)
-
-#
-#Data frames
-#
-
-sexy<-as.data.frame(x$fit)
-sexy$x_se<-x$se.fit
-sexy$yfit<-c(rep(0,14),y$fit)
-sexy$y_se<-c(rep(0,14),y$se.fit)
-sexy$Year<-c
-colnames(sexy)<-c("Survey","S_se","Fishery","F_se","Year")
-
-sexa<-as.data.frame(xx$fit)
-sexa$xx_se<-xx$se.fit
-sexa$yyfit<-yy$fit
-sexa$yy_se<-yy$se.fit
-sexa$Age<-a
-colnames(sexa)<-c("Survey","S_se","Fishery","F_se","Age")
-
-
-
-AA<-ggplot(sexa,aes(Age,Survey,colour="Survey"))+geom_line()+
-  geom_line(aes(Age,Fishery,colour="Fishery"))+
-  #scale_x_discrete(limits=c(2, 42), expand = c(0.01, 0.01)) + 
-  ylab("Proportion of females")+
-  geom_line(aes(Age,Fishery+(2*F_se),colour="Fishery"),lty=2)+
-  geom_line(aes(Age,Fishery-(2*F_se),colour="Fishery"),lty=2)+
-  geom_line(aes(Age,Survey+(2*S_se),colour="Survey"),lty=2)+
-  geom_line(aes(Age,Survey-(2*S_se),colour="Survey"),lty=2)+
-  annotate("text", x= 10, y = 0.32, label = paste("ADF&G Longline survey"), colour="blue")+
-  annotate("text", x= 10, y = 0.28, label = paste("Commercial longline fishery"), colour="red")+
-  theme_bw()+
-  theme(legend.position = "bottomleft")+
-  scale_colour_manual(values=c("Survey" = "blue", "Fishery" = "red"))+
-  theme(panel.grid.major = element_line(colour="transparent"))+
-  theme(panel.grid.minor = element_line(colour="transparent"))+
-  theme(strip.text = element_text(size=10))+
-  theme(axis.text.x = element_text(size=10,colour="black"),
-        axis.title.x = element_text(size=10,colour="black"))+
-  theme(axis.text.y = element_text(size=10,colour="black"),
-        axis.title.y = element_text(size=10,colour="black"))+
-  theme(plot.background = element_rect(fill = "transparent",colour = NA))+
-  theme(legend.background = element_rect(fill = "transparent",colour = NA))
-
-BB<-ggplot(sexy,aes(Year,Survey,colour="blue"))+geom_line(colour="blue")+
-  geom_line(data=subset(sexy, Year>2001),aes(Year,Fishery),colour="red")+
-  #scale_x_discrete(limits=c(1988, 2015), expand = c(0.01, 0.01)) + 
-  geom_line(data=subset(sexy, Year>2001),aes(Year,Fishery+(2*F_se)),colour="red",lty=2)+
-  geom_line(data=subset(sexy, Year>2001),aes(Year,Fishery-(2*F_se)),colour="red",lty=2)+
-  geom_line(aes(Year,Survey+(2*S_se)),colour="blue",lty=2)+
-  geom_line(aes(Year,Survey-(2*S_se)),colour="blue",lty=2)+
-  annotate("text", x= 1995, y = 0.4, label = paste("ADF&G Longline survey"), colour="blue")+
-  annotate("text", x= 1995, y = 0.37, label = paste("Commercial longline fishery"), colour="red")+
-  ylab("Proportion of females")+
-  theme_bw()+
-  theme(legend.position = "none")+
-  theme(panel.grid.major = element_line(colour="transparent"))+
-  theme(panel.grid.minor = element_line(colour="transparent"))+
-  theme(strip.text = element_text(size=10))+
-  theme(axis.text.x = element_text(size=10,colour="black"),
-        axis.title.x = element_text(size=10,colour="black"))+
-  theme(axis.text.y = element_text(size=10,colour="black"),
-        axis.title.y = element_text(size=10,colour="black"))+
-  theme(plot.background = element_rect(fill = "transparent",colour = NA))+
-  theme(legend.background = element_rect(fill = "transparent",colour = NA))
-
-png(file='figures/sex_year_age.png', res=300, width=7, height=6., units ="in", bg="transparent")       
-grid.arrange(AA,BB)
-dev.off()
-
-#
-# FIGURES
-#
-
-png(file='figures/sex_year.png', res=300, width=7, height=4., units ="in", bg="transparent")  
-par(oma=c(0,0,0,0), mar=c(5,5,1,1))
-plot(c, x$fit, ylab = "Proportion females by year", xlab = "Year", type="l", ylim = c(0.3, 0.8), cex.lab = 1., col="blue", lwd=2)
-lines(c, x$fit + 2*x$se.fit, lty=2, col = "blue")
-lines(c, x$fit - 2*x$se.fit, lty=2, col = "blue")
-lines(b, y$fit, col="red", lwd=2)
-lines(b, y$fit + 2*y$se.fit, lty=2, col = "red")
-lines(b, y$fit - 2*y$se.fit, lty=2, col = "red")
-legend(2002, 0.4, lty = 1, lwd=2, col=c("blue","red"),c("ADF&G longline survey","Commercial longline fishery"),bty="n")
-abline(h=0.5, lty=3)
-dev.off()
-
-png(file='figures/sex_age.png', res=300, width=7, height=4., units ="in", bg="transparent")  
-par(oma=c(0,0,0,0), mar=c(5,5,1,1))
-plot(a, xx$fit, ylab = "Proportion females by age", xlab = "Age", type="l", ylim = c(0.2, 0.8), cex.lab = 1., col="blue", lwd=2)
-lines(a, xx$fit + 2*xx$se.fit, lty=2, col = "blue")
-lines(a, xx$fit - 2*xx$se.fit, lty=2, col = "blue")
-lines(a, yy$fit, col="red", lwd=2)
-lines(a, yy$fit + 2*yy$se.fit, lty=2, col = "red")
-lines(a, yy$fit - 2*yy$se.fit, lty=2, col = "red")
-legend(5, 0.4, lty = 1, lwd=2, col=c("blue","red"),c("ADF&G longline survey","Commercial longline fishery"),bty="n")
-abline(h=0.5, lty=3)
 dev.off()
 
 
-#----------------------------------------------------------------
-# OLD GRAPHICS FOR 2014 DISCUSSION ON DEPTH, FEMALES, AND SIZE
-#----------------------------------------------------------------
-# 
-# j <- is.element(fish$SEX_CODE,c(2))
-# j <- j & !is.na(fish$AGE)
-# dat2 <- fish[j,c("YEAR", "SEX_CODE", "AGE", "LENGTH_MILLIMETERS")]
-# 
-# j <- is.element(surv$SEX,"Female") 
-# j <- j & !is.na(surv$AGE)
-# dat <- surv[j,c("YEAR", "SEX", "AGE", "LENGTH_MILLIMETERS")]
-# 
-# # Set levels of sex to Male and Female only (all others = NA):
-# levels(dat$SEX) <- c(NA,"Female", NA, "Male", NA, NA, NA)
-# dat$SEX <- ordered(dat$SEX, c("Male","Female"))
-# #dat <- na.omit(dat)
-# 
-# x<-table(dat$AGE)
-# x
-# y<-sum(x)
-# z<-x/y
-# z
-# write.table(round(z,4), "clipboard", row.names=F)
-# a<-table(dat2$AGE)
-# b<-sum(a)
-# c<-a/b
-# c
-# write.table(round(c,4), "clipboard", row.names=F)
-# 
-# 
-# barplot(z$fit)
-# par(new=TRUE)
-# barplot(xf$fit,col="cyan4",yaxt="n")
-# 
-# dat<-dat[dat$AGE<41 &dat$SEX == "Female" ,]
-# dat2<-dat2[dat2$AGE<41 & dat2$SEX=="Female",]
-# plot(table(dat$AGE),col="grey", main="", las=3); abline(h=0.5, lwd=2)
-# par(new=TRUE)
-# plot(table(dat2$AGE), col="cyan4", main="", las=3)
-# 
+# proportion of females by year in the fishery and survey
+
+bind_rows(
+  f_sex_ratio(data = filter(srv_bio), 
+              src = "LL survey", year),
+  f_sex_ratio(data = filter(fsh_bio), 
+              src = "LL fishery", year)
+) -> byyear
+
+# get generalized additive model fits and predictions
+# survey
+srv_fityear <- gam(I(Sex == "Female") ~ s(year, k = 4), 
+                  data = filter(srv_bio, Sex %in% c("Female", "Male")),
+                  family = "quasibinomial")
+
+srv_yrs <- byyear %>% filter(Source == "LL survey") %>% select(year) %>% range()
+
+srv_predyear <- predict(srv_fityear, 
+                        newdata = data.frame(year = min(srv_yrs):max(srv_yrs) ),
+                       type = "response", se = TRUE)
+
+# fishery
+fsh_fityear <- gam(I(Sex == "Female") ~ s(year, k = 4), 
+                   data = filter(fsh_bio, Sex %in% c("Female", "Male")),
+                   family = "quasibinomial")
 
 
+fsh_yrs <- byyear %>% filter(Source == "LL fishery") %>% select(year) %>% range()
 
+fsh_predyear <- predict(fsh_fityear, 
+                        newdata = data.frame(year = min(fsh_yrs):max(fsh_yrs) ),
+                        type = "response", se = TRUE)
 
+# combine with the sex_ratio df
+# *FLAG* bind_cols goes by col position, make sure survey is first
+bind_cols(
+  byyear,
+  #do.call cbinds each vector in the predict() output list 
+  bind_rows(tbl_df(do.call(cbind, srv_predyear))%>% mutate(source_check = "LL survey"),
+            tbl_df(do.call(cbind, fsh_predyear))%>% mutate(source_check = "LL fishery") ) 
+) -> byyear
 
+# plot
+png("figures/proportion_fembyyear.png", height = 4, width = 6, units = "in", res = 300)
+ggplot(data = byyear, aes(x = year)) +
+  geom_line(aes(y = fit, col = Source), size = 1) +
+  geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, 
+                  fill = Source, col = Source),  alpha = 0.2) +
+  geom_point(aes(y = proportion, col = Source)) +  
+  scale_x_continuous(breaks = seq(min(byyear$year), max(byyear$year), 2), 
+                     labels =  seq(min(byyear$year), max(byyear$year), 2)) +
+  xlab("") +
+  ylab("Proportion of females\n") +
+  theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
+dev.off()
 
+## proportion of females by year and age in survey and fishery
+
+bind_rows(
+  f_sex_ratio(data = filter(srv_bio, age %in% aa), 
+              src = "LL survey", year, age),
+  f_sex_ratio(data = filter(fsh_bio, age %in% aa), 
+              src = "LL fishery", year, age)
+) -> byyrage
