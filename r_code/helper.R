@@ -11,10 +11,6 @@ if(!require("lubridate"))   install.packages("lubridate") # dates functions like
 if(!require("mgcv"))   install.packages("mgcv") # gams
 if(!require("gridExtra"))   install.packages("gridExtra") # multipanneled plots
 
-# user-defined fxns/models ----
-
-
-
 # ggplot themes ----
 
 theme_set(theme_bw(base_size=12)+ 
