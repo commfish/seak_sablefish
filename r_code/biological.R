@@ -64,13 +64,13 @@ start_f <- c(l_inf = 80, k = 0.22, t0 = -1.9, sigma = 10)
 start_m <- c(l_inf = 68, k = 0.29, t0 = -2.3, sigma = 10)
 
 # mle fit for females
-vb_mle_f <- vb_mle(obs_length = laa_f$length_cm,
+vb_mle_f <- vonb_len(obs_length = laa_f$length_cm,
                    age = laa_f$age,
                    starting_vals = start_f,
                    sex = "Female")
 
 # mle fit for males
-vb_mle_m <- vb_mle(obs_length = laa_m$length_cm,
+vb_mle_m <- vonb_len(obs_length = laa_m$length_cm,
                    age = laa_m$age,
                    starting_vals = start_m,
                    sex = "Male")
@@ -191,14 +191,14 @@ start_f <- c(w_inf = 5.5, k = 0.24, t0 = -1.4, sigma = 10)
 start_m <- c(w_inf = 3.2, k = 0.36, t0 = -1.1, sigma = 10)
 
 # mle fit for females
-wvb_mle_f <- wvb_mle(obs_weight = waa_f$weight_kg,
+wvb_mle_f <- vonb_weight(obs_weight = waa_f$weight_kg,
                    age = waa_f$age,
                    b = beta_f,
                    starting_vals = start_f,
                    sex = "Female")
 
 # mle fit for males
-wvb_mle_m <- wvb_mle(obs_weight = waa_m$weight_kg,
+wvb_mle_m <- vonb_weight(obs_weight = waa_m$weight_kg,
                    age = waa_m$age,
                    b = beta_m, 
                    starting_vals = start_m,
@@ -259,65 +259,20 @@ write_csv(rbind(noaa_lvb, adfg_lvb) ,
 
 # Sex ratios ----
 
-# troubleshoot fxn
-data <- srv_bio
-var <- quo(Sex)
-source <- "longline survey"
-proportion_by <- 'age'
+# proportion of females by age in survey and fishery
 
-# .proportion_by <- "age"
-# predict_over <- c(min(data$proportion_by), max(data$proportion_by))
+# restrict age range
+aa <- c(2, 42)
 
-# Generalized function to get raw proportion by age or year, plus the predicted
-# output from a generalized additive model
-proportion_fem <- function(
-  # biological survey or fishery data, each line in an individual fish. at
-  # minimum, has columns "Sex" (factor with levels "Female" and "Male"), year (numeric), or age (numeric)
-  data, 
-  var, # Sex
-  source, #"longline survey", "longline fishery"
-  proportion_by, # age, year
-  # vector of values over which to predict gam output over. defaults to the
-  # min/max in the data set, but user can change if wanted, for example, if you
-  # wanted to restrict which ages or years of interest
-  predict_over = c(min(data$proportion_by), max(data$proportion_by))#
-) {
-  
-  var <- quo(Sex)
-  proportion_by <- quo(age)
-  
-  # subset with known sex
-  data %>% ungroup() %>% 
-    # UQE = unquote the expression for evaluation while ignoring the environment
-    filter(UQE(var) %in% c("Female", "Male")) %>%
-    droplevels() -> data
+bind_rows(
+  f_sex_ratio(data = filter(srv_bio, between(age, aa[1], aa[2])), 
+              src = "LL survey", age),
+  f_sex_ratio(data = filter(fsh_bio, between(age, aa[1], aa[2])), 
+              src = "LL fishery", age)
+) -> byage
 
-  # proportion by
-  
-  data %>% ungroup() %>% 
-    count(!!var, !!proportion_by) %>% View()
-    group_by(!!proportion_by) %>% 
-    mutate(proportion = nn / sum(nn)) %>% 
-    filter(Sex == "Female") -> props
-  
-  # gam 
-  fit <- gam( I(Sex == "Female") ~ s(!!proportion_by), data = data, family = "quasibinomial")
-  
-  # predicted values
-  pred_values <- predict(fit, newdata = data.frame(.proportion_by = predict_over, 
-                                                   type = "response", 
-                                                   se = TRUE))
-  
-}
-
-# subset of both the fishery and the survey data with known sex
-fsh_bio %>% ungroup() %>% 
-  filter(Sex %in% c("Female", "Male")) %>% 
-  droplevels() -> fsh_sex
-
-srv_bio %>% 
-  filter(Sex %in% c("Female", "Male")) %>% 
-  droplevels()  -> srv_sex
+ggplot(data = byage, aes(x = age, y = proportion, col = source)) +
+  geom_point()
 
 # proportion of females by age and year in the fishery and survey
 
@@ -328,6 +283,7 @@ fsh_sex %>%
   filter(Sex == "Female") -> byyear
 
 fityear <- gam(I(Sex == "Female") ~ s(year), data = fsh_sex, family = "quasibinomial")
+
 pred_year <- predict(fityear, newdata = data.frame(year = c(2002:2016)), type = "response", se = TRUE)
 
 bind_cols(byyear, tbl_df(do.call(cbind, pred_year))) -> byyear

@@ -1,13 +1,18 @@
-# functions for estimating length- and weight- based von bertalanffy using
-# maximum likelihood estimation
+# my user-defined functions for the sablefish assessment
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2017-10-16
+# Last edited: 2017-10-19
+
+# includes functions for: 
+# -  estimating length- and weight- based von bertalanffy using maximum
+# likelihood estimation
+# - getting sex ratios by age or year (or both)
 
 source("r_code/helper.R")
 
 if(!require("broom"))   install.packages("broom") # tidy() useful for tidying mle() output
 if(!require("stats4"))   install.packages("stats4") # needed for mle()
+
 
 # length-based lvb ----
 
@@ -20,7 +25,7 @@ vb_like <- function(obs_length, age, l_inf, k, t0, sigma) {
 }
 
 # minimize negative log likelihood with mle function
-vb_mle <- function(obs_length, #vector of lengths
+vonb_len <- function(obs_length, #vector of lengths
                    age, #vector of ages
                    starting_vals, #vector of starting values (l_inf, k, t0, and sigma)
                    sex # "Male" or "Female"
@@ -59,7 +64,7 @@ wvb_like <- function(obs_weight, age, w_inf, k, t0, b, sigma) {
   return(neg_like) # returning negative log likelihood
 }
 
-wvb_mle <- function(obs_weight, #vector of observed weights
+vonb_weight <- function(obs_weight, #vector of observed weights
                     age, # vector of observed ages
                     b, # this is fixed, not estimated
                     starting_vals, #w_inf, k, t0, sigma
@@ -86,4 +91,44 @@ wvb_mle <- function(obs_weight, #vector of observed weights
                     mutate(Sex = sex), 
                   logl = logl)
   return(results)
+}
+
+# Sex ratios ----
+
+# Generalized function to get raw proportion by age or year
+
+f_sex_ratio <- function(
+  data, # biological survey or fishery data, each line is an individual
+  src, # data source e.g. "longline survey", "longline fishery"
+  ... # the variable(s) you're trying to get the proportions of females by (e.g. age, year, or both)
+) {
+  # move these to arg list if interested in extending fxn 
+  # var # variable of interest (e.g. = Sex)
+  var_levels = c("Female", "Male") # levels of interest in 'var'
+  proportion_of = "Female" # e.g. proportion of females in survey/fishery
+  
+  #captures 'var' as a formula (so it can be dynamic)
+  var <- quo(Sex) # replace with enquo(var) if you want to extend fxn
+  # like enquo, but captures the '...' as a list of formulas (in case you want to group
+  # by both year and age)
+  proportion_by <- quos(...)
+  
+  # subset with known sex
+  data %>% ungroup() %>% 
+    # extract relevant cols. !! converts var (a single object) into formula; !!!
+    # does the same for list of args in fxn (...)
+    select(!!var, !!!proportion_by) %>%
+    # UQE = unquote the expression for evaluation while ignoring the environment
+    filter(UQE(var) %in% var_levels) %>%
+    na.omit() %>% droplevels() -> data
+  
+  # proportion by
+  data %>% ungroup() %>%
+    count(!!var, !!!proportion_by) %>%
+    group_by(!!!proportion_by) %>%
+    mutate(proportion = round(n / sum(n), 2) ,
+           source = src) %>%
+    filter(Sex == proportion_of) -> props
+  
+  return(props)
 }
