@@ -20,16 +20,13 @@ if(!require("stats4"))   install.packages("stats4") # needed for mle()
 vb_like <- function(obs_length, age, l_inf, k, t0, sigma) { 
   pred <- l_inf * (1 - exp(-k * (age - t0))) # predictions based on lvb growth curve
   like <- dnorm(obs_length, pred, sigma) # likelihood
-  neg_like <- -1 * (sum(log(like))) # negative log likelihood
-  return(neg_like) # returning negative log likelihood
+  neg_like <- -1 * (sum(log(like))) 
+  return(neg_like) 
 }
 
 # minimize negative log likelihood with mle function
-vonb_len <- function(obs_length, #vector of lengths
-                   age, #vector of ages
-                   starting_vals, #vector of starting values (l_inf, k, t0, and sigma)
-                   sex # "Male" or "Female"
-                   ) {
+vonb_len <- function(obs_length, age, starting_vals, sex) {
+  
   vb_mle <- mle(vb_like, start = as.list(starting_vals), 
                 fixed = list(obs_length = obs_length, age = age),
                 method = "BFGS")
@@ -60,16 +57,12 @@ wvb_like <- function(obs_weight, age, w_inf, k, t0, b, sigma) {
   log_pred <- log(w_inf) + b * log(1 - exp(-k * (age - t0))) # predictions based on von bertalanffy growth curve
   # pred <- exp(log_pred)
   like <- dnorm(log(obs_weight), log_pred, sigma) # likelihood
-  neg_like <- -1 * (sum(log(like))) # negative log likelihood
-  return(neg_like) # returning negative log likelihood
+  neg_like <- -1 * (sum(log(like))) 
+  return(neg_like) 
 }
 
-vonb_weight <- function(obs_weight, #vector of observed weights
-                    age, # vector of observed ages
-                    b, # this is fixed, not estimated
-                    starting_vals, #w_inf, k, t0, sigma
-                    sex # = "Male" or "Female"
-                    ) {
+vonb_weight <- function(obs_weight, age, b, starting_vals, sex ) {
+  
   #minimizing negative log likelihood with mle function
   wvb_mle <- mle(wvb_like, start = as.list(starting_vals), 
                  fixed = list(obs_weight = obs_weight, age = age, b = b),
@@ -83,6 +76,7 @@ vonb_weight <- function(obs_weight, #vector of observed weights
   log_pred <- log(w_inf_opt) + b * log(1 - exp(-k_opt * (age - t0_opt))) #  predicted values
   pred <- exp(log_pred)
   resids <- obs_weight - pred # retaining residuals
+  
   results <- list(predictions = data.frame(obs_weight = obs_weight,
                                            age = age, pred = pred, 
                                            resid = resids, Sex = sex),
@@ -97,11 +91,11 @@ vonb_weight <- function(obs_weight, #vector of observed weights
 
 # Generalized function to get raw proportion by age or year
 
-f_sex_ratio <- function(
-  data, # biological survey or fishery data, each line is an individual
-  src, # data source e.g. "longline survey", "longline fishery"
-  ... # the variable(s) you're trying to get the proportions of females by (e.g. age, year, or both)
-) {
+f_sex_ratio <- function(data, src, ...) {
+  # data = biological survey or fishery data, each line is an individual
+  # src = data source e.g. "longline survey", "longline fishery"
+  # ... = the variable(s) you're trying to get the proportions of females by (e.g. age, year, or both)
+  
   # move these to arg list if interested in extending fxn 
   # var # variable of interest (e.g. = Sex)
   var_levels = c("Female", "Male") # levels of interest in 'var'
@@ -120,7 +114,8 @@ f_sex_ratio <- function(
     select(!!var, !!!proportion_by) %>%
     # UQE = unquote the expression for evaluation while ignoring the environment
     filter(UQE(var) %in% var_levels) %>%
-    na.omit() %>% droplevels() -> data
+    na.omit() %>% 
+    droplevels() -> data
   
   # proportion by
   data %>% ungroup() %>%
