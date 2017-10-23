@@ -15,12 +15,11 @@ read_csv("data/survey/llsurvey_bio_1988_2016.csv") %>%
          Stat = factor(Stat),
          Station = factor(Station),
          Sex = factor(Sex),
-         Maturity = factor(Maturity),
-         length_cm = length_mm/10) %>% 
+         Maturity = factor(Maturity)) %>% 
   group_by(Year, Stat) %>% 
   mutate(n = length(age),
-         length_mu = mean(length_mm, na.rm = TRUE),
-         weight_mu = mean(weight_kg, na.rm = TRUE)) -> srv_bio
+         length_mu = mean(length, na.rm = TRUE),
+         weight_mu = mean(weight, na.rm = TRUE)) -> srv_bio
 
 # Hanselman et al. 2007 Appendix GOA Sablefish SAFE Appendix 3C von bertalanffy
 # parameter estimates (length and weight) for comparison with estimates from the
@@ -38,20 +37,22 @@ read_csv("data/fishery/fishery_bio_2000_2016.csv") %>%
          Sex_cde = factor(Sex_cde),
          Sex = factor(Sex),
          Maturity = factor(Maturity),
-         Maturity_cde = factor(Maturity_cde),
-         length_cm = length_mm/10) %>% 
+         Maturity_cde = factor(Maturity_cde)) %>% 
   group_by(Year, Stat) %>% 
   mutate(n = length(age),
-         length_mu = mean(length_mm, na.rm = TRUE),
-         weight_mu = mean(weight_kg, na.rm = TRUE)) -> fsh_bio
+         length_mu = mean(length, na.rm = TRUE),
+         weight_mu = mean(weight, na.rm = TRUE)) -> fsh_bio
 
-# length-based Ludwig von Bertalanffy growth model -----
+# Pot survey biological data
+read_csv("data/survey/potsurvey_bio_2009_2015.csv")
+
+# Length-based Ludwig von Bertalanffy growth model -----
 
 # subsets by length, age, sex
 srv_bio %>% 
   filter(Sex %in% c("Female", "Male") &
            year >= 1997 & # *FLAG* advent of "modern" survey
-           !is.na(length_cm) &
+           !is.na(length) &
            !is.na(age)) %>% 
   droplevels() -> laa_sub
 
@@ -64,13 +65,13 @@ start_f <- c(l_inf = 80, k = 0.22, t0 = -1.9, sigma = 10)
 start_m <- c(l_inf = 68, k = 0.29, t0 = -2.3, sigma = 10)
 
 # mle fit for females
-vb_mle_f <- vonb_len(obs_length = laa_f$length_cm,
+vb_mle_f <- vonb_len(obs_length = laa_f$length,
                    age = laa_f$age,
                    starting_vals = start_f,
                    sex = "Female")
 
 # mle fit for males
-vb_mle_m <- vonb_len(obs_length = laa_m$length_cm,
+vb_mle_m <- vonb_len(obs_length = laa_m$length,
                    age = laa_m$age,
                    starting_vals = start_m,
                    sex = "Male")
@@ -92,7 +93,7 @@ lvb_pars <- full_join(
 
 png("figures/length_vonb_chathamllsurvey_1997_2016.png", height = 4, width = 6, units = "in", res = 300)
 ggplot() +
-  geom_jitter(data = laa_sub, aes(x = age, y = length_cm, col = Sex, shape = Sex)) +
+  geom_jitter(data = laa_sub, aes(x = age, y = length, col = Sex, shape = Sex)) +
   geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
   geom_line(data = pred, aes(x = age, y = pred, group = Sex), col = "black" ) + #"#00BFC4"
   xlab("\nAge (yrs)") +
@@ -125,18 +126,19 @@ ggplot(data = pred) +
 srv_bio %>% 
   filter(Sex %in% c("Female", "Male") &
            year >= 1997 & #advent of "modern" survey
-           !is.na(length_cm) &
-           !is.na(weight_kg)) %>% droplevels() -> allom_sub
+           !is.na(length) &
+           !is.na(weight)) %>% 
+  droplevels() -> allom_sub
 
 # length-weight relationship
 lw_allometry <- function(length, a, b) {a * length ^ b}
 
 START <- c(a = 1e-5, b = 3) #Starting values close to Hanselman et al. 2007
 
-fem_fit <- nls(weight_kg ~ lw_allometry(length = length_cm, a, b), 
+fem_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
                data = filter(allom_sub, Sex == "Female"), start = START)
 
-male_fit <- nls(weight_kg ~ lw_allometry(length = length_cm, a, b), 
+male_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
                data = filter(allom_sub, Sex == "Male"), start = START)
 
 # parameter estimates and plot fit 
@@ -158,7 +160,7 @@ allom_pars <- full_join(
 
 png("figures/allometry_chathamllsurvey_1997_2016.png", height = 4, width = 6, units = "in", res = 300)
 ggplot(allom_sub,  
-       aes(x = length_cm, y = weight_kg, col = Sex, shape = Sex)) +
+       aes(x = length, y = weight, col = Sex, shape = Sex)) +
   geom_jitter() + 
   stat_function(fun = lw_allometry, 
                 args = as.list(tidy(fem_fit)$estimate),
@@ -177,7 +179,7 @@ srv_bio %>%
   filter(Sex %in% c("Female", "Male") &
            year >= 1997 & # *FLAG* advent of "modern" survey
            !is.na(age) &
-           !is.na(weight_kg)) %>% 
+           !is.na(weight)) %>% 
   droplevels() -> waa_sub
 
 waa_sub %>% ungroup() %>% filter(Sex == "Female") -> waa_f
@@ -191,14 +193,14 @@ start_f <- c(w_inf = 5.5, k = 0.24, t0 = -1.4, sigma = 10)
 start_m <- c(w_inf = 3.2, k = 0.36, t0 = -1.1, sigma = 10)
 
 # mle fit for females
-wvb_mle_f <- vonb_weight(obs_weight = waa_f$weight_kg,
+wvb_mle_f <- vonb_weight(obs_weight = waa_f$weight,
                    age = waa_f$age,
                    b = beta_f,
                    starting_vals = start_f,
                    sex = "Female")
 
 # mle fit for males
-wvb_mle_m <- vonb_weight(obs_weight = waa_m$weight_kg,
+wvb_mle_m <- vonb_weight(obs_weight = waa_m$weight,
                    age = waa_m$age,
                    b = beta_m, 
                    starting_vals = start_m,
@@ -222,7 +224,7 @@ wvb_pars <- full_join(
 
 png("figures/weight_vonb_chathamllsurvey_1997_2016.png", height = 4, width = 6, units = "in", res = 300)
 ggplot() +
-  geom_jitter(data = waa_sub, aes(x = age, y = weight_kg, col = Sex, shape = Sex)) +
+  geom_jitter(data = waa_sub, aes(x = age, y = weight, col = Sex, shape = Sex)) +
   geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
   geom_line(data = pred, aes(x = age, y = pred, group = Sex), col = "black" ) + #"#00BFC4"
   xlab("\nAge (yrs)") +
@@ -375,3 +377,5 @@ bind_rows(
   f_sex_ratio(data = filter(fsh_bio, age %in% aa), 
               src = "LL fishery", year, age)
 ) -> byyrage
+
+# age compositions ----

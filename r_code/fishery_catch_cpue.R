@@ -16,7 +16,7 @@
 
 # Kray's original cpue_fish_vessel.r script used fsh_cpue.csv and 
 # non_gam_cpue.csv. Ben Williams and I decided 2017-09-29 to use cpue_fsh.csv
-# (now fishery_cpue_1997_2015.csv) because it goes back to  there was no
+# (now fishery_cpue_1997_2015.csv) because it goes back to 1997. There was no
 # documentation for the legacy cpue values
 
 
