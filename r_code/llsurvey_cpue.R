@@ -1,4 +1,4 @@
-# Survey cpue
+# Longline Survey cpue
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
 # Last edited: 2017-10-09
@@ -54,7 +54,7 @@ ggplot(hk_stand, aes(x = no_hooks, y = std_hooks, col = factor(hook_space))) +
 
 
 # data -----
-srv_cpue <- read_csv("data/survey/survey_cpue_1988_2016.csv")
+srv_cpue <- read_csv("data/survey/llsurvey_cpue_1988_2016.csv")
 
 glimpse(srv_cpue)
 

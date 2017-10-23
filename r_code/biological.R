@@ -9,7 +9,7 @@ source("r_code/functions.r")
 # data -----
 
 # survey biological  data
-read_csv("data/survey/survey_bio_1988_2016.csv") %>% 
+read_csv("data/survey/llsurvey_bio_1988_2016.csv") %>% 
   mutate(Year = factor(year),
          Project = factor(Project),
          Stat = factor(Stat),

@@ -37,51 +37,6 @@ read_csv("data/fishery/raw_data/fishery_cpue_1997_2015.csv") %>%
 
 # in progress...
 
-# Survey cpue ----
-
-# ALEX QUERY CRITERIA FOR CPUE_SRV: *FLAG* where's depth? sets?
-# SURVEY >> LONGLINE SURVEY - CATCH AND HOOK ACCOUNTING
-# Base Table	out_g_sur_longline_hooks_catch																				
-# Select Clause	*																				
-#   Where Clause	project_code = '03' AND year IN (1988:present)																				
-# Group By Clause																					
-# Order By Clause	year, project_code, trip_no,effort_no,subset_no		
-
-read_csv("data/survey/raw_data/survey_cpue_1988_2016.csv") %>% 
-  mutate(year = Year, #numeric
-         subset_no = `Subset No`, #*FLAG* no idea what this is
-         subset_condition = `Subset Condition`) %>%  #*FLAG* no idea what this is
-  select(year,  trip_no = `Trip No`, Project = Project, 
-         set = `Set No`, Stat = `G Stat Area`, Station = `Station No`, 
-         subset_condition, no_hooks = `Hooks - Total`, 
-         hooks_bait = `Hooks - Baited`, hooks_bare = `Hooks - Bare`, 
-         hooks_invalid = `Hooks - Invalid`, hooks_unknown = `Hooks - Uknown`,
-         no_sablefish = Sablefish, sable_per_hook = `Sablefish per Hook`) %>% 
-  filter(subset_condition == "Valid", #doesn't do anything
-         Station < 100, # omit samping stations with 3 digits *FLAG* no documentation
-         !is.na(no_hooks)) %>% #doesn't do anything
-  write_csv(., "data/survey/survey_cpue_1988_2016.csv")
-
-# Survey biological ----
-
-# *FLAG* - What does Effort No mean in this context? What day and depth were these collected? Date collected?
-
-# ALEX QUERY CRITERIA FOR SRV_BIO_DATA:  
-# BIOLOGICAL DATA >> Age Sex Size Sampled at Sea
-#  Base Table	out_g_bio_effort_age_sex_size							
-#  Select Clause	*							
-# Where Clause	year BETWEEN 1988 AND 2015 AND 
-#                   species_code = '710' AND 
-#                   project_code = '03'			
-
-read_csv("data/survey/raw_data/survey_bio_1988_2016.csv") %>% 
-  select(year = Year,  trip_no = `Trip No`, Project = Project, 
-         sets = `Effort No`, Stat = `G Stat Area`, Station = `Station No`, 
-         sets = `Effort No`, Sex, Maturity, maturity_cde = maturity_Code,
-         length_mm = `Length Millimeters`, weight_kg = `Weight Kilograms`,
-         age = Age, age_method = `Age Type`, age_readability = `Age Readability`) %>% 
-  write_csv(., "data/survey/survey_bio_1988_2016.csv")
-
 # Fishery biological ----
 
 # *FLAG* I don't know where this query is. Need an explanation of
@@ -103,4 +58,51 @@ read_csv("data/fishery/raw_data/fishery_bio_2000_2016.csv") %>%
          age = AGE, Sex_cde, Sex, Maturity_cde = MATURITY_CODE,
          Maturity = MATURITY) %>% 
   write_csv(., "data/fishery/fishery_bio_2000_2016.csv")
+
+# Survey cpue ----
+
+# ALEX QUERY CRITERIA FOR CPUE_SRV: *FLAG* where's depth? sets?
+# SURVEY >> LONGLINE SURVEY - CATCH AND HOOK ACCOUNTING
+# Base Table	out_g_sur_longline_hooks_catch																				
+# Select Clause	*																				
+#   Where Clause	project_code = '03' AND year IN (1988:present)																				
+# Group By Clause																					
+# Order By Clause	year, project_code, trip_no,effort_no,subset_no		
+
+read_csv("data/survey/raw_data/llsurvey_cpue_1988_2016.csv") %>% 
+  mutate(year = Year, #numeric
+         subset_no = `Subset No`, #*FLAG* no idea what this is
+         subset_condition = `Subset Condition`) %>%  #*FLAG* no idea what this is
+  select(year,  trip_no = `Trip No`, Project = Project, 
+         set = `Set No`, Stat = `G Stat Area`, Station = `Station No`, 
+         subset_condition, no_hooks = `Hooks - Total`, 
+         hooks_bait = `Hooks - Baited`, hooks_bare = `Hooks - Bare`, 
+         hooks_invalid = `Hooks - Invalid`, hooks_unknown = `Hooks - Uknown`,
+         no_sablefish = Sablefish, sable_per_hook = `Sablefish per Hook`) %>% 
+  filter(subset_condition == "Valid", #doesn't do anything
+         Station < 100, # omit samping stations with 3 digits *FLAG* no documentation
+         !is.na(no_hooks)) %>% #doesn't do anything
+  write_csv(., "data/survey/llsurvey_cpue_1988_2016.csv")
+
+# Survey biological ----
+
+# *FLAG* - What does Effort No mean in this context? What day and depth were these collected? Date collected?
+
+# ALEX QUERY CRITERIA FOR SRV_BIO_DATA:  
+# BIOLOGICAL DATA >> Age Sex Size Sampled at Sea
+#  Base Table	out_g_bio_effort_age_sex_size							
+#  Select Clause	*							
+# Where Clause	year BETWEEN 1988 AND 2015 AND 
+#                   species_code = '710' AND 
+#                   project_code = '03'			
+
+read_csv("data/survey/raw_data/llsurvey_bio_1988_2016.csv") %>% 
+  select(year = Year,  trip_no = `Trip No`, Project = Project, 
+         sets = `Effort No`, Stat = `G Stat Area`, Station = `Station No`, 
+         sets = `Effort No`, Sex, Maturity, maturity_cde = maturity_Code,
+         length_mm = `Length Millimeters`, weight_kg = `Weight Kilograms`,
+         age = Age, age_method = `Age Type`, age_readability = `Age Readability`) %>% 
+  write_csv(., "data/survey/llsurvey_bio_1988_2016.csv")
+
+
 
