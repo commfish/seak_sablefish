@@ -28,7 +28,6 @@ read_csv("data/survey/llsurvey_bio_1988_2016.csv") %>%
 noaa_lvb <- read_csv("data/survey/noaa_lvb_params_hanselman2007.csv")
 
 # Fishery biological data
-
 read_csv("data/fishery/fishery_bio_2000_2016.csv") %>%
   mutate(Year = factor(year),
          Project_cde = factor(Project_cde),
@@ -37,14 +36,37 @@ read_csv("data/fishery/fishery_bio_2000_2016.csv") %>%
          Sex_cde = factor(Sex_cde),
          Sex = factor(Sex),
          Maturity = factor(Maturity),
-         Maturity_cde = factor(Maturity_cde)) %>% 
+         Maturity_cde = factor(Maturity_cde),
+         Discard_status_cde = factor(Discard_status_cde)) %>% 
   group_by(Year, Stat) %>% 
   mutate(n = length(age),
          length_mu = mean(length, na.rm = TRUE),
          weight_mu = mean(weight, na.rm = TRUE)) -> fsh_bio
 
 # Pot survey biological data
-read_csv("data/survey/potsurvey_bio_2009_2015.csv")
+read_csv("data/survey/potsurvey_bio_2009_2015.csv") %>% 
+  mutate(Year = factor(year),
+         Project_cde = factor(Project_cde),
+         Stat = factor(Stat),
+         Sex = factor(Sex),
+         Maturity_cde = factor(Maturity_cde)) -> pot
+  
+
+filter(Sex %in% c('Female', 'Male') & !is.na(age)) %>% 
+  droplevels() -> potsrv_bio
+
+# get a weird warning about parsing failures that are due to a few odd entries
+# in the original dataset (rows 26797, 27484,and 40656) that are caused by
+# decimal points. these three entries are probably errors. check with aaron
+# about how fish are measured on the survey - should we expect to the exact mm or
+# rounded to the nearest cm?
+
+pot %>% mutate(Length = as.character(length)) %>% 
+  # filter(grep('\\..{2}$', Length))
+  filter(!grepl('\\..$', Length))%>% View()
+  # filter(!grepl(".", Length)) 
+
+
 
 # Length-based Ludwig von Bertalanffy growth model -----
 

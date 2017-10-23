@@ -156,9 +156,16 @@ read_csv("data/survey/raw_data/potsurvey_bio_2009_2015.csv") %>%
   select(year = YEAR, Project_cde = PROJECT_CODE, Project = PROJECT, 
          trip_no = TRIP_NO, Spp_cde = TARGET_SPECIES_CODE, 
          Vessel = VESSEL_NAME, Stat = G_STAT_AREA, Mgmt_area = MANAGEMENT_AREA, 
-         Station = STATION_NO, date, julian_day, depth = AVG_DEPTH_FATHOMS,
+         Station = STATION_NO, date, julian_day, depth = AVG_DEPTH_FATHOMS, Sex = SEX,
          age = AGE, length, weight = WEIGHT_KILOGRAMS, Maturity_cde = MATURITY_CODE, 
-         Discard_status = DISCARD_STATUS, Discard_status_cde = DISCARD_STATUS_CODE) %>% 
+         Discard_status = DISCARD_STATUS, Discard_status_cde = DISCARD_STATUS_CODE) -> pot
+
+pot %>% mutate(Length = as.character(length)) %>% 
+  # filter(grep('\\..{2}$', Length))
+  filter(grepl('\\..$', Length)) -> sub
+
+str(sub$length)
+# filter(!grepl(".", Length)) 
   write_csv("data/survey/potsurvey_bio_2009_2015.csv")
 
 
