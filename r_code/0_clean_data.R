@@ -158,15 +158,16 @@ read_csv("data/survey/raw_data/potsurvey_bio_2009_2015.csv") %>%
          Vessel = VESSEL_NAME, Stat = G_STAT_AREA, Mgmt_area = MANAGEMENT_AREA, 
          Station = STATION_NO, date, julian_day, depth = AVG_DEPTH_FATHOMS, Sex = SEX,
          age = AGE, length, weight = WEIGHT_KILOGRAMS, Maturity_cde = MATURITY_CODE, 
-         Discard_status = DISCARD_STATUS, Discard_status_cde = DISCARD_STATUS_CODE) -> pot
+         Discard_status = DISCARD_STATUS, Discard_status_cde = DISCARD_STATUS_CODE) -> check_error
 
-pot %>% mutate(Length = as.character(length)) %>% 
-  # filter(grep('\\..{2}$', Length))
-  filter(grepl('\\..$', Length)) -> sub
+# Error: In biological.r when we read_csv(), you get parsing failures warning
+# due to entries that have decimal points. read_csv turns these into NAs b/c it
+# has not identified this col as a dbl (only looks at first 1000 rows). Increase
+# guess_max in order to read col properly. It doesn't matter for age comps b/c
+# they get filtered out due to no age/sex data. Should they be removed? Check
+# with Aaron Baldwin about how fish are measured on the survey - should we
+# expect to the exact mm or rounded to the nearest cm?
+check_error %>% mutate(Length = as.character(length)) %>% 
+  filter(grepl('\\..$', Length)) %>% View()
 
-str(sub$length)
-# filter(!grepl(".", Length)) 
-  write_csv("data/survey/potsurvey_bio_2009_2015.csv")
-
-
-
+check_error %>% write_csv("data/survey/potsurvey_bio_2009_2015.csv")
