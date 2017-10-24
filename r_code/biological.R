@@ -9,7 +9,7 @@ source("r_code/functions.r")
 # data -----
 
 # survey biological  data
-read_csv("data/survey/llsurvey_bio_1988_2016.csv") %>% 
+read_csv("data/survey/llsurvey_bio_1988_2016.csv", guess_max = 50000) %>% 
   mutate(Year = factor(year),
          Project = factor(Project),
          Stat = factor(Stat),
@@ -19,7 +19,8 @@ read_csv("data/survey/llsurvey_bio_1988_2016.csv") %>%
   group_by(Year, Stat) %>% 
   mutate(n = length(age),
          length_mu = mean(length, na.rm = TRUE),
-         weight_mu = mean(weight, na.rm = TRUE)) -> srv_bio
+         weight_mu = mean(weight, na.rm = TRUE)) %>% 
+  ungroup() -> srv_bio
 
 # Hanselman et al. 2007 Appendix GOA Sablefish SAFE Appendix 3C von bertalanffy
 # parameter estimates (length and weight) for comparison with estimates from the
@@ -28,7 +29,7 @@ read_csv("data/survey/llsurvey_bio_1988_2016.csv") %>%
 noaa_lvb <- read_csv("data/survey/noaa_lvb_params_hanselman2007.csv")
 
 # Fishery biological data
-read_csv("data/fishery/fishery_bio_2000_2016.csv") %>%
+read_csv("data/fishery/fishery_bio_2000_2016.csv", guess_max = 50000) %>%
   mutate(Year = factor(year),
          Project_cde = factor(Project_cde),
          Adfg = factor(Adfg),
@@ -36,12 +37,12 @@ read_csv("data/fishery/fishery_bio_2000_2016.csv") %>%
          Sex_cde = factor(Sex_cde),
          Sex = factor(Sex),
          Maturity = factor(Maturity),
-         Maturity_cde = factor(Maturity_cde),
-         Discard_status_cde = factor(Discard_status_cde)) %>% 
+         Maturity_cde = factor(Maturity_cde)) %>% 
   group_by(Year, Stat) %>% 
   mutate(n = length(age),
          length_mu = mean(length, na.rm = TRUE),
-         weight_mu = mean(weight, na.rm = TRUE)) -> fsh_bio
+         weight_mu = mean(weight, na.rm = TRUE)) %>% 
+  ungroup() -> fsh_bio
 
 # Pot survey biological data
 read_csv("data/survey/potsurvey_bio_2009_2015.csv", guess_max = 50000) %>% 
@@ -49,9 +50,8 @@ read_csv("data/survey/potsurvey_bio_2009_2015.csv", guess_max = 50000) %>%
          Project_cde = factor(Project_cde),
          Stat = factor(Stat),
          Sex = factor(Sex),
-         Maturity_cde = factor(Maturity_cde))  %>% 
-  filter(Sex %in% c('Female', 'Male') & !is.na(age)) %>% 
-  droplevels() -> potsrv_bio
+         Maturity_cde = factor(Maturity_cde),
+         Discard_status_cde = factor(Discard_status_cde)) -> potsrv_bio
 
 # Length-based Ludwig von Bertalanffy growth model -----
 
@@ -63,8 +63,8 @@ srv_bio %>%
            !is.na(age)) %>% 
   droplevels() -> laa_sub
 
-laa_sub %>% ungroup() %>% filter(Sex == "Female") -> laa_f
-laa_sub %>% ungroup() %>% filter(Sex == "Male") -> laa_m
+laa_sub %>% filter(Sex == "Female") -> laa_f
+laa_sub %>% filter(Sex == "Male") -> laa_m
 
 #sex-specific starting values from Hanselman et al. 2007 (Appendix C, Table 1),
 #except sigma
@@ -126,8 +126,7 @@ ggplot(data = pred) +
 
 # KVK assumed beta = 3, but there are data to estimate this value (e.g., Hanselman et
 # al. 2007 values beta_f = 3.02 and beta_m = 2.96 are used in the current
-# assessment)
-
+# assessment
 
 # subsets by weight, age, sex
 srv_bio %>% 
@@ -189,8 +188,8 @@ srv_bio %>%
            !is.na(weight)) %>% 
   droplevels() -> waa_sub
 
-waa_sub %>% ungroup() %>% filter(Sex == "Female") -> waa_f
-waa_sub %>% ungroup() %>% filter(Sex == "Male") -> waa_m
+waa_sub %>% filter(Sex == "Female") -> waa_f
+waa_sub %>% filter(Sex == "Male") -> waa_m
 
 # fit weight-based lvb with a multiplicative error structure using max likelihood estimation
 # log(w_i) = log(w_inf) + beta * log(1 - exp * (-k * (age_i - t0))) + error
@@ -218,10 +217,11 @@ wvb_mle_m <- vonb_weight(obs_weight = waa_m$weight,
 pred <- rbind(wvb_mle_f$predictions, wvb_mle_m$predictions) %>% 
   mutate(std_resid = resid/sd(resid))
 
-
 wvb_pars <- full_join(
   rbind(wvb_mle_f$results, wvb_mle_m$results) %>% 
-    mutate(Survey = "ADF&G Longline",
+    mutate(Estimate = round(Estimate, 3),
+           SE = round(SE, 3),
+           Survey = "ADF&G Longline",
            Years = paste0(min(waa_sub$year), "-", max(waa_sub$year)),
            Region = "Chatham Strait",
            Function = "Weight-based LVB")
@@ -273,6 +273,7 @@ write_csv(rbind(noaa_lvb, adfg_lvb) ,
 # restrict age range
 aa <- c(2:42)
 
+# see helper for f_sex_ratio() documentation
 bind_rows(
   f_sex_ratio(data = filter(srv_bio, age %in% aa), 
               src = "LL survey", age),
@@ -387,274 +388,78 @@ bind_rows(
 
 # Age compositions ----
 
-# pot survey
+# Combine survey and fishery data for age comp analysis
 
-potsrv_bio %>% ungroup() %>%
-  count(Sex, year) %>%
-  group_by(year) %>% 
-  mutate(proportion = round(n / sum(n), 2))
+#quos() uses stand eval in dplyr, eval cols with nonstand eval using !!!
+cols <- quos(Source, year, Sex, age) 
 
-srv_bio %>% ungroup() %>% 
-  filter(Sex %in% c("Female", "Male") &
-           !is.na(age)) %>% 
+rbind(
+  fsh_bio %>% mutate(Source = "LL fishery") %>% select(!!!cols), # longline fishery 
+  rbind( 
+    srv_bio %>% mutate(Source = "LL survey") %>% select(!!!cols), # longline survey data
+    potsrv_bio %>% mutate(Source = "Pot survey") %>% select(!!!cols) ) #Pot survey data
+  ) %>% 
+  filter(Sex %in% c('Female', 'Male') & !is.na(age)) %>% 
   droplevels() %>% 
-  count(Sex, year) %>% 
-  group_by(year) %>% 
-  mutate(proportion = round(nn / sum(nn), 2))
+  mutate(age = ifelse(age >= 42, 42, age)) -> all_bio  # Plus group
 
-unique(potsrv_bio$year)
+rbind(
+  # Age comps (sex-specific)
+  all_bio %>% 
+    count(Source, Sex, year, age) %>%
+    group_by(Source, Sex, year) %>% 
+    mutate(proportion = round( n / sum(n), 4)),
+  # Age comps (sexes combined)
+  all_bio %>% 
+    count(Source, year, age) %>%
+    group_by(Source, year) %>% 
+    mutate(proportion = round( n / sum(n), 4),
+           Sex = "Sex combined")
+) -> agecomps
 
+# Sample sizes by source/year/sex
+agecomps %>% 
+  group_by(Source, year, Sex) %>% 
+  summarize(n = sum(n)) %>% 
+  dcast(Source + Sex ~ year, value = "n") %>% 
+  write_csv("output/n_agecomps.csv")
 
-#OLD ----
+# Age comp matrix
+agecomps %>% 
+  dcast(Source + Sex + year ~ age, value = "proportion") %>%  
+  write_csv("output/agecomps.csv")
 
-###############################################################################
-# LIBRARIES
-################################################################################
-library(plyr)
-library(reshape2)
-library(lattice)
-library(latticeExtra)
-library(gridExtra)
-library(ggplot2)
-library(lubridate)
-library(gam)
-library(mgcv)
+# Graphics
 
-
-#----------------------------------------------------------------
-# Pot survey 2003 - 2009
-# Update as needed
-# Determine sex %; gender determined onboard, not ADU
-# Sex data only through 2009 at present
-#----------------------------------------------------------------
-# CC.pot<-read.table("data/pot_sex.csv",header=TRUE,sep=",")
-CC.pot <- read_csv("~/Kray/Sablefish/2017/data/pot_sex.csv")
-
-k <- is.element(CC.pot$SEX_CODE, c(1,2))
-k <- is.element(CC.pot$SEX_CODE, c(1,2))
-datgen <- CC.pot[k, c("SEX_CODE", "YEAR")]
-
-datgen$SEX <- factor(datgen$SEX_CODE)
-levels(datgen$SEX) <- c("Male", "Female")
-
-gen<-table(datgen$YEAR,datgen$SEX)
-Ngen <- apply(gen,1,sum)
-gen
-gen <- sweep(gen, 1, apply(gen,1,sum), "/")
-round(gen,4)
-
-
-#----------------------------------------------------------------
-# Longline survey, 1988-present
-#----------------------------------------------------------------
-CC.surv<-read.table("~/Kray/Sablefish/2017/data/srv_bio_data2.csv",header=TRUE,sep=",")
-k <- is.element(CC.surv$Sex, c("Female","Male"))
-datgen <- CC.surv[k, c("Sex", "Year")]
-
-datgen$SEX <- factor(datgen$Sex)
-levels(datgen$SEX) <- c("Male", "Female")
-
-gen<-table(datgen$Year,datgen$Sex)
-Ngen <- apply(gen,1,sum)
-gen
-gen <- sweep(gen, 1, apply(gen,1,sum), "/")
-round(gen,4)
+png("figures/agecomp_bydatasource.png", 
+    height = 3.5, width = 7, units = "in", res = 300)
+ggplot(data = agecomps, 
+       aes(x = age, y = proportion, colour = Source)) +
+  # geom_line(aes(colour = Source, group = Source)) +
+  geom_point(size = 1, alpha = 0.1) +
+  stat_smooth(size = 1, se = FALSE) +
+  # stat_smooth(method='gam', formula= y ~ s(x, k=6),
+              # size = 1.2, se = FALSE) + 
+  facet_wrap( ~ Sex) +
+  scale_colour_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb")) +
+  xlab('\nAge') +
+  ylab('Proportion\n')
+dev.off()
 
 
-#----------------------------------------------------------------
-# For the time being, I have ignored 'Age_READABILITY_CODE"
-# because it's a mess and currently under revision
-# Pool fish over 42 Years
-#----------------------------------------------------------------
-
-j <- is.element(CC.surv$Sex, c("Female","Male")) & !is.na(CC.surv$Age)
-#j <- j & !is.na(dat$Age_READABILITY_CODE) 
-#j <- j & dat$Age_READABILITY_CODE < 4
-dat <- CC.surv[j, c("Age", "Sex", "Year", "Weight.Kilograms")]
-dat$origin <-"survey"
-
-dat.s <- dat
-
-#----------------------------------------------------------------
-# Primary Age composition with no sexes
-#----------------------------------------------------------------
-dat$Age[dat$Age >=42] <- 42
-xt <- table(dat$Year, dat$Age)
-Nt <- apply(xt,1,sum)
-xt
-xt <- sweep(xt, 1, apply(xt,1,sum), "/")
-round(xt,4)
-sqrt(Nt)
-
-write.csv(round(xt,4),"output/srv_Agecomp.csv",row.names=FALSE)
-write.csv(round(rbind(Nt),4),"output/srv_Agecomp_s.csv",row.names=FALSE)
-
-
-#----------------------------------------------------------------
-# Sex-specific Age-composition
-#----------------------------------------------------------------
-x<-is.element(dat$Sex,"Male")
-dat_m<-dat[x,c("Year","Age")]
-y<-is.element(dat$Sex,"Female")
-dat_f<-dat[y,c("Year","Age")]
-
-#Males
-dat_m$Age[dat_m$Age >=42] <- 42
-xm <- table(dat_m$Year, dat_m$Age)
-Nm <- apply(xm,1,sum)
-xm
-sqrt(rowSums(xm))
-
-
-#Females
-dat_f$Age[dat_f$Age >=42] <- 42
-xf <- table(dat_f$Year, dat_f$Age)
-Nf <- apply(xf,1,sum)
-sqrt(rowSums(xf))
-
-
-#----------------------------------------------------------------
-# Write longline survey proportion results to file
-# ---------------------------------------------------------------
-
-xmp <- sweep(xm, 1, apply(xm,1,sum), "/")
-round(xmp,4)
-
-write.csv(round(xmp,4),"output/srv_Agecomp_m.csv",row.names=FALSE)
-write.csv(as.vector(round(xmp,4)),"output/srv_Agecomp_m_graphic.csv",row.names=FALSE)
-write.csv(round(rbind(Nm),4),"output/srv_Agecomp_s_males.csv",row.names=FALSE)
-
-xfp <- sweep(xf, 1, apply(xf,1,sum), "/")
-round(xfp,4)
-write.csv(round(xfp,4),"output/srv_Agecomp_f.csv",row.names=FALSE)
-write.csv(as.vector(round(xfp,4)),"output/srv_Agecomp_f_graphic.csv",row.names=FALSE)
-write.csv(round(rbind(Nf),4),"output/srv_Agecomp_s_females.csv",row.names=FALSE)
-
-
-
-
-
-#------------------------------------------------------------------------------
-# Fishery, 1988-present
-#------------------------------------------------------------------------------
-
-CC.fshy<-read.table("data/fish_bio_data.csv",header=TRUE,sep=",")
-k <- is.element(CC.fshy$SEX_CODE, c(1,2))
-datgen <- CC.fshy[k, c("SEX_CODE", "YEAR","SELL_DATE", "G_STAT_AREA","AGE")]
-
-datgen$SEX <- factor(datgen$SEX_CODE)
-levels(datgen$SEX) <- c("Male", "Female")
-table(datgen$YEAR,datgen$AGE)
-
-#----------------------------------------------------------------
-# Calcs to examine catch data during the commercial fishery by week
-# Looking at changes in sex proportion over the course of the fishery
-# Not implemented every Year - just for checking
-#----------------------------------------------------------------
-
-# datgen$DATE<-strptime(datgen$SELL_DATE,"%m/%d/%Y")
-# datgen$WEEK<-week(datgen$DATE)
-# 
-# j<-is.element(datgen$WEEK,c(8,15))
-# datgen<-datgen[!j,c("SEX_CODE", "Year","SELL_DATE", "G_STAT_AREA","Age","WEEK","SEX")]
-# 
-# gen<-table(datgen$WEEK,datgen$SEX)
-# Ngen <- apply(gen,1,sum)
-# gen
-# gen <- sweep(gen, 1, apply(gen,1,sum), "/")
-# round(gen,4)
-# 
-# area<-table(datgen$SEX_CODE,datgen$G_STAT_AREA)
-# area <- sweep(area, 2, apply(area,2,sum), "/")
-# round(area,4)
-# 
-# datgen$Age[datgen$Age >=60] <- 60
-# Age_week<-table(datgen$WEEK,datgen$Age)
-# Age_week<-t(Age_week)
-# Age_week <- sweep(Age_week, 2, apply(Age_week,2,sum), "/")
-# round(Age_week,4)
-# Age_week<-t(Age_week)
-# Age_week
-# 
-# write.table(round(Age_week,4), "clipboard", row.names=F)
-
-#----------------------------------------------------------------
-# For the time being, I have ignored 'Age_READABILITY_CODE"
-# because it's a mess and under revision
-# Pool fish over 42 Years
-#----------------------------------------------------------------
-
-dat <- CC.fshy
-# Pool fish over 25 Years:
-j <- is.element(dat$SEX_CODE, c(1,2)) & !is.na(dat$AGE)
-#j <- j & !is.na(dat$Age_READABILITY_CODE) 
-#j <- j & dat$Age_READABILITY_CODE < 4
-dat <- dat[j, c("AGE", "SEX_CODE", "YEAR","G_STAT_AREA")]
-dat$origin <- "fishery"
-
-dat.f <- dat
-
-#----------------------------------------------------------------
-# Primary Age composition with no sexes
-#----------------------------------------------------------------
-dat$AGE[dat$AGE >=42] <- 42
-xt <- table(dat$YEAR, dat$AGE)
-Nt <- apply(xt,1,sum)
-xt
-xt <- sweep(xt, 1, apply(xt,1,sum), "/")
-round(xt,4)
-sqrt(Nt)
-
-write.csv(round(xt,4),"output/fsh_Agecomp.csv",row.names=FALSE)
-write.csv(round(rbind(Nt),4),"output/fsh_Agecomp_s.csv",row.names=FALSE)
-
-
-#----------------------------------------------------------------
-# Sex-specific Age-composition
-#----------------------------------------------------------------
-x<-is.element(dat$SEX_CODE,"1")
-dat_m<-dat[x,c("YEAR","AGE")]
-y<-is.element(dat$SEX_CODE,"2")
-dat_f<-dat[y,c("YEAR","AGE")]
-
-
-# Males
-dat_m$AGE[dat_m$AgE >=42] <- 42
-xm <- table(dat_m$YEAR, dat_m$AGE)
-Nm <- apply(xm,1,sum)
-xm
-sqrt(rowSums(xm))
-
-
-# Females
-dat_f$AGE[dat_f$AGE >=42] <- 42
-xf <- table(dat_f$YEAR, dat_f$AGE)
-Nf <- apply(xf,1,sum)
-xf
-sqrt(rowSums(xf))
-
-#----------------------------------------------------------------
-# Write fishery proportion results to file
-# ---------------------------------------------------------------
-
-xmp <- sweep(xm, 1, apply(xm,1,sum), "/")
-round(xmp,4)
-
-write.csv(round(xmp,4),"output/fish_Agecomp_m.csv",row.names=FALSE)
-write.csv(as.vector(round(xmp,4)),"output/fish_Agecomp_m_graphic.csv",row.names=FALSE)
-write.csv(round(rbind(Nm),4),"output/fish_Agecomp_s_males.csv",row.names=FALSE)
-
-xfp <- sweep(xf, 1, apply(xf,1,sum), "/")
-round(xfp,4)
-write.csv(round(xfp,4),"output/fish_Agecomp_f.csv",row.names=FALSE)
-write.csv(as.vector(round(xfp,4)),"output/fish_Agecomp_f_graphic.csv",row.names=FALSE)
-write.csv(round(rbind(Nf),4),"output/fish_Agecomp_s_females.csv",row.names=FALSE)
-#----------------------------------------------------------------
-
-
-
-
-
-
-
-
+png("figures/agecomp_byyear.png", 
+    height = 7, width = 7, units = "in", res = 300)
+ggplot(data = agecomps %>% 
+         filter(Sex %in% c("Female", "Male") &
+                Source %in% c("LL fishery", "LL survey")),
+       aes(x = year, y = age, size = proportion)) +
+  geom_point(shape = 21) +
+  scale_size(range = c(0, 6)) +
+  facet_grid(Source ~ Sex) +
+  xlab('') +
+  ylab('Observed age\n') +
+  guides(size = FALSE) +
+  scale_x_continuous(breaks = seq(min(agecomps$year), 
+                                  max(agecomps$year), 2)) +
+  theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
+dev.off()

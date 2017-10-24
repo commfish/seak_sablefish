@@ -11,6 +11,7 @@ if(!require("tidyr"))   install.packages("tidyr")
 if(!require("lubridate"))   install.packages("lubridate") # dates functions like yday, dmy/mdy
 if(!require("mgcv"))   install.packages("mgcv") # gams
 if(!require("gridExtra"))   install.packages("gridExtra") # multipanneled plots
+if(!require("data.table"))   install.packages("data.table") # dcast, foverlaps
 
 
 # ggplot themes ----
