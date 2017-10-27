@@ -55,8 +55,13 @@ srv_bio %>%
            !is.na(age)) %>% 
   droplevels() -> laa_sub
 
-laa_sub %>% ungroup() %>% filter(Sex == "Female") -> laa_f
-laa_sub %>% ungroup() %>% filter(Sex == "Male") -> laa_m
+laa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Female") -> laa_f
+
+laa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Male") -> laa_m
 
 #sex-specific starting values from Hanselman et al. 2007 (Appendix C, Table 1),
 #except sigma
@@ -76,42 +81,46 @@ vb_mle_m <- vonb_len(obs_length = laa_m$length_cm,
                    sex = "Male")
 
 # combine predictions and parameter estimates and plot mle
-pred <- rbind(vb_mle_f$predictions, vb_mle_m$predictions) %>% 
-  mutate(std_resid = resid/sd(resid))
 
 
-lvb_pars <- full_join(
-  rbind(vb_mle_f$results, vb_mle_m$results) %>% 
+bind_rows(vb_mle_f$predictions, vb_mle_m$predictions) %>% 
+  mutate(std_resid = scale(resid)) -> pred
+
+
+
+bind_rows(vb_mle_f$results, vb_mle_m$results) %>% 
   mutate(Survey = "ADF&G Longline",
          Years = paste0(min(laa_sub$year), "-", max(laa_sub$year)),
          Region = "Chatham Strait",
-         Function = "Length-based LVB")
-  ,
-  laa_sub %>% group_by(Sex) %>% summarise(n = n()),
-  by = "Sex")
+         Function = "Length-based LVB") %>% 
+  full_join(laa_sub %>% 
+              group_by(Sex) %>% 
+              summarise(n = n())) 
 
-png("figures/length_vonb_chathamllsurvey_1997_2016.png", height = 4, width = 6, units = "in", res = 300)
-ggplot() +
-  geom_jitter(data = laa_sub, aes(x = age, y = length_cm, col = Sex, shape = Sex)) +
-  geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
-  geom_line(data = pred, aes(x = age, y = pred, group = Sex), col = "black" ) + #"#00BFC4"
+ggplot(laa_sub, aes(age, length_cm)) +
+  geom_jitter(aes(col = Sex, shape = Sex), alpha=.2) +
+  geom_line(data = pred, aes(y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
+  geom_line(data = pred, aes(y = pred, group = Sex), col = "black" ) + #"#00BFC4"
   xlab("\nAge (yrs)") +
-  ylab("Length (cm)\n")
-dev.off()
+  ylab("Length (cm)\n") + 
+  theme(legend.justification=c(1,0), legend.position=c(1,0))
+
+ggsave("figures/length_vonb_chathamllsurvey_1997_2016.png", dpi=300, height=4, width=6, units="in")
+
 
 # residual plots
 ggplot(data = pred) + 
-  geom_histogram(aes(x = std_resid)) +
+  geom_histogram(aes(x = std_resid), bins=100) +
   facet_wrap(~ Sex)
 
-ggplot(data = pred) + 
-  geom_point(aes(x = age, y = std_resid)) +
-  geom_hline(aes(yintercept = 0), linetype = 2, col = "red") + 
+ggplot(pred, aes(age, std_resid)) + 
+  geom_point(alpha=.5) +
+  geom_hline(yintercept = 0, lty = 2, col = "red") + 
   facet_wrap(~ Sex)
 
-ggplot(data = pred) + 
-  geom_point(aes(x = pred, y = std_resid)) +
-  geom_hline(aes(yintercept = 0), linetype = 2, col = "red") + 
+ggplot(pred, aes(pred, std_resid)) + 
+  geom_point(alpha=.5) +
+  geom_hline(yintercept = 0, lty = 2, col = "red") + 
   facet_wrap(~ Sex)
 
 # weight-length allometry W = alpha * L ^ beta ----
@@ -126,7 +135,8 @@ srv_bio %>%
   filter(Sex %in% c("Female", "Male") &
            year >= 1997 & #advent of "modern" survey
            !is.na(length_cm) &
-           !is.na(weight_kg)) %>% droplevels() -> allom_sub
+           !is.na(weight_kg)) %>% 
+  droplevels -> allom_sub
 
 # length-weight relationship
 lw_allometry <- function(length, a, b) {a * length ^ b}
@@ -143,32 +153,31 @@ male_fit <- nls(weight_kg ~ lw_allometry(length = length_cm, a, b),
 beta_m <- tidy(male_fit)$estimate[2]
 beta_f <- tidy(fem_fit)$estimate[2]
 
-allom_pars <- full_join(
-  rbind(tidy(male_fit) %>% mutate(Sex = "Male"),
-        tidy(fem_fit) %>% mutate(Sex = "Female")
-  ) %>% 
-    select(Parameter = term, Estimate = estimate, SE = std.error, Sex) %>% 
-    mutate(Survey = "ADF&G Longline",
-           Years = paste0(min(laa_sub$year), "-", max(laa_sub$year)),
-           Region = "Chatham Strait",
-           Function = "Allometric")
-  ,
-  allom_sub %>% group_by(Sex) %>% summarise(n = n()),
-  by = "Sex")
 
-png("figures/allometry_chathamllsurvey_1997_2016.png", height = 4, width = 6, units = "in", res = 300)
-ggplot(allom_sub,  
-       aes(x = length_cm, y = weight_kg, col = Sex, shape = Sex)) +
-  geom_jitter() + 
+bind_rows(tidy(male_fit) %>% mutate(Sex = "Male"),
+          tidy(fem_fit) %>% mutate(Sex = "Female")) %>% 
+  dplyr::select(Parameter = term, Estimate = estimate, SE = std.error, Sex) %>% 
+  mutate(Survey = "ADF&G Longline",
+         Years = paste0(min(laa_sub$year), "-", max(laa_sub$year)),
+         Region = "Chatham Strait",
+         Function = "Allometric") %>% 
+  full_join(allom_sub %>% 
+              group_by(Sex) %>% 
+              summarise(n = n())) 
+
+ggplot(allom_sub, aes(length_cm, weight_kg, col = Sex, shape = Sex)) +
+  geom_jitter(alpha=.2) + 
   stat_function(fun = lw_allometry, 
                 args = as.list(tidy(fem_fit)$estimate),
-                lwd = 1.5, col = "salmon") + 
+                col = "salmon") + 
   stat_function(fun = lw_allometry, 
                 args = as.list(tidy(male_fit)$estimate),
-                lwd = 1.5, col = "#00BFC4", lty = 2) + 
+                col = "#00BFC4", lty = 2) + 
   xlab("\nLength (cm)") +
-  ylab("Weight (kg)\n")
-dev.off()
+  ylab("Weight (kg)\n") + 
+  theme(legend.justification=c(1,0), legend.position=c(1,0))
+
+ggsave("figures/allometry_chathamllsurvey_1997_2016.png", dpi=300, height=4, width=6, units="in")
   
 # weight-at-age using Ludwig von Bertalanffy growth model ----
 
@@ -180,8 +189,13 @@ srv_bio %>%
            !is.na(weight_kg)) %>% 
   droplevels() -> waa_sub
 
-waa_sub %>% ungroup() %>% filter(Sex == "Female") -> waa_f
-waa_sub %>% ungroup() %>% filter(Sex == "Male") -> waa_m
+waa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Female") -> waa_f
+
+waa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Male") -> waa_m
 
 # fit weight-based lvb with a multiplicative error structure using max likelihood estimation
 # log(w_i) = log(w_inf) + beta * log(1 - exp * (-k * (age_i - t0))) + error
@@ -206,55 +220,58 @@ wvb_mle_m <- vonb_weight(obs_weight = waa_m$weight_kg,
 
 
 # combine predictions and parameter estimates and plot fitted values
-pred <- rbind(wvb_mle_f$predictions, wvb_mle_m$predictions) %>% 
-  mutate(std_resid = resid/sd(resid))
+wvb_mle_f$predictions %>% 
+  rbind(wvb_mle_m$predictions) %>% 
+  mutate(std_resid = scale(resid)) -> pred
+
+wvb_mle_f$results %>% 
+  rbind(wvb_mle_m$results) %>% 
+  mutate(Survey = "ADF&G Longline",
+         Years = paste0(min(waa_sub$year), "-", max(waa_sub$year)),
+         Region = "Chatham Strait",
+         Function = "Weight-based LVB") %>% 
+  full_join(waa_sub %>% 
+              group_by(Sex) %>% 
+              summarise(n = n()), by = 'Sex')
 
 
-wvb_pars <- full_join(
-  rbind(wvb_mle_f$results, wvb_mle_m$results) %>% 
-    mutate(Survey = "ADF&G Longline",
-           Years = paste0(min(waa_sub$year), "-", max(waa_sub$year)),
-           Region = "Chatham Strait",
-           Function = "Weight-based LVB")
-  ,
-  waa_sub %>% group_by(Sex) %>% summarise(n = n()),
-  by = "Sex")
-
-png("figures/weight_vonb_chathamllsurvey_1997_2016.png", height = 4, width = 6, units = "in", res = 300)
 ggplot() +
   geom_jitter(data = waa_sub, aes(x = age, y = weight_kg, col = Sex, shape = Sex)) +
   geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
   geom_line(data = pred, aes(x = age, y = pred, group = Sex), col = "black" ) + #"#00BFC4"
   xlab("\nAge (yrs)") +
-  ylab("Weight (kg))\n")
-dev.off()
+  ylab("Weight (kg))\n") +
+  theme(legend.justification=c(1,0), legend.position=c(1,0))
+
+ggsave("figures/weight_vonb_chathamllsurvey_1997_2016.png", dpi=300, height=4, width=6, units="in")
+
 
 # residual plots
-ggplot(data = pred) + 
-  geom_histogram(aes(x = std_resid)) +
-  facet_wrap(~ Sex)
+pred %>% 
+  ggplot(aes(std_resid)) + geom_histogram(bins=100) +
+  facet_wrap(~Sex)
 
-ggplot(data = pred) + 
-  geom_point(aes(x = age, y = std_resid)) +
-  geom_hline(aes(yintercept = 0), linetype = 2, col = "red") + 
-  facet_wrap(~ Sex)
+pred %>% 
+  ggplot(aes(age, std_resid)) + 
+  geom_point(alpha=.2) +
+  geom_hline(yintercept=0, lty=4, alpha=.5) +
+  facet_wrap(~Sex)
 
-ggplot(data = pred) + 
-  geom_point(aes(x = pred, y = std_resid)) +
-  geom_hline(aes(yintercept = 0), linetype = 2, col = "red") + 
-  facet_wrap(~ Sex)
+pred %>% 
+  ggplot(aes(pred, std_resid)) + geom_point(alpha=.2) +
+  geom_hline(yintercept=0, lty=4, alpha=.5) +
+  facet_wrap(~Sex)
 
 # Compare growth results ----
 
 # Comparison of Hanselman et al. 2007 values with the Chatham Strait longline
 # survey. Units: length (cm), weight (kg), and age (yrs)
 
-rbind(allom_pars,
-      rbind(lvb_pars, wvb_pars)) %>%
-      mutate(Source = "seak_sablefish/code/biological.r") -> adfg_lvb 
-      
-write_csv(rbind(noaa_lvb, adfg_lvb) , 
-          "output/compare_vonb_adfg_noaa.csv")
+bind_rows(allom_pars, lvb_pars, wvb_pars) %>% 
+      mutate(Source = "seak_sablefish/code/biological.r") %>% 
+  bind_rows(noaa_lvb) %>% 
+  write_csv(., "output/compare_vonb_adfg_noaa.csv")
+
 
 
 # Sex ratios ----
@@ -264,18 +281,15 @@ write_csv(rbind(noaa_lvb, adfg_lvb) ,
 # restrict age range
 aa <- c(2:42)
 
-bind_rows(
-  f_sex_ratio(data = filter(srv_bio, age %in% aa), 
-              src = "LL survey", age),
-  f_sex_ratio(data = filter(fsh_bio, age %in% aa), 
-              src = "LL fishery", age)
-) -> byage
+f_sex_ratio(data = filter(srv_bio, age %in% aa), 
+              src = "LL survey", age) %>% 
+  bind_rows(f_sex_ratio(data = filter(fsh_bio, age %in% aa), 
+              src = "LL fishery", age)) -> byage
 
 # get generalized additive model fits and predictions
 # survey
 srv_fitage <- gam(I(Sex == "Female") ~ s(age), 
-               data = filter(srv_bio, age %in% aa,
-                             Sex %in% c("Female", "Male")),
+                  data = filter(srv_bio, age %in% aa, Sex %in% c("Female", "Male")),
                family = "quasibinomial")
 
 srv_predage <- predict(srv_fitage, newdata = data.frame(age = aa),
@@ -292,6 +306,7 @@ fsh_predage <- predict(fsh_fitage, newdata = data.frame(age = aa),
 
 # combine with the sex_ratio df
 # *FLAG* bind_cols goes by col position, make sure survey is first
+
 bind_cols(
   byage,
   #do.call cbinds each vector in the predict() output list 
@@ -300,25 +315,24 @@ bind_cols(
   ) -> byage
 
 # plot
-png("figures/proportion_fembyage.png", height = 4, width = 6, units = "in", res = 300)
-ggplot(data = byage, aes(x = age)) +
-  geom_line(aes(y = fit, col = Source), size = 1) +
+
+
+ggplot(byage, aes(x = age)) +
+  geom_line(aes(y = fit, col = Source)) +
   geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, fill = Source, col = Source),  alpha = 0.2) +
   geom_point(aes(y = proportion, col = Source)) +  
   expand_limits(y = c(0.30, 0.8)) +
   xlab("\nAge") +
   ylab("Proportion of females\n") 
-dev.off()
+
+ggsave("figures/proportion_fembyage.png", dpi=300, height=4, width=6, units="in")
 
 
 # proportion of females by year in the fishery and survey
 
-bind_rows(
-  f_sex_ratio(data = filter(srv_bio), 
-              src = "LL survey", year),
-  f_sex_ratio(data = filter(fsh_bio), 
-              src = "LL fishery", year)
-) -> byyear
+f_sex_ratio(data = filter(srv_bio), src = "LL survey", year) %>% 
+  bind_rows(f_sex_ratio(data = filter(fsh_bio), 
+              src = "LL fishery", year)) -> byyear
 
 # get generalized additive model fits and predictions
 # survey
