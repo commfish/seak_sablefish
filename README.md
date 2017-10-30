@@ -25,7 +25,7 @@ Ben Williams ben.williams@alaska.gov
 Ice and slime assumed to be 2% of total weight.
 
     |   Delivery code|                       Description|   Rate|
-    |---------------:|---------------------------------:|------:|
+    |----------------|----------------------------------|-------|
     |               1|                     Whole (round)|      1|
     |               4|                   Gutted, head on|   0.89|
     |               7|    Headed and gutted, Western cut|   0.68|
