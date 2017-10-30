@@ -5,7 +5,7 @@
 
 source("r_code/helper.r")
 source("r_code/functions.r")
-
+library(ggridges)
 # data -----
 
 # survey biological  data
@@ -463,3 +463,23 @@ ggplot(data = agecomps %>%
                                   max(agecomps$year), 2)) +
   theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
 dev.off()
+
+# ggridges
+
+agecomps %>% 
+  filter(Sex %in% c("Female") &
+           Source %in% c("LL fishery")) %>% 
+ggplot(aes(x = year, y = age, group = age,  height = n)) +
+  # geom_ridgeline(scale = 0.5) +
+  geom_density_ridges2(stat = "identity", 
+                       rel_min_height = 0.01,
+                       scale = 3 ) + # >1 more overlap
+  # cycles through these colors (track even/odd years)
+  scale_fill_cyclical(values = c("lightgrey", "darkgrey"),
+                      guide = "legend", # leave silent if you don't want legend
+                      labels = c("Odd years", "Even year"),
+                      name = "") +
+  theme_ridges(grid = TRUE) +
+  scale_y_discrete(expand = c(0.01, 0)) #reduces the space between x and y axis labels
+  # facet_grid(Source ~ Sex) 
+  
