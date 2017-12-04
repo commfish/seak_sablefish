@@ -5,4 +5,4 @@
 *.Rproj
 fishery
 *.png
-survey
+*.RData
