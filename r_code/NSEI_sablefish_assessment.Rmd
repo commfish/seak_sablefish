@@ -1,0 +1,276 @@
+---
+title: "Chatham Strait Sablefish Stock Assessment"
+author: Jane Sullivan
+date: "`r date()`"
+output: html_document
+---
+
+Co-author(s): Ben Williams, Andrew Olson, Mike Vaughn, Kamala Carroll
+
+To: Andrew Olson, Scott Kelley
+Cc: Chris Siddon, Ben Williams, Sara Miller, Katie Palof  
+
+DATES  
+  Internal ADF&G review: Friday, Feb. 5th;  
+	Final version approved by reviewers & managers: Feb. 12th;  
+	Presentation to industry: Feb. 19th;  
+	Revised version to be reviewed by:  March 4th  
+	Public announcement of formal quota: June  
+
+```{r set-options, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Input variables
+
+# year of the assessment
+YEAR <- 2018
+
+# Put current values for the federal stock assessment here (from SAFE chapter)
+feds <- data.frame(
+)
+
+# Inputs
+source("helper.r")
+source("functions.r")
+
+```
+
+
+```{r summary_table}
+
+FLAG <- 18.14
+```
+
+# Summary  
+
+- The Allowable Biological Catch (ABC) for `r YEAR` for the Northern Southeast Inside Waters (NSEI - Chatham Strait) at a full-recruitment fishing mortality level of $F_{50\%}$ is `r formatC(FLAG, format="d", big.mark=",")` round pounds (`r fig("Fig 1", display="cite")`). This is a `r formatC(FLAG, format="d", big.mark=",")` pound `r FLAG-increase or decrease` (`r formatC(FLAG, format="f", digits=1)`%)  from the `r YEAR-1` ABC of `r formatC(FLAG, format="d", big.mark=",")` round pounds; 
+  
+- The population estimate from the `r YEAR-1` mark-recapture project in Chatham Strait is `r formatC(FLAG, format="d", big.mark=",")` individuals. This is a revised estimate and a change from the previous estimate of `r formatC(FLAG, format="d", big.mark=",")` individuals from the `r YEAR-1` mark-recapture project. The forecast for `r YEAR` is `r formatC(FLAG, format="d", big.mark=",")` individuals (`r fig("Fig 2", display="cite")`); 
+  
+- Females are retained in greater proportion in the commercial fishery until roughly age 30, after which more males are retained. The longline survey shows more females until roughly age 20, at which point males begin to predominate. The proportion of females observed in the commercial catch is greater than the proportion of females in the longline survey for all ages (`r fig("Fig 3", display="cite")`). 
+  
+- Catch per unit effort (CPUE) for the ADF&G Chatham Strait longline survey `r FLAG-increased or decreased` relative to `r YEAR-1` from `r formatC(FLAG, format="f", digits=3)` to `r formatC(FLAG, format="f", digits=3)` (numbers-per-hook) (`r formatC(FLAG, format="f", digits=1)`%) and from `r formatC(FLAG, format="f", digits=3)` to `r formatC(FLAG, format="f", digits=3)`  (pounds per hook) (`r formatC(FLAG, format="f", digits=1)`%) (`r fig("Fig 4", display="cite")`).  Commercial longline fishery CPUE `r FLAG-increased or decreased` from `r formatC(FLAG, format="f", digits=3)` to `r formatC(FLAG, format="f", digits=3)` for pounds per hook (all depths) (`r formatC(FLAG, format="f", digits=1)`%) and from `r formatC(FLAG, format="f", digits=3)` to `r formatC(FLAG, format="f", digits=3)` for pounds per hook (depths > 450 meters) (`r formatC(FLAG, format="f", digits=1)`%) (`r fig("Fig 5", display="cite")`); 
+  
+- *FLAG - revise the recruitment summary* Recruitment from the 2007 - 2008  brood year has been observed in the ADF&G longline survey age composition beginning in 2012 (`r fig("Fig 6", display="cite")`). This recruitment is beginning to be observed in the commercial fishery age-composition data (`r fig("Fig 7", display="cite")`);  
+  
+- The federal stock assessment for sablefish in the Gulf of Alaska (GOA) has also reported an increase in abundance and the associated quota. The recommended federal ABC for the `r YEAR` commercial longline sablefish fishery is `r formatC(FLAG, format="d", big.mark=",")` metric tons, a `r formatC(FLAG, format="f", digits=1)`% increase from the `r YEAR-1` ABC of `r formatC(FLAG, format="d", big.mark=",")` metric tons (Hanselman et al. 2016). The $F_{ABC}$ presented in the summary table above ($F_{50\%}$ = `r formatC(FLAG, format="f", digits=4)`) continues to be slightly more conservative than the federal harvest rate of $F_{40\%}$ at `r formatC(FLAG, format="f", digits=4)` (`r fig("Fig 8", display="cite")`).
+
+# Changes to the NSEI sablefish assessment for `r YEAR` relative to `r YEAR`  
+
+**No changes anticipated, but we'll see.**
+
+1.	Methods for estimating abundance from the mark-recapture project continue to be refined. Sex-specific differences in recapture probability are important, but reduce sample size when applying the Chapman estimator. For the 2017 assessment, total mark-recapture abundance was estimated using a pooled approach in which no sex distinction was incorporated and in which the recovery event is assumed instantaneous. Sex-specific probabilities of capture in the commercial fishery were integrated into the forecast when partitioning total abundance into sex/age-specific cohorts. This approach increases the robustness of the abundance estimates, yet also includes the sex-specific selectivities present in the commercial longline fishery.  
+
+2.  No mark-recapture work was conducted in 2016. In keeping with previous methods, mark-recapture data (tags, releases, recoveries) were assumed the same as in 2015 when calculating estimated abundance for 2017 (conditioned on the revised method in #1 above). 
+
+3.  Partitioning mark-recapture estimates of abundance into age=specific cohorts has generally run from ages 4 - 42+ under the assumption that retention of age 2 and 3 fish in the commercial longline fishery was essentially zero. Given the emergence of age 2 and 3 fish in the commercial fishery in 2016 as evidence of a recruitment event, this assumption has been dismissed, with partitioning and forecasting including ages 2 and 3 fish.  
+
+# Section I: `r YEAR` Acceptable Biological Catch (ABC)
+
+**This seems really repetitive to the summary**
+The `r YEAR-1` marking survey released `r formatC(FLAG, format="d", big.mark=",")` marked fish. After applying a natural mortality of 0.1 (Johnson and Quinn 1988) for the time period between marking and recapture, and accounting for those individuals recovered outside NSEI waters or in the ADF&G longline survey, or for whom location could not be determined, and scaling for selectivity, a total of `r formatC(FLAG, format="d", big.mark=",")` marked fish were available to be recovered in the the commercial longline fishery. Of these marked fish, `r formatC(FLAG, format="d", big.mark=",")` were recovered during the NSEI commercial longline fishery from an examination of `r formatC(FLAG, format="d", big.mark=",")` fish by ADF&G port samplers. The mark-recapture point estimate of total exploited abundance for `r YEAR-1` was `r formatC(FLAG, format="d", big.mark=",")` individuals (Eqs 3 - 6 below).  Partitioning into sex-specific age-classes from `r YEAR-1` commercial fishery catch-at-age/sex data and projecting into `r YEAR` (Eq. 7 below) produced an estimated exploited abundance of `r formatC(FLAG, format="d", big.mark=",")` individuals; multiplying by mean commercial fishery weights-at-age produced an estimate of `r formatC(FLAG, format="d", big.mark=",")` round pounds exploited biomass.  
+
+# Section II: Mark-recapture methods
+
+## Basic structure
+
+The mark-recapture project is the basis of current sablefish management in Chatham Strait, and serves to scale absolute abundance in the age-structured assessment model. The Chapman estimator of abundance is
+
+(1)	 $$\hat{N} = \frac{(M+1)(n+1)}{m+1}-1$$ 
+
+where $\hat{N}$ is the unknown (estimated) total abundance of a given population, $M$ is the total number of animals marked at the beginning of the experiment, $n$ is the total number of animals subsequently recaptured and examined for marks, and $m$ is the total number of marked animals present in $n$. 
+
+The variance of this estimator is
+
+(2)	 $$var(\hat{N}) = \frac{(M+1)(n+1)(M-n)(n-m)}{(n+1)^2(n+2)}-1$$ .
+
+For each year that the mark-recapture project is implemented, the May pot survey randomly samples individuals in Chatham Strait and marks them with a combination of floy tags and rear-dorsal fin clips, producing the value M for each year (there is some variability from year to year, which is largely irrelevant to the current discussion). In the time between the marking event (May) and the beginning of the commercial fishery (August), a number of tags are caught in other fisheries or by the longline survey. The total marks M available to be recaptured in each year are decremented accordingly. The commercial fishery is treated as the recovery event, with catches examined at various ports and the number of clipped and/or tagged fish recorded. At the close of the commercial fishery, these counts are summed to n and m in Eq. 1 above.  
+
+## Assumptions
+
+There are four primary assumptions integral to the Chapman estimator, although violations of these assumptions do occur:
+
+1.	*Closed population*
+A closed population means there is no movement in or out of the study area, nor are there any births or deaths;
+
+2.	*Equal probability of recapture*
+It is assumed that all individuals marked by the pot survey have an equal probability of being recaptured in the commercial fishery;
+
+3.	*Sufficient time between marking and recapture to allow for marked individuals to be randomly distributed throughout the unmarked population*
+This is also unquantified. The risk is that greater time between marking and recapture means that the assumption of a closed population is more likely to be violated;
+
+4.	*No tag loss or errors in reporting recovered tags*
+Tag loss can be estimated, but it is confounded if recovered tags are not accurately reported. 
+## Violations
+
+1.	*Closed population*
+Sablefish can be highly mobile. Fish marked in the pot survey are regularly recovered outside of Chatham Strait. Hanselman et al. (2015) examined movement rates of sablefish in Chatham Strait, Clarence Strait and the Gulf of Alaska and conclude that there was a 10% - 14% chance that a fish would leave the Chatham Strait area after one year of occupancy. The current approach has been to treat the mark-recapture project as a snapshot of the population in each given year, and assume closure;
+
+2.	*Equal probability of recapture*
+The commercial longline fishery is not a random sampling of the population; it is designed to catch large fish with the least expenditure of time and resources. The longline gear used by both the department’s longline survey and the commercial longline fishery is also age/length selective, meaning that not all fish are equally selected (sampled) by the gear. An examination of catch and survey data shows the following:
+
+a.	The catch-at-length distributions for the pot survey and the commercial longline survey are different (Figure. 10). Smaller fish marked in the pot survey are not fully available to the longline fishery due to differences in gear selectivity. The total marks available for recovery must be decremented accordingly prior to application of the Chapman estimator. If $n$ and $m$ remain constant, an erroneously large value for $M$ in Eq. (1) will overestimate total population abundance; 
+
+b.	The catch-at-length distributions for the ADF&G longline survey and the commercial longline fishery are different (Figure. 11). Both the survey and the commercial fishery use the same gear. Differences in catch distributions indicate selectivity on the part of the fishery that extends beyond gear selectivity (i.e. location, high-grading, etc.). The selectivity-at-age vectors calculated by NOAA for their longline surveys and the commercial longline fishery in the Gulf of Alaska also differ (Figure. 12). Rather than use the terms exploited and exploitable, which can become confusing, the terms used hereinafter are:
+
+- *Vulnerable population:* the population vulnerable to the longline gear itself under random sampling conditions;
+
+- *Exploited population:* the population targeted by the commercial fishery through location, high-grading, or other divergence from a simple random sampling of the population.
+
+- As the commercial fishery is the recovery event for the mark-recapture estimator, the   output from Eq. (1) is an estimate of the *exploited population,* not total overall abundance.
+
+c.  The length-distribution of tagged fish retained in the commercial fishery is different than untagged fish retained in the commercial fishery (Figure. 13). This suggests that small tagged fish are retained, while small untagged fish are not. It also suggests that larger unmarked fish are retained at a greater rate than larger tagged fish;
+
+d.	The retention rates of males and females in the commercial longline fishery differ (Figure 3). It is known that females reach larger sizes than males. The commercial fishery sex-composition is generally composed of a greater proportion of females than the ADF&G longline survey (Figure 3). The Chapman estimator should be stratified by sex to account for potential differences in capture rates;
+
+
+3.	*Sufficient time between marking and recapture to allow for marked individuals to be randomly distributed throughout the unmarked population*
+The pot survey is implemented in late May. The commercial fishery lasts for roughly three months and closes in late November. During this six-month period, both immigration and emigration are highly likely. Until movement becomes quantifiable, the assumption of no immigration/emigration remains necessary. Natural mortality, however, is virtually certain. Stratifying the estimator by time allows natural mortality to be included. Stratifying by time also allows for greater precision in the estimates of abundance, as each time-period compensates for changes in $M$, $n$, and $m$;
+
+4.	*No tag loss or errors in reporting recovered tags*
+Tag loss can be estimated, but is conditional on accurate tag reporting. Some tags are returned by commercial fishery operators at the end of the season, losing identifying trip or countback data. Anecdotally, there are reports that some fishermen may discard recovered tags. Given the difficulty in quantifying tag loss and reporting accuracy, Eq. (1) is applied to counted and retained tagged individuals under the assumption of no tag loss. Decrementing $M$ due to movement and/or capture in other fisheries is based on tag counts. 
+
+The above points require that the simple Chapman estimator be modified accordingly to compensate for capture probability, fishery selectivity, sex differential, tag loss and reporting, and natural mortality. Decrementing $M$ to account for capture probability was implemented in 2010, following Mueter (2010), and a version of the sex- and time-stratified estimator was introduced in 2015. This estimator was further refined to address the above issues for 2016 and applied to past years (2003 – present). 
+
+Within each year:
+
+1.	Fish marked by the pot survey were divided into male/female proportions relative to the mean sex ratios estimated from all pot survey years (some years do not contain a sampling of sex ratios; all years were aggregated to increase sample size);
+
+2.	Fish marked in the pot survey were binned into 10 cm length increments between 40 cm and 110 cm, and the total number of marked fish $M$ available to recapture events for a given year was the summed product of selectivity-at-length for the recovery gear (i.e. the *longline survey* selectivity-at-length) and the total number of marked fish present in a given length bin. This produces the total number of marks available to be recovered in the *vulnerable population*; 
+
+3.	Recaptured fish were divided into males and females according to the sex-ratio of males and females within the commercial fishery;
+
+4.	Following Robson and Regier (1964), recaptured fish were binned into sample sizes based on the total number of potentially recoverable tags and the desired precision of the resulting abundance estimate. As a result the total number of sampling time periods for any given year varied;
+
+5.	For each time period $i$ and sex $s$ define the following (sex-specific subscripts have been omitted for clarity):
+
+$t_i$ =	time in days since last event $i$ (or since marking, if $i$ == 1) 
+$n_i$ =	number of fish examined at event $i$  
+$m_i$	=	number of tagged fish recovered in event $i$  
+$m_{early}$	=	number of marks recovered after tagged release but before opening of the commercial fishery  
+$M_0$	=	total number of marks available to be recovered by the commercial longline fishery gear  
+$M_i$	=	total number of marks available for recovery during a recovery event $i$  
+$mort$	=	natural mortality decremented daily and set to 0.1 following Johnson and Quinn (1988)  
+$\hat{N_i}$ =	estimated total exploited abundance of population at event $i$
+ $\hat{N}$ = estimated total exploited abundance of population prior to the first recovery event $i$ (that is, at the beginning of the commercial longline fishery).
+
+Then for any given event $i$ and $s$:
+
+(3)	 $$M_i = \left\{ \begin{array}{rl}
+(M_0-m_{early})*exp(-mort*t_i) &\mbox{i=1}\\
+(M_i-m_i )*exp(-mort*t_i) &\mbox{i>1}
+\end{array}\right.$$
+
+(4) $$\hat{N}_i = \left\{ \begin{array}{rl}
+(\hat{N}*exp(-mort*t_i) &\mbox{i=1}\\
+(\hat{N}_{i-1}*exp(-mort*t_i) &\mbox{i>1}
+\end{array}\right.$$
+
+(5)	$$p_i =\frac{M_i}{\hat{N_i}}$$
+
+and the probability in each event $i$ of recapturing $m$ marks given sample size $n$ and probability of capture $p$ for each sex:
+
+(6)	 $$Pr(m|n,p)=\binom{n}{m}p^m(1-p)^{n-m}.$$
+
+The final estimate of $\hat{N}$ for each year is obtained by minimizing the sum of the negative log-likelihoods of Eq. (6) over all time periods $i$ and for each sex $s$. In previous years, as the commercial fishery lasts for three months, it was assumed that the Chapman estimator produced an estimate of average exploited abundance half-through the fishery. In this instance, use of the time-stratified estimator allows the estimation of the initial exploited abundance at the start of the commercial fishery.
+
+Selectivity-at-length values used to decrement the total number of marked fish in any given year to the total number available for recapture $M_0$ were calculated using length-at-age tables and von Bertalanffy growth coefficients for males and females from Hanselman et al. (2015). 
+
+Table 1 and Figure 6 compare the results of a simple Chapman estimator under the conditions that all assumptions are met and the results from the modified estimator using the methods outlined above. The modified estimator has lower estimates of total exploited abundance than the simple estimator, lower variability, and the overall trend, though still declining, shows a much slower rate of decline than the output from the unmodified estimator. 
+
+CORRECTED ESTIMATES  
+As noted above, total exploited abundances for 2012 and 2013 were over-estimated. This was due to a coding error that insufficiently decremented the total number of marked fish available for recovery in the commercial longline fishery. The SUMMARY section states that this year's estimate of exploited abundance is a 19% decrease from 2015, but this decrease is from the erroneously high 2015 estimate; Figure 6 shows that exploited abundance has been slowly increasing since 2012. Figure 7 shows the exploited abundance estimates from last year, and the corrected exploited abundance estimates from this year. Had this error not occurred, the significant drop in both estimated abundance and the attached quota for 2013 would have been much greater, and been slowly increasing since then. 
+
+
+# Section III: Determining Allowable Biological Catch
+
+The standard method implemented by the department has been to calculate vulnerable abundance-at-age for ages 5+ by partitioning the Chapman-estimated exploited abundance into cohorts according to the commercial fishery catch-at-age proportion and incrementing by one year as  
+
+(7)	 $$\hat{N_{t,a}}=\sum_{k=1}^{2}\Big[\frac{\gamma_k(\hat{N}_{t-1,a-1}\phi_{t-1,a-1}}{s_{k,a-1}}s_{k,a}\Big]^{(-s_{k,a-1}F_{t-1}+M)}$$
+
+for which 
+$\hat{N_{t,a}}$ = the estimated exploitable abundance-at-age $a$ in year $t$,
+$\hat{N_{t-1}}$ = the Chapman-estimated total exploitable abundance for year $t-1$,
+$\gamma_k(\hat{N}_{t-1,a-1})$ = the fishery catch-at-age proportion at age $a-1$ in year $t-1$,
+$s_{k,a-1}$ = the commercial fishery selectivity-at-age for $a-1$ and sex $k$,
+$s_{k,a}$ = the commercial fishery selectivity-at-age for age $a$ and sex $k$,
+$F_{t-1}$ = the full recruitment fishing mortality implemented in year $t-1$,
+$\gamma_k$ is the proportion of the commercial longline catch that was of sex $k$, and
+$M$ is natural mortality. Natural mortality is assumed constant over time and age, and is set to 0.1 (Johnson and Quinn, 1998). 
+
+It is the division of age-specific abundance by fishery selectivity-at-age that transforms *exploited* abundance into *vulnerable* abundance.
+
+In previous years, one-half the fishing mortality from the fishery season was used when incrementing age-classes, as the commercial fishery itself is the recapture event and the estimate of exploited abundance was assumed to correspond to mean abundance mid-way through the fishery. Application of the time-stratified estimator and the ability to calculate the exploited abundance at the beginning of the fishery removes this 50% reduction in F when forecasting abundance. 
+
+Vulnerable abundance for age 4, the youngest age-class considered in the commercial fishery, is not incremented as per Eq. (7) but is considered a proxy for recruitment into the fishery, and calculated as
+
+(8)	 $$\hat{N_{t,4}}=\sum_{k=1}^{2}\frac{\gamma_k(\hat{N}_{t-1,4}\phi_{t-1,a-1})}{s_{k,4}}s_{k,a}$$.
+
+Application of the Baranov catch equation for which full-recruitment fishing mortality F = F50% , calculated from yield-per-recruit tables, in conjunction with mean fishery weigh-at-age, has been the historical method for calculating allowable biological catch (ABC): 
+
+(9)	 $$ABC=\sum_{k=1}^{2}\sum_{a=4}^{max(a)}\frac{F\phi_a}{Z_a}N_a(1-e^{-Z_a})*wt_a$$
+
+where $w_{t,a}$ = fishery weight-at-age for age *a*, and $Z_a$ = total mortality for age *a*. $Z_a$ is the sum of natural mortality *M* and the product of *F* and selectivity-at-age *ï¦*a. 
+
+A comparison of this method for determining ABC and the output of the ASA model suggests that this approach may overestimate ABC relative to F50%.
+
+**Age-Structured Assessment Model**  
+Current stock assessment methods for Chatham Strait sablefish construct a snapshot of stock condition for each year, and treat the mark-recapture estimates of exploitable abundance as if they are known without error. The age-structured assessment model places the mark-recapture estimates of exploitable abundance within a statistical framework, combined with other data sources, to construct a more fluid model of the stock as it changes over time.
+
+The model uses the marks recaptured in the ADF&G longline survey as a distinct estimate of population in addition to the mark-recapture estimates from the commercial longline fishery. These two data sets are critical to the scaling of absolute abundance in model outputs.
+
+Standard age-structured population dynamics equations (Quinn and Deriso 1999) are used to model sablefish in Chatham Strait from 1980 - 2015 using AD Model Builder (Fournier et al. 2011). Modeled age classes run from 2 through 42, with 2 being the age of recruitment (the youngest age observed in ADF&G longline survey data), and 42 being a plus class. The model is sex-specific, with the assumption that sex-proportion at hatch is 50%, and natural mortality is the same for each sex. Model estimates included spawning biomass, recruitment, abundance-at-age, commercial catch, CPUE for both the commercial fishery and the ADF&G longline survey, mark-recapture estimates of exploited abundance and vulnerable abundance, and full-recruitment fishing mortality levels for each modeled year.  
+
+**Model Data**  
+Data and derived quantities used in the age-structured model:
+1.	total annual catch from the Chatham Strait commercial longline fishery;
+2.	estimates of the vulnerable population from recovery of clipped/tagged fish in the annual ADF&G Chatham Strait longline survey;
+3.	estimates of the exploited population from recovery of clipped/tagged fish in the annual Chatham Strait commercial longline fishery;
+4.	age composition data from the commercial fishery;
+5.	age composition data from the ADF&G longline survey;
+6.	commercial fishery catch-per-unit effort (CPUE) derived from logbooks and fish tickets;
+7.	ADF&G longline survey catch-per-unit effort (CPUE);
+8.	estimates of length, weight, age, and maturity composition derived from Chatham Strait commercial fisheries between 2002 and 2015, and ADF&G longline surveys 1980 - 2015;
+9.	Estimates of selectivity-at-age from the commercial longline fishery and the ADF&G longline survey - input from the NOAA age-structured model for sablefish in the Gulf of Alaska;
+10.	Natural mortality from Quinn and Johnson (1988), set to 0.1 for all ages.  
+
+**Parameter estimation**  
+Model parameters were estimated by minimizing a penalized negative log-likelihood objective function. Log-normal likelihoods were assumed for total annual catch; normal distributions were assumed for mark-recapture estimates of exploited and vulnerable abundances, and CPUE estimates for both the commercial fishery and the ADF&G longline survey. Multinomial likelihoods were assumed for age composition data. Penalties were implemented in the objective function to facilitate scaling and parameter estimation. Variability in full-recruitment fishing mortality F, recruitment, and initial abundances in Year 1 were constrained by minimizing deviations from assumed log-normal prior probability distributions.
+Model results The model successfully converges to a set of parameter estimates and variances with no performance issues. The model structure is stable and ready for addition refinement and improvement in preparation for being formally implemented as a stock assessment tool.
+
+Model fits are presented as follows:  
+Fig. 7 -   mark-recapture estimates of exploited abundance;  
+Fig. 8 -   mark-recapture estimates of vulnerable abundance;  
+Fig. 9 -   CPUE from commercial fishery and ADF&G surveys.  
+
+A comparison of model output to current stock assessment methods points out two important issues:  
+1.	The mark-recapture project is critical to proper scaling of estimated abundance;  
+2.	Current stock assessment methods are likely to over-estimate both the ABC as well as the implemented full-recruitment fishing mortality.
+
+*Scaling abundance *  
+Model estimates of total biomass for years prior to implementation of the mark-recapture project appear to be unreasonable (Fig. 10). This is likely due to lack of data with which to scale model outputs (Fig. 11). Although conducting the mark-recapture survey in alternating years would likely not be problematic for practical application of the model, longer periods between surveys would greatly increase uncertainty in model outputs.
+
+*Over-estimation of ABC and F *  
+As above, the ABC for 2016 is 847,021 pounds. The ABC from the age-structured model is 616,394 pounds. Given that the same mark-recapture data informs both methods, this discrepancy is counter-intuitive but informative.
+
+1.	The age-composition in the commercial fishery has been used to track relative cohort strength (Eq. (7)). Implicit in this is the assumption that the age-composition in the commercial fishery is indicative of the relative cohort strength in the overall population. This, however, is not true. From the discussion above, it has been shown that the commercial fishery selects for large females in greater proportion than are present (both sex and size) in the longline survey Figs (2, 5)). The result is that the commercial fishery has a greater impact on females than males, and that the age-composition of the commercial fishery reflects the exploited abundance, not the overall abundance, of Chatham Strait sablefish.
+2.	Lack of an age-structured model in the current methods also means that Eq. (8) is applied and assumes that age-4 abundance remains relatively stable between years.
+3.	Full-recruitment fishing mortality at some percentage Fxx%  is defined as the fishing mortality that will reduce spawning biomass to xx% of its unfished biomass. The assumptions are that F is equally applied to all cohorts in a given year mediated by the selectivity-at-age vector, and that selectivity-at-age cannot exceed 1. Given #1 above, however, it appears that there is a misspecification between the assumptions of the yield-per-recruit calculations of Fxx% and the application of Eq. (7) and Eq. (8) to assess relative cohort strength.
+
+
+`r fig("Fig 1", caption = paste0("Potential ", YEAR, " NSEI commercial longline fishery allowable biological catch (ABC) levels relative to full-recruitment fishing mortality (dashed line), along with historical annual harvest objectives (AHO) implemented at F50% (triangles) and point estimates of potential ABC levels at F40% - F55% (circles)"))`
+
+
+
+Fig. 12 shows the projected exploited abundance at age (age 4 - 42) for both males and females from the current methodology and the ASA model. Fig. 13 shows the projected catch-at-age from the current methodology and the ASA model. The ASA is able to incorporate variation in recruitment, as indicated by the spikes at age 6, 10, and 13, whereas Eq. (7) and Eq. (8) assume relatively stable recruitment. The ASA projections assume that cohort abundance in the exploited population is defined by the commercial longline fishery selectivity vector, whereas Eq. 7 projects the abundance based on the age-composition in the commercial fishery. Technically, these should be the same, but they are not because it appears that the selective harvest of the commercial fishery exerts a varying F value on different cohorts, and between males and females (alternatively, it could be said that selectivity > 1 for selected cohorts, especially females).
+
+Fig. 14 shows the estimated F values from 2002 - 2014 (mark-recapture years) for both males and females from the ASA model and from the current stock assessment methods.
+
+The mismatch between the selective harvest methods of the commercial fishery and current calculations of F are preventing an accurate assessment of the impact of commercial fishery removals on the sablefish population in Chatham Strait. 
+
+Given the current decline in catch quotas and abundance of Chatham Strait sablefish, the commercial fleet is highly unlikely to accept implementation of the ASA as a management tool if it further reduces ABC. Continuing with current methods, however, carries the potential for further declines in the population through overfishing and the mismatch between yield-per-recruit calculations of F and the age/sex retention by the commercial fishery.
+
+Several recommendations are made:  
+1.	Further refine the ASA code and assumptions. This includes the estimation of fisheries and survey selectivity curves within the model, as opposed to inputting curves from the federal stock assessment. At present, attempts to estimate selectivity curves within the ASA model produces curves that were not considered realistic, because they were influenced by the preference of the commercial fishery for large females beyond the relative proportion in the population. Attempts should be made to clearly distinguish and quantify this preference apart from gear selectivity;
+2.	There exist data from the mark-recapture project for fish recaptured after the year in which they were tagged. These should be explored in a multi-year mark-recapture estimator that may help with estimates of overall abundance;
+3.	Movement rates in and out of Chatham Strait should be explored and the results incorporated into the ASA, if possible;
+4.	Current management methods should be examined to resolve the mismatch between the yield-per-recruit calculations and the age composition of the commercial fishery.
