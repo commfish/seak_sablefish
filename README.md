@@ -134,6 +134,7 @@ NOTE: when running, always make sure that all data have been read and uploaded i
 ### cpue_srv
 
 Used to calculate Chatham longline survey CPUE
+
 **FLAG** Need depth? # of sets?
 
 ```sql
@@ -205,6 +206,7 @@ BIOLOGICAL DATA >> Age-Sex-Size Sampled at Sea
 
 ### tagged_recovery_lengths
 Used only to show differences between tagged retentions and non-tagged retentions in the commercial fishery; not used for any formal calcs
+
 **FLAG** Are these all the tag recoveries?
 
 ```sql
