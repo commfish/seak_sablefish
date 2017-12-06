@@ -195,6 +195,7 @@ $s_{k,a-1}$ = the commercial fishery selectivity-at-age for $a-1$ and sex $k$,
 $s_{k,a}$ = the commercial fishery selectivity-at-age for age $a$ and sex $k$,
 $F_{t-1}$ = the full recruitment fishing mortality implemented in year $t-1$,
 $\gamma_k$ is the proportion of the commercial longline catch by sex $k$, and
+
 $M$ is natural mortality. Natural mortality is assumed constant over time and age, and is set to 0.1 (Johnson and Quinn, 1998). 
 
 It is the division of age-specific abundance by fishery selectivity-at-age that transforms *exploited* abundance into *vulnerable* abundance.
@@ -211,7 +212,7 @@ Application of the Baranov catch equation for which full-recruitment fishing mor
 
 where 
 $w_a$ = fishery weight-at-age, and 
-$Z_a$ = total mortality at age $a$. $Z_a$ is the sum of natural mortality $M$ and the product of $F$ and selectivity-at-age *ï¦*a. 
+$Z_a$ = total mortality at age $a$. $Z_a$ is the sum of natural mortality $M$ and the product of $F$ and selectivity-at-age $\phi_a$. *FLAG* I think this should be s_a.
 
 A comparison of this method for determining ABC and the output of the ASA model suggests that this approach may overestimate ABC relative to F50%.
 
