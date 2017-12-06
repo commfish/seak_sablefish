@@ -214,6 +214,7 @@ where
 $w_a$ = fishery weight-at-age, and 
 $Z_a$ = total mortality at age $a$. $Z_a$ is the sum of natural mortality $M$ and the product of $F$ and selectivity-at-age $\phi_a$. *FLAG* I think this should be s_a.
 
+
 A comparison of this method for determining ABC and the output of the ASA model suggests that this approach may overestimate ABC relative to F50%.
 
 **Age-Structured Assessment Model**  
