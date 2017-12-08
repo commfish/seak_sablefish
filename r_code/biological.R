@@ -384,6 +384,8 @@ f_sex_ratio(data = filter(srv_bio, age %in% aa),
   bind_rows(f_sex_ratio(data = filter(fsh_bio, age %in% aa), 
               src = "LL fishery", year, age)) -> byyrage
 
+
+
 # Age compositions ----
 
 # Combine survey and fishery data for age comp analysis

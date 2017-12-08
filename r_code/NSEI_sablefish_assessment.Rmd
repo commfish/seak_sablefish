@@ -212,13 +212,42 @@ Application of the Baranov catch equation for which full-recruitment fishing mor
 
 where 
 $w_a$ = fishery weight-at-age, and 
-$Z_a$ = total mortality at age $a$. $Z_a$ is the sum of natural mortality $M$ and the product of $F$ and selectivity-at-age $\phi_a$. *FLAG* I think this should be s_a.
+$Z_a$ = total mortality at age $a$. $Z_a$ is the sum of natural mortality $M$ and the product of $F$ and selectivity-at-age $\phi_a$. *FLAG* I think this should be $s_a$? If so, fix the equation too.
 
 
-A comparison of this method for determining ABC and the output of the ASA model suggests that this approach may overestimate ABC relative to F50%.
+A comparison of this method for determining ABC and the output of the ASA model suggests that this approach may overestimate ABC relative to $F_{50\%}$.
 
-**Age-Structured Assessment Model**  
-Current stock assessment methods for Chatham Strait sablefish construct a snapshot of stock condition for each year, and treat the mark-recapture estimates of exploitable abundance as if they are known without error. The age-structured assessment model places the mark-recapture estimates of exploitable abundance within a statistical framework, combined with other data sources, to construct a more fluid model of the stock as it changes over time.
+# Section IV: Growth and maturity
+
+Mean length-at-age and weight-at-age are estimated from both survey and fishery catches for males and females. Maturity-at-age is calculated only for females from the survey data, as female spawning biomass serves as the Biological Reference Point for $F$ levels under the assumption that a single male can fertilize multiple females and the limiting recruitment factor is female spawning biomass.
+
+The relationship between length and age is modeled using the simple 3-parameter Ludwig von Bertalanffy growth equation
+
+(10)  $$L_a=L_\infty\Big[1-e^{(-k(a-t_0))}\Big]$$
+
+where $L_a$ = length-at-age, 
+$L_\infty$ = population mean asymptotic length, 
+$k$ = growth rate, and
+$t_0$ = the theroretical age at which an individual is considered to have zero length. 
+
+The length-weight relationship is described using the starndard allometric equation
+
+(11) $$W=\alpha L^\beta$$.
+
+In past assessments $\beta$ was fixed at 3, but there are sufficient data to estimate the additional parameter parameter and the federal assessment suggests slight deviations from 3 (the values of $\beta_f$ = 3.02 and $\beta_m$ = 2.96, Hanselman et
+al. 2007, are used in the current assessment). 
+
+The $\beta$ parameter is used to estimate mean weight-at-age in a weight-based von Bertalanffy model, which we fit assuming a multiplicative error structure (i.e. increased variance at older ages):
+
+(12) $$log(W_a) = log(W_\infty)+\beta*log(1-e^{-k(a - t_0)}).$$
+
+# fit weight-based lvb with a multiplicative error structure using max likelihood estimation
+# log(w_i) = log(w_inf) + beta * log(1 - exp * (-k * (age_i - t0))) + error
+i.e. increased variance at older ages):
+
+# Section V: Age-Structured Assessment Model
+
+An age-structured assessment model has been under development by ADF&G for a number of years. Current stock assessment methods for Chatham Strait sablefish construct a snapshot of stock condition for each year, and treat the mark-recapture estimates of exploitable abundance as if they are known without error. The age-structured assessment model places the mark-recapture estimates of exploitable abundance within a statistical framework, combined with other data sources, to construct a more fluid model of the stock as it changes over time.
 
 The model uses the marks recaptured in the ADF&G longline survey as a distinct estimate of population in addition to the mark-recapture estimates from the commercial longline fishery. These two data sets are critical to the scaling of absolute abundance in model outputs.
 
@@ -237,8 +266,9 @@ Data and derived quantities used in the age-structured model:
 9.	Estimates of selectivity-at-age from the commercial longline fishery and the ADF&G longline survey - input from the NOAA age-structured model for sablefish in the Gulf of Alaska;
 10.	Natural mortality from Quinn and Johnson (1988), set to 0.1 for all ages.  
 
-**Parameter estimation**  
+## Parameter estimation
 Model parameters were estimated by minimizing a penalized negative log-likelihood objective function. Log-normal likelihoods were assumed for total annual catch; normal distributions were assumed for mark-recapture estimates of exploited and vulnerable abundances, and CPUE estimates for both the commercial fishery and the ADF&G longline survey. Multinomial likelihoods were assumed for age composition data. Penalties were implemented in the objective function to facilitate scaling and parameter estimation. Variability in full-recruitment fishing mortality F, recruitment, and initial abundances in Year 1 were constrained by minimizing deviations from assumed log-normal prior probability distributions.
+
 Model results The model successfully converges to a set of parameter estimates and variances with no performance issues. The model structure is stable and ready for addition refinement and improvement in preparation for being formally implemented as a stock assessment tool.
 
 Model fits are presented as follows:  
@@ -253,7 +283,7 @@ A comparison of model output to current stock assessment methods points out two 
 *Scaling abundance *  
 Model estimates of total biomass for years prior to implementation of the mark-recapture project appear to be unreasonable (Fig. 10). This is likely due to lack of data with which to scale model outputs (Fig. 11). Although conducting the mark-recapture survey in alternating years would likely not be problematic for practical application of the model, longer periods between surveys would greatly increase uncertainty in model outputs.
 
-*Over-estimation of ABC and F *  
+*Over-estimation of ABC and F*  
 As above, the ABC for 2016 is 847,021 pounds. The ABC from the age-structured model is 616,394 pounds. Given that the same mark-recapture data informs both methods, this discrepancy is counter-intuitive but informative.
 
 1.	The age-composition in the commercial fishery has been used to track relative cohort strength (Eq. (7)). Implicit in this is the assumption that the age-composition in the commercial fishery is indicative of the relative cohort strength in the overall population. This, however, is not true. From the discussion above, it has been shown that the commercial fishery selects for large females in greater proportion than are present (both sex and size) in the longline survey Figs (2, 5)). The result is that the commercial fishery has a greater impact on females than males, and that the age-composition of the commercial fishery reflects the exploited abundance, not the overall abundance, of Chatham Strait sablefish.
