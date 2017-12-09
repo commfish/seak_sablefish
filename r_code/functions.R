@@ -11,7 +11,7 @@
 
 source("r_code/helper.R")
 
-if(!require("broom"))   install.packages("broom") # tidy() useful for tidying mle() output
+if(!require("broom"))   install.packages("broom") # tidy() useful for tidying mle() and other model output
 if(!require("stats4"))   install.packages("stats4") # needed for mle()
 if(!require("captioner"))   install.packages("captioner") #numbering, ordering, & creating captions for tables and figures
 

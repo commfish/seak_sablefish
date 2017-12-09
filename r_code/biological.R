@@ -1,21 +1,31 @@
 # work up of survey and fishery biological data
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2017-10-16
+# Last edited: 2017-12-08
 
 source("r_code/helper.r")
 source("r_code/functions.r")
 library(ggridges)
+
 # data -----
 
 # survey biological  data
+
 read_csv("data/survey/llsurvey_bio_1988_2016.csv", guess_max = 50000) %>% 
   mutate(Year = factor(year),
          Project = factor(Project),
          Stat = factor(Stat),
          Station = factor(Station),
          Sex = factor(Sex),
-         Maturity = factor(Maturity)) %>% 
+         Maturity = factor(Maturity),
+         # *FLAG* there's an [unresolved and unreproducible] issue with the maturity
+         # codes in Kray's data files, so the cleaner data will need to be updated using
+         # the new codes. For old codes 1 and 2 = immature, 3 = mature. For new codes, 1
+         # = immature, 7 = mature
+         Mature = derivedFactor("0" = Maturity_cde %in% c("1", "2"),
+                                "1" = Maturity_cde,
+                                .method = "first", .default = NA,
+                                .ordered = TRUE)) %>% 
   group_by(Year, Stat) %>% 
   mutate(n = length(age),
          length_mu = mean(length, na.rm = TRUE),
@@ -270,6 +280,89 @@ bind_rows(allom_pars, lvb_pars, wvb_pars) %>%
       mutate(Source = "seak_sablefish/code/biological.r") %>% 
   bind_rows(noaa_lvb) %>% 
   write_csv(., "output/compare_vonb_adfg_noaa.csv")
+
+# Maturity ----
+
+# 0 = immature, 1 = mature
+
+# base models
+
+fit_length <- glm(Mature ~ length, data = laa_f, family = binomial)
+fit_age <- glm(Mature ~ age, data = laa_f, family = binomial)
+
+# by year
+fit_length_year <- glm(Mature ~ length * Year, data = laa_f, family = binomial)
+fit_age_year <- glm(Mature ~ age * Year, data = laa_f, family = binomial)      
+# Warning message:
+#   glm.fit: fitted probabilities numerically 0 or 1 occurred 
+
+AIC(fit_length, fit_age, fit_length_year, fit_age_year)
+
+# temporary detour
+fit_length <- glm(Mature ~ length, data = len_f, family = binomial)
+tidy(coef(summary(fit_length))) %>% select(par = `.rownames`, est = Estimate ) -> pars
+b0 <- fit_length$coefficients[1]
+b1 <- fit_length$coefficients[2]
+l50 <- -b0/b1
+lens <- min(len_f$length):max(len_f$length)
+kmat <- ((b0 + b1*lens) / (lens - l50))[1]
+# detour over
+
+## select the "best model" (fit_length_year) and run the model on the new full
+# dataset (there is more length data than age)
+
+# subsets by length, age, sex
+srv_bio %>% 
+  ungroup() %>% 
+  filter(Sex == "Female" &
+           year >= 1997 & # *FLAG* advent of "modern" survey
+           !is.na(length)) %>% 
+  droplevels() -> len_f
+
+fit_length_year <- glm(Mature ~ length * Year, data = len_f, family = binomial)
+
+data.frame(length = seq(0:max(len_f$length)),
+           year = unique(len_)
+tidy(coef(summary(fit_length_year))) %>% 
+  select(param = `.rownames`, 
+         est = Estimate) -> mature_results
+
+# Note on glm() output b/c I can never remember
+# (Intercept) = intercept for Year1997 (or first level of factor) on logit scale
+# length = slope for Year1997 on logit scale
+# Year1998 = difference in intercept (Year1998 - Year1997)
+# length:Year1998 = difference in slope (lengthYear1998 - Year1997)
+
+bind_rows(
+  # filter out intercepts, derive estimates by yr  
+  mature_results %>% 
+    filter(param == "(Intercept)") %>% 
+    mutate(param = "Year1997"),
+  
+  mature_results %>% 
+    filter(!param %in% c("(Intercept)", "length") &
+             !grepl(':+', param)) %>%     # filter(!grepl('length:Year\\d{4}', param)) %>% #alternative regex
+    mutate(est = est + mature_results$est[mature_results$param == "(Intercept)"]),
+    
+
+  ) %>% mutate(Parameter = "b_0")
+    ,
+    
+    # filter out slopes (contain >1 :), derive estimates by yr
+    mature_results %>% 
+      filter(grepl(':+', param)) %>% 
+      mutate(est = est + mature_results$est[mature_results$param == "length"],
+             Parameter = "b_1")
+  )
+)
+
+# Then convert back to age via VonB
+mature_results$Parameter
+max(na.omit(srv_bio$age))
+age_vec <- seq(0, 40, 0.1)
+
+pred <- vb_pars$Estimate[1] * (1 - exp(- vb_pars$Estimate[2] * (age_vec - vb_pars$Estimate[3])))
+vb_pars <- vb_mle_f$results
 
 # Sex ratios ----
 
