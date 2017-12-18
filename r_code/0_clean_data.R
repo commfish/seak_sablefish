@@ -12,6 +12,58 @@
 
 # load ----
 source("r_code/helper.R")
+install.packages("ROracle")
+library(ROracle)
+
+# Oracle connections ----
+
+# Database usernames and passwords (user-specific, ignored)
+ora <- read_csv("database.csv") 
+
+# Connection strings in T:/Toolbox/TNS/tnsnames.ora
+
+# IFDB aka ALEX. Region I database, ultimately will be replaced by Zander
+ifdb <- "(DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = db-ifdb.dfg.alaska.local)(PORT = 1521))
+   (CONNECT_DATA = (SERVER = DEDICATED)
+     (SERVICE_NAME = ifdb.dfg.alaska.local)))"
+
+ifdb_channel <- dbConnect(drv = dbDriver('Oracle'), 
+                          username = ora$ifdb_user, 
+                          password = ora$ifdb_pw, 
+                          dbname = ifdb)
+
+# Zander. Region I database
+zprod <- "(DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = db-zprod.dfg.alaska.local)(PORT = 1521))
+    (CONNECT_DATA = (SERVER = DEDICATED)
+      (SERVICE_NAME = zprod.dfg.alaska.local)))"
+
+zprod_channel <- dbConnect(drv = dbDriver('Oracle'), 
+                          username = ora$zprod_user, 
+                          password = ora$zprod_pw, 
+                          dbname = zprod)
+
+# Fish tickets
+adfgcf <- "(DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = db-padfgcf.dfg.alaska.local)(PORT = 1521))
+(CONNECT_DATA = (SID = PADFGCF)))"
+
+adfgcf_channel <- dbConnect(drv = dbDriver('Oracle'), 
+                          username = ora$adfgcf_user, 
+                          password = ora$adfgcf_pw, 
+                          dbname = adfgcf)
+
+# Data warehouse. eLandings, fish tickets, maybe tag lab data too?
+dwprod <- "(DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = db-dwprod.dfg.alaska.local)(PORT = 1521))
+    (CONNECT_DATA = (SERVER = DEDICATED)
+      (SERVICE_NAME = dwprod.dfg.alaska.local)))"
+
+dwprod_channel <- dbConnect(drv = dbDriver('Oracle'), 
+                          username = ora$dwprod_user, 
+                          password = ora$dwprod_pw, 
+                          dbname = dwprod)
 
 # Fishery cpue ----
 
