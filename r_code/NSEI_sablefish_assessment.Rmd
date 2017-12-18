@@ -25,8 +25,7 @@ DATES
 YEAR <- 2018
 
 # Put current values for the federal stock assessment here (from SAFE chapter)
-feds <- data.frame(
-)
+fed_YEAR_abc <- 
 
 # Inputs
 source("helper.r")
