@@ -1,4 +1,4 @@
-## Code for processing Southeast Alaska sablefish data for population assessments  
+## Code for processing Chatham Strait Southeast Alaska sablefish data for population assessments  
 
 Please direct any questions to: 
 Jane Sullivan jane.sullivan1@alaska.gov
