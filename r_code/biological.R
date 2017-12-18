@@ -137,6 +137,56 @@ ggplot(pred, aes(pred, std_resid)) +
   geom_hline(yintercept = 0, lty = 2, col = "red") + 
   facet_wrap(~ Sex)
 
+# Are there annual trends in length-at-age? First vonB curves by Year for illustrative
+# purposes
+
+list_yrs <- unique(laa_f$year)
+
+for (i in 1:length(list_yrs)) {
+  
+  #Get year-specific subset and fit model
+  laa_yr <- laa_f %>% filter(year == list_yrs[i])
+
+  vbfit <- vonb_len(obs_length = laa_yr$length,
+                     age = laa_yr$age, starting_vals = start_f,
+                     sex = "Female")
+  
+  #Append resuts for vonB predictions and parameter estimates
+  pred <- vbfit$predictions %>% mutate(year = list_yrs[i])
+  if(i == 1) {
+    pred_out <- pred
+    rm(pred) 
+  } else {
+    pred_out <- rbind(pred_out, pred)
+  }
+  
+  estimates <- vbfit$results %>% mutate(year = list_yrs[i])
+  if(i == 1) {
+    estimates_out <- estimates
+    rm(estimates) 
+  } else {
+    estimates_out <- rbind(estimates_out, estimates)
+  }
+  
+  vb_out <- list(pred_out, estimates_out)
+}
+
+# Deviations by year for length-based vonB param estimates
+ggplot() + 
+  geom_segment(data = vb_out[[2]] %>% 
+                 filter(Parameter != "sigma") %>% 
+                 group_by(Parameter) %>% 
+                 mutate(scaled_est = scale(Estimate),
+                        mycol = ifelse(scaled_est < 0, "blue", "red")) %>% 
+                 ungroup(),
+               aes(x = year, y = 0,
+                   xend = year, yend = scaled_est, 
+                   color = mycol), size = 2) +
+  geom_hline(yintercept = 0, lty = 2) + 
+  guides(colour = FALSE) +
+  labs(x = "", y = "Scaled parameter estimates") +
+  facet_wrap(~ Parameter, ncol = 1)
+
 # Weight-length allometry W = alpha * L ^ beta ----
 
 # KVK assumed beta = 3, but there are data to estimate this value (e.g., Hanselman et
@@ -285,7 +335,6 @@ bind_rows(allom_pars, lvb_pars, wvb_pars) %>%
 # 0 = immature, 1 = mature
 
 # base models
-
 fit_length <- glm(Mature ~ length, data = laa_f, family = binomial)
 fit_age <- glm(Mature ~ age, data = laa_f, family = binomial)
 
@@ -296,16 +345,6 @@ fit_age_year <- glm(Mature ~ age * Year, data = laa_f, family = binomial)
 #   glm.fit: fitted probabilities numerically 0 or 1 occurred 
 
 AIC(fit_length, fit_age, fit_length_year, fit_age_year)
-
-# temporary detour
-fit_length <- glm(Mature ~ length, data = len_f, family = binomial)
-tidy(coef(summary(fit_length))) %>% select(par = `.rownames`, est = Estimate ) -> pars
-b0 <- fit_length$coefficients[1]
-b1 <- fit_length$coefficients[2]
-l50 <- -b0/b1
-lens <- min(len_f$length):max(len_f$length)
-kmat <- ((b0 + b1*lens) / (lens - l50))[1]
-# detour over
 
 ## select the "best model" (fit_length_year) and run the model on the new full
 # dataset (there is more length data than age so it will usually fit better)
@@ -338,54 +377,8 @@ ggplot(pred) +
   geom_line(aes(x = length, y = fitted, group = Year), colour = "lightblue") +
   geom_line(aes(x = length, y = Probability), 
             colour = "darkblue", size = 2) +
-  # lims(x = c(40, 85)) +
+  lims(x = c(40, 85)) +
   labs(x = "Length (cm)", y = "Probability")
-
-# Then convert back to age via VonB
-age_pred <- seq(0, 30, by = 0.01)
-vb_pars <- vb_mle_f$results
-age_pred <- data.frame(age = age_pred,
-           length = round(vb_pars$Estimate[1] * (1 - exp(- vb_pars$Estimate[2] * (age_pred - vb_pars$Estimate[3]))), 1))
-
-# Match lengths back to lengths predicted by vonb
-pred <- merge(pred, age_pred, by = "length") 
-
-# Age-based maturity curves estimated from length-based maturity and vonB growth
-# curve (light blue lines are annual mean preditions, dark blue is the mean)
-ggplot(pred) +
-  geom_line(aes(x = age, y = fitted, group = Year), colour = "lightblue") +
-  geom_line(aes(x = age, y = Probability), 
-            colour = "darkblue", size = 2) +
-  labs(x = "Age", y = "Probability") -> maturity_at_age_plot
-
-plot(maturity_at_age_plot)
-
-# Comparison with age-based maturity curve
-# New df for prediction
-new_f <- data.frame(age = seq(0, 30, by = 0.01), n_distinct(laa_f$year),
-                    Year = factor(sort(rep(unique(laa_f$year), 
-                                           length(seq(0, 30, by = 0.01))), 
-                                       decreasing = FALSE)))
-
-# Get predicted values by year and take the mean           
-broom::augment(x = fit_age_year, 
-               newdata = new_f, 
-               type.predict = "response") %>% 
-  select(Year, age, fitted = .fitted, se =.se.fit) %>% 
-  group_by(age) %>% 
-  mutate(Probability = mean(fitted)) -> pred_age
-
-# Comparison of maturity at age curves. Blue is derived from length-based
-# maturity cuve, red is estimated directly from age. Light lines are annual mean
-# preditions, dark lines are the means.
-maturity_at_age_plot +
-  geom_line(data = pred_age,
-            aes(x = age, y = fitted, group = Year), 
-            colour = "lightpink", alpha = 0.5) +
-  geom_line(data = pred_age,
-            aes(x = age, y = Probability), 
-            colour = "red", size = 2, alpha = 0.5) +
-  labs(x = "Age", y = "Probability")
 
 # Parameter estimates by year
 tidy(coef(summary(fit_length_year))) %>% 
@@ -434,6 +427,15 @@ ggplot() +
   labs(x = "", y = "Scaled parameter estimates") +
   facet_wrap(~ Parameter, ncol = 1)
 
+# Next convert predictions back to age via vonb
+age_pred <- seq(0, 30, by = 0.01)
+vb_pars <- vb_mle_f$results
+age_pred <- data.frame(age = age_pred,
+                       length = round(vb_pars$Estimate[1] * (1 - exp(- vb_pars$Estimate[2] * (age_pred - vb_pars$Estimate[3]))), 1))
+
+# Match lengths back to lengths predicted by vonb
+pred <- merge(pred, age_pred, by = "length") 
+
 # Get length at 50% maturity (L_50 = -b_0/b_1) and get a_50 from age_pred
 # (predicted from vonB)
 merge(mature_results %>% 
@@ -450,21 +452,103 @@ merge(mature_results %>%
 
 merge(pred %>% mutate(year = Year), mat_50_year, by = "year") -> pred
 
-maturity_at_age_plot +
-  geom_segment(data = pred %>% distinct(mu_a_50), aes(x = mu_a_50, y = 0, 
-                 xend = mu_a_50, yend = 0.50), lty = 2, col = "darkblue") +
-  geom_segment(data = pred %>% distinct(mu_a_50), aes(x = 0, y = 0.50, 
-                 xend = mu_a_50, yend = 0.50), lty = 2, col = "darkblue") 
+# Age-based maturity curves estimated from length-based maturity and vonB growth
+# curve (light blue lines are annual mean preditions, dark blue is the mean)
+ggplot(pred) +
+  geom_line(aes(x = age, y = fitted, group = Year), 
+            colour = "lightblue") +
+  geom_line(aes(x = age, y = Probability), 
+            colour = "darkblue", size = 2) +
+  lims(x = c(0, 20)) +
+  labs(x = "Age", y = "Probability") -> maturity_at_age_plot
 
-#There is no clear reason to choose the more complicated model (fit_length_year)
-#over the simpler model (fit_length)
+# Comparison with age-based maturity curve
+# New df for prediction
+new_f <- data.frame(age = seq(0, 30, by = 0.01), n_distinct(laa_f$year),
+                    Year = factor(sort(rep(unique(laa_f$year), 
+                                           length(seq(0, 30, by = 0.01))), 
+                                       decreasing = FALSE)))
+
+# Get predicted values by year and take the mean           
+broom::augment(x = fit_age_year, 
+               newdata = new_f, 
+               type.predict = "response") %>% 
+  select(Year, age, fitted = .fitted, se =.se.fit) %>% 
+  group_by(age) %>% 
+  mutate(Probability = mean(fitted)) -> pred_age
+
+# Comparison of maturity at age curves. Blue is derived from length-based
+# maturity cuve, red is estimated directly from age. Light lines are annual mean
+# preditions, dark lines are the means.
+maturity_at_age_plot +
+  geom_line(data = pred_age,
+            aes(x = age, y = fitted, group = Year), 
+            colour = "lightpink", alpha = 0.5) +
+  geom_line(data = pred_age,
+            aes(x = age, y = Probability), 
+            colour = "red", size = 2, alpha = 0.5) +
+  labs(x = "Age", y = "Probability")
+
+#Length-based (translated to age) is more realistic than age-based. Also there
+#is no clear reason to choose the more complicated model (fit_length_year) over
+#the simpler model (fit_length)
 
 # Get predicted values for the simpler model, then merge with age predictions from the vonb          
 merge(broom::augment(x = fit_length, 
                newdata = data.frame(length = seq(0, 120, 0.05)), 
                type.predict = "response") %>% 
   select(length, fitted = .fitted, se =.se.fit), 
-  age_pred, by = "length") %>% head()
+  age_pred, by = "length") -> simple_fit
+
+# Fit age-based model to fitted values so you can derive parameter estimates
+fit_age <- glm(fitted ~ age, data = simple_fit, family = binomial)
+
+#Derive age at 50% maturity and kmat (slope of logistic curve)
+b0 <- fit_age$coefficients[1]
+b1 <- fit_age$coefficients[2]
+a50 <- -b0/b1
+age <- min(laa_f$age):max(laa_f$age)
+kmat <- ((b0 + b1*age) / (age - a50))[1]
+
+# proportion mature at age
+laa_f %>% ungroup() %>%
+  count(Mature, age) %>%
+  group_by(age) %>%
+  mutate(proportion = round(nn / sum(nn), 2)) %>% 
+  filter(Mature == 1) -> proportion_mature
+
+# Final age-based maturity curve estimated from length-based maturity and vonB growth
+# curve. Points are proportion mature at age (1997-present)
+
+# Equation text for plotting values of a_50 and kmat
+a50_txt <- as.character(
+  as.expression(substitute(
+    paste(italic(a[50]), " = ", xx),
+    list(xx = formatC(a50, format = "f", digits = 2)))))
+
+kmat_txt <- as.character(
+  as.expression(substitute(
+    paste(italic(k[mat]), " = ", xx),
+    list(xx = formatC(kmat, format = "f", digits = 2)))))
+
+ggplot(simple_fit) +
+  geom_line(aes(x = age, y = fitted), 
+            colour = "darkblue", size = 2) +
+  geom_segment(aes(x = a50, y = 0, xend = a50, yend = 0.50), 
+               lty = 2, col = "darkblue") +
+  geom_segment(aes(x = 0, y = 0.50, xend = a50, yend = 0.50), 
+               lty = 2, col = "darkblue") +
+  # Porportion mature by age
+  geom_point(data = proportion_mature,
+             aes(x = age, y = proportion),
+             colour = "lightblue") +
+  # a_50 and kmat labels
+  geom_text(aes(10, 0.5,label = a50_txt), face = "bold", parse = TRUE) +
+  geom_text(aes(10, 0.46,label = kmat_txt), face = "bold", parse = TRUE) +
+  lims(x = c(0, 25)) +
+  labs(x = "Age", y = "Probability") 
+
+  # maturity_at_age_plot
 
 # Sex ratios ----
 
