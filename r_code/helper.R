@@ -13,6 +13,7 @@ if(!require("lubridate"))   install.packages("lubridate") # dates functions like
 if(!require("mgcv"))   install.packages("mgcv") # gams
 if(!require("gridExtra"))   install.packages("gridExtra") # multipanneled plots
 if(!require("data.table"))   install.packages("data.table") # dcast, foverlaps
+if(!require("ROracle"))   install.packages("ROracle") # database access through R
 
 # ggplot themes ----
 

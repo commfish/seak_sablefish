@@ -1,7 +1,7 @@
-# Clean data - processing script for all incoming data
+# Query and clean data - processing script for all incoming data
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2017-10-05
+# Last edited: 2017-12-19
 
 # *in progress* All columns formatted as follows unless otherwise specified:
 # `length` - cm fork length 
@@ -10,12 +10,11 @@
 # `depth` - currently have both meters and fathoms...
 # characters & factors - first letter capitilized (e.g. 'Sex'), otherwise lowercase
 
+# year of the assessment 
+YEAR <- 2018
+
 # load ----
 source("r_code/helper.R")
-install.packages("ROracle")
-
-library('ROracle')
-
 
 # Oracle connections ----
 
@@ -58,9 +57,7 @@ adfgcf_channel <- dbConnect(drv = dbDriver('Oracle'),
 
 # Data warehouse. eLandings, fish tickets, maybe tag lab data too?
 dwprod <- "(DESCRIPTION =
-
-
-    (ADDRESS = (PROTOCOL = TCP)(HOST = db-dwprod.dfg.alaska.local)(PORT = 1521))
+(ADDRESS = (PROTOCOL = TCP)(HOST = db-dwprod.dfg.alaska.local)(PORT = 1521))
     (CONNECT_DATA = (SERVER = DEDICATED)
       (SERVICE_NAME = dwprod.dfg.alaska.local)))"
 
@@ -68,6 +65,109 @@ dwprod_channel <- dbConnect(drv = dbDriver('Oracle'),
                           username = ora$dwprod_user, 
                           password = ora$dwprod_pw, 
                           dbname = dwprod)
+
+# Fishery harvest, catch time series ----
+
+# g_cfec_fishery_group_code = 'C' -- Sablefish
+
+query <- 
+" select  year, adfg_no, vessel_name, port_code, gear,
+          catch_date, sell_date, harvest_code, harvest, g_stat_area,
+          g_management_area_code, species_code, pounds, round_pounds,
+          delivery_code, delivery
+
+  from    out_g_cat_ticket
+
+  where   g_cfec_fishery_group_code = 'C' and
+          species_code = '710' and
+          g_management_area_code = 'NSEI'  "
+
+dbGetQuery(ifdb_channel, query) -> annual_catch
+
+annual_catch %>% 
+  group_by(YEAR) %>% 
+  summarise(sum(POUNDS),
+            sum(ROUND_POUNDS)) %>% 
+  View()
+
+write_csv(paste0("data/fishery/raw_data/fishery_catch_fishery_cpue_", 
+                 min(annual_catch$YEAR), "_", max(annual_catch$YEAR), ".csv"))
+
+# Chatham Strait Longline Survey biological data. originally stored in ifdb
+# under out_g_bio_effort_age_sex_size but since the development of ACES (the
+# mobile app used on the survey), which was not compatible with ALEX, all bio
+# data has migrated to zprod under output.out_g_sur_longline_specimen
+
+query <-
+" select  trip_id, year, time_first_buoy_onboard as fishing_date, project_code, trip_no, 
+          target_species_code, adfg_no, vessel_name, number_of_stations, sample_type_code,
+          hooks_per_set, hook_size, hook_spacing_inches, bait_code, 
+          effort_no, g_stat_area, station_no, start_latitude_decimal_degrees,
+          start_longitude_decimal_degree, end_latitude_decimal_degrees, 
+          end_longitude_decimal_degrees, longline_system_code, start_depth_fathoms,
+          end_depth_fathoms, avg_depth_fathoms, species_code, length_millimeters, 
+          length_type_code, weight_kilograms, age, age_type_code, age_readability_code,
+          sex_code, maturity_code, otolith_condition_code
+
+  from    output.out_g_sur_longline_specimen
+
+  where   species_code = '710' and 
+          project_code = '603' "
+
+dbGetQuery(zprod_channel, query) -> srv_bio
+
+srv_bio %>% 
+  group_by(YEAR) %>% 
+  summarise(n()) %>% 
+  View()
+
+write_csv(paste0("data/survey/raw_data/llsurvey_bio_", 
+                 min(srv_bio$YEAR), "_", max(srv_bio$YEAR), ".csv"))
+
+# Groundfish project codes (yes, they are different for OceanAK and IFDB)
+
+# OceanAK
+query <-
+" select  project_code, project
+  from    lookup.project
+  where   category_code = 'g' "
+
+dbGetQuery(zprod_channel, query)
+
+# IFDB
+query <-
+" select  project_code, project
+  from    project
+  where   category_code = 'g' "
+
+dbGetQuery(ifdb_channel, query)
+
+
+# Fishery biological data. project codes: 17 = commercial pot, 02 = commercial
+# longline
+
+query <-
+" select  year, project_code, trip_no, adfg_no, vessel_name, sell_date, g_stat_area,
+          g_management_area_code, g_stat_area_group, sample_type_code, sample_type, 
+          species_code, length_type_code, length_type, length_millimeters, weight_kilograms,
+          age, age_readability_code, age_readability, sex_code, maturity_code, maturity, 
+          gear_code, gear
+
+  from    out_g_bio_age_sex_size
+
+  where   species_code = '710' and
+          project_code in ('02', '17') and
+          g_management_area_code in ('NSEO', 'NSEI') "
+
+dbGetQuery(ifdb_channel, query) -> fsh_bio
+
+fsh_bio %>% 
+  group_by(YEAR, PROJECT_CODE, G_MANAGEMENT_AREA_CODE) %>% 
+  summarise(n()) %>% 
+  View()
+
+write_csv(paste0("data/survey/raw_data/llsurvey_bio_", 
+                 min(srv_bio$YEAR), "_", max(srv_bio$YEAR), ".csv"))
 
 # Fishery cpue ----
 
@@ -96,9 +196,6 @@ read_csv("data/fishery/raw_data/fishery_cpue_1997_2015.csv") %>%
          sets = EFFORT_NO, sable_wt_set) %>% 
   write_csv("data/fishery/fishery_cpue_1997_2015.csv")
 
-# Fishery harvest, catch time series ----
-
-# in progress...
 
 # Fishery biological ----
 
