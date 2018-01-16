@@ -2,7 +2,7 @@
 # Fishery catch 1980-present, fishery CPUE 1997-present
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2017-10-03
+# Last edited: 2018-01-12
 
 
 # Also used for requested vessel-specific cpue
@@ -19,16 +19,58 @@
 # (now fishery_cpue_1997_2015.csv) because it goes back to 1997. There was no
 # documentation for the legacy cpue values
 
+# most recent year of data
+YEAR <- 2017
 
-# load ----
+# Load ----
+
 source("r_code/helper.R")
 
+read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
+                 guess_max = 50000) %>% 
+  mutate(Year = factor(year), 
+         Adfg = factor(Adfg),
+         Spp_cde = factor(Spp_cde), 
+         Gear = factor(Gear),
+         Hook_size = factor(Hook_size), 
+         Size = factor(Size),
+         Stat = factor(Stat),
+         std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (0.0254 * hook_space))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
+         std_cpue = sable_lbs_set/std_hooks #standardized cpue (lbs of sablefish/hook)
+  ) %>% 
+  #"sets" (aka effort_no) is the set identifier. Currently Martina's scripts
+  #filter out sets that Kamala identifies as halibut target sets. Create a new
+  #column that is the total number of sablefish target sets in a trip
+  group_by(trip_no) %>% 
+  mutate(no_sets = n_distinct(sets)) %>% 
+  group_by(year) %>% 
+  mutate(
+    #The number of vessels participating in the fishery has descreased by 50% from
+    #1997-2015. create new column is the total number of active vessels
+    #participating in a given year
+    total_vessels = n_distinct(Adfg),
+    # Total unique trips per year
+    total_trips = n_distinct(trip_no),
+    #mean annual cpue
+    annual_cpue = mean(std_cpue)) -> cpue
 
-# data ----
+View(cpue)
 
-cpue <- read_csv("data/fishery/fishery_cpue_1997_2015.csv")
-glimpse(cpue)
+# There are multiple sources of catch data. The IFDB (Region I database) was
+# used in the past, but J. Shriver recommends using the Gross Earnings File
+# (GEF) for catch histories. The problem is the GEF isn't updated until data has
+# been finalized, so 2017 isn't ready yet. The IFDB data goes back to 1969,
+# while the GEF data only goes back to 1975.
 
+
+catch_gef <- read_csv(paste0("data/fishery/nseiharvest_gef_1975_", YEAR-1,".csv"), 
+                      guess_max = 50000)
+
+names(catch_gef)
+
+catch_ifdb <- read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR,".csv"), 
+                      guess_max = 50000)
+names(catch_ifdb)
 # clean up data structures, get cpue
 cpue %>% 
   mutate(Year = factor(year), 
@@ -109,7 +151,7 @@ core_areas <- c("345603", "345631", "345701",
 cpue_year_area <- cpue %>% 
   filter(Stat %in% core_areas) %>% 
   group_by(Stat, Year) %>% 
-  summarise(catch = sum(sable_wt_set),
+  summarise(catch = sum(sable_lbs_set),
             cpue = mean(std_cpue))
 
 p_catch <- ggplot(cpue_year_area, aes(Year, catch, group=1)) +
@@ -204,7 +246,7 @@ plot_cpue <- ggplot(cpue, aes(x=(reorder(Adfg, std_cpue)), y=std_cpue)) +
   ylab("CPUE") +
   theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
 
-plot_catch <- ggplot(cpue, aes(x=(reorder(Adfg, sable_wt_set)), y=sable_wt_set)) +
+plot_catch <- ggplot(cpue, aes(x=(reorder(Adfg, sable_lbs_set)), y=sable_lbs_set)) +
   geom_boxplot() +
   xlab("Individual vessels in the Chatham Strait longline fishery")+
   ylab("Catch (lbs)") +#*FLAG* check units
@@ -213,7 +255,7 @@ plot_catch <- ggplot(cpue, aes(x=(reorder(Adfg, sable_wt_set)), y=sable_wt_set))
 grid.arrange(plot_cpue, plot_catch)
 
 # catch and number of hooks in a set
-ggplot(cpue, aes(no_hooks, sable_wt_set, group=1)) +
+ggplot(cpue, aes(no_hooks, sable_lbs_set, group=1)) +
   geom_point() +
   stat_smooth(method='gam', formula=y~s(x, k=4)) +
   xlab("\nTotal Number of Hooks") +
@@ -229,7 +271,7 @@ ggplot(cpue, aes(no_hooks, std_cpue, group=1)) +
 
 
 # catch and number of sets
-ggplot(cpue, aes(sets, sable_wt_set, group=1)) +
+ggplot(cpue, aes(sets, sable_lbs_set, group=1)) +
   geom_point() +
   stat_smooth(method='gam', formula=y~s(x, k=4)) +
   xlab("\nTotal Number of Sets") +
@@ -382,106 +424,3 @@ write.table(round(rbind(cpue_full),4),"output/fish_cpue_gam_pounds.csv",row.name
 write.table(round(rbind(cpue_full_450),4),"output/fish_cpue_gam_pounds_450.csv",row.names=FALSE,col.names = FALSE,sep=",")
 write.table(round(rbind(var_full),4),"output/fish_cpue_gam_var.csv",row.names=FALSE,col.names = FALSE,sep=",")
 write.table(round(rbind(x),4),"output/non_gam_cpue.csv",row.names=FALSE,col.names = FALSE,sep=",")
-
-
-# catch history discrepancies-----
-
-annual_catch <- read.csv("data/fishery/raw_data/annual_catch.csv") #old from ALEX
-annual_catch2 <- read.csv("data/fishery/raw_data/annual_catch2.csv") #new from OceanAK
-
-annual_catch2 %>% 
-  select(dressed_lbs = `Whole.Pounds..sum.`, #*FLAG* check in OceanAK what exactly Whole.Pounds..sum. is
-         year = Batch.Year,
-         harvest_code = Harvest.Code.And.Name) %>% 
-  filter(!harvest_code %in% c("42 - Test fishery - special study",
-                              "43 - Test fishery - long term stock assessment")) %>% 
-  mutate(round_lbs = dressed_lbs/0.68, #*FLAG* needs citation
-         round_mt = round_lbs*0.00045359) %>% 
-  group_by(year) %>% 
-  dplyr::summarise(catch_mt = sum(round_mt)) -> catch
-
-#Historical legacy data (1980-1986), total annual catch in metric tons. No associated query available. 
-hist_catch <- 
-  data.frame(year = c(1980:1986),
-             catch_mt = c(300.85, 106.91, 185.09, 169.56, 340.18, 1410.21, 1904.98))
-
-catch <- rbind(hist_catch, catch)
-
-
-annual_catch %>% arrange(YEAR) %>% select(YEAR, POUNDS, ROUND_POUNDS) %>% View()
-
-#What are the differences in catch usuing the old output from ALEX vs. the new
-#output from OceanAK?
-annual_catch %>% 
-  #prior to 1985 there is no 'ROUND_POUNDS' just POUNDS. After 1984, POUNDS is 
-  #ROUND_POUNDS rounded to the nearest whole number. Keep the precision of
-  #ROUND_POUNDS for later years, and fill in ROUND_POUNDS with POUNDS for past
-  #years
-  # mutate(POUNDS = ifelse(ROUND_POUNDS==0, POUNDS, ROUND_POUNDS)) %>% 
-  select(year = YEAR,
-         harvest_code = HARVEST_CODE,
-         round_lbs = POUNDS) %>% 
-  filter(!harvest_code %in% c(42,43)) %>% 
-  mutate(round_mt = round_lbs*0.00045359) %>% 
-  group_by(year) %>% 
-  dplyr::summarise(catch_mt = sum(round_mt)) -> catch2
-
-annual_catch %>% 
-  #prior to 1985 there is no 'ROUND_POUNDS' just POUNDS. After 1984, POUNDS is 
-  #ROUND_POUNDS rounded to the nearest whole number. Keep the precision of
-  #ROUND_POUNDS for later years, and fill in ROUND_POUNDS with POUNDS for past
-  #years
-  # mutate(POUNDS = ifelse(ROUND_POUNDS==0, POUNDS, ROUND_POUNDS)) %>% 
-  select(year = YEAR,
-         harvest_code = HARVEST_CODE,
-         round_lbs = ROUND_POUNDS) %>% 
-  filter(!harvest_code %in% c(42,43)) %>% 
-  mutate(round_mt = round_lbs*0.00045359) %>% 
-  group_by(year) %>% 
-  dplyr::summarise(catch_mt = sum(round_mt)) -> catch3
-
-#Exploratory figs
-# setwd("~/seak_sablefish/figs/eda")
-# png("eda_annual_catch.png", height = 5,
-# width = 11, units = 'in', res=300)
-plot(catch$year, catch$catch_mt, type="o",
-     xlab="Year", ylab="Commercial catch (mt)", pch=17)
-abline(v=1985, lty=2, col="grey")
-abline(v=1986, lty=2, col="grey")
-abline(v=1997, lty=2, col="grey")
-abline(v=2006, lty=2, col="grey")
-points(catch2$year, catch2$catch_mt, col="magenta", pch=20)
-lines(catch2$year, catch2$catch_mt, col="magenta")
-points(catch3$year, catch3$catch_mt, col="blue", pch=20)
-lines(catch3$year, catch3$catch_mt, col="blue")
-legend(x = 2001, y = 4000, 
-       legend = c("2016 assessment (OceanAK) w/ uncited values 1980-1986",
-                  "ROUND_POUNDS column (ALEX)",
-                  "POUNDS column (ALEX)"),
-       lty = c(1,1,1), pch = c(17,20,20), 
-       col = c("black","blue","magenta"), box.col="white", cex=.8)
-# dev.off()
-setwd("~/seak_sablefish/data/fishery")
-
-#Relationship between POUNDS (catch2, red) and ROUND_POUNDS (catch3, blue) cols. 1980-1984 
-#ROUND_POUNDS=0, POUNDS populated; 1985-1996 POUNDS/ROUND_POUNDS = 0.63-0.65; 
-#1997-2006 POUNDS/ROUND_POUNDS = 0.96-0.97; 2007-2015 POUNDS/ROUND_POUNDS > 0.99
-#*FLAG* 1985-1996 are particularly confusing
-data.frame(year = 1980:2015, 
-           ratio = catch2$catch_mt/catch3$catch_mt) 
-
-#Relationship between ROUND_POUNDS catch_mt and catch_mt that Kray used in 2017
-#assessment from OceanAK (up to 2015). 1980-1984 ROUND_POUNDS=0; 1985-1986 1:1; 1987-2015
-#0.68 *FLAG* this is the conversion factor from dressed to round weight. It
-#looks like Kray took the `Whole.Pounds..sum.` column from OceanAK and treated
-#it like dressed weight when it was round weight, ex
-data.frame(year = 1980:2015,
-           ratio = catch3$catch_mt / (filter(catch, year<2016) %$% catch_mt))
-
-#Relationship between POUNDS catch_mt and Kray's historical catch values from
-#1980-1984: all ~0.63 (same as the relationship between POUNDS and ROUND_POUNDS
-#1985-1996)
-data.frame(year = 1980:1984,
-           ratio = filter(catch2, year<1985) %$% catch_mt / (filter(catch, year<1985) %$% catch_mt))
-
-

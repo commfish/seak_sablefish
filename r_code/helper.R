@@ -19,7 +19,9 @@ if(!require("ROracle"))   install.packages("ROracle") # database access through 
 
 theme_set(theme_bw(base_size=12)+ 
             theme(panel.grid.major = element_blank(),
-                  panel.grid.minor = element_blank()))
+                  panel.grid.minor = element_blank(),
+                  axis.text.x=element_text(angle = 45, hjust = 1), 
+                  axis.title.y=element_text(angle=0)))
 
 # # basic eda (exporatory data analysis theme)
 # eda_theme <- theme_classic() +
