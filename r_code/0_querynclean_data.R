@@ -11,6 +11,7 @@
 # date: ISO 8601 YYYY/MM/DD
 # characters & factors - first letter capitilized (e.g. 'Sex'), otherwise lowercase
 # lat and lon are in decimal degrees
+# catch - varies between whole_pounds or whole_kg depending on what its being used for
 
 # project codes: query zprod: "select new_project_code, project_code, project from
 # lookup.project_conversion where category_code = 'g'"
@@ -160,7 +161,7 @@ write_csv(gef, paste0("data/fishery/nseiharvest_gef_",
 
 # Alternative query using IFDB
 query <-
-" select  year, adfg_no, vessel_name, port_code, gear,
+" select  year, adfg_no, trip_no, vessel_name, port_code, gear,
           catch_date, sell_date, harvest_code, harvest, g_stat_area,
           g_management_area_code, species_code, pounds, round_pounds,
           delivery_code, g_cfec_fishery_group, g_cfec_fishery
@@ -180,6 +181,7 @@ read_csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
          guess_max = 50000) %>% 
   mutate(date = ymd(as.Date(CATCH_DATE)), #ISO 8601 format
          julian_day = yday(date),
+         sell_date = ymd(as.Date(SELL_DATE)),
          # BEWARE: Landings are always entered as POUNDS and then converted to
          # WHOLE_POUNDS using a conversion factor related to the disposition code.
          # Prior to 1985 there was no disposition code for landings, which is why
@@ -187,7 +189,7 @@ read_csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
          # delivered whole prior to 1985, because that's the best we have.
          whole_pounds = ifelse(ROUND_POUNDS == 0, POUNDS, ROUND_POUNDS)) %>% 
   select(year = YEAR, date, julian_day, Mgmt_area = G_MANAGEMENT_AREA_CODE, Stat = G_STAT_AREA,
-         Adfg = ADFG_NO, Vessel = VESSEL_NAME, Port = PORT_CODE,  
+         Adfg = ADFG_NO, trip_no = TRIP_NO, sell_date, Vessel = VESSEL_NAME, Port = PORT_CODE,  
          Cfec_permit = G_CFEC_FISHERY, Delivery_cde = DELIVERY_CODE, 
          Harvest = HARVEST, Harvest_cde = HARVEST_CODE, Spp_cde = SPECIES_CODE, 
          whole_pounds, pounds = POUNDS) -> ifdb_catch
@@ -254,7 +256,7 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
 
 query <- 
   " select  year, project_code, trip_no, adfg_no, longline_system_code, sell_date, 
-            hook_size, hook_spacing, hooks_per_skate, number_of_skates, number_of_hooks,
+            hook_size, hook_spacing, number_of_skates, number_of_hooks,
             average_depth_meters, g_management_area_code, g_stat_area, trip_target, set_target,
             effort_no, sable_lbs_per_set, time_set, time_hauled, 
             start_latitude_decimal_degrees, start_longitude_decimal_degree
@@ -281,17 +283,12 @@ read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
          hook_space = HOOK_SPACING, #*FLAG* - check that hook_space is in inches
          Size = factor(as.numeric(gsub("[^0-9]", "", Hook_size))),
          no_hooks = NUMBER_OF_HOOKS,
-         hooks_per_skate = HOOKS_PER_SKATE,
          sable_lbs_set = SABLE_LBS_PER_SET) %>% 
-  filter(!is.na(date) & !is.na(hook_space) &
-           !is.na(hooks_per_skate) &
-           !is.na(sable_lbs_set) &
-           julian_day > 226 ) %>% # if there were special projects before the fishery opened
-           # no_hooks < 15000) %>%  #*FLAG* where does 15000 come from? 14370 is the 75th percentile
   select(year = YEAR, trip_no = TRIP_NO, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
-         time_fished, Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, hooks_per_skate, 
+         time_fished, Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, 
          hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
-         sets = EFFORT_NO, sable_lbs_set) -> fsh_eff
+         sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
+         start_lon = START_LONGITUDE_DECIMAL_DEGREE) -> fsh_eff
 
 write_csv(fsh_eff, paste0("data/fishery/fishery_cpue_",
                    min(fsh_eff$year), "_", max(fsh_eff$year), ".csv"))
@@ -336,11 +333,11 @@ read_csv(paste0("data/fishery/raw_data/fishery_bio_",
          Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
          Stat = G_STAT_AREA, Mgmt_area = G_MANAGEMENT_AREA_CODE,
          Sample_type = SAMPLE_TYPE, Spp_cde = SPECIES_CODE, 
-         length, weight = WEIGHT_KILOGRAMS,
+         length = LENGTH, weight = WEIGHT_KILOGRAMS,
          age = AGE, Sex, Maturity) -> fsh_bio
 
 write_csv(fsh_bio, paste0("data/fishery/fishery_bio_", 
-                          min(fsh_bio$YEAR), "_", max(fsh_bio$YEAR), ".csv"))
+                          min(fsh_bio$year), "_", max(fsh_bio$year), ".csv"))
 
 # Longline survey cpue ----
 
@@ -495,4 +492,26 @@ write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
 
 # Tagging data ----
 
-# Wont be finalized until the end of January 2018.
+# Wont be finalized until mid-February 2018. Data is not stored in the database!
+
+bind_rows(read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2004.csv"),
+          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2005.csv"),
+          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2006.csv"),
+          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2007.csv"),
+          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2008.csv"),
+          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2009.csv"),
+          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2010.csv"),
+          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2011.csv"),
+          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2012.csv"),
+          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2013.csv"),
+          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2014.csv"),
+          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2015.csv"),
+          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2016.csv"),
+          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2017.csv")
+          ) %>% 
+  mutate(date = ymd(as.Date(date, "%m/%d/%Y")),
+         year = year(date),
+         julian_day = yday(date),
+         total_obs = unmarked + marked,
+         whole_kg = round_lbs * 0.453592)  %>% 
+  write_csv("data/fishery/nsei_daily_tag_accounting_2004_2017.csv")

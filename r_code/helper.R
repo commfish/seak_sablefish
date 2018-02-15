@@ -14,14 +14,14 @@ if(!require("mgcv"))   install.packages("mgcv") # gams
 if(!require("gridExtra"))   install.packages("gridExtra") # multipanneled plots
 if(!require("data.table"))   install.packages("data.table") # dcast, foverlaps
 if(!require("ROracle"))   install.packages("ROracle") # database access through R
+if(!require("broom"))   install.packages("broom") # tidying regression model output
 
 # ggplot themes ----
 
 theme_set(theme_bw(base_size=12)+ 
-            theme(panel.grid.major = element_blank(),
-                  panel.grid.minor = element_blank(),
-                  axis.text.x=element_text(angle = 45, hjust = 1), 
-                  axis.title.y=element_text(angle=0)))
+            theme(#panel.grid.major = element_blank(),
+                  #panel.grid.minor = element_blank(),
+                  axis.text.x=element_text(angle = 45, hjust = 1)))
 
 # # basic eda (exporatory data analysis theme)
 # eda_theme <- theme_classic() +

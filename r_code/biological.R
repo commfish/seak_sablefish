@@ -1,17 +1,19 @@
 # work up of survey and fishery biological data
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2017-12-08
+# Last edited: 2018-02-06
 
 source("r_code/helper.r")
 source("r_code/functions.r")
 library(ggridges)
 
+YEAR <- 2017
 # data -----
 
 # survey biological  data
 
-read_csv("data/survey/llsurvey_bio_1988_2016.csv", guess_max = 50000) %>% 
+read_csv(paste0("data/survey/llsurvey_bio_1988_", YEAR,".csv"), 
+                      guess_max = 50000) %>% 
   mutate(Year = factor(year),
          Project = factor(Project),
          Stat = factor(Stat),
@@ -39,7 +41,8 @@ read_csv("data/survey/llsurvey_bio_1988_2016.csv", guess_max = 50000) %>%
 noaa_lvb <- read_csv("data/survey/noaa_lvb_params_hanselman2007.csv")
 
 # Fishery biological data
-read_csv("data/fishery/fishery_bio_2000_2016.csv", guess_max = 50000) %>%
+read_csv(paste0("data/fishery/fishery_bio_2000_", YEAR,".csv"), 
+         guess_max = 50000) %>%
   mutate(Year = factor(year),
          Project_cde = factor(Project_cde),
          Adfg = factor(Adfg),
