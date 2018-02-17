@@ -445,9 +445,22 @@ write_csv(srv_bio, paste0("data/survey/llsrv_bio_",
 
 # Pot survey biological ----
 
-# The pot survey is a mark-recapture survey. Limitted bio data exists.
+# The pot survey is a mark-recapture survey. Limitted bio data exists. Use this
+# data for two purposes: 1) the bio data, and 2) determining the number of marks
+# deployed into the fishery in a given year and which batch_no the tags are
+# from.
 
-# *FLAG* this query currently only has age-sex-size data in 2009.
+# *FLAG* this query currently only has age-sex-size data in 2009. There's also
+# an IFDB view called out_g_bio_eff_age_sex_size_tag. Asked S. Johnson
+# 2018-02-16 what the difference between the two views is. He said "These two
+# views are almost identical. out_g_bio_eff_age_sex_size_tag is created by the
+# following SQL: 'CREATE OR REPLACE VIEW OUT_G_BIO_EFF_AGE_SEX_SIZE_TAG AS
+# select *  from out_g_bio_effort_age_sex_size where length(tag_no) > 2'. This
+# omits the "T-" entries which are fish that were sampled but not tagged. The
+# _tag view only includes fish that were tagged.
+
+# The out_g_bio_effort_age_sex_size view has all the biological samples for the
+# pot surveys, and includes fish that were not tagged (tag_no = 'T-').
 
 query <- 
 " select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
@@ -456,7 +469,8 @@ query <-
           start_longitude_decimal_degree as start_lon, end_latitude_decimal_degrees as end_lat,
           end_longitude_decimal_degrees as end_lon, avg_depth_fathoms * 1.8288 as depth_meters, 
           length_millimeters / 10 as length, weight_kilograms as weight, 
-          age, age_type_code, age_readability_code, sex_code, maturity_code
+          age, age_type_code, age_readability_code, sex_code, maturity_code, 
+          tag_no, tag_batch_no, discard_status, release_condition_code
   
   from    out_g_bio_effort_age_sex_size
 
@@ -485,33 +499,162 @@ read_csv(paste0("data/survey/raw_data/potsrv_bio_",
          start_lat = START_LAT, start_lon = START_LON, end_lat = END_LAT,
          end_lon = END_LON, depth = DEPTH_METERS, length = LENGTH, weight = WEIGHT, 
          age = AGE, Sex, Maturity, age_type_code = AGE_TYPE_CODE, 
-         age_readability = AGE_READABILITY_CODE)  -> pot_bio
+         age_readability = AGE_READABILITY_CODE, tag_no = TAG_NO, 
+         discard_status = DISCARD_STATUS, release_condition_cde = RELEASE_CONDITION_CODE )  -> pot_bio
 
 write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
                           min(pot_bio$year), "_", max(pot_bio$year), ".csv"))
 
-# Tagging data ----
+# Tag releases ----
 
-# Wont be finalized until mid-February 2018. Data is not stored in the database!
+# From the pot marking survey
 
-bind_rows(read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2004.csv"),
-          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2005.csv"),
-          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2006.csv"),
-          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2007.csv"),
-          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2008.csv"),
-          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2009.csv"),
-          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2010.csv"),
-          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2011.csv"),
-          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2012.csv"),
-          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2013.csv"),
-          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2014.csv"),
-          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2015.csv"),
-          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2016.csv"),
-          read_csv("data/fishery/raw_data/nsei_daily_tag_accounting_2017.csv")
-          ) %>% 
+# The out_g_bio_eff_age_sex_size_tag view is almost the same as the
+# out_g_bio_effort_age_sex_size view, except it only stores tagged fish from the
+# pot marking survey. Use this to get the number of fish marked, double check
+# the release condition codes, get length frequencies of tagged fish, and cross
+# reference the batch_no's with fish recovered outside of the directed fishery.
+# Note that each year has a unique tag_batch_no
+
+query <- 
+" select  year, project_code, trip_no, time_second_anchor_overboard, species_code, 
+          g_stat_area as stat, management_area, length_millimeters / 10 as length, 
+          tag_no, tag_batch_no, discard_status, release_condition_code, comments
+
+  from    out_g_bio_eff_age_sex_size_tag
+
+  where   species_code = '710' and project_code in ('11', '611') and year >= 2003" 
+
+dbGetQuery(ifdb_channel, query) -> tag_releases
+
+# Lookup table for release condition codes "select * from g_bio_release_condition" **not sure if this column is useful
+# RELEASE_CONDITION_CODE - RELEASE_CONDITION
+# 00 - Unknown
+# 01 - Presumed healthy
+# 02 - Torn mouth
+# 03 - Flea bitten
+# 04 - Old injury
+# 05 - Presumed dead
+# 06 - No clip
+# 07 - Appears undamaged but shows signs of stress (NMFS 2)
+# 08 - Lacks vigor, shows ill effects from capture and handling (NMFS 3)
+
+write_csv(tag_releases, paste0("data/survey/raw_data/tag_releases_",
+                          min(tag_releases$YEAR), "_", max(tag_releases$YEAR), ".csv"))
+
+read_csv(paste0("data/survey/raw_data/tag_releases_",
+                       min(tag_releases$YEAR), "_", max(tag_releases$YEAR), ".csv"), 
+         guess_max = 50000) %>% 
+  mutate(date = ymd(as.Date(TIME_SECOND_ANCHOR_OVERBOARD)), #ISO 8601 format
+         julian_day = yday(date)) %>% 
+  select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, date, julian_day,
+         Stat = STAT, Mgmt_area = MANAGEMENT_AREA, length = LENGTH, tag_no = TAG_NO, tag_batch_no = TAG_BATCH_NO, 
+         release_condition_cde = RELEASE_CONDITION_CODE, discard_status = DISCARD_STATUS,
+         comments = COMMENTS) -> tag_releases
+
+write_csv(tag_releases, paste0("data/survey/tag_releases_",
+                               min(tag_releases$year), "_", max(tag_releases$year), ".csv"))
+
+# Exploratory total number of marks
+tag_releases %>% group_by(year, tag_batch_no) %>% summarise(n_distinct(tag_no))
+
+# Exploratory release code that fish "lacks vigor", but is tagged and released any way?
+tag_releases %>% group_by(year, release_condition_cde, discard_status) %>% 
+  summarise(n_distinct(tag_no)) %>% filter(release_condition_cde == '08')
+
+# Few recaptures
+tag_releases %>% group_by(year, discard_status) %>% summarise(n_distinct(tag_no))
+
+# Tag recoveries ----
+
+# This is the batch report that Mike Vaughn does (how we determine how many tags
+# lost/not available to the directed NSEI sablefish fishery). Match up
+# batch_no's to the tag_releases
+
+query <-
+" select  tag_no, tag_batch_no, tag_event_code, tag_event, year, project_code, 
+          trip_no, species_code, landing_date, catch_date, g_management_area_code, 
+          g_stat_area, g_stat_area_group, vessel_type, length_millimeters / 10 as length, measurer_type, 
+          information_source, tag_returned_by_type, comments
+
+  from    out_g_bio_tag_recovery
+
+  where   species_code = '710' and year >= 2003"
+
+dbGetQuery(ifdb_channel, query) -> tag_recoveries
+
+write_csv(tag_recoveries, paste0("data/fishery/raw_data/tag_recoveries_",
+                               min(tag_recoveries$YEAR), "_", max(tag_recoveries$YEAR), ".csv"))
+
+read_csv(paste0("data/fishery/raw_data/tag_recoveries_",
+                min(tag_recoveries$YEAR), "_", max(tag_recoveries$YEAR), ".csv"), 
+         guess_max = 50000) %>% 
+  mutate(landing_date = ymd(as.Date(LANDING_DATE)), #ISO 8601 format
+         landing_julian_day = yday(landing_date),
+         catch_date = ymd(as.Date(CATCH_DATE)), #ISO 8601 format
+         catch_julian_day = yday(catch_date)) %>% 
+  select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, landing_date, landing_julian_day,
+         catch_date, catch_julian_day, Stat = G_STAT_AREA, Mgmt_area = G_MANAGEMENT_AREA_CODE,
+         Stat = G_STAT_AREA, length = LENGTH, tag_no = TAG_NO, tag_batch_no = TAG_BATCH_NO, 
+         measurer_type = MEASURER_TYPE, info_source = INFORMATION_SOURCE, returned_by = TAG_RETURNED_BY_TYPE,
+         comments = COMMENTS) -> tag_recoveries
+
+write_csv(tag_recoveries, paste0("data/fishery/tag_recoveries_",
+                               min(tag_recoveries$year), "_", max(tag_recoveries$year), ".csv"))
+
+
+tag_recoveries %>% 
+  group_by(year, info_source) %>% 
+  summarize(n_distinct(tag_no))
+
+tag_recoveries %>% 
+  group_by(YEAR, TAG_BATCH_NO, G_MANAGEMENT_AREA_CODE) %>% 
+  summarise(n = n_distinct(TAG_NO)) 
+
+# Countbacks ----
+
+# Daily accounting of observed fish and tag recoveries in the NSEI fishery.
+
+# These data is not stored in the database. It's currently in heavily formatted
+# spreadsheets with inconsistent data types in
+# M:/SABLEFISH/CHATHAM/<year>/<year> port daily summary.xlxs. There are
+# equivalent 2003 data but I don't know where they're stored. Asked Mike Vaughn
+# if he'd look for them on 2018-02-16.  I worked with Amy Jo Linsley in PB to
+# clean these up and convert them to csvs, but there were lots of errors (e.g.
+# missing values that could have easily been filled in using fish ticket or
+# logbook data, incorrect trip_nos, or duplicate records). These were all fixed
+# by hand. It's also impossible to tell which records were omitted for analysis
+# in a given year, which is probably why KVK's numbers don't match up with past
+# numbers and won't match up with mine either.
+
+list.files(path = "data/fishery/raw_data/", pattern = "nsei_daily_tag_accounting", full.names = TRUE) %>% 
+  map_df(~read.csv(.)) %>% 
   mutate(date = ymd(as.Date(date, "%m/%d/%Y")),
          year = year(date),
          julian_day = yday(date),
          total_obs = unmarked + marked,
          whole_kg = round_lbs * 0.453592)  %>% 
-  write_csv("data/fishery/nsei_daily_tag_accounting_2004_2017.csv")
+  write_csv(paste("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
+
+# Tag recovery lengths ----
+
+query <- 
+"select   rec_tag_no, rec_tag_event, rec_year, rec_project_code, rec_trip_no, 
+          rec_landing_date, rec_gear_code
+
+
+year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
+time_first_buoy_onboard, effort_no, station_no, species_code, 
+g_stat_area as stat, management_area, start_latitude_decimal_degrees as start_lat,
+start_longitude_decimal_degree as start_lon, end_latitude_decimal_degrees as end_lat,
+end_longitude_decimal_degrees as end_lon, avg_depth_fathoms * 1.8288 as depth_meters, 
+length_millimeters / 10 as length, weight_kilograms as weight, 
+age, age_type_code, age_readability_code, sex_code, maturity_code
+
+from    out_g_bio_effort_age_sex_size
+
+where   species_code = '710' and
+gear_code = '91' and
+project_code in ('11', '611') "
+
+dbGetQuery(ifdb_channel, query) -> pot_bio

@@ -5,6 +5,7 @@
 
 # load ----
 source("r_code/helper.R")
+YEAR <- 2017
 
 # Explore hook standardization relationship ----
 
@@ -50,18 +51,14 @@ ggplot(hk_stand, aes(x = no_hooks, y = std_hooks, col = factor(hook_space))) +
   scale_y_continuous(breaks = seq(0, 15000, by = 1000)) +
   geom_abline(slope = 1, col = "red", linetype = 2) 
 
-
-
-
 # data -----
-srv_cpue <- read_csv("data/survey/llsurvey_cpue_1988_2016.csv")
+srv_cpue <- read_csv(paste0("data/survey/llsrv_cpue_1988_", YEAR, ".csv"))
 
 glimpse(srv_cpue)
 
 srv_cpue  %>% 
   mutate(Year = factor(year),
          Stat = factor(Stat),
-         Station = factor(Station),
          #standardize hook spacing (Sigler & Lunsford 2001, CJFAS) changes in 
          #hook spacing. pers. comm. with aaron.baldwin@alaska.gov: 1995 & 1996 -
          #118 in; 1997 - 72 in.; 1998 & 1999 - 64; 2000-present - 78". This is
@@ -71,9 +68,9 @@ srv_cpue  %>%
                             ifelse(year == 1997, 2.2 * no_hooks * (1 - exp(-0.57 * (72 * 0.0254))),
                                    ifelse( year %in% c(1998, 1999), 2.2 * no_hooks * (1 - exp(-0.57 * (64 * 0.0254))),
                                            2.2 * no_hooks * (1 - exp(-0.57 * (78 * 0.0254)))))),
-         no_sablefish = replace(no_sablefish, is.na(no_sablefish), 0), # make any NAs 0 values
-         std_hooks = ifelse(year < 1997, 2.2 * no_hooks * (1 - exp(-0.57 * 3)),
-                            2.2 * no_hooks * (1 - exp(-0.57 * 2))),
+         # std_hooks = ifelse(year < 1997, 2.2 * no_hooks * (1 - exp(-0.57 * 3)),
+         #                    2.2 * no_hooks * (1 - exp(-0.57 * 2))),
+         no_sablefish = replace(hooks_sablefish, is.na(hooks_sablefish), 0), # make any NAs 0 values
          std_cpue = no_sablefish/std_hooks, #*FLAG* this is NPUE, the fishery is a WPUE
          raw_cpue = no_sablefish/no_hooks
   ) %>%

@@ -6,12 +6,13 @@
 # ** currently missing daily tag accounting for 2003, 2017 will need to be updated when finalized by M. Vaugn.
 
 source("r_code/helper.r")
-library(padr)
+library(padr) # helps pad time series
+library(zoo) # interpolate values
 library(rjags)
 
 YEAR <- 2017
 
-# years without a survey
+# years without a marking survey
 NO_MARK_SRV <- c(2011, 2014, 2016)
 
 # data ----
@@ -51,6 +52,29 @@ left_join(marks, fsh_bio, by = c("date", "trip_no")) %>%
   mutate(mean_weight = ifelse(!is.na(mean_weight_bios), mean_weight_bios, mean_weight)) %>% 
   select(-mean_weight_bios, -comments) -> marks
 
+# CPUE data - use nominal CPUE for now (it's close to the GAM output)
+read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
+         guess_max = 50000) %>% 
+  filter(Spp_cde == "710") %>% 
+  mutate(sable_kg_set = sable_lbs_set * 0.45359237, # conversion lb to kg
+         std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (0.0254 * hook_space))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
+         # kg sablefish/1000 hooks, following Mueter 2007
+         wpue = sable_kg_set / (std_hooks / 1000)) %>% 
+  filter(!is.na(date) & 
+           !is.na(sable_lbs_set) &
+           # omit special projects before/after fishery
+           julian_day > 226 & julian_day < 322) %>% 
+  group_by(year, trip_no) %>% 
+  summarize(wpue = mean(wpue)) -> fsh_cpue
+
+# Join the mark sampling with the fishery cpue
+left_join(marks, fsh_cpue, by = c("year", "trip_no")) -> marks
+
+  # # Estimated total number of fish caught in a trip (total weight of catch divided by mean weight of fish)
+  # mutate(est_tot_number = whole_kg / mean_weight,
+  #        npue = ifelse
+  #        -> marks 
+
 # Summarize by day
 marks %>% 
   # padr::pad fills in missing dates with NAs, grouping by years.
@@ -59,53 +83,99 @@ marks %>%
   summarize(whole_kg = sum(whole_kg),
             total_obs = sum(total_obs),
             total_marked = sum(marked),
-            mean_weight = mean(mean_weight)) %>% 
+            mean_weight = mean(mean_weight),
+            mean_wpue = mean(wpue)) %>% 
+  # interpolate mean_weight column to get npue from wpue (some trips have wpue data but no bio data)
+  mutate(interp_mean = zoo::na.approx(mean_weight, maxgap = 20, rule = 2),
+         mean_npue = mean_wpue / interp_mean) %>%
   # padr::fill_ replaces NAs with 0 for specified cols
-  fill_by_value(whole_kg, total_obs, total_marked, mean_weight, value = 0) %>% 
+  fill_by_value(whole_kg, total_obs, total_marked, value = 0) %>% 
   group_by(year) %>% 
   mutate(cum_whole_kg = cumsum(whole_kg),
          cum_obs = cumsum(total_obs),
          cum_marks = cumsum(total_marked),
          julian_day = yday(date)) -> daily_marks
-# warning doesn't affect fxn behavior, ingore.
 
 # Trends ----
 
 ggplot(daily_marks, aes(x = julian_day)) +
   geom_line(aes(y = cum_marks)) +
   facet_wrap(~ year, scales = "free") +
-  labs(x = "", y = "Cumulative Marks Collected")
+  labs(x = "Julian Day", y = "Cumulative Marks Collected")
 
 ggplot(daily_marks, aes(x = julian_day)) +
   geom_line(aes(y = cum_whole_kg)) +
   facet_wrap(~ year, scales = "free") +
-  labs(x = "", y = "Cumulative Catch (kg)")
+  labs(x = "Julian Day", y = "Cumulative Catch (kg)")
 
+# Trends in mean weight over the course of the season
+ggplot(daily_marks,
+       aes(x = julian_day, y = mean_weight)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_wrap(~ year) +
+  labs(x = "Julian Day", y = "Mean Individual Weight (kg)")
+
+# Trends in NPUE over the course of the season
+ggplot(daily_marks,
+       aes(x = julian_day, y = mean_npue)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_wrap(~ year, scales = "free") +
+  labs(x = "Julian Day", y = "Number sablefish per 1000 hooks")
+
+# Stratify by time ----
+
+# For now base time strata on percentiles catch or number of marks observed?
+# They mostly match up (see mutate -> tst).
 daily_marks %>% 
   group_by(year) %>% 
-  mutate(catch_ranks = percent_rank(cum_whole_kg) %>% round(1),
-         mark_ranks = percent_rank(cum_marks) %>% round(1)
-         #tst = ifelse(catch_ranks == mark_ranks, "Yes", "No"),
+  mutate(catch_strata = percent_rank(cum_whole_kg) %>% round(1),
+         mark_strata = percent_rank(cum_marks) %>% round(1)
+         #tst = ifelse(catch_strata == mark_strata, "Yes", "No"),
          ) -> daily_marks
  
-
+# *FLAG* better way to do this? Ideally would like to automate and generalize
+# based off of desired number of strata. 
 daily_marks %>% 
-  mutate(catch_ranks = 
-           recode_factor(catch_ranks,
-                         `0.0` = 1L, `0.1` = 1L,
-                         `0.2` = 2L, `0.3` = 2L,
-                         `0.4` = 3L, `0.5` = 3L,
-                         `0.6` = 4L, `0.7` = 4L,
-                         `0.8` = 5L, `0.9` = 5L, 
-                         `1.0` = 5L)) -> daily_marks
+  mutate(catch_strata = 
+           # recode_factor(catch_strata, 
+           #               `0.0` = 1L, `0.1` = 1L, `0.2` = 1L, 
+           #               `0.3` = 2L, `0.4` = 2L,
+           #               `0.5` = 3L, `0.6` = 3L, 
+           #               `0.7` = 4L, `0.8` = 4L, 
+           #               `0.9` = 5L, `1.0` = 5L))
+           recode_factor(catch_strata, 
+                         `0.0` = 1L, `0.1` = 1L, 
+                         `0.2` = 2L, `0.3` = 2L, 
+                         `0.4` = 3L, `0.5` = 3L, 
+                         `0.6` = 4L, `0.7` = 4L, 
+                         `0.8` = 5L, `0.9` = 5L, `1.0` = 5L)) -> daily_marks
 
-ggplot(daily_marks, aes(x = julian_day)) +
-  geom_line(aes(y = catch_ranks, group = 1)) +
-  geom_line(aes(y = mark_ranks, group = 1), col = "red") +
-  facet_wrap(~ year, scales = "free") +
-  labs(x = "", y = "Cumulative Marks vs. Catch")        
+# Summarize by strata
+daily_marks %>% 
+  group_by(year, catch_strata) %>% 
+  summarize(days = n_distinct(date),
+            tot_catch = sum(whole_kg),
+            total_obs = sum(total_obs),
+            total_marked = sum(total_marked),
+            mean_npue = mean(mean_npue, na.rm = TRUE),
+            mean_weight = mean(mean_weight, na.rm = TRUE)) %>% 
+  mutate(est_catch_numbers = tot_catch / mean_weight) -> strata_sum
 
-# 
+# Summarize by year to see if it matches up with mr_summary
+daily_marks %>% 
+  group_by(year) %>% 
+  summarize(days = n_distinct(date),
+            tot_catch = sum(whole_kg),
+            total_obs = sum(total_obs),
+            total_marked = sum(total_marked),
+            mean_npue = mean(mean_npue, na.rm = TRUE),
+            mean_weight = mean(mean_weight, na.rm = TRUE)) %>% 
+  mutate(est_catch_numbers = tot_catch / mean_weight) -> yearly_sum
+
+
+mr_summary %>% View()
 
 # Simple Chapmanized Peterson estimator
 
