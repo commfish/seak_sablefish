@@ -17,12 +17,127 @@ NO_MARK_SRV <- c(2011, 2014, 2016)
 
 # data ----
 
-# Summary of marking effort 2004 to present. This could be wrong. I tried to
+# Summary of marking effort 2003 to present. This could be wrong. I tried to
 # pull from the original assessments but the numbers Kray used to estimate past
-# years were different from the numbers in those years.
+# years were different from the numbers in those years. I'm instead going to
+# pull numbers (total marked, recovered, dead tags) from the database, that way
+# it's at least reproducible. I'm only using data >= 2005 because I can't find
+# any batch 15 (2004) tag recoveries. 
 
 read_csv("data/fishery/raw_data/mr_variable_summary.csv") -> mr_summary
 
+# Released fish. Each year has a unique batch_no.
+
+read_csv(paste0("data/survey/tag_releases_2003_", YEAR, ".csv"), 
+         guess_max = 50000) -> releases
+
+releases %>% group_by(discard_status) %>% summarise(n_distinct(tag_no)) # All tagged and released or re-released
+
+# Total number tagged and released by year
+releases %>% 
+  filter(year >= 2005) %>% 
+  group_by(year, tag_batch_no) %>% 
+  summarise(M = n_distinct(tag_no),
+            potsrv_beg = min(date),
+            potsrv_end = max(date)) %>% 
+  mutate(potsrv_len = potsrv_end - potsrv_beg,
+         year_batch = paste0(year, "_", tag_batch_no)) -> tag_summary
+
+# Recaptured fish. Match up to the daily tag accounting (countback) data in the
+# fishery to determine dead tags, number caught in survey, etc.
+
+read_csv(paste0("data/fishery/tag_recoveries_2003_", YEAR, ".csv"), 
+         guess_max = 50000) -> recoveries
+
+# project codes: query zprod: "select new_project_code, project_code, project from
+# lookup.project_conversion where category_code = 'g'"
+
+# new (Zander) = old (IFDB) = description
+# 601 = 01 = Clarence Sablefish LL Survey
+# 602 = 02 = Commercial Longline Trip
+# 603 = 03 = Chatham Sablefish LL Survey
+# 604 = 04 = Commercial Jig Trip
+# 605 = 05 = Longline Survey **NMFS survey
+# 606 = 06 = Jig Survey
+# 607 = 07 = Atypical Sample (unknown gear)
+# 608 = 08 = Atypical Longline Sample
+# 609 = 09 = Atypical Jig Sample
+# 610 = 10 = Clarence Sablefish Pot Survey
+# 611 = 11 = Chatham Sablefish Pot Survey
+# 612 = 12 = Sitka Harbor Sablefish Survey
+# 613 = 13 = Kodiak Trawl Sablefish Survey
+# 614 = 14 = 1979 NSEI Crab Survey
+# 615 = 15 = IPHC Annual Survey
+# 616 = 16 = NMFS Coop Tagging Survey
+# 617 = 17 = Commercial Pot Trip
+# 618 = 18 = Lingcod Stock Assessment
+# 619 = 19 = Black Rockfish Stock Assessment
+# 620 = 20 = Commercial Troll
+# 621 = 21 = Commercial Halibut Longline
+# 622 = 22 = Atypical Trawl Sample
+# 623 = 23 = Canadian Commercial Longline
+# 624 = 24 = Canadian Commercial Pot
+# 625 = 25 = Canadian Commercial Trawl
+# 626 = 26 = Canadian Scientific Survey
+# 627 = 27 = Subsistence/Personal Use
+# 628 = 28 = Sport-caught Sample
+
+# Filter out all recoveries that are not from the current year's tag batch
+# (i.e., get rid of recovered tags that were deployed in a past year)
+recoveries %>% 
+  mutate(year_batch = paste0(year, "_", tag_batch_no),
+         year_trip = paste0(year, "_", trip_no)) %>% 
+  filter(year_batch %in% tag_summary$year_batch) -> recoveries
+
+# Add Chatham longline survey recoveries to the summary
+recoveries %>% 
+  filter(Project_cde == "03") %>% 
+  group_by(year, tag_batch_no) %>%
+  summarise(llsrv_m = n_distinct(tag_no)) %>% 
+  left_join(tag_summary, by = c("year", "tag_batch_no")) -> tag_summary
+
+# number of tags not associated with a trip number, project code, information source, or a date
+length(which(is.na(recoveries$trip_no))) # 258
+length(which(is.na(recoveries$Project_cde))) # 1
+length(which(is.na(recoveries$info_source))) # 0
+length(which(is.na(recoveries$landing_date))) # 397
+length(which(is.na(recoveries$catch_date))) # 1263
+
+# recoveries %>% 
+#   mutate(Project_cde2 = derivedVariable(
+#     # "D" = dead tags: any tag accounted for but not sampled by an ADF&G sampler
+#     # (e.g., outside waters, in IFQ fishery, sport fishery, in Canadian waters,
+#     # or in the NMFS or IPHC surveys). Also include the one NA as a dead tag
+#     "D" = Project_cde %in% c("24", "27", NA, "23", "05", "26", "28", "15") |
+#       is.na(Project_cde) |
+#       c(Project_cde == "02" &
+#   ))
+# "02"
+# "03"
+# "11"
+"17"
+
+recoveries %>% filter(Project_cde == '02') %>% distinct(Mgmt_area, info_source, measurer_type, comments) %>% View()
+
+recoveries %>% filter(Project_cde == "05")
+recoveries %>% filter(is.na(Project_cde)) %>% View()
+
+# Fishery recoveries
+recoveries %>% 
+  # 
+  filter(!is.na(trip_no) & !trip_no %in% c(1, 2, 3)) %>% 
+  group_by(year, info_source, Project_cde) %>% 
+  summarise(n_distinct(tag_no)) %>% 
+  View()
+
+recoveries %>% 
+  filter(trip_no %in% c(1, 2, 3) &
+           Project_cde %in% c("26", "15")) %>% View()
+
+recoveries %>% 
+  filter(Project_cde %in% c("02", "17") & is.na(trip_no)) %>% 
+  group_by(info_source) %>% summarize(n_distinct(tag_no)) %>% View()
+  
 # Daily tag accounting data in the fishery, includes catch. Note that many of 
 # the comments indicate that not all fish were observed, so be careful using 
 # these to estimate mean weight. Filter out language like missed, Missed, not
@@ -30,7 +145,8 @@ read_csv("data/fishery/raw_data/mr_variable_summary.csv") -> mr_summary
 read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv")) -> marks
 
 marks %>% 
-  filter(!year %in% NO_MARK_SRV) %>% 
+  filter(year >= 2005 &
+    !year %in% NO_MARK_SRV) %>% 
   mutate(all_observed = ifelse(
     !grepl(c("Missing|missing|Missed|missed|eastern|Eastern|not counted|Did not observe|did not observe|dressed|Dressed"), comments) & 
                                  observed_flag == "Yes", "Yes", "No"),
@@ -70,13 +186,30 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
 # Join the mark sampling with the fishery cpue
 left_join(marks, fsh_cpue, by = c("year", "trip_no")) -> marks
 
-  # # Estimated total number of fish caught in a trip (total weight of catch divided by mean weight of fish)
-  # mutate(est_tot_number = whole_kg / mean_weight,
-  #        npue = ifelse
-  #        -> marks 
+# Fishery summary of observed (n) and marks (m) by year:
+marks %>% group_by(year) %>% 
+  summarise(fishery_n = sum(total_obs), 
+            fishery_m = sum(marked),
+            fishery_beg = min(date),
+            fishery_end = max(date),
+            fishery_len = fishery_end - fishery_beg) %>% 
+  left_join(tag_summary, by = "year") -> tag_summary
+  
+# Look-up table of trips where none or only some of the fish were observed. Some of these could have other tags associated with them.
+marks %>% filter(observed_flag == "Yes" & all_observed == "No") %>% nrow() # 78 trips from 2005-2017 were partially observed
+marks %>% filter(all_observed == "No") %>% distinct(year, trip_no) %>% 
+  mutate(year_trip = paste0(year, "_", trip_no)) -> partialobs 
 
+# Look in recoveries for tags that may be associated with partialobs trips
+recoveries %>% 
+  filter(year_trip %in% partialobs$year_trip) %>% 
+  distinct(year, Project_cde, trip_no, measurer_type, info_source)
+
+
+# Figure out how many marks 
 # Summarize by day
 marks %>% 
+  group_by(summar)
   # padr::pad fills in missing dates with NAs, grouping by years.
   pad(group = "year") %>%
   group_by(year, date) %>% 
