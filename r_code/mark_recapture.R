@@ -22,7 +22,9 @@ NO_MARK_SRV <- c(2011, 2014, 2016)
 # years were different from the numbers in those years. I'm instead going to
 # pull numbers (total marked, recovered, dead tags) from the database, that way
 # it's at least reproducible. I'm only using data >= 2005 because I can't find
-# any batch 15 (2004) tag recoveries. 
+# any batch 15 (2004) tag recoveries. It turns out 2004 they were experimenting
+# with PIT tags, which was not successful. I asked Aaron Baldwin if he'd track
+# down the batch 15 recoveries on 2018-02-21. tra
 
 read_csv("data/fishery/raw_data/mr_variable_summary.csv") -> mr_summary
 
@@ -115,12 +117,11 @@ length(which(is.na(recoveries$catch_date))) # 1263
 # "02"
 # "03"
 # "11"
-"17"
+# "17"
 
-recoveries %>% filter(Project_cde == '02') %>% distinct(Mgmt_area, info_source, measurer_type, comments) %>% View()
-
-recoveries %>% filter(Project_cde == "05")
-recoveries %>% filter(is.na(Project_cde)) %>% View()
+# recoveries %>% filter(Project_cde == '02') %>% distinct(Mgmt_area, info_source, measurer_type, comments) %>% View()
+# recoveries %>% filter(Project_cde == "05")
+# recoveries %>% filter(is.na(Project_cde)) %>% View()
 
 # Fishery recoveries
 recoveries %>% 
@@ -141,16 +142,17 @@ recoveries %>%
 # Daily tag accounting data in the fishery, includes catch. Note that many of 
 # the comments indicate that not all fish were observed, so be careful using 
 # these to estimate mean weight. Filter out language like missed, Missed, not
-# counted, dressed, did not observe
+# counted, did not observe - update: dressed fish are fine.
 read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv")) -> marks
 
 marks %>% 
   filter(year >= 2005 &
     !year %in% NO_MARK_SRV) %>% 
   mutate(all_observed = ifelse(
-    !grepl(c("Missing|missing|Missed|missed|eastern|Eastern|not counted|Did not observe|did not observe|dressed|Dressed"), comments) & 
+    !grepl(c("Missing|missing|Missed|missed|not counted|Did not observe|did not observe"), comments) & 
                                  observed_flag == "Yes", "Yes", "No"),
-    mean_weight = ifelse(all_observed == "Yes", whole_kg/total_obs, NA)) -> marks
+    mean_weight = ifelse(all_observed == "Yes", whole_kg/total_obs, NA),
+    year_trip = paste0(year, "_", trip_no)) -> marks
 
 # Biological data to get mean weight to get numbers estimated on unobserved catch. 
 read_csv(paste0("data/fishery/fishery_bio_2000_", YEAR,".csv"), 
@@ -166,7 +168,7 @@ read_csv(paste0("data/fishery/fishery_bio_2000_", YEAR,".csv"),
 # from the total weight of the catch and the number of fish sampled
 left_join(marks, fsh_bio, by = c("date", "trip_no")) %>% 
   mutate(mean_weight = ifelse(!is.na(mean_weight_bios), mean_weight_bios, mean_weight)) %>% 
-  select(-mean_weight_bios, -comments) -> marks
+  select(-mean_weight_bios) -> marks
 
 # CPUE data - use nominal CPUE for now (it's close to the GAM output)
 read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
@@ -195,21 +197,75 @@ marks %>% group_by(year) %>%
             fishery_len = fishery_end - fishery_beg) %>% 
   left_join(tag_summary, by = "year") -> tag_summary
   
-# Look-up table of trips where none or only some of the fish were observed. Some of these could have other tags associated with them.
-marks %>% filter(observed_flag == "Yes" & all_observed == "No") %>% nrow() # 78 trips from 2005-2017 were partially observed
-marks %>% filter(all_observed == "No") %>% distinct(year, trip_no) %>% 
-  mutate(year_trip = paste0(year, "_", trip_no)) -> partialobs 
+# Look-up table of trips where none or only some of the fish were observed. Some
+# of these could have other tags associated with them.
+marks %>% filter(observed_flag == "Yes" & all_observed == "No") %>% nrow() # 30 trips from 2005-2017 were partially observed
+marks %>% filter(observed_flag == "Yes" & all_observed == "No") %>% 
+  select(year_trip, marked, unmarked, comments_countback = comments) -> partialobs 
 
 # Look in recoveries for tags that may be associated with partialobs trips
 recoveries %>% 
-  filter(year_trip %in% partialobs$year_trip) %>% 
-  distinct(year, Project_cde, trip_no, measurer_type, info_source)
+  filter(year_trip %in% partialobs$year_trip)  %>% 
+  group_by(year_trip) %>% 
+  summarize(no_tags = n_distinct(tag_no)) %>% 
+  right_join(partialobs, by = "year_trip") -> partialobs
 
+# For now the partialobs isn't particularly informative. The current logic I've
+# developed applies to all trips, not just partialobs trip, since we have
+# no way of knowing if tags come from the observed fish or not. If the number of
+# tags recovered from a trip exceeds the number of marks, treat the excess as
+# dead tags from the fishery (D_fishery) for that time period. There will be other
+# D's potentially, from outside waters, etc. These are only D's associated with
+# a specific trip_no.
 
-# Figure out how many marks 
+recoveries %>% 
+  filter(year_trip %in% marks$year_trip) %>% 
+  group_by(year_trip) %>% 
+  summarize(no_tags = n_distinct(tag_no)) %>% 
+  right_join(marks, by = "year_trip") %>% 
+  # padr::fill_ replaces NAs with 0 for specified cols
+  fill_by_value(no_tags, value = 0) %>% 
+  mutate(D_fishery = ifelse(no_tags - marked > 0, no_tags - marked, 0)) -> marks
+
+# Figure out how many marks year_trip combos are in recoveries vs. the
+# countbacks (marks), not including trip_no's 1, 2, and 3, which are the pot and
+# longline surveys. anti_join(a, b) = all rows in a that do not have a match in
+# b
+recoveries %>% filter(!trip_no %in% c(1, 2, 3) & !is.na(trip_no)) -> a
+marks  -> b
+anti_join(a, b, by = "year_trip") -> no_match 
+n_distinct(no_match$year_trip) #101 trips supposedly had recoveries but aren't in the daily accounting countback forms.
+# Most of these are Project_cde 20-something (from Canada), 17 (pot fishery,
+# Clarence), or 05 (NMFS survey), but quite a few are 02's... going to see if
+# these trips match up with fish ticket data from IFDB
+no_match %>% filter(Project_cde == "02") %>% distinct(year_trip) -> no_match_02 # 7 trips from 2008. uugh
+
+read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR,".csv"), 
+                       guess_max = 50000) %>% 
+  mutate(whole_kg = whole_pounds * 0.453592,
+         year_trip = paste0(year, "_", trip_no)) -> fsh_tx
+
+# These 7 trips from 2008 are in the IFDB and look like they were missed, add them into 
+fsh_tx %>% 
+  filter(year_trip %in% no_match_02$year_trip) %>% 
+  group_by(year, trip_no, year_trip, sell_date) %>% 
+  summarise(whole_kg = sum(whole_kg)) %>% 
+  rename(date = sell_date) %>% 
+  full_join(marks, by = c("year", "trip_no", "year_trip", "date", "whole_kg")) -> narjs
+
+# Pothole - check that all fish ticket trips have been accounted for in the NSEI in other
+# years in the daily accounting form... or not. This is a mess.
+full_join(fsh_tx %>%             
+            filter(year >= 2005) %>% 
+            distinct(year_trip, whole_kg) %>% 
+            arrange(year_trip) %>% 
+            select(year_trip, whole_kg1 = whole_kg),
+          marks %>% 
+            distinct(year_trip, whole_kg) %>% 
+            arrange(year_trip)) %>% View()
+          
 # Summarize by day
 marks %>% 
-  group_by(summar)
   # padr::pad fills in missing dates with NAs, grouping by years.
   pad(group = "year") %>%
   group_by(year, date) %>% 

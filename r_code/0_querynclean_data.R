@@ -17,18 +17,34 @@
 # lookup.project_conversion where category_code = 'g'"
 
 # new (Zander) = old (IFDB) = description
-# 601 = 01 = Clarence sablefish longline survey
-# 602 = 02 = commercial longline trip
-# 603 = 03 = Chatham sablefish longline survey
-# 607 = 07 = atypical sample (unknown gear)
-# 608 = 08 = atypical longline sample
-# 617 = 17 = commercial pot trip
-# 610 = 10 = Clarence sablefish pot survey
-# 611 = 11 = Chatham sabelfish pot survey
-# 623 = 23 = Canadian commercial longline
-# 624 = 24 = Canadian commercial pot
-# 625 = 25 = Canadian commercial trawl
-# 626 = 26 = Canadian scientific survey
+# 601 = 01 = Clarence Sablefish LL Survey
+# 602 = 02 = Commercial Longline Trip
+# 603 = 03 = Chatham Sablefish LL Survey
+# 604 = 04 = Commercial Jig Trip
+# 605 = 05 = Longline Survey **NMFS survey
+# 606 = 06 = Jig Survey
+# 607 = 07 = Atypical Sample (unknown gear)
+# 608 = 08 = Atypical Longline Sample
+# 609 = 09 = Atypical Jig Sample
+# 610 = 10 = Clarence Sablefish Pot Survey
+# 611 = 11 = Chatham Sablefish Pot Survey
+# 612 = 12 = Sitka Harbor Sablefish Survey
+# 613 = 13 = Kodiak Trawl Sablefish Survey
+# 614 = 14 = 1979 NSEI Crab Survey
+# 615 = 15 = IPHC Annual Survey
+# 616 = 16 = NMFS Coop Tagging Survey
+# 617 = 17 = Commercial Pot Trip
+# 618 = 18 = Lingcod Stock Assessment
+# 619 = 19 = Black Rockfish Stock Assessment
+# 620 = 20 = Commercial Troll
+# 621 = 21 = Commercial Halibut Longline
+# 622 = 22 = Atypical Trawl Sample
+# 623 = 23 = Canadian Commercial Longline
+# 624 = 24 = Canadian Commercial Pot
+# 625 = 25 = Canadian Commercial Trawl
+# 626 = 26 = Canadian Scientific Survey
+# 627 = 27 = Subsistence/Personal Use
+# 628 = 28 = Sport-caught Sample
 
 # most recent year of data
 YEAR <- 2017
@@ -348,7 +364,7 @@ query <-
           g_stat_area as stat, start_latitude_decimal_degrees as start_lat,
           start_longitude_decimal_degree as start_lon, end_latitude_decimal_degrees as end_lat,
           end_longitude_decimal_degrees as end_lon, avg_depth_fathoms * 1.8288 as depth_meters, 
-          number_hooks, bare, bait, invalid, hagfish_slime, unknown, numbers
+          number_hooks, bare, bait, invalid, hagfish_slime, unknown, numbers, discard_status_code
 
   from    output.out_g_sur_longline_catch_bi
   
@@ -367,6 +383,12 @@ query <-
 dbGetQuery(zprod_channel, query) -> stat_areas
 
 merge(srv_eff, stat_areas, by = "STAT") -> srv_eff
+
+# Also merge in discard status codes
+query <- "select * from discard_status"
+dbGetQuery(ifdb_channel, query) -> discard_codes
+
+merge(srv_eff, discard_codes, by = "DISCARD_STATUS_CODE") -> srv_eff
 
 write_csv(srv_eff, paste0("data/survey/raw_data/llsrv_cpue_",
                           min(srv_eff$YEAR), "_", YEAR, ".csv"))
@@ -507,7 +529,7 @@ write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
 
 # Tag releases ----
 
-# From the pot marking survey
+# From the pot marking survey, includes length
 
 # The out_g_bio_eff_age_sex_size_tag view is almost the same as the
 # out_g_bio_effort_age_sex_size view, except it only stores tagged fish from the
@@ -569,7 +591,8 @@ tag_releases %>% group_by(year, discard_status) %>% summarise(n_distinct(tag_no)
 
 # This is the batch report that Mike Vaughn does (how we determine how many tags
 # lost/not available to the directed NSEI sablefish fishery). Match up
-# batch_no's to the tag_releases
+# batch_no's to the tag_releases. Also includes recapture lengths (careful to
+# only use sampler lengths)
 
 query <-
 " select  tag_no, tag_batch_no, tag_event_code, tag_event, year, project_code, 
@@ -635,26 +658,3 @@ list.files(path = "data/fishery/raw_data/", pattern = "nsei_daily_tag_accounting
          total_obs = unmarked + marked,
          whole_kg = round_lbs * 0.453592)  %>% 
   write_csv(paste("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
-
-# Tag recovery lengths ----
-
-query <- 
-"select   rec_tag_no, rec_tag_event, rec_year, rec_project_code, rec_trip_no, 
-          rec_landing_date, rec_gear_code
-
-
-year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
-time_first_buoy_onboard, effort_no, station_no, species_code, 
-g_stat_area as stat, management_area, start_latitude_decimal_degrees as start_lat,
-start_longitude_decimal_degree as start_lon, end_latitude_decimal_degrees as end_lat,
-end_longitude_decimal_degrees as end_lon, avg_depth_fathoms * 1.8288 as depth_meters, 
-length_millimeters / 10 as length, weight_kilograms as weight, 
-age, age_type_code, age_readability_code, sex_code, maturity_code
-
-from    out_g_bio_effort_age_sex_size
-
-where   species_code = '710' and
-gear_code = '91' and
-project_code in ('11', '611') "
-
-dbGetQuery(ifdb_channel, query) -> pot_bio
