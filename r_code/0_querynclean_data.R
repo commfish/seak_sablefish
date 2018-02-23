@@ -396,7 +396,7 @@ write_csv(srv_eff, paste0("data/survey/raw_data/llsrv_cpue_",
 read_csv(paste0("data/survey/raw_data/llsrv_cpue_",
                 min(srv_eff$YEAR), "_", YEAR, ".csv"), 
          guess_max = 50000) %>% 
-  filter(YEAR <= 2017) %>% #the programmers have some dummy data in the db for the upcoming year
+  filter(YEAR <= YEAR) %>% #the programmers have some dummy data in the db for the upcoming year
   mutate(date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
          julian_day = yday(date)) %>% 
   select(year = YEAR, Mgmt_area = G_MANAGEMENT_AREA_CODE, Project_cde = PROJECT_CODE, 
@@ -404,7 +404,8 @@ read_csv(paste0("data/survey/raw_data/llsrv_cpue_",
          Stat = STAT, Mgmt_area = G_MANAGEMENT_AREA_CODE, Spp_cde = SPECIES_CODE, 
          set = EFFORT_NO, start_lat = START_LAT, start_lon = START_LON, end_lat = END_LAT,
          end_lon = END_LON, depth = DEPTH_METERS, no_hooks = NUMBER_HOOKS, hooks_bare = BARE,
-         hooks_bait = BAIT, hook_invalid = INVALID, hooks_sablefish = NUMBERS) -> srv_eff
+         hooks_bait = BAIT, hook_invalid = INVALID, hooks_sablefish = NUMBERS,
+         discard_status_cde = DISCARD_STATUS_CODE, discard_status = DISCARD_STATUS) -> srv_eff
 
 write_csv(srv_eff, paste0("data/survey/llsrv_cpue_",
                           min(srv_eff$year), "_", YEAR, ".csv"))

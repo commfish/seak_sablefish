@@ -10,23 +10,44 @@ library(padr) # helps pad time series
 library(zoo) # interpolate values
 library(rjags)
 
-YEAR <- 2017
+# Variable definitions ----
 
-# years without a marking survey
-NO_MARK_SRV <- c(2011, 2014, 2016)
-
-# data ----
+# N_0 = number of sablefish in Chatham Strait at time of marking
+# M_0 = number of marks released
+# D_0 = number of marks that are not available to either the LL survey or to the fishery
+# D_i = number of tags lost in a time period that should be decremented from the
+#       next time period
+# i = subscript for time period i, which may refer to the LL survey (i = 1)
+#        to one of the fishery time periods based on time of landing
+# N_i = number of sablefish in Chatham Strait at the beginning of time period i
+# M_i = number of marked sabelfish in Chatham Straight at the beginning of time period i
+# t_i = total number of days in time period i
+# n_i = observed catch (number of marked and unmarked sablefish that were
+#       checked for clips, or tags in the LL survey) during period i
+# m_i = number of marked fish recovered in period i (tags in the LL survey)
 
 # Summary of marking effort 2003 to present. This could be wrong. I tried to
 # pull from the original assessments but the numbers Kray used to estimate past
 # years were different from the numbers in those years. I'm instead going to
 # pull numbers (total marked, recovered, dead tags) from the database, that way
 # it's at least reproducible. I'm only using data >= 2005 because I can't find
-# any batch 15 (2004) tag recoveries. It turns out 2004 they were experimenting
+# any batch 15 (2004) tag recoveries. It turns out in 2004 ADF&G was experimenting
 # with PIT tags, which was not successful. I asked Aaron Baldwin if he'd track
-# down the batch 15 recoveries on 2018-02-21. tra
+# down the batch 15 recoveries on 2018-02-21. 
+
+# Make this an object for when it changes. Our goal should be at least getting
+# back to 2003.
+FIRST_YEAR <- 2005 
+
+# Assessment year
+YEAR <- 2017
+
+# years without a marking survey
+NO_MARK_SRV <- c(2011, 2014, 2016)
 
 read_csv("data/fishery/raw_data/mr_variable_summary.csv") -> mr_summary
+
+# Released tags ----
 
 # Released fish. Each year has a unique batch_no.
 
@@ -37,13 +58,23 @@ releases %>% group_by(discard_status) %>% summarise(n_distinct(tag_no)) # All ta
 
 # Total number tagged and released by year
 releases %>% 
-  filter(year >= 2005) %>% 
+  filter(year >= FIRST_YEAR) %>% 
   group_by(year, tag_batch_no) %>% 
-  summarise(M = n_distinct(tag_no),
+  summarise(M_0 = n_distinct(tag_no),
             potsrv_beg = min(date),
-            potsrv_end = max(date)) %>% 
-  mutate(potsrv_len = potsrv_end - potsrv_beg,
-         year_batch = paste0(year, "_", tag_batch_no)) -> tag_summary
+            potsrv_end = max(date),
+            # FLAG: Mueter (2007) defined the length of time period 1 (t_1) as
+            # the number of days between the middle of the pot survey and the
+            # middle of the LL survey, and t_2 as the middle of the LL survey to
+            # the end of the first fishing period. We have changed this methodology
+            # such that t_1 goes from the middle of the pot survey to the day
+            # before the fishery begins. We set it up this way to account for
+            # instantaneous natural mortality (and functionally emigration)
+            # during this period.
+            potsrv_middle = (potsrv_end - potsrv_beg) / 2 + potsrv_beg ) %>% 
+  mutate(year_batch = paste0(year, "_", tag_batch_no)) -> tag_summary
+
+# Recovered tags ----
 
 # Recaptured fish. Match up to the daily tag accounting (countback) data in the
 # fishery to determine dead tags, number caught in survey, etc.
@@ -88,71 +119,105 @@ read_csv(paste0("data/fishery/tag_recoveries_2003_", YEAR, ".csv"),
 # (i.e., get rid of recovered tags that were deployed in a past year)
 recoveries %>% 
   mutate(year_batch = paste0(year, "_", tag_batch_no),
-         year_trip = paste0(year, "_", trip_no)) %>% 
+         year_trip = paste0(year, "_", trip_no),
+         # use landing_date (same as the countbacks - see section below), otherwise catch_date
+         date = as.Date(ifelse(is.na(landing_date), catch_date, landing_date))) %>% 
   filter(year_batch %in% tag_summary$year_batch) -> recoveries
 
-# Add Chatham longline survey recoveries to the summary
+# There is only one Project_cde NA and it is a personal use trip, should be code
+# "27" - change it to appropriate code
+recoveries %>% 
+  mutate(Project_cde = ifelse(is.na(Project_cde) &
+                                grepl("Personal Use", comments), 
+                              "27", Project_cde)) -> recoveries
+
+# Add Chatham longline survey recoveries to the summary (survey is time period i = 1)
 recoveries %>% 
   filter(Project_cde == "03") %>% 
   group_by(year, tag_batch_no) %>%
-  summarise(llsrv_m = n_distinct(tag_no)) %>% 
+  summarise(m_1 = n_distinct(tag_no)) %>% 
   left_join(tag_summary, by = c("year", "tag_batch_no")) -> tag_summary
 
-# number of tags not associated with a trip number, project code, information source, or a date
-length(which(is.na(recoveries$trip_no))) # 258
-length(which(is.na(recoveries$Project_cde))) # 1
-length(which(is.na(recoveries$info_source))) # 0
-length(which(is.na(recoveries$landing_date))) # 397
-length(which(is.na(recoveries$catch_date))) # 1263
 
-# recoveries %>% 
-#   mutate(Project_cde2 = derivedVariable(
-#     # "D" = dead tags: any tag accounted for but not sampled by an ADF&G sampler
-#     # (e.g., outside waters, in IFQ fishery, sport fishery, in Canadian waters,
-#     # or in the NMFS or IPHC surveys). Also include the one NA as a dead tag
-#     "D" = Project_cde %in% c("24", "27", NA, "23", "05", "26", "28", "15") |
-#       is.na(Project_cde) |
-#       c(Project_cde == "02" &
-#   ))
-# "02"
-# "03"
-# "11"
-# "17"
+# Remove these matched tags from the releases df so they don't get double-counted by accident. 
+recoveries %>% filter(Project_cde != "03") -> recoveries
 
-# recoveries %>% filter(Project_cde == '02') %>% distinct(Mgmt_area, info_source, measurer_type, comments) %>% View()
-# recoveries %>% filter(Project_cde == "05")
-# recoveries %>% filter(is.na(Project_cde)) %>% View()
+# Fish tickets ----
 
-# Fishery recoveries
-recoveries %>% 
-  # 
-  filter(!is.na(trip_no) & !trip_no %in% c(1, 2, 3)) %>% 
-  group_by(year, info_source, Project_cde) %>% 
-  summarise(n_distinct(tag_no)) %>% 
-  View()
+# From IFDB database. These will help us check the countback daily accounting
+# sheets and also account for fishing mortality in the LL survey.
 
-recoveries %>% 
-  filter(trip_no %in% c(1, 2, 3) &
-           Project_cde %in% c("26", "15")) %>% View()
+read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR,".csv"), 
+         guess_max = 50000) %>% 
+  filter(year >= FIRST_YEAR) %>% 
+  mutate(whole_kg = whole_pounds * 0.453592,
+         year_trip = paste0(year, "_", trip_no)) -> fsh_tx
 
-recoveries %>% 
-  filter(Project_cde %in% c("02", "17") & is.na(trip_no)) %>% 
-  group_by(info_source) %>% summarize(n_distinct(tag_no)) %>% View()
-  
-# Daily tag accounting data in the fishery, includes catch. Note that many of 
-# the comments indicate that not all fish were observed, so be careful using 
+# LL survey mean weight ----
+
+read_csv(paste0("data/survey/llsrv_bio_1985_", YEAR,".csv"), 
+         guess_max = 50000) %>% 
+  filter(year >= FIRST_YEAR & !is.na(weight)) %>% 
+  group_by(year) %>% 
+  summarise(mean_weight_1 = mean(weight)) -> srv_mean_weights
+
+# LL survey effort ----
+
+# Get start and end dates, total n (number of fish observed for marks), and fishery npue
+
+srv_cpue <- read_csv(paste0("data/survey/llsrv_cpue_1988_", YEAR, ".csv"), 
+                     guess_max = 50000) %>% 
+  filter(year >= FIRST_YEAR &
+           # Per Mike Vaughn & Aaron Baldwin, only use discard status "01" for
+           # retained, b/c these are the ones that are checked for marks
+           discard_status_cde == "01")
+
+srv_cpue %>% 
+  mutate(
+    #standardize hook spacing (Sigler & Lunsford 2001, CJFAS) changes in 
+    #hook spacing. pers. comm. with aaron.baldwin@alaska.gov: 1995 & 1996 -
+    #118 in; 1997 - 72 in.; 1998 & 1999 - 64; 2000-present - 78". This is
+    #different from KVK's code (he assumed 3 m before 1997, 2 m in 1997 and
+    #after)
+    std_hooks = ifelse(year <= 1996, 2.2 * no_hooks * (1 - exp(-0.57 * (118 * 0.0254))),
+                       ifelse(year == 1997, 2.2 * no_hooks * (1 - exp(-0.57 * (72 * 0.0254))),
+                              ifelse( year %in% c(1998, 1999), 2.2 * no_hooks * (1 - exp(-0.57 * (64 * 0.0254))),
+                                      2.2 * no_hooks * (1 - exp(-0.57 * (78 * 0.0254)))))),
+    # std_hooks = ifelse(year < 1997, 2.2 * no_hooks * (1 - exp(-0.57 * 3)),
+    #                    2.2 * no_hooks * (1 - exp(-0.57 * 2))),
+    # number of sablefish/1000 hooks, following Mueter 2007
+    std_cpue = hooks_sablefish / (std_hooks / 1000)) %>% 
+  group_by(year) %>%
+  summarise(llsrv_beg = min(date),
+            llsrv_end = max(date),
+            n_1 = sum(hooks_sablefish),
+            C_1 = sum(hooks_sablefish),
+            NPUE_1 = mean(std_cpue)) %>% 
+  left_join(srv_mean_weights, by = "year") %>% 
+  # estimate wpue: kg sablefish/1000 hooks, following Mueter 2007  
+  mutate(WPUE_1 = NPUE_1 * mean_weight_1) %>% 
+  right_join(tag_summary, by = "year") -> tag_summary
+
+# Fishery countbacks ----
+
+# Daily tag accounting data in the fishery, includes catch. Note that many of
+# the comments indicate that not all fish were observed, so be careful using
 # these to estimate mean weight. Filter out language like missed, Missed, not
-# counted, did not observe - update: dressed fish are fine.
+# counted, did not observe. There is no difference between dressed and round fish for
+# detecting marks, but we shouldn't be using it for estimating weight.
+
 read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv")) -> marks
 
 marks %>% 
-  filter(year >= 2005 &
+  filter(year >= FIRST_YEAR &
     !year %in% NO_MARK_SRV) %>% 
   mutate(all_observed = ifelse(
-    !grepl(c("Missing|missing|Missed|missed|not counted|Did not observe|did not observe"), comments) & 
+    !grepl(c("Missing|missing|Missed|missed|eastern|Eastern|not counted|Did not observe|did not observe|dressed|Dressed"), comments) & 
                                  observed_flag == "Yes", "Yes", "No"),
     mean_weight = ifelse(all_observed == "Yes", whole_kg/total_obs, NA),
     year_trip = paste0(year, "_", trip_no)) -> marks
+
+# Fishery mean weight ----
 
 # Biological data to get mean weight to get numbers estimated on unobserved catch. 
 read_csv(paste0("data/fishery/fishery_bio_2000_", YEAR,".csv"), 
@@ -170,6 +235,8 @@ left_join(marks, fsh_bio, by = c("date", "trip_no")) %>%
   mutate(mean_weight = ifelse(!is.na(mean_weight_bios), mean_weight_bios, mean_weight)) %>% 
   select(-mean_weight_bios) -> marks
 
+# Fishery CPUE ----
+
 # CPUE data - use nominal CPUE for now (it's close to the GAM output)
 read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
          guess_max = 50000) %>% 
@@ -177,94 +244,89 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
   mutate(sable_kg_set = sable_lbs_set * 0.45359237, # conversion lb to kg
          std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (0.0254 * hook_space))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
          # kg sablefish/1000 hooks, following Mueter 2007
-         wpue = sable_kg_set / (std_hooks / 1000)) %>% 
+         WPUE = sable_kg_set / (std_hooks / 1000)) %>% 
   filter(!is.na(date) & 
            !is.na(sable_lbs_set) &
            # omit special projects before/after fishery
            julian_day > 226 & julian_day < 322) %>% 
   group_by(year, trip_no) %>% 
-  summarize(wpue = mean(wpue)) -> fsh_cpue
+  summarize(WPUE = mean(WPUE)) -> fsh_cpue
 
 # Join the mark sampling with the fishery cpue
 left_join(marks, fsh_cpue, by = c("year", "trip_no")) -> marks
 
-# Fishery summary of observed (n) and marks (m) by year:
+# Fishery summary:
 marks %>% group_by(year) %>% 
-  summarise(fishery_n = sum(total_obs), 
-            fishery_m = sum(marked),
-            fishery_beg = min(date),
-            fishery_end = max(date),
-            fishery_len = fishery_end - fishery_beg) %>% 
-  left_join(tag_summary, by = "year") -> tag_summary
-  
-# Look-up table of trips where none or only some of the fish were observed. Some
-# of these could have other tags associated with them.
-marks %>% filter(observed_flag == "Yes" & all_observed == "No") %>% nrow() # 30 trips from 2005-2017 were partially observed
-marks %>% filter(observed_flag == "Yes" & all_observed == "No") %>% 
-  select(year_trip, marked, unmarked, comments_countback = comments) -> partialobs 
+  summarise(fishery_beg = min(date),
+            fishery_end = max(date)) %>% 
+  left_join(tag_summary, by = "year") %>% 
+  # See earlier notes on changes in methods from Franz Mueter in the Released
+  # tags section
+  mutate(t_1 = as.numeric((fishery_beg - 1) - potsrv_middle)) -> tag_summary
 
-# Look in recoveries for tags that may be associated with partialobs trips
-recoveries %>% 
-  filter(year_trip %in% partialobs$year_trip)  %>% 
-  group_by(year_trip) %>% 
-  summarize(no_tags = n_distinct(tag_no)) %>% 
-  right_join(partialobs, by = "year_trip") -> partialobs
+# Tags from fishery ----
 
-# For now the partialobs isn't particularly informative. The current logic I've
-# developed applies to all trips, not just partialobs trip, since we have
-# no way of knowing if tags come from the observed fish or not. If the number of
-# tags recovered from a trip exceeds the number of marks, treat the excess as
-# dead tags from the fishery (D_fishery) for that time period. There will be other
-# D's potentially, from outside waters, etc. These are only D's associated with
-# a specific trip_no.
+# Join the recovered trips from a specific year-trip combination to the daily 
+# accounting dataframe. This will ultimately go into a D calculation. IMPORTANT
+# NOTE from Mike Vaughn 2018-02-22: trip_nos are year and project specific,
+# which is why tags recaptured might have the same trip_no as a NSEI fishery
+# longline trip in a given year. Canadian-recovered tags get a trip_no if there
+# was an otolith collected.
 
 recoveries %>% 
-  filter(year_trip %in% marks$year_trip) %>% 
+  filter(year_trip %in% marks$year_trip & Project_cde == "02") %>% 
   group_by(year_trip) %>% 
-  summarize(no_tags = n_distinct(tag_no)) %>% 
-  right_join(marks, by = "year_trip") %>% 
-  # padr::fill_ replaces NAs with 0 for specified cols
-  fill_by_value(no_tags, value = 0) %>% 
-  mutate(D_fishery = ifelse(no_tags - marked > 0, no_tags - marked, 0)) -> marks
+  summarize(tags_from_fishery = n_distinct(tag_no)) %>% 
+  right_join(marks, by = "year_trip") -> marks
 
-# Figure out how many marks year_trip combos are in recoveries vs. the
-# countbacks (marks), not including trip_no's 1, 2, and 3, which are the pot and
-# longline surveys. anti_join(a, b) = all rows in a that do not have a match in
-# b
-recoveries %>% filter(!trip_no %in% c(1, 2, 3) & !is.na(trip_no)) -> a
-marks  -> b
-anti_join(a, b, by = "year_trip") -> no_match 
-n_distinct(no_match$year_trip) #101 trips supposedly had recoveries but aren't in the daily accounting countback forms.
-# Most of these are Project_cde 20-something (from Canada), 17 (pot fishery,
-# Clarence), or 05 (NMFS survey), but quite a few are 02's... going to see if
-# these trips match up with fish ticket data from IFDB
-no_match %>% filter(Project_cde == "02") %>% distinct(year_trip) -> no_match_02 # 7 trips from 2008. uugh
+# Remove these matched tags from the releases df so they don't get double-counted by accident. 
+recoveries %>% filter(!c(year_trip %in% marks$year_trip & Project_cde == "02")) -> recoveries
 
-read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR,".csv"), 
-                       guess_max = 50000) %>% 
-  mutate(whole_kg = whole_pounds * 0.453592,
-         year_trip = paste0(year, "_", trip_no)) -> fsh_tx
+# Data discrepancy FLAG - Some year_trip fishery combos in recoveries df are not
+# in marks df (exclude trip_no's 1, 2, and 3, which are the pot and longline
+# surveys)
+anti_join(recoveries %>% 
+            filter(!trip_no %in% c(1, 2, 3) & 
+                     !is.na(trip_no) & 
+                     Project_cde == "02"), 
+          marks, by = "year_trip") %>% 
+  group_by(year_trip, Mgmt_area) %>% 
+  summarize(tags_from_fishery = n_distinct(tag_no)) -> no_match # 7 trips from 2008, all in the NSEI
 
-# These 7 trips from 2008 are in the IFDB and look like they were missed, add them into 
+# See if these landings have fish tickets. These 7 trips from 2008 are in the IFDB and look like they were missed. I'm
+# choosing to add them into the marks df, because they are from the NSEI state
+# managed fishery and appear not to have been accounted for in the countbacks
+# spreadsheets.
 fsh_tx %>% 
-  filter(year_trip %in% no_match_02$year_trip) %>% 
-  group_by(year, trip_no, year_trip, sell_date) %>% 
+  filter(year_trip %in% no_match$year_trip) %>% 
+  group_by(year, trip_no, year_trip, sell_date, julian_day) %>% 
   summarise(whole_kg = sum(whole_kg)) %>% 
   rename(date = sell_date) %>% 
-  full_join(marks, by = c("year", "trip_no", "year_trip", "date", "whole_kg")) -> narjs
+  left_join(no_match, by = "year_trip") %>% 
+  select(-Mgmt_area) %>% 
+  full_join(marks, by = c("year", "trip_no", "year_trip", "date", "julian_day",
+                          "whole_kg", "tags_from_fishery")) %>% 
+  arrange(date) -> marks
+
+# Remove these matched tags from the releases df so they don't get double-counted by accident. 
+recoveries %>% 
+  filter(!c(year_trip %in% no_match$year_trip & Project_cde == "02")) -> recoveries
 
 # Pothole - check that all fish ticket trips have been accounted for in the NSEI in other
-# years in the daily accounting form... or not. This is a mess.
-full_join(fsh_tx %>%             
-            filter(year >= 2005) %>% 
-            distinct(year_trip, whole_kg) %>% 
-            arrange(year_trip) %>% 
-            select(year_trip, whole_kg1 = whole_kg),
-          marks %>% 
-            distinct(year_trip, whole_kg) %>% 
-            arrange(year_trip)) %>% View()
-          
-# Summarize by day
+# years in the daily accounting form... or not. How about next year. This is a mess.
+# full_join(fsh_tx %>%             
+#             filter(year >= FIRST_YEAR) %>% 
+#             distinct(year_trip, whole_kg) %>% 
+#             arrange(year_trip) %>% 
+#             select(year_trip, whole_kg1 = whole_kg),
+#           marks %>% 
+#             distinct(year_trip, whole_kg) %>% 
+#             arrange(year_trip)) %>% View()
+
+# Daily summary ----
+
+# Get a daily summary of observed, marks, and tag loss during the directed NSEI season.
+
 marks %>% 
   # padr::pad fills in missing dates with NAs, grouping by years.
   pad(group = "year") %>%
@@ -272,20 +334,82 @@ marks %>%
   summarize(whole_kg = sum(whole_kg),
             total_obs = sum(total_obs),
             total_marked = sum(marked),
+            tags_from_fishery = sum(tags_from_fishery),
             mean_weight = mean(mean_weight),
-            mean_wpue = mean(wpue)) %>% 
-  # interpolate mean_weight column to get npue from wpue (some trips have wpue data but no bio data)
+            mean_wpue = mean(WPUE)) %>% 
+  # interpolate mean_weight column to get npue from wpue (some trips have wpue
+  # data but no bio data)
   mutate(interp_mean = zoo::na.approx(mean_weight, maxgap = 20, rule = 2),
          mean_npue = mean_wpue / interp_mean) %>%
   # padr::fill_ replaces NAs with 0 for specified cols
-  fill_by_value(whole_kg, total_obs, total_marked, value = 0) %>% 
+  fill_by_value(whole_kg, total_obs, total_marked, tags_from_fishery, value = 0) %>% 
   group_by(year) %>% 
   mutate(cum_whole_kg = cumsum(whole_kg),
          cum_obs = cumsum(total_obs),
          cum_marks = cumsum(total_marked),
          julian_day = yday(date)) -> daily_marks
 
+# Join remaining recovered tags that have a matching data with the daily marks 
+# df. These could be from other fisheries in or outside the NSEI or from Canada.
+# Get fishery_D, the final count of tags to be decremented for the next time
+# period.
+recoveries %>% 
+  filter(date %in% daily_marks$date) %>% 
+  group_by(date) %>% 
+  summarize(other_tags = n_distinct(tag_no)) %>% 
+  right_join(daily_marks, by = "date") %>% 
+  # padr::fill_ replaces NAs with 0 for specified cols
+  fill_by_value(other_tags, value = 0) %>% 
+  mutate(fishery_D = ifelse(tags_from_fishery - total_marked > 0, 
+                            tags_from_fishery - total_marked + other_tags, 
+                            other_tags)) -> daily_marks
+
+# Remove these matched tags from the releases df so they don't get double-counted by accident. 
+recoveries %>% filter(!c(date %in% daily_marks$date)) -> recoveries
+
+# Remaining tag loss ----
+
+# These are tags from other fisheries, from the directed fishery but without
+# trip/date info, or Canada, or IPHCS/NMFS/other surveys.Potential periods of
+# remaining tag loss:
+#   1) Between start of pot survey and day before start of LL survey (D_0)
+#   2) Beginning of longline survey and day before start of fishery (D_1)
+#   3) During fishery (fishery_D will become D_i)
+#   4) After survey (postfishery_D) 
+
+# The remaining tag recoveries without dates appear to be best suited to the 
+# prefishery_D category (they're almost all project 02's and most comments seem 
+# to suggest that the sampler just didn't know which trip to assign the tag to).
+# Note that is.na(date)'s have decreased through time, likely due to better
+# reporting, both by samplers and the fleet.
+
+# Approach:
+#   1) merge dates from tag_summary into recoveries
+#   2) create new factor based on time periods
+#   3) summarize by period, reshape, and join back to tag_summary
+
+right_join(recoveries %>% 
+            select(year, date, Project_cde, tag_no),
+          tag_summary %>% 
+            select(year, potsrv_beg, llsrv_beg, llsrv_end, fishery_beg, fishery_end),
+          by = "year") %>%
+  mutate(D = derivedFactor(
+    # as a check there should be none of these
+    'error' = date < potsrv_beg,
+    'D_0' = date >= potsrv_beg & date < llsrv_beg,
+    'D_1' = date >= llsrv_beg & date < fishery_beg | is.na(date),
+    'fishery_D' = date >= fishery_beg & date <= fishery_end,
+    'postfishery_D' = date > fishery_end,
+    .method="unique")) %>% 
+  group_by(year, D) %>% 
+  summarise(n = n_distinct(tag_no)) %>% 
+  ungroup() %>% 
+  dcast(year ~ D, value.var = "n", fill = 0) %>% 
+  left_join(tag_summary, by = "year") -> tag_summary
+
 # Trends ----
+
+# Cumulation curves of marks collected and catch over the season
 
 ggplot(daily_marks, aes(x = julian_day)) +
   geom_line(aes(y = cum_marks)) +
@@ -297,7 +421,9 @@ ggplot(daily_marks, aes(x = julian_day)) +
   facet_wrap(~ year, scales = "free") +
   labs(x = "Julian Day", y = "Cumulative Catch (kg)")
 
-# Trends in mean weight over the course of the season
+# Trends in mean weight and NPUE over the season - trends provide
+# justification to doing a time-stratified estimator
+
 ggplot(daily_marks,
        aes(x = julian_day, y = mean_weight)) +
   geom_point() +
@@ -305,7 +431,6 @@ ggplot(daily_marks,
   facet_wrap(~ year) +
   labs(x = "Julian Day", y = "Mean Individual Weight (kg)")
 
-# Trends in NPUE over the course of the season
 ggplot(daily_marks,
        aes(x = julian_day, y = mean_npue)) +
   geom_point() +
@@ -315,57 +440,36 @@ ggplot(daily_marks,
 
 # Stratify by time ----
 
-# For now base time strata on percentiles catch or number of marks observed?
-# They mostly match up (see mutate -> tst).
+# *FLAG* For now base strata on percentiles of cumulative catch. Could also used
+# number of marks observed or some other variable. STRATA_NUM is the dynamic
+# variable specifying the number to split the fishery by.
+STRATA_NUM <- 5
+
 daily_marks %>% 
   group_by(year) %>% 
-  mutate(catch_strata = percent_rank(cum_whole_kg) %>% round(1),
-         mark_strata = percent_rank(cum_marks) %>% round(1)
-         #tst = ifelse(catch_strata == mark_strata, "Yes", "No"),
-         ) -> daily_marks
+  mutate(catch_strata = cut(percent_rank(cum_whole_kg) %>% round(2),
+                            breaks = seq(0, 1, by = 1 / STRATA_NUM),
+                            include.lowest = TRUE, right = TRUE, ordered_result = TRUE,
+                            labels = paste(seq(2, STRATA_NUM + 1, by = 1)))) -> daily_marks
  
-# *FLAG* better way to do this? Ideally would like to automate and generalize
-# based off of desired number of strata. 
-daily_marks %>% 
-  mutate(catch_strata = 
-           # recode_factor(catch_strata, 
-           #               `0.0` = 1L, `0.1` = 1L, `0.2` = 1L, 
-           #               `0.3` = 2L, `0.4` = 2L,
-           #               `0.5` = 3L, `0.6` = 3L, 
-           #               `0.7` = 4L, `0.8` = 4L, 
-           #               `0.9` = 5L, `1.0` = 5L))
-           recode_factor(catch_strata, 
-                         `0.0` = 1L, `0.1` = 1L, 
-                         `0.2` = 2L, `0.3` = 2L, 
-                         `0.4` = 3L, `0.5` = 3L, 
-                         `0.6` = 4L, `0.7` = 4L, 
-                         `0.8` = 5L, `0.9` = 5L, `1.0` = 5L)) -> daily_marks
-
 # Summarize by strata
 daily_marks %>% 
   group_by(year, catch_strata) %>% 
-  summarize(days = n_distinct(date),
-            tot_catch = sum(whole_kg),
-            total_obs = sum(total_obs),
-            total_marked = sum(total_marked),
-            mean_npue = mean(mean_npue, na.rm = TRUE),
+  summarize(t = n_distinct(date),
+            catch_kg = sum(whole_kg),
+            n = sum(total_obs),
+            m = sum(total_marked),
+            D = sum(fishery_D),
+            NPUE = mean(mean_npue, na.rm = TRUE),
             mean_weight = mean(mean_weight, na.rm = TRUE)) %>% 
-  mutate(est_catch_numbers = tot_catch / mean_weight) -> strata_sum
+  mutate(C = catch_kg / mean_weight) -> strata_sum
 
-# Summarize by year to see if it matches up with mr_summary
-daily_marks %>% 
-  group_by(year) %>% 
-  summarize(days = n_distinct(date),
-            tot_catch = sum(whole_kg),
-            total_obs = sum(total_obs),
-            total_marked = sum(total_marked),
-            mean_npue = mean(mean_npue, na.rm = TRUE),
-            mean_weight = mean(mean_weight, na.rm = TRUE)) %>% 
-  mutate(est_catch_numbers = tot_catch / mean_weight) -> yearly_sum
+dcast(setDT(strata_sum), year ~ catch_strata, value.var = c("D", "C", "n", "t","m", "NPUE")) %>% 
+  left_join(tag_summary, by = "year") -> tag_summary
 
+# Now I need to get this into a useable format for JAGS
 
-mr_summary %>% View()
-
+# ----
 # Simple Chapmanized Peterson estimator
 
 n1 <- 1000 # number of fish caught and marks

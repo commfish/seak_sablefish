@@ -12,12 +12,12 @@ YEAR <- 2017
 
 # survey biological  data
 
-read_csv(paste0("data/survey/llsurvey_bio_1988_", YEAR,".csv"), 
-                      guess_max = 50000) %>% 
+read_csv(paste0("data/survey/llsrv_bio_1985_", YEAR,".csv"), 
+         guess_max = 50000) %>% 
   mutate(Year = factor(year),
-         Project = factor(Project),
+         Project_cde = factor(Project_cde),
          Stat = factor(Stat),
-         Station = factor(Station),
+         # Station = factor(Station),
          Sex = factor(Sex),
          Maturity = factor(Maturity),
          # *FLAG* there's an [unresolved and unreproducible] issue with the maturity
