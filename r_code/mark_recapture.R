@@ -8,19 +8,21 @@
 source("r_code/helper.r")
 library(padr) # helps pad time series
 library(zoo) # interpolate values
-library(rjags)
+library(rjags) # run jags/bugs models
+library(tidyr)
+library(magrittr) # for extra piping (%$%)
 
 # Variable definitions ----
 
-# N_0 = number of sablefish in Chatham Strait at time of marking
-# M_0 = number of marks released
-# D_0 = number of marks that are not available to either the LL survey or to the fishery
+# N.0 = number of sablefish in Chatham Strait at time of marking
+# M.0 = number of marks released
+# D.0 = number of marks that are not available to either the LL survey or to the fishery
 # D_i = number of tags lost in a time period that should be decremented from the
 #       next time period
 # i = subscript for time period i, which may refer to the LL survey (i = 1)
 #        to one of the fishery time periods based on time of landing
 # N_i = number of sablefish in Chatham Strait at the beginning of time period i
-# M_i = number of marked sabelfish in Chatham Straight at the beginning of time period i
+# M_i = number of marked sablefish in Chatham Straight at the beginning of time period i
 # t_i = total number of days in time period i
 # n_i = observed catch (number of marked and unmarked sablefish that were
 #       checked for clips, or tags in the LL survey) during period i
@@ -45,6 +47,15 @@ YEAR <- 2017
 # years without a marking survey
 NO_MARK_SRV <- c(2011, 2014, 2016)
 
+# Past assessments ----
+
+# A summary of past estimated abundance and biomass in a given year - I use the
+# abundance_age2plus to help inform the prior of the starting abundance (it will
+# still be vague). See Priors and starting values section
+read_csv("data/chatham_sablefish_abd_index.csv") -> assessment_summary
+
+# Past years of mark-recapture variables, summarized to best of my ability based
+# on files on the server. This is just used for comparison purposes.
 read_csv("data/fishery/raw_data/mr_variable_summary.csv") -> mr_summary
 
 # Released tags ----
@@ -60,14 +71,14 @@ releases %>% group_by(discard_status) %>% summarise(n_distinct(tag_no)) # All ta
 releases %>% 
   filter(year >= FIRST_YEAR) %>% 
   group_by(year, tag_batch_no) %>% 
-  summarise(M_0 = n_distinct(tag_no),
+  summarise(M.0 = n_distinct(tag_no),
             potsrv_beg = min(date),
             potsrv_end = max(date),
-            # FLAG: Mueter (2007) defined the length of time period 1 (t_1) as
+            # FLAG: Mueter (2007) defined the length of time period 1 (t.1) as
             # the number of days between the middle of the pot survey and the
-            # middle of the LL survey, and t_2 as the middle of the LL survey to
+            # middle of the LL survey, and t.2 as the middle of the LL survey to
             # the end of the first fishing period. We have changed this methodology
-            # such that t_1 goes from the middle of the pot survey to the day
+            # such that t.1 goes from the middle of the pot survey to the day
             # before the fishery begins. We set it up this way to account for
             # instantaneous natural mortality (and functionally emigration)
             # during this period.
@@ -135,9 +146,8 @@ recoveries %>%
 recoveries %>% 
   filter(Project_cde == "03") %>% 
   group_by(year, tag_batch_no) %>%
-  summarise(m_1 = n_distinct(tag_no)) %>% 
+  summarise(m.1 = n_distinct(tag_no)) %>% 
   left_join(tag_summary, by = c("year", "tag_batch_no")) -> tag_summary
-
 
 # Remove these matched tags from the releases df so they don't get double-counted by accident. 
 recoveries %>% filter(Project_cde != "03") -> recoveries
@@ -167,12 +177,9 @@ read_csv(paste0("data/survey/llsrv_bio_1985_", YEAR,".csv"),
 
 srv_cpue <- read_csv(paste0("data/survey/llsrv_cpue_1988_", YEAR, ".csv"), 
                      guess_max = 50000) %>% 
-  filter(year >= FIRST_YEAR &
-           # Per Mike Vaughn & Aaron Baldwin, only use discard status "01" for
-           # retained, b/c these are the ones that are checked for marks
-           discard_status_cde == "01")
+  filter(year >= FIRST_YEAR)
 
-srv_cpue %>% 
+srv_cpue %>%
   mutate(
     #standardize hook spacing (Sigler & Lunsford 2001, CJFAS) changes in 
     #hook spacing. pers. comm. with aaron.baldwin@alaska.gov: 1995 & 1996 -
@@ -185,17 +192,20 @@ srv_cpue %>%
                                       2.2 * no_hooks * (1 - exp(-0.57 * (78 * 0.0254)))))),
     # std_hooks = ifelse(year < 1997, 2.2 * no_hooks * (1 - exp(-0.57 * 3)),
     #                    2.2 * no_hooks * (1 - exp(-0.57 * 2))),
+    # Per Mike Vaughn & Aaron Baldwin, only use discard status "01" for retained,
+    # b/c these are the ones that are checked for marks
+    sablefish_retained = ifelse(discard_status_cde == "01", hooks_sablefish, 0),
     # number of sablefish/1000 hooks, following Mueter 2007
-    std_cpue = hooks_sablefish / (std_hooks / 1000)) %>% 
+    std_cpue = sablefish_retained / (std_hooks / 1000)) %>% 
   group_by(year) %>%
   summarise(llsrv_beg = min(date),
             llsrv_end = max(date),
-            n_1 = sum(hooks_sablefish),
-            C_1 = sum(hooks_sablefish),
-            NPUE_1 = mean(std_cpue)) %>% 
+            n.1 = sum(sablefish_retained),
+            C.1 = sum(sablefish_retained),
+            NPUE.1 = mean(std_cpue) %>% round(1)) %>% 
   left_join(srv_mean_weights, by = "year") %>% 
   # estimate wpue: kg sablefish/1000 hooks, following Mueter 2007  
-  mutate(WPUE_1 = NPUE_1 * mean_weight_1) %>% 
+  mutate(WPUE.1 = (NPUE.1 * mean_weight_1) %>% round(1)) %>% 
   right_join(tag_summary, by = "year") -> tag_summary
 
 # Fishery countbacks ----
@@ -262,7 +272,7 @@ marks %>% group_by(year) %>%
   left_join(tag_summary, by = "year") %>% 
   # See earlier notes on changes in methods from Franz Mueter in the Released
   # tags section
-  mutate(t_1 = as.numeric((fishery_beg - 1) - potsrv_middle)) -> tag_summary
+  mutate(t.1 = as.numeric((fishery_beg - 1) - potsrv_middle)) -> tag_summary
 
 # Tags from fishery ----
 
@@ -340,7 +350,7 @@ marks %>%
   # interpolate mean_weight column to get npue from wpue (some trips have wpue
   # data but no bio data)
   mutate(interp_mean = zoo::na.approx(mean_weight, maxgap = 20, rule = 2),
-         mean_npue = mean_wpue / interp_mean) %>%
+         mean_npue = mean_wpue / interp_mean) %>% 
   # padr::fill_ replaces NAs with 0 for specified cols
   fill_by_value(whole_kg, total_obs, total_marked, tags_from_fishery, value = 0) %>% 
   group_by(year) %>% 
@@ -372,7 +382,7 @@ recoveries %>% filter(!c(date %in% daily_marks$date)) -> recoveries
 # These are tags from other fisheries, from the directed fishery but without
 # trip/date info, or Canada, or IPHCS/NMFS/other surveys.Potential periods of
 # remaining tag loss:
-#   1) Between start of pot survey and day before start of LL survey (D_0)
+#   1) Between start of pot survey and day before start of LL survey (D.0)
 #   2) Beginning of longline survey and day before start of fishery (D_1)
 #   3) During fishery (fishery_D will become D_i)
 #   4) After survey (postfishery_D) 
@@ -396,8 +406,8 @@ right_join(recoveries %>%
   mutate(D = derivedFactor(
     # as a check there should be none of these
     'error' = date < potsrv_beg,
-    'D_0' = date >= potsrv_beg & date < llsrv_beg,
-    'D_1' = date >= llsrv_beg & date < fishery_beg | is.na(date),
+    'D.0' = date >= potsrv_beg & date < llsrv_beg,
+    'D.1' = date >= llsrv_beg & date < fishery_beg | is.na(date),
     'fishery_D' = date >= fishery_beg & date <= fishery_end,
     'postfishery_D' = date > fishery_end,
     .method="unique")) %>% 
@@ -442,7 +452,8 @@ ggplot(daily_marks,
 
 # *FLAG* For now base strata on percentiles of cumulative catch. Could also used
 # number of marks observed or some other variable. STRATA_NUM is the dynamic
-# variable specifying the number to split the fishery by.
+# variable specifying the number of time strata to split the fishery into and it
+# currently accomodates 9 or fewer strata.
 STRATA_NUM <- 5
 
 daily_marks %>% 
@@ -456,21 +467,187 @@ daily_marks %>%
 daily_marks %>% 
   group_by(year, catch_strata) %>% 
   summarize(t = n_distinct(date),
-            catch_kg = sum(whole_kg),
+            catch_kg = sum(whole_kg) %>% round(1),
             n = sum(total_obs),
             m = sum(total_marked),
             D = sum(fishery_D),
-            NPUE = mean(mean_npue, na.rm = TRUE),
-            mean_weight = mean(mean_weight, na.rm = TRUE)) %>% 
-  mutate(C = catch_kg / mean_weight) -> strata_sum
+            NPUE = mean(mean_npue, na.rm = TRUE) %>% round(1),
+            # Use the interpolated mean weight here so it doesn't break at large
+            # STRATA_NUMs
+            mean_weight = mean(interp_mean, na.rm = TRUE)) %>% 
+  mutate(C = (catch_kg / mean_weight) %>% round(0)) -> strata_sum
 
-dcast(setDT(strata_sum), year ~ catch_strata, value.var = c("D", "C", "n", "t","m", "NPUE")) %>% 
-  left_join(tag_summary, by = "year") -> tag_summary
+# Running Chapman estimator
+strata_sum %>% 
+  left_join(tag_summary %>% select(year, M.0), by = "year") %>% 
+  group_by(year, catch_strata) %>% 
+  # This doesn't deduct the period specific D's and is a rough estimator
+  mutate(running_Chapman = ((M.0 + 1)*(n + 1) / (m + 1)) - 1) -> strata_sum
 
-# Now I need to get this into a useable format for JAGS
+# Prep data for JAGS ----  
+dcast(setDT(strata_sum), year ~ catch_strata, 
+      value.var = c("D", "C", "n", "t","m", "NPUE"), sep = ".") %>% 
+  left_join(tag_summary, by = "year") %>% 
+  # order the columns alphanumerically - very convenient
+  select(year, order(colnames(.))) -> jags_dat
 
-# ----
-# Simple Chapmanized Peterson estimator
+jags_dat %>%
+  select(year, M.0, contains("D."), contains("C."), starts_with("n."), 
+         starts_with("t."), contains("m."), contains("NPUE."))  -> jags_dat
+
+# Add in the abundance estimates from the past assessments as mu.N (the mean for
+# the prior on N.1)
+assessment_summary %>% 
+  filter(year >= FIRST_YEAR & !year %in% NO_MARK_SRV) %>% 
+  select(year, mu.N = abundance_age2plus) -> abd_est
+
+left_join(jags_dat, abd_est, by = "year") -> jags_dat
+
+# Length of unique years to run model
+model_years <- unique(jags_dat$year)
+
+# Create an empty list to store JAGS data (we want a list of lists)
+model_dat <- vector('list', length(model_years))
+
+# Reshape data into lists of each variable. Flexible by number of time strata.
+# Will look for a more efficient way to do this next year - maybe start here:
+# https://stackoverflow.com/questions/31561238/lapply-function-loops-on-list-of-lists-r
+
+for(i in 1:length(model_years)){
+  for(j in 1:length(model_years)){
+  
+  sub <- jags_dat %>% filter(year == model_years[i])
+  
+  sub_dat <-
+    list(P = STRATA_NUM + 1, # number of time Periods
+         mu = 0.1/365, # Daily natural mortality
+         mu.N = sub$mu.N, # mean of starting abundance values, from past assessments
+         M.0 = sub$M.0,
+         D.0 = sub$D.0,
+         C = select(sub, contains("C.")) %>% as.numeric() , 
+         D = select(sub, contains("D."), -D.0) %>% as.numeric(),
+         t = select(sub, contains("t.")) %>% as.numeric(),
+         n = select(sub, contains("n.")) %>% as.numeric(),
+         m = select(sub, contains("m."), -M.0) %>% as.numeric(),
+         NPUE = select(sub, contains("NPUE.")) %>% as.numeric()
+         )
+  
+  model_dat[[j]] <- sub_dat
+  rm(sub_dat)
+  
+  }
+}
+
+# Initial values ----
+
+# Create an empty list to store JAGS inital values (we want a list of lists)
+inits <- vector('list', length(model_years))
+
+for(i in 1:length(model_years)){
+  for(j in 1:length(model_years)){
+    
+    sub <- abd_est %>% filter(year == model_years[i])
+    
+    sub_dat <-
+      list(init.N = select(sub, mu.N) %>% as.numeric())
+    
+    inits[[j]] <- sub_dat
+    rm(sub_dat)
+    
+  }
+}
+
+# Single year test ----
+
+# Test 2006 data (i = 2 in previous loops)
+
+tst_dat <- model_dat[[2]]
+tst_inits <- inits[[2]]
+
+# Model 1 ----
+
+# Time-stratified mark-recapture model with natural mortality and immigration
+# includes all clipped fish recaptured in longline survey data and fishery data
+
+# mod = function() {
+
+cat("
+    model {
+
+    # Priors
+    N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
+    
+    N[1] <- N.1
+    #M <- M.0 - D.0 # number of remaining marks at beginning of longline survey (period 1)
+    M[1] <- M.0 * exp(-mu * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
+    # M.0 = Number of tags released
+    # D = Number of tags lost to fishery or longline survey
+    # mu = natural mortality (daily instantaneous mortality)
+    
+    for(i in 2:P) {
+    M[i] <- (M[i-1] - m[i-1] - D[i-1]) * exp(-mu * t[i])		# Number of marks at beginning of period i
+    N[i] <- (N[i-1] - C[i-1]) * exp(-mu * t[i])		# Total number of sablefish at beginning of period i
+    }
+
+    for(i in 1:P) {
+    p[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped 
+    m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(n, p)
+    }
+    
+    N[P+1] <- N[P] - C[P] # account for remaining catch by adding a final period
+
+    # Compute quantities of interest:
+    N.avg <- mean(N[])
+    }
+    ", file = "m1.jag")
+
+# initialize and run model
+m1 <- jags.model("m1.jag",
+                 data = tst_dat,
+                 n.chains = 2,
+                 # init = tst_inits,
+                 n.adapt = 1000)
+
+# Sample poterior distribution of 'mpar' variables
+mpar <- c("N.avg", "N", "p")
+
+res <- coda.samples(m1,
+                    var = mpar,
+                    n.iter = 10000,
+                    thin = 10)
+
+# plot(res, col = 4) 
+
+coda_df(res) %>% 
+  mutate(q025 = quantile(N.avg, 0.025),
+         q975 = quantile(N.avg, 0.975),
+         ci = ifelse(N.avg >= q025 & N.avg <=q975, 1, 0),
+         median = median(N.avg)) %>% 
+  ggplot(aes(N.avg)) + 
+  geom_histogram(fill = 4, alpha = 0.2, bins = 100, color = 'black') + 
+  geom_histogram(data = . %>% filter(ci==1), 
+                 aes(N.avg), fill = 4, alpha = 0.6, bins = 100) +
+  geom_vline(aes(xintercept = median), col = "red", linetype = 2, size = 1)
+
+head(coda_df(res))
+
+# Credibility intervals for p and
+coda_df(res) %>% 
+  gather("time_period", "p", contains("p[")) %>% 
+  group_by(time_period) %>% 
+  summarise(median = median(p),
+            q025 = quantile(p, 0.025),
+            q975 = quantile(p, 0.975))
+
+coda_df(res) %>% 
+  gather("time_period", "N", contains("N[")) %>% 
+  group_by(time_period) %>% 
+  summarise(median = median(N),
+            q025 = quantile(N, 0.025),
+            q975 = quantile(N, 0.975)) %>% 
+  arrange(time_period)
+
+# Simple Chapmanized Peterson estimator ----
 
 n1 <- 1000 # number of fish caught and marks
 n2 <- 2000 # number of fish caught
@@ -527,30 +704,6 @@ head(res)
 
 summary(res)
 
-coda_df <- function(coda.object, parameters = NULL) {
-  
-  if (!coda::is.mcmc(coda.object) && !coda::is.mcmc.list(coda.object)) 
-    stop("Not an mcmc or mcmc.list object")
-  
-  n.chain   <- coda::nchain(coda.object)
-  mat       <- as.matrix(coda.object, iter = TRUE, chain = TRUE)
-  df        <- as.data.frame(mat)
-  
-  if(n.chain == 1)
-    df <- data.frame(1, df)
-  
-  names(df) <- c("chain", "iter", coda::varnames(coda.object))
-  
-  if(is.null(parameters))
-    out.df <- df
-  
-  if(!is.null(parameters))
-    out.df <- subset(df, select = c("chain", "iter", parameters))
-  
-  out.df
-}
-
-
 coda_df(res) %>% 
   mutate(q025 = quantile(U, 0.025),
          q975 = quantile(U, 0.975),
@@ -560,87 +713,3 @@ coda_df(res) %>%
 
 
 
-
-# Time-stratified mark-recapture model with natural mortality and immigration
-# includes all clipped fish recaptured in longline survey data and fishery data
-
-# mod = function() {
-
-cat("
-  model {
-
-  # Priors
-  N.1 ~ dnorm(2400000,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
-  
-  N[1] <- N.1
-  M[1] <- M.0*exp(-mu*t[1]) - D	# number of marks at beginning of period 1 (longline survey)
-  # M.0 = Number of tags released
-  # D = Number of tags lost to fishery or longline survey
-  # mu = natural mortality (daily instantaneous mortality)
-  
-  for(i in 2:19) {
-    M[i] <- (M[i-1] - m[i-1]) * exp(-mu * t[i])		# Number of marks at beginning of period i
-    N[i] <- (N[i-1] - C[i-1]) * exp(-mu * t[i])		# Total number of sablefish at beginning of period i
-  }
-  
-  for(i in 1:19) {
-    p[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped 
-    m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(n, p)
-  }
-  
-  # Compute quantities of interest:
-  N.avg <- mean(N[])
-  }
-", file = "m1.jag")
-
-# Data to pass to JAGS
-dat <- list(mu = 2.739726E-04, 
-            D = 10, 
-            M.0 = 6075, 
-            C = c(14413, 49457, 22579, 18828, 13264, 11163, 6258, 30212, 25289, 15295, 13598, 4012, 8044, 7980, 3506, 7808, 5158, 4773), 
-            n = c(14413, 32247, 13860, 17070, 8593, 8432, 3390, 21345, 17943, 14633, 9251, 2995, 5752, 4513, 3263, 4696, 5109, 4781, 5234), 
-            t = c(57, 13, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5), 
-            m = c(27, 105, 35, 51, 18, 19, 5, 60, 46, 34, 17, 9, 12, 6, 5, 8, 6, 9, 11))
-
-ini <- list(N.1 = 2400000)
-
-m1 <- jags.model("m1.jag",
-                    data = dat,
-                    n.chains = 2,
-                    init = ini,
-                    n.adapt = 1000)
-
-mpar <- c("N.avg", "N")
-res <- coda.samples(m1,
-                    var = mpar,
-                    n.iter = 10000,
-                    thin = 10)
-plot(res, col = 4)
-
-
-coda_df(res) %>% 
-  mutate(q025 = quantile(N.avg, 0.025),
-         q975 = quantile(N.avg, 0.975),
-         ci = ifelse(N.avg >= q025 & N.avg <=q975, 1, 0),
-         median = median(N.avg)) %>% 
-  ggplot(aes(N.avg)) + 
-  geom_histogram(fill = 4, alpha = 0.2, bins = 100, color = 'black') + 
-  geom_histogram(data = . %>% filter(ci==1), 
-                 aes(N.avg), fill = 4, alpha = 0.6, bins = 100) +
-  geom_vline(aes(xintercept = median), col = "red", linetype = 2, size = 1)
-
-head(coda_df(res))
-
-coda_df(res) %>% 
-  gather("time_period", "p", contains("p[")) %>% 
-  group_by(time_period) %>% 
-  summarise(median = median(p),
-            q025 = quantile(p, 0.025),
-            q975 = quantile(p, 0.975))
-coda_df(res) %>% 
-  gather("time_period", "N", contains("N[")) %>% 
-  group_by(time_period) %>% 
-  summarise(median = median(N),
-            q025 = quantile(N, 0.025),
-            q975 = quantile(N, 0.975)) %>% 
-  arrange(time_period)

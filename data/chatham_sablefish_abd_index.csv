@@ -1,0 +1,43 @@
+year, abundance_age2plus , abc_round_lbs , biomass_round_lbs_age4plus , harvest_policy , notes , source 
+1980,"7,817,236", NA ,"55,916,405",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-06
+1981,"8,926,051", NA ,"69,331,142",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-07
+1982,"10,309,035", NA ,"78,002,447",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-08
+1983,"11,204,698", NA ,"84,174,815",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-09
+1984,"11,493,843", NA ,"88,458,270",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-10
+1985,"11,481,285", NA ,"89,226,743",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-11
+1986,"11,063,377", NA ,"86,999,104",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-12
+1987,"10,408,260", NA ,"83,950,637",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-13
+1988,"9,702,827", NA ,"78,596,964",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-14
+1989,"8,915,749", NA ,"73,311,358",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-15
+1990,"8,176,269", NA ,"68,588,908",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-16
+1991,"7,494,880", NA ,"63,486,418",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-17
+1992,"6,756,803", NA ,"57,383,600",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-18
+1993,"6,077,321", NA ,"51,794,229",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-19
+1994,"5,375,876", NA ,"45,728,367",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-20
+1995,"4,868,517", NA ,"41,529,874",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-21
+1996,"4,394,426", NA ,"36,629,711",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-22
+1997,"3,954,807", NA ,"33,050,812",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-23
+1998,"3,578,141", NA ,"28,818,586",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-24
+1999,"3,264,326", NA ,"25,863,668",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-25
+2000,"3,169,114", NA ,"24,923,374",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-26; M:/SABLEFISH/CHATHAM/Copy of Exploitation Rates sheet from Tag recovery and release
+2001,"3,136,161", NA ,"24,374,360",NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-27
+2002,"3,026,221","2,324,634","23,016,190", F_40% ,,Sullivan used abundance from Mueter ASA Chatham sable 80-06; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11 
+2003,"2,774,712","1,892,916","18,741,745", F_40% ,,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2
+ "
+2004,"2,675,118","2,429,851","19,931,902", F_40% ,,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2
+ "
+2005,"1,948,450","2,255,115","18,612,498", F_40% ,,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2
+"
+2006,"2,427,828","1,340,350","13,330,466", F_40% ,,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2 
+ "
+2007,"2,333,684","1,623,219","16,750,915", F_40% ," abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals ",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11 
+2008,"2,239,539","1,623,219","16,750,915", F_40% ,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals; no forecast conducted for 2008, Dressel assumed biomass values equal to previous year ",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11 
+2009,"2,145,395","1,290,868","13,775,900", F_45% ," abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals ",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11 
+2010,"2,051,250","1,250,961","17,133,162", F_50% ,, 2013 NSEI Memo Van Kirk 
+2011,"2,051,250","1,111,948","17,866,861", F_50% ," no markrecap survey, Dressel assumed abundance in for 2011 was equal to 2010, then apportioned using 2011 fishery age comps ", 2013 NSEI Memo Van Kirk 
+2012,"1,967,917","1,160,674","17,018,748", F_50% ,, 2013 NSEI Memo Van Kirk 
+2013,"1,905,712","1,049,391","1,049,391", F_50% ," Kirk started using survey weight-at-age to apportion biomass , selected for mgt ", 2013 NSEI Memo Van Kirk 
+2014,"1,783,315","952,538","14,933,685", F_50% ,, 2014 NSEI assessment Van Kirk 
+2015,"1,766,525","986,481","15,212,730", F_50% ,, 2015 NSEI assessment Van Kirk 
+2016,"1,445,938","807,559","12,951,596", F_50% ,, 2016 NSEI assessment Van Kirk 
+2017,"1,564,409","850,113","13,502,591", F_50% ,, 2017 NSEI assessment Van Kirk 

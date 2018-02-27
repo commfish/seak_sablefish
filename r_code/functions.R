@@ -1,13 +1,14 @@
 # my user-defined functions for the sablefish assessment
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2017-10-19
+# Last edited: 2018-02-26
 
 # includes functions for: 
 # -  estimating length- and weight- based von bertalanffy using maximum
 # likelihood estimation
 # - getting sex ratios by age or year (or both)
 # - a modification to the captioner library's captioner() fxn
+# - cleaning up coda output
 
 source("r_code/helper.R")
 
@@ -129,7 +130,7 @@ f_sex_ratio <- function(data, src, ...) {
   return(props)
 }
 
-# captions
+# captioner ----
 
 #fig_nums, tbl_nums, and appendix_nums fxns created fromm captioner() fxn in
 #'captioner' library, which I've tweaked below, changed separator from a colon
@@ -231,3 +232,30 @@ tbl <- captioner(prefix = "Table")
 appendix_tbl <- captioner(prefix = "Table") #Numbers tables in the appendix
 
 appendix_fig <- captioner(prefix = "Figure") #Numbers figures in the appendix
+
+# Coda output ----
+
+# Makes dealing with Bayesian JAGS/BUGS coda output easier to work with.
+
+coda_df <- function(coda.object, parameters = NULL) {
+  
+  if (!coda::is.mcmc(coda.object) && !coda::is.mcmc.list(coda.object)) 
+    stop("Not an mcmc or mcmc.list object")
+  
+  n.chain   <- coda::nchain(coda.object)
+  mat       <- as.matrix(coda.object, iter = TRUE, chain = TRUE)
+  df        <- as.data.frame(mat)
+  
+  if(n.chain == 1)
+    df <- data.frame(1, df)
+  
+  names(df) <- c("chain", "iter", coda::varnames(coda.object))
+  
+  if(is.null(parameters))
+    out.df <- df
+  
+  if(!is.null(parameters))
+    out.df <- subset(df, select = c("chain", "iter", parameters))
+  
+  out.df
+}
