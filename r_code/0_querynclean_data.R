@@ -640,7 +640,7 @@ tag_recoveries %>%
 # Daily accounting of observed fish and tag recoveries in the NSEI fishery.
 
 # These data is not stored in the database. It's currently in heavily formatted
-# spreadsheets with inconsistent data types in
+# spreadsheets with inconsistent data types (one column can have empty cells, Yes, yes, N/A, NA, etc.) in
 # M:/SABLEFISH/CHATHAM/<year>/<year> port daily summary.xlxs. There are
 # equivalent 2003 data but I don't know where they're stored. Asked Mike Vaughn
 # if he'd look for them on 2018-02-16.  I worked with Amy Jo Linsley in PB to
@@ -657,5 +657,5 @@ list.files(path = "data/fishery/raw_data/", pattern = "nsei_daily_tag_accounting
          year = year(date),
          julian_day = yday(date),
          total_obs = unmarked + marked,
-         whole_kg = round_lbs * 0.453592)  %>% 
+         whole_kg = round_lbs * 0.453592)  
   write_csv(paste("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))

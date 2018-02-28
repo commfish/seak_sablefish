@@ -6,11 +6,16 @@
 # ** currently missing daily tag accounting for 2003, 2017 will need to be updated when finalized by M. Vaugn.
 
 source("r_code/helper.r")
+source("r_code/functions.r")
 library(padr) # helps pad time series
 library(zoo) # interpolate values
 library(rjags) # run jags/bugs models
 library(tidyr)
-library(magrittr) # for extra piping (%$%)
+
+# load packages
+# library(R2OpenBUGS)
+# library(rjags)
+library(coda)
 
 # Variable definitions ----
 
@@ -410,7 +415,7 @@ right_join(recoveries %>%
     'D.1' = date >= llsrv_beg & date < fishery_beg | is.na(date),
     'fishery_D' = date >= fishery_beg & date <= fishery_end,
     'postfishery_D' = date > fishery_end,
-    .method="unique")) %>% 
+    .method = "unique")) %>% 
   group_by(year, D) %>% 
   summarise(n = n_distinct(tag_no)) %>% 
   ungroup() %>% 
@@ -514,8 +519,7 @@ model_dat <- vector('list', length(model_years))
 # https://stackoverflow.com/questions/31561238/lapply-function-loops-on-list-of-lists-r
 
 for(i in 1:length(model_years)){
-  for(j in 1:length(model_years)){
-  
+
   sub <- jags_dat %>% filter(year == model_years[i])
   
   sub_dat <-
@@ -532,44 +536,100 @@ for(i in 1:length(model_years)){
          NPUE = select(sub, contains("NPUE.")) %>% as.numeric()
          )
   
-  model_dat[[j]] <- sub_dat
+  model_dat[[i]] <- sub_dat
   rm(sub_dat)
   
-  }
 }
 
 # Initial values ----
 
-# Create an empty list to store JAGS inital values (we want a list of lists)
-inits <- vector('list', length(model_years))
+# Franz had initial values, but you don't need them (JAGS initialized chains
+# from a central value from the population, the mean of which is defined from
+# past assessments)
 
-for(i in 1:length(model_years)){
-  for(j in 1:length(model_years)){
-    
-    sub <- abd_est %>% filter(year == model_years[i])
-    
-    sub_dat <-
-      list(init.N = select(sub, mu.N) %>% as.numeric())
-    
-    inits[[j]] <- sub_dat
-    rm(sub_dat)
-    
-  }
+# # Create an empty list to store JAGS inital values (we want a list of lists)
+# inits <- vector('list', length(model_years))
+# 
+# for(i in 1:length(model_years)){
+#   for(j in 1:length(model_years)){
+#     
+#     sub <- abd_est %>% filter(year == model_years[i])
+#     
+#     sub_dat <-
+#       list(init.N = select(sub, mu.N) %>% as.numeric())
+#     
+#     inits[[j]] <- sub_dat
+#     rm(sub_dat)
+#     
+#   }
+# }
+
+# Prior on p ----
+
+# Visualize choice of prior for p, the probabilty of catching a marked sabelfish.
+
+# https://stats.stackexchange.com/questions/58564/help-me-understand-bayesian-prior-and-posterior-distributions/58792#58792
+
+# beta prior for plotting
+prior <- function(m, n_eq){
+  a <- n_eq * m
+  b <- n_eq * (1 - m)
+  dom <- seq(0, 1, 0.0001)
+  val <- dbeta(dom, a, b)
+  return(data.frame('x' = dom, 
+                    'y' = val,
+                    'n_eq'= rep(n_eq, length(dom))))
 }
 
-# Single year test ----
+m <- 0.0031 # The M/N in 2017
 
-# Test 2006 data (i = 2 in previous loops)
+bind_rows(prior(m, n_eq = 10000),
+          prior(m, n_eq = 5000),
+          prior(m, n_eq = 1000),
+          prior(m, n_eq = 500),
+          prior(m, n_eq = 100),
+          prior(m, n_eq = 10)) %>% 
+ggplot(aes(x, y, col = factor(n_eq))) +
+  geom_line() + 
+  geom_vline(aes(xintercept = m), lty = 2) +
+  theme_bw() + 
+  xlim(c(0, 0.010)) +
+  ylab(expression(paste('p(',theta,')', sep = ''))) + 
+  xlab(expression(theta))
 
-tst_dat <- model_dat[[2]]
-tst_inits <- inits[[2]]
+prior_mean <- function(m, n_eq){
+  a <- n_eq * m
+  b <- n_eq * (1 - m)
+  mean = a / (a + b)
+  var = (a * b) / ((a + b)^2 * (a + b + 1))
+  return(data.frame('mean' = mean, 
+                    'var' = var,
+                    'n_eq'= n_eq))
+}
+
+# All the priors have the same mean, variance increases with decreasing n_eq
+bind_rows(prior_mean(m, n_eq = 10000), 
+          prior_mean(m, n_eq = 5000),
+          prior_mean(m, n_eq = 1000),
+          prior_mean(m, n_eq = 500),
+          prior_mean(m, n_eq = 100),
+          prior_mean(m, n_eq = 10))
+
+# *FLAG* I am most comfortable with an neq > 5000, which keeps the range of p within
+# the same order of magnitude as M/N. If we decrease neq the point estimate on
+# the population decreases dramatically.
 
 # Model 1 ----
 
+# Create an empty list to store model output 
+model_output <- vector('list', 1)
+
+for(i in 1:length(model_years)){
+
+dat <- model_dat[[i]]
+
 # Time-stratified mark-recapture model with natural mortality and immigration
 # includes all clipped fish recaptured in longline survey data and fishery data
-
-# mod = function() {
 
 cat("
     model {
@@ -590,8 +650,21 @@ cat("
     }
 
     for(i in 1:P) {
-    p[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped 
-    m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(n, p)
+
+    # Use a weakly informative beta prior on p. Note that x (M/N) doesn't change
+    # much through time b/c the population numbers are large, though we want to
+    # allow p to change through time due to changes in CPUE and mean size
+
+    x[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
+    
+    # Generate a prior for p, informed by x. A large multiplier indicates our
+    # confidence in x
+
+    a[i] <- x[i] * 5000  # the alpha parameter in the beta distribution, used as a prior for p
+    b[i] <- (1 - x[i]) * 5000  # the beta paramter in the beta distribution
+    p[i] ~ dbeta(a[i],b[i]) # beta prior for p, the probability that a caught sablefish is clipped
+    
+    m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
     }
     
     N[P+1] <- N[P] - C[P] # account for remaining catch by adding a final period
@@ -599,12 +672,12 @@ cat("
     # Compute quantities of interest:
     N.avg <- mean(N[])
     }
-    ", file = "m1.jag")
+    ", file = paste0("m1_", model_years[i], ".jag"))
 
 # initialize and run model
-m1 <- jags.model("m1.jag",
-                 data = tst_dat,
-                 n.chains = 2,
+m1 <- jags.model(paste0("m1_", model_years[i], ".jag"),
+                 data = dat,
+                 n.chains = 4,
                  # init = tst_inits,
                  n.adapt = 1000)
 
@@ -614,11 +687,78 @@ mpar <- c("N.avg", "N", "p")
 res <- coda.samples(m1,
                     var = mpar,
                     n.iter = 10000,
-                    thin = 10)
-
-# plot(res, col = 4) 
+                    thin = 1)
 
 coda_df(res) %>% 
+  mutate(year = model_years[i]) -> coda_res
+
+#Append resuts 
+if(i == 1){
+  coda_res_out <- coda_res
+  rm(coda_res)
+} else {
+  coda_res_out <- rbind(coda_res_out, coda_res) }
+
+# Diagnostic trace plots - these were tested individually by year. These
+# models are well mixed and have no issues with convergence.
+
+# plot(res, col = 2)
+
+# Get DIC 
+# *FLAG* - update this section once competing models are complete.
+# https://www4.stat.ncsu.edu/~reich/st590/code/DICpois
+
+# Convergance diagnostic: gelman.diag gives you the scale reduction factors for
+# each parameter. A factor of 1 means that between variance and within chain
+# variance are equal, larger values mean that there is still a notable
+# difference between chains. General rule: everything below 1.1 or so
+# is ok.
+# https://theoreticalecology.wordpress.com/2011/12/09/mcmc-chain-analysis-and-convergence-diagnostics-with-coda-in-r/
+gelman.diag(res, multivariate = FALSE)[[1]] %>%
+  data.frame() %>% 
+  mutate(year = model_years[i]) -> convergence
+
+model_output <- list("results" = coda_res_out,
+                     "convergence_diagnostic" = convergence)
+}
+
+results <- model_output$results
+
+# Model 1 Results ----
+
+# Credibility intervals N and p, N by time period
+
+results %>% 
+  gather("time_period", "N.avg", contains("N.avg")) %>% 
+  group_by(year, time_period) %>% 
+  summarise(median = median(N.avg),
+            q025 = quantile(N.avg, 0.025),
+            q975 = quantile(N.avg, 0.975)) %>% 
+  arrange(year, time_period) %>% 
+  left_join(assessment_summary %>% 
+              select(year, prev_estimate = abundance_age2plus), 
+            by = "year")
+
+ggplot()
+results %>% 
+  gather("time_period", "p", contains("p[")) %>% 
+  group_by(year, time_period) %>% 
+  summarise(median = median(p),
+            q025 = quantile(p, 0.025),
+            q975 = quantile(p, 0.975)) p_summaries
+
+results %>% 
+  gather("time_period", "N", contains("N[")) %>% 
+  group_by(year, time_period) %>% 
+  summarise(median = median(N),
+            q025 = quantile(N, 0.025),
+            q975 = quantile(N, 0.975)) %>% 
+  arrange(year, time_period) %>% View()
+
+# Posterior distributions from the last 4 years with MR data
+results %>% 
+  filter(year > 2010) %>%
+  group_by(year) %>% 
   mutate(q025 = quantile(N.avg, 0.025),
          q975 = quantile(N.avg, 0.975),
          ci = ifelse(N.avg >= q025 & N.avg <=q975, 1, 0),
@@ -627,89 +767,9 @@ coda_df(res) %>%
   geom_histogram(fill = 4, alpha = 0.2, bins = 100, color = 'black') + 
   geom_histogram(data = . %>% filter(ci==1), 
                  aes(N.avg), fill = 4, alpha = 0.6, bins = 100) +
-  geom_vline(aes(xintercept = median), col = "red", linetype = 2, size = 1)
+  geom_vline(aes(xintercept = median), col = "red", linetype = 2, size = 1) +
+  facet_wrap(~ year)
 
 head(coda_df(res))
-
-# Credibility intervals for p and
-coda_df(res) %>% 
-  gather("time_period", "p", contains("p[")) %>% 
-  group_by(time_period) %>% 
-  summarise(median = median(p),
-            q025 = quantile(p, 0.025),
-            q975 = quantile(p, 0.975))
-
-coda_df(res) %>% 
-  gather("time_period", "N", contains("N[")) %>% 
-  group_by(time_period) %>% 
-  summarise(median = median(N),
-            q025 = quantile(N, 0.025),
-            q975 = quantile(N, 0.975)) %>% 
-  arrange(time_period)
-
-# Simple Chapmanized Peterson estimator ----
-
-n1 <- 1000 # number of fish caught and marks
-n2 <- 2000 # number of fish caught
-m2 <- 280 # number of fish with marks
-
-N <- ((n2 + 1)*(n1 + 1)/(m2 + 1))-1
-varN <- ((n1 + 1) * (n2 + 1) * (n2 - m2)) / ((m2 + 1)^2 * (m2 + 2))
-seN <- sqrt(varN)
-
-# Binomial likelihood estimation of the population abundance
-
-N <- seq(n1, 12000, 100)
-likelihood <- exp(lfactorial(n2) - lfactorial(m2) - lfactorial(n2 - m2) + m2 * log(n1 / N) + (n2 - m2) * log(1 - n1 / N))
-
-data.frame(N = N, likelihood = likelihood) %>% 
-  filter(likelihood == max(likelihood)) -> maxlike
-
-plot(N, likelihood, type = 'l',
-     xlim = c(5000, 9500))
-abline(v = maxlike$N, lty = 2)
-
-# Bayesian implementation with a prior on the U interval (unmarked fish numbers)
-
-cat("
-    model {
-      # likelihood function
-      m2 ~ dbin(theta, n1) # marked fish
-      u ~ dbin(theta, U) # unmarked fish
-      
-      # prior distribution
-      theta ~ dunif(0.0, 0.6) # capture probabilities
-      U_ ~ dunif(500, 180000) # number of unmarked fish
-      U = round(U_)
-    }
-    ", file = "m1.jag")  
-
-dat <- list(m2 = 280, n1 = 1000, u = n2 - m2)
-
-ini <- list(theta = 0.2, U_ = 10000)
-
-m1 <- jags.model("m1.jag",
-                 data = dat,
-                 n.chains = 2,
-                 init = ini,
-                 n.adapt = 1000)
-
-mpar <- c("U", "theta")
-res <- coda.samples(m1,
-                    var = mpar,
-                    n.iter = 10000,
-                    thin = 10)
-plot(res, col = 2)
-head(res)
-
-summary(res)
-
-coda_df(res) %>% 
-  mutate(q025 = quantile(U, 0.025),
-         q975 = quantile(U, 0.975),
-         ci = ifelse(U >= q025 & U<=q975, 1, 0)) %>% 
-  ggplot(aes(U)) + geom_histogram(fill = 4, alpha = 0.2, bins = 100, color = 'black') + 
-  geom_histogram(data = . %>% filter(ci==1), aes(U), fill = 4, alpha = 0.6, bins = 100)
-
 
 
