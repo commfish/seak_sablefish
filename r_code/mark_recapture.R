@@ -308,20 +308,24 @@ anti_join(recoveries %>%
   group_by(year_trip, Mgmt_area) %>% 
   summarize(tags_from_fishery = n_distinct(tag_no)) -> no_match # 7 trips from 2008, all in the NSEI
 
-# See if these landings have fish tickets. These 7 trips from 2008 are in the IFDB and look like they were missed. I'm
-# choosing to add them into the marks df, because they are from the NSEI state
-# managed fishery and appear not to have been accounted for in the countbacks
-# spreadsheets.
-fsh_tx %>% 
-  filter(year_trip %in% no_match$year_trip) %>% 
-  group_by(year, trip_no, year_trip, sell_date, julian_day) %>% 
-  summarise(whole_kg = sum(whole_kg)) %>% 
-  rename(date = sell_date) %>% 
-  left_join(no_match, by = "year_trip") %>% 
-  select(-Mgmt_area) %>% 
-  full_join(marks, by = c("year", "trip_no", "year_trip", "date", "julian_day",
-                          "whole_kg", "tags_from_fishery")) %>% 
-  arrange(date) -> marks
+# *FLAG* don't add these landings back in right now, otherwise the population
+# assessment is way off. Wait until I have a chance to work with M. Vaughn.
+# # See if these landings have fish tickets. These 7 trips from 2008 are in the IFDB and look like they were missed. I'm
+# # choosing to add them into the marks df, because they are from the NSEI state
+# # managed fishery and appear not to have been accounted for in the countbacks
+# # spreadsheets.
+# fsh_tx %>% 
+#   filter(year_trip %in% no_match$year_trip) %>% 
+#   group_by(year, trip_no, year_trip, sell_date, julian_day) %>% 
+#   summarise(whole_kg = sum(whole_kg)) %>% 
+#   rename(date = sell_date) %>% 
+#   left_join(no_match, by = "year_trip") %>% 
+#   select(-Mgmt_area) %>% 
+#   full_join(marks, by = c("year", "trip_no", "year_trip", "date", "julian_day",
+#                           "whole_kg", "tags_from_fishery")) %>% 
+#   arrange(date)  %>% 
+#   fill_by_value(unmarked, marked, bio_samples, total_obs, value = 0) %>% 
+#   fill_by_value(observed_flag, all_observed, value = "No") -> marks
 
 # Remove these matched tags from the releases df so they don't get double-counted by accident. 
 recoveries %>% 
@@ -660,8 +664,8 @@ cat("
     # Generate a prior for p, informed by x. A large multiplier indicates our
     # confidence in x
 
-    a[i] <- x[i] * 5000  # the alpha parameter in the beta distribution, used as a prior for p
-    b[i] <- (1 - x[i]) * 5000  # the beta paramter in the beta distribution
+    a[i] <- x[i] * 10000  # the alpha parameter in the beta distribution, used as a prior for p
+    b[i] <- (1 - x[i]) * 10000  # the beta paramter in the beta distribution
     p[i] ~ dbeta(a[i],b[i]) # beta prior for p, the probability that a caught sablefish is clipped
     
     m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
@@ -722,30 +726,43 @@ model_output <- list("results" = coda_res_out,
                      "convergence_diagnostic" = convergence)
 }
 
-results <- model_output$results
-
 # Model 1 Results ----
 
-# Credibility intervals N and p, N by time period
+results <- model_output$results
 
+# Credibility intervals N and p, N by time period
 results %>% 
   gather("time_period", "N.avg", contains("N.avg")) %>% 
   group_by(year, time_period) %>% 
-  summarise(median = median(N.avg),
+  summarise(`Current estimate` = median(N.avg),
             q025 = quantile(N.avg, 0.025),
             q975 = quantile(N.avg, 0.975)) %>% 
   arrange(year, time_period) %>% 
   left_join(assessment_summary %>% 
-              select(year, prev_estimate = abundance_age2plus), 
-            by = "year")
+              select(year, `Previous estimate` = abundance_age2plus), 
+            by = "year") %>% 
+  ungroup() %>% 
+  mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
+  pad(interval = "year") %>% 
+  mutate(year = year(year),
+         Year = factor(year)) %>%
+  gather("Abundance", "N", `Previous estimate`, `Current estimate`) %>% 
+  mutate(N = N / 1000000) %>% 
+  ggplot() +
+  geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), 
+             size = 3) +
+  geom_smooth(aes(x = year, y = N, col = Abundance), 
+              se = FALSE) +
+  scale_x_continuous(breaks = seq(min(model_years), max(model_years), 2), 
+                     labels = seq(min(model_years), max(model_years), 2)) +
+  ylim(c(1, 3))
 
-ggplot()
-results %>% 
+results %>%
   gather("time_period", "p", contains("p[")) %>% 
   group_by(year, time_period) %>% 
   summarise(median = median(p),
             q025 = quantile(p, 0.025),
-            q975 = quantile(p, 0.975)) p_summaries
+            q975 = quantile(p, 0.975)) 
 
 results %>% 
   gather("time_period", "N", contains("N[")) %>% 
@@ -759,7 +776,8 @@ results %>%
 results %>% 
   filter(year > 2010) %>%
   group_by(year) %>% 
-  mutate(q025 = quantile(N.avg, 0.025),
+  mutate(N.avg = N.avg / 1000000,
+         q025 = quantile(N.avg, 0.025),
          q975 = quantile(N.avg, 0.975),
          ci = ifelse(N.avg >= q025 & N.avg <=q975, 1, 0),
          median = median(N.avg)) %>% 
@@ -768,8 +786,9 @@ results %>%
   geom_histogram(data = . %>% filter(ci==1), 
                  aes(N.avg), fill = 4, alpha = 0.6, bins = 100) +
   geom_vline(aes(xintercept = median), col = "red", linetype = 2, size = 1) +
-  facet_wrap(~ year)
+  facet_wrap(~ year) +
+  labs(x = "Number of sablefish in millions",
+       y = "Posterior distribution")
 
-head(coda_df(res))
-
+# 
 

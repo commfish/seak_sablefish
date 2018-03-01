@@ -31,7 +31,7 @@ year, abundance_age2plus , abc_round_lbs , biomass_round_lbs_age4plus , harvest_
 2006,"2,427,828","1,340,350","13,330,466", F_40% ,,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2 
  "
 2007,"2,333,684","1,623,219","16,750,915", F_40% ," abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals ",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11 
-2008,"2,239,539","1,623,219","16,750,915", F_40% ,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals; no forecast conducted for 2008, Dressel assumed biomass values equal to previous year ",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11 
+2008,"1,939,648","1,623,219","16,750,915", F_40% ,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals; no forecast conducted for 2008, Dressel assumed biomass values equal to previous year ",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11 
 2009,"2,145,395","1,290,868","13,775,900", F_45% ," abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals ",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11 
 2010,"2,051,250","1,250,961","17,133,162", F_50% ,, 2013 NSEI Memo Van Kirk 
 2011,"2,051,250","1,111,948","17,866,861", F_50% ," no markrecap survey, Dressel assumed abundance in for 2011 was equal to 2010, then apportioned using 2011 fishery age comps ", 2013 NSEI Memo Van Kirk 

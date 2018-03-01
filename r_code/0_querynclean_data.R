@@ -657,5 +657,6 @@ list.files(path = "data/fishery/raw_data/", pattern = "nsei_daily_tag_accounting
          year = year(date),
          julian_day = yday(date),
          total_obs = unmarked + marked,
-         whole_kg = round_lbs * 0.453592)  
+         whole_kg = round_lbs * 0.453592)  %>% 
   write_csv(paste("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
+  

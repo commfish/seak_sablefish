@@ -19,15 +19,7 @@ read_csv(paste0("data/survey/llsrv_bio_1985_", YEAR,".csv"),
          Stat = factor(Stat),
          # Station = factor(Station),
          Sex = factor(Sex),
-         Maturity = factor(Maturity),
-         # *FLAG* there's an [unresolved and unreproducible] issue with the maturity
-         # codes in Kray's data files, so the cleaner data will need to be updated using
-         # the new codes. For old codes 1 and 2 = immature, 3 = mature. For new codes, 1
-         # = immature, 7 = mature
-         Mature = derivedFactor("0" = Maturity_cde %in% c("1", "2"),
-                                "1" = Maturity_cde,
-                                .method = "first", .default = NA,
-                                .ordered = TRUE)) %>% 
+         Mature = Maturity) %>% 
   group_by(Year, Stat) %>% 
   mutate(n = length(age),
          length_mu = mean(length, na.rm = TRUE),
@@ -47,10 +39,7 @@ read_csv(paste0("data/fishery/fishery_bio_2000_", YEAR,".csv"),
          Project_cde = factor(Project_cde),
          Adfg = factor(Adfg),
          Stat = factor(Stat),
-         Sex_cde = factor(Sex_cde),
-         Sex = factor(Sex),
-         Maturity = factor(Maturity),
-         Maturity_cde = factor(Maturity_cde)) %>% 
+         Sex = factor(Sex)) %>% 
   group_by(Year, Stat) %>% 
   mutate(n = length(age),
          length_mu = mean(length, na.rm = TRUE),
@@ -58,13 +47,44 @@ read_csv(paste0("data/fishery/fishery_bio_2000_", YEAR,".csv"),
   ungroup() -> fsh_bio
 
 # Pot survey biological data
-read_csv("data/survey/potsurvey_bio_2009_2015.csv", guess_max = 50000) %>% 
+read_csv(paste0("data/survey/potsrv_bio_1981_", YEAR, ".csv"), 
+         guess_max = 50000) %>% 
   mutate(Year = factor(year),
          Project_cde = factor(Project_cde),
          Stat = factor(Stat),
-         Sex = factor(Sex),
-         Maturity_cde = factor(Maturity_cde),
-         Discard_status_cde = factor(Discard_status_cde)) -> potsrv_bio
+         Sex = factor(Sex)) -> potsrv_bio
+
+# Empirical weight-at-age ----
+
+# Potentially switch to using empirical waa for yield-per-recruit or future ASA,
+# but for now stick with predictions from the lvb
+
+bind_rows(
+  srv_bio %>% select(year, Project_cde, Sex, age, weight),
+  fsh_bio %>% select(year, Project_cde, Sex, age, weight)) %>% 
+  filter(!is.na(weight) & !is.na(age) & !is.na(Sex)) %>% 
+  mutate(Source = derivedFactor('LL survey' = Project_cde == "603",
+                                'LL fishery' = Project_cde == "02",
+                                .method = "unique")) -> waa
+
+waa %>%
+  filter(year >= 2005 & age > 1 & age < 42) %>% 
+  group_by(year, Source, Sex, age) %>% 
+  summarise(weight = mean(weight) %>% round(1)) -> emp_waa
+
+# Expand to grid to include all age combos and fill in NAs using linear
+# interpolation
+expand.grid(year = unique(emp_waa$year), 
+            Source = unique(emp_waa$Source),
+            Sex = unique(emp_waa$Sex),
+            age = seq(2, 41, 1))  %>% 
+  data.frame()  %>% 
+  full_join(emp_waa) %>%
+  group_by(year, Source, Sex) %>% 
+  # interpolate weight column to fill in any missing mean weights
+  mutate(weight = zoo::na.approx(weight, maxgap = 20, rule = 2)) -> emp_waa
+
+write_csv(emp_waa, paste0("output/empircal_waa_2005_", YEAR, ".csv"))
 
 # Length-based Ludwig von Bertalanffy growth model -----
 
@@ -115,7 +135,7 @@ bind_rows(vb_mle_f$results, vb_mle_m$results) %>%
               group_by(Sex) %>% 
               summarise(n = n())) 
 
-ggplot(laa_sub, aes(age, length_cm)) +
+ggplot(laa_sub, aes(age, length)) +
   geom_jitter(aes(col = Sex, shape = Sex), alpha=.2) +
   geom_line(data = pred, aes(y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
   geom_line(data = pred, aes(y = pred, group = Sex), col = "black" ) + #"#00BFC4"
@@ -123,7 +143,7 @@ ggplot(laa_sub, aes(age, length_cm)) +
   ylab("Length (cm)\n") + 
   theme(legend.justification=c(1,0), legend.position=c(1,0))
 
-ggsave("figures/length_vonb_chathamllsurvey_1997_2016.png", dpi=300, height=4, width=6, units="in")
+ggsave("figures/length_vonb_chathamllsurvey_1997_2017.png", dpi=300, height=4, width=6, units="in")
 
 # residual plots
 ggplot(data = pred) + 
@@ -242,7 +262,8 @@ ggplot(allom_sub, aes(length_cm, weight_kg, col = Sex, shape = Sex)) +
   ylab("Weight (kg)\n") + 
   theme(legend.justification=c(1,0), legend.position=c(1,0))
 
-ggsave("figures/allometry_chathamllsurvey_1997_2016.png", dpi=300, height=4, width=6, units="in")
+ggsave(paste0("figures/allometry_chathamllsurvey_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=6, units="in")
   
 # Weight-based Ludwig von Bertalanffy growth model ----
 
@@ -282,6 +303,16 @@ wvb_mle_m <- vonb_weight(obs_weight = waa_m$weight,
                    b = beta_m, 
                    starting_vals = start_m,
                    sex = "Male")
+
+# Hold-over from KVK: for the plus group (42+) take the mean of all samples >=
+# 42
+srv_f_waa <- wvb_mle_f$ypr_predictions
+srv_f_waa[41, 2] <- mean(waa_f$weight[waa_f$age >= 42], na.rm = TRUE)
+srv_m_waa <- wvb_mle_m$ypr_predictions
+srv_m_waa[41, 2] <- mean(waa_m$weight[waa_m$age >= 42], na.rm = TRUE)
+
+rbind(srv_f_waa, srv_m_waa) %>% 
+  mutate(Source = "LL survey") -> srv_waa
 
 # combine predictions and parameter estimates and plot fitted values
 wvb_mle_f$predictions %>% 
@@ -323,6 +354,65 @@ pred %>%
   ggplot(aes(pred, std_resid)) + geom_point(alpha=.2) +
   geom_hline(yintercept=0, lty=4, alpha=.5) +
   facet_wrap(~Sex)
+
+# Fishery weight-at-age ----
+
+# For YPR analysis, use same methods as survey (same time period, same starting
+# values)
+
+# subsets by weight, age, sex
+fsh_bio %>% 
+  filter(Sex %in% c("Female", "Male") &
+           year >= 1997 & # use same years as survey
+           !is.na(age) &
+           !is.na(weight)) %>% 
+  droplevels() -> fsh_waa_sub
+
+fsh_waa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Female") -> fsh_waa_f
+
+fsh_waa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Male") -> fsh_waa_m
+
+
+# mle fit for females
+fsh_wvb_f <- vonb_weight(obs_weight = fsh_waa_f$weight,
+                         age = fsh_waa_f$age,
+                         b = beta_f,
+                         starting_vals = start_f,
+                         sex = "Female")
+
+# mle fit for males
+fsh_wvb_m <- vonb_weight(obs_weight = fsh_waa_m$weight,
+                         age = fsh_waa_m$age,
+                         b = beta_m, 
+                         starting_vals = start_m,
+                         sex = "Male")
+
+# Hold-over from KVK: for the plus group (42+) take the mean of all samples >=
+# 42
+fsh_f_waa <- fsh_wvb_f$ypr_predictions
+fsh_f_waa[41, 2] <- mean(fsh_waa_f$weight[fsh_waa_f$age >= 42], na.rm = TRUE)
+fsh_m_waa <- fsh_wvb_m$ypr_predictions
+fsh_m_waa[41, 2] <- mean(fsh_waa_m$weight[fsh_waa_m$age >= 42], na.rm = TRUE)
+
+rbind(fsh_f_waa, fsh_m_waa) %>% 
+  mutate(Source = "LL Fishery") %>% 
+  rbind(srv_waa) %>% 
+  mutate(weight = round(weight, 1)) %>% 
+  select(Source, Sex, age, weight) -> pred_waa 
+
+write_csv(pred_waa, paste0("output/pred_waa_1997_", YEAR, ".csv"))
+
+# Compare empirical and predicted weight-at-age
+ggplot() +
+  geom_point(data = emp_waa %>% filter(year == YEAR), 
+       aes(x = age, y = weight, col = Sex, shape = Source)) +
+  geom_line(data = pred_waa,
+            aes(x = age, y = weight, col = Sex, linetype = Source))
+
 
 # Compare growth results ----
 
@@ -431,7 +521,7 @@ ggplot() +
   facet_wrap(~ Parameter, ncol = 1)
 
 # Next convert predictions back to age via vonb
-age_pred <- seq(0, 30, by = 0.01)
+age_pred <- seq(0, 42, by = 0.01)
 vb_pars <- vb_mle_f$results
 age_pred <- data.frame(age = age_pred,
                        length = round(vb_pars$Estimate[1] * (1 - exp(- vb_pars$Estimate[2] * (age_pred - vb_pars$Estimate[3]))), 1))
@@ -497,11 +587,24 @@ maturity_at_age_plot +
 #the simpler model (fit_length)
 
 # Get predicted values for the simpler model, then merge with age predictions from the vonb          
-merge(broom::augment(x = fit_length, 
-               newdata = data.frame(length = seq(0, 120, 0.05)), 
+left_join(broom::augment(x = fit_length, 
+               newdata = data.frame(length = seq(0, 200, 0.001)), 
                type.predict = "response") %>% 
   select(length, fitted = .fitted, se =.se.fit), 
   age_pred, by = "length") -> simple_fit
+
+
+# Maturity at age for YPR
+
+simple_fit %>%  
+  filter(age %in% c(2:42)) %>%
+  right_join(data.frame(age = 2:42)) %>% 
+  # interpolate fitted probability to fill in any missing values
+  mutate(Sex = "Female",
+         Source = "LL survey",
+         probability = round(zoo::na.approx(fitted, maxgap = 20, rule = 2),2)) %>% 
+  select(age, probability) %>% 
+  write_csv("output/fem_maturityatage_llsrv.csv")
 
 # Fit age-based model to fitted values so you can derive parameter estimates
 fit_age <- glm(fitted ~ age, data = simple_fit, family = binomial)

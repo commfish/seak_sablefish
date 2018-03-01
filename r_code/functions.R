@@ -79,9 +79,17 @@ vonb_weight <- function(obs_weight, age, b, starting_vals, sex ) {
   pred <- exp(log_pred)
   resids <- obs_weight - pred # retaining residuals
   
+  # For YPR and future ASA, get predictions for ages 2:42
+  new_ages <- c(2:42)
+  log_pred <- log(w_inf_opt) + b * log(1 - exp(-k_opt * (new_ages - t0_opt))) #  predicted values
+  ypr_preds <- exp(log_pred)
+  
   results <- list(predictions = data.frame(obs_weight = obs_weight,
                                            age = age, pred = pred, 
                                            resid = resids, Sex = sex),
+                  ypr_predictions = data.frame(age = new_ages, 
+                                               weight = ypr_preds,
+                                               Sex = sex),
                   results = tidy(coef(summary(wvb_mle))) %>% 
                     select(Parameter = `.rownames`, Estimate, SE = `Std..Error`) %>% 
                     mutate(Sex = sex), 
