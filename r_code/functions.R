@@ -134,8 +134,8 @@ f_sex_ratio <- function(data, src, ...) {
     mutate(proportion = round(n / sum(n), 2) ,
            Source = src) %>%
     filter(Sex == proportion_of) -> props
-  
-  return(props)
+
+    return(props)
 }
 
 # captioner ----

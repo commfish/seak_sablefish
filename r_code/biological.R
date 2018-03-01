@@ -663,16 +663,43 @@ ggplot(simple_fit) +
 # restrict age range
 aa <- c(2:42)
 
-# see helper for f_sex_ratio() documentation
-f_sex_ratio(data = filter(srv_bio, age %in% aa), 
-              src = "LL survey", age) %>% 
-  bind_rows(f_sex_ratio(data = filter(fsh_bio, age %in% aa), 
+# see helper for f_sex_ratio() documentation - couldn't get this to run 2018-03-01.
+f_sex_ratio(data = filter(srv_bio, age %in% aa),
+              src = "LL survey", age) %>%
+  bind_rows(f_sex_ratio(data = filter(fsh_bio, age %in% aa),
               src = "LL fishery", age)) -> byage
+
+# Manual until I can get f_sex_ratio() running again:
+srv_bio %>% 
+  filter(age %in% aa) %>% 
+  ungroup() %>% 
+  select(Sex, age) %>% 
+  filter(Sex %in% c("Female", "Male")) %>% 
+  na.omit() %>% 
+  droplevels() %>% 
+  count(Sex, age) %>% 
+  group_by(age) %>% 
+  mutate(proportion = round(n / sum(n), 2),
+         Source = "LL survey") %>% 
+  filter(Sex == "Female") %>% 
+  bind_rows(fsh_bio %>% 
+              filter(age %in% aa) %>% 
+              ungroup() %>% 
+              select(Sex, age) %>% 
+              filter(Sex %in% c("Female", "Male")) %>% 
+              na.omit() %>% 
+              droplevels() %>% 
+              count(Sex, age) %>% 
+              group_by(age) %>% 
+              mutate(proportion = round(n / sum(n), 2),
+                     Source = "LL fishery") %>% 
+              filter(Sex == "Female")) -> byage
 
 # get generalized additive model fits and predictions
 # survey
 srv_fitage <- gam(I(Sex == "Female") ~ s(age), 
-                  data = filter(srv_bio, age %in% aa, Sex %in% c("Female", "Male")),
+                  data = filter(srv_bio, age %in% aa, 
+                                Sex %in% c("Female", "Male")),
                family = "quasibinomial")
 
 srv_predage <- predict(srv_fitage, newdata = data.frame(age = aa),
@@ -693,8 +720,10 @@ fsh_predage <- predict(fsh_fitage, newdata = data.frame(age = aa),
 bind_cols(
   byage,
   #do.call cbinds each vector in the predict() output list 
-  bind_rows(tbl_df(do.call(cbind, srv_predage))%>% mutate(source_check = "LL survey"),
-            tbl_df(do.call(cbind, fsh_predage))%>% mutate(source_check = "LL fishery") ) 
+  bind_rows(tbl_df(do.call(cbind, srv_predage)) %>% 
+              mutate(source_check = "LL survey"),
+            tbl_df(do.call(cbind, fsh_predage)) %>% 
+              mutate(source_check = "LL fishery") ) 
   ) -> byage
 
 # plot
@@ -706,13 +735,43 @@ ggplot(byage, aes(x = age)) +
   xlab("\nAge") +
   ylab("Proportion of females\n") 
 
-ggsave("figures/proportion_fembyage.png", dpi=300, height=4, width=6, units="in")
+ggsave("figures/proportion_fembyage.png", dpi=300, 
+       height=4, width=6, units="in")
 
 # proportion of females by year in the fishery and survey
 
 f_sex_ratio(data = filter(srv_bio), src = "LL survey", year) %>% 
   bind_rows(f_sex_ratio(data = filter(fsh_bio), 
               src = "LL fishery", year)) -> byyear
+
+# Manual until I can get f_sex_ratio() running again:
+srv_bio %>% 
+  filter(age %in% aa) %>% 
+  ungroup() %>% 
+  select(Sex, year) %>% 
+  filter(Sex %in% c("Female", "Male")) %>% 
+  na.omit() %>% 
+  droplevels() %>% 
+  count(Sex, year) %>% 
+  group_by(year) %>% 
+  mutate(proportion = round(n / sum(n), 2),
+         Source = "LL survey") %>% 
+  filter(Sex == "Female") %>% 
+  bind_rows(fsh_bio %>% 
+              filter(age %in% aa) %>% 
+              ungroup() %>% 
+              select(Sex, year) %>% 
+              filter(Sex %in% c("Female", "Male")) %>% 
+              na.omit() %>% 
+              droplevels() %>% 
+              count(Sex, year) %>% 
+              group_by(year) %>% 
+              mutate(proportion = round(n / sum(n), 2),
+                     Source = "LL fishery") %>% 
+              filter(Sex == "Female")) -> byyear
+
+# Save output for YPR analysis
+write_csv(byyear, "output/sexratio_byyear.csv")
 
 # get generalized additive model fits and predictions
 # survey
@@ -754,8 +813,8 @@ ggplot(data = byyear, aes(x = year)) +
   geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, 
                   fill = Source, col = Source),  alpha = 0.2) +
   geom_point(aes(y = proportion, col = Source)) +  
-  scale_x_continuous(breaks = seq(min(byyear$year), max(byyear$year), 2), 
-                     labels =  seq(min(byyear$year), max(byyear$year), 2)) +
+  scale_x_continuous(breaks = seq(min(byyear$year), max(byyear$year) + 1, 2), 
+                     labels =  seq(min(byyear$year), max(byyear$year) + 1, 2)) +
   xlab("") +
   ylab("Proportion of females\n") +
   theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
@@ -786,7 +845,8 @@ rbind(
   ) %>% 
   filter(Sex %in% c('Female', 'Male') & !is.na(age)) %>% 
   droplevels() %>% 
-  mutate(age = ifelse(age >= 42, 42, age)) -> all_bio  # Plus group
+  mutate(age = ifelse(age >= 42, 42, age)) %>% 
+  filter(age >= 2) -> all_bio  # Plus group
 
 # Age comps (sex-specific)
 all_bio %>% 
@@ -804,22 +864,35 @@ all_bio %>%
   group_by(Source, Sex) %>% 
   mutate(N = sum(n)) %>% 
   ungroup() %>% 
+  arrange(age, Source, Sex, year) %>% 
+  complete(Source, Sex, year, age, 
+           fill = list(n = 0, proportion = 0)) %>% 
   mutate(weight = N_year/N,
          proportion_scaled = proportion * weight,
-         Age = factor(age)) %>% # for plotting, ordered = TRUE
-  arrange(age, Source, Sex, year) -> agecomps
+         Age = factor(age)) -> agecomps # for plotting, ordered = TRUE
 
 # Sample sizes by source/year/sex
 agecomps %>% 
   group_by(Source, year, Sex) %>% 
   summarize(n = sum(n)) %>% 
-  dcast(Source + Sex ~ year, value = "n") %>% 
+  dcast(Source + Sex ~ year, value.var = "n") %>% 
   write_csv("output/n_agecomps.csv")
 
 # Age comp matrix
 agecomps %>% 
-  dcast(Source + Sex + year ~ age, value = "proportion") %>%  
+  dcast(Source + Sex + year ~ age, value.var = "proportion") %>%  
   write_csv("output/agecomps.csv")
+
+# Bargraph for presentation
+agecomps %>% 
+  filter(year == YEAR & Source == "LL fishery" &
+           Sex %in% c("Male", "Female")) %>% 
+  ggplot(aes(Age, proportion, fill = Sex)) +
+  geom_bar(stat = "identity",
+           position = "dodge")
+
+ggsave(paste0("figures/agecomp_bargraph_", YEAR, ".png"), 
+              dpi=300, height=2.5, width=7.5, units="in")
 
 # Graphics
 ggplot(data = agecomps, 
@@ -827,6 +900,7 @@ ggplot(data = agecomps,
   geom_point(size = 1, alpha = 0.1) +
   stat_smooth(size = 1, se = FALSE) +
   facet_wrap( ~ Sex) +
+  lims(y = c(0, 0.15)) +
   scale_colour_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb")) +
   xlab('\nAge') +
   ylab('Proportion\n')
@@ -839,22 +913,58 @@ ggplot(data = agecomps %>%
        aes(x = year, y = age, size = proportion)) + #*FLAG* could swap size with proportion_scaled
   geom_point(shape = 21) +
   scale_size(range = c(0, 6)) +
-  facet_grid(Source ~ Sex) +
+  facet_grid(Sex ~ Source) +
   xlab('') +
   ylab('Observed age\n') +
   guides(size = FALSE) +
   scale_x_continuous(breaks = seq(min(agecomps$year), 
-                                  max(agecomps$year), 2)) +
+                                  max(agecomps$year) + 1, 2)) +
   theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
 
 ggsave("figures/agecomp_byyear.png", dpi=300, height=7.5, width=7.5, units="in")
+
+# bubble plots filled circles
+
+ggplot(data = agecomps %>% 
+         filter(Sex %in% c("Female", "Male") &
+                  Source %in% c("LL fishery") &
+                  year >= 2002),
+       aes(x = age, y = year, size = proportion)) + #*FLAG* could swap size with proportion_scaled
+  geom_point(shape = 21, fill = "black") +
+  scale_size(range = c(0, 4)) +
+  facet_wrap(~ Sex) +
+  xlab('\nObserved age') +
+  ylab('') +
+  guides(size = FALSE) +
+  scale_y_continuous(breaks = seq(2002, 
+                                  max(agecomps$year), 1)) +
+  theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
+
+ggsave("figures/bubble_fishery_agecomp_byyear.png", dpi=300, height=5, width=7.5, units="in")
+
+ggplot(data = agecomps %>% 
+         filter(Sex %in% c("Female", "Male") &
+                  Source %in% c("LL survey") &
+                  year >= 1997),
+       aes(x = age, y = year, size = proportion)) + #*FLAG* could swap size with proportion_scaled
+  geom_point(shape = 21, fill = "black") +
+  scale_size(range = c(0, 4)) +
+  facet_wrap(~ Sex) +
+  xlab('\nObserved age') +
+  ylab('') +
+  guides(size = FALSE) +
+  scale_y_continuous(breaks = seq(1997, 
+                                  max(agecomps$year), 1)) +
+  theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
+
+ggsave("figures/bubble_survey_agecomp_byyear.png", dpi=300, height=5, width=7.5, units="in")
 
 # ggridges exploration *FLAG*
 agecomps %>% 
   filter(Sex == "Female" &
            Source == "LL fishery") %>% 
   droplevels() %>% 
-ggplot(aes(x = year, y = Age, group = Age,  height = proportion_scaled)) + #
+ggplot(aes(x = year, y = Age, group = Age,height = proportion_scaled)) + #
   # geom_ridgeline(scale = 0.5) +
   geom_density_ridges2(stat = "identity",
                        rel_min_height = 0.01,
