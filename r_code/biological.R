@@ -879,9 +879,7 @@ agecomps %>%
   write_csv("output/n_agecomps.csv")
 
 # Age comp matrix
-agecomps %>% 
-  dcast(Source + Sex + year ~ age, value.var = "proportion") %>%  
-  write_csv("output/agecomps.csv")
+agecomps %>% write_csv("output/agecomps.csv")
 
 # Bargraph for presentation
 agecomps %>% 
@@ -889,7 +887,10 @@ agecomps %>%
            Sex %in% c("Male", "Female")) %>% 
   ggplot(aes(Age, proportion, fill = Sex)) +
   geom_bar(stat = "identity",
-           position = "dodge")
+           position = "dodge") +
+  labs(x = '', y = '') +
+  theme(axis.text.x = element_text(size=8, angle=45, hjust=1),
+        legend.position = "top")
 
 ggsave(paste0("figures/agecomp_bargraph_", YEAR, ".png"), 
               dpi=300, height=2.5, width=7.5, units="in")
@@ -903,7 +904,7 @@ ggplot(data = agecomps,
   lims(y = c(0, 0.15)) +
   scale_colour_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb")) +
   xlab('\nAge') +
-  ylab('Proportion\n')
+  ylab('Proportion\n') 
 
 ggsave("figures/agecomp_bydatasource.png", dpi=300, height=3.5, width=7, units="in")
 

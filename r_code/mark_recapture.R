@@ -790,5 +790,348 @@ results %>%
   labs(x = "Number of sablefish in millions",
        y = "Posterior distribution")
 
-# 
+results %>% 
+  group_by(year) %>% 
+  summarize(N.avg = mean(N.avg) ,
+         q025 = quantile(N.avg, 0.025),
+         q975 = quantile(N.avg, 0.975))  %>% 
+  left_join(assessment_summary) -> assessment_summary
 
+# Forecast/YPR Inputs ----
+
+# All inputs from biological.r
+
+# Call selectivities for males and females - Dana @ NOAA 
+# DANGER, WILL ROBINSON! DANGER!
+# DANGER:: ADF&G ages are different than NOAA ages
+# For selectivity-at-age to be equivalent, you need to scale them!
+
+# Conversion of ADF&G to NOAA age:
+# NOAA = 0.9085+0.7105*ADF&G
+int <- 0.9085
+slp <- 0.7105
+tmp <- seq(2,42,by=1)
+age_noaa<-int + (slp * tmp)
+
+#Check
+age_noaa
+
+# NOAA fishery and survey selectivity coefficients Fishery females, males, then
+# survey females, males Manual input from Dana's NMFS spreadsheet - request from
+# him
+
+# NOTE THAT THESE ARE *AGE*, NOT *LENGTH*
+
+f50_f <-  3.86
+fslp_f <- 2.61
+f50_m <-  4.22
+fslp_m <- 2.61
+
+s50_f <- 3.75
+sslp_f <- 2.21
+s50_m <- 3.72
+sslp_m <- 2.21
+
+# Selectivity vectors 
+age <- 2:42
+
+f_sel <- 1 / (1 + exp(-fslp_f * (age_noaa - f50_f)))
+m_sel <- 1 / (1 + exp(-fslp_m * (age_noaa - f50_m)))
+sf_sel <- 1 / (1 + exp(-sslp_f * (age_noaa - s50_f)))
+sm_sel <- 1 / (1 + exp(-sslp_m * (age_noaa - s50_m)))
+
+# f_sel <- 1 / (1 + exp(-fslp_f * (age - f50_f)))
+# m_sel <- 1 / (1 + exp(-fslp_m * (age - f50_m)))
+# sf_sel <- 1 / (1 + exp(-sslp_f * (age - s50_f)))
+# sm_sel <- 1 / (1 + exp(-sslp_m * (age - s50_m)))
+
+# Input estimate of abundance from previous year last year's full recruitment
+# 'F' values, total commercial catch, and M. Clip data, not tag data. This is
+# the POOLED estimate of abundance, which is subsequently partitioned into
+# sex-specific selectivities below
+
+N_MR_sex <- assessment_summary %>% 
+  filter(year == YEAR) %>% 
+  select(N.avg) %>% 
+  as.numeric()
+
+# M assumed = 0.1
+# Selectivities from above
+# Read in female SURVEY weight-at-age in order to 
+# calculate spawning biomass and F levels
+#
+# Recall that we then use FISHERY weights-at-age
+# to calculate exploitable biomass
+
+# F implemented in previous year fishery. From assessment
+F_previous <- 0.0683 #0.0677 in 2016
+
+mort <- 0.1 # natural mortality
+
+# Weight-at-age
+read_csv(paste0("output/pred_waa_1997_", YEAR, ".csv"),
+         guess_max = 50000) %>% 
+  dcast(Source + Sex ~ age, value.var = "weight") -> waa
+
+# Female, survey
+wt_s_f <- waa %>% 
+  filter(Source == "LL survey" &
+           Sex == "Female") %>% 
+  select(matches("^[[:digit:]]+$")) %>% 
+  as.numeric()
+
+# Male, survey
+wt_s_m <- waa %>% 
+  filter(Source == "LL survey" &
+           Sex == "Male") %>% 
+  select(matches("^[[:digit:]]+$")) %>% 
+  as.numeric()
+
+#Female, fishery
+wt_f_f <- waa %>% 
+  filter(Source == "LL Fishery" &
+           Sex == "Female") %>% 
+  select(matches("^[[:digit:]]+$")) %>% 
+  as.numeric()
+
+# Male, fishery
+wt_f_m <- waa %>% 
+  filter(Source == "LL Fishery" &
+           Sex == "Male") %>% 
+  select(matches("^[[:digit:]]+$")) %>% 
+  as.numeric()
+
+# Maturity at age, female survey
+read_csv("output/fem_maturityatage_llsrv.csv",
+         guess_max = 50000) %>% 
+  dcast(. ~ age, value.var = "probability") %>% 
+  select(matches("^[[:digit:]]+$")) %>% 
+  as.numeric() -> mat_s_f
+  
+#Check to make sure all have been read in as numeric vectors
+length(wt_s_f)
+length(wt_s_m)
+length(wt_f_f)
+length(wt_f_m)
+length(mat_s_f)
+
+#Fishing mortality * selectivity. Note that we are using HALF of the previous
+#full-recruitment F value due to the estimate of abundance being the MEAN
+#abundance in the middle of the commercial fishery
+
+Fm <- F_previous/2 * m_sel
+Ff <- F_previous/2 * f_sel
+
+# Multiply N by fishery proportions to estimate *EXPLOITED* 
+# numbers-at-age and divide by age-specific selectivity
+#
+# AS PER MUETER 2010 sablefish ASA report to ADF&G,
+# the 'exploited' population refers to the population targeted
+# by both gear AND fishing fleet behavior
+# 'Exploitable' means those vulnerable solely to gear under
+# conditions of random sampling
+
+# Sex ratio in the commercial fishery in YEAR
+
+female_p <- read_csv("output/sexratio_byyear.csv", guess_max = 50000) %>% 
+  filter(Source == "LL fishery" & year == YEAR) %>% 
+  select(proportion) %>% 
+  as.numeric() 
+
+male_p <- 1 - female_p
+
+# Translate mark-recapture abundance into general exploited
+# abundance by partitioning mark-recapture abundance into
+# fishery age composition and then dividing by selectivity
+#
+# Note that male abundance at ages 2 and 3 will be MUCH higher
+# than female because male selectivity at age for those cohorts
+# is much lower than females
+
+# Fishery age comps for YEAR
+read_csv("output/agecomps.csv", guess_max = 50000) %>% 
+  filter(Source == "LL fishery" & 
+           year == YEAR &
+           Sex %in% c("Female", "Male")) %>% 
+  dcast(Sex ~ age, value.var = "proportion") -> agecomps
+
+f <- filter(agecomps, Sex == "Female") %>% select(-Sex) %>% as.numeric()
+m <- filter(agecomps, Sex == "Male") %>% select(-Sex) %>% as.numeric()
+
+AGE <- 2:42
+Nm <- 1:41
+Nf <- 1:41
+
+for(i in 1:41){
+  
+  Nm[i] <- (N_MR_sex * male_p * m[i]) / m_sel[i]
+  Nf[i] <- (N_MR_sex * female_p * f[i]) / f_sel[i]
+
+}
+
+sum(Nf+Nm) 
+
+# PROPAGATE LAST YEAR'S ESTIMATED ABUNDANCE-AT-AGE USING STANDARD 
+# AGE-STRUCTURED EQUATIONS. NOTE: AGE 2 TRANSLATES **WITH** MORTALITY 
+
+N_fp <- 1:41 # THIS IS FOR FEMALE SPAWNING BIOMASS
+N_mp <- 1:41 # THIS IS FOR MALES
+
+N_fp[1] <- Nf[1]
+N_mp[1] <- Nm[1]
+
+# Ages 3 - 41
+for(i in 2:40){
+  N_fp[i] <- Nf[i-1] * exp(-(Ff[i-1] + mort))
+  N_mp[i] <- Nm[i-1] * exp(-(Fm[i-1] + mort))
+}
+
+# Plus class
+N_mp[41] <- Nm[40] * exp(-(Fm[40] + mort)) + 
+  ((Nm[40] * exp(-(Fm[40] + mort))) * exp(-(Fm[41] + mort)))
+
+N_fp[41] <- Nf[40] * exp(-(Ff[40] + mort)) +
+  ((Nf[40] * exp(-(Ff[40] + mort))) * exp(-((Ff[41]) + mort)))
+
+
+#CHECK
+N_sex <- sum(N_fp,N_mp)
+
+N_sex
+N_MR_sex
+
+# BEGIN CALCS FOR FORECAST NUMBERS
+# KILOGRAMS TO POUNDS = 2.20462
+
+#kilograms to pounds
+ktp <- 2.20462
+
+# Spawning Biomass
+SB_age_s <- 1:41
+
+SB_age_s <- N_fp * mat_s_f * wt_s_f * ktp
+
+SBs <- sum(SB_age_s)
+
+SBs
+
+# Simulate pop to get F levels ----
+
+# YPR analysis (from yield_per_recruit.r)
+
+# M and F
+# Note that Fs = a placeholder to check the N vector
+# F is replaced during estimation
+
+F <- 0.0
+
+# Simulated population (females)
+# UNFISHED Spawning biomass (F = 0)
+
+#Abundance-at-age
+N <- 1:41
+
+N[1] <- 500
+
+for(i in 2:40){
+  
+  N[i] <- N[i-1] * exp(-((F * f_sel[i-1]) + mort))
+  
+  }
+
+N[41] <- N[40] * exp(-((F * f_sel[40]) + mort)) + ((N[40] * exp(-((F * f_sel[40]) + mort))) * exp(-((F * f_sel[41]) + mort)))
+N
+sum(N)
+
+SB_age <- 1:41
+
+SB_age <- N * mat_s_f * wt_s_f * ktp
+SB <- sum(SB_age)
+SB
+
+# Parameter estimation
+SB60 <- 0.6 * SB
+SB55 <- 0.55* SB
+SB50 <- 0.5 * SB
+SB45 <- 0.45* SB
+SB40 <- 0.4 * SB
+SB35 <- 0.35* SB
+
+# Spawning biomass function to compute values 
+SBf <- function(x,SB) {
+  
+  NS <- 500
+  
+  for(i in 1:41){
+    
+    if(i == 1)
+      N[i] <- NS
+    else
+      N[i] <- N[i-1] * exp(-((x * f_sel[i-1]) + mort))
+    }
+  
+  N[41] <- N[40] * exp(-((x * f_sel[40]) + mort)) + ((N[40] * exp(-((x * f_sel[40]) + mort))) * exp(-((x * f_sel[41]) + mort)))
+  
+  SB_ageS <- N * mat_s_f * wt_s_f * ktp
+  
+  SBS <- sum(SB_ageS)
+  
+  (SBS - SB)^2
+  
+}
+
+fit60 <- optimize(f = SBf, SB = SB60, lower = 0.01, upper = 0.2)
+fit55 <- optimize(f = SBf, SB = SB55, lower = 0.01, upper = 0.2)
+fit50 <- optimize(f = SBf, SB = SB50, lower = 0.01, upper = 0.2)
+fit45 <- optimize(f = SBf, SB = SB45, lower = 0.01, upper = 0.2)
+fit40 <- optimize(f = SBf, SB = SB40, lower = 0.01, upper = 0.2)
+fit35 <- optimize(f = SBf, SB = SB35, lower = 0.01, upper = 0.2)
+
+Fxx <- c(fit35$minimum, fit40$minimum, fit45$minimum, fit50$minimum, fit55$minimum, fit60$minimum)
+
+Fxx
+
+# FULL RECRUITMENT FISHING MORTALITY USING **SURVEY** WEIGHT-AT-AGE FOR 
+# SPAWNING BIOMASS CALCS
+
+F35 <- Fxx[[1]]
+F40 <- Fxx[[2]]
+F45 <- Fxx[[3]]
+F50 <- Fxx[[4]]
+F55 <- Fxx[[5]]
+F60 <- Fxx[[6]]
+
+# Forecast ----
+
+##QUOTAS FOR VARIOUS F LEVELS
+
+Q35s <- sum((N_fp * wt_f_f * ktp)* ((F35 * f_sel) / (((F35 * f_sel) + mort)) * (1 - exp(-((F35 * f_sel) + mort))))+
+             (N_mp * wt_f_m * ktp) * ((F35 * m_sel)/(((F35 * m_sel) + mort)) * (1 - exp(-((F35 * m_sel) + mort)))))
+
+Q40s <- sum((N_fp * wt_f_f * ktp)* ((F40 * f_sel) / (((F40 * f_sel) + mort)) * (1 - exp(-((F40 * f_sel) + mort))))+
+             (N_mp * wt_f_m * ktp) * ((F40 * m_sel)/(((F40 * m_sel) + mort)) * (1 - exp(-((F40 * m_sel) + mort)))))
+
+Q45s <- sum((N_fp * wt_f_f * ktp)* ((F45 * f_sel) / (((F45 * f_sel) + mort)) * (1 - exp(-((F45 * f_sel) + mort))))+
+             (N_mp * wt_f_m * ktp) * ((F45 * m_sel)/(((F45 * m_sel) + mort)) * (1 - exp(-((F45 * m_sel) + mort)))))
+
+Q50s <- sum((N_fp * wt_f_f * ktp)* ((F50 * f_sel) / (((F50 * f_sel) + mort)) * (1 - exp(-((F50 * f_sel) + mort))))+
+             (N_mp * wt_f_m * ktp) * ((F50 * m_sel)/(((F50 * m_sel) + mort)) * (1 - exp(-((F50 * m_sel) + mort)))))
+
+Q55s <- sum((N_fp * wt_f_f * ktp)* ((F55 * f_sel) / (((F55 * f_sel) + mort)) * (1 - exp(-((F55 * f_sel) + mort))))+
+             (N_mp * wt_f_m * ktp) * ((F55 * m_sel)/(((F55 * m_sel) + mort)) * (1 - exp(-((F55 * m_sel) + mort)))))
+
+Q60s <- sum((N_fp * wt_f_f * ktp)* ((F60 * f_sel) / (((F60 * f_sel) + mort)) * (1 - exp(-((F60 * f_sel) + mort))))+
+             (N_mp * wt_f_m * ktp) * ((F60 * m_sel)/(((F60 * m_sel) + mort)) * (1 - exp(-((F60 * m_sel) + mort)))))
+
+quota_s<-(c(Q35s,Q40s,Q45s,Q50s,Q55s,Q60s))
+
+quota_s
+
+# THIS IS TOTAL EXPLOITED BIOMASS - TOTAL ABUNDANCE PARTITIONED INTO COHORTS * 
+# FISHERY WEIGHT * SELECTIVITY (REFER: Q&D bottom page 339)
+
+exp_b <- ktp * sum((N_fp * wt_f_f * f_sel) + (N_mp * wt_f_m * m_sel))
+exp_b
+
+exp_n<-sum((N_fp*f_sel)+(N_mp*m_sel))
+exp_n
