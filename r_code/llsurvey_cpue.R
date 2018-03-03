@@ -103,7 +103,19 @@ ggplot(data = filter(srv_cpue, npue_type=="raw_cpue"),
   geom_vline(xintercept = 9.5, linetype = 2, col = "grey") +
   theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
 
+ggplot(data = filter(srv_cpue, npue_type=="std_cpue" & 
+                       year >= 1997 & year < 2018), 
+       aes(Year, annual_cpue, group=1)) +
+  geom_point() + 
+  geom_line() +
+  labs(x = "", y = "Survey CPUE (#/hook)\n") +
+  # ggtitle("Chatham Sablefish LL Survey") +
+  # theme(plot.title = element_text(hjust = .5)) +
+  # geom_vline(xintercept = 9.5, linetype = 2, col = "grey") +
+  theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
 
+ggsave(paste0("figures/llsrv_cpue_1997_", YEAR, ".png"), 
+       dpi=300, height=5, width=5, units="in")
 ###############################################################################
 # READ IN DATA
 ###############################################################################

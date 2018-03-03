@@ -133,7 +133,7 @@ bind_rows(vb_mle_f$results, vb_mle_m$results) %>%
          Function = "Length-based LVB") %>% 
   full_join(laa_sub %>% 
               group_by(Sex) %>% 
-              summarise(n = n())) 
+              summarise(n = n())) -> lvb_pars
 
 ggplot(laa_sub, aes(age, length)) +
   geom_jitter(aes(col = Sex, shape = Sex), alpha=.2) +
@@ -248,9 +248,9 @@ bind_rows(tidy(male_fit) %>% mutate(Sex = "Male"),
          Function = "Allometric") %>% 
   full_join(allom_sub %>% 
               group_by(Sex) %>% 
-              summarise(n = n())) 
+              summarise(n = n())) -> allom_pars
 
-ggplot(allom_sub, aes(length_cm, weight_kg, col = Sex, shape = Sex)) +
+ggplot(allom_sub, aes(length, weight, col = Sex, shape = Sex)) +
   geom_jitter(alpha=.2) + 
   stat_function(fun = lw_allometry, 
                 args = as.list(tidy(fem_fit)$estimate),
@@ -327,7 +327,7 @@ wvb_mle_f$results %>%
          Function = "Weight-based LVB") %>% 
   full_join(waa_sub %>% 
               group_by(Sex) %>% 
-              summarise(n = n()), by = 'Sex')
+              summarise(n = n()), by = 'Sex') -> wvb_pars
 
 ggplot() +
   geom_jitter(data = waa_sub, aes(x = age, y = weight, col = Sex, shape = Sex)) +
@@ -399,7 +399,7 @@ fsh_m_waa <- fsh_wvb_m$ypr_predictions
 fsh_m_waa[41, 2] <- mean(fsh_waa_m$weight[fsh_waa_m$age >= 42], na.rm = TRUE)
 
 rbind(fsh_f_waa, fsh_m_waa) %>% 
-  mutate(Source = "LL Fishery") %>% 
+  mutate(Source = "LL fishery") %>% 
   rbind(srv_waa) %>% 
   mutate(weight = round(weight, 1)) %>% 
   select(Source, Sex, age, weight) -> pred_waa 
@@ -413,6 +413,8 @@ ggplot() +
   geom_line(data = pred_waa,
             aes(x = age, y = weight, col = Sex, linetype = Source))
 
+ggsave(paste0("figures/compare_empirical_predicted_waa_", YEAR, ".png"), 
+              dpi=300, height=4, width=6, units="in")
 
 # Compare growth results ----
 
@@ -588,14 +590,12 @@ maturity_at_age_plot +
 
 # Get predicted values for the simpler model, then merge with age predictions from the vonb          
 left_join(broom::augment(x = fit_length, 
-               newdata = data.frame(length = seq(0, 200, 0.001)), 
+               newdata = data.frame(length = seq(0, 200, 0.01)), 
                type.predict = "response") %>% 
   select(length, fitted = .fitted, se =.se.fit), 
   age_pred, by = "length") -> simple_fit
 
-
 # Maturity at age for YPR
-
 simple_fit %>%  
   filter(age %in% c(2:42)) %>%
   right_join(data.frame(age = 2:42)) %>% 
@@ -649,12 +649,13 @@ ggplot(simple_fit) +
              aes(x = age, y = proportion),
              colour = "lightblue") +
   # a_50 and kmat labels
-  geom_text(aes(10, 0.5,label = a50_txt), face = "bold", parse = TRUE) +
-  geom_text(aes(10, 0.46,label = kmat_txt), face = "bold", parse = TRUE) +
+  geom_text(aes(10, 0.5, label = a50_txt), face = "bold", parse = TRUE) +
+  geom_text(aes(10, 0.46, label = kmat_txt), face = "bold", parse = TRUE) +
   lims(x = c(0, 25)) +
   labs(x = "Age", y = "Probability") 
 
-  # maturity_at_age_plot
+ggsave("figures/fem_maturity_at_age.png", dpi=300, 
+       height = 4, width = 5, units="in")
 
 # Sex ratios ----
 
@@ -731,12 +732,12 @@ ggplot(byage, aes(x = age)) +
   geom_line(aes(y = fit, col = Source)) +
   geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, fill = Source, col = Source),  alpha = 0.2) +
   geom_point(aes(y = proportion, col = Source)) +  
-  expand_limits(y = c(0.30, 0.8)) +
+  expand_limits(y = c(0.0, 1)) +
   xlab("\nAge") +
   ylab("Proportion of females\n") 
 
 ggsave("figures/proportion_fembyage.png", dpi=300, 
-       height=4, width=6, units="in")
+       height=4, width=5, units="in")
 
 # proportion of females by year in the fishery and survey
 
@@ -813,13 +814,14 @@ ggplot(data = byyear, aes(x = year)) +
   geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, 
                   fill = Source, col = Source),  alpha = 0.2) +
   geom_point(aes(y = proportion, col = Source)) +  
+  expand_limits(y = c(0.0, 1)) +
   scale_x_continuous(breaks = seq(min(byyear$year), max(byyear$year) + 1, 2), 
                      labels =  seq(min(byyear$year), max(byyear$year) + 1, 2)) +
   xlab("") +
   ylab("Proportion of females\n") +
   theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
 
-ggsave("figures/proportion_fembyyear.png", dpi=300, height=4, width=6, units="in")
+ggsave("figures/proportion_fembyyear.png", dpi=300, height=4, width=5, units="in")
 
 ## proportion of females by year and age in survey and fishery
 
@@ -827,7 +829,6 @@ f_sex_ratio(data = filter(srv_bio, age %in% aa),
               src = "LL survey", year, age) %>% 
   bind_rows(f_sex_ratio(data = filter(fsh_bio, age %in% aa), 
               src = "LL fishery", year, age)) -> byyrage
-
 
 
 # Age compositions ----
@@ -908,28 +909,13 @@ ggplot(data = agecomps,
 
 ggsave("figures/agecomp_bydatasource.png", dpi=300, height=3.5, width=7, units="in")
 
-ggplot(data = agecomps %>% 
-         filter(Sex %in% c("Female", "Male") &
-                Source %in% c("LL fishery", "LL survey")),
-       aes(x = year, y = age, size = proportion)) + #*FLAG* could swap size with proportion_scaled
-  geom_point(shape = 21) +
-  scale_size(range = c(0, 6)) +
-  facet_grid(Sex ~ Source) +
-  xlab('') +
-  ylab('Observed age\n') +
-  guides(size = FALSE) +
-  scale_x_continuous(breaks = seq(min(agecomps$year), 
-                                  max(agecomps$year) + 1, 2)) +
-  theme(axis.text.x = element_text(size=10, angle=45, hjust=1))
-
-ggsave("figures/agecomp_byyear.png", dpi=300, height=7.5, width=7.5, units="in")
-
 # bubble plots filled circles
 
 ggplot(data = agecomps %>% 
          filter(Sex %in% c("Female", "Male") &
                   Source %in% c("LL fishery") &
-                  year >= 2002),
+                  year >= 2002&
+                  age <= 30),
        aes(x = age, y = year, size = proportion)) + #*FLAG* could swap size with proportion_scaled
   geom_point(shape = 21, fill = "black") +
   scale_size(range = c(0, 4)) +
@@ -946,7 +932,8 @@ ggsave("figures/bubble_fishery_agecomp_byyear.png", dpi=300, height=5, width=7.5
 ggplot(data = agecomps %>% 
          filter(Sex %in% c("Female", "Male") &
                   Source %in% c("LL survey") &
-                  year >= 1997),
+                  year >= 1997 &
+                  age <= 30),
        aes(x = age, y = year, size = proportion)) + #*FLAG* could swap size with proportion_scaled
   geom_point(shape = 21, fill = "black") +
   scale_size(range = c(0, 4)) +

@@ -1,55 +1,55 @@
-Survey,Years,Region,Function,Sex,Parameter,Estimate,SE,n,Source
-NOAA Longline,1981-1993,Coastwide,Length-based LVB,Male,l_inf,65.269,0.341,30,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1981-1993,Coastwide,Length-based LVB,Male,k,0.227,0.029,30,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1981-1993,Coastwide,Length-based LVB,Male,t0,-4.092,0.936,30,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Length-based LVB,Male,l_inf,67.774,0.127,4889,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Length-based LVB,Male,k,0.29,0.009,4889,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Length-based LVB,Male,t0,-2.273,0.171,4889,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1981-1993,Coastwide,Length-based LVB,Female,l_inf,75.568,0.46,31,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1981-1993,Coastwide,Length-based LVB,Female,k,0.208,0.018,31,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1981-1993,Coastwide,Length-based LVB,Female,t0,-3.629,0.523,31,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Length-based LVB,Female,l_inf,80.22,0.221,5767,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Length-based LVB,Female,k,0.222,0.005,5767,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Length-based LVB,Female,t0,-1.949,0.119,5767,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,Male,l_inf,70.818,NA,NA,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,Male,k,0.097,NA,NA,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,Male,t0,11.369,NA,NA,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,Male,l_inf,68.343,NA,605,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,Male,k,0.307,NA,605,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,Male,t0,-1.714,NA,605,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,Female,l_inf,78.854,NA,NA,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,Female,k,0.153,NA,NA,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,Female,t0,-5.348,NA,NA,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,Female,l_inf,80.919,NA,515,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,Female,k,0.268,NA,515,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,Female,t0,-0.854,NA,515,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Allometric,Male,a,1.24e-5,NA,4889,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Allometric,Male,b,2.96,NA,4889,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Allometric,Female,a,1.01e-5,NA,5767,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Allometric,Female,b,3.015,NA,5767,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Weight-based LVB,Male,w_inf,3.162,NA,4889,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Weight-based LVB,Male,k,0.356,NA,4889,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Weight-based LVB,Male,t0,-1.129,NA,4889,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Weight-based LVB,Female,w_inf,5.471,NA,5767,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Weight-based LVB,Female,k,0.238,NA,5767,Hanselman et al. 2007 Appendix 3C
-NOAA Longline,1996-2004,Coastwide,Weight-based LVB,Female,t0,-1.387,NA,5767,Hanselman et al. 2007 Appendix 3C
-ADF&G Longline,1997-2016,Chatham Strait,Allometric,Male,a,1.1445464717902553e-5,6.806049127582635e-7,5838,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Allometric,Male,b,2.987408300936918,0.014175389505415744,5838,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Allometric,Female,a,8.340779138151469e-6,3.127096156380192e-7,6627,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Allometric,Female,b,3.061613578347977,0.008615246828507598,6627,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Length-based LVB,Female,l_inf,85.42645197651245,0.45173043757149944,6435,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Length-based LVB,Female,k,0.08253338779901308,0.002965639956825742,6435,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Length-based LVB,Female,t0,-9.635519103638398,0.4404331930560308,6435,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Length-based LVB,Female,sigma,6.384415818327359,0.05627710037342956,6435,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Length-based LVB,Male,l_inf,69.1671965268323,0.16903158777413485,5670,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Length-based LVB,Male,k,0.12093114072629539,0.004498662905205105,5670,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Length-based LVB,Male,t0,-9.136467921891061,0.4965464890457237,5670,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Length-based LVB,Male,sigma,4.222301770968375,0.039650820797564136,5670,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Weight-based LVB,Female,w_inf,6.444,0.104,6368,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Weight-based LVB,Female,k,0.095,0.003,6368,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Weight-based LVB,Female,t0,-7.813,0.351,6368,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Weight-based LVB,Female,sigma,0.293,0.003,6368,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Weight-based LVB,Male,w_inf,3.511,0.026,5626,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Weight-based LVB,Male,k,0.143,0.005,5626,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Weight-based LVB,Male,t0,-6.665,0.369,5626,seak_sablefish/code/biological.r
-ADF&G Longline,1997-2016,Chatham Strait,Weight-based LVB,Male,sigma,0.224,0.002,5626,seak_sablefish/code/biological.r
+Parameter,Estimate,SE,Sex,Survey,Years,Region,Function,n,Source
+a,1.1224477923317098e-5,6.464727612867678e-7,Male,ADF&G Longline,1997-2017,Chatham Strait,Allometric,6100,seak_sablefish/code/biological.r
+b,2.9920772629845227,0.013732684500130004,Male,ADF&G Longline,1997-2017,Chatham Strait,Allometric,6100,seak_sablefish/code/biological.r
+a,8.319839652863864e-6,3.0138440223010767e-7,Female,ADF&G Longline,1997-2017,Chatham Strait,Allometric,6978,seak_sablefish/code/biological.r
+b,3.0621487440245896,0.008324607753738878,Female,ADF&G Longline,1997-2017,Chatham Strait,Allometric,6978,seak_sablefish/code/biological.r
+l_inf,85.16363487414903,0.4199689917481328,Female,ADF&G Longline,1997-2017,Chatham Strait,Length-based LVB,6785,seak_sablefish/code/biological.r
+k,0.08579357038161843,0.002865846385375661,Female,ADF&G Longline,1997-2017,Chatham Strait,Length-based LVB,6785,seak_sablefish/code/biological.r
+t0,-9.076175426534359,0.3918977861790086,Female,ADF&G Longline,1997-2017,Chatham Strait,Length-based LVB,6785,seak_sablefish/code/biological.r
+sigma,6.368831914073139,0.054676040612862374,Female,ADF&G Longline,1997-2017,Chatham Strait,Length-based LVB,6785,seak_sablefish/code/biological.r
+l_inf,69.09041386821384,0.16283906734403064,Male,ADF&G Longline,1997-2017,Chatham Strait,Length-based LVB,5928,seak_sablefish/code/biological.r
+k,0.12374657728091257,0.004396490033540453,Male,ADF&G Longline,1997-2017,Chatham Strait,Length-based LVB,5928,seak_sablefish/code/biological.r
+t0,-8.821673743173145,0.45978573345094953,Male,ADF&G Longline,1997-2017,Chatham Strait,Length-based LVB,5928,seak_sablefish/code/biological.r
+sigma,4.196912675049086,0.038543213127004844,Male,ADF&G Longline,1997-2017,Chatham Strait,Length-based LVB,5928,seak_sablefish/code/biological.r
+w_inf,6.395917202881272,0.09872149074798281,Female,ADF&G Longline,1997-2017,Chatham Strait,Weight-based LVB,6718,seak_sablefish/code/biological.r
+k,0.09815459314095293,0.0031785681407288,Female,ADF&G Longline,1997-2017,Chatham Strait,Weight-based LVB,6718,seak_sablefish/code/biological.r
+t0,-7.383418073486754,0.319627304888598,Female,ADF&G Longline,1997-2017,Chatham Strait,Weight-based LVB,6718,seak_sablefish/code/biological.r
+sigma,0.2933581306751847,0.002530721354515897,Female,ADF&G Longline,1997-2017,Chatham Strait,Weight-based LVB,6718,seak_sablefish/code/biological.r
+w_inf,3.5003582716588273,0.02521913027356606,Male,ADF&G Longline,1997-2017,Chatham Strait,Weight-based LVB,5884,seak_sablefish/code/biological.r
+k,0.14612600687550303,0.004804289523992219,Male,ADF&G Longline,1997-2017,Chatham Strait,Weight-based LVB,5884,seak_sablefish/code/biological.r
+t0,-6.454082047114753,0.3420828308513967,Male,ADF&G Longline,1997-2017,Chatham Strait,Weight-based LVB,5884,seak_sablefish/code/biological.r
+sigma,0.22337363463682844,0.002058980774929421,Male,ADF&G Longline,1997-2017,Chatham Strait,Weight-based LVB,5884,seak_sablefish/code/biological.r
+l_inf,65.269,0.341,Male,NOAA Longline,1981-1993,Coastwide,Length-based LVB,30,Hanselman et al. 2007 Appendix 3C
+k,0.227,0.029,Male,NOAA Longline,1981-1993,Coastwide,Length-based LVB,30,Hanselman et al. 2007 Appendix 3C
+t0,-4.092,0.936,Male,NOAA Longline,1981-1993,Coastwide,Length-based LVB,30,Hanselman et al. 2007 Appendix 3C
+l_inf,67.774,0.127,Male,NOAA Longline,1996-2004,Coastwide,Length-based LVB,4889,Hanselman et al. 2007 Appendix 3C
+k,0.29,0.009,Male,NOAA Longline,1996-2004,Coastwide,Length-based LVB,4889,Hanselman et al. 2007 Appendix 3C
+t0,-2.273,0.171,Male,NOAA Longline,1996-2004,Coastwide,Length-based LVB,4889,Hanselman et al. 2007 Appendix 3C
+l_inf,75.568,0.46,Female,NOAA Longline,1981-1993,Coastwide,Length-based LVB,31,Hanselman et al. 2007 Appendix 3C
+k,0.208,0.018,Female,NOAA Longline,1981-1993,Coastwide,Length-based LVB,31,Hanselman et al. 2007 Appendix 3C
+t0,-3.629,0.523,Female,NOAA Longline,1981-1993,Coastwide,Length-based LVB,31,Hanselman et al. 2007 Appendix 3C
+l_inf,80.22,0.221,Female,NOAA Longline,1996-2004,Coastwide,Length-based LVB,5767,Hanselman et al. 2007 Appendix 3C
+k,0.222,0.005,Female,NOAA Longline,1996-2004,Coastwide,Length-based LVB,5767,Hanselman et al. 2007 Appendix 3C
+t0,-1.949,0.119,Female,NOAA Longline,1996-2004,Coastwide,Length-based LVB,5767,Hanselman et al. 2007 Appendix 3C
+l_inf,70.818,NA,Male,NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,NA,Hanselman et al. 2007 Appendix 3C
+k,0.097,NA,Male,NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,NA,Hanselman et al. 2007 Appendix 3C
+t0,11.369,NA,Male,NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,NA,Hanselman et al. 2007 Appendix 3C
+l_inf,68.343,NA,Male,NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,605,Hanselman et al. 2007 Appendix 3C
+k,0.307,NA,Male,NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,605,Hanselman et al. 2007 Appendix 3C
+t0,-1.714,NA,Male,NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,605,Hanselman et al. 2007 Appendix 3C
+l_inf,78.854,NA,Female,NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,NA,Hanselman et al. 2007 Appendix 3C
+k,0.153,NA,Female,NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,NA,Hanselman et al. 2007 Appendix 3C
+t0,-5.348,NA,Female,NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,NA,Hanselman et al. 2007 Appendix 3C
+l_inf,80.919,NA,Female,NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,515,Hanselman et al. 2007 Appendix 3C
+k,0.268,NA,Female,NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,515,Hanselman et al. 2007 Appendix 3C
+t0,-0.854,NA,Female,NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,515,Hanselman et al. 2007 Appendix 3C
+a,1.24e-5,NA,Male,NOAA Longline,1996-2004,Coastwide,Allometric,4889,Hanselman et al. 2007 Appendix 3C
+b,2.96,NA,Male,NOAA Longline,1996-2004,Coastwide,Allometric,4889,Hanselman et al. 2007 Appendix 3C
+a,1.01e-5,NA,Female,NOAA Longline,1996-2004,Coastwide,Allometric,5767,Hanselman et al. 2007 Appendix 3C
+b,3.015,NA,Female,NOAA Longline,1996-2004,Coastwide,Allometric,5767,Hanselman et al. 2007 Appendix 3C
+w_inf,3.162,NA,Male,NOAA Longline,1996-2004,Coastwide,Weight-based LVB,4889,Hanselman et al. 2007 Appendix 3C
+k,0.356,NA,Male,NOAA Longline,1996-2004,Coastwide,Weight-based LVB,4889,Hanselman et al. 2007 Appendix 3C
+t0,-1.129,NA,Male,NOAA Longline,1996-2004,Coastwide,Weight-based LVB,4889,Hanselman et al. 2007 Appendix 3C
+w_inf,5.471,NA,Female,NOAA Longline,1996-2004,Coastwide,Weight-based LVB,5767,Hanselman et al. 2007 Appendix 3C
+k,0.238,NA,Female,NOAA Longline,1996-2004,Coastwide,Weight-based LVB,5767,Hanselman et al. 2007 Appendix 3C
+t0,-1.387,NA,Female,NOAA Longline,1996-2004,Coastwide,Weight-based LVB,5767,Hanselman et al. 2007 Appendix 3C

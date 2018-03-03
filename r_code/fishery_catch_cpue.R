@@ -52,11 +52,11 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
     # Total unique trips per year
     total_trips = n_distinct(trip_no),
     # Arithetic annual means, aka nominal cpue
-    arithm_nonstdcpue = mean(nonstd_cpue),
-    arithm_stdcpue = mean(std_cpue),
+    arithm_nonstdcpue = mean(nonstd_cpue, na.rm = TRUE),
+    arithm_stdcpue = mean(std_cpue, na.rm = TRUE),
     # Harmonic annual means (dampens outliers, might be most appropropriate)
-    harm_nonstdcpue = 1 / mean(1 / nonstd_cpue),
-    harm_stdcpue = 1 / mean(1 / std_cpue) ) %>% 
+    harm_nonstdcpue = 1 / mean(1 / nonstd_cpue, na.rm = TRUE),
+    harm_stdcpue = 1 / mean(1 / std_cpue, na.rm = TRUE) ) %>% 
   ungroup() -> cpue
 
 #Vessel of interest if looking at cpue by vessel for a private request
@@ -108,9 +108,11 @@ ggplot(sum_catch %>%
        aes(x = factor(year), y = total_pounds/1000000)) +
   geom_line(group=1) +
   geom_point() +
-  labs(x = "", y = "Millions lbs") +
+  labs(x = "", y = "Millions lbs\n") +
   ylim(0, 6)
 
+ggsave(paste0("figures/fishery_harvest_1985_", YEAR, ".png"), 
+       dpi=300, height=5, width=8, units="in")
 # figures ----
 
 # for most figs, the `data` could be inter-changed for vessel_cpue or cpue depending on your interest.
@@ -563,7 +565,7 @@ library(boot)
 # i.e. it runs bf with 1000 different sets of resampled residuals from 'resid(fit)':) 
 cpue_boot <- boot(resid(bam1), bf, R = 20000) # should be > length of data set 
 save(cpue_boot, file="output/fishery_cpue_bootstrap.rda", compress='xz')
-
+load("output/fishery_cpue_bootstrap.rda")
 
 boot.ci(cpue_boot, index = 2)
 
@@ -602,25 +604,44 @@ pdat <- bind_cols(
     t() %>% 
     data.frame()) %>% 
   gather("replicate", "value", contains("X"))
-  
+
+
 #Pick a depth for plotting
-dat <- pdat %>% filter(depth == 550)
+dat <- pdat %>% filter(depth == 550 )
 
 # The errorbars overlapped, so use position_dodge to move them horizontally
 pd <- position_dodge(0.1) # move them .05 to the left and right
-
-ggplot(data = dat %>%   
+dat <- dat %>%   
          # randomly select 20% of the bootstrap replicates for plotting
-         sample_frac(0.1, replace = FALSE) ) +
-  geom_point(aes(Year, fit)) + 
-  geom_line(aes(Year, fit, group = 1)) +
-  geom_errorbar(aes(x = Year, ymin = fit - 2*se,
+         # sample_frac(0.05, replace = FALSE) 
+       filter(replicate == "X1")
+
+ggplot() +
+  geom_point(data = dat, aes(Year, fit)) + 
+  geom_line(data = dat, aes(Year, fit, group = 1)) +
+  geom_errorbar(data = dat, aes(x = Year, ymin = fit - 2*se,
                     ymax = fit + 2*se, group = 1),
                 width = .3, position = pd) +
-  geom_line(aes(Year, t0, group = 1), col = "red") +
-  geom_line(aes(Year, value, group = replicate), alpha = 0.2, col = "grey")
+  # geom_line(data = gam_cpue, aes(x = Year, y = arithm_stdcpue, group = 1), col = "red") +
+  # geom_point(data = gam_cpue, aes(x = Year, y = arithm_stdcpue), col = "red") +
+  # labs(x = "", y = "CPUE Index") +
+  labs(x = "", y = "Fishery CPUE  (ln(catch in kg + 1) / 1000 hooks)\n")
+  # geom_line(aes(Year, t0, group = 1), col = "red") +
+  # geom_line(aes(Year, value, group = replicate), alpha = 0.2, col = "grey")
+
+ggsave(paste0("figures/fishery_gam_cpue_1997_", YEAR, ".png"), 
+       dpi=300, height=5, width=8, units="in")
 
 ##
+df <- cpue %>% 
+  select(Year, contains("arith"), contains("harm")) %>% 
+  gather(CPUE, Index, -Year) %>% 
+  distinct() 
+
+ggplot() +
+  geom_line(data = cpue, aes(x = Year, y = arithm_stdcpue, group = 1)) +
+  geom_point(data = cpue, aes(x = Year, y = arithm_stdcpue)) +
+  labs(x = "", y = "CPUE Index")
 
 
 

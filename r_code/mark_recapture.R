@@ -11,7 +11,7 @@ library(padr) # helps pad time series
 library(zoo) # interpolate values
 library(rjags) # run jags/bugs models
 library(tidyr)
-
+library(knitr)
 # load packages
 # library(R2OpenBUGS)
 # library(rjags)
@@ -429,33 +429,33 @@ right_join(recoveries %>%
 # Trends ----
 
 # Cumulation curves of marks collected and catch over the season
-
-ggplot(daily_marks, aes(x = julian_day)) +
-  geom_line(aes(y = cum_marks)) +
-  facet_wrap(~ year, scales = "free") +
-  labs(x = "Julian Day", y = "Cumulative Marks Collected")
-
-ggplot(daily_marks, aes(x = julian_day)) +
-  geom_line(aes(y = cum_whole_kg)) +
-  facet_wrap(~ year, scales = "free") +
-  labs(x = "Julian Day", y = "Cumulative Catch (kg)")
-
-# Trends in mean weight and NPUE over the season - trends provide
-# justification to doing a time-stratified estimator
-
-ggplot(daily_marks,
-       aes(x = julian_day, y = mean_weight)) +
-  geom_point() +
-  geom_smooth(method = 'lm') +
-  facet_wrap(~ year) +
-  labs(x = "Julian Day", y = "Mean Individual Weight (kg)")
-
-ggplot(daily_marks,
-       aes(x = julian_day, y = mean_npue)) +
-  geom_point() +
-  geom_smooth(method = 'lm') +
-  facet_wrap(~ year, scales = "free") +
-  labs(x = "Julian Day", y = "Number sablefish per 1000 hooks")
+# 
+# ggplot(daily_marks, aes(x = julian_day)) +
+#   geom_line(aes(y = cum_marks)) +
+#   facet_wrap(~ year, scales = "free") +
+#   labs(x = "Julian Day", y = "Cumulative Marks Collected")
+# 
+# ggplot(daily_marks, aes(x = julian_day)) +
+#   geom_line(aes(y = cum_whole_kg)) +
+#   facet_wrap(~ year, scales = "free") +
+#   labs(x = "Julian Day", y = "Cumulative Catch (kg)")
+# 
+# # Trends in mean weight and NPUE over the season - trends provide
+# # justification to doing a time-stratified estimator
+# 
+# ggplot(daily_marks,
+#        aes(x = julian_day, y = mean_weight)) +
+#   geom_point() +
+#   geom_smooth(method = 'lm') +
+#   facet_wrap(~ year) +
+#   labs(x = "Julian Day", y = "Mean Individual Weight (kg)")
+# 
+# ggplot(daily_marks,
+#        aes(x = julian_day, y = mean_npue)) +
+#   geom_point() +
+#   geom_smooth(method = 'lm') +
+#   facet_wrap(~ year, scales = "free") +
+#   labs(x = "Julian Day", y = "Number sablefish per 1000 hooks")
 
 # Stratify by time ----
 
@@ -580,44 +580,44 @@ prior <- function(m, n_eq){
   b <- n_eq * (1 - m)
   dom <- seq(0, 1, 0.0001)
   val <- dbeta(dom, a, b)
-  return(data.frame('x' = dom, 
+  return(data.frame('x' = dom,
                     'y' = val,
                     'n_eq'= rep(n_eq, length(dom))))
 }
-
+#
 m <- 0.0031 # The M/N in 2017
-
+#
 bind_rows(prior(m, n_eq = 10000),
           prior(m, n_eq = 5000),
           prior(m, n_eq = 1000),
           prior(m, n_eq = 500),
           prior(m, n_eq = 100),
-          prior(m, n_eq = 10)) %>% 
+          prior(m, n_eq = 10)) %>%
 ggplot(aes(x, y, col = factor(n_eq))) +
-  geom_line() + 
+  geom_line(size = 1) +
   geom_vline(aes(xintercept = m), lty = 2) +
-  theme_bw() + 
+  theme_bw() +
   xlim(c(0, 0.010)) +
-  ylab(expression(paste('p(',theta,')', sep = ''))) + 
+  ylab(expression(paste('p(',theta,')', sep = ''))) +
   xlab(expression(theta))
 
-prior_mean <- function(m, n_eq){
-  a <- n_eq * m
-  b <- n_eq * (1 - m)
-  mean = a / (a + b)
-  var = (a * b) / ((a + b)^2 * (a + b + 1))
-  return(data.frame('mean' = mean, 
-                    'var' = var,
-                    'n_eq'= n_eq))
-}
-
-# All the priors have the same mean, variance increases with decreasing n_eq
-bind_rows(prior_mean(m, n_eq = 10000), 
-          prior_mean(m, n_eq = 5000),
-          prior_mean(m, n_eq = 1000),
-          prior_mean(m, n_eq = 500),
-          prior_mean(m, n_eq = 100),
-          prior_mean(m, n_eq = 10))
+# prior_mean <- function(m, n_eq){
+#   a <- n_eq * m
+#   b <- n_eq * (1 - m)
+#   mean = a / (a + b)
+#   var = (a * b) / ((a + b)^2 * (a + b + 1))
+#   return(data.frame('mean' = mean,
+#                     'var' = var,
+#                     'n_eq'= n_eq))
+# }
+#
+# # All the priors have the same mean, variance increases with decreasing n_eq
+# bind_rows(prior_mean(m, n_eq = 10000),
+#           prior_mean(m, n_eq = 5000),
+#           prior_mean(m, n_eq = 1000),
+#           prior_mean(m, n_eq = 500),
+#           prior_mean(m, n_eq = 100),
+#           prior_mean(m, n_eq = 10)) %>% kable()
 
 # *FLAG* I am most comfortable with an neq > 5000, which keeps the range of p within
 # the same order of magnitude as M/N. If we decrease neq the point estimate on
@@ -635,6 +635,8 @@ dat <- model_dat[[i]]
 # Time-stratified mark-recapture model with natural mortality and immigration
 # includes all clipped fish recaptured in longline survey data and fishery data
 
+# Informed prior option = 10000
+# Uninformed prior = 100
 cat("
     model {
 
@@ -757,20 +759,20 @@ results %>%
                      labels = seq(min(model_years), max(model_years), 2)) +
   ylim(c(1, 3))
 
-results %>%
-  gather("time_period", "p", contains("p[")) %>% 
-  group_by(year, time_period) %>% 
-  summarise(median = median(p),
-            q025 = quantile(p, 0.025),
-            q975 = quantile(p, 0.975)) 
+# results %>%
+#   gather("time_period", "p", contains("p[")) %>% 
+#   group_by(year, time_period) %>% 
+#   summarise(median = median(p),
+#             q025 = quantile(p, 0.025),
+#             q975 = quantile(p, 0.975)) 
 
-results %>% 
-  gather("time_period", "N", contains("N[")) %>% 
-  group_by(year, time_period) %>% 
-  summarise(median = median(N),
-            q025 = quantile(N, 0.025),
-            q975 = quantile(N, 0.975)) %>% 
-  arrange(year, time_period) %>% View()
+# results %>%
+#   gather("time_period", "N", contains("N[")) %>%
+#   group_by(year, time_period) %>%
+#   summarise(median = median(N),
+#             q025 = quantile(N, 0.025),
+#             q975 = quantile(N, 0.975)) %>%
+#   arrange(year, time_period) %>% View()
 
 # Posterior distributions from the last 4 years with MR data
 results %>% 
@@ -797,6 +799,18 @@ results %>%
          q975 = quantile(N.avg, 0.975))  %>% 
   left_join(assessment_summary) -> assessment_summary
 
+results %>% 
+  group_by(year) %>% 
+  summarize(N = mean(N.avg) ,
+            q025 = quantile(N.avg, 0.025),
+            q975 = quantile(N.avg, 0.975)) -> ci
+
+ci[c(2:4)] <- lapply(ci[,c(2:4)], prettyNum, trim=TRUE, big.mark=",")
+
+ci %>% filter(year == 2017) %>% 
+  select(`Estimate N` = N, `Lower CI` = q025, 
+         `Upper CI` = q975) %>% 
+  kable()
 # Forecast/YPR Inputs ----
 
 # All inputs from biological.r
@@ -835,15 +849,15 @@ sslp_m <- 2.21
 # Selectivity vectors 
 age <- 2:42
 
-f_sel <- 1 / (1 + exp(-fslp_f * (age_noaa - f50_f)))
-m_sel <- 1 / (1 + exp(-fslp_m * (age_noaa - f50_m)))
-sf_sel <- 1 / (1 + exp(-sslp_f * (age_noaa - s50_f)))
-sm_sel <- 1 / (1 + exp(-sslp_m * (age_noaa - s50_m)))
+# f_sel <- 1 / (1 + exp(-fslp_f * (age_noaa - f50_f)))
+# m_sel <- 1 / (1 + exp(-fslp_m * (age_noaa - f50_m)))
+# sf_sel <- 1 / (1 + exp(-sslp_f * (age_noaa - s50_f)))
+# sm_sel <- 1 / (1 + exp(-sslp_m * (age_noaa - s50_m)))
 
-# f_sel <- 1 / (1 + exp(-fslp_f * (age - f50_f)))
-# m_sel <- 1 / (1 + exp(-fslp_m * (age - f50_m)))
-# sf_sel <- 1 / (1 + exp(-sslp_f * (age - s50_f)))
-# sm_sel <- 1 / (1 + exp(-sslp_m * (age - s50_m)))
+f_sel <- 1 / (1 + exp(-fslp_f * (age - f50_f)))
+m_sel <- 1 / (1 + exp(-fslp_m * (age - f50_m)))
+sf_sel <- 1 / (1 + exp(-sslp_f * (age - s50_f)))
+sm_sel <- 1 / (1 + exp(-sslp_m * (age - s50_m)))
 
 # Input estimate of abundance from previous year last year's full recruitment
 # 'F' values, total commercial catch, and M. Clip data, not tag data. This is
@@ -889,7 +903,7 @@ wt_s_m <- waa %>%
 
 #Female, fishery
 wt_f_f <- waa %>% 
-  filter(Source == "LL Fishery" &
+  filter(Source == "LL fishery" &
            Sex == "Female") %>% 
   select(matches("^[[:digit:]]+$")) %>% 
   as.numeric()
@@ -1135,3 +1149,26 @@ exp_b
 
 exp_n<-sum((N_fp*f_sel)+(N_mp*m_sel))
 exp_n
+
+v2018 <- c(exp_n, exp_b, F50, Q50s, Q45s, Q40s) 
+v2017 <- c(1564409, 13502591, 0.0683, 850113, 1005851, 1189083)
+
+format(round((v2018 - v2017)/v2017 * 100, 1),  nsmall=1) -> perc_change
+
+v2017[c(1, 2, 4, 5, 6)] <- lapply(v2017[c(1, 2, 4, 5, 6)], prettyNum, trim=TRUE, big.mark=",")
+v2017[3] <- lapply(v2017[3], format, nsmall=3, digits=3)
+
+v2018[c(1, 2, 4, 5, 6)] <- lapply(v2018[c(1, 2, 4, 5, 6)], prettyNum, trim=TRUE, big.mark=",")
+v2018[3] <- lapply(v2018[3], format, nsmall=3, digits=3)
+
+rbind(v2017, v2018, perc_change) %>% data.frame() -> new_df
+new_df %>% t() %>% data.frame() %>% 
+  mutate(Quantity = c("Forecast exploited abundance",
+                      "Forecast exploited biomass",
+                      "F ACB = F 50%",
+                      "ABC - F50% (round pounds)",
+                      "ABC - F45% (round pounds)",
+                      "ABC - F40% (round pounds)")) %>%  
+  select(Quantity, `2017` = v2017, `2018` = v2018, `Percent Change` = perc_change)  %>%
+  kable()
+  
