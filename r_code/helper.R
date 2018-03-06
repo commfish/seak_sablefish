@@ -15,23 +15,30 @@ if(!require("gridExtra"))   install.packages("gridExtra") # multipanneled plots
 if(!require("data.table"))   install.packages("data.table") # dcast, foverlaps
 if(!require("ROracle"))   install.packages("ROracle") # database access through R
 if(!require("broom"))   install.packages("broom") # tidying regression model output
+if(!require("padr"))   install.packages("padr") # fills in missing values in a time series
 
 # ggplot themes ----
 
 theme_set(theme_bw(base_size=12)+ 
-            theme(#panel.grid.major = element_blank(),
-                  #panel.grid.minor = element_blank(),
-                  axis.text.x=element_text(angle = 45, hjust = 1)))
+            theme(panel.grid.major = element_blank(),
+                  panel.grid.minor = element_blank(),
+                  axis.text.x = element_text(size = 18), # angle = 45, hjust = 1),
+                  axis.text.y = element_text(size = 18),
+                  axis.title.x = element_text(size = 18),
+                  axis.title.y = element_text(size = 18),
+                  strip.text.x = element_text(size = 18),
+                  strip.text.y = element_text(size = 18),
+                  legend.key=element_blank()))
 
 # # basic eda (exporatory data analysis theme)
 # eda_theme <- theme_classic() +
 #   theme(panel.grid.major = element_line(colour="grey95"),
 #         panel.grid.minor = element_line(colour="grey95"),
 #         strip.text = element_text(size=10),
-#         axis.text.x = element_text(size=10, angle=45, hjust=1),
-#         axis.text.y = element_text(size=10),
-#         axis.title.x = element_text(size=10),
-#         axis.title.y = element_text(size=10),
+        # axis.text.x = element_text(size=10, angle=45, hjust=1),
+        # axis.text.y = element_text(size=10),
+        # axis.title.x = element_text(size=10),
+        # axis.title.y = element_text(size=10),
 #         legend.background = element_rect(fill = "transparent", colour = NA))
 
 # # eda theme for faceted figs

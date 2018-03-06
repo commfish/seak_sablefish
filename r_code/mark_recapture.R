@@ -3,19 +3,14 @@
 # Contact: jane.sullivan1@alaska.gov
 # Last edited: 2018-02-13
 
-# ** currently missing daily tag accounting for 2003, 2017 will need to be updated when finalized by M. Vaugn.
+# ** currently missing daily tag accounting for 2003, 2017 will need to be updated when finalized by M. Vaughn.
 
 source("r_code/helper.r")
 source("r_code/functions.r")
-library(padr) # helps pad time series
 library(zoo) # interpolate values
 library(rjags) # run jags/bugs models
 library(tidyr)
 library(knitr)
-# load packages
-# library(R2OpenBUGS)
-# library(rjags)
-library(coda)
 
 # Variable definitions ----
 
@@ -575,31 +570,31 @@ for(i in 1:length(model_years)){
 # https://stats.stackexchange.com/questions/58564/help-me-understand-bayesian-prior-and-posterior-distributions/58792#58792
 
 # beta prior for plotting
-prior <- function(m, n_eq){
-  a <- n_eq * m
-  b <- n_eq * (1 - m)
-  dom <- seq(0, 1, 0.0001)
-  val <- dbeta(dom, a, b)
-  return(data.frame('x' = dom,
-                    'y' = val,
-                    'n_eq'= rep(n_eq, length(dom))))
-}
+# prior <- function(m, n_eq){
+#   a <- n_eq * m
+#   b <- n_eq * (1 - m)
+#   dom <- seq(0, 1, 0.0001)
+#   val <- dbeta(dom, a, b)
+#   return(data.frame('x' = dom,
+#                     'y' = val,
+#                     'n_eq'= rep(n_eq, length(dom))))
+# }
 #
-m <- 0.0031 # The M/N in 2017
+# m <- 0.0031 # The M/N in 2017
 #
-bind_rows(prior(m, n_eq = 10000),
-          prior(m, n_eq = 5000),
-          prior(m, n_eq = 1000),
-          prior(m, n_eq = 500),
-          prior(m, n_eq = 100),
-          prior(m, n_eq = 10)) %>%
-ggplot(aes(x, y, col = factor(n_eq))) +
-  geom_line(size = 1) +
-  geom_vline(aes(xintercept = m), lty = 2) +
-  theme_bw() +
-  xlim(c(0, 0.010)) +
-  ylab(expression(paste('p(',theta,')', sep = ''))) +
-  xlab(expression(theta))
+# bind_rows(prior(m, n_eq = 10000),
+#           prior(m, n_eq = 5000),
+#           prior(m, n_eq = 1000),
+#           prior(m, n_eq = 500),
+#           prior(m, n_eq = 100),
+#           prior(m, n_eq = 10)) %>%
+# ggplot(aes(x, y, col = factor(n_eq))) +
+#   geom_line(size = 1) +
+#   geom_vline(aes(xintercept = m), lty = 2) +
+#   theme_bw() +
+#   xlim(c(0, 0.010)) +
+#   ylab(expression(paste('p(',theta,')', sep = ''))) +
+#   xlab(expression(theta))
 
 # prior_mean <- function(m, n_eq){
 #   a <- n_eq * m
@@ -741,7 +736,8 @@ results %>%
             q975 = quantile(N.avg, 0.975)) %>% 
   arrange(year, time_period) %>% 
   left_join(assessment_summary %>% 
-              select(year, `Previous estimate` = abundance_age2plus), 
+              select(year, `Previous estimate` = abundance_age2plus) %>% 
+              mutate(`Previous estimate` = ifelse(year == 2017, NA, `Previous estimate`)), 
             by = "year") %>% 
   ungroup() %>% 
   mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
@@ -749,15 +745,34 @@ results %>%
   mutate(year = year(year),
          Year = factor(year)) %>%
   gather("Abundance", "N", `Previous estimate`, `Current estimate`) %>% 
-  mutate(N = N / 1000000) %>% 
+  mutate(N = N / 1000000,
+         # interpolate the CI in missing years for plotting purposes
+         q025 = zoo::na.approx(q025 / 1000000, maxgap = 20, rule = 2),
+         q975 = zoo::na.approx(q975 / 1000000, maxgap = 20, rule = 2)) %>% 
   ggplot() +
   geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), 
              size = 3) +
   geom_smooth(aes(x = year, y = N, col = Abundance), 
               se = FALSE) +
+  geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
+              alpha = 0.2, fill = "#F8766D") +
   scale_x_continuous(breaks = seq(min(model_years), max(model_years), 2), 
                      labels = seq(min(model_years), max(model_years), 2)) +
-  ylim(c(1, 3))
+  geom_point(data = assessment_summary %>% 
+               filter(year %in% c(2017)) %>% 
+               mutate(est = abundance_age2plus / 1000000),
+             aes(x = year, y = est), 
+             shape = 8, size = 3, colour = "darkcyan") +
+  ylim(c(1, 3.5)) +
+  labs(x = "", y = "Number of sablefish (millions)\n",
+       colour = NULL, shape = NULL) +
+  theme(legend.position = c(.8, .8))
+
+
+ggsave(paste0("figures/model1_N_retrospective_", 
+              FIRST_YEAR, "_", YEAR, ".png"), 
+       dpi=300, height=4, width=6, units="in")
+
 
 # results %>%
 #   gather("time_period", "p", contains("p[")) %>% 
@@ -811,6 +826,7 @@ ci %>% filter(year == 2017) %>%
   select(`Estimate N` = N, `Lower CI` = q025, 
          `Upper CI` = q975) %>% 
   kable()
+
 # Forecast/YPR Inputs ----
 
 # All inputs from biological.r
@@ -820,15 +836,17 @@ ci %>% filter(year == 2017) %>%
 # DANGER:: ADF&G ages are different than NOAA ages
 # For selectivity-at-age to be equivalent, you need to scale them!
 
+# Provide this for comparison this year, but this conversion is not necessary.
+
 # Conversion of ADF&G to NOAA age:
 # NOAA = 0.9085+0.7105*ADF&G
-int <- 0.9085
-slp <- 0.7105
-tmp <- seq(2,42,by=1)
-age_noaa<-int + (slp * tmp)
-
-#Check
-age_noaa
+# int <- 0.9085
+# slp <- 0.7105
+# tmp <- seq(2,42,by=1)
+# age_noaa<-int + (slp * tmp)
+# 
+# #Check
+# age_noaa
 
 # NOAA fishery and survey selectivity coefficients Fishery females, males, then
 # survey females, males Manual input from Dana's NMFS spreadsheet - request from
@@ -1150,7 +1168,106 @@ exp_b
 exp_n<-sum((N_fp*f_sel)+(N_mp*m_sel))
 exp_n
 
+# For retrospective/forecast plot in Forecast summary
+fcast <- data.frame(year = 2018, n = exp_n) %>% 
+  mutate(`Current estimate` = n) %>% 
+  select(- n)
+
+# Bargraph of forecasted numbers at age by sex for presentation
+data.frame(age = 2:42, 
+           Sex = c(rep("Female", 41), rep("Male", 41)),
+           N = c(N_fp * f_sel, N_mp * m_sel)) %>% 
+  mutate(N = N / 1000000,
+         Age = factor(age)) %>% 
+ggplot(aes(Age, N, fill = Sex)) +
+  geom_bar(stat = "identity",
+           position = "dodge") +
+  # position = position_dodge(preserve = "single")) +
+  scale_x_discrete(breaks = seq(2, 42, 4), 
+                     labels =  seq(2, 42, 4)) +
+  labs(x = "\nAge", y = "Abundance\n") +
+  theme(legend.position = c(0.9, 0.7))
+
+
+ggsave(paste0("figures/forecasted_Natage_", YEAR + 1, ".png"), 
+       dpi=300, height=3, width=9, units="in")
+
+# Bargraph for presentation
+agecomps %>% 
+  filter(year == YEAR & Source == "LL fishery" &
+           Sex %in% c("Male", "Female")) %>% 
+  ggplot(aes(age, proportion, fill = Sex)) +
+  geom_bar(stat = "identity",
+           position = "dodge") +
+  # position = position_dodge(preserve = "single")) +
+  scale_x_continuous(breaks = seq(min(agecomps$age), max(agecomps$age), 4), 
+                     labels =  seq(min(agecomps$age), max(agecomps$age), 4)) +
+  labs(x = "\nAge", y = "Proportion\n") +
+  theme(legend.position = c(0.9, 0.7))
+
+ggsave(paste0("figures/agecomp_bargraph_", YEAR, ".png"), 
+       dpi=300, height=3, width=9, units="in")
+
+# Forecast summary ----
+
+# Graph with forecast abundance estimate
+
+# Credibility intervals N and p, N by time period
+results %>% 
+  gather("time_period", "N.avg", contains("N.avg")) %>% 
+  group_by(year, time_period) %>% 
+  summarise(`Current estimate` = median(N.avg),
+            q025 = quantile(N.avg, 0.025),
+            q975 = quantile(N.avg, 0.975)) %>% 
+  arrange(year, time_period) %>% 
+  left_join(assessment_summary %>% 
+              select(year, `Previous estimate` = abundance_age2plus) %>% 
+              mutate(`Previous estimate` = ifelse(year == 2017, NA, `Previous estimate`)), 
+            by = "year") %>% 
+  # bind_rows(fcast) %>% 
+  ungroup() %>% 
+  mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
+  pad(interval = "year") %>% 
+  mutate(year = year(year),
+         Year = factor(year)) %>% 
+  gather("Abundance", "N", `Previous estimate`, `Current estimate`) %>% 
+  mutate(N = N / 1000000,
+         # interpolate the CI in missing years for plotting purposes
+         q025 = zoo::na.approx(q025 / 1000000, maxgap = 20, rule = 2),
+         q975 = zoo::na.approx(q975 / 1000000, maxgap = 20, rule = 2)) %>% 
+  ggplot() +
+  geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), 
+             size = 3) +
+  geom_smooth(aes(x = year, y = N, col = Abundance), 
+              se = FALSE) +
+  geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
+              alpha = 0.2, fill = "#F8766D") +
+  scale_x_continuous(breaks = seq(min(model_years), max(model_years) + 2, 2), 
+                     labels = seq(min(model_years), max(model_years) + 2, 2)) +
+  geom_point(data = assessment_summary %>% 
+               filter(year %in% c(2017)) %>% 
+               mutate(est = abundance_age2plus / 1000000),
+             aes(x = year, y = est), 
+             shape = 8, size = 3, colour = "darkcyan") +
+  geom_point(aes(x = 2018, y = exp_n / 1000000),
+             shape = 21, size = 3, colour = "#F8766D", fill = "#F8766D") +
+  ylim(c(1, 3.5)) +
+  labs(x = "", y = "Number of\nsablefish\n(millions)\n",
+       colour = NULL, shape = NULL) +
+  theme(legend.position = c(.8, .8),
+        axis.title.y = element_text(angle = 0, hjust = 0.5, vjust = 0.5),
+        legend.text = element_text(size = 14))
+
+ggsave(paste0("figures/model1_N_retrospective_", 
+              FIRST_YEAR, "_", YEAR, ".png"), 
+       dpi=300, height=4, width=9, units="in")
+
+
+# Format tables
+
 v2018 <- c(exp_n, exp_b, F50, Q50s, Q45s, Q40s) 
+
+# From 2017 assessment
 v2017 <- c(1564409, 13502591, 0.0683, 850113, 1005851, 1189083)
 
 format(round((v2018 - v2017)/v2017 * 100, 1),  nsmall=1) -> perc_change
