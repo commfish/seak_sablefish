@@ -364,7 +364,8 @@ query <-
           g_stat_area as stat, start_latitude_decimal_degrees as start_lat,
           start_longitude_decimal_degree as start_lon, end_latitude_decimal_degrees as end_lat,
           end_longitude_decimal_degrees as end_lon, avg_depth_fathoms * 1.8288 as depth_meters, 
-          number_hooks, bare, bait, invalid, hagfish_slime, unknown, numbers, discard_status_code
+          number_hooks, bare, bait, invalid, hagfish_slime, unknown, numbers, discard_status_code, 
+          subset_condition_code
 
   from    output.out_g_sur_longline_catch_bi
   
@@ -409,6 +410,44 @@ read_csv(paste0("data/survey/raw_data/llsrv_cpue_",
 
 write_csv(srv_eff, paste0("data/survey/llsrv_cpue_",
                           min(srv_eff$year), "_", YEAR, ".csv"))
+
+# Discrepancy between a couple longline survey views. *FLAG* use this for
+# sablefish industry mtg analysis until i can figure it out.
+
+query <- 
+" select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
+          time_first_buoy_onboard, number_of_stations, hooks_per_set, hook_size, 
+          hook_spacing_inches, sample_freq, last_skate_sampled, effort_no, station_no,
+          g_stat_area as stat, start_latitude_decimal_degrees as start_lat,
+          start_longitude_decimal_degree as start_lon, end_latitude_decimal_degrees as end_lat,
+          end_longitude_decimal_degrees as end_lon, avg_depth_fathoms * 1.8288 as depth_meters, 
+          number_hooks, bare, bait, invalid, sablefish, 
+          subset_condition_code
+
+  from    output.out_g_sur_longline_hook_acc_bi
+  
+  where   project_code in ('603', '03')"
+
+dbGetQuery(zprod_channel, query) -> srv_eff
+
+write_csv(srv_eff, paste0("data/survey/raw_data/llsrv_cpue_",
+                          min(srv_eff$YEAR), "_", YEAR, "2.csv"))
+
+read_csv(paste0("data/survey/raw_data/llsrv_cpue_",
+                min(srv_eff$YEAR), "_", YEAR, "2.csv"), 
+         guess_max = 50000) %>% 
+  filter(YEAR <= YEAR) %>% #the programmers have some dummy data in the db for the upcoming year
+  mutate(date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
+         julian_day = yday(date)) %>% 
+  select(year = YEAR, Project_cde = PROJECT_CODE, Station_no = STATION_NO,
+         trip_no = TRIP_NO, Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
+         Stat = STAT,  set = EFFORT_NO, start_lat = START_LAT, start_lon = START_LON, end_lat = END_LAT,
+         end_lon = END_LON, depth = DEPTH_METERS, no_hooks = NUMBER_HOOKS, hooks_bare = BARE,
+         hooks_bait = BAIT, hook_invalid = INVALID, hooks_sablefish = SABLEFISH,
+         subset_condition_cde = SUBSET_CONDITION_CODE) -> srv_eff
+
+write_csv(srv_eff, paste0("data/survey/llsrv_cpue_",
+                          min(srv_eff$year), "_", YEAR, "2.csv"))
 
 # Longline survey biological ----
 

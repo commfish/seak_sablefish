@@ -59,6 +59,46 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
     harm_stdcpue = 1 / mean(1 / std_cpue, na.rm = TRUE) ) %>% 
   ungroup() -> cpue
 
+# Just for industry presentation *FLAG*
+
+read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
+         guess_max = 50000) %>% 
+  mutate(Year = factor(year), 
+         std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (0.0254 * hook_space))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
+         std_cpue = log(sable_lbs_set / std_hooks) + 1) %>% 
+  filter(!is.na(date) & #!is.na(hook_space) &
+           !is.na(sable_lbs_set) &
+           julian_day > 226 & # if there were special projects before the fishery opened
+           no_hooks < 15000) -> fsh_cpue  # 15000 in Kray's scripts. Seems like a lot of hooks in a set. 14370 is the 75th percentile
+
+hist(fsh_cpue$std_cpue)
+
+fsh_cpue %>% 
+  group_by(year) %>% 
+  summarise(annual_cpue = exp(mean(std_cpue, na.rm = TRUE)) - 1,
+            # nn = length(std_cpue),
+            sdev = exp(sd(std_cpue, na.rm = TRUE)) - 1,
+            # std_error = sdev / sqrt(nn),
+            upper = annual_cpue + sdev,
+            lower = annual_cpue - sdev) %>% 
+  mutate(lower = ifelse(lower < 0, 0, lower)) -> fsh_sum #-> srv_cpue
+
+# figures
+
+ggplot(fsh_sum) +
+  # geom_jitter() + 
+  geom_point(aes(year, annual_cpue)) +
+  geom_line(aes(year, annual_cpue)) +
+  # geom_ribbon(aes(year, ymin = CIlower, ymax = CIupper),
+  geom_ribbon(aes(year, ymin = lower, ymax = upper),
+              alpha = 0.3, col = "white", fill = "skyblue") +
+  labs(x = "", y = "Pounds of sablefish per hook\n") #+
+  # lims(y = c(0, 2))# theme(plot.title = element_text(hjust = .5)) +
+# geom_vline(xintercept = 9.5, linetype = 2, col = "grey")
+
+ggsave("figures/wpue_llfsh.png", 
+       dpi=300, height=4, width=7, units="in")
+
 #Vessel of interest if looking at cpue by vessel for a private request
 VESSEL_REQUESTED <- "21465" # adfg number
 

@@ -1177,7 +1177,7 @@ fcast <- data.frame(year = 2018, n = exp_n) %>%
 data.frame(age = 2:42, 
            Sex = c(rep("Female", 41), rep("Male", 41)),
            N = c(N_fp * f_sel, N_mp * m_sel)) %>% 
-  mutate(N = N / 1000000,
+  mutate(N = N / 1000,
          Age = factor(age)) %>% 
 ggplot(aes(Age, N, fill = Sex)) +
   geom_bar(stat = "identity",
