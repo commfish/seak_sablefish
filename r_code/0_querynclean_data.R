@@ -1,7 +1,7 @@
 # Query and clean data - processing script for all incoming data
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2018-01-12
+# Last edited: 2018-03-06
 
 # All final columns formatted as follows unless otherwise specified:
 # length: fork length, cm
