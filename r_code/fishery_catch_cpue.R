@@ -80,8 +80,8 @@ fsh_cpue %>%
             sdev = exp(sd(std_cpue, na.rm = TRUE)) - 1,
             # std_error = sdev / sqrt(nn),
             upper = annual_cpue + sdev,
-            lower = annual_cpue - sdev) %>% 
-  mutate(lower = ifelse(lower < 0, 0, lower)) -> fsh_sum #-> srv_cpue
+            lower = annual_cpue - sdev) -> fsh_sum #%>% 
+  #mutate(lower = ifelse(lower < 0, 0, lower))  #-> srv_cpue
 
 # figures
 
@@ -98,6 +98,70 @@ ggplot(fsh_sum) +
 
 ggsave("figures/wpue_llfsh.png", 
        dpi=300, height=4, width=7, units="in")
+
+
+# ADD SURVEY WPUE TO GRAPH FOR PRESENTATION
+read_csv(paste0("data/survey/llsrv_cpue_1985_", YEAR, "2.csv"),
+                     guess_max = 500000) %>% 
+  filter(year >= 1997 & 
+           # Mike Vaughn 2018-03-06: Sets (aka subsets with 12 or more invalid hooks are subset condition code "02" or invalid)
+           subset_condition_cde != "02") %>% 
+  mutate(Year = factor(year),
+         Stat = factor(Stat),
+         hooks_bare = ifelse(is.na(hooks_bare), 0, hooks_bare),
+         hooks_bait = ifelse(is.na(hooks_bait), 0, hooks_bait),
+         hook_invalid = ifelse(is.na(hook_invalid), 0, hook_invalid),
+         # no_hooks = no_hooks - hook_invalid,
+         std_hooks = ifelse(year <= 1996, 2.2 * no_hooks * (1 - exp(-0.57 * (118 * 0.0254))),
+                            ifelse(year == 1997, 2.2 * no_hooks * (1 - exp(-0.57 * (72 * 0.0254))),
+                                   ifelse( year %in% c(1998, 1999), 2.2 * no_hooks * (1 - exp(-0.57 * (64 * 0.0254))),
+                                           2.2 * no_hooks * (1 - exp(-0.57 * (78 * 0.0254)))))),
+         sablefish_retained = replace(hooks_sablefish, is.na(hooks_sablefish), 0), # make any NAs 0 values
+         std_cpue = sablefish_retained/std_hooks #*FLAG* this is NPUE, the fishery is a WPUE
+         # raw_cpue = sablefish_retained/no_hooks
+  ) -> srv_cpue
+
+hist(srv_cpue$std_cpue)
+srv_cpue %>% 
+  group_by(year) %>% 
+  # mutate(
+  #   #mean annual cpue
+  #   annual_cpue = mean(NPUE)
+  summarise(annual_cpue = round(mean(std_cpue), 2),
+            # nn = length(std_cpue),
+            sdev = sd(std_cpue),
+            # std_error = sdev / sqrt(nn),
+            CIupper = annual_cpue + (sdev * 2),
+            CIlower = annual_cpue - (sdev * 2)
+  ) -> srv_sum
+
+read_csv(paste0("data/survey/llsrv_bio_1985_", YEAR,".csv"), 
+         guess_max = 50000) %>% 
+  filter(year >= 1997 & !is.na(weight)) %>% 
+  group_by(year) %>% 
+  summarise(mean_weight = mean(weight) * 2.205) %>% 
+  right_join(srv_sum) %>% 
+  mutate(annual_wpue = mean_weight * annual_cpue) -> srv_sum
+
+ggplot(fsh_sum) +
+  # geom_jitter() + 
+  geom_point(aes(year, annual_cpue)) +
+  geom_line(aes(year, annual_cpue)) +
+  # geom_ribbon(aes(year, ymin = CIlower, ymax = CIupper),
+  geom_ribbon(aes(year, ymin = lower, ymax = upper),
+              alpha = 0.3, col = "white", fill = "skyblue") +
+  labs(x = "", y = "Pounds of sablefish per hook\n") +
+  geom_point(data = srv_sum, aes(year, annual_wpue),
+            col = "darkred")
+  geom_line(data = srv_sum, aes(year, annual_wpue),
+            col = "darkred") +
+# lims(y = c(0, 2))# theme(plot.title = element_text(hjust = .5)) +
+# geom_vline(xintercept = 9.5, linetype = 2, col = "grey")
+
+ggsave("figures/wpue_llfsh.png", 
+       dpi=300, height=4, width=7, units="in")
+
+
 
 #Vessel of interest if looking at cpue by vessel for a private request
 VESSEL_REQUESTED <- "21465" # adfg number
