@@ -82,7 +82,7 @@ releases %>%
             # before the fishery begins. We set it up this way to account for
             # instantaneous natural mortality (and functionally emigration)
             # during this period.
-            potsrv_middle = (potsrv_end - potsrv_beg) / 2 + potsrv_beg ) %>% 
+            potsrv_middle = (potsrv_end - potsrv_beg) / 2 + potsrv_beg) %>% 
   mutate(year_batch = paste0(year, "_", tag_batch_no)) -> tag_summary
 
 # Recovered tags ----
@@ -142,6 +142,106 @@ recoveries %>%
                                 grepl("Personal Use", comments), 
                               "27", Project_cde)) -> recoveries
 
+
+# Size selectivity differences ----
+
+# Check range of data
+releases %>% 
+  group_by(year) %>% 
+  summarize(min = min(length, na.rm = TRUE),
+            max = max(length, na.rm = TRUE))
+
+recoveries %>% 
+  group_by(year) %>% 
+  summarize(min = min(length, na.rm = TRUE),
+            max = max(length, na.rm = TRUE))
+
+# Create bins
+releases %>% 
+  filter(year >= FIRST_YEAR &
+           !is.na(length)) %>% 
+  mutate(length_bin = cut(length, breaks = seq(32.5, 117.5, 5),
+                          labels = paste(seq(35, 115, 5)))) %>% 
+  select(year, rel_date = date, rel_stat = Stat, tag_no, tag_batch_no, rel_len = length, 
+         rel_bin = length_bin) -> rel_sel
+
+# Same for recoveries
+recoveries %>% 
+  filter(!is.na(length) &
+           measurer_type == "Scientific staff") %>% 
+  mutate(length_bin = cut(length, breaks = seq(32.5, 117.5, 5),
+                          labels = paste(seq(35, 115, 5)))) %>% 
+  select(year, rec_date = date, rec_stat = Stat, tag_no, tag_batch_no, rec_len = length, 
+         rec_bin = length_bin) -> rec_sel
+
+# Proportion by bin
+rel_sel %>% 
+  count(year, bin = rel_bin) %>% 
+  group_by(year) %>% 
+  mutate(proportion = round( n / sum(n), 3),
+         period = "release") %>% 
+  bind_rows(rec_sel %>% 
+              count(year, bin = rec_bin) %>% 
+              group_by(year) %>% 
+              mutate(proportion = round( n / sum(n), 3),
+                     period = "recapture")) %>% 
+  ggplot(aes(x = bin, y = proportion, 
+             col = period, shape = period, group = period)) + 
+  geom_point() +
+  geom_line() +
+  facet_wrap(~year, ncol = 3) +
+  scale_x_discrete(breaks = seq(40, 110, 10), 
+                   labels = seq(40, 110, 10)) +
+  labs(x = "\nLength bin (cm)", 
+       y = "Proportion\n") 
+
+# Cumulative proportion by bin
+rel_sel %>%   
+  group_by(year, bin = rel_bin) %>% 
+  mutate(bin_n = length(tag_no)) %>% 
+  arrange(year, bin) %>% 
+  group_by(year) %>% 
+  mutate(tot_n = length(tag_no)) %>% 
+  distinct(year, bin, bin_n, tot_n) %>% 
+  mutate(cum = cumsum(bin_n)) %>% 
+  ungroup() %>% 
+  mutate(cum_prop = cum / tot_n,
+         period = "release") %>% 
+  bind_rows(rec_sel %>%   
+              group_by(year, bin = rec_bin) %>% 
+              mutate(bin_n = length(tag_no)) %>% 
+              arrange(year, bin) %>% 
+              group_by(year) %>% 
+              mutate(tot_n = length(tag_no)) %>% 
+              distinct(year, bin, bin_n, tot_n) %>% 
+              mutate(cum = cumsum(bin_n)) %>% 
+              ungroup() %>% 
+              mutate(cum_prop = cum / tot_n,
+                     period = "recapture")) %>% 
+  ggplot(aes(x = bin, y = cum_prop, 
+             col = period, shape = period, group = period)) + 
+  geom_point() +
+  geom_line() +
+  facet_wrap(~year, ncol = 3) +
+  scale_x_discrete(breaks = seq(40, 110, 10), 
+                     labels = seq(40, 110, 10)) +
+  labs(x = "\nLength bin (cm)", 
+       y = "Cumulative proportion\n") 
+  
+
+merge(rel_sel, rec_sel, by = c("year", "tag_no", "tag_batch_no")) %>% 
+  mutate(growth = rec_len - rel_len) %>%
+  # lots of negative growth... 
+  filter(!growth < 0) %>% 
+  group_by(year) %>% 
+  summarize(n = length(tag_no),
+            mean_g = mean(growth),
+            median_g = median(growth),
+            max_g = max(growth),
+            sd_g = sd(growth))
+
+# Recovered in survey ----
+
 # Add Chatham longline survey recoveries to the summary (survey is time period i = 1)
 recoveries %>% 
   filter(Project_cde == "03") %>% 
@@ -149,7 +249,7 @@ recoveries %>%
   summarise(m.1 = n_distinct(tag_no)) %>% 
   left_join(tag_summary, by = c("year", "tag_batch_no")) -> tag_summary
 
-# Remove these matched tags from the releases df so they don't get double-counted by accident. 
+# Remove tags recovered in the survey from the releases df so they don't get double-counted by accident. 
 recoveries %>% filter(Project_cde != "03") -> recoveries
 
 # Fish tickets ----
