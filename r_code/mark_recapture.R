@@ -11,6 +11,7 @@ library(zoo) # interpolate values
 library(rjags) # run jags/bugs models
 library(tidyr)
 library(knitr)
+library(forcats)
 
 # Variable definitions ----
 
@@ -66,24 +67,6 @@ read_csv(paste0("data/survey/tag_releases_2003_", YEAR, ".csv"),
          guess_max = 50000) -> releases
 
 releases %>% group_by(discard_status) %>% summarise(n_distinct(tag_no)) # All tagged and released or re-released
-
-# Total number tagged and released by year
-releases %>% 
-  filter(year >= FIRST_YEAR) %>% 
-  group_by(year, tag_batch_no) %>% 
-  summarise(M.0 = n_distinct(tag_no),
-            potsrv_beg = min(date),
-            potsrv_end = max(date),
-            # FLAG: Mueter (2007) defined the length of time period 1 (t.1) as
-            # the number of days between the middle of the pot survey and the
-            # middle of the LL survey, and t.2 as the middle of the LL survey to
-            # the end of the first fishing period. We have changed this methodology
-            # such that t.1 goes from the middle of the pot survey to the day
-            # before the fishery begins. We set it up this way to account for
-            # instantaneous natural mortality (and functionally emigration)
-            # during this period.
-            potsrv_middle = (potsrv_end - potsrv_beg) / 2 + potsrv_beg) %>% 
-  mutate(year_batch = paste0(year, "_", tag_batch_no)) -> tag_summary
 
 # Recovered tags ----
 
@@ -142,7 +125,6 @@ recoveries %>%
                                 grepl("Personal Use", comments), 
                               "27", Project_cde)) -> recoveries
 
-
 # Size selectivity differences ----
 
 # Check range of data
@@ -174,6 +156,29 @@ recoveries %>%
   select(year, rec_date = date, rec_stat = Stat, tag_no, tag_batch_no, rec_len = length, 
          rec_bin = length_bin) -> rec_sel
 
+# Growth in tagged individuals
+merge(rel_sel, rec_sel, by = c("year", "tag_no", "tag_batch_no")) %>% 
+  mutate(growth = rec_len - rel_len) %>%
+  # lots of negative growth... 
+  filter(!growth < 0) %>% 
+  arrange(year, rel_bin) %>% 
+  group_by(rel_bin) %>% 
+  summarize(n = length(tag_no),
+            mean_g = round(mean(growth), 2),
+            max_g = max(growth),
+            sd_g = round(sd(growth), 2)) %>% 
+  # Deal with outliers in shoulder length bins: if the sample size of less than
+  # 25, assume 0 growth
+  mutate(g = ifelse(n < 25, 0, mean_g)) %>% 
+  select(rel_bin, g) -> growth
+
+# Add growth to released fish then recalculate the bins
+merge(rel_sel, growth, by = "rel_bin") %>% 
+  mutate(growth_len = rel_len + g,
+         growth_bin = cut(growth_len, breaks = seq(32.5, 117.5, 5),
+                          labels = paste(seq(35, 115, 5)))) %>% 
+  select(year, tag_no, growth_bin) -> growth_sel
+
 # Proportion by bin
 rel_sel %>% 
   count(year, bin = rel_bin) %>% 
@@ -184,16 +189,31 @@ rel_sel %>%
               count(year, bin = rec_bin) %>% 
               group_by(year) %>% 
               mutate(proportion = round( n / sum(n), 3),
-                     period = "recapture")) %>% 
+                     period = "recapture"),
+            growth_sel %>% 
+              count(year, bin = growth_bin) %>% 
+              group_by(year) %>% 
+              mutate(proportion = round( n / sum(n), 3),
+                     period = "post-release growth")) %>% 
+  mutate(period = fct_relevel(factor(period), 
+                              "release", "post-release growth", "recapture")) %>% 
   ggplot(aes(x = bin, y = proportion, 
              col = period, shape = period, group = period)) + 
   geom_point() +
   geom_line() +
-  facet_wrap(~year, ncol = 3) +
+  facet_wrap(~year, ncol = 2) +
   scale_x_discrete(breaks = seq(40, 110, 10), 
                    labels = seq(40, 110, 10)) +
+  scale_colour_manual(values = c("#a6bddb", "#0570b0", "#023858")) +
   labs(x = "\nLength bin (cm)", 
-       y = "Proportion\n") 
+       y = "Proportion\n") +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14))
+
+ggsave(paste0("figures/rel_rec_lengthcomps_", 
+              FIRST_YEAR, "_", YEAR, ".png"), 
+       dpi=300, height=8.5, width=7.5, units="in")
 
 # Cumulative proportion by bin
 rel_sel %>%   
@@ -217,30 +237,72 @@ rel_sel %>%
               mutate(cum = cumsum(bin_n)) %>% 
               ungroup() %>% 
               mutate(cum_prop = cum / tot_n,
-                     period = "recapture")) %>% 
+                     period = "recapture"),
+            growth_sel %>%   
+              group_by(year, bin = growth_bin) %>% 
+              mutate(bin_n = length(tag_no)) %>% 
+              arrange(year, bin) %>% 
+              group_by(year) %>% 
+              mutate(tot_n = length(tag_no)) %>% 
+              distinct(year, bin, bin_n, tot_n) %>% 
+              mutate(cum = cumsum(bin_n)) %>% 
+              ungroup() %>% 
+              mutate(cum_prop = cum / tot_n,
+                     period = "post-release growth")) %>% 
+  mutate(period = fct_relevel(factor(period), 
+                              "release", "post-release growth", "recapture")) %>% 
   ggplot(aes(x = bin, y = cum_prop, 
              col = period, shape = period, group = period)) + 
   geom_point() +
   geom_line() +
-  facet_wrap(~year, ncol = 3) +
+  facet_wrap(~year, ncol = 2) +
   scale_x_discrete(breaks = seq(40, 110, 10), 
                      labels = seq(40, 110, 10)) +
+  scale_colour_manual(values = c("#a6bddb", "#0570b0", "#023858")) +
   labs(x = "\nLength bin (cm)", 
-       y = "Cumulative proportion\n") 
+       y = "Cumulative proportion\n") +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14))
   
+ggsave(paste0("figures/rel_rec_cumproplength_", 
+              FIRST_YEAR, "_", YEAR, ".png"), 
+       dpi=300, height=8.5, width=7.5, units="in")
 
-merge(rel_sel, rec_sel, by = c("year", "tag_no", "tag_batch_no")) %>% 
-  mutate(growth = rec_len - rel_len) %>%
-  # lots of negative growth... 
-  filter(!growth < 0) %>% 
+# Approach discussed with B. Williams 2018-03-21: In a given year use the
+# minimum length bin recaptured as the cut off. Throw tags with a post-release
+# growth length bin less than the cut off out.
+
+rec_sel %>% 
   group_by(year) %>% 
-  summarize(n = length(tag_no),
-            mean_g = mean(growth),
-            median_g = median(growth),
-            max_g = max(growth),
-            sd_g = sd(growth))
+  summarize(cutoff = min(as.numeric(as.character(rec_bin)))) %>% 
+  right_join(growth_sel, "year") %>% 
+  mutate(growth_bin = as.numeric(as.character(growth_bin))) %>% 
+  filter(growth_bin < cutoff) %>% 
+  distinct(year, tag_no) -> throw_out
 
-# Recovered in survey ----
+# Total number tagged and released by year
+releases %>% 
+  filter(year >= FIRST_YEAR &
+           # Remove the one tag once adjustments for size-selectivity have been
+           # made
+           !tag_no %in% throw_out$tag_no) %>% 
+  group_by(year, tag_batch_no) %>% 
+  summarise(M.0 = n_distinct(tag_no),
+            potsrv_beg = min(date),
+            potsrv_end = max(date),
+            # FLAG: Mueter (2007) defined the length of time period 1 (t.1) as
+            # the number of days between the middle of the pot survey and the
+            # middle of the LL survey, and t.2 as the middle of the LL survey to
+            # the end of the first fishing period. We have changed this methodology
+            # such that t.1 goes from the middle of the pot survey to the day
+            # before the fishery begins. We set it up this way to account for
+            # instantaneous natural mortality (and functionally emigration)
+            # during this period.
+            potsrv_middle = (potsrv_end - potsrv_beg) / 2 + potsrv_beg) %>% 
+  mutate(year_batch = paste0(year, "_", tag_batch_no)) -> tag_summary
+
+# Recoveries in survey ----
 
 # Add Chatham longline survey recoveries to the summary (survey is time period i = 1)
 recoveries %>% 
