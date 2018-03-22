@@ -267,3 +267,98 @@ coda_df <- function(coda.object, parameters = NULL) {
   
   out.df
 }
+
+# MR Jags ----
+
+# Run same (or multiple) models over full time series, exporting posterior
+# distributions, deviance information criterion, and convergance diagnostics all
+# in one
+
+mr_jags <- function(
+  mod, # model formula (as a character string)
+  mod_name, # what you want to name your model, keep them straight during model selection
+  model_dat, # list of lists of model data 
+  model_years, # vector of years over which you want to run the model
+  mpar, # parameters of interest, sample poterior distribution of 'mpar' variables
+  mchains = 4, # number of desired chains
+  madapt = 1000, # burn in
+  miter = 10000, # number of iternations to run each chain
+  mthin = 10 # thinning rate
+) {
+  
+  # Create an empty list to store model output 
+  model_output <- vector('list', 1)
+  
+  for(i in 1:length(model_years)){
+    
+    dat <- model_dat[[i]]
+    
+    cat(mod1, file = paste0(mod_name, "_", model_years[i], ".jag"))
+    
+    # initialize and run model
+    mod <- jags.model(paste0(mod_name, "_", model_years[i], ".jag"),
+                      data = dat,
+                      n.chains = mchains,
+                      # init = tst_inits,
+                      n.adapt = madapt)
+    
+    # sample posterior
+    res <- coda.samples(mod,
+                        var = mpar,
+                        n.iter = miter,
+                        thin = mthin)
+    
+    # format output using user-defined fxn coda_df
+    coda_df(res) %>% 
+      mutate(year = model_years[i],
+             model = mod_name) -> coda_res
+    
+    #Append results 
+    if(i == 1){
+      coda_res_out <- coda_res
+      rm(coda_res)
+    } else {
+      coda_res_out <- rbind(coda_res_out, coda_res) }
+    
+    # Diagnostic trace plots - These MR models were tested individually by year.
+    # They are well mixed and have no issues with convergence.
+    
+    # plot(res, col = 2)
+    
+    # Get DIC for model selection
+    # https://www4.stat.ncsu.edu/~reich/st590/code/DICpois
+    
+    dic <- dic.samples(mod,
+                       var = mpar,
+                       n.iter = miter,
+                       thin = mthin)
+    
+    dic <- data.frame(model = mod_name,
+                      year = model_years[i],
+                      deviance = sum(dic$deviance), # over all fit (smaller deviance better)
+                      parameter_penalty = sum(dic$penalty), # number of parameters
+                      DIC = sum(dic$deviance) + sum(dic$penalty)) # penalized deviance (aka DIC), smaller is better
+    
+    # Append results 
+    if(i == 1){
+      dic_out <- dic
+      rm(dic)
+    } else {
+      dic_out <- rbind(dic_out, dic) }
+    
+    # Convergance diagnostic: gelman.diag gives you the scale reduction factors for
+    # each parameter. A factor of 1 means that between variance and within chain
+    # variance are equal, larger values mean that there is still a notable
+    # difference between chains. General rule: everything below 1.1 or so
+    # is ok.
+    # https://theoreticalecology.wordpress.com/2011/12/09/mcmc-chain-analysis-and-convergence-diagnostics-with-coda-in-r/
+    gelman.diag(res, multivariate = FALSE)[[1]] %>%
+      data.frame() %>% 
+      mutate(year = model_years[i],
+             model = mod_name) -> convergence
+    
+    model_output <- list("results" = coda_res_out,
+                         "dic" = dic_out,
+                         "convergence_diagnostic" = convergence)
+  }
+}
