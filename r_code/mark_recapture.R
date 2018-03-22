@@ -834,7 +834,7 @@ for(i in 1:length(model_years)){
 
 # *FLAG* I am most comfortable with an neq > 5000, which keeps the range of p within
 # the same order of magnitude as M/N. If we decrease neq the point estimate on
-# the population decreases dramatically.
+# the population decreases dramatically. We ultimately selected 10000.
 
 # Model 1 ----
 
@@ -845,8 +845,8 @@ for(i in 1:length(model_years)){
 
 dat <- model_dat[[i]]
 
-# Time-stratified mark-recapture model with natural mortality and immigration
-# includes all clipped fish recaptured in longline survey data and fishery data
+# Time-stratified mark-recapture model with natural mortality includes all
+# clipped fish recaptured in longline survey data and fishery data
 
 # Informed prior option = 10000
 # Uninformed prior = 100
@@ -911,7 +911,7 @@ res <- coda.samples(m1,
 coda_df(res) %>% 
   mutate(year = model_years[i]) -> coda_res
 
-#Append resuts 
+#Append results 
 if(i == 1){
   coda_res_out <- coda_res
   rm(coda_res)
@@ -923,9 +923,25 @@ if(i == 1){
 
 # plot(res, col = 2)
 
-# Get DIC 
-# *FLAG* - update this section once competing models are complete.
+# Get DIC for model selection
 # https://www4.stat.ncsu.edu/~reich/st590/code/DICpois
+
+dic <- dic.samples(m1,
+                   var = mpar,
+                   n.iter = 10000,
+                   thin = 1)
+
+dic <- data.frame(year = model_years[i],
+                  deviance = sum(dic$deviance), # over all fit (smaller deviance better)
+                  parameter_penalty = sum(dic$penalty), # number of parameters
+                  DIC = sum(dic$deviance) + sum(dic$penalty)) # penalized deviance (aka DIC), smaller is better
+
+#Append results 
+if(i == 1){
+  dic_out <- dic
+  rm(dic)
+} else {
+  dic_out <- rbind(dic_out, dic) }
 
 # Convergance diagnostic: gelman.diag gives you the scale reduction factors for
 # each parameter. A factor of 1 means that between variance and within chain
@@ -938,6 +954,7 @@ gelman.diag(res, multivariate = FALSE)[[1]] %>%
   mutate(year = model_years[i]) -> convergence
 
 model_output <- list("results" = coda_res_out,
+                     "dic" = dic_out,
                      "convergence_diagnostic" = convergence)
 }
 
