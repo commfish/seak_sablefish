@@ -68,6 +68,11 @@ read_csv(paste0("data/survey/tag_releases_2003_", YEAR, ".csv"),
 
 releases %>% group_by(discard_status) %>% summarise(n_distinct(tag_no)) # All tagged and released or re-released
 
+# Temporary lookup table for year and tag batch no combos
+releases %>% 
+  mutate(year_batch = paste0(year, "_", tag_batch_no)) %>% 
+  distinct(year_batch) -> tag_summary
+
 # Recovered tags ----
 
 # Recaptured fish. Match up to the daily tag accounting (countback) data in the
@@ -301,6 +306,59 @@ releases %>%
             # during this period.
             potsrv_middle = (potsrv_end - potsrv_beg) / 2 + potsrv_beg) %>% 
   mutate(year_batch = paste0(year, "_", tag_batch_no)) -> tag_summary
+
+# Movement in Chatham ----
+
+# *FLAG* in the future do a better job accounting for recoveries outside of
+# Chatham (need to go back to recoveries df and sort it out by project cde). For
+# now, just focus on movement within Chatham.
+merge(rel_sel, 
+      rec_sel %>% 
+        filter(!is.na(rec_stat)) %>% 
+        mutate(rec_stat = ifelse(rec_stat %in% distinct(rel_sel, rel_stat)$rel_stat, 
+                                 rec_stat, NA)), 
+      by = c("year", "tag_no", "tag_batch_no")) %>% 
+  # Create a factor sorts Stat areas roughly south to north
+  mutate(rel_stat = fct_relevel(factor(rel_stat),
+                                # "345803", "345731", "345701", "335701", 
+                                # "345631", "345603"),
+                                "345603", "345631", "345702", "335701", "345701", "345731", "345803"),
+         rec_stat = fct_relevel(factor(rec_stat),
+                                "345603", "345631", "345702", "335701", "345701", "345731", "345803")) %>% 
+  select(year, rel_stat, rec_stat) %>% 
+  # filter out Frederick Sound since sampling has been so spotty
+  filter(!rel_stat %in% c("345702", "335701") &
+           !rec_stat %in% c("345702", "335701")) %>% 
+  droplevels() -> move
+
+# Get a count of recaptures by area and year
+table(releases = move$rel_stat, 
+      recaptures = move$rec_stat, 
+      year = move$year) %>% 
+  data.frame() %>% 
+  group_by(year, releases) %>% 
+  mutate(N = sum(Freq), # number of releases in an area
+         Probability = Freq/N) %>%  # probability of being recaptured in an area if released in an area
+  ggplot(aes(x = recaptures, y = releases)) +
+  geom_tile(aes(fill = Probability), colour = "grey") +
+  facet_wrap(~ year, ncol = 2) +
+  scale_fill_gradient(low = "white", high = "red", space = "Lab",
+                      na.value = "white", guide = "colourbar",
+                      name = "Probability\n") +
+  labs(x = "\nRecaptures", y = "Releases\n") +
+  theme(axis.text.x = element_text(size = 12 ,angle = 90, hjust = 1), 
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 14))
+
+# The darker colours represent probability of being captured in an area if
+# released in an area. The stat areas are increasing south to north along each
+# axis. Darker shades along the diagonal represent no movement between areas,
+# darker above means movement northward, darker below means movement southward.
+
+ggsave(paste0("figures/movement_matrix_", 
+              FIRST_YEAR, "_", YEAR, ".png"), 
+       dpi=300, height=8.5, width=7.5, units="in")
 
 # Recoveries in survey ----
 
