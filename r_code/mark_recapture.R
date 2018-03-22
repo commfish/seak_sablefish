@@ -329,7 +329,7 @@ merge(rel_sel,
            !rec_stat %in% c("345702", "335701")) %>% 
   droplevels() -> move
 
-# Summarize movement matrix
+# Summarize movement matrix - get a count of recaptures by area and year
 table(releases = move$rel_stat, 
       recaptures = move$rec_stat, 
       year = move$year) %>% 
