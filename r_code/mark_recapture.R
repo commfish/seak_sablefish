@@ -838,129 +838,120 @@ for(i in 1:length(model_years)){
 
 # Model 1 ----
 
-# Create an empty list to store model output 
-model_output <- vector('list', 1)
-
-for(i in 1:length(model_years)){
-
-dat <- model_dat[[i]]
-
 # Time-stratified mark-recapture model with natural mortality includes all
 # clipped fish recaptured in longline survey data and fishery data
 
 # Informed prior option = 10000
 # Uninformed prior = 100
-cat("
-    model {
 
-    # Priors
-    N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
-    
-    N[1] <- N.1
-    #M <- M.0 - D.0 # number of remaining marks at beginning of longline survey (period 1)
-    M[1] <- M.0 * exp(-mu * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
-    # M.0 = Number of tags released
-    # D = Number of tags lost to fishery or longline survey
-    # mu = natural mortality (daily instantaneous mortality)
-    
-    for(i in 2:P) {
-    M[i] <- (M[i-1] - m[i-1] - D[i-1]) * exp(-mu * t[i])		# Number of marks at beginning of period i
-    N[i] <- (N[i-1] - C[i-1]) * exp(-mu * t[i])		# Total number of sablefish at beginning of period i
-    }
+mod1 <- "
+model {
+# Priors
+N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
 
-    for(i in 1:P) {
+N[1] <- N.1
+#M <- M.0 - D.0 # number of remaining marks at beginning of longline survey (period 1)
+M[1] <- M.0 * exp(-mu * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
+# M.0 = Number of tags released
+# D = Number of tags lost to fishery or longline survey
+# mu = natural mortality (daily instantaneous mortality)
 
-    # Use a weakly informative beta prior on p. Note that x (M/N) doesn't change
-    # much through time b/c the population numbers are large, though we want to
-    # allow p to change through time due to changes in CPUE and mean size
-
-    x[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
-    
-    # Generate a prior for p, informed by x. A large multiplier indicates our
-    # confidence in x
-
-    a[i] <- x[i] * 10000  # the alpha parameter in the beta distribution, used as a prior for p
-    b[i] <- (1 - x[i]) * 10000  # the beta paramter in the beta distribution
-    p[i] ~ dbeta(a[i],b[i]) # beta prior for p, the probability that a caught sablefish is clipped
-    
-    m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
-    }
-    
-    N[P+1] <- N[P] - C[P] # account for remaining catch by adding a final period
-
-    # Compute quantities of interest:
-    N.avg <- mean(N[])
-    }
-    ", file = paste0("m1_", model_years[i], ".jag"))
-
-# initialize and run model
-m1 <- jags.model(paste0("m1_", model_years[i], ".jag"),
-                 data = dat,
-                 n.chains = 4,
-                 # init = tst_inits,
-                 n.adapt = 1000)
-
-# Sample poterior distribution of 'mpar' variables
-mpar <- c("N.avg", "N", "p")
-
-res <- coda.samples(m1,
-                    var = mpar,
-                    n.iter = 10000,
-                    thin = 1)
-
-coda_df(res) %>% 
-  mutate(year = model_years[i]) -> coda_res
-
-#Append results 
-if(i == 1){
-  coda_res_out <- coda_res
-  rm(coda_res)
-} else {
-  coda_res_out <- rbind(coda_res_out, coda_res) }
-
-# Diagnostic trace plots - these were tested individually by year. These
-# models are well mixed and have no issues with convergence.
-
-# plot(res, col = 2)
-
-# Get DIC for model selection
-# https://www4.stat.ncsu.edu/~reich/st590/code/DICpois
-
-dic <- dic.samples(m1,
-                   var = mpar,
-                   n.iter = 10000,
-                   thin = 1)
-
-dic <- data.frame(year = model_years[i],
-                  deviance = sum(dic$deviance), # over all fit (smaller deviance better)
-                  parameter_penalty = sum(dic$penalty), # number of parameters
-                  DIC = sum(dic$deviance) + sum(dic$penalty)) # penalized deviance (aka DIC), smaller is better
-
-#Append results 
-if(i == 1){
-  dic_out <- dic
-  rm(dic)
-} else {
-  dic_out <- rbind(dic_out, dic) }
-
-# Convergance diagnostic: gelman.diag gives you the scale reduction factors for
-# each parameter. A factor of 1 means that between variance and within chain
-# variance are equal, larger values mean that there is still a notable
-# difference between chains. General rule: everything below 1.1 or so
-# is ok.
-# https://theoreticalecology.wordpress.com/2011/12/09/mcmc-chain-analysis-and-convergence-diagnostics-with-coda-in-r/
-gelman.diag(res, multivariate = FALSE)[[1]] %>%
-  data.frame() %>% 
-  mutate(year = model_years[i]) -> convergence
-
-model_output <- list("results" = coda_res_out,
-                     "dic" = dic_out,
-                     "convergence_diagnostic" = convergence)
+for(i in 2:P) {
+M[i] <- (M[i-1] - m[i-1] - D[i-1]) * exp(-mu * t[i])		# Number of marks at beginning of period i
+N[i] <- (N[i-1] - C[i-1]) * exp(-mu * t[i])		# Total number of sablefish at beginning of period i
 }
+
+for(i in 1:P) {
+
+# Use a weakly informative beta prior on p. Note that x (M/N) doesn't change
+# much through time b/c the population numbers are large, though we want to
+# allow p to change through time due to changes in CPUE and mean size
+
+x[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
+
+# Generate a prior for p, informed by x. A large multiplier indicates our
+# confidence in x
+
+a[i] <- x[i] * 10000  # the alpha parameter in the beta distribution, used as a prior for p
+b[i] <- (1 - x[i]) * 10000  # the beta paramter in the beta distribution
+p[i] ~ dbeta(a[i],b[i]) # beta prior for p, the probability that a caught sablefish is clipped
+
+m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
+}
+
+N[P+1] <- N[P] - C[P] # account for remaining catch by adding a final period
+
+# Compute quantities of interest:
+N.avg <- mean(N[])
+}
+"
+
+# Model 2 ----
+
+# Same as Model 1 but now estimates immigration (b)
+
+mod2 <- "
+model {
+# Priors
+N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
+b ~ dnorm(5000, 1.0E-12) # vague prior on number of immigrants
+
+N[1] <- N.1
+#M <- M.0 - D.0 # number of remaining marks at beginning of longline survey (period 1)
+M[1] <- M.0 * exp(-mu * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
+# M.0 = Number of tags released
+# D = Number of tags lost to fishery or longline survey
+# mu = natural mortality (daily instantaneous mortality)
+
+for(i in 2:P) {
+M[i] <- (M[i-1] - m[i-1] - D[i-1]) * exp(-mu * t[i])		# Number of marks at beginning of period i
+N[i] <- (N[i-1] - C[i-1]) * exp(-mu * t[i]) + b*t[i]		# Total number of sablefish at beginning of period i, including immigration
+}
+
+for(i in 1:P) {
+
+# Use a weakly informative beta prior on p. Note that x (M/N) doesn't change
+# much through time b/c the population numbers are large, though we want to
+# allow p to change through time due to changes in CPUE and mean size
+
+x[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
+
+# Generate a prior for p, informed by x. A large multiplier indicates our
+# confidence in x
+
+a[i] <- x[i] * 10000  # the alpha parameter in the beta distribution, used as a prior for p
+b[i] <- (1 - x[i]) * 10000  # the beta paramter in the beta distribution
+p[i] ~ dbeta(a[i],b[i]) # beta prior for p, the probability that a caught sablefish is clipped
+
+m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
+}
+
+N[P+1] <- N[P] - C[P] # account for remaining catch by adding a final period
+
+# Compute quantities of interest:
+N.avg <- mean(N[])
+}
+"
+
+mod1_out <- mr_jags(mod = mod1, mod_name = "Model1", 
+                    model_dat = model_dat, model_years = model_years, 
+                    mpar = c("N.avg", "N", "p"))
+
+mod2_out <- mr_jags(mod = mod2, mod_name = "Model2",
+                    model_dat = model_dat, model_years = model_years, 
+                    mpar = c("N.avg", "N", "p", "b"))
+
+results <- mod2_out$results
+results %>%
+  gather("time_period", "b", contains("b[")) %>%
+  group_by(year, time_period) %>%
+  summarise(median = median(b),
+            q025 = quantile(b, 0.025),
+            q975 = quantile(b, 0.975))
 
 # Model 1 Results ----
 
-results <- model_output$results
+results <- mod1_out$results
 
 # Credibility intervals N and p, N by time period
 results %>% 
@@ -1002,7 +993,6 @@ results %>%
   labs(x = "", y = "Number of sablefish (millions)\n",
        colour = NULL, shape = NULL) +
   theme(legend.position = c(.8, .8))
-
 
 ggsave(paste0("figures/model1_N_retrospective_", 
               FIRST_YEAR, "_", YEAR, ".png"), 
