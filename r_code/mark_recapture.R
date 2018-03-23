@@ -343,7 +343,7 @@ table(releases = move$rel_stat,
   scale_fill_gradient(low = "white", high = "red", space = "Lab",
                       na.value = "white", guide = "colourbar",
                       name = "Probability\n") +
-  labs(x = "\nRecaptures", y = "Releases\n") +
+  labs(x = "\nRecapture Stat Area", y = "Release Stat Area\n") +
   theme(axis.text.x = element_text(size = 12 ,angle = 90, hjust = 1), 
         axis.text.y = element_text(size = 12),
         legend.text = element_text(size = 12),
@@ -672,11 +672,31 @@ right_join(recoveries %>%
 
 # Stratify by time ----
 
+# create empty lists to hold the iterations of output from mr_jags fxn
+posterior_ls <- list()
+dic_ls <- list()
+converge_ls <- list()
+
+# Number of models - currently 4 competing models: 
+# 1) base model - time strata, accounts for natural mortality and catch
+# 2) model 1 + migration parameter
+# 3) model 1 + catchability parameter (incorportates NPUE data)
+# 4) model 2 + model 3
+num_mod <- 4
+
+# Number of period (time strata) combos tests
+strats <- 3
+
+#Prepare progress bar
+pb <- txtProgressBar(min = 0, max = num_mod * strats, style = 3)
+
+for(i in 1:strats) {
+  
 # *FLAG* For now base strata on percentiles of cumulative catch. Could also used
 # number of marks observed or some other variable. STRATA_NUM is the dynamic
 # variable specifying the number of time strata to split the fishery into and it
 # currently accomodates 9 or fewer strata.
-STRATA_NUM <- 5
+STRATA_NUM <- i
 
 daily_marks %>% 
   group_by(year) %>% 
@@ -711,11 +731,14 @@ dcast(setDT(strata_sum), year ~ catch_strata,
       value.var = c("D", "C", "n", "t","m", "NPUE"), sep = ".") %>% 
   left_join(tag_summary, by = "year") %>% 
   # order the columns alphanumerically - very convenient
-  select(year, order(colnames(.))) -> jags_dat
+  select(year, order(colnames(.))) %>% 
+  # Remove NPUE from survey from the data, because it's calculated a little
+  # differently than the fishery and shouldn't be used to estimate catchability
+  select(- NPUE.1) -> jags_dat
 
 jags_dat %>%
   select(year, M.0, contains("D."), contains("C."), starts_with("n."), 
-         starts_with("t."), contains("m."), contains("NPUE."))  -> jags_dat
+         starts_with("t."), contains("m."), contains("NPUE.")) -> jags_dat
 
 # Add in the abundance estimates from the past assessments as mu.N (the mean for
 # the prior on N.1)
@@ -850,7 +873,6 @@ model {
 N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
 
 N[1] <- N.1
-#M <- M.0 - D.0 # number of remaining marks at beginning of longline survey (period 1)
 M[1] <- M.0 * exp(-mu * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
 # M.0 = Number of tags released
 # D = Number of tags lost to fishery or longline survey
@@ -888,16 +910,20 @@ N.avg <- mean(N[])
 
 # Model 2 ----
 
-# Same as Model 1 but now estimates immigration (b)
+# Same as Model 1 but now estimates immigration (b) *FLAG* the normal prior on
+# the immigration parameter, r,  allows immigration to be negative, and the model
+# estimates negative values in two years over the time series (2008 and 2017).
+# This can be fixed with a uniform prior, but I kind of like that a migration
+# parameter, accounting for potential emigration that isn't accounted for in the
+# natural mortality parameter.
 
 mod2 <- "
 model {
 # Priors
 N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
-b ~ dnorm(5000, 1.0E-12) # vague prior on number of immigrants
+r ~ dnorm(5000, 1.0E-12) # vague prior on number of immigrants (r)
 
 N[1] <- N.1
-#M <- M.0 - D.0 # number of remaining marks at beginning of longline survey (period 1)
 M[1] <- M.0 * exp(-mu * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
 # M.0 = Number of tags released
 # D = Number of tags lost to fishery or longline survey
@@ -905,7 +931,7 @@ M[1] <- M.0 * exp(-mu * t[1]) - D.0	# number of marks at beginning of period 1 (
 
 for(i in 2:P) {
 M[i] <- (M[i-1] - m[i-1] - D[i-1]) * exp(-mu * t[i])		# Number of marks at beginning of period i
-N[i] <- (N[i-1] - C[i-1]) * exp(-mu * t[i]) + b*t[i]		# Total number of sablefish at beginning of period i, including immigration
+N[i] <- (N[i-1] - C[i-1]) * exp(-mu * t[i]) + r*t[i]		# Total number of sablefish at beginning of period i, including immigration
 }
 
 for(i in 1:P) {
@@ -933,21 +959,170 @@ N.avg <- mean(N[])
 }
 "
 
+# Model 3 ----
+
+# Same as Model 1, but now estimates incorporates NPUE data and estimates catchability (q)
+
+mod3 <- "
+model {
+# Priors
+N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
+q ~ dnorm(0.00035, 0.1)I(0,) # catchability coefficient: NPUE = q*N
+tau ~ dgamma(0.001, 1) #  tau = 1/sigma^2 for normal distribution of CPUE
+
+N[1] <- N.1
+M[1] <- M.0 * exp(-mu * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
+# M.0 = Number of tags released
+# D = Number of tags lost to fishery or longline survey
+# mu = natural mortality (daily instantaneous mortality)
+
+for(i in 2:P) {
+M[i] <- (M[i-1] - m[i-1] - D[i-1]) * exp(-mu * t[i])		# Number of marks at beginning of period i
+N[i] <- (N[i-1] - C[i-1]) * exp(-mu * t[i])		# Total number of sablefish at beginning of period i
+NPUE[i-1] ~ dnorm(npue.hat[i], tau)    # NPUE ~ normal(mean, tau)
+npue.hat[i] <- q * N[i]     # predicted NPUE    
+}
+
+for(i in 1:P) {
+
+# Use a weakly informative beta prior on p. Note that x (M/N) doesn't change
+# much through time b/c the population numbers are large, though we want to
+# allow p to change through time due to changes in CPUE and mean size
+
+x[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
+
+# Generate a prior for p, informed by x. A large multiplier indicates our
+# confidence in x
+
+a[i] <- x[i] * 10000  # the alpha parameter in the beta distribution, used as a prior for p
+b[i] <- (1 - x[i]) * 10000  # the beta paramter in the beta distribution
+p[i] ~ dbeta(a[i],b[i]) # beta prior for p, the probability that a caught sablefish is clipped
+
+m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
+}
+
+N[P+1] <- N[P] - C[P] # account for remaining catch by adding a final period
+
+# Compute quantities of interest:
+N.avg <- mean(N[])
+sigma <- 1/sqrt(tau)
+
+}
+"
+
+# Model 4 ----
+
+# A combination of Models 1-3, estimating migration and catchability.
+
+mod4 <- "
+model {
+# Priors
+N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
+r ~ dnorm(5000, 1.0E-12) # vague prior on number of immigrants (r)
+q ~ dnorm(0.00035, 0.1)I(0,) # catchability coefficient: NPUE = q*N
+tau ~ dgamma(0.001, 1) #  tau = 1/sigma^2 for normal distribution of CPUE
+
+N[1] <- N.1
+M[1] <- M.0 * exp(-mu * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
+# M.0 = Number of tags released
+# D = Number of tags lost to fishery or longline survey
+# mu = natural mortality (daily instantaneous mortality)
+
+for(i in 2:P) {
+M[i] <- (M[i-1] - m[i-1] - D[i-1]) * exp(-mu * t[i])		# Number of marks at beginning of period i
+N[i] <- (N[i-1] - C[i-1]) * exp(-mu * t[i])	+ r*t[i]	# Total number of sablefish at beginning of period i
+NPUE[i-1] ~ dnorm(npue.hat[i], tau)    # NPUE ~ normal(mean, tau)
+npue.hat[i] <- q * N[i]     # predicted NPUE    
+}
+
+for(i in 1:P) {
+
+# Use a weakly informative beta prior on p. Note that x (M/N) doesn't change
+# much through time b/c the population numbers are large, though we want to
+# allow p to change through time due to changes in CPUE and mean size
+
+x[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
+
+# Generate a prior for p, informed by x. A large multiplier indicates our
+# confidence in x
+
+a[i] <- x[i] * 10000  # the alpha parameter in the beta distribution, used as a prior for p
+b[i] <- (1 - x[i]) * 10000  # the beta paramter in the beta distribution
+p[i] ~ dbeta(a[i],b[i]) # beta prior for p, the probability that a caught sablefish is clipped
+
+m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
+}
+
+N[P+1] <- N[P] - C[P] # account for remaining catch by adding a final period
+
+# Compute quantities of interest:
+N.avg <- mean(N[])
+sigma <- 1/sqrt(tau)
+
+}
+"
+
+# Run models ----
+
 mod1_out <- mr_jags(mod = mod1, mod_name = "Model1", 
                     model_dat = model_dat, model_years = model_years, 
                     mpar = c("N.avg", "N", "p"))
 
+mod1_out$results$P <- i + 1
+mod1_out$dic$P <- i + 1
+mod1_out$convergence_diagnostic$P <- i + 1
+
 mod2_out <- mr_jags(mod = mod2, mod_name = "Model2",
                     model_dat = model_dat, model_years = model_years, 
-                    mpar = c("N.avg", "N", "p", "b"))
+                    mpar = c("N.avg", "N", "p", "r"))
+
+mod2_out$results$P <- i + 1
+mod2_out$dic$P <- i + 1
+mod2_out$convergence_diagnostic$P <- i + 1
+
+mod3_out <- mr_jags(mod = mod3, mod_name = "Model3",
+                    model_dat = model_dat, model_years = model_years, 
+                    mpar = c("N.avg", "N", "p", "q", "npue.hat", "sigma"))
+
+mod3_out$results$P <- i + 1
+mod3_out$dic$P <- i + 1
+mod3_out$convergence_diagnostic$P <- i + 1
+
+mod4_out <- mr_jags(mod = mod4, mod_name = "Model4",
+                    model_dat = model_dat, model_years = model_years, 
+                    mpar = c("N.avg", "N", "p", "r", "q", "npue.hat", "sigma"))
+
+mod4_out$results$P <- i + 1
+mod4_out$dic$P <- i + 1
+mod4_out$convergence_diagnostic$P <- i + 1
+
+# break results apart and put them in posterior_ls, dic_ls, and converge_ls lists
+rates_ls[[i]] <- results$rates
+gaps_ls[[i]] <- results$gaps
+budget_ls[[i]] <- results$budget
+
+setTxtProgressBar(pb, i)  
+
+}
+
+# Model 2 specific results ----
 
 results <- mod2_out$results
 results %>%
-  gather("time_period", "b", contains("b[")) %>%
-  group_by(year, time_period) %>%
-  summarise(median = median(b),
-            q025 = quantile(b, 0.025),
-            q975 = quantile(b, 0.975))
+  group_by(year) %>%
+  summarise(median = median(r),
+            q025 = quantile(r, 0.025),
+            q975 = quantile(r, 0.975))
+
+# Model 3 specific results ----
+
+results <- mod3_out$results
+names(results)
+results %>%
+  group_by(year) %>%
+  summarise(median = median(q),
+            q025 = quantile(q, 0.025),
+            q975 = quantile(q, 0.975))
 
 # Model 1 Results ----
 

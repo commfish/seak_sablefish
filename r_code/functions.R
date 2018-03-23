@@ -286,24 +286,24 @@ mr_jags <- function(
   mthin = 10 # thinning rate
 ) {
   
-  # Create an empty list to store model output 
-  model_output <- vector('list', 1)
+  # # Create an empty list to store model output 
+  # model_output <- vector('list', 1)
   
   for(i in 1:length(model_years)){
     
     dat <- model_dat[[i]]
     
-    cat(mod1, file = paste0(mod_name, "_", model_years[i], ".jag"))
+    cat(mod, file = paste0(mod_name, "_", model_years[i], ".jag"))
     
     # initialize and run model
-    mod <- jags.model(paste0(mod_name, "_", model_years[i], ".jag"),
+    mod_init <- jags.model(paste0(mod_name, "_", model_years[i], ".jag"),
                       data = dat,
                       n.chains = mchains,
                       # init = tst_inits,
                       n.adapt = madapt)
     
     # sample posterior
-    res <- coda.samples(mod,
+    res <- coda.samples(mod_init,
                         var = mpar,
                         n.iter = miter,
                         thin = mthin)
@@ -328,7 +328,7 @@ mr_jags <- function(
     # Get DIC for model selection
     # https://www4.stat.ncsu.edu/~reich/st590/code/DICpois
     
-    dic <- dic.samples(mod,
+    dic <- dic.samples(mod_init,
                        var = mpar,
                        n.iter = miter,
                        thin = mthin)
@@ -355,10 +355,22 @@ mr_jags <- function(
     gelman.diag(res, multivariate = FALSE)[[1]] %>%
       data.frame() %>% 
       mutate(year = model_years[i],
-             model = mod_name) -> convergence
+             model = mod_name) %>% 
+      distinct() -> convergence
     
+    # Append results 
+    if(i == 1){
+      convergence_out <- convergence
+      rm(convergence)
+    } else {
+      convergence_out <- rbind(convergence_out, convergence) }
+    
+  } 
+  
     model_output <- list("results" = coda_res_out,
                          "dic" = dic_out,
-                         "convergence_diagnostic" = convergence)
-  }
+                         "convergence_diagnostic" = convergence_out)
+    
+    return(model_output)
+   
 }
