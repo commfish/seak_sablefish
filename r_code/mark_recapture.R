@@ -672,8 +672,15 @@ right_join(recoveries %>%
 
 # Stratify by time ----
 
-# create empty lists to hold the iterations of output from mr_jags fxn
-posterior_ls <- list()
+# create empty lists to hold the iterations of output from mr_jags fxn. have to
+# do model posteriors separately because they estimate different parameters
+
+mod1_posterior_ls <- list()
+mod2_posterior_ls <- list()
+mod3_posterior_ls <- list()
+mod4_posterior_ls <- list()
+
+N_summary_ls <- list()
 dic_ls <- list()
 converge_ls <- list()
 
@@ -685,18 +692,18 @@ converge_ls <- list()
 num_mod <- 4
 
 # Number of period (time strata) combos tests
-strats <- 3
+strats <- 9
 
 #Prepare progress bar
 pb <- txtProgressBar(min = 0, max = num_mod * strats, style = 3)
 
-for(i in 1:strats) {
+for(j in 1:strats) {
   
 # *FLAG* For now base strata on percentiles of cumulative catch. Could also used
 # number of marks observed or some other variable. STRATA_NUM is the dynamic
 # variable specifying the number of time strata to split the fishery into and it
 # currently accomodates 9 or fewer strata.
-STRATA_NUM <- i
+STRATA_NUM <- j
 
 daily_marks %>% 
   group_by(year) %>% 
@@ -1068,42 +1075,108 @@ mod1_out <- mr_jags(mod = mod1, mod_name = "Model1",
                     model_dat = model_dat, model_years = model_years, 
                     mpar = c("N.avg", "N", "p"))
 
-mod1_out$results$P <- i + 1
-mod1_out$dic$P <- i + 1
-mod1_out$convergence_diagnostic$P <- i + 1
+# Add a new column for the number of time period strata
+mod1_out$results$P <- j + 1
+mod1_out$N_summary$P <- j + 1
+mod1_out$dic$P <- j + 1
+mod1_out$convergence_diagnostic$P <- j + 1
 
+# Repeat for model 2
 mod2_out <- mr_jags(mod = mod2, mod_name = "Model2",
                     model_dat = model_dat, model_years = model_years, 
                     mpar = c("N.avg", "N", "p", "r"))
 
-mod2_out$results$P <- i + 1
-mod2_out$dic$P <- i + 1
-mod2_out$convergence_diagnostic$P <- i + 1
+mod2_out$results$P <- j + 1
+mod2_out$N_summary$P <- j + 1
+mod2_out$dic$P <- j + 1
+mod2_out$convergence_diagnostic$P <- j + 1
 
+# Repeat for model 3
 mod3_out <- mr_jags(mod = mod3, mod_name = "Model3",
                     model_dat = model_dat, model_years = model_years, 
                     mpar = c("N.avg", "N", "p", "q", "npue.hat", "sigma"))
 
-mod3_out$results$P <- i + 1
-mod3_out$dic$P <- i + 1
-mod3_out$convergence_diagnostic$P <- i + 1
+mod3_out$results$P <- j + 1
+mod3_out$N_summary$P <- j + 1
+mod3_out$dic$P <- j + 1
+mod3_out$convergence_diagnostic$P <- j + 1
 
+# Repeat for model 4
 mod4_out <- mr_jags(mod = mod4, mod_name = "Model4",
                     model_dat = model_dat, model_years = model_years, 
                     mpar = c("N.avg", "N", "p", "r", "q", "npue.hat", "sigma"))
 
-mod4_out$results$P <- i + 1
-mod4_out$dic$P <- i + 1
-mod4_out$convergence_diagnostic$P <- i + 1
+mod4_out$results$P <- j + 1
+mod4_out$N_summary$P <- j + 1
+mod4_out$dic$P <- j + 1
+mod4_out$convergence_diagnostic$P <- j + 1
 
-# break results apart and put them in posterior_ls, dic_ls, and converge_ls lists
-rates_ls[[i]] <- results$rates
-gaps_ls[[i]] <- results$gaps
-budget_ls[[i]] <- results$budget
+# combine and then break apart results to put them in n_summary_ls, dic_ls, and
+# converge_ls lists. Can do these easily because all models have the same
+# dimensions
 
-setTxtProgressBar(pb, i)  
+N_summary_ls[[j]] <- rbind(mod1_out$N_summary,
+                           mod2_out$N_summary,
+                           mod3_out$N_summary,
+                           mod4_out$N_summary) 
+
+dic_ls[[j]] <- rbind(mod1_out$dic,
+                     mod2_out$dic,
+                     mod3_out$dic,
+                     mod4_out$dic) 
+
+converge_ls[[j]] <- rbind(mod1_out$convergence_diagnostic,
+                          mod2_out$convergence_diagnostic,
+                          mod3_out$convergence_diagnostic,
+                          mod4_out$convergence_diagnostic)
+
+mod1_posterior_ls[[j]] <- mod1_out$results
+mod2_posterior_ls[[j]] <- mod2_out$results
+mod3_posterior_ls[[j]] <- mod3_out$results
+mod4_posterior_ls[[j]] <- mod4_out$results
+
+setTxtProgressBar(pb, j)  
 
 }
+
+#Calls rbind on each list item to convert the list of dfs into one long df
+N_summary <- do.call("rbind", N_summary_ls)
+dic_summary <- do.call("rbind", dic_ls)
+convergence_summary <- do.call("rbind", converge_ls)
+
+# Model selection ----
+
+dic_summary %>% 
+  arrange(year, DIC) %>% 
+  group_by(year) %>% 
+  mutate(min_DIC = min(DIC)) %>% 
+  ungroup() %>% 
+  mutate(delta_DIC = DIC - min_DIC,
+         mod_version = paste(year, model, P, sep = "_")) %>% 
+  filter(delta_DIC < 2.0) -> top_models
+
+convergence_summary %>% 
+  mutate(mod_version = paste(year, model, P, sep = "_")) %>% 
+  filter(mod_version %in% top_models$mod_version &
+           # Convergance diagnostic: A factor of 1 means that between variance and within chain
+           # variance are equal, larger values mean that there is still a notable
+           # difference between chains. General rule: everything below 1.1 or so
+           # is ok.
+           Point.est. > 1.1) # should be 0 rows!
+
+N_summary %>% 
+  mutate(mod_version = paste(year, model, P, sep = "_")) %>% 
+  filter(mod_version %in% top_models$mod_version) %>% View()
+
+N_summary %>% 
+  mutate(mod_version = paste(year, model, P, sep = "_")) %>% 
+  group_by(year) %>% 
+  mutate(min = min(N.avg),
+            max = max(N.avg)) %>% 
+  arrange(year) %>% View()
+
+# save(list = c("allrates", "allgaps", "allbudget", "allratios", "trips_melt"), file = "all_gaps_rates_MEAN_0906.Rdata")
+# load("all_gaps_rates_MEDIAN_0901.Rdata")
 
 # Model 2 specific results ----
 

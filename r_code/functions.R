@@ -367,7 +367,17 @@ mr_jags <- function(
     
   } 
   
+  # Summarize the abundance estimate for quick model comparison
+  coda_res_out %>% 
+    group_by(year) %>% 
+    summarize(N.avg = mean(N.avg) / 1000000,
+           q025 = quantile(N.avg, 0.025),
+           q975 = quantile(N.avg, 0.975),
+           median = median(N.avg)) %>% 
+    mutate(model = mod_name) -> n_summary_out
+  
     model_output <- list("results" = coda_res_out,
+                         "N_summary" = n_summary_out,
                          "dic" = dic_out,
                          "convergence_diagnostic" = convergence_out)
     
