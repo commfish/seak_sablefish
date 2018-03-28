@@ -154,7 +154,8 @@ releases %>%
 
 # Same for recoveries
 recoveries %>% 
-  filter(!is.na(length) &
+  filter(year >= FIRST_YEAR & 
+           !is.na(length) &
            measurer_type == "Scientific staff") %>% 
   mutate(length_bin = cut(length, breaks = seq(32.5, 117.5, 5),
                           labels = paste(seq(35, 115, 5)))) %>% 
@@ -684,25 +685,26 @@ N_summary_ls <- list()
 dic_ls <- list()
 converge_ls <- list()
 
+data_ls <- list() # store all 'versions' of model input data for comparison
+data_df <- list() #
 # Number of models - currently 4 competing models: 
 # 1) base model - time strata, accounts for natural mortality and catch
 # 2) model 1 + migration parameter
 # 3) model 1 + catchability parameter (incorportates NPUE data)
 # 4) model 2 + model 3
-num_mod <- 4
 
 # Number of period (time strata) combos tests
-strats <- 9
+strats <- 8
 
 #Prepare progress bar
-pb <- txtProgressBar(min = 0, max = num_mod * strats, style = 3)
+pb <- txtProgressBar(min = 0, max = strats, style = 3)
 
 for(j in 1:strats) {
   
-# *FLAG* For now base strata on percentiles of cumulative catch. Could also used
+# *FLAG* For now base strata on percentiles of cumulative catch. Could also use
 # number of marks observed or some other variable. STRATA_NUM is the dynamic
 # variable specifying the number of time strata to split the fishery into and it
-# currently accomodates 9 or fewer strata.
+# currently accomodates 8 or fewer strata.
 STRATA_NUM <- j
 
 daily_marks %>% 
@@ -771,7 +773,7 @@ for(i in 1:length(model_years)){
   
   sub_dat <-
     list(P = STRATA_NUM + 1, # number of time Periods
-         mu = 0.1/365, # Daily natural mortality
+         mu = 0.1 / 365, # Daily natural mortality
          mu.N = sub$mu.N, # mean of starting abundance values, from past assessments
          M.0 = sub$M.0,
          D.0 = sub$D.0,
@@ -918,11 +920,11 @@ N.avg <- mean(N[])
 # Model 2 ----
 
 # Same as Model 1 but now estimates immigration (b) *FLAG* the normal prior on
-# the immigration parameter, r,  allows immigration to be negative, and the model
-# estimates negative values in two years over the time series (2008 and 2017).
-# This can be fixed with a uniform prior, but I kind of like that a migration
-# parameter, accounting for potential emigration that isn't accounted for in the
-# natural mortality parameter.
+# the immigration parameter, r,  allows immigration to be negative, and the
+# model estimates negative values in two years over the time series (2008 and
+# 2017). This can be fixed with a uniform prior, but I kind of like the idea of
+# a migration parameter that accounts for net movement in/out of Chatham,
+# without relying on natural mortality to absorb emigration.
 
 mod2 <- "
 model {
@@ -974,7 +976,8 @@ mod3 <- "
 model {
 # Priors
 N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
-q ~ dnorm(0.00035, 0.1)I(0,) # catchability coefficient: NPUE = q*N
+# q ~ dnorm(0.00035, 0.1)I(0,) # catchability coefficient: NPUE = q*N # Franz's prior
+q ~ dbeta(1,1) # catchability coefficient: NPUE = q*N
 tau ~ dgamma(0.001, 1) #  tau = 1/sigma^2 for normal distribution of CPUE
 
 N[1] <- N.1
@@ -1026,7 +1029,8 @@ model {
 # Priors
 N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
 r ~ dnorm(5000, 1.0E-12) # vague prior on number of immigrants (r)
-q ~ dnorm(0.00035, 0.1)I(0,) # catchability coefficient: NPUE = q*N
+# q ~ dnorm(0.00035, 0.1)I(0,) # catchability coefficient: NPUE = q*N # Franz's prior
+q ~ dbeta(1,1) # catchability coefficient: NPUE = q*N
 tau ~ dgamma(0.001, 1) #  tau = 1/sigma^2 for normal distribution of CPUE
 
 N[1] <- N.1
@@ -1073,7 +1077,8 @@ sigma <- 1/sqrt(tau)
 
 mod1_out <- mr_jags(mod = mod1, mod_name = "Model1", 
                     model_dat = model_dat, model_years = model_years, 
-                    mpar = c("N.avg", "N", "p"))
+                    mpar = c("N.avg", "N", "p"),
+                    miter = 50000)
 
 # Add a new column for the number of time period strata
 mod1_out$results$P <- j + 1
@@ -1084,7 +1089,8 @@ mod1_out$convergence_diagnostic$P <- j + 1
 # Repeat for model 2
 mod2_out <- mr_jags(mod = mod2, mod_name = "Model2",
                     model_dat = model_dat, model_years = model_years, 
-                    mpar = c("N.avg", "N", "p", "r"))
+                    mpar = c("N.avg", "N", "p", "r"),
+                    miter = 50000)
 
 mod2_out$results$P <- j + 1
 mod2_out$N_summary$P <- j + 1
@@ -1094,7 +1100,8 @@ mod2_out$convergence_diagnostic$P <- j + 1
 # Repeat for model 3
 mod3_out <- mr_jags(mod = mod3, mod_name = "Model3",
                     model_dat = model_dat, model_years = model_years, 
-                    mpar = c("N.avg", "N", "p", "q", "npue.hat", "sigma"))
+                    mpar = c("N.avg", "N", "p", "q", "npue.hat", "sigma"),
+                    miter = 50000)
 
 mod3_out$results$P <- j + 1
 mod3_out$N_summary$P <- j + 1
@@ -1104,7 +1111,8 @@ mod3_out$convergence_diagnostic$P <- j + 1
 # Repeat for model 4
 mod4_out <- mr_jags(mod = mod4, mod_name = "Model4",
                     model_dat = model_dat, model_years = model_years, 
-                    mpar = c("N.avg", "N", "p", "r", "q", "npue.hat", "sigma"))
+                    mpar = c("N.avg", "N", "p", "r", "q", "npue.hat", "sigma"),
+                    miter = 50000)
 
 mod4_out$results$P <- j + 1
 mod4_out$N_summary$P <- j + 1
@@ -1135,6 +1143,9 @@ mod2_posterior_ls[[j]] <- mod2_out$results
 mod3_posterior_ls[[j]] <- mod3_out$results
 mod4_posterior_ls[[j]] <- mod4_out$results
 
+data_ls[[j]] <- model_dat # save the model inputs for comparison with predicted values (is list form)
+data_df[[j]] <- jags_dat # same data but in a df, more useable
+
 setTxtProgressBar(pb, j)  
 
 }
@@ -1144,58 +1155,137 @@ N_summary <- do.call("rbind", N_summary_ls)
 dic_summary <- do.call("rbind", dic_ls)
 convergence_summary <- do.call("rbind", converge_ls)
 
+# Save relevant files for later use - with 50K iterations and the default
+# thinning rate it takes about an hour to run.
+
+save(list = c("dic_summary", "N_summary", "convergence_summary",
+              "mod1_posterior_ls", "mod2_posterior_ls", 
+              "mod3_posterior_ls", "mod4_posterior_ls",
+              "data_ls", "data_df"),
+     file = "output/mark_recap_model_selection.Rdata")
+
+load("output/mark_recap_model_selection.Rdata")
+
 # Model selection ----
 
+convergence_summary %>% 
+  mutate(mod_version = paste(year, model, P, sep = "_")) %>% 
+  filter(#mod_version %in% top_models$mod_version &
+           # Convergance diagnostic: A factor of 1 means that between variance and within chain
+           # variance are equal, larger values mean that there is still a notable
+           # difference between chains. General rule: everything below 1.1 or so
+           # is ok.
+           Point.est. >= 1.1) -> not_converged 
+
+# "Top models" via DIC, remove models that were not well mixed
 dic_summary %>% 
   arrange(year, DIC) %>% 
   group_by(year) %>% 
   mutate(min_DIC = min(DIC)) %>% 
   ungroup() %>% 
-  mutate(delta_DIC = DIC - min_DIC,
-         mod_version = paste(year, model, P, sep = "_")) %>% 
-  filter(delta_DIC < 2.0) -> top_models
-
-convergence_summary %>% 
-  mutate(mod_version = paste(year, model, P, sep = "_")) %>% 
-  filter(mod_version %in% top_models$mod_version &
-           # Convergance diagnostic: A factor of 1 means that between variance and within chain
-           # variance are equal, larger values mean that there is still a notable
-           # difference between chains. General rule: everything below 1.1 or so
-           # is ok.
-           Point.est. > 1.1) # should be 0 rows!
+  mutate(delta_DIC = round(DIC - min_DIC, 2),
+         mod_version = paste(year, model, P, sep = "_")) %>%
+  select(- c(DIC, min_DIC)) %>% 
+  filter(delta_DIC <= 2.0) -> top_models
 
 N_summary %>% 
-  mutate(mod_version = paste(year, model, P, sep = "_")) %>% 
-  filter(mod_version %in% top_models$mod_version) %>% View()
+  mutate(mod_version = paste(year, model, P, sep = "_")) -> N_summary
 
 N_summary %>% 
-  mutate(mod_version = paste(year, model, P, sep = "_")) %>% 
   group_by(year) %>% 
-  mutate(min = min(N.avg),
-            max = max(N.avg)) %>% 
-  arrange(year) %>% View()
+  summarize(min = min(N.avg),
+         max = max(N.avg)) %>% 
+  melt(id.vars = "year", measure.vars = c("min", "max"), value.name = "N.avg") %>% 
+  left_join(N_summary, by = c("year", "N.avg")) %>% 
+  bind_rows(
+    # N estimates for top models  
+    N_summary %>% 
+      filter(mod_version %in% top_models$mod_version) %>% 
+      mutate(variable = "best_fit")) %>% 
+  arrange(year) %>% 
+  filter(variable == "min")
 
-# save(list = c("allrates", "allgaps", "allbudget", "allratios", "trips_melt"), file = "all_gaps_rates_MEAN_0906.Rdata")
-# load("all_gaps_rates_MEDIAN_0901.Rdata")
+ggplot() +
+  geom_histogram(data = N_summary, aes(N.avg),
+                  binwidth = 0.05) +
+  facet_wrap(~year)
 
 # Model 2 specific results ----
 
-results <- mod2_out$results
-results %>%
-  group_by(year) %>%
-  summarise(median = median(r),
-            q025 = quantile(r, 0.025),
-            q975 = quantile(r, 0.975))
+# r = net migration (can be positive or negative to indicate net immigration or
+# emigration, respetively)
+
+library(purrr)
+
+do.call("rbind", map(mod2_posterior_ls, 
+                     ~melt(.x, id.vars = c("year", "P"),
+                           measure.vars = c("N.avg", "r")) %>%
+                       group_by(year, P, variable) %>% 
+                       summarise(median = median(value),
+                                 sd = sd(value),
+                                 q025 = quantile(value, 0.025),
+                                 q975 = quantile(value, 0.975)))) %>% 
+  arrange(year, variable) %>% View()
+
+results <- mod2_posterior_ls[[8]]
+
+results %>% 
+  group_by(year) %>% 
+  mutate(r = r / 1000,
+         q025 = quantile(r, 0.025),
+         q975 = quantile(r, 0.975),
+         ci = ifelse(r >= q025 & r <=q975, 1, 0),
+         median = median(r)) %>% 
+  ggplot(aes(r)) + 
+  geom_histogram(fill = 4, alpha = 0.2, bins = 100, color = 'black') + 
+  geom_histogram(data = . %>% filter(ci==1), 
+                 aes(r), fill = 4, alpha = 0.6, bins = 100) +
+  geom_vline(aes(xintercept = median), col = "red", linetype = 2, size = 1) +
+  geom_vline(aes(xintercept = 0), col = "blue", linetype = 1, size = 1) +
+  facet_wrap(~ year, ncol = 2) +
+  labs(x = "Net migration of sablefish (x 1000)",
+       y = "Posterior distribution") +
+  xlim(c(-30, 40))
 
 # Model 3 specific results ----
 
-results <- mod3_out$results
-names(results)
-results %>%
-  group_by(year) %>%
-  summarise(median = median(q),
+do.call("rbind", map(mod3_posterior_ls, 
+                     ~melt(.x, id.vars = c("year", "P"),
+                           measure.vars = c("N.avg", "q")) %>%
+                       group_by(year, P, variable) %>% 
+                       summarise(median = median(value),
+                                 sd = sd(value),
+                                 q025 = quantile(value, 0.025),
+                                 q975 = quantile(value, 0.975)))) %>% 
+  arrange(year, variable) %>% View()
+
+
+results <- mod3_posterior_ls[[7]]
+
+# Viewing 
+results %>% 
+  group_by(year) %>% 
+  mutate(q025 = quantile(q, 0.025),
+         q975 = quantile(q, 0.975),
+         ci = ifelse(q >= q025 & q <=q975, 1, 0),
+         median = median(q)) %>% 
+  ggplot(aes(q)) + 
+  geom_histogram(fill = 4, alpha = 0.2, bins = 100, color = 'black') + 
+  geom_histogram(data = . %>% filter(ci==1), 
+                 aes(q), fill = 4, alpha = 0.6, bins = 100) +
+  geom_vline(aes(xintercept = median), col = "red", linetype = 2, size = 1) +
+  facet_wrap(~ year, ncol = 2) +
+  labs(x = "Catchability (q)",
+       y = "Posterior distribution") +
+  xlim(c(0.00002, 0.00009))
+
+results %>% 
+  group_by(year) %>% 
+  summarize(median = median(q),
             q025 = quantile(q, 0.025),
             q975 = quantile(q, 0.975))
+
+
 
 # Model 1 Results ----
 
@@ -1222,7 +1312,7 @@ results %>%
   mutate(N = N / 1000000,
          # interpolate the CI in missing years for plotting purposes
          q025 = zoo::na.approx(q025 / 1000000, maxgap = 20, rule = 2),
-         q975 = zoo::na.approx(q975 / 1000000, maxgap = 20, rule = 2)) %>% 
+         q975 = zoo::na.approx(q975 / 1000000, maxgap = 20, rule = 2)) %>%
   ggplot() +
   geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), 
              size = 3) +
@@ -1237,7 +1327,7 @@ results %>%
                mutate(est = abundance_age2plus / 1000000),
              aes(x = year, y = est), 
              shape = 8, size = 3, colour = "darkcyan") +
-  ylim(c(1, 3.5)) +
+  # ylim(c(1, 3.5)) +
   labs(x = "", y = "Number of sablefish (millions)\n",
        colour = NULL, shape = NULL) +
   theme(legend.position = c(.8, .8))
