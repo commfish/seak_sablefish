@@ -45,6 +45,8 @@
 # 626 = 26 = Canadian Scientific Survey
 # 627 = 27 = Subsistence/Personal Use
 # 628 = 28 = Sport-caught Sample
+# --- = 61 = Longline
+# --- = 91 = Pot
 
 # most recent year of data
 YEAR <- 2017
@@ -699,3 +701,15 @@ list.files(path = "data/fishery/raw_data/", pattern = "nsei_daily_tag_accounting
          whole_kg = round_lbs * 0.453592)  %>% 
   write_csv(paste("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
   
+# Historical tagging ----
+
+query <-
+" select  *
+  from    out_g_bio_tag_rel_rec
+  where   rel_species_code = '710'"
+
+dbGetQuery(ifdb_channel, query) -> historical
+
+table(historical$REL_YEAR,
+      historical$REL_GEAR_CODE, 
+      historical$REL_MANAGEMENT_AREA)

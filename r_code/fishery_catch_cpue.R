@@ -83,6 +83,19 @@ fsh_cpue %>%
             lower = annual_cpue - sdev) -> fsh_sum #%>% 
   #mutate(lower = ifelse(lower < 0, 0, lower))  #-> srv_cpue
 
+# Percent change in fishery cpue compared to a ten year rolling average
+fsh_sum %>% 
+  filter(year > YEAR - 10) %>% 
+  mutate(lt_mean = mean(annual_cpue),
+         perc_change_lt = (annual_cpue - lt_mean) / lt_mean * 100) 
+
+# Percent change in fishery cpue from last year
+fsh_sum %>% 
+  filter(year >= YEAR - 1) %>%
+  select(year, annual_cpue) %>% 
+  dcast("annual_cpue" ~ year) %>% 
+  mutate(perc_change_ly = (`2017` - `2016`) / `2016` * 100)
+
 # figures
 
 ggplot(fsh_sum) +
