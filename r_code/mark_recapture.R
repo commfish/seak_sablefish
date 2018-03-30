@@ -12,6 +12,7 @@ library(rjags) # run jags/bugs models
 library(tidyr)
 library(knitr)
 library(forcats)
+library(purrr)
 
 # Variable definitions ----
 
@@ -1028,7 +1029,7 @@ mod4 <- "
 model {
 # Priors
 N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
-r ~ dnorm(5000, 1.0E-12) # vague prior on number of immigrants (r)
+r ~ dnorm(5000, 1.0E-12) # vague prior on number of migrants (r)
 # q ~ dnorm(0.00035, 0.1)I(0,) # catchability coefficient: NPUE = q*N # Franz's prior
 q ~ dbeta(1,1) # catchability coefficient: NPUE = q*N
 tau ~ dgamma(0.001, 1) #  tau = 1/sigma^2 for normal distribution of CPUE
@@ -1058,7 +1059,7 @@ x[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped (x = nomin
 # confidence in x
 
 a[i] <- x[i] * 10000  # the alpha parameter in the beta distribution, used as a prior for p
-b[i] <- (1 - x[i]) * 10000  # the beta paramter in the beta distribution
+b[i] <- (1 - x[i]) * 10000  # the beta parameter in the beta distribution
 p[i] ~ dbeta(a[i],b[i]) # beta prior for p, the probability that a caught sablefish is clipped
 
 m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
@@ -1185,7 +1186,7 @@ dic_summary %>%
   ungroup() %>% 
   mutate(delta_DIC = round(DIC - min_DIC, 2),
          mod_version = paste(year, model, P, sep = "_")) %>%
-  select(- c(DIC, min_DIC)) %>% 
+  select(- c(DIC, min_DIC)) %>% View()
   filter(delta_DIC <= 2.0) -> top_models
 
 N_summary %>% 
@@ -1212,20 +1213,210 @@ ggplot() +
 
 # Model 2 specific results ----
 
-# r = net migration (can be positive or negative to indicate net immigration or
-# emigration, respetively)
+# Summary of posterior distributions of quantities of interest, including
+# estimates of abundance (N.avg), net migration (r) which can be positive or
+# negative to indicate net immigration or emigration, respetively, and
+# catchability (q): map() applies the summary functions after the ~ to each df
+# in the list. do.call() rbinds the output together. Repeat this for each model
+# and rbind into one summary df.
+bind_rows(
+  do.call("rbind", map(mod1_posterior_ls, 
+                       ~melt(.x, id.vars = c("year", "P"),
+                             measure.vars = c("N.avg")) %>%
+                         group_by(year, P, variable) %>% 
+                         summarise(median = median(value),
+                                   sd = sd(value),
+                                   q025 = quantile(value, 0.025),
+                                   q975 = quantile(value, 0.975)))) %>% 
+    arrange(year, variable) %>%
+    mutate(model = "Model1",
+           mod_version = paste(year, model, P, sep = "_")),
+  
+  do.call("rbind", map(mod2_posterior_ls, 
+                       ~melt(.x, id.vars = c("year", "P"),
+                             measure.vars = c("N.avg", "r")) %>%
+                         group_by(year, P, variable) %>% 
+                         summarise(median = median(value),
+                                   sd = sd(value),
+                                   q025 = quantile(value, 0.025),
+                                   q975 = quantile(value, 0.975)))) %>% 
+    arrange(year, variable) %>%
+    mutate(model = "Model2",
+           mod_version = paste(year, model, P, sep = "_")),
+  
+  do.call("rbind", map(mod3_posterior_ls, 
+                       ~melt(.x, id.vars = c("year", "P"),
+                             measure.vars = c("N.avg", "q")) %>%
+                         group_by(year, P, variable) %>% 
+                         summarise(median = median(value),
+                                   sd = sd(value),
+                                   q025 = quantile(value, 0.025),
+                                   q975 = quantile(value, 0.975)))) %>% 
+    arrange(year, variable) %>%
+    mutate(model = "Model3",
+           mod_version = paste(year, model, P, sep = "_")),
+  
+  do.call("rbind", map(mod4_posterior_ls, 
+                       ~melt(.x, id.vars = c("year", "P"),
+                             measure.vars = c("N.avg", "r", "q")) %>%
+                         group_by(year, P, variable) %>% 
+                         summarise(median = median(value),
+                                   sd = sd(value),
+                                   q025 = quantile(value, 0.025),
+                                   q975 = quantile(value, 0.975)))) %>% 
+    arrange(year, variable) %>% 
+    mutate(model = "Model4",
+           mod_version = paste(year, model, P, sep = "_"))) -> post_sums
 
-library(purrr)
+# Scale parameters within model and year to test effect of increasing P (time
+# periods) on point and variance estimates
+post_sums %>% 
+  group_by(year, model, variable) %>% 
+  mutate(scale_within_median = scale(median),
+         scale_within_sd = scale(sd)) %>% 
+  # scale parameters between models to test the effect of different
+  # parameterizations and increasing P on parameter point and variance
+  # estimates.
+  group_by(year, variable) %>% 
+  mutate(scale_btwn_median = scale(median),
+         scale_btwn_sd = scale(sd)) -> post_sums
 
-do.call("rbind", map(mod2_posterior_ls, 
-                     ~melt(.x, id.vars = c("year", "P"),
-                           measure.vars = c("N.avg", "r")) %>%
-                       group_by(year, P, variable) %>% 
-                       summarise(median = median(value),
-                                 sd = sd(value),
-                                 q025 = quantile(value, 0.025),
-                                 q975 = quantile(value, 0.975)))) %>% 
-  arrange(year, variable) %>% View()
+# Examination of abundance (scaled within model) - trends are strikingly similar
+# between models, but there is no clear trend in abundance estimate response to
+# increasing P. 4/10 years the estimates decrease with increasing P, 5/10
+# increase, and 1/10 (2008) decreases with P then increases again
+ggplot(post_sums %>% filter(variable == "N.avg")) +
+  geom_point(aes(x = P, y = scale_within_median, 
+                 colour = model)) +
+  geom_smooth(span = 2, se = FALSE,
+              aes(x = P, y = scale_within_median, 
+                  colour = model, group = model)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x = "\nNumber of time periods",
+       y = "Abundance scaled within models\n") +
+  facet_wrap(~ year, ncol = 2)
+
+# Steep decreasing trend in variability with increasing P
+ggplot(post_sums %>% filter(variable == "N.avg")) +
+  geom_point(aes(x = P, y = scale_within_sd, 
+                 colour = model)) +
+  geom_smooth(span = 2, se = FALSE,
+              aes(x = P, y = scale_within_sd, 
+                  colour = model, group = model)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x = "\nNumber of time periods",
+       y = "SD of abundance scaled within models\n")
+
+# Examination of abundance (scaled between models) - trends with P are similar
+# as the within model examination... more strinking are the consistent between
+# models trends. Model 2 has the greatest estimates for N by ~ 1 sd for all yrs
+# except 2017, followed by Model 4 or 1. Model 3 has the lowest estimate of N
+# for all years.
+ggplot(post_sums %>% filter(variable == "N.avg")) +
+  geom_point(aes(x = P, y = scale_btwn_median, 
+                 colour = model)) +
+  geom_smooth(span = 2, se = FALSE,
+              aes(x = P, y = scale_btwn_median, 
+                  colour = model, group = model)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x = "\nNumber of time periods",
+       y = "Abundance scaled between models\n") +
+  facet_wrap(~ year, ncol = 2)
+
+# All models show sd of abundance decreasing with P, but between model variation
+# shows that Model 2 consistently has the highest variability, followed by Model
+# 4, and Models 1/3.
+ggplot(post_sums %>% filter(variable == "N.avg")) +
+  geom_point(aes(x = P, y = scale_btwn_sd, 
+                 colour = model)) +
+  geom_smooth(span = 2, se = FALSE,
+              aes(x = P, y = scale_btwn_sd, 
+                  colour = model, group = model)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x = "\nNumber of time periods",
+       y = "SD of abundance scaled between models\n")
+
+# Examination of migration (r) (scaled within model) - trends with P between
+# models are  similar but don't track quite as closely as they did with N.
+# Trends are also different between years, which confirms that increasing P does
+# not have a predictable response in terms of it's directional impact on a point
+# esitmate.
+ggplot(post_sums %>% filter(variable == "r")) +
+  geom_point(aes(x = P, y = scale_within_median, 
+                 colour = model)) +
+  geom_smooth(span = 2, se = FALSE,
+              aes(x = P, y = scale_within_median, 
+                  colour = model, group = model)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x = "\nNumber of time periods",
+       y = "Net migration scaled within models\n") +
+  facet_wrap(~ year, ncol = 2)
+
+# Examination of migration (r) (scaled between models) - Model 2 has higher
+# estimates of r in all years except 2008 and 2017.
+ggplot(post_sums %>% filter(variable == "r")) +
+  geom_point(aes(x = P, y = scale_btwn_median, 
+                 colour = model)) +
+  geom_smooth(span = 2, se = FALSE,
+              aes(x = P, y = scale_btwn_median, 
+                  colour = model, group = model)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x = "\nNumber of time periods",
+       y = "Net migration scaled between models\n") +
+  facet_wrap(~ year, ncol = 2)
+
+# Variance in r decreases with P, as with N.avg and is greater in Model 2 than
+# Model 4
+ggplot(post_sums %>% filter(variable == "r")) +
+  geom_point(aes(x = P, y = scale_btwn_sd, 
+                 colour = model)) +
+  geom_smooth(span = 2, se = FALSE,
+              aes(x = P, y = scale_btwn_sd, 
+                  colour = model, group = model)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x = "\nNumber of time periods",
+       y = "SD of net migration scaled between models\n")
+
+# Examination of catchability (q) (scaled within model) *IMPORTANT* models
+# estimating q must have P >= 3. Otherwise q appears to be constant and well
+# estimated across years and P
+ggplot(post_sums %>% filter(variable == "q")) +
+  geom_point(aes(x = P, y = scale_within_median, 
+                 colour = model)) +
+  geom_smooth(span = 2, se = FALSE,
+              aes(x = P, y = scale_within_median, 
+                  colour = model, group = model)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x = "\nNumber of time periods",
+       y = "Catchability scaled within models\n") +
+  facet_wrap(~ year, ncol = 2)
+
+# Examination of of catchability (q) estimates(scaled between models) - there
+# appears to be few differences between models.
+ggplot(post_sums %>% filter(variable == "q")) +
+  geom_point(aes(x = P, y = scale_btwn_median, 
+                 colour = model)) +
+  geom_smooth(span = 2, se = FALSE,
+              aes(x = P, y = scale_btwn_median, 
+                  colour = model, group = model)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x = "\nNumber of time periods",
+       y = "Catchability scaled between models\n") +
+  facet_wrap(~ year, ncol = 2)
+
+# The variance estimate of q is very high when P=2, but otherwise stays constant
+# across all values of P (does not decrease with increasing P as with other
+# parameters). There is no difference in variance between models
+# and years is very small.
+ggplot(post_sums %>% filter(variable == "q")) +
+  geom_point(aes(x = P, y = scale_btwn_sd, 
+                 colour = model)) +
+  # geom_line(aes(x = P, y = scale_btwn_sd, 
+  #                 colour = model, group = model)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x = "\nNumber of time periods",
+       y = "SD of catchability scaled between models\n")
+
 
 results <- mod2_posterior_ls[[8]]
 
@@ -1249,20 +1440,12 @@ results %>%
 
 # Model 3 specific results ----
 
-do.call("rbind", map(mod3_posterior_ls, 
-                     ~melt(.x, id.vars = c("year", "P"),
-                           measure.vars = c("N.avg", "q")) %>%
-                       group_by(year, P, variable) %>% 
-                       summarise(median = median(value),
-                                 sd = sd(value),
-                                 q025 = quantile(value, 0.025),
-                                 q975 = quantile(value, 0.975)))) %>% 
-  arrange(year, variable) %>% View()
+
 
 
 results <- mod3_posterior_ls[[7]]
 
-# Viewing 
+# Plot catchability
 results %>% 
   group_by(year) %>% 
   mutate(q025 = quantile(q, 0.025),
@@ -1284,6 +1467,9 @@ results %>%
   summarize(median = median(q),
             q025 = quantile(q, 0.025),
             q975 = quantile(q, 0.975))
+
+# Model 4 specific results
+
 
 
 
