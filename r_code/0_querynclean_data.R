@@ -295,7 +295,7 @@ read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
   # hooks and cpue
   mutate(date = ymd(as.Date(TIME_SET)), #ISO 8601 format
          julian_day = yday(date),
-         time_fished = difftime(TIME_HAULED, TIME_SET, units = "hours"),
+         soak = difftime(TIME_HAULED, TIME_SET, units = "hours"),
          Gear = factor(LONGLINE_SYSTEM_CODE),
          Hook_size = HOOK_SIZE, 
          hook_space = HOOK_SPACING, #*FLAG* - check that hook_space is in inches
@@ -303,7 +303,7 @@ read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
          no_hooks = NUMBER_OF_HOOKS,
          sable_lbs_set = SABLE_LBS_PER_SET) %>% 
   select(year = YEAR, trip_no = TRIP_NO, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
-         time_fished, Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, 
+         soak, Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, 
          hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
          sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
          start_lon = START_LONGITUDE_DECIMAL_DEGREE) -> fsh_eff
@@ -401,7 +401,8 @@ read_csv(paste0("data/survey/raw_data/llsrv_cpue_",
          guess_max = 50000) %>% 
   filter(YEAR <= YEAR) %>% #the programmers have some dummy data in the db for the upcoming year
   mutate(date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
-         julian_day = yday(date)) %>% 
+         julian_day = yday(date),
+         soak = difftime(TIME_HAULED, TIME_SET, units = "hours")) %>% 
   select(year = YEAR, Mgmt_area = G_MANAGEMENT_AREA_CODE, Project_cde = PROJECT_CODE, 
          trip_no = TRIP_NO, Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
          Stat = STAT, Mgmt_area = G_MANAGEMENT_AREA_CODE, Spp_cde = SPECIES_CODE, 

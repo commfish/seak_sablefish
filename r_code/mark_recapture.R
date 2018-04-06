@@ -17,18 +17,18 @@ library(purrr)
 # Variable definitions ----
 
 # N.0 = number of sablefish in Chatham Strait at time of marking
-# M.0 = number of marks released
+# K.0 = number of marks released
 # D.0 = number of marks that are not available to either the LL survey or to the fishery
 # D_i = number of tags lost in a time period that should be decremented from the
 #       next time period
 # i = subscript for time period i, which may refer to the LL survey (i = 1)
 #        to one of the fishery time periods based on time of landing
 # N_i = number of sablefish in Chatham Strait at the beginning of time period i
-# M_i = number of marked sablefish in Chatham Straight at the beginning of time period i
+# K_i = number of marked sablefish in Chatham Straight at the beginning of time period i
 # t_i = total number of days in time period i
 # n_i = observed catch (number of marked and unmarked sablefish that were
 #       checked for clips, or tags in the LL survey) during period i
-# m_i = number of marked fish recovered in period i (tags in the LL survey)
+# k_i = number of marked fish recovered in period i (tags in the LL survey)
 
 # Summary of marking effort 2003 to present. This could be wrong. I tried to
 # pull from the original assessments but the numbers Kray used to estimate past
@@ -295,7 +295,7 @@ releases %>%
            # made
            !tag_no %in% throw_out$tag_no) %>% 
   group_by(year, tag_batch_no) %>% 
-  summarise(M.0 = n_distinct(tag_no),
+  summarise(K.0 = n_distinct(tag_no),
             potsrv_beg = min(date),
             potsrv_end = max(date),
             # FLAG: Mueter (2007) defined the length of time period 1 (t.1) as
@@ -366,7 +366,7 @@ ggsave(paste0("figures/movement_matrix_",
 recoveries %>% 
   filter(Project_cde == "03") %>% 
   group_by(year, tag_batch_no) %>%
-  summarise(m.1 = n_distinct(tag_no)) %>% 
+  summarise(k.1 = n_distinct(tag_no)) %>% 
   left_join(tag_summary, by = c("year", "tag_batch_no")) -> tag_summary
 
 # Remove tags recovered in the survey from the releases df so they don't get double-counted by accident. 
@@ -607,8 +607,8 @@ recoveries %>% filter(!c(date %in% daily_marks$date)) -> recoveries
 # trip/date info, or Canada, or IPHCS/NMFS/other surveys.Potential periods of
 # remaining tag loss:
 #   1) Between start of pot survey and day before start of LL survey (D.0)
-#   2) Beginning of longline survey and day before start of fishery (D_1)
-#   3) During fishery (fishery_D will become D_i)
+#   2) Beginning of longline survey and day before start of fishery (D.1)
+#   3) During fishery (fishery_D will become D.i)
 #   4) After survey (postfishery_D) 
 
 # The remaining tag recoveries without dates appear to be best suited to the 
@@ -721,7 +721,7 @@ daily_marks %>%
   summarize(t = n_distinct(date),
             catch_kg = sum(whole_kg) %>% round(1),
             n = sum(total_obs),
-            m = sum(total_marked),
+            k = sum(total_marked),
             D = sum(fishery_D),
             NPUE = mean(mean_npue, na.rm = TRUE) %>% round(1),
             # Use the interpolated mean weight here so it doesn't break at large
@@ -731,14 +731,14 @@ daily_marks %>%
 
 # Running Chapman estimator
 strata_sum %>% 
-  left_join(tag_summary %>% select(year, M.0), by = "year") %>% 
+  left_join(tag_summary %>% select(year, K.0), by = "year") %>% 
   group_by(year, catch_strata) %>% 
   # This doesn't deduct the period specific D's and is a rough estimator
-  mutate(running_Chapman = ((M.0 + 1)*(n + 1) / (m + 1)) - 1) -> strata_sum
+  mutate(running_Chapman = ((K.0 + 1)*(n + 1) / (k + 1)) - 1) -> strata_sum
 
 # Prep data for JAGS ----  
 dcast(setDT(strata_sum), year ~ catch_strata, 
-      value.var = c("D", "C", "n", "t","m", "NPUE"), sep = ".") %>% 
+      value.var = c("D", "C", "n", "t", "k", "NPUE"), sep = ".") %>% 
   left_join(tag_summary, by = "year") %>% 
   # order the columns alphanumerically - very convenient
   select(year, order(colnames(.))) %>% 
@@ -747,8 +747,8 @@ dcast(setDT(strata_sum), year ~ catch_strata,
   select(- NPUE.1) -> jags_dat
 
 jags_dat %>%
-  select(year, M.0, contains("D."), contains("C."), starts_with("n."), 
-         starts_with("t."), contains("m."), contains("NPUE.")) -> jags_dat
+  select(year, K.0, contains("D."), contains("C."), starts_with("n."), 
+         starts_with("t."), contains("k."), contains("NPUE.")) -> jags_dat
 
 # Add in the abundance estimates from the past assessments as mu.N (the mean for
 # the prior on N.1)
@@ -774,15 +774,15 @@ for(i in 1:length(model_years)){
   
   sub_dat <-
     list(P = STRATA_NUM + 1, # number of time Periods
-         mu = 0.1 / 365, # Daily natural mortality
+         M = 0.1 / 365, # Daily natural mortality
          mu.N = sub$mu.N, # mean of starting abundance values, from past assessments
-         M.0 = sub$M.0,
+         K.0 = sub$K.0,
          D.0 = sub$D.0,
          C = select(sub, contains("C.")) %>% as.numeric() , 
          D = select(sub, contains("D."), -D.0) %>% as.numeric(),
          t = select(sub, contains("t.")) %>% as.numeric(),
          n = select(sub, contains("n.")) %>% as.numeric(),
-         m = select(sub, contains("m."), -M.0) %>% as.numeric(),
+         k = select(sub, contains("k."), -K.0) %>% as.numeric(),
          NPUE = select(sub, contains("NPUE.")) %>% as.numeric()
          )
   
@@ -816,7 +816,8 @@ for(i in 1:length(model_years)){
 
 # Prior on p ----
 
-# Visualize choice of prior for p, the probabilty of catching a marked sabelfish.
+# Visualize choice of prior for p, the probabilty of catching a marked
+# sabelfish.
 
 # https://stats.stackexchange.com/questions/58564/help-me-understand-bayesian-prior-and-posterior-distributions/58792#58792
 
@@ -831,7 +832,7 @@ for(i in 1:length(model_years)){
 #                     'n_eq'= rep(n_eq, length(dom))))
 # }
 #
-# m <- 0.0031 # The M/N in 2017
+# m <- 0.0031 # The K/N in 2017
 #
 # bind_rows(prior(m, n_eq = 10000),
 #           prior(m, n_eq = 5000),
@@ -883,23 +884,23 @@ model {
 N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
 
 N[1] <- N.1
-M[1] <- M.0 * exp(-mu * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
-# M.0 = Number of tags released
+K[1] <- K.0 * exp(-M * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
+# K.0 = Number of tags released
 # D = Number of tags lost to fishery or longline survey
-# mu = natural mortality (daily instantaneous mortality)
+# M = natural mortality (daily instantaneous mortality)
 
 for(i in 2:P) {
-M[i] <- (M[i-1] - m[i-1] - D[i-1]) * exp(-mu * t[i])		# Number of marks at beginning of period i
-N[i] <- (N[i-1] - C[i-1]) * exp(-mu * t[i])		# Total number of sablefish at beginning of period i
+K[i] <- (K[i-1] - k[i-1] - D[i-1]) * exp(-M * t[i])		# Number of marks at beginning of period i
+N[i] <- (N[i-1] - C[i-1]) * exp(-M * t[i])		# Total number of sablefish at beginning of period i
 }
 
 for(i in 1:P) {
 
-# Use a weakly informative beta prior on p. Note that x (M/N) doesn't change
+# Use a weakly informative beta prior on p. Note that x (K/N) doesn't change
 # much through time b/c the population numbers are large, though we want to
 # allow p to change through time due to changes in CPUE and mean size
 
-x[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
+x[i] <- K[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
 
 # Generate a prior for p, informed by x. A large multiplier indicates our
 # confidence in x
@@ -908,7 +909,7 @@ a[i] <- x[i] * 10000  # the alpha parameter in the beta distribution, used as a 
 b[i] <- (1 - x[i]) * 10000  # the beta paramter in the beta distribution
 p[i] ~ dbeta(a[i],b[i]) # beta prior for p, the probability that a caught sablefish is clipped
 
-m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
+k[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
 }
 
 N[P+1] <- N[P] - C[P] # account for remaining catch by adding a final period
@@ -934,23 +935,23 @@ N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning o
 r ~ dnorm(5000, 1.0E-12) # vague prior on number of immigrants (r)
 
 N[1] <- N.1
-M[1] <- M.0 * exp(-mu * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
-# M.0 = Number of tags released
+K[1] <- K.0 * exp(-M * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
+# K.0 = Number of tags released
 # D = Number of tags lost to fishery or longline survey
-# mu = natural mortality (daily instantaneous mortality)
+# M = natural mortality (daily instantaneous mortality)
 
 for(i in 2:P) {
-M[i] <- (M[i-1] - m[i-1] - D[i-1]) * exp(-mu * t[i])		# Number of marks at beginning of period i
-N[i] <- (N[i-1] - C[i-1]) * exp(-mu * t[i]) + r*t[i]		# Total number of sablefish at beginning of period i, including immigration
+K[i] <- (K[i-1] - k[i-1] - D[i-1]) * exp(-M * t[i])		# Number of marks at beginning of period i
+N[i] <- (N[i-1] - C[i-1]) * exp(-M * t[i]) + r*t[i]		# Total number of sablefish at beginning of period i, including immigration
 }
 
 for(i in 1:P) {
 
-# Use a weakly informative beta prior on p. Note that x (M/N) doesn't change
+# Use a weakly informative beta prior on p. Note that x (K/N) doesn't change
 # much through time b/c the population numbers are large, though we want to
 # allow p to change through time due to changes in CPUE and mean size
 
-x[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
+x[i] <- K[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
 
 # Generate a prior for p, informed by x. A large multiplier indicates our
 # confidence in x
@@ -959,7 +960,7 @@ a[i] <- x[i] * 10000  # the alpha parameter in the beta distribution, used as a 
 b[i] <- (1 - x[i]) * 10000  # the beta paramter in the beta distribution
 p[i] ~ dbeta(a[i],b[i]) # beta prior for p, the probability that a caught sablefish is clipped
 
-m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
+k[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
 }
 
 N[P+1] <- N[P] - C[P] # account for remaining catch by adding a final period
@@ -982,25 +983,25 @@ q ~ dbeta(1,1) # catchability coefficient: NPUE = q*N
 tau ~ dgamma(0.001, 1) #  tau = 1/sigma^2 for normal distribution of CPUE
 
 N[1] <- N.1
-M[1] <- M.0 * exp(-mu * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
-# M.0 = Number of tags released
+K[1] <- K.0 * exp(-M * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
+# K.0 = Number of tags released
 # D = Number of tags lost to fishery or longline survey
-# mu = natural mortality (daily instantaneous mortality)
+# M = natural mortality (daily instantaneous mortality)
 
 for(i in 2:P) {
-M[i] <- (M[i-1] - m[i-1] - D[i-1]) * exp(-mu * t[i])		# Number of marks at beginning of period i
-N[i] <- (N[i-1] - C[i-1]) * exp(-mu * t[i])		# Total number of sablefish at beginning of period i
+K[i] <- (K[i-1] - k[i-1] - D[i-1]) * exp(-M * t[i])		# Number of marks at beginning of period i
+N[i] <- (N[i-1] - C[i-1]) * exp(-M * t[i])		# Total number of sablefish at beginning of period i
 NPUE[i-1] ~ dnorm(npue.hat[i], tau)    # NPUE ~ normal(mean, tau)
 npue.hat[i] <- q * N[i]     # predicted NPUE    
 }
 
 for(i in 1:P) {
 
-# Use a weakly informative beta prior on p. Note that x (M/N) doesn't change
+# Use a weakly informative beta prior on p. Note that x (K/N) doesn't change
 # much through time b/c the population numbers are large, though we want to
 # allow p to change through time due to changes in CPUE and mean size
 
-x[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
+x[i] <- K[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
 
 # Generate a prior for p, informed by x. A large multiplier indicates our
 # confidence in x
@@ -1009,7 +1010,7 @@ a[i] <- x[i] * 10000  # the alpha parameter in the beta distribution, used as a 
 b[i] <- (1 - x[i]) * 10000  # the beta paramter in the beta distribution
 p[i] ~ dbeta(a[i],b[i]) # beta prior for p, the probability that a caught sablefish is clipped
 
-m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
+k[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
 }
 
 N[P+1] <- N[P] - C[P] # account for remaining catch by adding a final period
@@ -1035,25 +1036,25 @@ q ~ dbeta(1,1) # catchability coefficient: NPUE = q*N
 tau ~ dgamma(0.001, 1) #  tau = 1/sigma^2 for normal distribution of CPUE
 
 N[1] <- N.1
-M[1] <- M.0 * exp(-mu * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
-# M.0 = Number of tags released
+K[1] <- K.0 * exp(-M * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
+# K.0 = Number of tags released
 # D = Number of tags lost to fishery or longline survey
-# mu = natural mortality (daily instantaneous mortality)
+# M = natural mortality (daily instantaneous mortality)
 
 for(i in 2:P) {
-M[i] <- (M[i-1] - m[i-1] - D[i-1]) * exp(-mu * t[i])		# Number of marks at beginning of period i
-N[i] <- (N[i-1] - C[i-1]) * exp(-mu * t[i])	+ r*t[i]	# Total number of sablefish at beginning of period i
+K[i] <- (K[i-1] - k[i-1] - D[i-1]) * exp(-M * t[i])		# Number of marks at beginning of period i
+N[i] <- (N[i-1] - C[i-1]) * exp(-M * t[i])	+ r*t[i]	# Total number of sablefish at beginning of period i
 NPUE[i-1] ~ dnorm(npue.hat[i], tau)    # NPUE ~ normal(mean, tau)
 npue.hat[i] <- q * N[i]     # predicted NPUE    
 }
 
 for(i in 1:P) {
 
-# Use a weakly informative beta prior on p. Note that x (M/N) doesn't change
+# Use a weakly informative beta prior on p. Note that x (K/N) doesn't change
 # much through time b/c the population numbers are large, though we want to
 # allow p to change through time due to changes in CPUE and mean size
 
-x[i] <- M[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
+x[i] <- K[i] / N[i]	 # probability that a caught sablefish is clipped (x = nominal p)
 
 # Generate a prior for p, informed by x. A large multiplier indicates our
 # confidence in x
@@ -1062,7 +1063,7 @@ a[i] <- x[i] * 10000  # the alpha parameter in the beta distribution, used as a 
 b[i] <- (1 - x[i]) * 10000  # the beta parameter in the beta distribution
 p[i] ~ dbeta(a[i],b[i]) # beta prior for p, the probability that a caught sablefish is clipped
 
-m[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
+k[i] ~ dbin(p[i], n[i])	 # Number of clipped fish ~ binomial(p, n)
 }
 
 N[P+1] <- N[P] - C[P] # account for remaining catch by adding a final period
@@ -1171,12 +1172,13 @@ load("output/mark_recap_model_selection.Rdata")
 
 convergence_summary %>% 
   mutate(mod_version = paste(year, model, P, sep = "_")) %>% 
-  filter(#mod_version %in% top_models$mod_version &
-           # Convergance diagnostic: A factor of 1 means that between variance and within chain
-           # variance are equal, larger values mean that there is still a notable
-           # difference between chains. General rule: everything below 1.1 or so
-           # is ok.
-           Point.est. >= 1.1) -> not_converged 
+  filter(# Convergance diagnostic: A factor of 1 means that between variance and within chain
+    # variance are equal, larger values mean that there is still a notable
+    # difference between chains. General rule: everything below 1.1 or so
+    # is ok.
+    Point.est. >= 1.1) -> not_converged
+
+not_converaged %>% distinct(model, P) # do not include models that estimate q unless they have > 3 periods
 
 # "Top models" via DIC, remove models that were not well mixed
 dic_summary %>% 
@@ -1186,30 +1188,65 @@ dic_summary %>%
   ungroup() %>% 
   mutate(delta_DIC = round(DIC - min_DIC, 2),
          mod_version = paste(year, model, P, sep = "_")) %>%
-  select(- c(DIC, min_DIC)) %>% View()
+  select(- c(DIC, min_DIC)) %>% 
   filter(delta_DIC <= 2.0) -> top_models
 
-N_summary %>% 
-  mutate(mod_version = paste(year, model, P, sep = "_")) -> N_summary
+
+# Use model selection to help
+dic_summary %>% 
+  group_by(model) %>% 
+  mutate(min_DIC = min(DIC)) %>% 
+  ungroup() %>% 
+  mutate(delta_DIC = round(DIC - min_DIC, 2),
+         mod_version2 = paste(model, P, sep = "_")) %>% 
+  select(- c(DIC, min_DIC)) %>% 
+  filter(delta_DIC <= 2.0) %>% 
+  distinct(mod_version2) -> top_mods2
+
+# Models 1 and 2 perform best when P = 2, Models 3 and 4 best when P = 4 by DIC.
+# Model 1 and 2 "top" models by DIC.
 
 N_summary %>% 
-  group_by(year) %>% 
-  summarize(min = min(N.avg),
-         max = max(N.avg)) %>% 
-  melt(id.vars = "year", measure.vars = c("min", "max"), value.name = "N.avg") %>% 
-  left_join(N_summary, by = c("year", "N.avg")) %>% 
-  bind_rows(
-    # N estimates for top models  
-    N_summary %>% 
-      filter(mod_version %in% top_models$mod_version) %>% 
-      mutate(variable = "best_fit")) %>% 
-  arrange(year) %>% 
-  filter(variable == "min")
+  mutate(mod_version = paste(year, model, P, sep = "_"),
+         mod_version2 = paste(model, P, sep = "_")) -> N_summary
+
+# N_summary %>%
+#   group_by(year) %>%
+#   summarize(min = min(N.avg),
+#             max = max(N.avg)) %>%
+#   melt(id.vars = "year", measure.vars = c("min", "max"), value.name = "N.avg") %>%
+#   left_join(N_summary, by = c("year", "N.avg")) %>%
+#   bind_rows(
+#     # N estimates for top models
+#     N_summary %>%
+#       filter(mod_version %in% top_models$mod_version) %>%
+#       mutate(variable = "best_fit") ) %>%
+#   arrange(year)
 
 ggplot() +
-  geom_histogram(data = N_summary, aes(N.avg),
-                  binwidth = 0.05) +
-  facet_wrap(~year)
+  geom_histogram(data = N_summary %>% 
+                   # leave out models that did not converge
+                   filter(!mod_version %in% not_converged$mod_version), 
+                 aes(N.avg),  binwidth = 0.05) +
+  geom_vline(data = N_summary %>%
+               filter(mod_version2 %in% top_mods2$mod_version2),
+             aes(colour = model, linetype = model,
+                 xintercept = N.avg),
+             size = 1) +
+  facet_wrap(~year, ncol = 2) +
+  labs(x = "\nAbundance estimate (millions)", 
+       y = "Frequency\n") +
+  scale_color_brewer(palette = "BrBG") +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14))
+
+# Histogram shows point estimates for all model versions (P = 2-9), except the
+# ones that did not converge. Coloured vertical bars show point estimate of
+# "best fit" model by DIC.
+ggsave(paste0("figures/Nest_range_histogram", 
+              FIRST_YEAR, "_", YEAR, ".png"), 
+       dpi=300, height=8.5, width=7.5, units="in")
 
 # Model 2 specific results ----
 
@@ -1290,11 +1327,13 @@ ggplot(post_sums %>% filter(variable == "N.avg")) +
                  colour = model)) +
   geom_smooth(span = 2, se = FALSE,
               aes(x = P, y = scale_within_median, 
-                  colour = model, group = model)) +
+                  colour = model, linetype = model,
+                  group = model)) +
   geom_hline(yintercept = 0, linetype = 2) +
   labs(x = "\nNumber of time periods",
        y = "Abundance scaled within models\n") +
-  facet_wrap(~ year, ncol = 2)
+  scale_color_brewer(palette = "BrBG") +
+    facet_wrap(~ year, ncol = 2)
 
 # Steep decreasing trend in variability with increasing P
 ggplot(post_sums %>% filter(variable == "N.avg")) +
@@ -1302,8 +1341,10 @@ ggplot(post_sums %>% filter(variable == "N.avg")) +
                  colour = model)) +
   geom_smooth(span = 2, se = FALSE,
               aes(x = P, y = scale_within_sd, 
-                  colour = model, group = model)) +
+                  colour = model, linetype = model,
+                  group = model)) +
   geom_hline(yintercept = 0, linetype = 2) +
+  scale_color_brewer(palette = "BrBG") +
   labs(x = "\nNumber of time periods",
        y = "SD of abundance scaled within models\n")
 
@@ -1317,10 +1358,12 @@ ggplot(post_sums %>% filter(variable == "N.avg")) +
                  colour = model)) +
   geom_smooth(span = 2, se = FALSE,
               aes(x = P, y = scale_btwn_median, 
-                  colour = model, group = model)) +
+                  colour = model, linetype = model,
+                  group = model)) +
   geom_hline(yintercept = 0, linetype = 2) +
   labs(x = "\nNumber of time periods",
        y = "Abundance scaled between models\n") +
+  scale_color_brewer(palette = "BrBG") +
   facet_wrap(~ year, ncol = 2)
 
 # All models show sd of abundance decreasing with P, but between model variation
@@ -1331,7 +1374,9 @@ ggplot(post_sums %>% filter(variable == "N.avg")) +
                  colour = model)) +
   geom_smooth(span = 2, se = FALSE,
               aes(x = P, y = scale_btwn_sd, 
-                  colour = model, group = model)) +
+                  colour = model, linetype = model,
+                  group = model)) +
+  scale_color_brewer(palette = "BrBG") +
   geom_hline(yintercept = 0, linetype = 2) +
   labs(x = "\nNumber of time periods",
        y = "SD of abundance scaled between models\n")
@@ -1359,10 +1404,13 @@ ggplot(post_sums %>% filter(variable == "r")) +
                  colour = model)) +
   geom_smooth(span = 2, se = FALSE,
               aes(x = P, y = scale_btwn_median, 
-                  colour = model, group = model)) +
+                  colour = model, linetype = model,
+                  group = model)) +
   geom_hline(yintercept = 0, linetype = 2) +
   labs(x = "\nNumber of time periods",
        y = "Net migration scaled between models\n") +
+  scale_color_manual(values = c("#dfc27d", "#018571")) +
+  scale_linetype_manual(values = c(2, 4)) +
   facet_wrap(~ year, ncol = 2)
 
 # Variance in r decreases with P, as with N.avg and is greater in Model 2 than
@@ -1372,8 +1420,11 @@ ggplot(post_sums %>% filter(variable == "r")) +
                  colour = model)) +
   geom_smooth(span = 2, se = FALSE,
               aes(x = P, y = scale_btwn_sd, 
-                  colour = model, group = model)) +
+                  colour = model, linetype = model,
+                  group = model)) +
   geom_hline(yintercept = 0, linetype = 2) +
+  scale_color_manual(values = c("#dfc27d", "#018571")) +
+  scale_linetype_manual(values = c(2, 4)) +
   labs(x = "\nNumber of time periods",
        y = "SD of net migration scaled between models\n")
 
@@ -1385,10 +1436,13 @@ ggplot(post_sums %>% filter(variable == "q")) +
                  colour = model)) +
   geom_smooth(span = 2, se = FALSE,
               aes(x = P, y = scale_within_median, 
-                  colour = model, group = model)) +
+                  colour = model, linetype = model,
+                  group = model)) +
   geom_hline(yintercept = 0, linetype = 2) +
   labs(x = "\nNumber of time periods",
        y = "Catchability scaled within models\n") +
+  scale_color_manual(values = c("#80cdc1", "#018571")) +
+  scale_linetype_manual(values = c(3, 4)) +
   facet_wrap(~ year, ncol = 2)
 
 # Examination of of catchability (q) estimates(scaled between models) - there
@@ -1398,10 +1452,13 @@ ggplot(post_sums %>% filter(variable == "q")) +
                  colour = model)) +
   geom_smooth(span = 2, se = FALSE,
               aes(x = P, y = scale_btwn_median, 
-                  colour = model, group = model)) +
+                  colour = model, linetype = model,
+                  group = model)) +
   geom_hline(yintercept = 0, linetype = 2) +
   labs(x = "\nNumber of time periods",
        y = "Catchability scaled between models\n") +
+  scale_color_manual(values = c("#80cdc1", "#018571")) +
+  scale_linetype_manual(values = c(3, 4)) +
   facet_wrap(~ year, ncol = 2)
 
 # The variance estimate of q is very high when P=2, but otherwise stays constant
@@ -1411,9 +1468,13 @@ ggplot(post_sums %>% filter(variable == "q")) +
 ggplot(post_sums %>% filter(variable == "q")) +
   geom_point(aes(x = P, y = scale_btwn_sd, 
                  colour = model)) +
-  # geom_line(aes(x = P, y = scale_btwn_sd, 
-  #                 colour = model, group = model)) +
+  geom_smooth(se = FALSE,
+              aes(x = P, y = scale_btwn_sd,
+                  colour = model, linetype = model,
+                  group = model)) +
   geom_hline(yintercept = 0, linetype = 2) +
+  scale_color_manual(values = c("#80cdc1", "#018571")) +
+  scale_linetype_manual(values = c(3, 4)) +
   labs(x = "\nNumber of time periods",
        y = "SD of catchability scaled between models\n")
 
