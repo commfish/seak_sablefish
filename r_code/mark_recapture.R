@@ -9,9 +9,6 @@ source("r_code/helper.r")
 source("r_code/functions.r")
 library(zoo) # interpolate values
 library(rjags) # run jags/bugs models
-library(tidyr)
-library(knitr)
-library(forcats)
 library(purrr)
 
 # Variable definitions ----

@@ -16,6 +16,9 @@ if(!require("data.table"))   install.packages("data.table") # dcast, foverlaps
 if(!require("ROracle"))   install.packages("ROracle") # database access through R
 if(!require("broom"))   install.packages("broom") # tidying regression model output
 if(!require("padr"))   install.packages("padr") # fills in missing values in a time series
+if(!require("tidyr"))   install.packages("tidyr") # reshaping data
+if(!require("knitr"))   install.packages("knitr") # r markdown
+if(!require("forcats"))   install.packages("forcats") # releveling factors
 
 # ggplot themes ----
 
