@@ -141,7 +141,7 @@ ggplot(laa_sub, aes(age, length)) +
   geom_line(data = pred, aes(y = pred, group = Sex), col = "black" ) + #"#00BFC4"
   xlab("\nAge (yrs)") +
   ylab("Length (cm)\n") + 
-  theme(legend.position = c(0.9, 0.2))
+  theme(legend.position = c(0.9, 0.2)) 
 
 ggsave(paste0("figures/length_vonb_chathamllsurvey_1997_", YEAR, ".png"), dpi=300, height=4, width=6, units="in")
 
@@ -208,7 +208,7 @@ ggplot() +
   geom_hline(yintercept = 0, lty = 2) + 
   guides(colour = FALSE) +
   labs(x = "", y = "Scaled parameter estimates\n") +
-  facet_wrap(~ Parameter, ncol = 1)
+  facet_wrap(~ Parameter, ncol = 1) 
 
 ggsave(paste0("figures/trends_lenvonbpars_1997_", YEAR, ".png"), 
        dpi=300, height=7, width=6, units="in")

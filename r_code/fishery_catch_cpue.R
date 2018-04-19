@@ -4,6 +4,8 @@
 # Contact: jane.sullivan1@alaska.gov
 # Last edited: 2018-04-09
 
+source("r_code/helper.R")
+
 # Most recent year of data
 YEAR <- 2017
 
@@ -62,23 +64,7 @@ ggsave(paste0("figures/fishery_harvest_1985_", YEAR, ".png"),
 # Consolidation of fishery - number of vessels fishing and total number of trips
 # in Chatham over time
 
-fsh_cpue %>% 
-  select(year, Vessels = total_vessels, Trips = total_trips) %>% 
-  gather(Variable, Count, -year) %>% 
-  distinct() %>%   
-  ggplot(aes(x = year, y = Count)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
-  facet_wrap(~ Variable, ncol = 1, scales = "free") +
-  scale_x_continuous(breaks = seq(min(fsh_cpue$year), YEAR, 4)) +
-  labs(x = "", y = "") 
-
-ggsave(paste0("figures/fishery_tripandvessel_trends_1997_", YEAR, ".png"), 
-       dpi=300, height=6, width=5, units="in")
-
-# Logbook data  ----
-
-source("r_code/helper.R")
+# Logbook/CPUE data  ----
 
 # Read in data, standardize cpue, etc.
 read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
@@ -93,7 +79,7 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
            # majority of fishing occurs
            Stat %in% c("345603", "345631", "345702",
                        "335701", "345701", "345731", "345803")) %>% 
-    mutate(Year = factor(year), 
+  mutate(Year = factor(year), 
          Gear = factor(Gear),
          Adfg = factor(Adfg),
          Stat = fct_relevel(factor(Stat),
@@ -127,6 +113,20 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
     # Total unique trips per year
     total_trips = n_distinct(trip_no)) %>% 
   ungroup() -> fsh_cpue
+
+fsh_cpue %>% 
+  select(year, Vessels = total_vessels, Trips = total_trips) %>% 
+  gather(Variable, Count, -year) %>% 
+  distinct() %>%   
+  ggplot(aes(x = year, y = Count)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  facet_wrap(~ Variable, ncol = 1, scales = "free") +
+  scale_x_continuous(breaks = seq(min(fsh_cpue$year), YEAR, 4)) +
+  labs(x = "", y = "") 
+
+ggsave(paste0("figures/fishery_tripandvessel_trends_1997_", YEAR, ".png"), 
+       dpi=300, height=6, width=5, units="in")
 
 # New CPUE analysis for NSEI, mirroring what was done by Jenny and Ben in SSEI
 
