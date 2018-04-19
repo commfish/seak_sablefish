@@ -5,12 +5,13 @@ date: "`r date()`"
 output: html_document
 ---
 
-Co-author(s): Ben Williams, Andrew Olson, Mike Vaughn, Kamala Carroll
+Co-author(s): Ben Williams and Andrew Olson
 
 To: Andrew Olson, Karla Bush
 Cc: Chris Siddon, Ben Williams, Sara Miller, Katie Palof  
 
 DATES  
+  Initial Draft: Tuesday, May 1;
   Internal ADF&G review: Friday, Feb. 5th;  
 	Final version approved by reviewers & managers: Feb. 12th;  
 	Presentation to industry: Feb. 19th;  
@@ -54,10 +55,11 @@ FLAG <- 18.14
 - The federal stock assessment for sablefish in the Gulf of Alaska (GOA) has also reported an increase in abundance and the associated quota. The recommended federal ABC for the `r YEAR` commercial longline sablefish fishery is `r formatC(FLAG, format="d", big.mark=",")` metric tons, a `r formatC(FLAG, format="f", digits=1)`% increase from the `r YEAR-1` ABC of `r formatC(FLAG, format="d", big.mark=",")` metric tons (Hanselman et al. 2016). The $F_{ABC}$ presented in the summary table above ($F_{50\%}$ = `r formatC(FLAG, format="f", digits=4)`) continues to be slightly more conservative than the federal harvest rate of $F_{40\%}$ at `r formatC(FLAG, format="f", digits=4)` (`r fig("Fig 8", display="cite")`).
 
 # Changes to the NSEI sablefish assessment for `r YEAR` relative to `r YEAR`  
+1.  The NSEI Chatham Strait sablefish assessment was developed into a reproducible research product (de Leeuw 2001). It is publically hosted on the web-based version control service GitHub at https://github.com/commfish/seak_sablefish. This effort included a thorough review of all data sources available for the NSEI. It involved detailed conversation with ADF&G programming staff, Scott Johnson and Paul Caldwell, as well as Region I Groundfish Project biologists, Andrew Olsen, Aaron Baldwin, and Mike Vaughn.The outcomes of these discussions are documented in software code, README file, and Issues tab of the `seak_sablefish` repository. This product is considered *conditionally reproducible*, indicating that potential users must formally request any confidental data sourced in the code in order to reproduce the full assessment (Schwab et al. 2000). However, survey and other non-confidential data are made available, and all queries and subsequent transformations to the data are included in the analysis. 
 
-**No changes anticipated, but we'll see.**
+1.	The mark-recapture models used in this analysis are based on analyses written by Dr. Franz Mueter (Mueter 2010).  We compare population estimates from a simple Chapman estimator with estimates from several extensions of a stratified Peterson estimator that account for changes in capture probability through time, natural and fishing mortality, migration, as well as seasonal trends in catch rates. These alternative model structures are implemented in the Bayesian open source software JAGS 4.3.0 (Depaoli 2016). Previous methods used arbitrary break points (e.g. 5 or 10 days) to define temporal strata throughout the fishing season (Mueter 2010, van Kirk et al. 2016). Here we use cumulative catch over time to define temporal strata and discuss the effect of the number of strata used on model results. We use a combination of deviance information criterion (DIC) and an examination of desired model properties (i.e. reduced bias and variance) to aid in model selection. 
 
-1.	Methods for estimating abundance from the mark-recapture project continue to be refined. Sex-specific differences in recapture probability are important, but reduce sample size when applying the Chapman estimator. For the 2017 assessment, total mark-recapture abundance was estimated using a pooled approach in which no sex distinction was incorporated and in which the recovery event is assumed instantaneous. Sex-specific probabilities of capture in the commercial fishery were integrated into the forecast when partitioning total abundance into sex/age-specific cohorts. This approach increases the robustness of the abundance estimates, yet also includes the sex-specific selectivities present in the commercial longline fishery.  
+for estimating abundance from the mark-recapture project continue to be refined. Sex-specific differences in recapture probability are important, but reduce sample size when applying the Chapman estimator. For the 2017 assessment, total mark-recapture abundance was estimated using a pooled approach in which no sex distinction was incorporated and in which the recovery event is assumed instantaneous. Sex-specific probabilities of capture in the commercial fishery were integrated into the forecast when partitioning total abundance into sex/age-specific cohorts. This approach increases the robustness of the abundance estimates, yet also includes the sex-specific selectivities present in the commercial longline fishery.  
 
 2.  No mark-recapture work was conducted in 2016. In keeping with previous methods, mark-recapture data (tags, releases, recoveries) were assumed the same as in 2015 when calculating estimated abundance for 2017 (conditioned on the revised method in #1 above). 
 
@@ -305,3 +307,13 @@ Several recommendations are made:
 2.	There exist data from the mark-recapture project for fish recaptured after the year in which they were tagged. These should be explored in a multi-year mark-recapture estimator that may help with estimates of overall abundance;
 3.	Movement rates in and out of Chatham Strait should be explored and the results incorporated into the ASA, if possible;
 4.	Current management methods should be examined to resolve the mismatch between the yield-per-recruit calculations and the age composition of the commercial fishery.
+
+# References
+
+Depaoli, Sarah, James P. Clifton, and Patrice R. Cobb. "Just Another Gibbs Sampler (JAGS) Flexible Software for MCMC Implementation." Journal of Educational and Behavioral Statistics 41.6 (2016): 628-649.
+
+Jan de Leeuw, Reproducible Research. The Bottom Line, Department of Statistics, UCLA, Department of Statistics Papers, Paper 2001031101, March 2001. Available online at https://escholarship.org/uc/item/9050x4r4
+
+M. Schwab, M. Karrenbach, and J. Claerbout, Making scientific computations reproducible, Computing in Science & Engineering, vol. 2, no. 6, pp. 61–67, Nov. 2000. Available online at http://sepwww.stanford.edu/doku.php?id=sep:research:reproducible:cip.
+
+Plummer, M. JAGS Version 4.3.0 user manual. 28 June 2017. 
