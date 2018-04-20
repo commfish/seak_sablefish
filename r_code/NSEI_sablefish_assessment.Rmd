@@ -57,7 +57,7 @@ FLAG <- 18.14
 # Changes to the NSEI sablefish assessment for `r YEAR` relative to `r YEAR`  
 1.  The NSEI Chatham Strait sablefish assessment was developed into a reproducible research product (de Leeuw 2001). It is publically hosted on the web-based version control service GitHub at https://github.com/commfish/seak_sablefish. This effort included a thorough review of all data sources available for the NSEI. It involved detailed conversation with ADF&G programming staff, Scott Johnson and Paul Caldwell, as well as Region I Groundfish Project biologists, Andrew Olsen, Aaron Baldwin, and Mike Vaughn.The outcomes of these discussions are documented in software code, README file, and Issues tab of the `seak_sablefish` repository. This product is considered *conditionally reproducible*, indicating that potential users must formally request any confidental data sourced in the code in order to reproduce the full assessment (Schwab et al. 2000). However, survey and other non-confidential data are made available, and all queries and subsequent transformations to the data are included in the analysis. 
 
-1.	The mark-recapture models used in this analysis are based on analyses written by Dr. Franz Mueter (Mueter 2010).  We compare population estimates from a simple Chapman estimator with estimates from several extensions of a stratified Peterson estimator that account for changes in capture probability through time, natural and fishing mortality, migration, as well as seasonal trends in catch rates. These alternative model structures are implemented in the Bayesian open source software JAGS 4.3.0 (Depaoli 2016). Previous methods used arbitrary break points (e.g. 5 or 10 days) to define temporal strata throughout the fishing season (Mueter 2010, van Kirk et al. 2016). Here we use cumulative catch over time to define temporal strata and discuss the effect of the number of strata used on model results. We use a combination of deviance information criterion (DIC) and an examination of desired model properties (i.e. reduced bias and variance) to aid in model selection. 
+1.	The mark-recapture models used in this analysis are based on analyses by Dr. Franz Mueter (Mueter 2010).  We compare population estimates from a simple Chapman estimator with estimates from several extensions of a stratified Peterson estimator that account for changes in capture probability through time, natural and fishing mortality, migration, as well as seasonal trends in catch rates. These alternative model structures are implemented in the Bayesian open source software JAGS 4.3.0 (Depaoli 2016). Previous methods used arbitrary break points (e.g. 5 or 10 days) to define temporal strata throughout the fishing season (Mueter 2010, van Kirk et al. 2016). Here we use cumulative catch over time to define temporal strata and discuss the effect of the number of strata used on model results. We use a combination of deviance information criterion (DIC) and an examination of desired model properties (i.e. reduced bias and variance) to aid in model selection. 
 
 for estimating abundance from the mark-recapture project continue to be refined. Sex-specific differences in recapture probability are important, but reduce sample size when applying the Chapman estimator. For the 2017 assessment, total mark-recapture abundance was estimated using a pooled approach in which no sex distinction was incorporated and in which the recovery event is assumed instantaneous. Sex-specific probabilities of capture in the commercial fishery were integrated into the forecast when partitioning total abundance into sex/age-specific cohorts. This approach increases the robustness of the abundance estimates, yet also includes the sex-specific selectivities present in the commercial longline fishery.  
 
@@ -144,15 +144,50 @@ Within each year:
 
 5.	For each time period $i$ and sex $s$ define the following (sex-specific subscripts have been omitted for clarity):
 
-$t_i$ =	time in days since last event $i$ (or since marking, if $i$ == 1) 
-$n_i$ =	number of fish examined at event $i$  
-$m_i$	=	number of tagged fish recovered in event $i$  
-$m_{early}$	=	number of marks recovered after tagged release but before opening of the commercial fishery  
-$M_0$	=	total number of marks available to be recovered by the commercial longline fishery gear  
-$M_i$	=	total number of marks available for recovery during a recovery event $i$  
-$mort$	=	natural mortality decremented daily and set to 0.1 following Johnson and Quinn (1988)  
+
 $\hat{N_i}$ =	estimated total exploited abundance of population at event $i$
  $\hat{N}$ = estimated total exploited abundance of population prior to the first recovery event $i$ (that is, at the beginning of the commercial longline fishery).
+ 
+ 
+```{r}
+# Variable definitions
+kable(data.frame(Variable = c("$N_0$", "$K_0$", "$D_0$", "$i$", "$N_i$", "$D_i$", "$C_i$", "$K_i$", "$t_i$", "$n_i$",
+                              "$k_i$", "$p_i$", "$M$", "$r$", "$q$", "$P$"),
+                 Definition = c("Number of sablefish in Chatham Strait at time of marking during the ADF&G pot survey", 
+                   "Number of marks released in the ADF&G pot survey",
+                   "Number of marks that are not available to either the ADF&G longline survey or to the fishery (tags recovered in halibut fishery or outside of Chatham Strait)",
+                   "Subscript for each time period, which may refer to the ADF&G longline survey ($i$ = 1) or to one of the fishery time periods based on time of landing",
+                   "Number of sablefish in Chatham Strait at the beginning of time period $i$",
+                   "Number of tags lost in time period $i$ that should be decremented from the next time period",
+                   "Total catch (number of sablefish removed) during time period $i$",
+                   "Number of marked sablefish in Chatham Straight at the beginning of time period $i$",
+                   "Number of days in time period $i$",
+                   "Observed catch during period $i$ (number of marked and unmarked sablefish that were checked for clips or tags in the ADF&G longline survey)",
+                   "Number of marked fish recovered in period $i$ (tags in the ADF&G longline survey)",
+                   "Probability of recapture in time period $i$",
+                   "Natural mortality decremented daily and fixed at 0.1 following Johnson and Quinn (1988)",
+                   "Net number of unmarked individuals entering or leaving Chatham Strait (migration parameter)",
+                   "Catchability coefficient for the fishery relating fishery CPUE in period $i$ to sablefish abundance $CPUE_i=q*N_i$",
+                   "Total number of time periods")))
+
+# Mark-recapture models fit for 2017 stock assessment
+kable(data.frame(Model = c("1", "2", "3", "4", "5"),
+                 Description = c("Chapman estimator",
+                                 "Time-stratified Peterson estimator with natural mortality",
+                                 "Time-stratified, natural mortality, and migration",
+                                 "Time-stratified with natural mortality. Includes fishery CPUE data",
+                                 "Time-stratified, natural mortality, migration. Includes fishery CPUE data"),
+                 Parameters = c("$N$",
+                                "$N$, $p$",
+                                "$N$, $p$, $r$",
+                                "$N$, $p$, $q$",
+                                "$N$, $p$, $r$, $q$")))
+```
+ 
+### Estimated parameter definitions and prior densities
+
+Prior densities
+
 
 Then for any given event $i$ and $s$:
 
