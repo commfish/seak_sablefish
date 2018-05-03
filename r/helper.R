@@ -13,7 +13,7 @@ if(!require("lubridate"))   install.packages("lubridate") # dates functions like
 if(!require("mgcv"))   install.packages("mgcv") # gams
 if(!require("gridExtra"))   install.packages("gridExtra") # multipanneled plots
 if(!require("data.table"))   install.packages("data.table") # dcast, foverlaps
-if(!require("ROracle"))   install.packages("ROracle") # database access through R
+# if(!require("ROracle"))   install.packages("ROracle") # database access through R
 if(!require("broom"))   install.packages("broom") # tidying regression model output
 if(!require("padr"))   install.packages("padr") # fills in missing values in a time series
 if(!require("tidyr"))   install.packages("tidyr") # reshaping data
@@ -25,12 +25,12 @@ if(!require("forcats"))   install.packages("forcats") # releveling factors
 theme_set(theme_bw(base_size=12)+ 
             theme(panel.grid.major = element_blank(),
                   panel.grid.minor = element_blank(),
-                  axis.text.x = element_text(size = 18), # angle = 45, hjust = 1),
-                  axis.text.y = element_text(size = 18),
-                  axis.title.x = element_text(size = 18),
-                  axis.title.y = element_text(size = 18),
-                  strip.text.x = element_text(size = 18),
-                  strip.text.y = element_text(size = 18),
+                  axis.text.x = element_text(size = 14), # angle = 45, hjust = 1),
+                  axis.text.y = element_text(size = 14),
+                  axis.title.x = element_text(size = 14),
+                  axis.title.y = element_text(size = 14),
+                  strip.text.x = element_text(size = 14),
+                  strip.text.y = element_text(size = 14),
                   legend.key=element_blank()))
 
 # # basic eda (exporatory data analysis theme)

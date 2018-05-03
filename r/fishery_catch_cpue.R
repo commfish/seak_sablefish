@@ -4,7 +4,7 @@
 # Contact: jane.sullivan1@alaska.gov
 # Last edited: 2018-04-09
 
-source("r_code/helper.R")
+source("r/helper.R")
 
 # Most recent year of data
 YEAR <- 2017
@@ -448,16 +448,17 @@ data.frame(year = 1980:1996,
   mutate(cpue = round(cpue, 3),
          var = round(var, 3)) -> cpue_ts
 
-ggplot(cpue_ts) +
+ggplot(cpue_ts %>% 
+         filter(year >= 1997)) +
   geom_point(aes(year, cpue)) +
   geom_line(aes(year, cpue)) +
   geom_ribbon(aes(year, ymin = cpue - sqrt(var), ymax = cpue + sqrt(var)),
   # geom_ribbon(aes(year, ymin = cpue - var, ymax = cpue + var),
               alpha = 0.3, col = "white", fill = "skyblue") +
   scale_x_continuous(breaks = seq(min(cpue_ts$year), YEAR, 4)) +
-  labs(x = "", y = "Fishery CPUE (lbs/hook)\n") 
+  labs(x = "", y = "Fishery CPUE (round pounds per hook)\n") 
 
-ggsave(paste0("figures/nominalwpue_1sd_llfsh_", min(cpue_ts$year), "_", YEAR, ".png"),
+ggsave(paste0("figures/fshcpue_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
 
 # Write to file

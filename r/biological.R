@@ -3,8 +3,8 @@
 # Contact: jane.sullivan1@alaska.gov
 # Last edited: 2018-02-06
 
-source("r_code/helper.r")
-source("r_code/functions.r")
+source("r/helper.r")
+source("r/functions.r")
 library(ggridges)
 
 YEAR <- 2017
@@ -742,11 +742,13 @@ bind_cols(
 # plot
 ggplot(byage, aes(x = age)) +
   geom_line(aes(y = fit, col = Source)) +
-  geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, fill = Source, col = Source),  alpha = 0.2) +
+  geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, fill = Source),  alpha = 0.2) +
   geom_point(aes(y = proportion, col = Source)) +  
   expand_limits(y = c(0.0, 1)) +
   xlab("\nAge") +
   ylab("Proportion of females\n") +
+  scale_colour_manual(values = c("black", "grey")) +
+  scale_fill_manual(values = c("black", "grey")) +
   theme(legend.position = c(0.8, 0.8))
 
 ggsave("figures/proportion_fembyage.png", dpi=300, 
@@ -825,15 +827,17 @@ bind_cols(
 ggplot(data = byyear, aes(x = year)) +
   geom_line(aes(y = fit, col = Source), size = 1) +
   geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, 
-                  fill = Source, col = Source),  alpha = 0.2) +
+                  fill = Source),  alpha = 0.2) +
   geom_point(aes(y = proportion, col = Source)) +  
   expand_limits(y = c(0.0, 1)) +
-  scale_x_continuous(breaks = seq(min(byyear$year), max(byyear$year) + 1, 2), 
-                     labels =  seq(min(byyear$year), max(byyear$year) + 1, 2)) +
+  scale_x_continuous(breaks = seq(min(byyear$year), max(byyear$year) + 1, 4), 
+                     labels =  seq(min(byyear$year), max(byyear$year) + 1, 4)) +
   xlab("") +
   ylab("Proportion of females\n") +
-  theme(axis.text.x = element_text(size=10, angle=45, hjust=1)) +
-  theme(legend.position = c(0.8, 0.2))
+  scale_colour_manual(values = c("black", "grey")) +
+  scale_fill_manual(values = c("black", "grey")) +
+  theme(#axis.text.x = element_text(size=10, angle=45, hjust=1),
+        legend.position = c(0.8, 0.2))
 
 ggsave("figures/proportion_fembyyear.png", dpi=300, height=4, width=5, units="in")
 

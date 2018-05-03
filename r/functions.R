@@ -10,7 +10,7 @@
 # - a modification to the captioner library's captioner() fxn
 # - cleaning up coda output
 
-source("r_code/helper.R")
+# source("r/helper.R")
 
 if(!require("broom"))   install.packages("broom") # tidy() useful for tidying mle() and other model output
 if(!require("stats4"))   install.packages("stats4") # needed for mle()
@@ -370,10 +370,10 @@ mr_jags <- function(
   # Summarize the abundance estimate for quick model comparison
   coda_res_out %>% 
     group_by(year) %>% 
-    summarize(N.avg = mean(N.avg) / 1000000,
+    mutate(N.avg = N.avg / 1000000) %>% 
+    summarize(median = median(N.avg),
            q025 = quantile(N.avg, 0.025),
-           q975 = quantile(N.avg, 0.975),
-           median = median(N.avg)) %>% 
+           q975 = quantile(N.avg, 0.975)) %>% 
     mutate(model = mod_name) -> n_summary_out
   
     model_output <- list("results" = coda_res_out,

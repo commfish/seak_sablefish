@@ -5,8 +5,8 @@
 
 # ** currently missing daily tag accounting for 2003, 2017 will need to be updated when finalized by M. Vaughn.
 
-source("r_code/helper.r")
-source("r_code/functions.r")
+source("r/helper.r")
+source("r/functions.r")
 library(zoo) # interpolate values
 library(rjags) # run jags/bugs models
 library(purrr)
@@ -175,6 +175,8 @@ merge(rel_sel, rec_sel, by = c("year", "tag_no", "tag_batch_no")) %>%
   # 25, assume 0 growth
   mutate(g = ifelse(n < 25, 0, mean_g)) %>% 
   select(rel_bin, g) -> growth
+
+write_csv(growth, "output/tag_estimated_growth.csv")
 
 # Add growth to released fish then recalculate the bins
 merge(rel_sel, growth, by = "rel_bin") %>% 
@@ -655,19 +657,19 @@ right_join(recoveries %>%
 # # Trends in mean weight and NPUE over the season - trends provide
 # # justification to doing a time-stratified estimator
 # 
-# ggplot(daily_marks,
-#        aes(x = julian_day, y = mean_weight)) +
-#   geom_point() +
-#   geom_smooth(method = 'lm') +
-#   facet_wrap(~ year) +
-#   labs(x = "Julian Day", y = "Mean Individual Weight (kg)")
-# 
-# ggplot(daily_marks,
-#        aes(x = julian_day, y = mean_npue)) +
-#   geom_point() +
-#   geom_smooth(method = 'lm') +
-#   facet_wrap(~ year, scales = "free") +
-#   labs(x = "Julian Day", y = "Number sablefish per 1000 hooks")
+ggplot(daily_marks,
+       aes(x = julian_day, y = mean_weight)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_wrap(~ year) +
+  labs(x = "Julian Day", y = "Mean Individual Weight (kg)")
+
+ggplot(daily_marks,
+       aes(x = julian_day, y = mean_npue)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_wrap(~ year, scales = "free", ncol = 2) +
+  labs(x = "Julian Day", y = "Number sablefish per 1000 hooks\n")
 
 # Stratify by time ----
 
@@ -685,13 +687,13 @@ converge_ls <- list()
 
 data_ls <- list() # store all 'versions' of model input data for comparison
 data_df <- list() #
-# Number of models - currently 4 competing models: 
-# 1) base model - time strata, accounts for natural mortality and catch
+# Number of models - currently 4 competing models to the simple Chapman: 
+# 1) model 1 -  Peterson with time strata, accounts for natural mortality and catch
 # 2) model 1 + migration parameter
 # 3) model 1 + catchability parameter (incorportates NPUE data)
 # 4) model 2 + model 3
 
-# Number of period (time strata) combos tests
+# Number of period (time strata) combos to test
 strats <- 8
 
 #Prepare progress bar
@@ -729,9 +731,15 @@ daily_marks %>%
 # Running Chapman estimator
 strata_sum %>% 
   left_join(tag_summary %>% select(year, K.0), by = "year") %>% 
-  group_by(year, catch_strata) %>% 
-  # This doesn't deduct the period specific D's and is a rough estimator
-  mutate(running_Chapman = ((K.0 + 1)*(n + 1) / (k + 1)) - 1) -> strata_sum
+  # cumulative marked and observed
+  group_by(year) %>% 
+  mutate(cumn = cumsum(n),
+         cumk = cumsum(k),
+         cumd = cumsum(D),
+         K_running = K.0 - cumd) %>% 
+  # This deducts period specific D's
+  mutate(running_Chapman = ((K_running + 1)*(cumn + 1) / (cumk + 1)) - 1,
+         Chap_var = ((K_running + 1)*(cumn + 1)*(K_running - cumk)*(cumn - cumk)) / ((cumk + 1)*(cumk + 1)*(cumk + 2)) ) -> strata_sum
 
 # Prep data for JAGS ----  
 dcast(setDT(strata_sum), year ~ catch_strata, 
@@ -880,8 +888,8 @@ model {
 # Priors
 N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
 
-N[1] <- N.1
-K[1] <- K.0 * exp(-M * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
+N[1] <- N.1 * exp(-M * t[1])
+K[1] <- (K.0 - D.0) * exp(-M * t[1]) # number of marks at beginning of period 1 (longline survey)
 # K.0 = Number of tags released
 # D = Number of tags lost to fishery or longline survey
 # M = natural mortality (daily instantaneous mortality)
@@ -931,8 +939,8 @@ model {
 N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
 r ~ dnorm(5000, 1.0E-12) # vague prior on number of immigrants (r)
 
-N[1] <- N.1
-K[1] <- K.0 * exp(-M * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
+N[1] <- N.1 * exp(-M * t[1])
+K[1] <- (K.0 - D.0) * exp(-M * t[1]) # number of marks at beginning of period 1 (longline survey)
 # K.0 = Number of tags released
 # D = Number of tags lost to fishery or longline survey
 # M = natural mortality (daily instantaneous mortality)
@@ -979,8 +987,8 @@ N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning o
 q ~ dbeta(1,1) # catchability coefficient: NPUE = q*N
 tau ~ dgamma(0.001, 1) #  tau = 1/sigma^2 for normal distribution of CPUE
 
-N[1] <- N.1
-K[1] <- K.0 * exp(-M * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
+N[1] <- N.1 * exp(-M * t[1])
+K[1] <- (K.0 - D.0) * exp(-M * t[1]) # number of marks at beginning of period 1 (longline survey)
 # K.0 = Number of tags released
 # D = Number of tags lost to fishery or longline survey
 # M = natural mortality (daily instantaneous mortality)
@@ -1032,8 +1040,8 @@ r ~ dnorm(5000, 1.0E-12) # vague prior on number of migrants (r)
 q ~ dbeta(1,1) # catchability coefficient: NPUE = q*N
 tau ~ dgamma(0.001, 1) #  tau = 1/sigma^2 for normal distribution of CPUE
 
-N[1] <- N.1
-K[1] <- K.0 * exp(-M * t[1]) - D.0	# number of marks at beginning of period 1 (longline survey)
+N[1] <- N.1 * exp(-M * t[1])
+K[1] <- (K.0 - D.0) * exp(-M * t[1]) # number of marks at beginning of period 1 (longline survey)
 # K.0 = Number of tags released
 # D = Number of tags lost to fishery or longline survey
 # M = natural mortality (daily instantaneous mortality)
@@ -1142,8 +1150,8 @@ mod2_posterior_ls[[j]] <- mod2_out$results
 mod3_posterior_ls[[j]] <- mod3_out$results
 mod4_posterior_ls[[j]] <- mod4_out$results
 
-data_ls[[j]] <- model_dat # save the model inputs for comparison with predicted values (is list form)
-data_df[[j]] <- jags_dat # same data but in a df, more useable
+data_ls[[j]] <- model_dat # save the model inputs for comparison with predicted values 
+data_df[[j]] <- strata_sum # same data but in a df, more useable
 
 setTxtProgressBar(pb, j)  
 
@@ -1163,9 +1171,10 @@ save(list = c("dic_summary", "N_summary", "convergence_summary",
               "data_ls", "data_df"),
      file = "output/mark_recap_model_selection.Rdata")
 
-load("output/mark_recap_model_selection.Rdata")
 
 # Model selection ----
+
+load("output/mark_recap_model_selection.Rdata")
 
 convergence_summary %>% 
   mutate(mod_version = paste(year, model, P, sep = "_")) %>% 
@@ -1175,37 +1184,57 @@ convergence_summary %>%
     # is ok.
     Point.est. >= 1.1) -> not_converged
 
-not_converaged %>% distinct(model, P) # do not include models that estimate q unless they have > 3 periods
+not_converged %>% distinct(model, P) # do not include models that estimate q unless they have > 3 periods
 
-# "Top models" via DIC, remove models that were not well mixed
+# Models with P>=6
 dic_summary %>% 
-  arrange(year, DIC) %>% 
+  filter(P >= 6 & year == YEAR) %>% 
   group_by(year) %>% 
   mutate(min_DIC = min(DIC)) %>% 
   ungroup() %>% 
   mutate(delta_DIC = round(DIC - min_DIC, 2),
          mod_version = paste(year, model, P, sep = "_")) %>%
-  select(- c(DIC, min_DIC)) %>% 
-  filter(delta_DIC <= 2.0) -> top_models
-
-
-# Use model selection to help
-dic_summary %>% 
+  arrange(year, delta_DIC) %>% 
   group_by(model) %>% 
-  mutate(min_DIC = min(DIC)) %>% 
-  ungroup() %>% 
-  mutate(delta_DIC = round(DIC - min_DIC, 2),
-         mod_version2 = paste(model, P, sep = "_")) %>% 
-  select(- c(DIC, min_DIC)) %>% 
-  filter(delta_DIC <= 2.0) %>% 
-  distinct(mod_version2) -> top_mods2
+  filter(delta_DIC == min(delta_DIC)) -> top_models
 
-# Models 1 and 2 perform best when P = 2, Models 3 and 4 best when P = 4 by DIC.
-# Model 1 and 2 "top" models by DIC.
+# Tmp: fixed n_summary_out in mr_jags, need to re-run.
+bind_rows(mod1_posterior_ls[[5]] %>% select(N.avg, year, model, P),
+          mod2_posterior_ls[[5]] %>% select(N.avg, year, model, P),
+          mod3_posterior_ls[[5]] %>% select(N.avg, year, model, P),
+          mod4_posterior_ls[[5]] %>% select(N.avg, year, model, P)) %>% 
+  group_by(model, year, P) %>% 
+  # mutate(N.avg = N.avg / 1000000) %>% 
+  summarize(median = median(N.avg),
+            q025 = quantile(N.avg, 0.025),
+            q975 = quantile(N.avg, 0.975)) -> N_summary
 
 N_summary %>% 
   mutate(mod_version = paste(year, model, P, sep = "_"),
          mod_version2 = paste(model, P, sep = "_")) -> N_summary
+
+N_summary %>% 
+  filter(mod_version %in% top_models$mod_version) %>% 
+  left_join(top_models, by = c("year", "model", "P", "mod_version")) %>% 
+  select(year, model, P, Estimate = median, q025, q975, deviance, parameter_penalty, delta_DIC) -> top_models 
+  
+tag_summary %>% 
+  # CI formula from wikipedia 
+  mutate(Estimate = ((K.0 - D.0 - D.1 + 1)*(n.1 + 1) / (k.1 + 1)) - 1,
+         chap_ci = K.0 - D.0 - D.1 + n.1 - k.1 + 
+           (K.0 - D.0 - D.1 - k.1 + 0.5) * (n.1 - k.1 + 0.5) / (k.1 + 0.5) * 
+           exp(1 - 0.95 / 2) *
+           sqrt(1 / (k.1 + 0.5) + 1 / (K.0 - D.0 - D.1 - k.1 + 0.5) + 
+                  1 / (n.1 - k.1 + 0.5) + 
+                  (k.1 + 0.5) / (n.1 - k.1 + 0.5) * (K.0 - D.0 - D.1 - k.1 + 0.5)),
+         q975 = Estimate + chap_ci,
+         q025 = Estimate - chap_ci,
+         model = "Model0",
+         P = 1) %>% 
+  select(year, model, P, Estimate) %>% 
+  filter(year == YEAR) %>% 
+  full_join(top_models) %>% 
+  write_csv(paste0("output/top_models_", YEAR, ".csv"))
 
 # N_summary %>%
 #   group_by(year) %>%
@@ -1245,18 +1274,16 @@ ggsave(paste0("figures/Nest_range_histogram",
               FIRST_YEAR, "_", YEAR, ".png"), 
        dpi=300, height=8.5, width=7.5, units="in")
 
-# Model 2 specific results ----
-
 # Summary of posterior distributions of quantities of interest, including
-# estimates of abundance (N.avg), net migration (r) which can be positive or
-# negative to indicate net immigration or emigration, respetively, and
-# catchability (q): map() applies the summary functions after the ~ to each df
-# in the list. do.call() rbinds the output together. Repeat this for each model
-# and rbind into one summary df.
+# period-specific estimates of N (N[]), estimates of mean abundance (N.avg), net
+# migration (r) which can be positive or negative to indicate net immigration or
+# emigration, respetively, and catchability (q): map() applies the summary
+# functions after the ~ to each df in the list. do.call() rbinds the output
+# together. Repeat this for each model and rbind into one summary df.
 bind_rows(
   do.call("rbind", map(mod1_posterior_ls, 
-                       ~melt(.x, id.vars = c("year", "P"),
-                             measure.vars = c("N.avg")) %>%
+                       ~select(.x, year, P, contains("N["), N.avg) %>%
+                         melt(id.vars = c("year", "P")) %>% 
                          group_by(year, P, variable) %>% 
                          summarise(median = median(value),
                                    sd = sd(value),
@@ -1267,8 +1294,8 @@ bind_rows(
            mod_version = paste(year, model, P, sep = "_")),
   
   do.call("rbind", map(mod2_posterior_ls, 
-                       ~melt(.x, id.vars = c("year", "P"),
-                             measure.vars = c("N.avg", "r")) %>%
+                       ~select(.x, year, P, contains("N["), N.avg, r) %>%
+                         melt(id.vars = c("year", "P")) %>% 
                          group_by(year, P, variable) %>% 
                          summarise(median = median(value),
                                    sd = sd(value),
@@ -1279,8 +1306,8 @@ bind_rows(
            mod_version = paste(year, model, P, sep = "_")),
   
   do.call("rbind", map(mod3_posterior_ls, 
-                       ~melt(.x, id.vars = c("year", "P"),
-                             measure.vars = c("N.avg", "q")) %>%
+                       ~select(.x, year, P, contains("N["), N.avg, q) %>%
+                         melt(id.vars = c("year", "P")) %>% 
                          group_by(year, P, variable) %>% 
                          summarise(median = median(value),
                                    sd = sd(value),
@@ -1291,8 +1318,8 @@ bind_rows(
            mod_version = paste(year, model, P, sep = "_")),
   
   do.call("rbind", map(mod4_posterior_ls, 
-                       ~melt(.x, id.vars = c("year", "P"),
-                             measure.vars = c("N.avg", "r", "q")) %>%
+                       ~select(.x, year, P, contains("N["), N.avg, r, q) %>%
+                         melt(id.vars = c("year", "P")) %>% 
                          group_by(year, P, variable) %>% 
                          summarise(median = median(value),
                                    sd = sd(value),
@@ -1329,8 +1356,12 @@ ggplot(post_sums %>% filter(variable == "N.avg")) +
   geom_hline(yintercept = 0, linetype = 2) +
   labs(x = "\nNumber of time periods",
        y = "Abundance scaled within models\n") +
-  scale_color_brewer(palette = "BrBG") +
+  scale_color_brewer(palette = "BrBG", "") +
+  scale_linetype_manual(values = 1:4, "") +
     facet_wrap(~ year, ncol = 2)
+
+ggsave(paste0("figures/N_scaledwithin_2005_", YEAR, ".png"), 
+       dpi=300, height=7, width=7, units="in")
 
 # Steep decreasing trend in variability with increasing P
 ggplot(post_sums %>% filter(variable == "N.avg")) +
@@ -1345,9 +1376,12 @@ ggplot(post_sums %>% filter(variable == "N.avg")) +
   labs(x = "\nNumber of time periods",
        y = "SD of abundance scaled within models\n")
 
+ggsave(paste0("figures/Nvar_scaledwithin.png"), 
+       dpi=300, height=4, width=4, units="in")
+
 # Examination of abundance (scaled between models) - trends with P are similar
 # as the within model examination... more strinking are the consistent between
-# models trends. Model 2 has the greatest estimates for N by ~ 1 sd for all yrs
+# model trends. Model 2 has the greatest estimates for N by ~ 1 sd for all yrs
 # except 2017, followed by Model 4 or 1. Model 3 has the lowest estimate of N
 # for all years.
 ggplot(post_sums %>% filter(variable == "N.avg")) +
@@ -1363,6 +1397,9 @@ ggplot(post_sums %>% filter(variable == "N.avg")) +
   scale_color_brewer(palette = "BrBG") +
   facet_wrap(~ year, ncol = 2)
 
+ggsave(paste0("figures/N_scaledbtwn_2005_", YEAR, ".png"), 
+       dpi=300, height=7, width=7, units="in")
+
 # All models show sd of abundance decreasing with P, but between model variation
 # shows that Model 2 consistently has the highest variability, followed by Model
 # 4, and Models 1/3.
@@ -1377,6 +1414,9 @@ ggplot(post_sums %>% filter(variable == "N.avg")) +
   geom_hline(yintercept = 0, linetype = 2) +
   labs(x = "\nNumber of time periods",
        y = "SD of abundance scaled between models\n")
+
+ggsave(paste0("figures/Nvar_scaledbtwn.png"), 
+       dpi=300, height=4, width=4, units="in")
 
 # Examination of migration (r) (scaled within model) - trends with P between
 # models are  similar but don't track quite as closely as they did with N.
@@ -1476,7 +1516,7 @@ ggplot(post_sums %>% filter(variable == "q")) +
        y = "SD of catchability scaled between models\n")
 
 
-results <- mod2_posterior_ls[[8]]
+results <- mod2_posterior_ls[[5]]
 
 results %>% 
   group_by(year) %>% 
@@ -1496,14 +1536,39 @@ results %>%
        y = "Posterior distribution") +
   xlim(c(-30, 40))
 
-# Model 3 specific results ----
+ggsave(paste0("figures/net_migration_estimates.png"), 
+       dpi=300, height=8.5, width=7.5, units="in")
 
+# N thru time ----
 
+post_sums %>% 
+  ungroup() %>% 
+  filter(!grepl('N.avg|r|q', variable)) %>% 
+  # Re-order levels of N[]
+  mutate(variable = fct_relevel(factor(variable),
+                                "N[10]", after = Inf),
+         median = median / 1000000) %>% 
+  ggplot() +
+  geom_line(aes(x = variable, y = median, 
+                  colour = factor(P), group = factor(P))) +
+  facet_grid(year ~ model) +
+  scale_color_brewer(palette = "Blues", "Number of\nPeriods") +
+  labs(x = "\nAbundance by time period",
+       y = "Abundance (in millions)\n") +
+  theme(axis.text.x = element_text(size = 8), 
+        axis.text.y = element_text(size = 8),
+        strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        legend.position="none")
 
+ggsave(paste0("figures/Nest_byP_2005_", YEAR, ".png"), 
+       dpi=300, height=11, width=11, units="in")
 
-results <- mod3_posterior_ls[[7]]
+head(model_dat)
 
-# Plot catchability
+# Plot catchability and obs vs. fitted NPUE
+results <- mod3_posterior_ls[[5]]
+
 results %>% 
   group_by(year) %>% 
   mutate(q025 = quantile(q, 0.025),
@@ -1526,14 +1591,49 @@ results %>%
             q025 = quantile(q, 0.025),
             q975 = quantile(q, 0.975))
 
-# Model 4 specific results
+data_df[[5]] %>% 
+  select(year, P = catch_strata, NPUE) %>% 
+  mutate(Type = "Observed") -> NPUE
 
+results %>% 
+  select(year, P, contains("npue.hat")) %>% 
+  melt(id.vars = c("year", "P")) %>% 
+  group_by(year, variable) %>% 
+  summarize(NPUE = median(value),
+            q025 = quantile(value, 0.025),
+            q975 = quantile(value, 0.975)) %>% 
+  mutate(Type = "Estimated",
+         P = fct_recode(variable,
+                               `2` = "npue.hat[2]" ,
+                               `3` = "npue.hat[3]" ,
+                               `4` = "npue.hat[4]" ,
+                               `5` = "npue.hat[5]",
+                               `6` = "npue.hat[6]")) %>% 
+  select(-variable) %>% 
+  full_join(NPUE) -> NPUE
 
+ggplot() +
+  geom_point(data = NPUE, aes(x = P, y = NPUE, colour = Type)) +
+  geom_smooth(data = NPUE %>% filter(Type == "Estimated"),
+             aes(x = P, y = NPUE, colour = Type, group = Type)) +
+    geom_ribbon(data = NPUE %>% filter(Type == "Estimated"),
+                aes(x = P, ymin = q025, ymax = q975, 
+                    fill = Type, group = Type), 
+              alpha = 0.2, fill = "grey") +
+  scale_colour_manual(values = c("grey", "black")) +
+  facet_wrap(~ year, ncol = 2) +
+  labs(x = "\nTime period",
+       y = "CPUE (sablefish per 1000 hooks)\n") +
+  theme(legend.position = "none")
 
+ggsave(paste0("figures/NPUE_obsvsfitted.png"), 
+       dpi=300, height=8.5, width=7.5, units="in")
+                        
 
-# Model 1 Results ----
+# Model 1 P = 6 Results ----
 
-results <- mod1_out$results
+results <- mod1_posterior_ls[[5]]
+model_years <- unique(tag_summary$year)
 
 # Credibility intervals N and p, N by time period
 results %>% 
@@ -1634,32 +1734,19 @@ ci %>% filter(year == 2017) %>%
          `Upper CI` = q975) %>% 
   kable()
 
+# Tag summary
+
+tag_summary %>% 
+  select(Year = year, `$K_0$` = K.0, `$k$` = k.1, `$n$` = n.1, `$D_0$` = D.0, `$D$` = D.1) %>% 
+  write_csv("output/tag_summary_report.csv")
+
 # Forecast/YPR Inputs ----
 
 # All inputs from biological.r
 
-# Call selectivities for males and females - Dana @ NOAA 
-# DANGER, WILL ROBINSON! DANGER!
-# DANGER:: ADF&G ages are different than NOAA ages
-# For selectivity-at-age to be equivalent, you need to scale them!
-
-# Provide this for comparison this year, but this conversion is not necessary.
-
-# Conversion of ADF&G to NOAA age:
-# NOAA = 0.9085+0.7105*ADF&G
-# int <- 0.9085
-# slp <- 0.7105
-# tmp <- seq(2,42,by=1)
-# age_noaa<-int + (slp * tmp)
-# 
-# #Check
-# age_noaa
-
-# NOAA fishery and survey selectivity coefficients Fishery females, males, then
+# NOAA fishery and survey age-based selectivity coefficients Fishery females, males, then
 # survey females, males Manual input from Dana's NMFS spreadsheet - request from
 # him
-
-# NOTE THAT THESE ARE *AGE*, NOT *LENGTH*
 
 f50_f <-  3.86
 fslp_f <- 2.61
@@ -1674,11 +1761,6 @@ sslp_m <- 2.21
 # Selectivity vectors 
 age <- 2:42
 
-# f_sel <- 1 / (1 + exp(-fslp_f * (age_noaa - f50_f)))
-# m_sel <- 1 / (1 + exp(-fslp_m * (age_noaa - f50_m)))
-# sf_sel <- 1 / (1 + exp(-sslp_f * (age_noaa - s50_f)))
-# sm_sel <- 1 / (1 + exp(-sslp_m * (age_noaa - s50_m)))
-
 f_sel <- 1 / (1 + exp(-fslp_f * (age - f50_f)))
 m_sel <- 1 / (1 + exp(-fslp_m * (age - f50_m)))
 sf_sel <- 1 / (1 + exp(-sslp_f * (age - s50_f)))
@@ -1688,11 +1770,6 @@ sm_sel <- 1 / (1 + exp(-sslp_m * (age - s50_m)))
 # 'F' values, total commercial catch, and M. Clip data, not tag data. This is
 # the POOLED estimate of abundance, which is subsequently partitioned into
 # sex-specific selectivities below
-
-N_MR_sex <- assessment_summary %>% 
-  filter(year == YEAR) %>% 
-  select(N.avg) %>% 
-  as.numeric()
 
 # M assumed = 0.1
 # Selectivities from above
@@ -1735,7 +1812,7 @@ wt_f_f <- waa %>%
 
 # Male, fishery
 wt_f_m <- waa %>% 
-  filter(Source == "LL Fishery" &
+  filter(Source == "LL fishery" &
            Sex == "Male") %>% 
   select(matches("^[[:digit:]]+$")) %>% 
   as.numeric()
@@ -1786,6 +1863,11 @@ male_p <- 1 - female_p
 # Note that male abundance at ages 2 and 3 will be MUCH higher
 # than female because male selectivity at age for those cohorts
 # is much lower than females
+
+N_MR_sex <- assessment_summary %>% 
+  filter(year == YEAR) %>% 
+  select(N.avg) %>% 
+  as.numeric()
 
 # Fishery age comps for YEAR
 read_csv("output/agecomps.csv", guess_max = 50000) %>% 
@@ -1995,7 +2077,6 @@ ggplot(aes(Age, N, fill = Sex)) +
   labs(x = "\nAge", y = "Abundance\n") +
   theme(legend.position = c(0.9, 0.7))
 
-
 ggsave(paste0("figures/forecasted_Natage_", YEAR + 1, ".png"), 
        dpi=300, height=3, width=9, units="in")
 
@@ -2015,7 +2096,304 @@ agecomps %>%
 ggsave(paste0("figures/agecomp_bargraph_", YEAR, ".png"), 
        dpi=300, height=3, width=9, units="in")
 
-# Forecast summary ----
+# Format tables
+
+v2018 <- c(exp_n, exp_b, F50, Q50s, Q45s, Q40s) 
+
+# From 2017 assessment
+
+v2017 <- c(N_MR_sex, 13502591, 0.0683, 850113)
+
+format(round((v2018 - v2017)/v2017 * 100, 1),  nsmall=1) -> perc_change
+
+v2017[c(1, 2, 4, 5, 6)] <- lapply(v2017[c(1, 2, 4, 5, 6)], prettyNum, trim=TRUE, big.mark=",")
+v2017[3] <- lapply(v2017[3], format, nsmall=3, digits=3)
+
+v2018[c(1, 2, 4, 5, 6)] <- lapply(v2018[c(1, 2, 4, 5, 6)], prettyNum, trim=TRUE, big.mark=",")
+v2018[3] <- lapply(v2018[3], format, nsmall=3, digits=3)
+
+rbind(v2017, v2018, perc_change) %>% data.frame() -> forecast
+
+save(forecast, file = paste0("output/forecast_table_", YEAR+1, ".rda"))
+
+# 2017 exploitable biomass ---- Re-calculate this for the updated summary table
+# since the 2017 exploitable biomass was so low.
+
+N_MR_sex
+
+AGE <- 2:42
+Nm <- 1:41
+Nf <- 1:41
+
+for(i in 1:41){
+  
+  Nm[i] <- (N_MR_sex * male_p * m[i]) / m_sel[i]
+  Nf[i] <- (N_MR_sex * female_p * f[i]) / f_sel[i]
+  
+}
+
+sum(Nf+Nm) 
+
+upd2017_expb <- ktp * sum((Nm * wt_f_f  * f_sel) + (Nf * wt_f_m * m_sel))
+
+# Adjust for high recruitment ----
+
+# Justification for using a different quantile of the N posterior: Option 1: (1)
+# determine what proportion of fish are under 7 (a50 = 6.4), (2) take the 50th +
+# that percent under age-7 to adjust the quantile used from the N posterior.
+# Conservative because a much greater proportion of the exploitable pop is
+# immature than in previous years. - did not choose this method.
+
+Nme <- 1:41
+Nfe <- 1:41
+
+for(i in 1:41){
+  Nme[i] <- (N_MR_sex * male_p * m[i]) 
+  Nfe[i] <- (N_MR_sex * female_p * f[i]) 
+}
+
+data.frame(age = AGE,
+           Nme = Nme,
+           Nfe = Nfe) %>% 
+  mutate(N = Nme + Nfe) %>% 
+  mutate(total = sum(N)) %>% 
+  filter(age <= 7) %>% 
+  mutate(suba50 = sum(N),
+         prop_suba50 = suba50/total) %>% 
+  distinct(prop_suba50) %>% 
+  pull(prop_suba50) -> imm_adj # immaturity adjustment 
+
+# Option 2: just choose a percentile. I chose this method.
+imm_adj <- 0.35 
+
+results %>% 
+  filter(year == YEAR) %>%
+  mutate(N.avg = N.avg / 1000000,
+         q025 = quantile(N.avg, 0.025),
+         q975 = quantile(N.avg, 0.975),
+         imm_adj = quantile(N.avg, .5 - imm_adj),
+         ci = ifelse(N.avg >= q025 & N.avg <=q975, 1, 0),
+         median = median(N.avg)) -> adj_results 
+
+adj_results %>%   ggplot(aes(N.avg)) + 
+  geom_histogram(fill = 4, alpha = 0.2, bins = 100, color = 'black') + 
+  geom_histogram(data = . %>% filter(ci==1), 
+                 aes(N.avg), fill = 4, alpha = 0.6, bins = 100) +
+  geom_vline(aes(xintercept = median), col = "grey", size = 1) +
+  geom_vline(aes(xintercept = imm_adj), col = "grey", linetype = 2, size = 1.5) +
+  labs(x = "Number of sablefish in millions",
+       y = "Posterior distribution")
+
+ggsave(paste0("figures/mod1_Nposterior_adjustment.png"), 
+       dpi=300, height=4, width=4, units="in")
+
+adj_N_MR_sex <- adj_results %>% 
+  distinct(imm_adj) %>% 
+  transmute(imm_adj = imm_adj * 1e6) %>% 
+  pull
+
+# Calculate adjusted 2017 exploitable biomass
+
+Nm <- 1:41
+Nf <- 1:41
+
+for(i in 1:41){
+  
+  Nm[i] <- (adj_N_MR_sex * male_p * m[i]) / m_sel[i]
+  Nf[i] <- (adj_N_MR_sex * female_p * f[i]) / f_sel[i]
+  
+}
+
+sum(Nf+Nm) 
+
+adj_upd2017_expb <- ktp * sum((Nm * wt_f_f  * f_sel) + (Nf * wt_f_m * m_sel))
+
+# Re-do forecast:
+
+AGE <- 2:42
+Nm <- 1:41
+Nf <- 1:41
+
+for(i in 1:41){
+  
+  Nm[i] <- (adj_N_MR_sex * male_p * m[i]) / m_sel[i]
+  Nf[i] <- (adj_N_MR_sex * female_p * f[i]) / f_sel[i]
+  
+}
+
+sum(Nf+Nm) 
+
+# PROPAGATE LAST YEAR'S ESTIMATED ABUNDANCE-AT-AGE USING STANDARD 
+# AGE-STRUCTURED EQUATIONS. NOTE: AGE 2 TRANSLATES **WITH** MORTALITY 
+
+N_fp <- 1:41 # THIS IS FOR FEMALE SPAWNING BIOMASS
+N_mp <- 1:41 # THIS IS FOR MALES
+
+N_fp[1] <- Nf[1]
+N_mp[1] <- Nm[1]
+
+# Ages 3 - 41
+for(i in 2:40){
+  N_fp[i] <- Nf[i-1] * exp(-(Ff[i-1] + mort))
+  N_mp[i] <- Nm[i-1] * exp(-(Fm[i-1] + mort))
+}
+
+# Plus class
+N_mp[41] <- Nm[40] * exp(-(Fm[40] + mort)) + 
+  ((Nm[40] * exp(-(Fm[40] + mort))) * exp(-(Fm[41] + mort)))
+
+N_fp[41] <- Nf[40] * exp(-(Ff[40] + mort)) +
+  ((Nf[40] * exp(-(Ff[40] + mort))) * exp(-((Ff[41]) + mort)))
+
+
+#CHECK
+N_sex <- sum(N_fp,N_mp)
+
+N_sex
+adj_N_MR_sex
+
+# BEGIN CALCS FOR FORECAST NUMBERS
+# KILOGRAMS TO POUNDS = 2.20462
+
+#kilograms to pounds
+ktp <- 2.20462
+
+# Spawning Biomass
+SB_age_s <- 1:41
+
+SB_age_s <- N_fp * mat_s_f * wt_s_f * ktp
+
+SBs <- sum(SB_age_s)
+
+SBs
+
+# Simulate pop to get F levels ----
+
+# YPR analysis (from yield_per_recruit.r)
+
+# M and F
+# Note that Fs = a placeholder to check the N vector
+# F is replaced during estimation
+
+F <- 0.0
+
+# Simulated population (females)
+# UNFISHED Spawning biomass (F = 0)
+
+#Abundance-at-age
+N <- 1:41
+
+N[1] <- 500
+
+for(i in 2:40){
+  
+  N[i] <- N[i-1] * exp(-((F * f_sel[i-1]) + mort))
+  
+}
+
+N[41] <- N[40] * exp(-((F * f_sel[40]) + mort)) + ((N[40] * exp(-((F * f_sel[40]) + mort))) * exp(-((F * f_sel[41]) + mort)))
+N
+sum(N)
+
+SB_age <- 1:41
+
+SB_age <- N * mat_s_f * wt_s_f * ktp
+SB <- sum(SB_age)
+SB
+
+# Parameter estimation
+SB60 <- 0.6 * SB
+SB55 <- 0.55* SB
+SB50 <- 0.5 * SB
+SB45 <- 0.45* SB
+SB40 <- 0.4 * SB
+SB35 <- 0.35* SB
+
+# Spawning biomass function to compute values 
+SBf <- function(x,SB) {
+  
+  NS <- 500
+  
+  for(i in 1:41){
+    
+    if(i == 1)
+      N[i] <- NS
+    else
+      N[i] <- N[i-1] * exp(-((x * f_sel[i-1]) + mort))
+  }
+  
+  N[41] <- N[40] * exp(-((x * f_sel[40]) + mort)) + ((N[40] * exp(-((x * f_sel[40]) + mort))) * exp(-((x * f_sel[41]) + mort)))
+  
+  SB_ageS <- N * mat_s_f * wt_s_f * ktp
+  
+  SBS <- sum(SB_ageS)
+  
+  (SBS - SB)^2
+  
+}
+
+fit60 <- optimize(f = SBf, SB = SB60, lower = 0.01, upper = 0.2)
+fit55 <- optimize(f = SBf, SB = SB55, lower = 0.01, upper = 0.2)
+fit50 <- optimize(f = SBf, SB = SB50, lower = 0.01, upper = 0.2)
+fit45 <- optimize(f = SBf, SB = SB45, lower = 0.01, upper = 0.2)
+fit40 <- optimize(f = SBf, SB = SB40, lower = 0.01, upper = 0.2)
+fit35 <- optimize(f = SBf, SB = SB35, lower = 0.01, upper = 0.2)
+
+Fxx <- c(fit35$minimum, fit40$minimum, fit45$minimum, fit50$minimum, fit55$minimum, fit60$minimum)
+
+Fxx
+
+# FULL RECRUITMENT FISHING MORTALITY USING **SURVEY** WEIGHT-AT-AGE FOR 
+# SPAWNING BIOMASS CALCS
+
+F35 <- Fxx[[1]]
+F40 <- Fxx[[2]]
+F45 <- Fxx[[3]]
+F50 <- Fxx[[4]]
+F55 <- Fxx[[5]]
+F60 <- Fxx[[6]]
+
+# Forecast ----
+
+##QUOTAS FOR VARIOUS F LEVELS
+
+
+adj_Q50s <- sum((N_fp * wt_f_f * ktp)* ((F50 * f_sel) / (((F50 * f_sel) + mort)) * (1 - exp(-((F50 * f_sel) + mort))))+
+              (N_mp * wt_f_m * ktp) * ((F50 * m_sel)/(((F50 * m_sel) + mort)) * (1 - exp(-((F50 * m_sel) + mort)))))
+
+# THIS IS TOTAL EXPLOITED BIOMASS - TOTAL ABUNDANCE PARTITIONED INTO COHORTS * 
+# FISHERY WEIGHT * SELECTIVITY (REFER: Q&D bottom page 339)
+
+adj_2018_exp_b <- ktp * sum((N_fp * wt_f_f * f_sel) + (N_mp * wt_f_m * m_sel))
+
+
+adj_2018_exp_n<-sum((N_fp*f_sel)+(N_mp*m_sel))
+
+adj_2018_exp_n
+adj_2018_exp_b
+adj_Q50s
+F50
+
+# Updated summary table ----
+
+data.frame("Quantity" = c("Exploited abundance (2017 value from last year)",
+                          "Exploited abundance",
+                          "Exploited abundance (adjusted for uncertainty in recruitment)",
+                          "Exploited biomass (2017 value from last year)",
+                          "Exploited biomass",
+                          "Exploited biomass (adjusted for uncertainty in recruitment)",
+                          "$F_{ABC}=F_{50}$",
+                          "$ABC$ (round lbs)",
+                          "$ABC_{adj}$ (round lbs)"),
+           "Y2017" = c(1564409, N_MR_sex, adj_N_MR_sex,
+                       13502591, upd2017_expb, adj_upd2017_expb,
+                       0.0683, 850113, 850113),
+           "Y2018" = c(adj_2018_exp_n, exp_n, adj_2018_exp_n,
+                       adj_2018_exp_b, exp_b, adj_2018_exp_b,
+                       F50, Q50s, adj_Q50s)) %>% 
+   write_csv("output/2018_summary_table.csv")
+
+# Updated retrospective plot ----
 
 # Graph with forecast abundance estimate
 
@@ -2036,63 +2414,47 @@ results %>%
   mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
   pad(interval = "year") %>% 
   mutate(year = year(year),
-         Year = factor(year)) %>% 
-  gather("Abundance", "N", `Previous estimate`, `Current estimate`) %>% 
+         Year = factor(year),
+         `Current estimate adjusted` = ifelse(year == YEAR, adj_N_MR_sex, `Current estimate`)) %>% 
+  # Add forecasted year
+  bind_rows(data.frame(year = YEAR + 1,
+                       time_period = "N.avg", 
+                       "Current estimate" = exp_n, 
+                       q025 = NA, 
+                       q975 = NA, 
+                       "Previous estimate" = NA,
+                       Year = factor(YEAR+1),
+                       "Current estimate adjusted" = adj_2018_exp_n,
+                       check.names = FALSE)) %>% 
+  gather("Abundance", "N", `Previous estimate`, `Current estimate`, `Current estimate adjusted`) %>% 
   mutate(N = N / 1000000,
          # interpolate the CI in missing years for plotting purposes
          q025 = zoo::na.approx(q025 / 1000000, maxgap = 20, rule = 2),
-         q975 = zoo::na.approx(q975 / 1000000, maxgap = 20, rule = 2)) %>% 
-  ggplot() +
+         q975 = zoo::na.approx(q975 / 1000000, maxgap = 20, rule = 2)) -> forec_plot
+  
+ggplot(data = forec_plot) +
   geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), 
              size = 3) +
   geom_smooth(aes(x = year, y = N, col = Abundance), 
               se = FALSE) +
   geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
-              alpha = 0.2, fill = "#F8766D") +
-  scale_x_continuous(breaks = seq(min(model_years), max(model_years) + 2, 2), 
-                     labels = seq(min(model_years), max(model_years) + 2, 2)) +
+              alpha = 0.2, fill = "#5ab4ac") +
+  scale_x_continuous(breaks = seq(min(model_years), max(model_years) + 3, 2), 
+                     labels = seq(min(model_years), max(model_years) + 3, 2)) +
   geom_point(data = assessment_summary %>% 
                filter(year %in% c(2017)) %>% 
                mutate(est = abundance_age2plus / 1000000),
              aes(x = year, y = est), 
-             shape = 8, size = 3, colour = "darkcyan") +
-  geom_point(aes(x = 2018, y = exp_n / 1000000),
-             shape = 21, size = 3, colour = "#F8766D", fill = "#F8766D") +
-  ylim(c(1, 3.5)) +
-  labs(x = "", y = "Number of\nsablefish\n(millions)\n",
+             shape = 8, size = 3, colour = "#d8b365") + #"darkcyan"
+  scale_color_manual(values = c( "#5ab4ac", "#01665e", "#d8b365")) +
+  ylim(c(1.4, 3.4)) +
+  labs(x = "", y = "Number of sablefish (millions)\n",
        colour = NULL, shape = NULL) +
-  theme(legend.position = c(.8, .8),
-        axis.title.y = element_text(angle = 0, hjust = 0.5, vjust = 0.5),
-        legend.text = element_text(size = 14))
+  theme(legend.position = c(.8, .8))#,
+# axis.title.y = element_text(angle = 0, hjust = 0.5, vjust = 0.5),
+#legend.text = element_text(size = 14)
 
 ggsave(paste0("figures/model1_N_retrospective_", 
               FIRST_YEAR, "_", YEAR, ".png"), 
        dpi=300, height=4, width=9, units="in")
-
-
-# Format tables
-
-v2018 <- c(exp_n, exp_b, F50, Q50s, Q45s, Q40s) 
-
-# From 2017 assessment
-v2017 <- c(1564409, 13502591, 0.0683, 850113, 1005851, 1189083)
-
-format(round((v2018 - v2017)/v2017 * 100, 1),  nsmall=1) -> perc_change
-
-v2017[c(1, 2, 4, 5, 6)] <- lapply(v2017[c(1, 2, 4, 5, 6)], prettyNum, trim=TRUE, big.mark=",")
-v2017[3] <- lapply(v2017[3], format, nsmall=3, digits=3)
-
-v2018[c(1, 2, 4, 5, 6)] <- lapply(v2018[c(1, 2, 4, 5, 6)], prettyNum, trim=TRUE, big.mark=",")
-v2018[3] <- lapply(v2018[3], format, nsmall=3, digits=3)
-
-rbind(v2017, v2018, perc_change) %>% data.frame() -> new_df
-new_df %>% t() %>% data.frame() %>% 
-  mutate(Quantity = c("Forecast exploited abundance",
-                      "Forecast exploited biomass",
-                      "F ACB = F 50%",
-                      "ABC - F50% (round pounds)",
-                      "ABC - F45% (round pounds)",
-                      "ABC - F40% (round pounds)")) %>%  
-  select(Quantity, `2017` = v2017, `2018` = v2018, `Percent Change` = perc_change)  %>%
-  kable()
-  
+View(forec_plot)

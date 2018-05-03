@@ -1,0 +1,10 @@
+Quantity,Y2017,Y2018
+Exploited abundance (2017 value from last year),1564409,1972463.228621291
+Exploited abundance,2138742.0038180514,2188766.363365935
+Exploited abundance (adjusted for uncertainty in recruitment),1927382.4875266624,1972463.228621291
+Exploited biomass (2017 value from last year),13502591,16716483.574970873
+Exploited biomass,18049305.607325893,18549637.038470898
+Exploited biomass (adjusted for uncertainty in recruitment),16265597.008649863,16716483.574970873
+$F_{ABC}=F_{50}$,0.0683,0.06349469192904039
+$ABC$ (round lbs),850113,1088298.6165226772
+$ABC_{adj}$ (round lbs),850113,980748.3515733806

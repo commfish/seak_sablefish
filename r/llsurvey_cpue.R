@@ -4,7 +4,7 @@
 # Last edited: 2017-10-09
 
 # load ----
-source("r_code/helper.R")
+source("r/helper.R")
 YEAR <- 2017
 
 # Explore hook standardization relationship ----
@@ -97,21 +97,10 @@ srv_cpue %>%
          # std_error = sdev / sqrt(nn),
          CIupper = annual_cpue + (sdev * 2),
          CIlower = annual_cpue - (sdev * 2)
-         ) -> srv_sum#-> srv_cpue
+         ) -> srv_sum
 
-# Percent change in fishery cpue compared to a ten year rolling average
-srv_sum %>% 
-  filter(year > YEAR - 10 & year <= YEAR) %>% 
-  mutate(lt_mean = mean(annual_cpue),
-         perc_change_lt = (annual_cpue - lt_mean) / lt_mean * 100) 
-
-# Percent change in fishery cpue from last year
-srv_sum %>% 
-  filter(year >= YEAR - 1 & year <= YEAR) %>%
-  select(year, annual_cpue) %>% 
-  dcast("annual_cpue" ~ year) %>% 
-  mutate(perc_change_ly = (`2017` - `2016`) / `2016` * 100)
-
+write_csv(srv_sum,
+          paste0("output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
 
 # figures
 

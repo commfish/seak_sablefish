@@ -52,7 +52,7 @@
 YEAR <- 2017
 
 # Load ----
-source("r_code/helper.R")
+source("r/helper.R")
 
 # Oracle connections ----
 
