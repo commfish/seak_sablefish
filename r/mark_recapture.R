@@ -338,13 +338,13 @@ table(releases = move$rel_stat,
   group_by(year, releases) %>% 
   mutate(N = sum(Freq), # number of releases in an area
          Probability = Freq/N) %>%  # probability of being recaptured in an area if released in an area
-  ggplot(aes(x = recaptures, y = releases)) +
+  ggplot(aes(x = releases, y = recaptures)) +
   geom_tile(aes(fill = Probability), colour = "grey") +
   facet_wrap(~ year, ncol = 2) +
   scale_fill_gradient(low = "white", high = "red", space = "Lab",
                       na.value = "white", guide = "colourbar",
                       name = "Probability\n") +
-  labs(x = "\nRecapture Stat Area", y = "Release Stat Area\n") +
+  labs(x = "\nRelease Stat Area", y = "Recapture Stat Area\n") +
   theme(axis.text.x = element_text(size = 12 ,angle = 90, hjust = 1), 
         axis.text.y = element_text(size = 12),
         legend.text = element_text(size = 12),
@@ -639,6 +639,15 @@ right_join(recoveries %>%
   ungroup() %>% 
   dcast(year ~ D, value.var = "n", fill = 0) %>% 
   left_join(tag_summary, by = "year") -> tag_summary
+
+# Currently n.1 and k.1 refelct observed and marked in the longline survey. Add
+# similar columns for the fishery
+daily_marks %>% 
+  group_by(year) %>% 
+  summarize(k_fishery = sum(total_marked),
+            n_fishery = sum(total_obs),
+            D_fishery = sum(fishery_D)) %>% 
+  left_join(tag_summary) -> tag_summary
 
 # Trends ----
 
@@ -1171,7 +1180,6 @@ save(list = c("dic_summary", "N_summary", "convergence_summary",
               "data_ls", "data_df"),
      file = "output/mark_recap_model_selection.Rdata")
 
-
 # Model selection ----
 
 load("output/mark_recap_model_selection.Rdata")
@@ -1346,7 +1354,9 @@ post_sums %>%
 # between models, but there is no clear trend in abundance estimate response to
 # increasing P. 4/10 years the estimates decrease with increasing P, 5/10
 # increase, and 1/10 (2008) decreases with P then increases again
-ggplot(post_sums %>% filter(variable == "N.avg")) +
+ggplot(post_sums %>% filter(variable == "N.avg" #&
+                              #P >= 4
+                              )) +
   geom_point(aes(x = P, y = scale_within_median, 
                  colour = model)) +
   geom_smooth(span = 2, se = FALSE,
@@ -1737,7 +1747,9 @@ ci %>% filter(year == 2017) %>%
 # Tag summary
 
 tag_summary %>% 
-  select(Year = year, `$K_0$` = K.0, `$k$` = k.1, `$n$` = n.1, `$D_0$` = D.0, `$D$` = D.1) %>% 
+  select(Year = year, `$K_0$` = K.0, `$D_0$` = D.0, 
+         `$k_{srv}$` = k.1, `$n_{srv}$` = n.1, `$D_{srv}$` = D.1,
+         `$k_{fsh}$` = k_fishery, `$n_{fsh}$` = n_fishery, `$D_{fsh}$` = D_fishery) %>% 
   write_csv("output/tag_summary_report.csv")
 
 # Forecast/YPR Inputs ----

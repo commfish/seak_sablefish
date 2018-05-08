@@ -166,13 +166,13 @@ fed <- data.frame(ABC_thisyr = 14957, # YEAR + 1 final ABC (whale corrected)
 
 ```{r tagsummary, include=FALSE}
 
-read_csv("output/tag_summary_report.csv") -> tag_sum
+read_csv("../output/tag_summary_report.csv") -> tag_sum
 
 tagged <- tag_sum %>% 
   filter(Year == YEAR) %>% 
   pull(`$K_0$`)
 
-tag_sum[c(2,4)] <- lapply(tag_sum[,c(2,4)], prettyNum, trim=TRUE, big.mark=",")
+tag_sum[c(2:9)] <- lapply(tag_sum[,c(2:9)], prettyNum, trim=TRUE, big.mark=",")
 
 ```
 
@@ -362,7 +362,7 @@ Williams, B, Van Kirk. 2017. 2017 NSEI Sablefish Assessment. State of Alaska, De
 kable(varb_descriptions)
 ```
 
-`r tbl('tag_sum', caption = paste0('A summary of data inputs to the mark-recapture models, including marked individuals ($K_0$), recaptured individuals ($k$), sampled individuals ($n$), tags recaptured before the longline survey ($D_0$), and during the survey or the fishery ($D$) for years with a mark survey from 2005 to ', YEAR ,'. '))`
+`r tbl('tag_sum', caption = paste0('A summary of data inputs to the mark-recapture models, including total individuals marked ($K_0$), marks not available to the longline survey or the fishery (captured in other fisheries or outside Chatham; $D_0$), recaptured individuals in the longline survey and fishery ($k_{srv}$ and $k_{fsh}$), number of sampled individuals in the longline survey and fishery ($n_{srv}$ and $n_{fsh}$), marks not available to the fishery that were captured outside Chatham or in other fisheries during the survey ($D_{srv}$), and marks caught in other fisheries or outside Chatham during the fishery ($D_{fsh}$) for years with a mark survey from 2005 to ', YEAR ,'. '))`
 
 ```{r tags, echo=FALSE, out.width = '100%'}
 kable(tag_sum, align = c('l', 'r', 'r', 'r', 'r', 'r'))
