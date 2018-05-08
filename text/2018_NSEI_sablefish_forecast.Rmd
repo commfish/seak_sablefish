@@ -161,7 +161,7 @@ Because of differences in assessment methodology, we were not able to follow an 
 
 2.  The mark-recapture models used in this analysis are based on analyses by Dr. Franz Mueter (Mueter 2010).  We compared population estimates from a simple Chapman estimator with estimates from several extensions of a stratified Peterson estimator that account for changes in capture probability through time, natural and fishing mortality, migration, and seasonal trends in catch rates. These alternative model structures are implemented in the Bayesian open source software JAGS 4.3.0 (Depaoli 2016). The Bayesian approach is preferred, because it allows us to incorporate prior information and additional parameter uncertainty into the model. Previous methods used arbitrary break points (e.g. 5 or 10 days) to define temporal strata throughout the fishing season (Mueter 2010, Van Kirk et al. 2016). Here we use cumulative catch over time to define temporal strata. We use a combination of convergence criteria, deviance information criterion (DIC; Spiegelhalter et al. 2002), and a visual examination of seasonal trends in abundance to aid in model selection. 
 
-3.  The NSEI Chatham Strait sablefish assessment was developed into a reproducible research product (de Leeuw 2001). It is publicly hosted on the web-based version control service GitHub at https://github.com/commfish/seak_sablefish. This effort included a thorough review of all data sources available for the NSEI. It involved detailed conversation with ADF&G programming staff, Scott Johnson and Paul Caldwell, as well as Region I Groundfish Project biologists, Andrew Olsen, Aaron Baldwin, and Mike Vaughn. The outcomes of these discussions are documented in software code, README file, and Issues tab of the `seak_sablefish` repository. This product is considered conditionally reproducible, indicating that potential users must formally request any confidential data sourced in the code to produce the full assessment (Schwab et al. 2000). However, survey and other non-confidential data are made available, and all queries and subsequent transformations to the data are included in the analysis. 
+3.  The NSEI Chatham Strait sablefish assessment was developed into a reproducible research product (de Leeuw 2001). It is publicly hosted on the web-based version control service GitHub at https://github.com/commfish/seak_sablefish. This effort included a thorough review of all data sources available for the NSEI. It involved detailed conversation with ADF&G programming staff, Scott Johnson and Paul Caldwell, as well as Region I Groundfish Project biologists, Andrew Olson, Aaron Baldwin, and Mike Vaughn. The outcomes of these discussions are documented in software code, README file, and Issues tab of the `seak_sablefish` repository. This product is considered conditionally reproducible, indicating that potential users must formally request any confidential data sourced in the code to produce the full assessment (Schwab et al. 2000). However, survey and other non-confidential data are made available, and all queries and subsequent transformations to the data are included in the analysis. 
 
 # Section I: `r YEAR` Acceptable Biological Catch (ABC)
 
@@ -178,7 +178,7 @@ tag_sum[c(2:9)] <- lapply(tag_sum[,c(2:9)], prettyNum, trim=TRUE, big.mark=",")
 
 ```
 
-The `r YEAR-1` marking survey released `r formatC(tagged, format="d", big.mark=",")` marked fish. We accounted for tags recovered outside of the NSEI or period of recapture, natural and fishing mortality, and differences in the size of fish captured in the pot survey and the longline fishery (Section II). We explored alternative candidate models that accounted for movement in and out of Chatham Strait and incorporated fishery CPUE.
+The `r YEAR` marking survey released `r formatC(tagged, format="d", big.mark=",")` marked fish. We accounted for tags recovered outside of the NSEI or period of recapture, natural and fishing mortality, and differences in the size of fish captured in the pot survey and the longline fishery (Section II). We explored alternative candidate models that accounted for movement in and out of Chatham Strait and incorporated fishery CPUE.
 
 Due to the substantial increase in estimated abundance since 2016, coupled with uncertainty in recruitment, we adjusted the point estimate for the `r YEAR` exploited abundance by taking the 15th percentile from the posterior distribution of abundance before conducting the yield per recruit analysis and calculation of $ABC$ (`r fig('N_posterior', display = "cite")`). This adjustment stabilizes the fishery by slowing the rate of increase in allowable harvest and reduces the risk of overfishing if the 2014 year class is lower than currently predicted. 
 
@@ -232,7 +232,7 @@ $$N = \frac{(K+1)(n+1)}{k+1}-1,$$
 
 where $N$ is the estimated population abundance, $K$ is the total number of individuals marked in the population, $n$ is the number of individuals checked for marks at the time of recapture, and $k$ is the number of marked individuals out of $n$. A description of all model variables is found in `r tbl('varb_defns', display = "cite")`, and a coarse summary of the tag data since 2005 is found in `r tbl('tag_sum', display = "cite")`. Note that ADF&G did not conduct a mark survey in 2011, 2014, or 2016 due to budget restrictions.
 
-There are four primary assumptions integral to the Chapman estimator, which have been discussed in detail in previous iterations of this report (Williams and Van Kirk 2017, Dressel 2009, Mueter 2010). Briefly, these assumptions include a closed population (no movement in or out of the study area), equal probability of recapture, sufficient time between marking and recapture to allow for marked individuals to be randomly distributed throughout the unmarked population, and no tag loss or errors. Violations to these assumptions can be mitigated through study design, treatment of data, and changes to model structure. We utilized a combination of approaches to meet or relax these assumptions including:
+There are four primary assumptions integral to the Chapman estimator, which have been discussed in detail in previous iterations of this memo (Williams and Van Kirk 2017, Dressel 2009, Mueter 2010). Briefly, these assumptions include a closed population (no movement in or out of the study area), equal probability of recapture, sufficient time between marking and recapture to allow for marked individuals to be randomly distributed throughout the unmarked population, and no tag loss or errors. Violations to these assumptions can be mitigated through study design, treatment of data, and changes to model structure. We utilized a combination of approaches to meet or relax these assumptions including:
 
 1.  We accounted for potential changes in the selectivity between the pot survey and longline survey and fishery by (1) estimating growth between May and August using known length recaptured individuals, (2) comparing the cumulative length distributions between tagged and recaptured fish, and (3) adjusting our sample sizes accordingly. Despite the differences in selectivity between pot and longline gear, we found minimal differences in the cumulative length distributions between marked and recaptured since 2005, which suggests that size distribution tagged in the pot survey is sufficiently large to be recaptured in the fishery (`r fig('cum_length', display = "cite")`). These findings run contrary to those of previous authors, who adjusted the number of marks using fixed selectivity curves instead of data (Williams and Van Kirk 2017, Mueter 2010). 
 
@@ -248,9 +248,9 @@ The Chapman estimator serves as our null model (Model 0) and the basis of compar
 
 ## Model 1: Time-stratified Petersen estimator
 
-We assumed the abundance of sablefish in Chatham Straight in a given time period $N_i$ followed a normal distribution with an uninformed prior centered on past assessments' forecast of abundance.
+We assumed the abundance of sablefish in Chatham Straight in a given time period $N_i$ followed a normal distribution with an uninformed prior (precision = $1\times10^{-12}$) centered on past assessments' forecast of abundance.
 
-For any given time period $i$:
+For any given time period $i$ (see `r tbl('varb_defns', display = "cite")` for variable definitions):
 
 $$K_i = \left\{ \begin{array}{rl}
 (K_0-D_0)*exp(-M*t_i) &\mbox{i=1}\\
@@ -262,7 +262,7 @@ $$N_i = \left\{ \begin{array}{rl}
 (N_{i-1}-C_{i-1})*exp(-M*t_i) &\mbox{i>1}
 \end{array}\right.$$
 
-The probability that a sablefish caught in a given time period is marked, $p_i$, is informed by the ratio of marks in population to the total population at that time ${K_i}/{N_i}$. We assume each $p_i$ follows a beta prior distribution $p_i=beta(\alpha,\beta)$, where $\alpha=({K_i}/{N_i})*x$, $\beta=(1-{K_1}/{N_i})/x$, and the magnitude of $x$ indicates our relative confidence in ${K_i}/{N_i}$. Because we had already assigned a vague prior for $N_i$, we assumed $x$ was equal to 10,000.
+The probability that a sablefish caught in a given time period is marked, $p_i$, is informed by the ratio of marks in population to the total population at that time ${K_i}/{N_i}$. We assume each $p_i$ follows a beta prior distribution $p_i=beta(\alpha,\beta)$, where $\alpha=({K_i}/{N_i})*x$, $\beta=(1-{K_i}/{N_i})/x$, and a large $x$ indicates confidence in ${K_i}/{N_i}$. Because we already assigned a vague prior for $N_i$, we assumed an informed prior for $p_i$ by setting $x$ equal to 10,000.
 
 In a given time period, the likelihood of recapturing $k$ marked sablefish given $n$ sampled individuals follows a binomial distribution, where
 
@@ -272,7 +272,7 @@ The final estimate and credible interval reported for $N$ is the average $N$ acr
 
 ## Model 2: Accounting for movement
 
-Following Mueter (2010), we extended the time-stratified Peterson estimator by estimating a parameter for net migration $r$. If $r$ is positive, it indicates that there was net positive movement of sablefish into Chatham Strait during the fishery. Conversely, a negative $r$ would suggest net movement out of Chatham during the fishery. Following Mueter (2010), we assigned $r$ a vague normal prior distribution, centered at +5,000 individuals. This parameter is incorporated into the model with the addition of $r$ into the abundance equation from Model 1:
+Following Mueter (2010), we extended the time-stratified Peterson estimator by estimating a parameter for net migration $r$. If $r$ is positive, it indicates that there was net positive movement of sablefish into Chatham Strait during the fishery. Conversely, a negative $r$ would suggest net movement out of Chatham during the fishery. Following Mueter (2010), we assigned $r$ a vague normal prior distribution, centered at +5,000 individuals (precision = $1\times10^{-12}$). This parameter is incorporated into the model with the addition of $r$ into the abundance equation from Model 1:
 
 $$N_i=(N_{i-1}-C_{i-1})*exp(-M*t_i)+r*t_i.$$
 
@@ -288,7 +288,7 @@ where catchability $q$ is the constant of proportionality. The models including 
 
 ## Results and model selection
 
-A total of 32 models were fit for each mark survey year from 2005 to 2017 (10 distinct years). We visually examined trace plots and used the Gelman and Rubin's convergence diagnostic to test the convergence of MCMC chains (Gelman and Rubin 1992). All models converged except for versions of Models 3 and 4 with fewer than 4 time periods. Models 3 and 4 used fishery CPUE data to estimate $q$, so these models require more observations of CPUE (i.e. more time periods) to converge. These models were omitted from further consideration.
+A total of 32 models (4 models $\times$ 8 time periods) were fit for each mark survey year from 2005 to 2017 (10 distinct years). We visually examined trace plots and used the Gelman and Rubin's convergence diagnostic to test the convergence of MCMC chains (Gelman and Rubin 1992). All models converged except for versions of Models 3 and 4 with fewer than 4 time periods. Models 3 and 4 used fishery CPUE data to estimate $q$, so these models require more observations of CPUE (i.e. more time periods) to converge. Therefore, Models 3 and 4 with fewer than 4 time periods were omitted from further consideration.
 
 We used a combination of DIC and a visual examination of trends in abundance estimates to aid in the remaining model selection. There is a tradeoff between the number of time periods $P$ and accurately describing seasonal trends. A visual comparison of Models 1-4 across a range of time periods $P$ shows that the final estimate of $N$ does not change after $P\geq6$ for most years (`r fig('compare_mods', display = "cite")`). Because capturing this temporal trend was a motivating factor in the development of these models, we chose to eliminate models with $P<6$ and compared remaining candidates using DIC. 
 
@@ -306,7 +306,7 @@ top_mods[c(5:7)] <- lapply(top_mods[,c(5:7)], formatC, format="f", digits = 2)
 
 ```
 
-The models with the most support in all years were Models 1 and 2 by DIC ($\Delta{DIC}\leq2$) (Burnham and Anderson 2003). The point estimate and credible interval for $N$ for the top candidate models for `r YEAR` are found in `r tbl('top_mods', display = "cite")`. Models 1-4 have much lower estimates of abundance than the simple Chapman estimator, likely because the Chapman estimator does not account for natural or fishing mortality or changes in abundance throughout the season. Although Model 2 had statistical support, the credible intervals for net migration ($r$) were wide for all years, and the direction of net migration (positive or negative) was inconsistent across years (`r fig('net_migration', display = "cite")`). It provides an interesting contrast to the other models, but more research is needed before bringing this type of model forward for management. Models 3 and 4, though having a lower DIC weighting, had reasonable abundance estimates and fit the CPUE data well in most years (2017 was a notable exception; `r fig('npue_fitted', display = "cite")`). These models have potential for future development.
+The models with the most support in all years were Models 1 and 2 by DIC ($\Delta{DIC}\leq2$) (Burnham and Anderson 2003). The point estimate and credible interval for $N$ for the top candidate models for `r YEAR` are found in `r tbl('top_mods', display = "cite")`. Models 1-4 have much lower estimates of abundance than the simple Chapman estimator, likely because the Chapman estimator does not account for natural or fishing mortality or changes in abundance throughout the season. Although Model 2 had statistical support via DIC, the resultant abundance estimates and variance from Model 2 were greater than Model 1 (`r tbl('top_mods', display = "cite")`). The estimates and credible intervals for net migration ($r$) were wide for all years, and the direction of net migration (positive or negative) was inconsistent across years (`r fig('net_migration', display = "cite")`). While Model 2 provides an interesting contrast to the other models, more research is needed before bringing this model forward for management. Models 3 and 4, though having a lower DIC weighting, had reasonable abundance estimates and fit the CPUE data well in most years (2017 was a notable exception; `r fig('npue_fitted', display = "cite")`). These models have potential for future development.
 
 Ultimately, we selected Model 1 with $P=6$ to bring forward for the `r YEAR+1` forecast and calculation of the `r YEAR+1` ABC, because it had the lowest DIC and was most similar to models used for recent assessments (e.g. Williams and Van Kirk 2017). A retrospective analysis shows that Model 1 abundance estimates follow a similar trend and general magnitude as past model estimates (`r fig('retro', display = "cite")`). As discussed in Section I, we used the 15th percentile from the posterior distribution as the adjusted abundance estimate for subsequent analyses (`r fig('N_posterior', display="cite")`).
 
@@ -334,7 +334,7 @@ where $Z_a$ is the sum of natural mortality $M$ and $F$.
   
 1.  It is a priority for the Region I Groundfish Project and biometric team to develop and implement an integrated age-structured assessment for this stock. Due to changes in staff, no progress was made on the age-structured assessment in 2017. It is our goal to present this assessment in spring of 2019.
 
-2.  Data from mark-recapture studies prior to 2005 are currently not available and portions of the modern data are not entered in the ADF&G database. The authors recommend that these data are rehabilitated and entered into a database. 
+2.  Data from mark-recapture studies prior to 2005 are currently not available and portions of the modern data are not entered in the ADF&G database. The authors recommend that these data are rehabilitated and entered into a database. Specifically, mark recovery data collected by port samplers through countbacks are stored in spreadsheets on the network drive. These spreadsheets are heavily formatted, do not use consistent data types, and contain no metadata. Consequently, they are difficult to use and could be changed by anyone with network access.
 
 # References
 
@@ -380,7 +380,7 @@ kable(tag_sum, align = c('l', 'r', 'r', 'r', 'r', 'r'))
 kable(mod_descriptions, align = c('l', 'l', 'l'))
 ```
 
-`r tbl('top_mods', caption = paste0('Results from candidate models in ', YEAR ,', including abundance estimate (median) and 95% credibility intervals, deviance, parameter penalty, and delta DIC (DIC = 0 is the model with the most support). '))`
+`r tbl('top_mods', caption = paste0('Results from candidate models in ', YEAR ,', including abundance estimate (median) and 95% credible intervals, deviance, parameter penalty, and delta DIC (DIC = 0 is the model with the most support). '))`
 
 ```{r topmods, echo=FALSE, out.width = '100%'}
 kable(top_mods, align = c('l', 'r', 'r', 'r', 'r', 'r', 'r'))
@@ -394,7 +394,7 @@ kable(top_mods, align = c('l', 'r', 'r', 'r', 'r', 'r', 'r'))
 include_graphics(paste0("../figures/model1_N_retrospective_2005_", YEAR, ".png"))
 ```
 
-`r fig('retro', caption = paste0('Abundance estimates from the current model (light green), adjusted current model (dark green), and previous against previous estimates of abundance (gold) from 2005 - ', YEAR ,'. Shaded areas indicate 95% credibility intervals from the posterior distribution. The gold star shows the past forecast of abundance in 2017, which was poorly estimated due to a lack of a mark survey in 2016.'))`
+`r fig('retro', caption = paste0('Abundance estimates from the current model (light green), adjusted current model (dark green), and previous against previous estimates of abundance (gold) from 2005 - ', YEAR ,'. Shaded areas indicate 95% credible intervals from the posterior distribution. The gold star shows the past forecast of abundance in 2017, which was poorly estimated due to a lack of a mark survey in 2016.'))`
 
 ```{r propatage, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/proportion_fembyage.png"))
@@ -437,7 +437,7 @@ include_graphics("../figures/bubble_fishery_agecomp_byyear.png")
 include_graphics("../figures/mod1_Nposterior_adjustment.png")
 ```
 
-`r fig('N_posterior', caption = paste0('The posterior distribution of abundance (sablefish in millions) in ', YEAR ,'. The dark shaded area represents the 95% credibility interval, the solid grey line is the median abundance estimate, and the dashed grey line is the adjusted abundance estimate (15th percentile) recommended for the ', YEAR+1, ' forecast.'))`
+`r fig('N_posterior', caption = paste0('The posterior distribution of abundance (sablefish in millions) in ', YEAR ,'. The dark shaded area represents the 95% credible interval, the solid grey line is the median abundance estimate, and the dashed grey line is the adjusted abundance estimate (15th percentile) recommended for the ', YEAR+1, ' forecast.'))`
 
 ```{r cum_length, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/rel_rec_cumproplength_2005_", YEAR, ".png"))
@@ -461,10 +461,10 @@ include_graphics(paste0("../figures/N_scaledwithin_2005_", YEAR, ".png"))
 include_graphics(paste0("../figures/net_migration_estimates.png"))
 ```
 
-`r fig('net_migration', caption = paste0('Posterior distribution of net migration into Chatham Strait with 95% credibility intervals shaded (Model 2, P=6). The median point estimate is denoted in the red dashed line. The solid blue line at net 0 migration aids in visualization of results across years with a mark survey, 2005 - ', YEAR ,'. '))`
+`r fig('net_migration', caption = paste0('Posterior distribution of net migration into Chatham Strait with 95% credible intervals shaded (Model 2, P=6). The median point estimate is denoted in the red dashed line. The solid blue line at net 0 migration aids in visualization of results across years with a mark survey, 2005 - ', YEAR ,'. '))`
 
 ```{r fittednpue, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/NPUE_obsvsfitted.png"))
 ```
 
-`r fig('npue_fitted', caption = paste0('Observed (black) versus fitted (grey) CPUE (sablefish per 1000 hooks) in the longline fishery (Model 3, P=6) for years with a mark survey, 2005 - ', YEAR ,'. Grey shaded areas indicate 95% credibility intervals from the posterior distribution.'))`
+`r fig('npue_fitted', caption = paste0('Observed (black) versus fitted (grey) CPUE (sablefish per 1000 hooks) in the longline fishery (Model 3, P=6) for years with a mark survey, 2005 - ', YEAR ,'. Grey shaded areas indicate 95% credible intervals from the posterior distribution.'))`
