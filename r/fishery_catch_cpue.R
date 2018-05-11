@@ -49,12 +49,13 @@ catch_ifdb %>%
   group_by(year) %>% 
   summarize(total_pounds = sum(whole_pounds)) -> sum_catch
 
+axis <- tickr(sum_catch$year, 3)
 ggplot(sum_catch %>% 
          filter(year >= 1985), 
        aes(x = year, y = total_pounds/1000000)) +
   geom_line(group=1) +
   geom_point() +
-  scale_x_continuous(breaks = seq(min(sum_catch$year), YEAR, 4)) +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   labs(x = "", y = "Fishery harvest (millions lbs)\n") +
   ylim(0, 6)
 
@@ -448,14 +449,19 @@ data.frame(year = 1980:1996,
   mutate(cpue = round(cpue, 3),
          var = round(var, 3)) -> cpue_ts
 
-ggplot(cpue_ts %>% 
-         filter(year >= 1997)) +
+cpue_ts_short <- cpue_ts %>% 
+         filter(year >= 1997)
+
+axis <- tickr(cpue_ts_short$year, 3)
+
+ggplot(cpue_ts_short) +
   geom_point(aes(year, cpue)) +
   geom_line(aes(year, cpue)) +
   geom_ribbon(aes(year, ymin = cpue - sqrt(var), ymax = cpue + sqrt(var)),
   # geom_ribbon(aes(year, ymin = cpue - var, ymax = cpue + var),
-              alpha = 0.3, col = "white", fill = "skyblue") +
-  scale_x_continuous(breaks = seq(min(cpue_ts$year), YEAR, 4)) +
+              alpha = 0.2,  fill = "grey") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  lims(y = c(0, 1.5)) +
   labs(x = "", y = "Fishery CPUE (round pounds per hook)\n") 
 
 ggsave(paste0("figures/fshcpue_1997_", YEAR, ".png"),
