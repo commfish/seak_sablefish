@@ -20,7 +20,7 @@ if(!require("tidyr"))   install.packages("tidyr") # reshaping data
 if(!require("knitr"))   install.packages("knitr") # r markdown
 if(!require("forcats"))   install.packages("forcats") # releveling factors
 # install.packages("devtools")
-# devtools::install_github("ben-williams/FNGr")
+devtools::install_github("ben-williams/FNGr")
 library("FNGr")
 
 # ggplot themes ----
@@ -35,8 +35,8 @@ theme_sleek <- function(base_size = 12, base_family = "Times") {
       panel.grid.minor = element_blank(),
       axis.ticks.length = unit(half_line / 2.2, "pt"),
       strip.background = element_rect(fill = NA, colour = NA),
-      #strip.text.x = element_text(colour = "grey30"),
-      #strip.text.y = element_text(colour = "grey30"),
+      strip.text.x = element_text(colour = "black"),
+      strip.text.y = element_text(colour = "black"),
       #axis.text = element_text(colour = "grey30"),
       #axis.title = element_text(colour = "grey30"),
       #legend.title = element_text(colour = "grey30"),#, size = rel(0.9)

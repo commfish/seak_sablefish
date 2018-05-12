@@ -677,10 +677,10 @@ ggsave("figures/fem_maturity_at_age2.png", dpi=300,
 aa <- c(2:42)
 
 # see helper for f_sex_ratio() documentation - couldn't get this to run 2018-03-01.
-f_sex_ratio(data = filter(srv_bio, age %in% aa),
-              src = "LL survey", age) %>%
-  bind_rows(f_sex_ratio(data = filter(fsh_bio, age %in% aa),
-              src = "LL fishery", age)) -> byage
+# f_sex_ratio(data = filter(srv_bio, age %in% aa),
+#               src = "LL survey", age) %>%
+#   bind_rows(f_sex_ratio(data = filter(fsh_bio, age %in% aa),
+#               src = "LL fishery", age)) -> byage
 
 # Manual until I can get f_sex_ratio() running again:
 srv_bio %>% 
@@ -747,6 +747,7 @@ ggplot(byage, aes(x = age)) +
   expand_limits(y = c(0.0, 1)) +
   xlab("\nAge") +
   ylab("Proportion of females\n") +
+  geom_hline(yintercept = 0.5, lty = 2) +
   scale_colour_manual(values = c("black", "grey")) +
   scale_fill_manual(values = c("black", "grey")) +
   theme(legend.position = c(0.8, 0.8))
@@ -756,9 +757,9 @@ ggsave("figures/proportion_fembyage.png", dpi=300,
 
 # proportion of females by year in the fishery and survey
 
-f_sex_ratio(data = filter(srv_bio), src = "LL survey", year) %>% 
-  bind_rows(f_sex_ratio(data = filter(fsh_bio), 
-              src = "LL fishery", year)) -> byyear
+# f_sex_ratio(data = filter(srv_bio), src = "LL survey", year) %>% 
+#   bind_rows(f_sex_ratio(data = filter(fsh_bio), 
+#               src = "LL fishery", year)) -> byyear
 
 # Manual until I can get f_sex_ratio() running again:
 srv_bio %>% 
@@ -824,20 +825,20 @@ bind_cols(
 
 # plots
 
+axis <- tickr(byyear %>% ungroup() %>% distinct(year) %>% pull(year), 5)
+
 ggplot(data = byyear, aes(x = year)) +
   geom_line(aes(y = fit, col = Source), size = 1) +
   geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, 
                   fill = Source),  alpha = 0.2) +
   geom_point(aes(y = proportion, col = Source)) +  
   expand_limits(y = c(0.0, 1)) +
-  scale_x_continuous(breaks = seq(min(byyear$year), max(byyear$year) + 1, 4), 
-                     labels =  seq(min(byyear$year), max(byyear$year) + 1, 4)) +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   xlab("") +
   ylab("Proportion of females\n") +
   scale_colour_manual(values = c("black", "grey")) +
   scale_fill_manual(values = c("black", "grey")) +
-  theme(#axis.text.x = element_text(size=10, angle=45, hjust=1),
-        legend.position = c(0.8, 0.2))
+  theme(legend.position = c(0.8, 0.2))
 
 ggsave("figures/proportion_fembyyear.png", dpi=300, height=4, width=5, units="in")
 
@@ -977,22 +978,98 @@ ggplot(data = agecomps %>%
 ggsave("figures/bubble_fishery_agecomp_byyear.png", 
        dpi=300, height=5, width=7.5, units="in")
 
-ggplot(data = agecomps %>% 
-         filter(Sex %in% c("Female", "Male") &
-                  Source %in% c("LL survey") &
-                  year >= 1997 &
-                  age <= 30),
+agecompdat <- agecomps %>% 
+  filter(Sex %in% c("Female", "Male") &
+           Source %in% c("LL survey") &
+           year >= 1997 &
+           age <= 30) %>% 
+  ungroup()
+
+axisy <- tickr(agecompdat %>% distinct(year) %>% pull(year), 4)
+axisx <- tickr(agecompdat %>% distinct(age) %>% pull(age), 10)
+
+ggplot(data = agecompdat,
        aes(x = age, y = year, size = proportion)) + #*FLAG* could swap size with proportion_scaled
-  geom_point(shape = 21, fill = "black") +
+  geom_point(shape = 21, fill = "darkgrey", colour = "darkgrey") +
   scale_size(range = c(0, 4)) +
   facet_wrap(~ Sex) +
   xlab('\nObserved age') +
   ylab('') +
   guides(size = FALSE) +
-  scale_y_continuous(breaks = seq(1997, 
-                                  max(agecomps$year), 4))
+  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
+  scale_y_continuous(breaks = axisy$breaks, labels = axisy$labels)
 
 ggsave("figures/bubble_survey_agecomp_byyear.png", dpi=300, height=5, width=7.5, units="in")
+
+
+to <- 10
+axisx <- agecompdat %>% distinct(age) %>% 
+  mutate(labels = ifelse(age %in% seq(to * round(min(age) / to), max(age), to), 
+                        age, "")) %>% 
+  select(breaks = age, labels)
+
+to <- 3
+axisy <- agecompdat %>% distinct(year) %>% 
+  mutate(labels = ifelse(year %in% seq(to * round(min(year) / to), max(year), to), 
+                         year, "")) %>% 
+  select(breaks = year, labels)
+
+
+# Depends on dplyr
+tickr <- function(
+  data, # dataframe
+  var, # column of interest
+  to # break point definition 
+  ){
+  
+  VAR <- enquo(var) # makes VAR a dynamic variable
+  
+  data %>% 
+    distinct(!!VAR) %>%
+    mutate(labels = ifelse(!!VAR %in% seq(to * round(min(!!VAR) / to), max(!!VAR), to),
+                          !!VAR, "")) %>%
+    select(breaks = UQ(VAR), labels)
+}
+
+
+tickr2(data = agecompdat, var = age, to = 10)
+
+data.frame(year = 1973:2017) %>%
+  mutate(y = rnorm(n(), 10,5)) -> df
+
+
+tickr <- function(x, to, type = "year"){
+  
+  rnd <- NA
+  ifesle(type == "year", rnd = 10, rnd = 1)
+  
+  n = length(x)
+  strtyr = min(x)
+  begin = to * round(strtyr / to)
+  endyr = max(x)
+  label_breaks = seq(begin, endyr, to)
+  
+  if(strtyr %% rnd < 3 ){
+    
+    labs = as.vector(c(sapply(label_breaks, function(x) c(rep( NA, to), x))))
+    drop = max(to - (begin - strtyr))-1
+    
+  } else {
+    
+    labs = as.vector(c(sapply(label_breaks, function(x) c(rep( NA, to-1), x))))
+    drop = max(to - (begin - strtyr))-1
+  }
+  
+  
+  # labs = ifelse(drop < 0, labs, labs[-c(1:drop)])
+  labs = labs[-c(1:drop)]
+  extrana = n - length(labs)
+  
+  labs = c(labs, rep(NA, extrana))
+  labs[is.na(labs)] <- " "
+  data.frame(labels = labs, breaks = strtyr:endyr)
+  
+}
 
 # ggridges exploration *FLAG*
 agecomps %>% 
