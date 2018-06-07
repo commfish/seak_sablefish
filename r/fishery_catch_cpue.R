@@ -4,7 +4,8 @@
 # Contact: jane.sullivan1@alaska.gov
 # Last edited: 2018-04-09
 
-source("r/helper.R")
+source("r/helper.r")
+source("r/functions.r")
 
 # Most recent year of data
 YEAR <- 2017
@@ -49,18 +50,21 @@ catch_ifdb %>%
   group_by(year) %>% 
   summarize(total_pounds = sum(whole_pounds)) -> sum_catch
 
-axis <- tickr(sum_catch$year, 3)
+axis <- tickr(sum_catch, year, 3)
 ggplot(sum_catch %>% 
          filter(year >= 1985), 
        aes(x = year, y = total_pounds/1000000)) +
   geom_line(group=1) +
   geom_point() +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  geom_vline(xintercept = 1997, lty = 5, colour = "grey") +
   labs(x = "", y = "Fishery harvest (millions lbs)\n") +
   ylim(0, 6)
 
+write_csv(sum_catch, paste0("output/harvest_1985_", YEAR, ".csv"))
+
 ggsave(paste0("figures/fishery_harvest_1985_", YEAR, ".png"), 
-       dpi=300, height=4, width=7.5, units="in")
+       dpi=300,  height=4, width=7,  units="in")
 
 # Consolidation of fishery - number of vessels fishing and total number of trips
 # in Chatham over time
@@ -115,6 +119,8 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
     total_trips = n_distinct(trip_no)) %>% 
   ungroup() -> fsh_cpue
 
+axis <- tickr(fsh_cpue, year, 3)
+
 fsh_cpue %>% 
   select(year, Vessels = total_vessels, Trips = total_trips) %>% 
   gather(Variable, Count, -year) %>% 
@@ -123,8 +129,9 @@ fsh_cpue %>%
   geom_line(size = 1) +
   geom_point(size = 2) +
   facet_wrap(~ Variable, ncol = 1, scales = "free") +
-  scale_x_continuous(breaks = seq(min(fsh_cpue$year), YEAR, 4)) +
-  labs(x = "", y = "") 
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "") +
+  ylim(0, NA)
 
 ggsave(paste0("figures/fishery_tripandvessel_trends_1997_", YEAR, ".png"), 
        dpi=300, height=6, width=5, units="in")
@@ -451,8 +458,6 @@ data.frame(year = 1980:1996,
 
 cpue_ts_short <- cpue_ts %>% 
          filter(year >= 1997)
-
-axis <- tickr(cpue_ts_short$year, 3)
 
 ggplot(cpue_ts_short) +
   geom_point(aes(year, cpue)) +

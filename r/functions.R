@@ -384,3 +384,20 @@ mr_jags <- function(
     return(model_output)
    
 }
+
+# Depends on dplyr
+tickr <- function(
+  data, # dataframe
+  var, # column of interest
+  to # break point definition 
+){
+  
+  VAR <- enquo(var) # makes VAR a dynamic variable
+  
+  data %>% 
+    distinct(!!VAR) %>%
+    ungroup(!!VAR) %>% 
+    mutate(labels = ifelse(!!VAR %in% seq(to * round(min(!!VAR) / to), max(!!VAR), to),
+                           !!VAR, "")) %>%
+    select(breaks = UQ(VAR), labels)
+}

@@ -210,7 +210,8 @@ rel_sel %>%
   facet_wrap(~year, ncol = 2) +
   scale_x_discrete(breaks = seq(40, 110, 10), 
                    labels = seq(40, 110, 10)) +
-  scale_colour_manual(values = c("#a6bddb", "#0570b0", "#023858")) +
+  # scale_colour_manual(values = c("#a6bddb", "#0570b0", "#023858")) +
+  scale_colour_manual(values = c("grey75", "grey50", "grey10")) +
   labs(x = "\nLength bin (cm)", 
        y = "Proportion\n") +
   theme(legend.position = "bottom",
@@ -264,7 +265,8 @@ rel_sel %>%
   facet_wrap(~year, ncol = 2) +
   scale_x_discrete(breaks = seq(40, 110, 10), 
                      labels = seq(40, 110, 10)) +
-  scale_colour_manual(values = c("#a6bddb", "#0570b0", "#023858")) +
+  # scale_colour_manual(values = c("#a6bddb", "#0570b0", "#023858")) +
+  scale_colour_manual(values = c("grey75", "grey50", "grey10")) +
   labs(x = "\nLength bin (cm)", 
        y = "Cumulative proportion\n") +
   theme(legend.position = "bottom",
@@ -341,9 +343,12 @@ table(releases = move$rel_stat,
   ggplot(aes(x = releases, y = recaptures)) +
   geom_tile(aes(fill = Probability), colour = "grey") +
   facet_wrap(~ year, ncol = 2) +
-  scale_fill_gradient(low = "white", high = "red", space = "Lab",
-                      na.value = "white", guide = "colourbar",
+  scale_fill_gradient(low = "white", high = "black", space = "Lab",
+                      na.value = "red", guide = "colourbar",
                       name = "Probability\n") +
+  # scale_fill_gradient(low = "white", high = "red", space = "Lab",
+  #                     na.value = "white", guide = "colourbar",
+  #                     name = "Probability\n") +
   labs(x = "\nRelease Stat Area", y = "Recapture Stat Area\n") +
   theme(axis.text.x = element_text(size = 12 ,angle = 90, hjust = 1), 
         axis.text.y = element_text(size = 12),
@@ -1536,14 +1541,14 @@ results %>%
          ci = ifelse(r >= q025 & r <=q975, 1, 0),
          median = median(r)) %>% 
   ggplot(aes(r)) + 
-  geom_histogram(fill = 4, alpha = 0.2, bins = 100, color = 'black') + 
+  geom_histogram(fill = "white", alpha = 0.2, bins = 100, color = 'black') + 
   geom_histogram(data = . %>% filter(ci==1), 
-                 aes(r), fill = 4, alpha = 0.6, bins = 100) +
-  geom_vline(aes(xintercept = median), col = "red", linetype = 2, size = 1) +
-  geom_vline(aes(xintercept = 0), col = "blue", linetype = 1, size = 1) +
+                 aes(r), fill = "grey50", alpha = 0.9, bins = 100) +
+  geom_vline(aes(xintercept = median), col = "black", lty = 2, size = 1) +
+  geom_vline(aes(xintercept = 0), col = "black") +
   facet_wrap(~ year, ncol = 2) +
-  labs(x = "Net migration of sablefish (x 1000)",
-       y = "Posterior distribution") +
+  labs(x = "\nNet migration of sablefish (x 1000)",
+       y = "\nPosterior distribution") +
   xlim(c(-30, 40))
 
 ggsave(paste0("figures/net_migration_estimates.png"), 
@@ -1586,10 +1591,10 @@ results %>%
          ci = ifelse(q >= q025 & q <=q975, 1, 0),
          median = median(q)) %>% 
   ggplot(aes(q)) + 
-  geom_histogram(fill = 4, alpha = 0.2, bins = 100, color = 'black') + 
+  geom_histogram(fill = "grey50", alpha = 0.2, bins = 100, color = 'black') + 
   geom_histogram(data = . %>% filter(ci==1), 
-                 aes(q), fill = 4, alpha = 0.6, bins = 100) +
-  geom_vline(aes(xintercept = median), col = "red", linetype = 2, size = 1) +
+                 aes(q), fill = "grey50", alpha = 0.6, bins = 100) +
+  geom_vline(aes(xintercept = median), col = "black", lty = 2, size = 1) +
   facet_wrap(~ year, ncol = 2) +
   labs(x = "Catchability (q)",
        y = "Posterior distribution") +
@@ -1685,10 +1690,10 @@ results %>%
   labs(x = "", y = "Number of sablefish (millions)\n",
        colour = NULL, shape = NULL) +
   theme(legend.position = c(.8, .8))
-
-ggsave(paste0("figures/model1_N_retrospective_", 
-              FIRST_YEAR, "_", YEAR, ".png"), 
-       dpi=300, height=4, width=6, units="in")
+# 
+# ggsave(paste0("figures/model1_N_retrospective_", 
+#               FIRST_YEAR, "_", YEAR, ".png"), 
+#        dpi=300, height=4, width=6, units="in")
 
 
 # results %>%
@@ -1806,7 +1811,7 @@ wt_s_f <- waa %>%
   filter(Source == "LL survey" &
            Sex == "Female") %>% 
   select(matches("^[[:digit:]]+$")) %>% 
-  as.numeric()
+  as.numeric() 
 
 # Male, survey
 wt_s_m <- waa %>% 
@@ -1837,30 +1842,17 @@ read_csv("output/fem_maturityatage_llsrv.csv",
   as.numeric() -> mat_s_f
   
 #Check to make sure all have been read in as numeric vectors
-length(wt_s_f)
-length(wt_s_m)
-length(wt_f_f)
-length(wt_f_m)
-length(mat_s_f)
-
-#Fishing mortality * selectivity. Note that we are using HALF of the previous
-#full-recruitment F value due to the estimate of abundance being the MEAN
-#abundance in the middle of the commercial fishery
-
-Fm <- F_previous/2 * m_sel
-Ff <- F_previous/2 * f_sel
+length(wt_s_f); length(wt_s_m); length(wt_f_f); length(wt_f_m); length(mat_s_f)
 
 # Multiply N by fishery proportions to estimate *EXPLOITED* 
 # numbers-at-age and divide by age-specific selectivity
 #
-# AS PER MUETER 2010 sablefish ASA report to ADF&G,
-# the 'exploited' population refers to the population targeted
-# by both gear AND fishing fleet behavior
-# 'Exploitable' means those vulnerable solely to gear under
-# conditions of random sampling
+# AS PER MUETER 2010 sablefish ASA report to ADF&G, the 'exploited' population
+# refers to the population targeted by both gear AND fishing fleet behavior
+# 'Exploitable' means those vulnerable solely to gear under conditions of random
+# sampling
 
 # Sex ratio in the commercial fishery in YEAR
-
 female_p <- read_csv("output/sexratio_byyear.csv", guess_max = 50000) %>% 
   filter(Source == "LL fishery" & year == YEAR) %>% 
   select(proportion) %>% 
@@ -1895,6 +1887,55 @@ AGE <- 2:42
 Nm <- 1:41
 Nf <- 1:41
 
+# Discard mortality ----
+
+# From M. Vaughn and K. Carroll 2018-06-04: Size grade and cost definition from
+# processor will be used to define the probability of retaining a fish
+grades <- data.frame(
+  # grade and price given by processor
+  # grade = c("no_grade", "1/2", "2/3", "3/4", "4/5", "5/7", "7+"),
+  # price = c(0, 1, 2.2, 3.25, 4.75, 7.55, 8.05),
+  # Based off conversation with A. Alson 2018-06-04, set grade 3/4 as 50%
+  # probability of retention (p), and very low for grades below.
+  p = c(0, 0.02, 0.1, 0.5, 1, 1, 1),
+  kg = c(0.5, 0.7, 1.4, 2.2, 2.9, 3.6, 5.0)) %>%  
+  right_join(data.frame(kg = seq(0.5, 8.5, by = 0.1)) %>% 
+               mutate(grade = derivedVariable(
+                 'no_grade' = kg < 0.7,
+                 '1/2' = kg >= 0.7 & kg < 1.4,
+                 '2/3' = kg >= 1.4 & kg < 2.2,
+                 '3/4' = kg >= 2.2 & kg < 2.9,
+                 '4/5' = kg >= 2.9 & kg < 3.6,
+                 '5/7' = kg >= 3.6 & kg < 5,
+                 '7+' = kg >= 5,
+                 .method = "unique")), by = "kg") %>% 
+  # set p = 1 for all large fish, interpolate p's using a cubic spline across
+  # smaller sizes
+  mutate(p = ifelse(kg > 3.6, 1, zoo::na.spline(p)),
+         kg = round(kg, 1))
+
+plot(grades$p ~ grades$kg, type = 'l') # good enough
+
+# *FLAG* Assume that the discard fishery has the same selectivity as the survey.
+# Other notes: Grades 1/2 and 2/3 are usually only for the survey, but now these
+# small fish are showing up in force in the fishery, so map these p_retain
+# (probabilities of retention) to the survey selectivies and survey
+# weight-at-ages. This is an indication that selectivity in the fishery may look
+# more like the survey at smaller sizes. *FLAG* Need to revisit this
+# (selectivity) in future years.
+
+# Female and male probabilities of discarding at age
+f_discard <- 1 - data.frame(age = AGE, kg = wt_s_f) %>% 
+  left_join(grades, by = "kg") %>% 
+  pull(p)
+
+m_discard <- 1 - data.frame(age = AGE, kg = wt_s_m) %>% 
+  left_join(grades, by = "kg") %>% 
+  pull(p)
+
+plot(f_discard ~ AGE, type = "l", col = "magenta")
+lines(m_discard ~ AGE, col = "blue", lty = 4)
+
 for(i in 1:41){
   
   Nm[i] <- (N_MR_sex * male_p * m[i]) / m_sel[i]
@@ -1904,8 +1945,21 @@ for(i in 1:41){
 
 sum(Nf+Nm) 
 
+# Assume discard mortality = 0.16, same as halibut directed fishery
+
+dm <- 0.16
+
 # PROPAGATE LAST YEAR'S ESTIMATED ABUNDANCE-AT-AGE USING STANDARD 
 # AGE-STRUCTURED EQUATIONS. NOTE: AGE 2 TRANSLATES **WITH** MORTALITY 
+
+#Fishing mortality * selectivity. Note that we are using HALF of the previous
+#full-recruitment F value due to the estimate of abundance being the MEAN
+#abundance in the middle of the commercial fishery. The first term is the
+#retention portion of the fishery. The second term is the discard mortality,
+#which we are assuming has the same selectivity as the survey (catching smaller
+#fish).
+Fm <- F_previous/2 * m_sel + F_previous/2 * sm_sel * m_discard * dm
+Ff <- F_previous/2 * f_sel + F_previous/2 * sf_sel * f_discard * dm
 
 N_fp <- 1:41 # THIS IS FOR FEMALE SPAWNING BIOMASS
 N_mp <- 1:41 # THIS IS FOR MALES
@@ -2093,24 +2147,24 @@ ggsave(paste0("figures/forecasted_Natage_", YEAR + 1, ".png"),
        dpi=300, height=3, width=9, units="in")
 
 # Bargraph for presentation
-agecomps %>% 
-  filter(year == YEAR & Source == "LL fishery" &
-           Sex %in% c("Male", "Female")) %>% 
-  ggplot(aes(age, proportion, fill = Sex)) +
-  geom_bar(stat = "identity",
-           position = "dodge") +
-  # position = position_dodge(preserve = "single")) +
-  scale_x_continuous(breaks = seq(min(agecomps$age), max(agecomps$age), 4), 
-                     labels =  seq(min(agecomps$age), max(agecomps$age), 4)) +
-  labs(x = "\nAge", y = "Proportion\n") +
-  theme(legend.position = c(0.9, 0.7))
-
-ggsave(paste0("figures/agecomp_bargraph_", YEAR, ".png"), 
-       dpi=300, height=3, width=9, units="in")
+# agecomps %>% 
+#   filter(year == YEAR & Source == "LL fishery" &
+#            Sex %in% c("Male", "Female")) %>% 
+#   ggplot(aes(age, proportion, fill = Sex)) +
+#   geom_bar(stat = "identity",
+#            position = "dodge") +
+#   # position = position_dodge(preserve = "single")) +
+#   scale_x_continuous(breaks = seq(min(agecomps$age), max(agecomps$age), 4), 
+#                      labels =  seq(min(agecomps$age), max(agecomps$age), 4)) +
+#   labs(x = "\nAge", y = "Proportion\n") +
+#   theme(legend.position = c(0.9, 0.7))
+# 
+# ggsave(paste0("figures/agecomp_bargraph_", YEAR, ".png"), 
+#        dpi=300, height=3, width=9, units="in")
 
 # Format tables
 
-v2018 <- c(exp_n, exp_b, F50, Q50s, Q45s, Q40s) 
+v2018 <- c(exp_n, exp_b, F50, Q50s) #, Q45s, Q40s) 
 
 # From 2017 assessment
 
@@ -2118,10 +2172,10 @@ v2017 <- c(N_MR_sex, 13502591, 0.0683, 850113)
 
 format(round((v2018 - v2017)/v2017 * 100, 1),  nsmall=1) -> perc_change
 
-v2017[c(1, 2, 4, 5, 6)] <- lapply(v2017[c(1, 2, 4, 5, 6)], prettyNum, trim=TRUE, big.mark=",")
+v2017[c(1, 2, 4)] <- lapply(v2017[c(1, 2, 4)], prettyNum, trim=TRUE, big.mark=",")
 v2017[3] <- lapply(v2017[3], format, nsmall=3, digits=3)
 
-v2018[c(1, 2, 4, 5, 6)] <- lapply(v2018[c(1, 2, 4, 5, 6)], prettyNum, trim=TRUE, big.mark=",")
+v2018[c(1, 2, 4)] <- lapply(v2018[c(1, 2, 4)], prettyNum, trim=TRUE, big.mark=",")
 v2018[3] <- lapply(v2018[3], format, nsmall=3, digits=3)
 
 rbind(v2017, v2018, perc_change) %>% data.frame() -> forecast
@@ -2164,6 +2218,7 @@ for(i in 1:41){
   Nfe[i] <- (N_MR_sex * female_p * f[i]) 
 }
 
+# Option 1: take an "immaturity" adjustment
 data.frame(age = AGE,
            Nme = Nme,
            Nfe = Nfe) %>% 
@@ -2187,17 +2242,18 @@ results %>%
          ci = ifelse(N.avg >= q025 & N.avg <=q975, 1, 0),
          median = median(N.avg)) -> adj_results 
 
-adj_results %>%   ggplot(aes(N.avg)) + 
-  geom_histogram(fill = 4, alpha = 0.2, bins = 100, color = 'black') + 
+adj_results %>% 
+  ggplot(aes(N.avg)) + 
+  geom_histogram(fill = "white", alpha = 0.9, bins = 100, color = 'black') + 
   geom_histogram(data = . %>% filter(ci==1), 
-                 aes(N.avg), fill = 4, alpha = 0.6, bins = 100) +
-  geom_vline(aes(xintercept = median), col = "grey", size = 1) +
-  geom_vline(aes(xintercept = imm_adj), col = "grey", linetype = 2, size = 1.5) +
-  labs(x = "Number of sablefish in millions",
-       y = "Posterior distribution")
+                 aes(N.avg), fill = "grey50", alpha = 0.9, bins = 100) +
+  geom_vline(aes(xintercept = median), col = "black", size = 1) +
+  geom_vline(aes(xintercept = imm_adj), col = "black", lty = 2, size = 1) +
+  labs(x = "\nNumber of sablefish in millions",
+       y = "Posterior distribution\n")
 
 ggsave(paste0("figures/mod1_Nposterior_adjustment.png"), 
-       dpi=300, height=4, width=4, units="in")
+       dpi=300,  height=4, width=7,  units="in")
 
 adj_N_MR_sex <- adj_results %>% 
   distinct(imm_adj) %>% 
@@ -2220,20 +2276,6 @@ sum(Nf+Nm)
 
 adj_upd2017_expb <- ktp * sum((Nm * wt_f_f  * f_sel) + (Nf * wt_f_m * m_sel))
 
-# Re-do forecast:
-
-AGE <- 2:42
-Nm <- 1:41
-Nf <- 1:41
-
-for(i in 1:41){
-  
-  Nm[i] <- (adj_N_MR_sex * male_p * m[i]) / m_sel[i]
-  Nf[i] <- (adj_N_MR_sex * female_p * f[i]) / f_sel[i]
-  
-}
-
-sum(Nf+Nm) 
 
 # PROPAGATE LAST YEAR'S ESTIMATED ABUNDANCE-AT-AGE USING STANDARD 
 # AGE-STRUCTURED EQUATIONS. NOTE: AGE 2 TRANSLATES **WITH** MORTALITY 
@@ -2418,8 +2460,7 @@ results %>%
             q975 = quantile(N.avg, 0.975)) %>% 
   arrange(year, time_period) %>% 
   left_join(assessment_summary %>% 
-              select(year, `Previous estimate` = abundance_age2plus) %>% 
-              mutate(`Previous estimate` = ifelse(year == 2017, NA, `Previous estimate`)), 
+              select(year, `Previous estimate` = abundance_age2plus), 
             by = "year") %>% 
   # bind_rows(fcast) %>% 
   ungroup() %>% 
@@ -2435,38 +2476,33 @@ results %>%
                        q025 = NA, 
                        q975 = NA, 
                        "Previous estimate" = NA,
-                       Year = factor(YEAR+1),
+                       Year = factor(YEAR + 1),
                        "Current estimate adjusted" = adj_2018_exp_n,
                        check.names = FALSE)) %>% 
   gather("Abundance", "N", `Previous estimate`, `Current estimate`, `Current estimate adjusted`) %>% 
   mutate(N = N / 1000000,
          # interpolate the CI in missing years for plotting purposes
          q025 = zoo::na.approx(q025 / 1000000, maxgap = 20, rule = 2),
-         q975 = zoo::na.approx(q975 / 1000000, maxgap = 20, rule = 2)) -> forec_plot
-  
+         q975 = zoo::na.approx(q975 / 1000000, maxgap = 20, rule = 2),
+         # get rid of interpolated values for forecast
+         q025 = ifelse(year == YEAR + 1, NA, q025),
+         q975 = ifelse(year == YEAR + 1, NA, q975)) -> forec_plot
+
+axis <- tickr(forec_plot, year, 2)
+
 ggplot(data = forec_plot) +
-  geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), 
-             size = 3) +
-  geom_smooth(aes(x = year, y = N, col = Abundance), 
+  geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), size = 2) +
+  geom_smooth(aes(x = year, y = N, col = Abundance, linetype = Abundance), 
               se = FALSE) +
   geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
-              alpha = 0.2, fill = "#5ab4ac") +
-  scale_x_continuous(breaks = seq(min(model_years), max(model_years) + 3, 2), 
-                     labels = seq(min(model_years), max(model_years) + 3, 2)) +
-  geom_point(data = assessment_summary %>% 
-               filter(year %in% c(2017)) %>% 
-               mutate(est = abundance_age2plus / 1000000),
-             aes(x = year, y = est), 
-             shape = 8, size = 3, colour = "#d8b365") + #"darkcyan"
-  scale_color_manual(values = c( "#5ab4ac", "#01665e", "#d8b365")) +
-  ylim(c(1.4, 3.4)) +
+              alpha = 0.2, fill = "grey70") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  scale_color_manual(values = c("black", "black", "grey75")) + 
+  scale_linetype_manual(values = c(4, 1, 2)) + 
+  ylim(c(1, 3.5)) +
   labs(x = "", y = "Number of sablefish (millions)\n",
-       colour = NULL, shape = NULL) +
-  theme(legend.position = c(.8, .8))#,
-# axis.title.y = element_text(angle = 0, hjust = 0.5, vjust = 0.5),
-#legend.text = element_text(size = 14)
+       colour = NULL, shape = NULL, linetype = NULL) +
+  theme(legend.position = c(.8, .8))
 
-ggsave(paste0("figures/model1_N_retrospective_", 
-              FIRST_YEAR, "_", YEAR, ".png"), 
-       dpi=300, height=4, width=9, units="in")
-View(forec_plot)
+ggsave(paste0("figures/model1_N_retrospective_", FIRST_YEAR, "_", YEAR, ".png"), 
+       dpi=300,  height=4, width=7,  units="in")

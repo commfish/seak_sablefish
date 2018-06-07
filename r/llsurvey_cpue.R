@@ -4,7 +4,8 @@
 # Last edited: 2017-10-09
 
 # load ----
-source("r/helper.R")
+source("r/helper.r")
+source("r/functions.r")
 YEAR <- 2017
 
 # Explore hook standardization relationship ----
@@ -104,7 +105,7 @@ write_csv(srv_sum,
 
 # figures
 
-axis <- tickr(srv_sum$year, 3)
+axis <- tickr(srv_sum, year, 3)
 ggplot(data = srv_sum) +
   # geom_jitter() + 
   geom_point(aes(year, annual_cpue)) +
@@ -114,7 +115,7 @@ ggplot(data = srv_sum) +
               alpha = 0.2, col = "white", fill = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   lims(y = c(0, 0.4)) +
-  ylab("Number of sablefish per hook\n") +
+  ylab("Survey CPUE (number of sablefish per hook)\n") +
   xlab("") #+
   # theme(plot.title = element_text(hjust = .5)) +
   # geom_vline(xintercept = 9.5, linetype = 2, col = "grey")

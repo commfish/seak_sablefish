@@ -20,8 +20,8 @@ if(!require("tidyr"))   install.packages("tidyr") # reshaping data
 if(!require("knitr"))   install.packages("knitr") # r markdown
 if(!require("forcats"))   install.packages("forcats") # releveling factors
 # install.packages("devtools")
-devtools::install_github("ben-williams/FNGr")
-library("FNGr")
+# devtools::install_github("ben-williams/FNGr")
+# library("FNGr")
 
 # ggplot themes ----
 
