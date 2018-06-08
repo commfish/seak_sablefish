@@ -1892,29 +1892,38 @@ Nf <- 1:41
 # From M. Vaughn and K. Carroll 2018-06-04: Size grade and cost definition from
 # processor will be used to define the probability of retaining a fish
 grades <- data.frame(
-  # grade and price given by processor
-  # grade = c("no_grade", "1/2", "2/3", "3/4", "4/5", "5/7", "7+"),
-  # price = c(0, 1, 2.2, 3.25, 4.75, 7.55, 8.05),
+  kg = c(0.5, 0.7, 1.4, 2.2, 2.9, 3.6, 5.0),
   # Based off conversation with A. Alson 2018-06-04, set grade 3/4 as 50%
   # probability of retention (p), and very low for grades below.
-  p = c(0, 0.02, 0.1, 0.5, 1, 1, 1),
-  kg = c(0.5, 0.7, 1.4, 2.2, 2.9, 3.6, 5.0)) %>%  
+  p = c(0.0, 0.0, 0.1, 0.5, 1.0, 1, 1.0)) %>%  
   right_join(data.frame(kg = seq(0.5, 8.5, by = 0.1)) %>% 
-               mutate(grade = derivedVariable(
-                 'no_grade' = kg < 0.7,
-                 '1/2' = kg >= 0.7 & kg < 1.4,
-                 '2/3' = kg >= 1.4 & kg < 2.2,
-                 '3/4' = kg >= 2.2 & kg < 2.9,
-                 '4/5' = kg >= 2.9 & kg < 3.6,
-                 '5/7' = kg >= 3.6 & kg < 5,
-                 '7+' = kg >= 5,
-                 .method = "unique")), by = "kg") %>% 
+               mutate(grade = derivedFactor('no_grade' = kg < 0.7,
+                                            '1/2' = kg >= 0.7 & kg < 1.4,
+                                            '2/3' = kg >= 1.4 & kg < 2.2,
+                                            '3/4' = kg >= 2.2 & kg < 2.9,
+                                            '4/5' = kg >= 2.9 & kg < 3.6,
+                                            '5/7' = kg >= 3.6 & kg < 5,
+                                            '7+' = kg >= 5,
+                                            .method = "unique",
+                                            .ordered = TRUE),
+                      price = derivedFactor('$0' = grade == 'no_grade',
+                                            '$1.00' = grade == '1/2',
+                                            '$2.20' = grade == '2/3',
+                                            '$3.25' = grade == '3/4',
+                                            '$4.75' = grade == '4/5',
+                                            '$7.55' = grade == '5/7',
+                                            '$8.05' = grade == '7+',
+                                            .method = "unique",
+                                            .ordered = TRUE),
+                      # For plotting purposes (alternating grey and white panels)
+                      plot_cde = ifelse(grade %in% c('no_grade', '2/3', '4/5', '7+'), "0", "1")), by = "kg") %>% # 
   # set p = 1 for all large fish, interpolate p's using a cubic spline across
   # smaller sizes
   mutate(p = ifelse(kg > 3.6, 1, zoo::na.spline(p)),
-         kg = round(kg, 1))
-
-plot(grades$p ~ grades$kg, type = 'l') # good enough
+         lbs = 2.20462 * kg, # convert to lbs for visualization in memo
+         kg = round(kg, 1),
+         lbs2 = round(lbs, 0),
+         y = 1 - p)
 
 # *FLAG* Assume that the discard fishery has the same selectivity as the survey.
 # Other notes: Grades 1/2 and 2/3 are usually only for the survey, but now these
@@ -1933,8 +1942,48 @@ m_discard <- 1 - data.frame(age = AGE, kg = wt_s_m) %>%
   left_join(grades, by = "kg") %>% 
   pull(p)
 
-plot(f_discard ~ AGE, type = "l", col = "magenta")
-lines(m_discard ~ AGE, col = "blue", lty = 4)
+# Plot size, sex, and age-specific probabilities of discarding a fish that
+# parameterize model
+# Min lbs by grade
+grades %>% 
+  filter(lbs <= 12) %>% 
+  group_by(grade, price, plot_cde) %>% 
+  summarize(mn = min(lbs),
+            mx = max(lbs),
+            mu = mean(lbs)) %>% 
+  ungroup() %>% 
+  mutate(label = paste0(price, "/lb"),
+         y = c(0.9, 0.8, 0.5, 0.6, 0.25, 0.1, 0.1))  -> grades2
+
+axis <- tickr(grades, lbs2 , 1)
+
+ggplot() +
+  geom_line(data = grades %>% filter(lbs <= 12), aes(x = lbs, y = y), size = 1) +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+ geom_rect(data = grades2, aes(xmin = mn, xmax = mx, ymin = -Inf, ymax = Inf, fill = plot_cde, group = 1), 
+           colour = NA, alpha = 0.2, show.legend = FALSE) +
+  scale_fill_manual(values = c("white", "grey80")) +
+  labs(x = "\n Round weight (lbs)", y = "Probability of discarding a fish\n") + 
+  geom_text(data = grades2, aes(label = label, x = mu, y = y), 
+            vjust = 1, family = "Times", size = 2.5) -> size 
+
+data.frame(Age = AGE, Female = f_discard, Male = m_discard) %>% 
+  melt(id.vars = c("Age"), measure.vars = c("Female", "Male"), variable.name = "Sex") -> dis_sex 
+
+axis <- tickr(dis_sex, Age, 5)
+
+ggplot(dis_sex, aes(x = Age, y = value, col = Sex, linetype = Sex)) +
+  geom_line(size = 1) +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  scale_color_manual(values = c("black", "grey75")) + 
+  scale_linetype_manual(values = c(1, 4)) + 
+  ylim(c(0, 1)) +
+  labs(x = "\nAge", y = "") +
+  theme(legend.position = c(.8, .8)) -> sex
+
+plot_grid(size, sex, align = "h")
+
+ggsave(paste0("figures/probt_discard.png"), dpi=300,  height=4, width=7,  units="in")
 
 for(i in 1:41){
   
@@ -1958,8 +2007,8 @@ dm <- 0.16
 #retention portion of the fishery. The second term is the discard mortality,
 #which we are assuming has the same selectivity as the survey (catching smaller
 #fish).
-Fm <- F_previous/2 * m_sel + F_previous/2 * sm_sel * m_discard * dm
-Ff <- F_previous/2 * f_sel + F_previous/2 * sf_sel * f_discard * dm
+Fm <- F_previous/2 * m_sel + sm_sel * m_discard * dm
+Ff <- F_previous/2 * f_sel + sf_sel * f_discard * dm
 
 N_fp <- 1:41 # THIS IS FOR FEMALE SPAWNING BIOMASS
 N_mp <- 1:41 # THIS IS FOR MALES
@@ -2277,9 +2326,6 @@ sum(Nf+Nm)
 adj_upd2017_expb <- ktp * sum((Nm * wt_f_f  * f_sel) + (Nf * wt_f_m * m_sel))
 
 
-# PROPAGATE LAST YEAR'S ESTIMATED ABUNDANCE-AT-AGE USING STANDARD 
-# AGE-STRUCTURED EQUATIONS. NOTE: AGE 2 TRANSLATES **WITH** MORTALITY 
-
 N_fp <- 1:41 # THIS IS FOR FEMALE SPAWNING BIOMASS
 N_mp <- 1:41 # THIS IS FOR MALES
 
@@ -2322,8 +2368,6 @@ SBs <- sum(SB_age_s)
 SBs
 
 # Simulate pop to get F levels ----
-
-# YPR analysis (from yield_per_recruit.r)
 
 # M and F
 # Note that Fs = a placeholder to check the N vector
@@ -2445,7 +2489,7 @@ data.frame("Quantity" = c("Exploited abundance (2017 value from last year)",
            "Y2018" = c(adj_2018_exp_n, exp_n, adj_2018_exp_n,
                        adj_2018_exp_b, exp_b, adj_2018_exp_b,
                        F50, Q50s, adj_Q50s)) %>% 
-   write_csv("output/2018_summary_table.csv")
+  write_csv("output/2018_summary_table.csv")
 
 # Updated retrospective plot ----
 

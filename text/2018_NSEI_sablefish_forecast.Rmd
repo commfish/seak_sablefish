@@ -171,11 +171,11 @@ fed <- data.frame(ABC_thisyr = 14957, # YEAR + 1 final ABC (whale corrected)
 
 1.  The `r YEAR` estimate of exploited abundance used to determine the $ABC$ was adjusted to account for the high degree of uncertainty in recent recruitment events. The 15th percentile from the posterior distribution of abundance was selected as the input to the yield per recruit analysis and calculation of $ABC$ (`r fig('N_posterior', display = "cite")`). In the Federal assessment, Hanselman et al. (`r YEAR`) fixed 2014 recruitment equal to the previous high recruitment event in 1977. Because of differences in assessment methodology, an analogous approach was not followed. However, both approaches - the 15th percentile method and fixing 2014 recruitment at the same value as 1977 - are subjective, precautionary measures that stabilize the fishery and buffer against the negative impacts of overfishing if the 2014 recruitment strength is weaker than predicted. The resultant changes in $ABC$ from 2017 to 2018 are similar between NOAA and ADF&G. Hanselman et al. (`r YEAR`) recommended a `r formatC(abs(fed$perc_change), format="f", digits=1)`% increase, which was accepted by the North Pacific Fishery Management Council in December 2017. Here a `r perc_change`% incease is recommended, which is likely larger than it would have been if there had been a 2016 tagging survey. The absence of a survey data point for 2016 resulted in a forecast of the 2017 biomass from the 2015 abundance estimate, causing the $ABC$ to be artifically low as a result. The relative impacts of adjusting the abundance based on uncertainty in recruitment can be seen in `r tbl('full_summary', display = "cite")` and `r fig('retro', display="cite")`. 
 
-2.  Discard mortality of sablefish was incorporated into the calculations of exploitable abundance and *ABC*. In past years instead discard mortality of small, unmarketable fish was not accounted for. However, the large influx of small fish in the population makes this source of mortality unavoidable, and therefore it needs to be accounted for. The probability of a fish being discarded was modeled as a function of weight and informed by processor grade definitions and prices.  
+2.  In past years the mortality incurred by discarding small, unmarketable fish was not accounted for. Here discard mortality was incorporated into the population dynamics model and is therefore reflected in the *ABC*. The probability of a fish being discarded was informed by processor grade definitions and prices and modeled as a function of weight, sex, and age (`r fig('discard_mort', display = "cite")`). Stachura et al. (2012) estimated discard mortality to be 11.7% using release-recapture data from a longline survey in Southeast Alaska to estimate discard mortality. However, it is likely that discard mortality in a fishery is higher due to careful fish handling on survey vessels during tagging experiments. As account for this, we used 16%, the discard mortality rate from the Pacific halibut fishery (Gilroy and Stewart 2013). The halibut fishery serves as a good proxy for sablefish, because they are fished with the same or similar gear and frequently by the same vessels and crew. Moreover they are both considered sturdy fish that do not experience barotrauma and are known to survive well in laboratory experiments.
 
 3.  The mark-recapture models used in this analysis are based on analyses by Dr. Franz Mueter (Mueter 2010). Population estimates from a simple Chapman estimator are compared with estimates from several extensions of a stratified Peterson estimator that account for changes in capture probability through time, natural and fishing mortality, migration, and seasonal trends in catch rates. These alternative model structures are implemented in the Bayesian open source software JAGS 4.3.0 (Depaoli 2016). The Bayesian approach is preferred, because it allows the incorporation of prior information and additional parameter uncertainty into the model. Previous methods used arbitrary break points (e.g. 5 or 10 days) to define temporal strata throughout the fishing season (Mueter 2010, Van Kirk et al. 2016). Here cumulative catch over time is used to define temporal strata. A combination of convergence criteria, deviance information criterion (DIC; Spiegelhalter et al. 2002), and a visual examination of seasonal trends in abundance was used in model selection. 
 
-3.  The NSEI Chatham Strait sablefish assessment was developed into a reproducible research product (de Leeuw 2001). It is publicly hosted on the web-based version control service GitHub at https://github.com/commfish/seak_sablefish. This effort included a thorough review of all data sources available for the NSEI. It involved detailed conversation with ADF&G programming staff, Scott Johnson and Paul Caldwell, as well as Region I Groundfish Project biologists, Andrew Olson, Aaron Baldwin, and Mike Vaughn. The outcomes of these discussions are documented in software code, README file, and Issues tab of the `seak_sablefish` repository. This product is considered conditionally reproducible, indicating that potential users must formally request any confidential data sourced in the code to produce the full assessment (Schwab et al. 2000). However, survey and other non-confidential data are made available, and all queries and subsequent transformations to the data are included in the analysis. 
+4.  The NSEI Chatham Strait sablefish assessment was developed into a reproducible research product (de Leeuw 2001). It is publicly hosted on the web-based version control service GitHub at https://github.com/commfish/seak_sablefish. This effort included a thorough review of all data sources available for the NSEI. It involved detailed conversation with ADF&G programming staff, Scott Johnson and Paul Caldwell, as well as Region I Groundfish Project biologists, Andrew Olson, Aaron Baldwin, and Mike Vaughn. The outcomes of these discussions are documented in software code, README file, and Issues tab of the `seak_sablefish` repository. This product is considered conditionally reproducible, indicating that potential users must formally request any confidential data sourced in the code to produce the full assessment (Schwab et al. 2000). However, survey and other non-confidential data are made available, and all queries and subsequent transformations to the data are included in the analysis. 
 
 # Section I: `r YEAR` Acceptable Biological Catch (ABC)
 
@@ -328,10 +328,10 @@ Ultimately, Model 1 with $P=6$ was selected to bring forward for the `r YEAR+1` 
 
 Using the adjusted abundance estimate, the vulnerable abundance-at-age for ages 2+ was calculated by partitioning the estimated exploited abundance into cohorts using commercial fishery catch-at-age proportions and incrementing annually:
 
-$${\hat{N}}_{t,a}=\sum_{k=1}^{2}\Big[\frac{\gamma_k\hat{N}_{y-1,a-1}\phi_{y-1,a-1}}{s_{k,a-1}}s_{k,a}\Big]^{(-s_{k,a-1}F_{t-1}+M)}$$
+$${\hat{N}}_{t,a}=\sum_{k=1}^{2}\Big[\frac{\gamma_k\hat{N}_{y-1,a-1}\phi_{y-1,a-1}}{s_{f,k,a-1}}s_{k,a}\Big]^{-(s_{f,k,a-1}F_{t-1}+Dp_{a,k}s_{s,k,a-1}+M)}$$
 
 for which 
-$\hat{N}_{y,a}$ is the estimated exploitable abundance-at-age $a$ in year $y$, $\phi_k(\hat{N}_{y-1,a-1})$ is the fishery catch-at-age proportion at age $a-1$ in year $y-1$, $s_{k,a}$ is the commercial fishery selectivity-at-age for age $a$ and sex $k$ (Hanselman et al. `r YEAR`), $F_{y-1}$ is the full recruitment fishing mortality implemented in year $y-1$, and $\gamma_k$ is the proportion of the commercial longline catch by sex $k$. Natural mortality $M$ is assumed constant over time and age, and is set to 0.1 (Johnson and Quinn, 1998). 
+$\hat{N}_{y,a}$ is the estimated exploitable abundance-at-age $a$ in year $y$, $\gamma_k$ is the proportion of the commercial longline catch by sex $k$, $\phi_k(\hat{N}_{y-1,a-1})$ is the fishery catch-at-age proportion at age $a-1$ in year $y-1$, $s_{f,k,a}$ is the commercial fishery selectivity-at-age for age (Hanselman et al. `r YEAR`), $s_{s,k,a}$ is the longline survey selectivity-at-age (Hanselman et al. `r YEAR`), and $F_{y-1}$ is the full recruitment fishing mortality implemented in year $y-1$. The discard mortality rate $D$ is assumed to be 0.16, the same as the discard mortality rate in the Pacific halibut fishery (Gilroy and Stewart 2013), and the probability of a fish being discarded is informed by processor grade and price and defined as a function of weight, which is converted to age and sex using survey weight-at-age (`r fig('discard_mort', display = "cite")`). The discard portion of fishery is modeled using survey selectivity and empirical weight-at-age to account for the fact that smaller fish are likely selected for discard. Natural mortality $M$ is assumed constant over time and age, and is set to 0.1 (Johnson and Quinn, 1998). 
 
 Vulnerable abundance for age-2, the youngest age-class considered in the commercial fishery, is calculated as
 
@@ -341,12 +341,12 @@ Application of the Baranov catch equation for which full-recruitment fishing mor
 
 $$ABC=\sum_{k=1}^{2}\sum_{a=2}^{max(a)}\frac{Fs_a}{Z_a}N_a(1-e^{-Z_a})*w_a$$,
 
-where $Z_a$ is the sum of natural mortality $M$ and $F$.
+where $Z_a$ is the sum of natural mortality $M$ and $F$, and $F$ accounts for both retained and discarded fish that die post-release.
 
 # Future work and recommendations
   
   
-1.  It is a priority for the Region I Groundfish Project and biometric team to develop and implement an integrated age-structured assessment for this stock. Due to changes in staff, no progress was made on the age-structured assessment in 2017. It is our goal to present this assessment in spring of 2019.
+1.  It is a priority for the Region I Groundfish Project and biometric team to develop and implement an integrated age-structured assessment for this stock. Due to changes in staff, no progress was made on the age-structured assessment in 2017. It is our goal to present this assessment in spring of 2019. As part of this effort, we will re-evaluate fishery and survey selectivity, which has been fixed at Federal values in this and past assessments.
 
 2.  Regardless of future changes to assessment methodology, the tagging survey will continue to be integral to understanding the population dynamics of sablefish in Chatham Strait and providing sound management advice. Consequently, we recommend the continuation of an annual tagging survey. The importance of an annual survey can be seen in the Summary table at the beginning of this memo, where the previously forecasted estimate of abundance in 2017 was much lower than our current estimate of abundance. This demonstrates that a biannual survey is insufficient to track changes in abundance, especially during periods of large recruitment events.
 
@@ -368,6 +368,9 @@ de Leeuw, J., Reproducible Research. The Bottom Line, Department of Statistics, 
 
 Gelman, A and Rubin, DB (1992) Inference from iterative simulation using multiple sequences, Statistical Science, 7, 457-511.
 
+Gilroy, H.L., and I.J. Stewart. 2013. Incidental mortality of halibut in the commercial halibut fishery (Wastage). In: International Pacific Halibut Commission Report of Assessment and Research Activities 2012, pp. 53-60. http://www.iphc.int/publications/rara/2012/rara2012053_commwastage.
+pdf
+
 Hanselman, D. H., C. J. Rodgveller, C. R. Lunsford, and K. H Fenske. 2017. Chapter 3: Assessment of the sablefish stock in Alaska. *In:* Stock assessment and fishery evaluation report for the groundfish resources of the GOA and BS/AI as projected for 2018. North Pacific Fishery Management Council, 605 W 4th Ave, Suite 306 Anchorage, AK 99501.
 
 Johnson, S. L., and T. J. Quinn II. 1988. Catch-Age Analysis with Auxiliary Information of sablefish in the Gulf of Alaska. Contract report to National Marine Fisheries Service, Auke Bay, Alaska. 79 pp. Center for Fisheries and Ocean Sciences, University of Alaska, Juneau, Alaska. 
@@ -377,6 +380,8 @@ Mueter, F. 2010. Evaluation of stock assessment and modeling options to assess s
 Schwab M., M. Karrenbach, and J. Claerbout, Making scientific computations reproducible, Computing in Science & Engineering, vol. 2, no. 6, pp. 61-67, Nov. 2000. Available online at http://sepwww.stanford.edu/doku.php?id=sep:research:reproducible:cip.
 
 Sigler, M. F., T. L. Rutecki, D. L. Courtney, J. F. Karinen, and M.-S.Yang. 2001. Young-of-the-year sablefish abundance, growth, and diet. Alaska Fish. Res. Bull. 8.1: 57-70.
+
+Stachura, M. M., Lunsford, C. R., Rodgveller, C.J. and Heifetz, J., 2012. Estimation of discard mortality of sablefish (*Anoplopoma fimbria*) in Alaska longline fisheries. Fish. Bull. 110.2: 271-279.
 
 Williams, B, Van Kirk. 2017. 2017 NSEI Sablefish Assessment. State of Alaska, Department of Fish and Game, Division of Commercial Fisheries Memorandum. March 16, 2017.
 
@@ -392,7 +397,7 @@ kable(summary_tbl, align = c('l', 'r', 'r', 'r'))
  
 ```
 
-`r tbl('varb_defns', caption = paste0('Notation for models used in the ', YEAR ,' stock assessment. '))`
+`r tbl('varb_defns', caption = paste0('Notation for mark-recapture models used in the ', YEAR ,' stock assessment. '))`
 
 ```{r variable_defs, echo=FALSE, out.width = '100%'}
 kable(varb_descriptions)
@@ -473,6 +478,12 @@ include_graphics("../figures/mod1_Nposterior_adjustment.png")
 ```
 
 `r fig('N_posterior', caption = paste0('The posterior distribution of abundance (sablefish in millions) in ', YEAR ,'. The shaded area represents the 95% credible interval, the solid horizontal line is the median abundance estimate, and the dashed horizontal line is the adjusted abundance estimate (15th percentile) recommended for the ', YEAR + 1, ' forecast.'))`
+
+```{r discard, echo=FALSE, out.width = '100%'}
+include_graphics("../figures/probt_discard.png")
+```
+
+`r fig('discard_mort', caption = paste0('The probability of discarding a fish as a function of weight (left panel), sex, and age (right panel).'))`
 
 ```{r cum_length, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/rel_rec_cumproplength_2005_", YEAR, ".png"))
