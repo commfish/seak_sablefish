@@ -8,3 +8,5 @@ fishery
 *.RData
 database.csv
 *.jag
+*.docx
+*.html
