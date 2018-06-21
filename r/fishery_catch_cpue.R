@@ -57,7 +57,8 @@ ggplot(sum_catch %>%
   geom_line(group=1) +
   geom_point() +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  geom_vline(xintercept = 1997, lty = 5, colour = "grey") +
+  # add a line for EQS starting in 1994 (1997 in the SSEI).
+  geom_vline(xintercept = 1994, lty = 5, colour = "grey") +
   labs(x = "", y = "Fishery harvest (millions lbs)\n") +
   ylim(0, 6)
 

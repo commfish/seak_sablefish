@@ -331,7 +331,7 @@ Using the adjusted abundance estimate, the vulnerable abundance-at-age for ages 
 $${\hat{N}}_{t,a}=\sum_{k=1}^{2}\Big[\frac{\gamma_k\hat{N}_{y-1,a-1}\phi_{y-1,a-1}}{s_{f,k,a-1}}s_{k,a}\Big]^{-(s_{f,k,a-1}F_{t-1}+Dp_{a,k}s_{s,k,a-1}+M)}$$
 
 for which 
-$\hat{N}_{y,a}$ is the estimated exploitable abundance-at-age $a$ in year $y$, $\gamma_k$ is the proportion of the commercial longline catch by sex $k$, $\phi_k(\hat{N}_{y-1,a-1})$ is the fishery catch-at-age proportion at age $a-1$ in year $y-1$, $s_{f,k,a}$ is the commercial fishery selectivity-at-age for age (Hanselman et al. `r YEAR`), $s_{s,k,a}$ is the longline survey selectivity-at-age (Hanselman et al. `r YEAR`), and $F_{y-1}$ is the full recruitment fishing mortality implemented in year $y-1$. The discard mortality rate $D$ is assumed to be 0.16, the same as the discard mortality rate in the Pacific halibut fishery (Gilroy and Stewart 2013), and the probability of a fish being discarded is informed by processor grade and price and defined as a function of weight, which is converted to age and sex using survey weight-at-age (`r fig('discard_mort', display = "cite")`). The discard portion of fishery is modeled using survey selectivity and empirical weight-at-age to account for the fact that smaller fish are likely selected for discard. Natural mortality $M$ is assumed constant over time and age, and is set to 0.1 (Johnson and Quinn, 1998). 
+$\hat{N}_{y,a}$ is the estimated exploitable abundance-at-age $a$ in year $y$, $\gamma_k$ is the proportion of the commercial longline catch by sex $k$, $\phi_k(\hat{N}_{y-1,a-1})$ is the fishery catch-at-age proportion at age $a-1$ in year $y-1$, $s_{f,k,a}$ is the commercial fishery selectivity-at-age (Hanselman et al. `r YEAR`), $s_{s,k,a}$ is the longline survey selectivity-at-age (Hanselman et al. `r YEAR`), and $F_{y-1}$ is the full recruitment fishing mortality implemented in year $y-1$. The discard mortality rate $D$ is assumed to be 0.16, the same as the discard mortality rate in the Pacific halibut fishery (Gilroy and Stewart 2013). The probability of a fish being discarded $p_{a,k}$ is informed by processor grade and price and defined as a function of weight, which is converted to age and sex using survey weight-at-age (`r fig('discard_mort', display = "cite")`). The discarded portion of the fishery is modeled using survey selectivity and empirical weight-at-age to account for the fact that smaller fish are likely selected for discard. Natural mortality $M$ is assumed constant over time and age and is set to 0.1 (Johnson and Quinn, 1998). 
 
 Vulnerable abundance for age-2, the youngest age-class considered in the commercial fishery, is calculated as
 
@@ -428,7 +428,7 @@ kable(top_mods, align = c('l', 'r', 'r', 'r', 'r', 'r', 'r'))
 include_graphics(paste0("../figures/fishery_harvest_1985_", YEAR, ".png"))
 ```
 
-`r fig('catch', caption = paste0('Fishery harvest in Chatham Strait from 1985 to ', YEAR, '. The vertical dashed line marks the transition of the fishery from limited entry to equal quota share in 1997.'))`
+`r fig('catch', caption = paste0('Fishery harvest in Chatham Strait from 1985 to ', YEAR, '. The vertical dashed line marks the transition of the fishery from limited entry to equal quota share in 1994.'))`
 
 ```{r retrospec, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/model1_N_retrospective_2005_", YEAR, ".png"))
