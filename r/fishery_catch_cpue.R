@@ -383,8 +383,7 @@ std_dat %>%
          bt_cpue = exp(fit) - (mean(fsh_cpue$std_cpue) * 0.1),
          bt_upper = exp(upper) - (mean(fsh_cpue$std_cpue) * 0.1),
          bt_lower = exp(lower) - (mean(fsh_cpue$std_cpue) * 0.1),
-         bt_se = (bt_upper - bt_cpue) / 2,
-         bt_se / b) -> std_dat
+         bt_se = (bt_upper - bt_cpue) / 2) -> std_dat
 
 # Nominal CPUE ----
 

@@ -45,7 +45,7 @@ hk_stand %>%
 
 ggplot(hk_stand, aes(x = no_hooks, y = std_hooks, col = factor(hook_space))) +
   geom_line(size = 2) +
-  xlab("\nNumber of hooks (inches)") +
+  xlab("\nNumber of hooks") +
   ylab("\nStandardized number of hooks") +
   scale_color_brewer(palette = "Greys", "Hook spacing (in.)") +
   scale_x_continuous(breaks = seq(0, 15000, by = 1000)) +
