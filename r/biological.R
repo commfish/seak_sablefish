@@ -1100,7 +1100,7 @@ expand.grid(year = unique(lencomps$year),
 # Check that they sum to 1
 lencomps %>% 
   group_by(Source, Sex, year) %>% 
-  summarise(sum(proportion)) 
+  summarise(sum(proportion)) #%>% View()
 
 write_csv(lencomps,"output/lengthcomps.csv")
 
@@ -1112,7 +1112,12 @@ lendat %>%
   arrange(Source, Sex, length_bin) %>% 
   # Fill in the blanks with 0's
   complete(Source, length_bin,
-           fill = list(n = 0, proportion = 0)) -> mu_lencomps
+           fill = list(n = 0, proportion = 0)) %>% 
+  bind_rows(lendat %>% # Sexes combined
+              count(Source, length_bin) %>%
+              group_by(Source) %>% 
+              mutate(proportion = round( n / sum(n), 4),
+                     Sex = "Sex combined")) -> mu_lencomps
 
 mu_lencomps %>% 
   group_by(Source, Sex) %>% 
@@ -1131,14 +1136,14 @@ ggplot() +
               filter(Source == "LL survey" & 
                        Sex == "Female"),
             aes(x = length_bin, y = proportion, group = 1), 
-            colour = "skyblue", size = 2) +
+            colour = "grey", size = 2) +
   scale_y_continuous(limits = c(0, 0.16),
                      breaks = round(seq(min(lencomps$proportion), 0.16, 0.06), 2), 
                      labels =  round(seq(min(lencomps$proportion), 0.16, 0.06), 2)) +
   scale_x_discrete(breaks = seq(41, 99, 6),
                    labels = seq(41, 99, 6)) +
   facet_wrap(~ year, ncol = 1) +
-  labs(x = "\nLength (cm)", y = "Proportion\n")
+  labs(x = "\nFork length (cm)", y = "Proportion\n")
 
 ggsave("figures/llsrv_fem_lengthcomps_2014_2017.png", 
        dpi=300,  height=6, width=5.5, units="in")
@@ -1156,40 +1161,177 @@ ggplot() +
               filter(Source == "LL fishery" & 
                        Sex == "Female"),
             aes(x = length_bin, y = proportion, group = 1), 
-            colour = "skyblue", size = 2) +
+            colour = "grey", size = 2) +
   facet_wrap(~ year, ncol = 1) +
   scale_y_continuous(limits = c(0, 0.16),
                      breaks = round(seq(min(lencomps$proportion), 0.16, 0.06), 2), 
                      labels =  round(seq(min(lencomps$proportion), 0.16, 0.06), 2)) +
   scale_x_discrete(breaks = seq(41, 99, 6),
                    labels = seq(41, 99, 6)) +
-  labs(x = "\nLength (cm)", y = "Proportion\n")
+  labs(x = "\nFork length (cm)", y = "Proportion\n")
 
 ggsave("figures/llfsh_fem_lengthcomps_2014_2017.png", 
        dpi=300, height=6, width=5.5, units="in")
 
 # All years smoothed by source
-lencomps %>% 
-  filter(Sex == "Sex combined") %>%
-  ggplot(aes(x = as.numeric(as.character(length_bin)), y = proportion, 
-             colour = Source, linetype = Source)) +
-  geom_point(size = 1, alpha = 0.1) +
-  stat_smooth(size = 2, se = FALSE) +
-  # facet_wrap( ~ Sex, ncol = 1) +
-  # lims(y = c(0, 0.1)) + 
-  scale_y_continuous(limits = c(0, 0.1),
-                     breaks = round(seq(min(lencomps$proportion), 0.1, 0.02), 2), 
-                     labels =  round(seq(min(lencomps$proportion), 0.1, 0.02), 2)) +
-  scale_colour_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb")) +
-  xlab('\nLength (cm)') +
+ggplot() +
+  geom_point(data = lencomps %>% 
+               filter(Sex == "Sex combined"),
+             aes(x = length_bin, y = proportion, 
+                 colour = Source),
+             size = 1, alpha = 0.2) +
+  # stat_smooth(size = 1.5, se = FALSE) +
+  geom_line(data = mu_lencomps %>% 
+              filter(Sex == "Sex combined"),
+            aes(x = length_bin, y = proportion, colour = Source, 
+                group = Source, linetype = Source), size = 1) +
+  scale_x_discrete(breaks = seq(41, 99, 6),
+                   labels = seq(41, 99, 6)) +
+  scale_colour_grey() +
+  xlab('\nFork length (cm)') +
   ylab('Proportion\n') +
   theme(legend.position = c(0.8, 0.8))
 
 ggsave("figures/lengthcomp_bydatasource.png", 
        dpi=300, height=4.5, width=5, units="in")
 
+# New length comp figs, requested by AJ Lindley 2018-09-07
+lencomps %>% 
+  group_by(year, Source, Sex) %>% 
+  summarize(N = sum(n),
+         label = paste0("n = ", prettyNum(N, big.mark = ","))) %>% 
+  ungroup() %>% 
+  mutate(length_bin = "91", proportion = 0.18) -> labels 
+
+# For survey
+ggplot(data = lencomps %>% 
+             # Last 10 years of data
+             filter(year >= YEAR - 10 & 
+                      Sex != "Sex combined" &
+                      Source == "LL survey"), 
+           aes(x = length_bin, y = proportion)) + 
+  geom_bar(stat = "identity", colour = "lightgrey", fill = "lightgrey", width = 0.8) +
+  geom_line(data = lencomps %>% 
+              # Compare all past years to this year
+              filter(year == YEAR & 
+                       Sex != "Sex combined" &
+                       Source == "LL survey") %>% 
+              select(-year),
+            aes(x = length_bin, y = proportion, group = 1),
+            colour = "black") +
+  geom_text(data = labels %>% 
+              filter(year >= YEAR - 10 & 
+                       Sex != "Sex combined" &
+                       Source == "LL survey"),
+            aes(x = length_bin, y = proportion, label = label),
+            size = 3, family = "Times") +
+  scale_y_continuous(limits = c(0, 0.25),
+                     breaks = round(seq(0, 0.2, 0.1), 2),
+                     labels =  round(seq(0, 0.2, 0.1), 2)) +
+  scale_x_discrete(breaks = seq(41, 99, 6),
+                   labels = seq(41, 99, 6)) +
+  facet_grid(year ~ Sex) +
+  labs(x = "\nFork length (cm)", y = "Proportion-at-length (longline survey)\n") +
+  theme(strip.placement = "outside") 
+
+ggsave(paste0("figures/llsrv_lencomps_", YEAR-10, "_", YEAR, ".png"), 
+       dpi=300, height=8, width=6.5, units="in")
+
+# For fishery
+ggplot(data = lencomps %>% 
+         # Last 10 years of data
+         filter(year >= YEAR - 10 & 
+                  Sex != "Sex combined" &
+                  Source == "LL fishery"), 
+       aes(x = length_bin, y = proportion)) + 
+  geom_bar(stat = "identity", colour = "lightgrey", fill = "lightgrey", width = 0.8) +
+  geom_line(data = lencomps %>% 
+              # Compare all past years to this year
+              filter(year == YEAR & 
+                       Sex != "Sex combined" &
+                       Source == "LL fishery") %>% 
+              select(-year),
+            aes(x = length_bin, y = proportion, group = 1),
+            colour = "black") +
+  geom_text(data = labels %>% 
+              filter(year >= YEAR - 10 & 
+                       Sex != "Sex combined" &
+                       Source == "LL fishery"),
+            aes(x = length_bin, y = proportion, label = label),
+            size = 3, family = "Times") +
+  scale_y_continuous(limits = c(0, 0.25),
+                     breaks = round(seq(0, 0.2, 0.1), 2),
+                     labels =  round(seq(0, 0.2, 0.1), 2)) +
+  scale_x_discrete(breaks = seq(41, 99, 6),
+                   labels = seq(41, 99, 6)) +
+  facet_grid(year ~ Sex) +
+  labs(x = "\nFork length (cm)", y = "Proportion-at-length (longline fishery)\n") +
+  theme(strip.placement = "outside") 
+
+ggsave(paste0("figures/llfsh_lencomps_", YEAR-10, "_", YEAR, ".png"), 
+       dpi=300, height=8, width=6.5, units="in")
+
+# Summary stats output for length comps (requested by AJ Linsley 20180907)
+lendat %>% 
+  filter(Source %in% c("LL survey", "LL fishery")) %>% 
+  group_by(Source, Sex, year) %>% 
+  summarize(mean = mean(length),
+            min = min(length),
+            max = max(length)) %>% 
+  mutate(variable = "Fork length") -> lensum
+
+axis <- tickr(lensum, year, 5)
+
+lensum %>% 
+  ggplot(aes(x = year, y = mean, colour = Source)) +
+  geom_point() +
+  geom_line() +
+  scale_colour_grey(guide = FALSE) +
+  facet_wrap(~ Sex, scales = "free") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = NULL, y = "Mean fork length (cm)\n") -> l
+
+#quos() uses stand eval in dplyr, eval cols with nonstand eval using !!!
+cols <- quos(Source, year, Sex, age) 
+
+bind_rows(
+  fsh_bio %>% mutate(Source = "LL fishery") %>% select(!!!cols), 
+  srv_bio %>% mutate(Source = "LL survey") %>% select(!!!cols)) %>% 
+  filter(year >= 1997 & Sex %in% c('Female', 'Male') & !is.na(age)) %>% 
+  group_by(Source, Sex, year) %>% 
+  summarize(mean = mean(age),
+            min = min(age),
+            max = max(age)) %>% 
+  mutate(variable = "Age") -> agesum
+
+agesum %>% 
+  mutate(age = round(mean, 0)) -> agesum1
+
+axisy <- tickr(agesum1, age, 1)
+
+agesum %>% 
+  ggplot(aes(x = year, y = mean, colour = Source)) +
+  geom_point() +
+  geom_line() +
+  scale_colour_grey() +
+  facet_wrap(~ Sex, scales = "free") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  scale_y_continuous(breaks = axisy$breaks, labels = axisy$labels) +
+  labs(x = NULL, y = "Mean age (yrs)\n") +
+  theme(legend.position = "bottom") -> a
+
+cowplot::plot_grid(l, a, align = "hv", ncol = 1) -> compare_comp_sums
+
+ggsave("figures/compare_comp_summaries.png",
+       plot = compare_comp_sums,
+       dpi=300, height=8, width=6.5, units="in")
+
+bind_rows(agesum, lensum) %>% 
+  write_csv("output/comps_summary.csv")
+
 # Age-length transition matrices ----
 
+# Not completed in 2018.
 
 #OLD CODE
 ###############################################################################

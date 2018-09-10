@@ -158,14 +158,16 @@ ggplot(fsh_cpue, aes(cpue)) + geom_density(alpha = 0.4, fill = 4)
 # EDA for GAM 
 
 # Trends over time
-ggplot(fsh_cpue, aes(Year, cpue)) + geom_boxplot()
+ggplot(fsh_cpue, aes(Year, std_cpue)) + geom_boxplot()
 
 # Trends over time by area
-ggplot(fsh_cpue, aes(Stat, cpue, fill = Year)) + 
+ggplot(fsh_cpue, aes(Stat, std_cpue, fill = Year)) + 
   geom_boxplot() +
-  scale_fill_manual(values = rev(colorspace::sequential_hcl(n_distinct(fsh_cpue$year))),
+  scale_fill_manual(values = rev(colorspace::sequential_hcl(c = 0, l = c(30, 90), 
+                                                            power = c(1/5, 1.3), 
+                                                            n_distinct(fsh_cpue$year))),
                     guide = FALSE) +
-  labs(x = "", y = "Fishery CPUE\n")
+  labs(x = "", y = "Fishery CPUE (round pounds per hook)\n")
 
 ggsave(paste0("figures/fshcpue_trendsbyStat_",min(fsh_cpue$year), "_", YEAR, ".png"), 
        dpi=400, height=4, width=7.5, units="in")
