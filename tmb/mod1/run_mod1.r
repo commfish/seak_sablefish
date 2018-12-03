@@ -1,8 +1,9 @@
 
 # Model 1 - base ASA that only includes catch, fishery CPUE, fishery
 # weight-at-age, and catch compositions. No sex structure.
-source("r/helper.r")
-source("r/functions.r")
+# source("r/helper.r")
+# source("r/functions.r")
+library(tidyverse)
 library(TMB)
 
 ################################################################################
@@ -24,10 +25,10 @@ abd %>%
   # select(year, abundance_age2plus) %>% 
   mutate(abd = abundance_age2plus / 1e4,
          log_abd = log(abd),
-         log_naa = log(abd/nage)) -> abd
+         log_naa = log_abd/nage) -> abd
 
 logN <- c(rep(abd$log_naa[1], nage), abd %>% filter(year >= 1981) %>% pull(log_naa))
-
+exp(logN)
 # Starting values for F
 abd %>% 
   mutate(biomass_kg = biomass_round_lbs_age4plus * 0.453592,
@@ -65,22 +66,20 @@ parameters <- list(
   logN = logN,
   cm_sel50 = 3.86,
   cm_sel95 = 5.22, # guestimate from BSAI SAFE 2017 Fig 3.40
-  logF = log(rnorm(n = data$nyr, mean = .01, sd = .001)),
-  logq = -1.11)
+  logF = rep(-11.4, data$nyr),#log(rnorm(n = data$nyr, mean = .01, sd = .001)),
+  logq = log(0.001))#-1.11
+
+
+################################################################################
+setwd("tmb/mod1")
 
 # When testing the code
 #map<-list(logN=rep(factor(NA),length(logN)),cm_sel50=factor(NA),
 # cm_sel95=factor(NA),logF=rep(factor(NA),length(logF)),logq=factor(NA))
 
 # Estimate everything
-map<-list(dummy=factor(NA),logq=factor(NA),cm_sel50=factor(NA),
+map<-list(dummy=factor(NA),logN=rep(factor(NA),length(logN)),cm_sel50=factor(NA),
           cm_sel95=factor(NA))
-
-#print(data)
-#print(parameters)
-
-################################################################################
-setwd("tmb/mod1")
 compile("mod1.cpp")
 dyn.load(dynlib("mod1"))
 model <- MakeADFun(data, parameters, DLL="mod1",silent=T,map=map)
@@ -99,7 +98,14 @@ print(rep)
 
 print(model$report()$S)
 print(model$report()$N)
-print(model$report()$pred_cm_cpue)
+
+pred_cm_agecomps <- as.data.frame(model$report()$pred_cm_comp)
+names(pred_cm_agecomps) <- as.character(2:30)
+
+cm$pred_cpue <- model$report()$pred_cm_cpue
+
+cm$pred_catch <- model$report()$pred_catch
+
 cat(model$report()$obj_fun,model$report()$Like1,model$report()$Like2,model$report()$Like3,"\n")
 rep <- sdreport(model)
 print(summary(rep))

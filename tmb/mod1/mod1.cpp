@@ -26,7 +26,6 @@ template<class Type>
   DATA_MATRIX(data_cm_comp)  // commercial age compositions in year i
   
   // PARAMETER SECTION:
-    
   PARAMETER(dummy);        // dummy variable for troubleshooting 
   PARAMETER_VECTOR(logN);    // log abundance in year i
   PARAMETER(cm_sel50);       // commercial selectivity parameter (50% selected)
@@ -83,7 +82,8 @@ template<class Type>
     Bi(i) = 0; pred_catch(i) = 0; Cij = 0;
     for (int j=0;j<nage;j++)
     {
-      pred_cm_comp(i,j) = Fij(i,j)/Zij(i,j)*Nij(i,j)*(1.0-exp(-Zij(i,j)));
+      // Multiple by 100 to get N and catch on the same scale
+      pred_cm_comp(i,j) = Fij(i,j)/Zij(i,j)*Nij(i,j)*(1.0-exp(-Zij(i,j)))*100;
       pred_catch(i) += data_cm_waa(j)*pred_cm_comp(i,j);
       Bi(i) += data_cm_waa(j)*Sj(j)*Nij(i,j)*exp(-Zij(i,j)/2.0);
       Cij += pred_cm_comp(i,j);

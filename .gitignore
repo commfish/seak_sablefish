@@ -10,3 +10,7 @@ database.csv
 *.jag
 *.docx
 *.html
+
+# TMB files
+*.o
+*.dll
