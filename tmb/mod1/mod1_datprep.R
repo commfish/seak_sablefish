@@ -15,7 +15,8 @@ read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR,".csv"),
                        guess_max = 50000) %>% 
   group_by(year) %>% 
   summarize(total_pounds = sum(whole_pounds)) %>% 
-  mutate(total_kg = total_pounds * 0.453592 / 1e6) %>% 
+  # Convert lbs to 100 mt
+  mutate(total_100mt = total_pounds * 0.000453592 / 100) %>% 
   select(-total_pounds) %>% 
   filter(year >= 1980) -> sum_catch
 
@@ -70,11 +71,11 @@ data.frame(year = 1980:1996,
 axis <- tickr(cpue_ts, year, 3)
 
 ggplot(sum_catch) + 
-  geom_point(aes(year, total_kg)) +
-  geom_line(aes(year, total_kg)) +
+  geom_point(aes(year, total_100mt)) +
+  geom_line(aes(year, total_100mt)) +
   geom_vline(xintercept = 1997, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  labs(x = "", y = "Fishery harvest\n(millions round kg)") -> catch
+  labs(x = "", y = "Fishery harvest\n(100 mt, round)") -> catch
 
 ggplot(cpue_ts) +
   geom_point(aes(year, cpue)) +
@@ -90,7 +91,7 @@ ggplot(cpue_ts) +
 plot_grid(catch, cpue, ncol = 1, align = 'hv')
 
 merge(sum_catch, cpue_ts) %>%
-  select(year, catch = total_kg, cpue, cpue_var = var) %>% 
+  select(year, catch = total_100mt, cpue, cpue_var = var) %>% 
   write_csv("tmb/mod1/cm_catch_cpue.csv")
 
 # Weight-at-age ----

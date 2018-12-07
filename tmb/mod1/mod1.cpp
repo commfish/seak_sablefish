@@ -82,8 +82,8 @@ template<class Type>
     Bi(i) = 0; pred_catch(i) = 0; Cij = 0;
     for (int j=0;j<nage;j++)
     {
-      // Multiple by 100 to get N and catch on the same scale
-      pred_cm_comp(i,j) = Fij(i,j)/Zij(i,j)*Nij(i,j)*(1.0-exp(-Zij(i,j)))*100;
+      // Multiple by 100 to get N and catch on the same scale - not sure about this.
+      pred_cm_comp(i,j) = Fij(i,j)/Zij(i,j)*Nij(i,j)*(1.0-exp(-Zij(i,j)));//*100;
       pred_catch(i) += data_cm_waa(j)*pred_cm_comp(i,j);
       Bi(i) += data_cm_waa(j)*Sj(j)*Nij(i,j)*exp(-Zij(i,j)/2.0);
       Cij += pred_cm_comp(i,j);

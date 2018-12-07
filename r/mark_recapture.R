@@ -1658,16 +1658,16 @@ results %>%
             q025 = quantile(N.avg, 0.025),
             q975 = quantile(N.avg, 0.975)) %>% 
   arrange(year, time_period) %>% 
-  left_join(assessment_summary %>% 
-              select(year, `Previous estimate` = abundance_age2plus) %>% 
-              mutate(`Previous estimate` = ifelse(year == 2017, NA, `Previous estimate`)), 
-            by = "year") %>% 
+  # left_join(assessment_summary %>% 
+  #             select(year, `Previous estimate` = abundance_age2plus) %>% 
+  #             mutate(`Previous estimate` = ifelse(year == 2017, NA, `Previous estimate`)), 
+  #           by = "year") %>% 
   ungroup() %>% 
   mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
   pad(interval = "year") %>% 
   mutate(year = year(year),
          Year = factor(year)) %>%
-  gather("Abundance", "N", `Previous estimate`, `Current estimate`) %>% 
+  gather("Abundance", "N", `Current estimate`) %>% 
   mutate(N = N / 1000000,
          # interpolate the CI in missing years for plotting purposes
          q025 = zoo::na.approx(q025 / 1000000, maxgap = 20, rule = 2),
@@ -1690,6 +1690,15 @@ results %>%
   labs(x = "", y = "Number of sablefish (millions)\n",
        colour = NULL, shape = NULL) +
   theme(legend.position = c(.8, .8))
+
+# Write results to file for ASA
+results %>% 
+  gather("time_period", "N.avg", contains("N.avg")) %>% 
+  group_by(year) %>% 
+  summarise(estimate = round(median(N.avg) / 1e6, 4),
+            q025 = round(quantile(N.avg, 0.025) / 1e6, 4),
+            q975 = round(quantile(N.avg, 0.975) / 1e6, 4)) %>% 
+  write_csv("output/mr_index.csv")
 # 
 # ggsave(paste0("figures/model1_N_retrospective_", 
 #               FIRST_YEAR, "_", YEAR, ".png"), 

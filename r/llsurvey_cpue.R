@@ -56,8 +56,6 @@ ggplot(hk_stand, aes(x = no_hooks, y = std_hooks, col = factor(hook_space))) +
 srv_cpue <- read_csv(paste0("data/survey/llsrv_cpue_1985_", YEAR, "2.csv"),
                      guess_max = 500000)
 
-glimpse(srv_cpue)
-
 srv_cpue  %>% 
   filter(year >= 1997 & 
            # Mike Vaughn 2018-03-06: Sets (aka subsets with 12 or more invalid hooks are subset condition code "02" or invalid)
@@ -85,6 +83,8 @@ srv_cpue  %>%
          std_cpue = sablefish_retained/std_hooks #*FLAG* this is NPUE, the fishery is a WPUE
          # raw_cpue = sablefish_retained/no_hooks
   ) -> srv_cpue
+
+
 
 hist(srv_cpue$std_cpue)
 srv_cpue %>% 

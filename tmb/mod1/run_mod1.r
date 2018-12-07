@@ -20,26 +20,22 @@ abd <- read_csv("data/chatham_sablefish_abd_index.csv")
 # Number of ages
 nage <- n_distinct(cm_waa$age)
 
-# Get starting values for log abundance at age
-abd %>% 
-  # select(year, abundance_age2plus) %>% 
-  mutate(abd = abundance_age2plus / 1e4,
-         log_abd = log(abd),
-         log_naa = log_abd/nage) -> abd
-
-logN <- c(rep(abd$log_naa[1], nage), abd %>% filter(year >= 1981) %>% pull(log_naa))
-exp(logN)
-# Starting values for F
-abd %>% 
-  mutate(biomass_kg = biomass_round_lbs_age4plus * 0.453592,
-         hr = cm$catch/biomass_kg) -> abd
-
 # Index years
 cm %>% 
   mutate(yr_index = year - min(year)) %>% 
   select(year, yr_index) %>% 
   left_join(cm_agecomps, by = "year") %>% 
   na.omit() -> cm_agecomps
+
+# Get starting values for log abundance at age
+abd %>% 
+  # select(year, abundance_age2plus) %>% 
+  mutate(abd = abundance_age2plus/ 1e4,
+         log_abd = log(abd),
+         log_naa = log_abd/nage) -> abd
+
+# logN <- c(rep(abd$log_naa[1], nage), abd %>% filter(year >= 1981) %>% pull(log_naa))
+logN <- c(rep(abd$log_abd, nage)/2, abd %>% filter(year >= 1981) %>% pull(log_abd)/3)
 
 # Structure data for TMB - must use same variable names as .cpp
 data <- list(
@@ -66,7 +62,7 @@ parameters <- list(
   logN = logN,
   cm_sel50 = 3.86,
   cm_sel95 = 5.22, # guestimate from BSAI SAFE 2017 Fig 3.40
-  logF = rep(-11.4, data$nyr),#log(rnorm(n = data$nyr, mean = .01, sd = .001)),
+  logF = rep(log(0.01), data$nyr),#log(rnorm(n = data$nyr, mean = .01, sd = .001)),
   logq = log(0.001))#-1.11
 
 
@@ -76,10 +72,10 @@ setwd("tmb/mod1")
 # When testing the code
 #map<-list(logN=rep(factor(NA),length(logN)),cm_sel50=factor(NA),
 # cm_sel95=factor(NA),logF=rep(factor(NA),length(logF)),logq=factor(NA))
-
+# map<-list(dummy=factor(NA),logN=rep(factor(NA),length(logN)),cm_sel50=factor(NA),
+          # cm_sel95=factor(NA))
 # Estimate everything
-map<-list(dummy=factor(NA),logN=rep(factor(NA),length(logN)),cm_sel50=factor(NA),
-          cm_sel95=factor(NA))
+map<-list(dummy=factor(NA))
 compile("mod1.cpp")
 dyn.load(dynlib("mod1"))
 model <- MakeADFun(data, parameters, DLL="mod1",silent=T,map=map)
@@ -101,10 +97,14 @@ print(model$report()$N)
 
 pred_cm_agecomps <- as.data.frame(model$report()$pred_cm_comp)
 names(pred_cm_agecomps) <- as.character(2:30)
+sum(pred_cm_agecomps[1,])
+#cm$pred_cpue <- 
+model$report()$pred_cm_cpue
+cm$cpue
 
-cm$pred_cpue <- model$report()$pred_cm_cpue
-
-cm$pred_catch <- model$report()$pred_catch
+#cm$pred_catch <- 
+model$report()$pred_catch
+cm$catch
 
 cat(model$report()$obj_fun,model$report()$Like1,model$report()$Like2,model$report()$Like3,"\n")
 rep <- sdreport(model)
