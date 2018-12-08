@@ -10,6 +10,7 @@ source("r/functions.r")
 
 syr <- 1980
 lyr <- 2017
+nyr <- length(syr:lyr)
 
 rec_age <- 2
 plus_group <- 26
@@ -23,7 +24,7 @@ read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"),
   # Convert lbs to 100 mt
   mutate(total_100mt = total_pounds * 0.000453592 / 100) %>% 
   select(-total_pounds) %>% 
-  filter(year >= fyr) -> sum_catch
+  filter(year >= syr) -> sum_catch
 
 # Fishery CPUE ----
 
@@ -101,7 +102,7 @@ mr_sum %>%
 
 # Graphics ----
 
-axis <- tickr(cpue_ts, year, 3)
+axis <- tickr(cpue_ts, year, 5)
 
 sum_catch %>% 
   mutate(upper =  total_100mt + 0.05 * total_100mt,
@@ -167,7 +168,9 @@ full_join(sum_catch, cpue_ts) %>%
   full_join(mr_sum) %>%
   select(year, catch = total_100mt, fsh_cpue = cpue, srv1_cpue = `1-hr soak`, srv2_cpue = `3+hr soak`,
          mr = estimate) %>% 
-  write_csv("tmb/mod1/abd_indices.csv")
+  mutate(index = year -min(year)) -> ts
+  
+write_csv(ts, "tmb/mod3/abd_indices.csv")
 
 # Fishery weight-at-age ----
 
@@ -252,6 +255,7 @@ read_csv(paste0("output/fem_maturityatage_llsrv.csv"),
 
 mat %>% 
   filter(age <= plus_group)  %>% 
+  rename(prop_mature = probability) %>% 
   mutate(Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
                                       "9", "10", "11", "12", "13", "14", "15",
                                       "16", "17", "18", "19", "20", "21", "22",
@@ -260,8 +264,6 @@ mat %>%
                                  "9", "10", "11", "12", "13", "14", "15",
                                  "16", "17", "18", "19", "20", "21", "22",
                                  "23", "24", "25", "26+"))) -> mat
-
-write_csv(waa, "tmb/mod3/prop_mature.csv")
 
 # Sex ratio ----
 
@@ -306,6 +308,7 @@ bind_cols(
   tbl_df(do.call(cbind, srv_predage))) -> byage
 
 byage %>% 
+  rename(prop_fem = proportion) %>% 
   mutate(Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
                                       "9", "10", "11", "12", "13", "14", "15",
                                       "16", "17", "18", "19", "20", "21", "22",
@@ -314,6 +317,11 @@ byage %>%
                                  "9", "10", "11", "12", "13", "14", "15",
                                  "16", "17", "18", "19", "20", "21", "22",
                                  "23", "24", "25", "26+"))) -> byage
+full_join(byage %>% 
+            select(age, prop_fem),
+          mat %>% 
+            select(age, prop_mature)) %>% 
+  write_csv("tmb/mod3/maturity_sexratio.csv")
 
 # Graphics ----
 
@@ -346,8 +354,8 @@ a50_txt <- as.character(
 axis <- tickr(byage, age, 1)
 
 ggplot(mat) +
-  geom_point(aes(x = age, y = probability), colour = "cornflowerblue", shape = 15) +
-  geom_line(aes(x = age, y = probability, group = 1), colour = "cornflowerblue") +
+  geom_point(aes(x = age, y = prop_mature), colour = "cornflowerblue", shape = 15) +
+  geom_line(aes(x = age, y = prop_mature, group = 1), colour = "cornflowerblue") +
   geom_segment(aes(x = a50, y = 0, xend = a50, yend = 0.50), 
                lty = 2, col = "grey") +
   geom_segment(aes(x = 2, y = 0.50, xend = a50, yend = 0.50), 
@@ -364,7 +372,7 @@ ggplot(byage, aes(x = Age)) +
   geom_line(aes(y = fit, group = 1), colour = "cornflowerblue") +
   geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, group = 1), 
               alpha = 0.2, fill = "cornflowerblue", colour = "white") +
-  geom_point(aes(y = proportion), colour = "cornflowerblue") +  
+  geom_point(aes(y = prop_fem), colour = "cornflowerblue") +  
   expand_limits(y = c(0.3, 0.6)) +
   xlab("\nAge") +
   ylab("Proportion\nfemale\n") +
@@ -374,6 +382,7 @@ plot_grid(waa_plot, mat_plot, prop_fem, ncol = 1, align = 'hv')
 
 ggsave(paste0("tmb/mod3/bio_dat.png"),
        dpi=300, height=6, width=7, units="in")
+
 # Age compositions ----
 
 # Fishery
@@ -382,9 +391,8 @@ fsh_bio %>%
   select(year, age) %>% 
   filter(year >= 2002 & !is.na(age)) %>% 
   droplevels() %>% 
-  # FLAG leave out plus group for now
-  # mutate(age = ifelse(age >= plus_group, plus_group, age)) %>% 
-  filter(age >= rec_age & age < plus_group ) -> fsh_comps 
+  mutate(age = ifelse(age > plus_group, plus_group, age)) %>%
+  filter(age >= rec_age & age <= plus_group ) -> fsh_comps 
 
 fsh_comps %>% 
   count(year, age) %>%
@@ -397,9 +405,8 @@ srv_bio %>%
   select(year, age) %>% 
   filter(year >= 1997 & !is.na(age)) %>% 
   droplevels() %>% 
-  # FLAG leave out plus group for
-  # mutate(age = ifelse(age > plus_group, plus_group, age)) %>% 
-  filter(age >= rec_age & age < plus_group ) -> srv_comps  
+  mutate(age = ifelse(age > plus_group, plus_group, age)) %>%
+  filter(age >= rec_age & age <= plus_group ) -> srv_comps  
 
 srv_comps %>% 
   count(year, age) %>%
@@ -434,18 +441,72 @@ ggplot(agecomps, aes(x = age, y = year, size = proportion)) + #*FLAG* could swap
 
 ggsave("tmb/mod3/agecomps.png", dpi = 300, height = 5, width = 6, units = "in")
 
+agecomps %>% 
+  left_join(data.frame(year = syr:lyr) %>% 
+              mutate(index = year - min(year))) -> agecomps
+
 # Reshape
-agecomps %>% dcast(year ~ age, value.var = "proportion") -> agecomps
+agecomps %>% dcast(year + index + Source ~ age, value.var = "proportion") -> agecomps
 agecomps[is.na(agecomps)] <- 0
 
-write_csv(agecomps, "tmb/mod1/cm_agecomps.csv")
+write_csv(agecomps, "tmb/mod3/agecomps.csv")
 
-# Used to get logN starting values, these are the mean age comps over all years
-fsh_comps %>%
-  count(age) %>% 
-  mutate(proportion = round(n / sum(n), 4)) -> mean_comps
+# Starting values ------
 
-mean_comps %>% dcast(1 ~ age, value.var = "proportion") -> meancomps
-meancomps[is.na(meancomps)] <- 0
+#fishing mortality deviations
 
-write_csv(meancomps[,-1], "tmb/mod1/meancomps.csv")
+# Parameter estimates for fishing mortality deviations for 2006 ASA run by F
+# Mueter
+finits <- c( -1.56630826679, -1.99300652020, -2.01246349536, -1.71978991896,
+             -1.83724533971, -1.27684899334, -0.983905919896, -1.02192341186,
+             -0.927685571254, -1.00247299047, -1.07852014044, -0.837760996556,
+             -0.672220868864, -0.311074414121, -0.345622227419, -0.254984198245,
+             -0.0825745205838, 0.0567339057886, 0.189847547504, -0.142833191728,
+             -0.440286665534, -0.446782301623, -0.552812445258, -0.546158911033
+             -0.385300803085, -0.417195861174, -0.296751206500)
+
+# Fishing mortalities most correlated with catch; use simple linear regression
+# to develop starting values for 2006-2017
+
+f <- lm(finits ~ log(catch), data = tmp)
+summary(f)
+predf <- predict(f, 
+                 newdata = data.frame(catch = ts %>% filter(year > 2005) %>% 
+                                        pull(catch) %>% log()), 
+                 type = "response")
+
+finits <- data.frame(year = syr:lyr,
+                     finits = c(finits, predf))
+
+write_csv(finits, "tmb/mod3/inits_f_devs.csv")
+
+# Starting values for recruitment deviations
+
+rinits = c( 0.0405374218174, 0.0442650418415, 0.0482389177436,
+            0.0523509979580, 0.0564424635349, 0.0601823372231,
+            0.0631895950940, 0.0660174557708, 0.0543158576109,
+            0.00467416429863, -0.0188002294100, -0.0697329463801,
+            -0.124574875686, -0.152542991556, -0.148273569414,
+            -0.103762760913, -0.0592664599196, -0.0417456966159,
+            -0.0293342663812, 0.0655298533471, -0.105369343293,
+            -0.282231768850, 2.33324844068, 2.02041811445,
+            0.430788527045, 0.136257510816, 1.38475669371,
+            0.106716839276, 0.834180223062, 0.129001661339,
+            0.192456696119, 0.149727613444, -0.227607751620,
+            -0.385442447714, 0.0419339981551, -0.0971306887540,
+            0.00714024634689, -0.928016835774, 0.285420095181,
+            -0.138735004317, 0.469180409653, 0.566364647489,
+            0.349805017285, -0.448967807172, -0.169286675728,
+            -1.42262349732, -1.74624961284, -1.84338180058,
+            -1.45935292134, -0.368436954372 )
+
+# (rec_devs include a parameter for all ages in the inital yr plus age-2 in all
+# yrs, nyr+nage-2). For obtaining new starting values, strip the index of the
+# initial yr all ages
+
+sub <- rinits[25:50]
+plot(sub)
+
+rinits <- data.frame(rinits = c(rinits, rep(0.1, nyr+nage-2 - length(rinits))))
+
+write_csv(rinits, "tmb/mod3/inits_rec_devs.csv")
