@@ -171,7 +171,8 @@ setwd("tmb/mod3")
 compile("mod3.cpp")
 dyn.load(dynlib("mod3"))
 
-# PHASE 1 - estimate mark-recapture catchability (mr_logq) ----
+
+# PHASE 1 - estimate mark-recapture catchability (mr_logq)
 map <- list(dummy=factor(NA), 
             fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
             srv_sel50 = factor(NA), srv_sel95 = factor(NA),
@@ -275,6 +276,10 @@ rep <- sdreport(model)
 
 print(best)
 print(rep)
+model$report()$priors
+model$report()$catch_like
+model$report()$index_like
+model$report()$age_like
 
 # Plot age comps ----
 
@@ -423,7 +428,8 @@ ggsave(paste0("pred_abd_indices.png"),
 
 # Plot derived variables ----
 ts %>% 
-  mutate(pred_rec = model$report()$pred_rec,
+  mutate(Fmort = model$report()$catch_like,
+         pred_rec = model$report()$pred_rec,
          biom = model$report()$biom,
          expl_biom = model$report()$expl_biom,
          vuln_abd = model$report()$vuln_abd,
