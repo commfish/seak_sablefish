@@ -137,6 +137,10 @@ template<class Type>
   vector<Type> expl_biom(nyr);  // Vulnerable biomass to fishery at the beginning of the fishery
   vector<Type> vuln_abd(nyr);   // Vulnerable abundance to survey at the beginning of the survey
   vector<Type> spawn_biom(nyr); // Spawning biomass
+  biom.setZero();
+  expl_biom.setZero();
+  vuln_abd.setZero();
+  spawn_biom.setZero();
   
   // Other derived and projected values
   Type surv_srv;                // Annual natural survival at time of survey
@@ -293,16 +297,16 @@ template<class Type>
 
   // std::cout << "sum_rec\n" << sum_rec << "\n";
   // std::cout << "pred_rbar\n" << pred_rbar << "\n";
-  
+
   // Various flavors of predicted biomass estimates
   for (int i = 0; i < nyr; i++) {
     for (int j = 0; j < nage; j++) {
 
       // Total biomass at time of longline survey
-      biom(i) += data_srv_waa(j) * N(i,j) * surv_srv;
+      biom(i) += data_srv_waa(j) * N(i,j) * surv_srv; 
 
       // Vulnerable biomass to the fishery at the beginning of the fishery
-      expl_biom(i) += data_srv_waa(j) * fsh_sel(j) * N(i,j) * surv_fsh;
+      expl_biom(i) += data_srv_waa(j) * fsh_sel(j) * N(i,j) * surv_fsh; 
 
       // Vulnerable abundance to the survey at the beginning of the survey
       vuln_abd(i) += srv_sel(j) * N(i,j) * surv_srv;
@@ -416,16 +420,16 @@ template<class Type>
   // Priors
 
   // Fishery cpue catchability coefficient
-  priors(0) = square( log(mr_q / Type(0.025)) ) / ( 2 * square(Type(1.0)) );
-
-  // 1-hr soak survey catchability coefficient
-  priors(1) = square( log(mr_q / Type(0.09)) ) / ( 2 * square(Type(1.0)) );
-
-  // 3-hr soak survey catchability coefficient
-  priors(2) = square( log(mr_q / Type(0.02)) ) / ( 2 * square(Type(1.0)) );
+  // priors(0) = square( log(fsh_q / Type(0.025)) ) / ( 2 * square(Type(1.0)) );
+  // 
+  // // 1-hr soak survey catchability coefficient
+  // priors(1) = square( log(srv1_q / Type(0.09)) ) / ( 2 * square(Type(1.0)) );
+  // 
+  // // 3-hr soak survey catchability coefficient
+  // priors(2) = square( log(srv2_q / Type(0.02)) ) / ( 2 * square(Type(1.0)) );
 
   // Mark-recapture abundance estimate catchability coefficient
-  priors(3) = square( log(mr_q / Type(1.0)) ) / ( 2 * square(Type(0.01)) );
+  // priors(3) = square( log(mr_q / Type(1.0)) ) / ( 2 * square(Type(0.10)) );
 
   // std::cout << "priors\n" << priors << "\n";
   
@@ -515,9 +519,9 @@ template<class Type>
   // std::cout << "Penality for fishing mortality\n" << fpen << "\n";
   
   // Sum likelihood components
-  obj_fun += priors(0);         // Fishery q
-  obj_fun += priors(1);         // 1-hr soak time survey q
-  obj_fun += priors(2);         // 3-hr soak time survey q
+  // obj_fun += priors(0);         // Fishery q
+  // obj_fun += priors(1);         // 1-hr soak time survey q
+  // obj_fun += priors(2);         // 3-hr soak time survey q
   obj_fun += priors(3);         // Mark-recapture abndance index q
   obj_fun += catch_like;        // Catch
   obj_fun += index_like(0);     // Fishery cpue
