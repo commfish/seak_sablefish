@@ -507,10 +507,8 @@ template<class Type>
   // std::cout << "Log recruitment deviations\n" << log_rec_devs << "\n";
   // std::cout << "Recruitment likelihood\n" << rec_like << "\n";
   
-  // Penalty for fishing mortality deviations
-  Type n_Fdev = log_F_devs.size();
-
-  for (int i = 0; i < n_Fdev; i++) {
+  // Regularity penalty on fishing mortality
+    for (int i = 0; i < nyr; i++) {
     fpen += square(log_F_devs(i));
   }
   fpen *= Type(0.1);          // Weight

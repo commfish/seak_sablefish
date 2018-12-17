@@ -114,7 +114,7 @@ sum_catch %>%
               alpha = 0.2,  fill = "grey") +
   geom_vline(xintercept = 1997, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  labs(x = "", y = "Catch\n(round x100 mt)") -> catch
+  labs(x = "", y = "\n\nCatch\n(round x100 mt)") -> catch
 
 ggplot(cpue_ts) +
   geom_point(aes(year, cpue)) +
@@ -124,7 +124,7 @@ ggplot(cpue_ts) +
   geom_vline(xintercept = 1997, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   lims(y = c(0, 1.4)) +
-  labs(x = "", y = "Fishery CPUE\n(round kg/hook)") -> cpue
+  labs(x = "", y = "\n\nFishery CPUE\n(round kg/hook)") -> cpue
 
 ggplot(data = srv_sum) +
   geom_point(aes(year, annual_cpue, shape = survey)) +
@@ -134,7 +134,7 @@ ggplot(data = srv_sum) +
               alpha = 0.2, col = "white", fill = "grey") +
   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, labels = axis$labels) + 
   lims(y = c(0, 0.5)) +
-  labs(y = "Survey CPUE\n(number/hook)", x = NULL, shape = NULL) +
+  labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL, shape = NULL) +
   theme(legend.position = c(.1, .8))-> srv
 
 mr_sum %>% 
@@ -154,9 +154,9 @@ mr_sum %>%
   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, 
                      labels = axis$labels) +
   ylim(c(1, 3.8)) +
-  labs(x = "", y = "Abundance\n(millions)") -> mr
+  labs(x = "", y = "\n\nAbundance\n(millions)") -> mr
   
-plot_grid(catch, cpue, srv, mr, ncol = 1, align = 'hv')
+plot_grid(catch, cpue, srv, mr, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)', '(D)'))
 
 ggsave(paste0("tmb/mod3/abd_indices.png"),
        dpi=300, height=6, width=6, units="in")
@@ -340,7 +340,8 @@ ggsave(paste0("tmb/mod3/fsh_waa.png"),
 ggplot(waa) +
   geom_point(aes(x = Age, y = weight_kg, shape = Source,
                  colour = Source)) +
-  labs(x = NULL, y = "Mean weight\n(kg)", colour = NULL, shape = NULL) +
+  scale_colour_grey() +
+  labs(x = NULL, y = "\n\nMean weight\n(kg)", colour = NULL, shape = NULL) +
   theme(legend.position = c(.2, .8)) -> waa_plot
 
 
@@ -354,31 +355,31 @@ a50_txt <- as.character(
 axis <- tickr(byage, age, 1)
 
 ggplot(mat) +
-  geom_point(aes(x = age, y = prop_mature), colour = "cornflowerblue", shape = 15) +
-  geom_line(aes(x = age, y = prop_mature, group = 1), colour = "cornflowerblue") +
+  geom_point(aes(x = age, y = prop_mature), colour = "black", shape = 15) +
+  geom_line(aes(x = age, y = prop_mature, group = 1), colour = "black") +
   geom_segment(aes(x = a50, y = 0, xend = a50, yend = 0.50), 
                lty = 2, col = "grey") +
   geom_segment(aes(x = 2, y = 0.50, xend = a50, yend = 0.50), 
                lty = 2, col = "grey") +
   # a_50 labels
   geom_text(aes(10, 0.5, label = a50_txt), face = "bold", size = 5,
-            colour = "cornflowerblue", parse = TRUE) +
+            colour = "black", parse = TRUE) +
   scale_x_continuous(breaks = axis$breaks, 
                      labels = NULL) +
-  labs(x = NULL, y = "Proportion\nmature\n") -> mat_plot
+  labs(x = NULL, y = "\n\nProportion\nmature\n") -> mat_plot
 
 
 ggplot(byage, aes(x = Age)) +
-  geom_line(aes(y = fit, group = 1), colour = "cornflowerblue") +
+  geom_line(aes(y = fit, group = 1), colour = "black") +
   geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, group = 1), 
-              alpha = 0.2, fill = "cornflowerblue", colour = "white") +
-  geom_point(aes(y = prop_fem), colour = "cornflowerblue") +  
+              alpha = 0.2, fill = "black", colour = "white") +
+  geom_point(aes(y = prop_fem), colour = "black") +  
   expand_limits(y = c(0.3, 0.6)) +
   xlab("\nAge") +
-  ylab("Proportion\nfemale\n") +
+  ylab("\n\nProportion\nfemale\n") +
   geom_hline(yintercept = 0.5, lty = 2, col = "grey") -> prop_fem
 
-plot_grid(waa_plot, mat_plot, prop_fem, ncol = 1, align = 'hv')
+plot_grid(waa_plot, mat_plot, prop_fem, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)'))
 
 ggsave(paste0("tmb/mod3/bio_dat.png"),
        dpi=300, height=6, width=7, units="in")
@@ -386,7 +387,6 @@ ggsave(paste0("tmb/mod3/bio_dat.png"),
 # Age compositions ----
 
 # Fishery
-
 fsh_bio %>% 
   select(year, age) %>% 
   filter(year >= 2002 & !is.na(age)) %>% 

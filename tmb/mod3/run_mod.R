@@ -4,11 +4,13 @@
 # and proportions-at-age, and fishery and survey age compositions. No sex
 # structure.
 
-library(tidyverse)
-library(TMB)
+# Libraries and helper functions ----
 
 source("r/helper.r")
 source("r/functions.r")
+
+library(TMB)
+
 
 # Data -----
 setwd("tmb/mod3")
@@ -167,29 +169,29 @@ upper <- c(             # Upper bounds
 compile("mod3.cpp")
 dyn.load(dynlib("mod3"))
 
-# Estimate everything at once
-map <- list(dummy=factor(NA))
-
-model <- MakeADFun(data, parameters, DLL = "mod3", silent = TRUE, map = map)
-
-fit <- nlminb(model$par, model$fn, model$gr,
-              control=list(eval.max=100000,iter.max=1000),
-              lower = lower, upper = upper)
-for (i in 1:100){
-  fit <- nlminb(model$env$last.par.best, model$fn, model$gr)}
-best <- model$env$last.par.best
-print(as.numeric(best))
-rep <- sdreport(model)
-print(best)
-print(rep)
-model$report()$priors
-model$report()$catch_like
-model$report()$index_like
-model$report()$age_like
-model$report()$pred_mr
-model$report()$obj_fun
-N <- model$report()$N
-C <- model$report()$C
+# # Estimate everything at once
+# map <- list(dummy=factor(NA))
+# 
+# model <- MakeADFun(data, parameters, DLL = "mod3", silent = TRUE, map = map)
+# 
+# fit <- nlminb(model$par, model$fn, model$gr,
+#               control=list(eval.max=100000,iter.max=1000),
+#               lower = lower, upper = upper)
+# for (i in 1:100){
+#   fit <- nlminb(model$env$last.par.best, model$fn, model$gr)}
+# best <- model$env$last.par.best
+# print(as.numeric(best))
+# rep <- sdreport(model)
+# print(best)
+# print(rep)
+# model$report()$priors
+# model$report()$catch_like
+# model$report()$index_like
+# model$report()$age_like
+# model$report()$pred_mr
+# model$report()$obj_fun
+# N <- model$report()$N
+# C <- model$report()$C
 
 # Phase -----
 
@@ -296,8 +298,8 @@ phase5_inits <- c(as.numeric(best)[1:8], parameters$log_rbar, as.numeric(best)[9
 fit <- nlminb(phase5_inits, model$fn, model$gr,
               control=list(eval.max=100000,iter.max=1000),
               lower = lower, upper = upper)
-# for (i in 1:3){
-#   fit <- nlminb(model$env$last.par.best, model$fn, model$gr)}
+for (i in 1:5){
+  fit <- nlminb(model$env$last.par.best, model$fn, model$gr)}
 best <- model$env$last.par.best
 print(as.numeric(best))
 rep <- sdreport(model)
@@ -307,11 +309,18 @@ print(rep)
 VarCo <- solve(model$he())
 # Check for Hessian
 print(sqrt(diag(VarCo)))
-model$report()$priors
+
+# Likelihood components
+# model$report()$priors
 model$report()$catch_like
 model$report()$index_like
 model$report()$age_like
-model$report()$pred_mr
+model$report()$fpen
+model$report()$rec_like
+model$report()$obj_fun
+
+as.list(rep, what = "Estimate")
+as.list(rep, what = "Std")
 
 # Plot age comps ----
 
@@ -433,7 +442,7 @@ ggplot(ts, aes(x = year)) +
   geom_point(aes(y = catch)) +
   geom_line(aes(y = pred_catch), colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  labs(x = "", y = "Catch\n(round x100 mt)") -> p_catch
+  labs(x = "", y = "\n\nCatch\n(round x100 mt)") -> p_catch
 
 # Fishery cpue
 fsh_cpue$pred_fsh_cpue <- model$report()$pred_fsh_cpue
@@ -441,7 +450,7 @@ ggplot(fsh_cpue, aes(x = year)) +
   geom_point(aes(y = fsh_cpue)) +
   geom_line(aes(y = pred_fsh_cpue), colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  labs(x = "", y = "Fishery CPUE\n(round kg/hook)") -> p_fsh
+  labs(x = "", y = "\n\nFishery CPUE\n(round kg/hook)") -> p_fsh
 
 # Survey cpue
 ts %>% 
@@ -458,7 +467,7 @@ ggplot(srv, aes(x = year)) +
   geom_vline(xintercept = 1997, linetype = 2, colour = "grey") +
   scale_y_continuous(limits = c(0.05, 0.45)) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  labs(y = "Survey CPUE\n(number/hook)", x = NULL, shape = NULL) +
+  labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL, shape = NULL) +
   theme(legend.position = c(.1, .8)) -> p_srv
 
 # Mark recapture 
@@ -475,11 +484,72 @@ ggplot(mr_plot, aes(x = year)) +
   # geom_point(aes(y = pred_mr), colour = "grey") +
   geom_line(aes(y = pred_mr_all, group = 1), lty = 2, colour = "grey") +
   scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
-  labs(x = "", y = "Abundance\n(millions)") -> p_mr
+  labs(x = "", y = "\n\nAbundance\n(millions)") -> p_mr
 
-plot_grid(p_catch, p_fsh, p_srv, p_mr, ncol = 1, align = 'hv')
+plot_grid(p_catch, p_fsh, p_srv, p_mr, ncol = 1, align = 'hv', 
+          labels = c('(A)', '(B)', '(C)', '(D)'))
 
 ggsave(paste0("pred_abd_indices.png"), 
+       dpi=300, height=7, width=6, units="in")
+
+# Resids for time series ----
+ts %>% 
+  mutate(catch_resid = catch - pred_catch,
+         catch_sresid = catch_resid / sd(catch_resid)) -> ts
+
+ggplot(ts, aes(x = year, y = catch_resid)) + 
+  geom_hline(yintercept = 0, colour = "grey", size = 1) +
+  geom_segment(aes(x = year, xend = year, y = 0, yend = catch_resid), 
+               size = 0.2, colour = "grey") +
+  geom_point() +
+  labs(x = "", y = "\n\nCatch\nresiduals") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) -> r_catch
+
+# Fishery cpue resids
+fsh_cpue %>% 
+  mutate(fsh_cpue_resid = fsh_cpue - pred_fsh_cpue,
+         fsh_cpue_sresid = fsh_cpue_resid / sd(fsh_cpue_resid)) -> fsh_cpue
+
+ggplot(fsh_cpue, aes(x = year, y = fsh_cpue_resid)) + 
+  geom_hline(yintercept = 0, colour = "grey", size = 1) +
+  geom_segment(aes(x = year, xend = year, y = 0, yend = fsh_cpue_resid), 
+               size = 0.2, colour = "grey") +
+  geom_point() +
+  labs(x = "", y = "\n\nFishery CPUE\nresiduals") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) -> r_fsh
+
+# Survey cpues resids
+srv %>% 
+  mutate(srv_cpue_resid = obs - pred,
+         srv_cpue_sresid = srv_cpue_resid / sd(srv_cpue_resid)) -> srv
+
+ggplot(srv, aes(x = year, y = srv_cpue_resid, shape = survey)) + 
+  geom_hline(yintercept = 0, colour = "grey", size = 1) +
+  geom_segment(aes(x = year, xend = year, y = 0, yend = srv_cpue_resid), 
+               size = 0.2, colour = "grey") +
+  geom_point() +
+  labs(x = "", y = "\n\nSurvey CPUE\nresiduals", shape = NULL) +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  theme(legend.position = "none") +
+  geom_vline(xintercept = 1997, linetype = 2, colour = "grey") -> r_srv
+
+# Mark-recapture abundance estimate resids
+mr_plot %>% 
+  mutate(mr_resid = mr - pred_mr,
+         mr_sresid = mr_resid / sd(mr_resid)) -> mr_plot
+
+ggplot(mr_plot, aes(x = year, y = mr_resid)) + 
+  geom_hline(yintercept = 0, colour = "grey", size = 1) +
+  geom_segment(aes(x = year, xend = year, y = 0, yend = mr_resid), 
+               size = 0.2, colour = "grey") +
+  geom_point() +
+  labs(x = "", y = "\n\nMR abundance\nresiduals\n") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) -> r_mr
+
+plot_grid(r_catch, r_fsh, r_srv, r_mr, ncol = 1, align = 'hv', 
+          labels = c('(A)', '(B)', '(C)', '(D)'))
+
+ggsave(paste0("presid_abd_indices.png"), 
        dpi=300, height=7, width=6, units="in")
 
 # Plot derived variables ----
@@ -498,29 +568,30 @@ p <- ggplot(ts, aes(x = year)) +
 # Recruitment
 p + geom_point(aes(y = pred_rec)) +
   geom_line(aes(y = pred_rec, group = 1)) +
-  labs(x = "", y = "Age-2 recruits\n(millions)") -> p_rec
+  labs(x = "", y = "\n\nAge-2 recruits\n(millions)") -> p_rec
 
 # Total biomass
 p + geom_point(aes(y = biom)) +
   geom_line(aes(y = biom, group = 1)) +
-  labs(x = "", y = "Total\nbiomass (mt)") -> p_biom
+  labs(x = "", y = "\n\nTotal\nbiomass (mt)") -> p_biom
 
 # Exploitable biomass (to fishery)
 p + geom_point(aes(y = expl_biom)) +
   geom_line(aes(y = expl_biom, group = 1)) +
-  labs(x = "", y = "Exploitatble\nbiomass (mt)") -> p_ebiom
+  labs(x = "", y = "\n\nExploitatble\nbiomass (mt)") -> p_ebiom
 
 # Vulnerable abundance (to survey)
 p + geom_point(aes(y = vuln_abd)) +
   geom_line(aes(y = vuln_abd, group = 1)) +
-  labs(x = "", y = "Vulnerable\nabundance (millions)") -> p_vabd
+  labs(x = "", y = "\n\nVulnerable\nabundance (millions)") -> p_vabd
 
 # Spawning biomass 
 p + geom_point(aes(y = spawn_biom)) +
   geom_line(aes(y = spawn_biom, group = 1)) +
-  labs(x = "", y = "Spawning\nbiomass(mt)") -> p_sbiom
+  labs(x = "", y = "\n\nSpawning\nbiomass(mt)") -> p_sbiom
 
-plot_grid(p_rec, p_biom, p_ebiom, p_vabd, p_sbiom, ncol = 1, align = 'hv')
+plot_grid(p_rec, p_biom, p_ebiom, p_vabd, p_sbiom, ncol = 1, align = 'hv',
+          labels = c('(A)', '(B)', '(C)', '(D)', '(E)'))
 
 ggsave(paste0("derived_ts.png"), 
        dpi=300, height=7, width=6, units="in")
@@ -533,4 +604,3 @@ p + geom_point(aes(y = Fmort)) +
 ggsave(paste0("fishing_mort.png"), 
        dpi=300, height=4, width=6, units="in")
 
-summary(rep)[,1]
