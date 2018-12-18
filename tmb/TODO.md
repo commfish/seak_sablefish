@@ -36,6 +36,8 @@
 
 [ ] Develop the TMB code to estimate biological reference points within the model
 
+[ ] Include assumed discard mortality
+
 [ ] Estimate recruitment and fishing mortality deviations as random effects 
 
 [ ] Explore the benefits of a sex-structured model to deal with the fact that at-age females are larger than males
