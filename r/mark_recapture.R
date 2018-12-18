@@ -1692,12 +1692,18 @@ results %>%
   theme(legend.position = c(.8, .8))
 
 # Write results to file for ASA
+# results %>% 
+#   gather("time_period", "N.avg", contains("N.avg")) %>% 
+#   group_by(year) %>% 
+#   summarise(estimate = round(median(N.avg) / 1e6, 4),
+#             q025 = round(quantile(N.avg, 0.025) / 1e6, 4),
+#             q975 = round(quantile(N.avg, 0.975) / 1e6, 4)) %>% 
 results %>% 
   gather("time_period", "N.avg", contains("N.avg")) %>% 
   group_by(year) %>% 
-  summarise(estimate = round(median(N.avg) / 1e6, 4),
-            q025 = round(quantile(N.avg, 0.025) / 1e6, 4),
-            q975 = round(quantile(N.avg, 0.975) / 1e6, 4)) %>% 
+  summarise(estimate = median(N.avg),
+            q025 = quantile(N.avg, 0.025),
+            q975 = quantile(N.avg, 0.975)) %>% 
   write_csv("output/mr_index.csv")
 # 
 # ggsave(paste0("figures/model1_N_retrospective_", 
