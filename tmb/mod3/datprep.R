@@ -13,7 +13,7 @@ lyr <- 2017
 nyr <- length(syr:lyr)
 
 rec_age <- 2
-plus_group <- 26
+plus_group <- 42
 nage <- length(rec_age:plus_group)
 
 # Harvest ----
@@ -22,7 +22,7 @@ read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"),
   group_by(year) %>% 
   summarize(total_pounds = sum(whole_pounds)) %>% 
   # Convert lbs to 100 mt
-  mutate(total_100mt = total_pounds * 0.000453592 / 100) %>% 
+  mutate(total_kg = total_pounds * 0.453592) %>% 
   select(-total_pounds) %>% 
   filter(year >= syr) -> sum_catch
 
@@ -89,10 +89,17 @@ read_csv(paste0("output/mr_index.csv")) -> mr_sum
 
 # *FLAG* Franz had data for 2003 and 2004. Include his Petersen estimates + his
 # 2*se - at some point go back and track these data down
-early_mr <- data.frame(year = c(2003, 2004),
-                       estimate = c(2.775, 2.675),
-                       q025 = c(2.5429, 2.4505),
-                       q975 = c(3.0071, 2.8995))
+# early_mr <- data.frame(year = c(2003, 2004),
+#                        estimate = c(2.775, 2.675),
+#                        q025 = c(2.5429, 2.4505),
+#                        q975 = c(3.0071, 2.8995))
+
+# Couldn't find these data, so I'm using Kray's esitmates for 2003 and 2004
+# because they are better documented
+early_mr <- data.frame(year = c(2003, 2004), 
+                       estimate = c(1633115.34,	1734101.552),
+                       q025 = c(NA, NA), 
+                       q975 = c(NA, NA))
 
 bind_rows(early_mr, mr_sum) -> mr_sum
 
@@ -105,16 +112,16 @@ mr_sum %>%
 axis <- tickr(cpue_ts, year, 5)
 
 sum_catch %>% 
-  mutate(upper =  total_100mt + 0.05 * total_100mt,
-         lower = total_100mt - 0.05 * total_100mt) %>% 
+  mutate(upper =  total_kg + 0.05 * total_kg,
+         lower = total_kg - 0.05 * total_kg) %>% 
   ggplot() + 
-  geom_point(aes(year, total_100mt)) +
-  geom_line(aes(year, total_100mt)) +
+  geom_point(aes(year, total_kg)) +
+  geom_line(aes(year, total_kg)) +
   geom_ribbon(aes(year, ymin = lower, ymax = upper),
               alpha = 0.2,  fill = "grey") +
   geom_vline(xintercept = 1997, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  labs(x = "", y = "\n\nCatch\n(round x100 mt)") -> catch
+  labs(x = "", y = "\n\nCatch\n(round kg)") -> catch
 
 ggplot(cpue_ts) +
   geom_point(aes(year, cpue)) +
@@ -147,13 +154,13 @@ mr_sum %>%
          q025 = zoo::na.approx(q025, maxgap = 20, rule = 2),
          q975 = zoo::na.approx(q975, maxgap = 20, rule = 2)) %>% 
   ggplot() +
-  geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
-              alpha = 0.2, colour = "white", fill = "grey") +
+  # geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
+  #             alpha = 0.2, colour = "white", fill = "grey") +
   geom_point(aes(x = year, y = N)) +
   geom_line(aes(x = year, y = N, group = Abundance)) +
   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, 
                      labels = axis$labels) +
-  ylim(c(1, 3.8)) +
+  # ylim(c(1, 3.8)) +
   labs(x = "", y = "\n\nAbundance\n(millions)") -> mr
   
 plot_grid(catch, cpue, srv, mr, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)', '(D)'))
@@ -166,7 +173,7 @@ full_join(sum_catch, cpue_ts) %>%
   full_join(srv_sum %>% 
               spread(survey, annual_cpue)) %>% 
   full_join(mr_sum) %>%
-  select(year, catch = total_100mt, fsh_cpue = cpue, srv1_cpue = `1-hr soak`, srv2_cpue = `3+hr soak`,
+  select(year, catch = total_kg, fsh_cpue = cpue, srv1_cpue = `1-hr soak`, srv2_cpue = `3+hr soak`,
          mr = estimate) %>% 
   mutate(index = year -min(year)) -> ts
   
@@ -236,11 +243,15 @@ waa %>%
   mutate(Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
                                       "9", "10", "11", "12", "13", "14", "15",
                                       "16", "17", "18", "19", "20", "21", "22",
-                                      "23", "24", "25", "26"),
+                                      "23", "24", "25", "26", "27", "28", "29", "30",
+                                      "31", "32", "33", "34", "35", "36", "37", "38",
+                                      "39", "40", "41", "42"),
                       labels = c("2", "3", "4", "5", "6", "7", "8",
                                  "9", "10", "11", "12", "13", "14", "15",
                                  "16", "17", "18", "19", "20", "21", "22",
-                                 "23", "24", "25", "26+")),
+                                 "23", "24", "25", "26", "27", "28", "29", "30",
+                                 "31", "32", "33", "34", "35", "36", "37", "38",
+                                 "39", "40", "41", "42+")),
          Source = factor(waa, levels = c("fsh", "srv", "fem"),
                          labels = c("Fishery (sexes combined)",
                                     "Survey (sexes combined)",
@@ -259,11 +270,15 @@ mat %>%
   mutate(Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
                                       "9", "10", "11", "12", "13", "14", "15",
                                       "16", "17", "18", "19", "20", "21", "22",
-                                      "23", "24", "25", "26"),
+                                      "23", "24", "25", "26", "27", "28", "29", "30",
+                                      "31", "32", "33", "34", "35", "36", "37", "38",
+                                      "39", "40", "41", "42"),
                       labels = c("2", "3", "4", "5", "6", "7", "8",
                                  "9", "10", "11", "12", "13", "14", "15",
                                  "16", "17", "18", "19", "20", "21", "22",
-                                 "23", "24", "25", "26+"))) -> mat
+                                 "23", "24", "25", "26", "27", "28", "29", "30",
+                                 "31", "32", "33", "34", "35", "36", "37", "38",
+                                 "39", "40", "41", "42+"))) -> mat
 
 # Sex ratio ----
 
@@ -312,11 +327,15 @@ byage %>%
   mutate(Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
                                       "9", "10", "11", "12", "13", "14", "15",
                                       "16", "17", "18", "19", "20", "21", "22",
-                                      "23", "24", "25", "26"),
+                                      "23", "24", "25", "26", "27", "28", "29", "30",
+                                      "31", "32", "33", "34", "35", "36", "37", "38",
+                                      "39", "40", "41", "42"),
                       labels = c("2", "3", "4", "5", "6", "7", "8",
                                  "9", "10", "11", "12", "13", "14", "15",
                                  "16", "17", "18", "19", "20", "21", "22",
-                                 "23", "24", "25", "26+"))) -> byage
+                                 "23", "24", "25", "26", "27", "28", "29", "30",
+                                 "31", "32", "33", "34", "35", "36", "37", "38",
+                                 "39", "40", "41", "42+"))) -> byage
 full_join(byage %>% 
             select(age, prop_fem),
           mat %>% 

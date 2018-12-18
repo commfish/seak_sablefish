@@ -309,7 +309,7 @@ template<class Type>
       expl_biom(i) += data_srv_waa(j) * fsh_sel(j) * N(i,j) * surv_fsh; 
 
       // Vulnerable abundance to the survey at the beginning of the survey
-      vuln_abd(i) += srv_sel(j) * N(i,j) * surv_srv;
+      vuln_abd(i) += srv_sel(j) * N(i,j) * surv_srv * 1e3;
 
       // Spawning biomass
       spawn_biom(i) += data_srv_waa(j) * N(i,j) * exp(-spawn_month * M) * prop_fem(j) * prop_mature(j);
@@ -327,12 +327,12 @@ template<class Type>
   Type mr_q = exp(mr_logq);
 
   for (int i = 0; i < nyr_mr; i++) {
-    pred_mr(i) = mr_q * vuln_abd(yrs_mr(i));    // Just in years with a MR estimate
+    pred_mr(i) = mr_q * vuln_abd(yrs_mr(i));// / 1e6;    // Just in years with a MR estimate
   }
   // std::cout << "Predicted MR \n" << pred_mr << "\n";
   
   for (int i = 0; i < nyr; i++) {
-    pred_mr_all(i) = mr_q * vuln_abd(i);        // All years
+    pred_mr_all(i) = mr_q * vuln_abd(i) ;/// 1e6;        // All years
   }
   // std::cout << "Predicted MR for all years\n" << pred_mr_all << "\n";
  
@@ -419,17 +419,17 @@ template<class Type>
 
   // Priors
 
-  // Fishery cpue catchability coefficient
-  // priors(0) = square( log(fsh_q / Type(0.025)) ) / ( 2 * square(Type(1.0)) );
+  // // Fishery cpue catchability coefficient
+  // priors(0) = square( log(fsh_q / Type(0.02)) ) / ( 2 * square(Type(0.5)) ); // 0.025
   // 
   // // 1-hr soak survey catchability coefficient
-  // priors(1) = square( log(srv1_q / Type(0.09)) ) / ( 2 * square(Type(1.0)) );
+  // priors(1) = square( log(srv1_q / Type(0.09)) ) / ( 2 * square(Type(0.5)) );
   // 
   // // 3-hr soak survey catchability coefficient
-  // priors(2) = square( log(srv2_q / Type(0.02)) ) / ( 2 * square(Type(1.0)) );
+  // priors(2) = square( log(srv2_q / Type(0.02)) ) / ( 2 * square(Type(0.5)) );
 
   // Mark-recapture abundance estimate catchability coefficient
-  // priors(3) = square( log(mr_q / Type(1.0)) ) / ( 2 * square(Type(0.10)) );
+  priors(3) = square( log(mr_q / Type(1.0)) ) / ( 2 * square(Type(0.05)) );
 
   // std::cout << "priors\n" << priors << "\n";
   
@@ -517,9 +517,9 @@ template<class Type>
   // std::cout << "Penality for fishing mortality\n" << fpen << "\n";
   
   // Sum likelihood components
-  // obj_fun += priors(0);         // Fishery q
-  // obj_fun += priors(1);         // 1-hr soak time survey q
-  // obj_fun += priors(2);         // 3-hr soak time survey q
+  obj_fun += priors(0);         // Fishery q
+  obj_fun += priors(1);         // 1-hr soak time survey q
+  obj_fun += priors(2);         // 3-hr soak time survey q
   obj_fun += priors(3);         // Mark-recapture abndance index q
   obj_fun += catch_like;        // Catch
   obj_fun += index_like(0);     // Fishery cpue

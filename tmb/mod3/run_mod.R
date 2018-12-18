@@ -50,7 +50,7 @@ data <- list(
   # Fixed parameters
   M = 0.1,
   sigma_catch = 0.05,
-  sigma_cpue = 0.2,
+  sigma_cpue = 0.1,
   sigma_mr = 0.05,
   omega = 50,
   
@@ -319,7 +319,10 @@ model$report()$fpen
 model$report()$rec_like
 model$report()$obj_fun
 
-as.list(rep, what = "Estimate")
+exp(as.list(rep, what = "Estimate")$fsh_logq)
+exp(as.list(rep, what = "Estimate")$srv1_logq)
+exp(as.list(rep, what = "Estimate")$srv2_logq)
+exp(as.list(rep, what = "Estimate")$mr_logq)
 as.list(rep, what = "Std")
 
 # Plot age comps ----
@@ -339,10 +342,10 @@ pred_srv_age %>%
 # Reshape age comp observations and predictions into long format, calculate
 # residuals and prep results for plotting
 age %>% 
-  gather("age", "obs", 4:28) %>% 
+  gather("age", "obs", 2:plus_group+2) %>%
   left_join(
     bind_rows(pred_fsh_age, pred_srv_age) %>% 
-      gather("age", "pred", 1:25),
+      gather("age", "pred", 1:41),
     by = c("Source", "index", "age")) %>% 
   group_by(Source) %>% 
   mutate(resid = obs - pred,
@@ -357,16 +360,22 @@ age %>%
          Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
                                       "9", "10", "11", "12", "13", "14", "15",
                                       "16", "17", "18", "19", "20", "21", "22",
-                                      "23", "24", "25", "26"),
+                                      "23", "24", "25", "26", "27", "28", "29", "30",
+                                      "31", "32", "33", "34", "35", "36", "37", "38",
+                                      "39", "40", "41", "42"),
                       labels = c("2", "3", "4", "5", "6", "7", "8",
                                  "9", "10", "11", "12", "13", "14", "15",
                                  "16", "17", "18", "19", "20", "21", "22",
-                                 "23", "24", "25", "26+"))) -> agecomps
+                                 "23", "24", "25", "26", "27", "28", "29", "30",
+                                 "31", "32", "33", "34", "35", "36", "37", "38",
+                                 "39", "40", "41", "42+")))  -> agecomps
 
 # Custom axes
 axis <- tickr(agecomps, year, 5)
 age_labs <- c("2", "", "", "", "6", "", "", "", "10", "", "", "", "14", "",
-           "", "", "18", "", "", "", "22", "", "", "", "26+")
+           "", "", "18", "", "", "", "22", "", "", "", "26", "",
+           "", "", "30", "", "", "", "34", "", "", "", "38", "",
+           "", "", "42+") 
 
 ggplot(agecomps, aes(x = Age, y = year, size = std_resid,
                fill = `Model performance`)) + 
@@ -465,7 +474,7 @@ ggplot(srv, aes(x = year)) +
   geom_point(aes(y = obs, shape = survey)) +
   geom_line(aes(y = pred, group = survey), colour = "grey") +
   geom_vline(xintercept = 1997, linetype = 2, colour = "grey") +
-  scale_y_continuous(limits = c(0.05, 0.45)) +
+  # scale_y_continuous(limits = c(0.05, 0.45)) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL, shape = NULL) +
   theme(legend.position = c(.1, .8)) -> p_srv
@@ -497,7 +506,7 @@ ts %>%
   mutate(catch_resid = catch - pred_catch,
          catch_sresid = catch_resid / sd(catch_resid)) -> ts
 
-ggplot(ts, aes(x = year, y = catch_resid)) + 
+ggplot(ts, aes(x = year, y = catch_sresid)) + 
   geom_hline(yintercept = 0, colour = "grey", size = 1) +
   geom_segment(aes(x = year, xend = year, y = 0, yend = catch_resid), 
                size = 0.2, colour = "grey") +
@@ -510,7 +519,7 @@ fsh_cpue %>%
   mutate(fsh_cpue_resid = fsh_cpue - pred_fsh_cpue,
          fsh_cpue_sresid = fsh_cpue_resid / sd(fsh_cpue_resid)) -> fsh_cpue
 
-ggplot(fsh_cpue, aes(x = year, y = fsh_cpue_resid)) + 
+ggplot(fsh_cpue, aes(x = year, y = fsh_cpue_sresid)) + 
   geom_hline(yintercept = 0, colour = "grey", size = 1) +
   geom_segment(aes(x = year, xend = year, y = 0, yend = fsh_cpue_resid), 
                size = 0.2, colour = "grey") +
@@ -523,7 +532,7 @@ srv %>%
   mutate(srv_cpue_resid = obs - pred,
          srv_cpue_sresid = srv_cpue_resid / sd(srv_cpue_resid)) -> srv
 
-ggplot(srv, aes(x = year, y = srv_cpue_resid, shape = survey)) + 
+ggplot(srv, aes(x = year, y = srv_cpue_sresid, shape = survey)) + 
   geom_hline(yintercept = 0, colour = "grey", size = 1) +
   geom_segment(aes(x = year, xend = year, y = 0, yend = srv_cpue_resid), 
                size = 0.2, colour = "grey") +
@@ -538,7 +547,7 @@ mr_plot %>%
   mutate(mr_resid = mr - pred_mr,
          mr_sresid = mr_resid / sd(mr_resid)) -> mr_plot
 
-ggplot(mr_plot, aes(x = year, y = mr_resid)) + 
+ggplot(mr_plot, aes(x = year, y = mr_sresid)) + 
   geom_hline(yintercept = 0, colour = "grey", size = 1) +
   geom_segment(aes(x = year, xend = year, y = 0, yend = mr_resid), 
                size = 0.2, colour = "grey") +
