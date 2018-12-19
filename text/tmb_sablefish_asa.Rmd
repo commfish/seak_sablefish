@@ -1,0 +1,99 @@
+---
+title: "Preliminary results for an age-structured population model for sablefish (*Anoplopoma fimbria*) in the Northern Southeast Inside management area"
+author: "Jane Sullivan, Ben Williams, Andrew Olson"
+date: "December 18, 2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Model dimensions
+nyr <- length(1980:2017)
+nage <- length(2:42)
+
+```
+
+## Introduction
+
+Sablefish have been commercially fished in Southeast Alaska inside waters since at least the early 1900s (Carlile et al. 2002). Similarly, there is a long history of sablefish management in the Northern Southeast Inside (NSEI) management area, with seasonal closures beginning in 1945 and tagging experiments occurring as early as 1951 (Figure 1; Carlile et al. 2002). Attempts to develop an age-structured model for NSEI sablefish date back to 1995 (Carlile et al. 2002, Dressel 2009, Mueter 2010, Williams and Kirk 2017).
+
+Currently the Alaska Department of Fish and Game (ADF&G) conducts an annual mark-recapture pot survey in May (Stahl and Holum 2010). Tags are recaptured in the ADF&G longline survey in July and the longline fishery in August (Beder and Stahl 2016). A time-stratified modified Petersen model is used to estimate abundance in the Bayesian open source software JAGS 4.3.0 (Sullivan and Williams 2018, Depaoli 2016). The abundance estimate is then partitioned into age classes and biomass estimates using age composition and weight-at-age data collected during the longline survey and fishery. A yield-per-recruit model is used to estimate F50% using the optim() function in the statistical software R (R Core Team 2018). ADF&G has defined Acceptable Biological Catch (ABC) as FABC=F50% for the NSEI sablefish stock (Dressel 2009). 
+
+Several factors have motivated an effort to develop an age-structured model. The current ADF&G framework relies on Federal estimates of selectivity and does not estimate recruitment for the stock. Second, the mark-recapture provides a single snapshot in time and therefore results in high inter-annual variability in abundance and biomass estimates. Further, ADF&G collects a significant amount of data in the NSEI through multiple surveys, logbooks, and port sampling, but is currently unable to fully integrate these data sources, explore historical trends, or adequately assess stock status or harvest strategies. Finally, strong recruitment from the 2014 and possibly 2013 and 2015 year classes were reported in the Federal assessment, prompting questions about how to treat the uncertainty in recruitment for State management (Hanselman et al. 2017, Sullivan and Williams 2018). An age-structured model coded in Template Model Builder (TMB) will allow more flexibility in exploring recruitment using random effects (Kasper et al. 2016).
+
+## Modeling approach	
+
+The statistical catch-at-age model presented here was coded in TMB, an R package library that leverages `C/C++` functionality to calculate first and second order derivatives and was inspired by a similar `C/C++` templating software ADMB (Kasper et al. 2016, Fournier et al. 2012). The TMB code replicates or makes refinements to methods used in a previous attempt at modeling the NSEI sablefish stock, which was based on ADMB code from an older Federal assessment of rockfish (Mueter 2010). Variable definitions for all equations can be found in Table 1.
+
+## Data inputs
+
+### Weight-at-age
+
+Weight-at-age data used in the model are summarized in Figure 2A. Data from the 2002-2017 longline fishery in Chatham was used to estimate mean weight-at-age in the fishery with sexes combined. Data from the 1997-2017 ADF&G longline surveys were used to obtain mean weight-at-age in the longline survey for both sexes combined and females only. The female weight-at-age was used to estimate spawning stock biomass within the model.
+
+### Maturity-at-age
+
+Data from the 2007-2017 ADF&G longline surveys were used to fit a maturity curve for females and used to estimate spawning stock biomass within the model (Figure 2B). Alternative year-specific models were evaluated using Akaike Information Criterion (AIC) (Akaike 1974). The maturity curve fit to all years was the best-fitting model. We used a logistic regression approach in R, such that the probability of being mature at a given age p on the logit scale is a linear function of age ($a$):
+
+$$\ln(\frac{p}{p-1})=\beta_0+\beta_1a.$$
+We derived the age at 50% maturity ($a_{50}$) and the instantaneous rate of maturation ($k_{mat}$) as:
+$$a_{50}=\frac{-\beta_0}{\beta_1}$$ and $$k_{mat}=\frac{\beta_0+\beta_1a}{a-a_{50}}.$$
+
+The $a_{50}$ and $k_{mat}$ were estimated to be 6.4 years and 0.85 $\text{years}^{-1}$, respectively. Predicted proportions mature-at-age were used as inputs to the assessment model.
+
+### Sex ratios
+
+Data from the 1997-2017 ADF&G longline surveys were used to obtain proportion female by age (Figure 2C). These values were used to estimate spawning stock biomass within the model. 
+
+### Catch
+
+Catch data from 1980-2017 included all available sources of sablefish mortality in the NSEI, including harvest in the directed sablefish longline fishery, bycatch in other fisheries like the IFQ halibut longline fishery, and personal use (Figure 3A). Sport harvest is not currently accounted for in this model.
+
+### Indices of abundance
+
+Fishery CPUE (kg per hook) from the 1980-2017 was used as an index of abundance is the model (Figure 3B). Two survey CPUEs (numbers per hook) were used as indices of abundance in the model, including a 1-hr soak time longline survey from 1988-1996 and a 3+ hour soak time longline survey from 1997-2017 (Figure 3C). Sigler (1993) found that the 1-hr soak time was likely too short to provide an accurate measure of relative abundance. However, following Carlile et al. (2002), we found these data to exhibit similar trends and magnitude and chose to estimate a separate catchability for this index instead of omitting it from the model. The mark-recapture abundance index was included for 2003-2010, 2012, 2013, 2015, and 2017. These estimates of abundance come from a time-stratified modified Petersen mark-recapture model that was implemented in `JAGS 4.3.0` (Sullivan and Williams 2018, Depaoli 2016). Further information about how these indices were derived can be found in Sullivan and Williams (2018).
+
+### Age compositions
+
+Fishery age compositions from the 2002-2017 longline fishery and survey age compositions from ADF&G longline survey were included in the model (Figure 4).
+
+### Natural mortality
+Natural mortality $M$ was assumed constant over time and age and is fixed at 0.10, which is consistent with past State and Federal assessments (Johnson and Quinn 1988, Hanselman et al. 2018). 
+
+## Estimated parameters
+
+We estimated 109 parameters in the model as follows: 
+
++ 4 selectivity parameters:  $s_{50}^{fsh}$, $s_{95}^{fsh}$, $s_{50}^{srv}$, $s_{95}^{srv}$, where $s_{50}$ and $s_{95}$ represent the ages at which 50% and 95% of individuals are selected by the longline gear for the fishery ($fsh$) and survey ($srv$) respectively. 
+
++ 4 catchability parameters:  $\text{ln}(q_{fsh})$, $\text{ln}(q_{srv1})$, $\text{ln}(q_{srv2$, and $\text{ln}(q_{MR})$.
+
++ 1 parameter for mean log-recruitment, $\mu_R$, and `r nyr-nage-2` ($n_y$ + $n_a$ - 2) log-recruitment deviations, $\tau_i$ (Figure cartoon).
+
++	1 parameter for mean log-fishing mortality, $\mu_F$, and `r nyr` ($n_y$) log-fishing mortality deviations, $\phi_t$.
+
+## Population dynamics
+
+The population dynamics of this model are governed by the following state dynamics equations, where the number of sablefish ($N$) in year ($t=1$) and age ($a$) are defined as
+
+$$N_{1,a} = \left\{ \begin{array}{ll}
+\mbox{exp}(\mu_R-M(a-a_0)+\tau_i) &a_{0}<a<a_{+}\\
+\mbox{exp}(\mu_R-M(a_{+}-1))/(1-\mbox{exp}(-M)) &a=a_{+}
+\end{array}\right.$$
+
+where $i=n_a-a-2$. Recruitment to age-2 in all years and the remaining projected $N$ matrix is defined as
+
+$$N_{t,a} = \left\{ \begin{array}{ll}
+\mbox{exp}(\mu_R+\tau_i) &a=a_0\\
+N_{t-1,a-1}\mbox{exp}(Z_{t-1,a-1}) &a_{0}<a<a_{+}\\
+N_{t-1,a-1}\mbox{exp}(Z_{t-1,a-1})+N_{t-1,a}\mbox{exp}(Z_{t-1,a}) &a=a_{+}
+\end{array}\right.$$
+
+where $i=n_a+t-2$, and the total instantaneous mortality, $Z_{i,a}$, is the sum of natural mortality $M$ and fishing mortality $F_{i,a}$. 
+
+Predicted recruitment ($R_i$) is computed as 
+
+$$R_i=\mbox{exp}(\mu_R+\tau_i)$$
+
+where $i$ is indexed over $n_a+n_t-2$.
