@@ -50,7 +50,8 @@ The female weight-at-age was used to estimate spawning stock biomass within the 
 
 Data from the 2007-2017 ADF&G longline surveys were used to fit a maturity curve for females and used to estimate spawning stock biomass within the model (Figure 2B). 
 Alternative year-specific models were evaluated using Akaike Information Criterion (AIC) (Akaike 1974). 
-The maturity curve fit to all years was the best-fitting model. We used a logistic regression approach in R, such that the probability of being mature at a given age p on the logit scale is a linear function of age ($a$):
+The maturity curve fit to all years was the best-fitting model. 
+We used a logistic regression approach in R, such that the probability *p* of being mature at a given age on the logit scale is a linear function of age ($a$):
 
 $$\ln(\frac{p}{p-1})=\beta_0+\beta_1a.$$
 We derived the age at 50% maturity ($a_{50}$) and the instantaneous rate of maturation ($k_{mat}$) as:
@@ -60,7 +61,8 @@ The $a_{50}$ and $k_{mat}$ were estimated to be 6.4 years and 0.85 $\text{years}
 
 ### Sex ratios
 
-Data from the 1997-2017 ADF&G longline surveys were used to obtain proportion female by age (Figure 2C). These values were used to estimate spawning stock biomass within the model. 
+Data from the 1997-2017 ADF&G longline surveys were used to obtain proportion female by age (Figure 2C). 
+These values were used to estimate spawning stock biomass within the model. 
 
 ### Catch
 
@@ -69,10 +71,12 @@ Sport harvest is not currently accounted for in this model.
 
 ### Indices of abundance
 
-Fishery CPUE (kg per hook) from the 1980-2017 was used as an index of abundance is the model (Figure 3B). Two survey CPUEs (numbers per hook) were used as indices of abundance in the model, including a 1-hr soak time longline survey from 1988-1996 and a 3+ hour soak time longline survey from 1997-2017 (Figure 3C). 
+Fishery CPUE (kg per hook) from the 1980-2017 was used as an index of abundance is the model (Figure 3B). 
+Two survey CPUEs (numbers per hook) were used as indices of abundance in the model, including a 1-hr soak time longline survey from 1988-1996 and a 3+ hour soak time longline survey from 1997-2017 (Figure 3C). 
 Sigler (1993) found that the 1-hr soak time was likely too short to provide an accurate measure of relative abundance.
 However, following Carlile et al. (2002), we found these data to exhibit similar trends and magnitude and chose to estimate a separate catchability for this index instead of omitting it from the model. 
-The mark-recapture abundance index was included for 2003-2010, 2012, 2013, 2015, and 2017. These estimates of abundance come from a time-stratified modified Petersen mark-recapture model that was implemented in `JAGS 4.3.0` (Sullivan and Williams 2018, Depaoli 2016). 
+The mark-recapture abundance index was included for 2003-2010, 2012, 2013, 2015, and 2017. 
+These estimates of abundance come from a time-stratified modified Petersen mark-recapture model that was implemented in `JAGS 4.3.0` (Sullivan and Williams 2018, Depaoli 2016). 
 Further information about how these indices were derived can be found in Sullivan and Williams (2018).
 
 ### Age compositions
