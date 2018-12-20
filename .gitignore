@@ -2,6 +2,9 @@
 # Fishery dependent data
 fishery
 
+# Dependencies for latex
+libs
+
 # Database creds
 database.csv
 

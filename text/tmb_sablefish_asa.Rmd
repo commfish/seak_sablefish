@@ -1,13 +1,24 @@
 ---
-title: "Preliminary results for an age-structured population model for sablefish (*Anoplopoma fimbria*) in the Northern Southeast Inside management area"
+title: Preliminary results for an age-structured population model for sablefish (*Anoplopoma
+  fimbria*) in the Northern Southeast Inside management area
 author: "Jane Sullivan, Ben Williams, Andrew Olson"
 date: "December 18, 2018"
-output: word_document
+output:
+  pdf_document: default
+header-includes:
+- \usepackage{caption}
+
+# always_allow_html: yes
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(kableExtra.html.bsTable = TRUE)
 
+# always_allow_html: yes
+library(knitr)
+library(kableExtra)
+library(tidyverse)
 # Model dimensions
 nyr <- length(1980:2017)
 nage <- length(2:42)
@@ -51,7 +62,7 @@ The female weight-at-age was used to estimate spawning stock biomass within the 
 Data from the 2007-2017 ADF&G longline surveys were used to fit a maturity curve for females and used to estimate spawning stock biomass within the model (Figure 2B). 
 Alternative year-specific models were evaluated using Akaike Information Criterion (AIC) (Akaike 1974). 
 The maturity curve fit to all years was the best-fitting model. 
-We used a logistic regression approach in R, such that the probability *p* of being mature at a given age on the logit scale is a linear function of age ($a$):
+We used a logistic regression approach in R, such that the probability $p$ of being mature at a given age on the logit scale is a linear function of age ($a$):
 
 $$\ln(\frac{p}{p-1})=\beta_0+\beta_1a.$$
 We derived the age at 50% maturity ($a_{50}$) and the instantaneous rate of maturation ($k_{mat}$) as:
@@ -92,11 +103,11 @@ We estimated 109 parameters in the model as follows:
 
 + 4 selectivity parameters:  $s_{50}^{fsh}$, $s_{95}^{fsh}$, $s_{50}^{srv}$, $s_{95}^{srv}$, where $s_{50}$ and $s_{95}$ represent the ages at which 50% and 95% of individuals are selected by the longline gear for the fishery ($fsh$) and survey ($srv$) respectively. 
 
-+ 4 catchability parameters:  $\text{ln}(q_{fsh})$, $\text{ln}(q_{srv1})$, $\text{ln}(q_{srv2$, and $\text{ln}(q_{MR})$.
++ 4 catchability parameters estimated in log-space:  $\text{ln}(q_{fsh})$, $\text{ln}(q_{srv1})$, $\text{ln}(q_{srv2})$, and $\text{ln}(q_{MR})$.
 
-+ 1 parameter for mean log-recruitment, $\mu_R$, and `r nyr-nage-2` ($n_y$ + $n_a$ - 2) log-recruitment deviations, $\tau_i$ (Figure cartoon).
++ 1 parameter for mean log-recruitment, $\mu_R$, and `r nyr-nage-2` ($T$ + $A$ - 2) log-recruitment deviations, $\tau_i$ (Figure cartoon).
 
-+	1 parameter for mean log-fishing mortality, $\mu_F$, and `r nyr` ($n_y$) log-fishing mortality deviations, $\phi_t$.
++	1 parameter for mean log-fishing mortality, $\mu_F$, and `r nyr` ($T$) log-fishing mortality deviations, $\phi_t$.
 
 ## Population dynamics
 
@@ -107,7 +118,7 @@ $$N_{1,a} = \left\{ \begin{array}{ll}
 \mbox{exp}(\mu_R-M(a_{+}-1))/(1-\mbox{exp}(-M)) &a=a_{+}
 \end{array}\right.$$
 
-where $i=n_a-a-2$. Recruitment to age-2 in all years and the remaining projected $N$ matrix is defined as
+where $i=A-a-2$. Recruitment to age-2 in all years and the remaining projected $N$ matrix is defined as
 
 $$N_{t,a} = \left\{ \begin{array}{ll}
 \mbox{exp}(\mu_R+\tau_i) &a=a_0\\
@@ -115,10 +126,135 @@ N_{t-1,a-1}\mbox{exp}(Z_{t-1,a-1}) &a_{0}<a<a_{+}\\
 N_{t-1,a-1}\mbox{exp}(Z_{t-1,a-1})+N_{t-1,a}\mbox{exp}(Z_{t-1,a}) &a=a_{+}
 \end{array}\right.$$
 
-where $i=n_a+t-2$, and the total instantaneous mortality, $Z_{i,a}$, is the sum of natural mortality $M$ and fishing mortality $F_{i,a}$. 
+where $i=A+t-2$, and the total instantaneous mortality, $Z_{i,a}$, is the sum of natural mortality $M$ and fishing mortality $F_{i,a}$. 
 
 Predicted recruitment ($R_i$) is computed as 
 
 $$R_i=\mbox{exp}(\mu_R+\tau_i)$$
 
-where $i$ is indexed over $n_a+n_t-2$.
+where $i$ is indexed from 1 to $A+T-2$.
+
+## Predicted values
+
+Fishery and survey selectivity-at-age ($s_a$) were fit using a logistic function:
+
+$$s_a=\frac{1}{1+\mbox{exp}\frac{\mbox{ln}(19)(a-s_{50})}{s_{95}-s_{50}}}.$$
+
+Predicted fishery CPUE (kg per hook) in year $t$ $\hat{I_t}^{fsh}$ was defined as a function of catchability $q_{fsh}$ and biomass ($B$):
+
+$$\hat{I_t}^{fsh}=q_{fsh}\sum_{a=a_0}^{A}B_{t,a} \cdot s_{a}^{fsh}. $$
+In contrast, predicted values in year $t$ for the survey CPUE indices (both numbers per hook) and mark-recapture abundance were fit as a function of $q$ and abundance ($N$):
+
+$$\hat{I_t}^{srv1}=q_{srv1}\sum_{a=a_0}^{A}N_{t,a} \cdot s_{a}^{srv}, $$
+
+$$\hat{I_t}^{srv2}=q_{srv2}\sum_{a=a_0}^{A}N_{t,a} \cdot s_{a}^{srv}, \mbox{ and}$$
+
+$$\hat{I_t}^{MR}=q_{MR}\sum_{a=a_0}^{A}N_{t,a} \cdot s_{a}^{srv}. $$
+
+Additionally, we defined vulnerable abundance to the survey as $\sum_{a=a_0}^{A} N_{t,a} \cdot s_{a}^{srv} \cdot S^{srv}$, where $S^{srv}$ is the fraction of individuals surviving to the beginning of the longline survey in July. We defined exploitable biomass as $\sum_{a=a_0}^{A} N_{t,a} \cdot w_a^{fsh} \cdot s_a^{fsh} \cdot S^{fsh}$, where $w_a^{fsh}$ is mean fishery weight-at-age (sexes combined) and $S^{fsh}$ is the fraction of individuals surviving to the beginning of the fishery in August. Spawning biomass was derived as  $\sum_{a=a_0}^{A} N_{t,a} \cdot w_a^{f,srv} \cdot S^{spawn} \cdot p_a \cdot r_a$, where $w_a^{f,srv}$ is mean weight-at-age of females in the longline survey, $S^{spawn}$ is the fraction of individuals surviving to spawn in February, $p_a$ is the proportion of females mature in the survey, and $r_a$ is the proportion of females at age in the survey.
+
+Predicted survey age compositions were computed as
+
+$$\hat{P}_{t,a}^{srv}=\frac{N_{t,a} \cdot s_a^{srv}}{\sum_{a=a_0}^{A} N_{t,a} \cdot s_a^{srv}} .$$
+Similarly, predicted fishery age compositions were computed as
+
+$$\hat{P}_{t,a}^{fsh}=\frac{C_{t,a}}{\sum_{a=a_0}^{A} C_{t,a}} ,$$
+
+where $C_{t,a}$ is catch in numbers-at-age derived from the Baranov catch equation:
+
+$$C_{t,a}=N_{a,t}\frac{F_{t,a}}{Z_{t,a}}(1-\mbox{exp}(-Z_{t,a})).$$
+Finally, the predicted catch in biomass $\hat{Y}$ was calculated as the product of fishery weight-at-age $w_a^{fsh}$ and catch in numbers-at-age:
+
+$$\hat{Y}_t=\sum_{a=a_0}^{A} w_a^{fsh} \cdot C_{t,a}.$$
+
+## Likelihood components
+
+The total likelihood to be maximized includes the sum of the following likelihood components $L$, which received individual weights $\lambda$:
+
+1.  Catch ($Y$) is modeled using a log-normal likelihood where $\sigma_Y$ was assumed to be 0.05:
+
+$$L(Y)=\lambda_Y\frac{1}{2\sigma_Y^2}\sum_{t=1}^{T}\mbox{ln}(Y_t)-\mbox{ln}(\hat{Y}_t) ,$$
+where $\lambda_Y$ = 1.0.
+
+2.  Fishery CPUE, the two survey CPUE indices, and the mark-recapture abundance index were modeled using log-normal likelihoods, where $\sigma_I$ was assumed to be 0.20:
+
+$$L(I)=\lambda_I\frac{1}{2\sigma_I^2}\sum_{t=1}^{T_I}\mbox{ln}(I_t)-\mbox{ln}(\hat{I}_t) ,$$
+
+where $T_I$ is the number of years of data for each index and $\lambda_I$ is set to 1.0.
+
+3.  The fishery and survey age compositions $P$ are modeled using a multinomial likelihood, where effective sample size $\omega$ was assumed to be 50:
+
+$$L(P)=\lambda_P\sum_{t=1}^{T_P} - \omega \sum_{a=a_0}^{A} (P_{t,a}+c)\cdot\mbox{ln}(\hat{P}_{t,a}+c),$$
+
+where $T_P$ is the number of years of data for each age composition, $lambda_P$ is set to 1.0, and $c$ is a small constant set at 0.0001 that prevents the composition from being 0 in the likelihood calculation.
+
+4.  A penalty on annual log-fishing mortality deviations ($\phi_t$) is included as
+
+$$L(\phi)=\lambda_{\phi}\sum_{t=1}^{T}\phi_t^2,$$
+
+where $\lambda_{\phi}$=0.1.
+
+5.  Similarly, a penalty on log-recruitment deviations ($\tau_i$) is included as
+
+$$L(\tau)=\lambda_{\tau}\sum_{i=1}^{T+A-2}\tau_i^2,$$
+
+where $\lambda_{\phi}$=0.1.
+
+## Tables
+
+```{r defn_tbl, echo=FALSE}
+
+index <- data.frame(
+  Variable = c("$A$", "$T$", "$a$", "$a_0$", "$a_{+}$",  "$t$", "$i$",
+               "$fsh$", "$srv1$", "$srv2$", "$MR$"),
+  Definition = c("Number of ages", "Number of years", 
+                 "Index for age in model equations",  
+                 "Recruitment age (age-2)", "Plus group age (age-42)", 
+                 "Index for year in model equations", 
+                 "Index for recruitment in model equations ($A$+$T$-2)",
+                 "Longline fishery",
+                 "ADFG 1-hr soak time longline survey (1988-1996)", 
+                 "ADFG 3+hr soak time longline survey (1997-2017)",
+                 "Mark-recapture abundance estimates (2003-2010, 2012, 2013, 2015, 2017)"))
+
+par <- data.frame(
+  Variable = c("$s_{50}$", "$s_{95}$", "$q$", "$\\mu_R$", "$\\tau_i$", 
+               "$\\mu_F$", "$\\phi_t$"),
+  Definition = c("Age at which 50\\% of individuals are selected to the gear",
+                 "Age at which 95\\% of individuals are selected to the gear", 
+                 "Catchability",
+                 "Mean log recruitment", 
+                 "Log recruitment deviations", 
+                 "Mean log fishing mortality", 
+                 "Log fishing mortality deviations"))
+
+var <- data.frame(
+  Variable = c("$M$", "$F$", "$Z$", "$S$", "$s_a$", "$w_a$", "$p_a$", "$r_a$",
+               "$N$", "$R$",  "$C$", "$I$, $\\hat{I}$", "$P$, $\\hat{P}$", 
+               "$Y$, $\\hat{Y}$", "$\\lambda$", "$L$"),
+  Definition = c("Instantaneous natural mortality", "Instantaneous fishing mortality",
+                 "Total instantaneous mortality", "Natural annual survival",
+                 "Selectivity-at-age", "Weight-at-age", "Proportion mature-at-age", 
+                 "Proportion female-at-age", "Numbers-at-age", 
+                 "Recruitment", "Catch in numbers-at-age", 
+                 "Indices of abundance, $\\hat{I}$ are predicted values",
+                 "Age compositions, $\\hat{P}$ are predicted values",
+                 "Catch in biomass, $\\hat{Y}$ are predicted values",
+                 "Weight for likelihood component",
+                 "Likelihood"))
+
+def_tbl <- rbind(index, par, var)
+# "latex", align="c",  escape = F,
+kable(def_tbl, booktabs = TRUE, format = "latex", escape = FALSE) %>%
+group_rows("$\\\\textit{Indexing and model dimensions}$", 1, length(index$Variable), escape = FALSE) %>%
+group_rows("$\\\\textit{Estimated parameters}$", length(index$Variable) + 1,
+           length(index$Variable) + length(par$Variable), escape = FALSE) %>%
+group_rows("$\\\\textit{Data and predicted variables}$",
+           length(index$Variable) + length(par$Variable) + 1,
+           length(index$Variable) + length(par$Variable) + length(var$Variable), 
+           escape = FALSE)
+
+kable(def_tbl, "latex", booktabs = TRUE, escape = FALSE)
+```
+
+## Figures
