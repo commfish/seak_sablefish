@@ -3,7 +3,7 @@
 ## Data
 [x] Move to a larger plus group (probably best to use 42+ to maintain consistency with the feds)
 
-[ ]	Use predicted values from a weight-based von Bertalanffy model instead of mean weight-at-age (especially important for older ages which are poorly represented in the data)
+[x]	Use predicted values from a weight-based von Bertalanffy model instead of mean weight-at-age (especially important for older ages which are poorly represented in the data)
 
 [ ]	**Work with groundfish biologists to assess the utility of the 1-hr soak time survey (1988-1996). If we decide to use this as an index obtain raw data**
 
@@ -50,14 +50,14 @@
 
 ## Text and figures
 
-[ ] Put the report in R markdown
+[x] Put the report in R markdown
 
-[ ] Fix typos in the equations (e.g. not “i” on the RHS for the recruitment model)
+[x] Fix typos in the equations (e.g. not “i” on the RHS for the recruitment model)
 
-[ ] Do not use E for predicted CPUE because it can be confused with effort
+[x] Do not use E for predicted CPUE because it can be confused with effort
 
 [ ] Include the assumed standard errors on plots that show fitted values to aid in the evaluation of model fit
 
-[ ] Use standardized instead of raw residuals 
+[x] Use standardized instead of raw residuals 
 
 [ ] Include zeros on the plots to help place the trends in context

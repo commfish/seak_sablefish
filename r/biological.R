@@ -8,6 +8,8 @@ source("r/functions.r")
 library(ggridges)
 
 YEAR <- 2017
+rec_age <- 2
+plus_group <- 42
 
 # data -----
 
@@ -57,35 +59,41 @@ read_csv(paste0("data/survey/potsrv_bio_1981_", YEAR, ".csv"),
 
 # Empirical weight-at-age ----
 
-# Potentially switch to using empirical waa for yield-per-recruit or future ASA,
-# but for now stick with predictions from the lvb
+# All years combined
 
 bind_rows(
-  srv_bio %>% select(year, Project_cde, Sex, age, weight),
-  fsh_bio %>% select(year, Project_cde, Sex, age, weight)) %>% 
+  srv_bio %>% 
+    select(year, Project_cde, Sex, age, weight) %>% 
+    filter(year >= 1997),
+  fsh_bio %>% 
+    select(year, Project_cde, Sex, age, weight) %>% 
+    filter(year >= 2002)) %>% 
   filter(!is.na(weight) & !is.na(age) & !is.na(Sex)) %>% 
   mutate(Source = derivedFactor('LL survey' = Project_cde == "603",
                                 'LL fishery' = Project_cde == "02",
-                                .method = "unique")) -> waa
+                                .method = "unique")) %>% 
+  filter(year <= YEAR & age >= rec_age & age <= plus_group) -> waa
 
-waa %>%
-  filter(year >= 2005 & age > 1 & age < 42) %>% 
-  group_by(year, Source, Sex, age) %>% 
-  summarise(weight = mean(weight) %>% round(1)) -> emp_waa
+bind_rows(
+  waa %>%
+    group_by(Source, Sex, age) %>% 
+    summarise(weight = mean(weight) %>% round(4)),
+  waa %>% 
+    group_by(Source, age) %>% 
+    summarise(weight = mean(weight) %>% round(4)) %>% 
+    mutate(Sex = "Combined")) -> emp_waa
 
-# Expand to grid to include all age combos and fill in NAs using linear
+# Expand to grid to include all age combos and fill in NAs if there are any using linear
 # interpolation
-expand.grid(year = unique(emp_waa$year), 
-            Source = unique(emp_waa$Source),
+expand.grid(Source = unique(emp_waa$Source),
             Sex = unique(emp_waa$Sex),
-            age = seq(2, 41, 1))  %>% 
+            age = seq(rec_age, plus_group, 1))  %>% 
   data.frame()  %>% 
   full_join(emp_waa) %>%
-  group_by(year, Source, Sex) %>% 
-  # interpolate weight column to fill in any missing mean weights
+  group_by(Source, Sex) %>% 
   mutate(weight = zoo::na.approx(weight, maxgap = 20, rule = 2)) -> emp_waa
 
-write_csv(emp_waa, paste0("output/empircal_waa_2005_", YEAR, ".csv"))
+write_csv(emp_waa, paste0("output/empircal_waa.csv"))
 
 # Length-based Ludwig von Bertalanffy growth model -----
 
@@ -245,14 +253,19 @@ fem_fit <- nls(weight ~ lw_allometry(length = length, a, b),
 male_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
                data = filter(allom_sub, Sex == "Male"), start = START)
 
+all_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+               data = allom_sub, start = START)
+
 # parameter estimates and plot fit 
 beta_m <- tidy(male_fit)$estimate[2]
 beta_f <- tidy(fem_fit)$estimate[2]
+beta_a <- tidy(all_fit)$estimate[2]
 
 bind_rows(tidy(male_fit) %>% mutate(Sex = "Male"),
           tidy(fem_fit) %>% mutate(Sex = "Female")) %>% 
+  bind_rows(tidy(all_fit) %>% mutate(Sex = "Combined")) %>% 
   dplyr::select(Parameter = term, Estimate = estimate, SE = std.error, Sex) %>% 
-  mutate(Survey = "ADF&G Longline",
+  mutate(Survey = "ADFG Longline",
          Years = paste0(min(laa_sub$year), "-", max(laa_sub$year)),
          Region = "Chatham Strait",
          Function = "Allometric") %>% 
@@ -261,15 +274,15 @@ bind_rows(tidy(male_fit) %>% mutate(Sex = "Male"),
               summarise(n = n())) -> allom_pars
 
 ggplot(allom_sub, aes(length, weight, col = Sex, shape = Sex)) +
-  geom_jitter(alpha=.2) + 
+  geom_jitter() + 
   stat_function(fun = lw_allometry, 
                 args = as.list(tidy(fem_fit)$estimate),
-                col = "salmon") + 
+                col = "black") + 
   stat_function(fun = lw_allometry, 
                 args = as.list(tidy(male_fit)$estimate),
-                col = "#00BFC4", lty = 2) + 
-  xlab("\nLength (cm)") +
-  ylab("Weight (kg)\n") + 
+                col = "grey", lty = 2) + 
+  labs(x = "\nLength (cm)", y = "Weight (kg)\n", alpha = NULL) +
+  scale_colour_grey() +
   theme(legend.position = c(0.9, 0.2))
 
 ggsave(paste0("figures/allometry_chathamllsurvey_1997_", YEAR, ".png"),
@@ -299,6 +312,7 @@ waa_sub %>%
 # starting values from Hanselman et al. 2007 Appendix C Table 5
 start_f <- c(w_inf = 5.5, k = 0.24, t0 = -1.4, sigma = 10)
 start_m <- c(w_inf = 3.2, k = 0.36, t0 = -1.1, sigma = 10)
+start_a <- c(w_inf = 4.5, k = 0.30, t0 = -1.2, sigma = 10)
 
 # mle fit for females
 wvb_mle_f <- vonb_weight(obs_weight = waa_f$weight,
@@ -314,14 +328,24 @@ wvb_mle_m <- vonb_weight(obs_weight = waa_m$weight,
                    starting_vals = start_m,
                    sex = "Male")
 
-# Hold-over from KVK: for the plus group (42+) take the mean of all samples >=
-# 42
-srv_f_waa <- wvb_mle_f$ypr_predictions
-srv_f_waa[41, 2] <- mean(waa_f$weight[waa_f$age >= 42], na.rm = TRUE)
-srv_m_waa <- wvb_mle_m$ypr_predictions
-srv_m_waa[41, 2] <- mean(waa_m$weight[waa_m$age >= 42], na.rm = TRUE)
+# mle fit for all (for sex-combined asa model)
+wvb_mle <- vonb_weight(obs_weight = waa_sub$weight,
+                         age = waa_sub$age,
+                         b = beta_a, 
+                         starting_vals = start_a,
+                         sex = "Combined")
 
-rbind(srv_f_waa, srv_m_waa) %>% 
+# Past assessments: for the plus group (42+) take the mean of all samples >=
+# 42. Now just use the predicted mean asymptotic length.
+srv_f_waa <- wvb_mle_f$ypr_predictions
+# srv_f_waa[41, 2] <- mean(waa_f$weight[waa_f$age >= plus_], na.rm = TRUE)
+
+srv_m_waa <- wvb_mle_m$ypr_predictions
+# srv_m_waa[41, 2] <- mean(waa_m$weight[waa_m$age >= 42], na.rm = TRUE)
+
+srv_a_waa <- wvb_mle$ypr_predictions
+
+rbind(srv_f_waa, srv_m_waa, srv_a_waa) %>% 
   mutate(Source = "LL survey") -> srv_waa
 
 # combine predictions and parameter estimates and plot fitted values
@@ -331,7 +355,7 @@ wvb_mle_f$predictions %>%
 
 wvb_mle_f$results %>% 
   rbind(wvb_mle_m$results) %>% 
-  mutate(Survey = "ADF&G Longline",
+  mutate(Survey = "ADFG Longline",
          Years = paste0(min(waa_sub$year), "-", max(waa_sub$year)),
          Region = "Chatham Strait",
          Function = "Weight-based LVB") %>% 
@@ -343,11 +367,12 @@ ggplot() +
   geom_jitter(data = waa_sub, aes(x = age, y = weight, col = Sex, shape = Sex)) +
   geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
   geom_line(data = pred, aes(x = age, y = pred, group = Sex), col = "black" ) + #"#00BFC4"
+  scale_colour_grey() + 
   xlab("\nAge (yrs)") +
   ylab("Weight (kg)\n") +
   theme(legend.position = c(0.9, 0.8))
 
-ggsave("figures/weight_vonb_chathamllsurvey_1997_2016.png", 
+ggsave(paste0("figures/weight_vonb_chathamllsurvey_1997_", YEAR, ".png"), 
        dpi=300, height=4, width=6, units="in")
 
 # residual plots
@@ -368,13 +393,13 @@ pred %>%
 
 # Fishery weight-at-age ----
 
-# For YPR analysis, use same methods as survey (same time period, same starting
+# For YPR analysis, use same methods as survey and same starting
 # values)
 
 # subsets by weight, age, sex
 fsh_bio %>% 
   filter(Sex %in% c("Female", "Male") &
-           year >= 1997 & # use same years as survey
+           year >= 2002 & # use same years as survey
            !is.na(age) &
            !is.na(weight)) %>% 
   droplevels() -> fsh_waa_sub
@@ -386,7 +411,6 @@ fsh_waa_sub %>%
 fsh_waa_sub %>% 
   ungroup() %>% 
   filter(Sex == "Male") -> fsh_waa_m
-
 
 # mle fit for females
 fsh_wvb_f <- vonb_weight(obs_weight = fsh_waa_f$weight,
@@ -402,28 +426,52 @@ fsh_wvb_m <- vonb_weight(obs_weight = fsh_waa_m$weight,
                          starting_vals = start_m,
                          sex = "Male")
 
-# Hold-over from KVK: for the plus group (42+) take the mean of all samples >=
-# 42
-fsh_f_waa <- fsh_wvb_f$ypr_predictions
-fsh_f_waa[41, 2] <- mean(fsh_waa_f$weight[fsh_waa_f$age >= 42], na.rm = TRUE)
-fsh_m_waa <- fsh_wvb_m$ypr_predictions
-fsh_m_waa[41, 2] <- mean(fsh_waa_m$weight[fsh_waa_m$age >= 42], na.rm = TRUE)
+# mle fit for sexes combined
+fsh_wvb_a <- vonb_weight(obs_weight = fsh_waa_sub$weight,
+                         age = fsh_waa_sub$age,
+                         b = beta_a, 
+                         starting_vals = start_a,
+                         sex = "Combined")
 
-rbind(fsh_f_waa, fsh_m_waa) %>% 
+ggplot() +
+  geom_jitter(data = fsh_waa_sub, aes(x = age, y = weight)) +
+  geom_line(data = fsh_wvb_a$ypr_predictions, aes(x = age, y = weight), 
+            lwd = 2, col = "red") + #"#00BFC4"
+  xlab("\nAge (yrs)") +
+  ylab("Weight (kg)\n") 
+
+# Past assessments: for the plus group (42+) take the mean of all samples >=
+# 42. Now just use the predicted mean asymptotic length.
+fsh_f_waa <- fsh_wvb_f$ypr_predictions
+# fsh_f_waa[41, 2] <- mean(fsh_waa_f$weight[fsh_waa_f$age >= 42], na.rm = TRUE)
+fsh_m_waa <- fsh_wvb_m$ypr_predictions
+# fsh_m_waa[41, 2] <- mean(fsh_waa_m$weight[fsh_waa_m$age >= 42], na.rm = TRUE)
+fsh_a_waa <- fsh_wvb_a$ypr_predictions
+
+rbind(fsh_f_waa, fsh_m_waa, fsh_a_waa) %>% 
   mutate(Source = "LL fishery") %>% 
   rbind(srv_waa) %>% 
-  mutate(weight = round(weight, 1)) %>% 
+  mutate(weight = round(weight, 4)) %>% 
   select(Source, Sex, age, weight) -> pred_waa 
 
-write_csv(pred_waa, paste0("output/pred_waa_1997_", YEAR, ".csv"))
+ggplot(data = pred_waa, aes(x = age, y = weight, colour = Source, 
+                            shape = Sex, linetype = Sex)) +
+  geom_point() +
+  geom_line() + 
+  scale_colour_grey() +
+  xlab("\nAge (yrs)") +
+  ylab("Weight (kg)\n") 
+
+write_csv(pred_waa, paste0("output/pred_waa.csv"))
 
 # Compare empirical and predicted weight-at-age
 ggplot() +
-  geom_point(data = emp_waa %>% filter(year == YEAR), 
-       aes(x = age, y = weight, col = Sex, shape = Source)) +
+  geom_point(data = emp_waa, 
+       aes(x = age, y = weight, col = Source, shape = Sex)) +
   geom_line(data = pred_waa,
-            aes(x = age, y = weight, col = Sex, linetype = Source)) +
-  labs(x = "\nAge", y = "Weight (kg)\n")
+            aes(x = age, y = weight, col = Source, linetype = Sex), size = 1) +
+  scale_colour_grey() +
+  labs(x = "\nAge", y = "Weight (kg)\n", linetype = "Sex", shape = "Sex")
 
 ggsave(paste0("figures/compare_empirical_predicted_waa_", YEAR, ".png"), 
               dpi=300, height=4, width=6, units="in")
