@@ -19,7 +19,6 @@ template<class Type>
   DATA_SCALAR(M)                // assumed constant natural mortality
   DATA_SCALAR(sigma_catch)      // assumed CV of 5% for catch
   DATA_SCALAR(sigma_cpue)       // assumed CV of 20% (currently use for all cpue indices)
-  DATA_SCALAR(sigma_mr)         // assumed CV of 5% for mark-recapture estimates
   DATA_SCALAR(omega)            // effective sample size for age comps (currently use for all age comps)
 
   // INDICES OF ABUNDANCE
@@ -31,6 +30,7 @@ template<class Type>
   DATA_INTEGER(nyr_mr)          // number of years 
   DATA_IVECTOR(yrs_mr)          // vector of years
   DATA_VECTOR(data_mr)          // vector of estimates
+  DATA_VECTOR(sigma_mr)         // posterior SDs for mark-recapture estimates
   
   // Fishery cpue
   DATA_INTEGER(nyr_fsh_cpue)    // number of years 
@@ -461,7 +461,7 @@ template<class Type>
   // Mark-recapture index: lognormal
   for (int i = 0; i < nyr_mr; i++) {
     index_like(3) += square( log(data_mr(i) / pred_mr(i)) ) /
-      Type(2.0) * square(sigma_mr);
+      Type(2.0) * square(sigma_mr(i));
   }
   // std::cout << "Index likelihoods\n" << index_like << "\n";
 

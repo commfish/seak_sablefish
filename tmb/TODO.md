@@ -1,9 +1,9 @@
 # TO DO LIST FOR AGE-STRUCTURED MODEL IN TMB
 
 ## Data
-[x] Move to a larger plus group (probably best to use 42+ to maintain consistency with the feds)
+[X] Move to a larger plus group (probably best to use 42+ to maintain consistency with the feds)
 
-[x]	Use predicted values from a weight-based von Bertalanffy model instead of mean weight-at-age (especially important for older ages which are poorly represented in the data)
+[X]	Use predicted values from a weight-based von Bertalanffy model instead of mean weight-at-age (especially important for older ages which are poorly represented in the data)
 
 [ ]	**Work with groundfish biologists to assess the utility of the 1-hr soak time survey (1988-1996). If we decide to use this as an index obtain raw data**
 
@@ -12,7 +12,11 @@
 [ ]	**Work with groundfish biologists to obtain the raw mark-recapture data from 2003 and 2004** 
 
 [ ]	Use data to estimate variances and effective sample sizes for the various abundance indices and age compositions. Currently the sigmas for the abundance indices and effective sample sizes for the age comps are assumed constant values, which is likely unrealistic
-
+      [X] Mark-recapture
+      [ ] Fishery cpue
+      [ ] Survey cpue
+      [ ] Age comps
+      
 [ ]	Evaluate the current ageing error matrix and include it in the model
 
 
@@ -50,14 +54,14 @@
 
 ## Text and figures
 
-[x] Put the report in R markdown
+[X] Put the report in R markdown
 
-[x] Fix typos in the equations (e.g. not “i” on the RHS for the recruitment model)
+[X] Fix typos in the equations (e.g. not “i” on the RHS for the recruitment model)
 
-[x] Do not use E for predicted CPUE because it can be confused with effort
+[X] Do not use E for predicted CPUE because it can be confused with effort
 
 [ ] Include the assumed standard errors on plots that show fitted values to aid in the evaluation of model fit
 
-[x] Use standardized instead of raw residuals 
+[X] Use standardized instead of raw residuals 
 
-[ ] Include zeros on the plots to help place the trends in context
+[X] Include zeros on the plots to help place the trends in context

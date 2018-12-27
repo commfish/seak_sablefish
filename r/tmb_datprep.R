@@ -149,12 +149,14 @@ mr_sum %>%
   mutate(year = year(year),
          Year = factor(year)) %>% 
   gather("Abundance", "N", estimate) %>% 
-  mutate(# interpolate the CI in missing years for plotting purposes
-         q025 = zoo::na.approx(q025, maxgap = 20, rule = 2),
-         q975 = zoo::na.approx(q975, maxgap = 20, rule = 2)) %>% 
+  # mutate(# interpolate the CI in missing years for plotting purposes
+  #        q025 = zoo::na.approx(q025, maxgap = 20, rule = 2),
+  #        q975 = zoo::na.approx(q975, maxgap = 20, rule = 2)) %>% 
   ggplot() +
-  geom_ribbon(aes(x = year, ymin = q025, ymax = q975),
-              alpha = 0.2, colour = "white", fill = "grey") +
+  geom_errorbar(aes(x = year, ymin = N - 2*sd, ymax = N + 2*sd),
+              colour = "grey", width = 0) +
+  # geom_ribbon(aes(x = year, ymin = N - 2*sd, ymax = N + 2*sd),
+  #             alpha = 0.2, colour = "white", fill = "grey") +
   geom_point(aes(x = year, y = N)) +
   geom_line(aes(x = year, y = N, group = Abundance)) +
   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, 
@@ -164,7 +166,7 @@ mr_sum %>%
   
 plot_grid(catch, cpue, srv, mr, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)', '(D)'))
 
-ggsave(paste0("figures/abd_indices.png"),
+ggsave(paste0("figures/tmb/abd_indices.png"),
        dpi=300, height=6, width=6, units="in")
 
 
@@ -173,10 +175,10 @@ full_join(sum_catch, cpue_ts) %>%
               spread(survey, annual_cpue)) %>% 
   full_join(mr_sum) %>%
   select(year, catch, fsh_cpue = cpue, srv1_cpue = `1-hr soak`, srv2_cpue = `3+hr soak`,
-         mr = estimate, mr_lwr = q025, mr_upr = q975) %>% 
+         mr = estimate, mr_sd) %>% 
   mutate(index = year -min(year)) -> ts
   
-write_csv(ts, "tmb/abd_indices.csv")
+write_csv(ts, "data/tmb_inputs/abd_indices.csv")
 
 # Biological data ----
 
@@ -214,7 +216,7 @@ waa %>%
                                  "31", "32", "33", "34", "35", "36", "37", "38",
                                  "39", "40", "41", "42+"))) -> waa
 waa <- na.omit(waa)
-write_csv(waa, "tmb/waa.csv")
+write_csv(waa, "data/tmb_inputs/waa.csv")
 
 # Proportion mature -----
 
@@ -297,7 +299,7 @@ full_join(byage %>%
             select(age, prop_fem = fit),
           mat %>% 
             select(age, prop_mature)) %>% 
-  write_csv("tmb/maturity_sexratio.csv")
+  write_csv("data/tmb_inputs/maturity_sexratio.csv")
 
 # Graphics ----
 
@@ -354,7 +356,7 @@ ggplot(byage, aes(x = Age)) +
 
 plot_grid(waa_plot, mat_plot, prop_fem, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)'))
 
-ggsave(paste0("tmb/bio_dat.png"),
+ggsave(paste0("figures/tmb/bio_dat.png"),
        dpi=300, height=6, width=7, units="in")
 
 # Age compositions ----
@@ -413,7 +415,7 @@ ggplot(agecomps, aes(x = age, y = year, size = proportion)) + #*FLAG* could swap
   scale_y_continuous(breaks = axisy$breaks, labels = axisy$labels) +
   scale_x_continuous(breaks = unique(agecomps$age), labels = age_labs) 
 
-ggsave("tmb/agecomps.png", dpi = 300, height = 5, width = 7, units = "in")
+ggsave("figures/tmb/agecomps.png", dpi = 300, height = 5, width = 7, units = "in")
 
 agecomps %>% 
   left_join(data.frame(year = syr:lyr) %>% 
@@ -423,7 +425,7 @@ agecomps %>%
 agecomps %>% dcast(year + index + Source ~ age, value.var = "proportion") -> agecomps
 agecomps[is.na(agecomps)] <- 0
 
-write_csv(agecomps, "tmb/agecomps.csv")
+write_csv(agecomps, "data/tmb_inputs/agecomps.csv")
 
 # Starting values ------
 
@@ -454,7 +456,7 @@ predf <- predict(f,
 finits <- data.frame(year = syr:lyr,
                      finits = c(finits, predf))
 
-write_csv(finits, "tmb/inits_f_devs.csv")
+write_csv(finits, "data/tmb_inputs/inits_f_devs.csv")
 
 # Starting values for recruitment deviations
 
@@ -485,4 +487,4 @@ plot(sub)
 
 rinits <- data.frame(rinits = c(rinits, rep(0.1, nyr+nage-2 - length(rinits))))
 
-write_csv(rinits, "tmb/inits_rec_devs.csv")
+write_csv(rinits, "data/tmb_inputs/inits_rec_devs.csv")

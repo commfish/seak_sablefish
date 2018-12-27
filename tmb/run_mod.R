@@ -11,18 +11,18 @@ source("r/functions.r")
 
 library(TMB)
 
-
 # Data -----
-setwd("tmb")
 
-ts <- read_csv("abd_indices.csv")        # time series
-age <- read_csv("agecomps.csv")          # age comps
-bio <- read_csv("maturity_sexratio.csv") # proportion mature and proportion-at-age in the survey
-waa <- read_csv("waa.csv")               # weight-at-age
+ts <- read_csv("data/tmb_inputs/abd_indices.csv")        # time series
+age <- read_csv("data/tmb_inputs/agecomps.csv")          # age comps
+bio <- read_csv("data/tmb_inputs/maturity_sexratio.csv") # proportion mature and proportion-at-age in the survey
+waa <- read_csv("data/tmb_inputs/waa.csv")               # weight-at-age
 
 # Starting values
-finits <- read_csv("inits_f_devs.csv")   # log F devs
-rinits <- read_csv("inits_rec_devs.csv") # log rec devs
+finits <- read_csv("data/tmb_inputs/inits_f_devs.csv")   # log F devs
+rinits <- read_csv("data/tmb_inputs/inits_rec_devs.csv") # log rec devs
+
+setwd("tmb")
 
 # Model dimensions
 syr <- min(ts$year)       # model start year

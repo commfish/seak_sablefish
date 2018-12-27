@@ -188,7 +188,7 @@ The total likelihood to be maximized includes the sum of the following likelihoo
 $$L(Y)=\lambda_Y\frac{1}{2\sigma_Y^2}\sum_{t=1}^{T}\mbox{ln}(Y_t)-\mbox{ln}(\hat{Y}_t) ,$$
 where $\lambda_Y$ = 1.0.
 
-2.  Fishery CPUE, the two survey CPUE indices, and the mark-recapture abundance index were modeled using log-normal likelihoods, where $\sigma_I$ was assumed to be 0.20:
+2.  Fishery CPUE, the two survey CPUE indices, and the mark-recapture abundance index were modeled using log-normal likelihoods, where $\sigma_I$ was assumed to be 0.20 for the survey and fishery CPUEs and annual posterior standard deviations were used for the mark-recapture abundance index:
 
 $$L(I)=\lambda_I\frac{1}{2\sigma_I^2}\sum_{t=1}^{T_I}\mbox{ln}(I_t)-\mbox{ln}(\hat{I}_t) ,$$
 
