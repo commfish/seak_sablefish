@@ -21,8 +21,8 @@ read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"),
                        guess_max = 50000) %>% 
   group_by(year) %>% 
   summarize(total_pounds = sum(whole_pounds)) %>% 
-  # Convert lbs to kg
-  mutate(total_kg = total_pounds * 0.453592) %>% 
+  # Convert lbs to mt
+  mutate(catch = total_pounds * 0.000453592) %>% 
   select(-total_pounds) %>% 
   filter(year >= syr) -> sum_catch
 
@@ -87,41 +87,40 @@ data.frame(year = 1988:1996,
 
 read_csv(paste0("output/mr_index.csv")) -> mr_sum
 
-# *FLAG* Franz had data for 2003 and 2004. Include his Petersen estimates + his
-# 2*se - at some point go back and track these data down
-# early_mr <- data.frame(year = c(2003, 2004),
-#                        estimate = c(2.775, 2.675),
-#                        q025 = c(2.5429, 2.4505),
-#                        q975 = c(3.0071, 2.8995))
+# *FLAG* F. Mueter (2010) had data for 2003 and 2004. I could include his
+# Petersen estimates + his 2*se - Dec 2018 I asked A. Olson to track these data
+# down and will not use these in an analysis until I have the raw data.
+# early_mr <- data.frame(year = c(2003, 2004), estimate = c(2.775, 2.675), q025 =
+#                         c(2.5429, 2.4505), q975 = c(3.0071, 2.8995))
 
-# Couldn't find these data, so I'm using Kray's esitmates for 2003 and 2004
-# because they are better documented
-early_mr <- data.frame(year = c(2003, 2004), 
-                       estimate = c(1633115.34,	1734101.552),
-                       q025 = c(NA, NA), 
-                       q975 = c(NA, NA))
+# Alternatively, these are KVK's esitmates for 2003 and 2004
+# early_mr <- data.frame(year = c(2003, 2004), 
+#                        estimate = c(1633115.34,	1734101.552),
+#                        q025 = c(NA, NA), 
+#                        q975 = c(NA, NA))
 
-bind_rows(early_mr, mr_sum) -> mr_sum
-
-mr_sum %>% 
-  full_join(data.frame(year = min(mr_sum$year):lyr)) %>% 
-  arrange(year) -> mr_sum
+# bind_rows(early_mr, mr_sum) -> mr_sum
+# 
+# mr_sum %>% 
+#   full_join(data.frame(year = min(mr_sum$year):lyr)) %>% 
+#   arrange(year) -> mr_sum
 
 # Graphics ----
 
 axis <- tickr(cpue_ts, year, 5)
 
 sum_catch %>% 
-  mutate(upper =  total_kg + 0.05 * total_kg,
-         lower = total_kg - 0.05 * total_kg) %>% 
+  mutate(upper =  catch + 0.05 * catch,
+         lower = catch - 0.05 * catch) %>% 
   ggplot() + 
-  geom_point(aes(year, total_kg)) +
-  geom_line(aes(year, total_kg)) +
+  geom_point(aes(year, catch)) +
+  geom_line(aes(year, catch)) +
   geom_ribbon(aes(year, ymin = lower, ymax = upper),
               alpha = 0.2,  fill = "grey") +
   geom_vline(xintercept = 1997, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  labs(x = "", y = "\n\nCatch\n(round kg)") -> catch
+  scale_y_continuous(labels = scales::comma) +
+  labs(x = "", y = "\n\nCatch\n(round mt)") -> catch
 
 ggplot(cpue_ts) +
   geom_point(aes(year, cpue)) +
@@ -154,13 +153,13 @@ mr_sum %>%
          q025 = zoo::na.approx(q025, maxgap = 20, rule = 2),
          q975 = zoo::na.approx(q975, maxgap = 20, rule = 2)) %>% 
   ggplot() +
-  # geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
-  #             alpha = 0.2, colour = "white", fill = "grey") +
+  geom_ribbon(aes(x = year, ymin = q025, ymax = q975),
+              alpha = 0.2, colour = "white", fill = "grey") +
   geom_point(aes(x = year, y = N)) +
   geom_line(aes(x = year, y = N, group = Abundance)) +
   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, 
                      labels = axis$labels) +
-  # ylim(c(1, 3.8)) +
+  ylim(c(0, 3.8)) +
   labs(x = "", y = "\n\nAbundance\n(millions)") -> mr
   
 plot_grid(catch, cpue, srv, mr, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)', '(D)'))
@@ -173,8 +172,8 @@ full_join(sum_catch, cpue_ts) %>%
   full_join(srv_sum %>% 
               spread(survey, annual_cpue)) %>% 
   full_join(mr_sum) %>%
-  select(year, catch = total_kg, fsh_cpue = cpue, srv1_cpue = `1-hr soak`, srv2_cpue = `3+hr soak`,
-         mr = estimate) %>% 
+  select(year, catch, fsh_cpue = cpue, srv1_cpue = `1-hr soak`, srv2_cpue = `3+hr soak`,
+         mr = estimate, mr_lwr = q025, mr_upr = q975) %>% 
   mutate(index = year -min(year)) -> ts
   
 write_csv(ts, "tmb/abd_indices.csv")
@@ -270,7 +269,7 @@ srv_bio %>%
 srv_fitage <- gam(I(Sex == "Female") ~ s(age), 
                   data = filter(srv_bio, age %in% rec_age:plus_group, 
                                 Sex %in% c("Female", "Male")),
-                  family = "quasibinomial")
+                  family = "binomial")
 
 srv_predage <- predict(srv_fitage, newdata = data.frame(age = rec_age:plus_group),
                        type = "response", se = TRUE)
@@ -295,7 +294,7 @@ byage %>%
                                  "31", "32", "33", "34", "35", "36", "37", "38",
                                  "39", "40", "41", "42+"))) -> byage
 full_join(byage %>% 
-            select(age, prop_fem),
+            select(age, prop_fem = fit),
           mat %>% 
             select(age, prop_mature)) %>% 
   write_csv("tmb/maturity_sexratio.csv")
@@ -442,7 +441,9 @@ finits <- c( -1.56630826679, -1.99300652020, -2.01246349536, -1.71978991896,
 
 # Fishing mortalities most correlated with catch; use simple linear regression
 # to develop starting values for 2006-2017
-tmp <- ca
+tmp <- sum_catch %>% 
+  filter(year %in% 1980:2005) %>% 
+  mutate(finits = finits)
 f <- lm(finits ~ log(catch), data = tmp)
 summary(f)
 predf <- predict(f, 

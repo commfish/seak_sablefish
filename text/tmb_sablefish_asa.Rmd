@@ -50,11 +50,7 @@ Tags are recaptured in the ADFG longline survey in July and the longline fishery
 A time-stratified modified Petersen model is used to estimate abundance in the Bayesian open source software JAGS 4.3.0 (Sullivan and Williams 2018, Depaoli 2016). The abundance estimate is then partitioned into age classes and biomass estimates using age composition and weight-at-age data collected during the longline survey and fishery. 
 A yield-per-recruit model is used to estimate F50% using the optim() function in the statistical software R (R Core Team 2018). ADFG has defined Acceptable Biological Catch (ABC) as FABC=F50% for the NSEI sablefish stock (Dressel 2009). 
 
-Several factors have motivated an effort to develop an age-structured model. 
-The current ADFG framework relies on Federal estimates of selectivity and does not estimate recruitment for the stock. Second, the mark-recapture provides a single snapshot in time and therefore results in high inter-annual variability in abundance and biomass estimates.
-Further, ADFG collects a significant amount of data in the NSEI through multiple surveys, logbooks, and port sampling, but is currently unable to fully integrate these data sources, explore historical trends, or adequately assess stock status or harvest strategies. 
-Finally, strong recruitment from the 2014 and possibly 2013 and 2015 year classes were reported in the Federal assessment, prompting questions about how to treat the uncertainty in recruitment for State management (Hanselman et al. 2017, Sullivan and Williams 2018). 
-An age-structured model coded in Template Model Builder (TMB) will allow more flexibility in exploring recruitment using random effects (Kasper et al. 2016).
+Several factors have motivated an effort to develop an age-structured model. The current ADFG framework relies on Federal estimates of selectivity and does not estimate recruitment for the stock. Second, the mark-recapture provides a single snapshot in time and therefore results in high inter-annual variability in abundance and biomass estimates. Further, ADFG collects a significant amount of data in the NSEI through multiple surveys, logbooks, and port sampling, but is currently unable to fully integrate these data sources, explore historical trends, or adequately assess stock status or harvest strategies. Finally, strong recruitment from the 2014 and possibly 2013 and 2015 year classes were reported in the Federal assessment, prompting questions about how to treat the uncertainty in recruitment for State management (Hanselman et al. 2017, Sullivan and Williams 2018). An age-structured model coded in Template Model Builder (TMB) will allow more flexibility in exploring recruitment using random effects (Kasper et al. 2016).
 
 # Modeling approach	
 
@@ -69,16 +65,11 @@ Variable definitions for all equations can be found in Table 1.
 Data from the 2002-2017 longline fishery and 1997-2017 ADFG longline surveys were used to obtain weight-at-age. We fit a three-parameter weight-based Ludwig von Bertalanffy growth model to weight-at-age data:
 
 $$\ln(w_a)=\ln W_{\infty}+\beta \cdot \ln (1-\exp (a-t_0)) ,$$
-where $w_a$ is weight at a given age (kg), $W_{\infty}$ is the mean asympotic weight (kg), $\beta$ is the power in the allometric equation and relates to the rate at which $W_{\infty}$ is reached, and $t_0$ is the theroectical age at weight zero (years). 
-
-Weight-at-age data used in the model are summarized in Figure 2A. Data from the 2002-2017 longline fishery in Chatham was used to estimate mean weight-at-age in the fishery with sexes combined. Data from the 1997-2017 ADFG longline surveys were used to obtain mean weight-at-age in the longline survey for both sexes combined and females only. The female weight-at-age was used to estimate spawning stock biomass within the model.
+where $w_a$ is weight at a given age (kg), $W_{\infty}$ is the mean asympotic weight (kg), $\beta$ is the power in the allometric equation and relates to the rate at which $W_{\infty}$ is reached, and $t_0$ is the theroectical age at weight zero (years). Data from the longline fishery in Chatham was used to estimate mean predicted weight-at-age in the fishery with sexes combined. Data from the longline surveys were used to obtain mean predicted weight-at-age in the longline survey for both sexes combined and females only. The female weight-at-age was used to estimate spawning stock biomass within the model.
 
 ## Maturity-at-age
 
-Data from the 2007-2017 ADFG longline surveys were used to fit a maturity curve for females and used to estimate spawning stock biomass within the model (Figure 2B). 
-Alternative year-specific models were evaluated using Akaike Information Criterion (AIC) (Akaike 1974). 
-The maturity curve fit to all years was the best-fitting model. 
-We used a logistic regression approach in R, such that the probability $p$ of being mature at a given age on the logit scale is a linear function of age ($a$):
+Data from the 2007-2017 ADFG longline surveys were used to fit a maturity curve for females and used to estimate spawning stock biomass within the model (Figure 2B). Alternative year-specific models were evaluated using Akaike Information Criterion (AIC) (Akaike 1974). The maturity curve fit to all years was the best-fitting model. We used a logistic regression approach in R, such that the probability $p$ of being mature at a given age on the logit scale is a linear function of age ($a$):
 
 $$\ln(\frac{p_a}{p_a-1})=\beta_0+\beta_1 \cdot a.$$
 We derived the age at 50% maturity ($a_{50}$) and the instantaneous rate of maturation ($k_{mat}$) as 
@@ -90,8 +81,11 @@ The $a_{50}$ and $k_{mat}$ were estimated to be 6.4 years and 0.85 $\text{years}
 
 ## Sex ratios
 
-Data from the 1997-2017 ADFG longline surveys were used to obtain proportion female by age (Figure 2C). 
-These values were used to estimate spawning stock biomass within the model. 
+Using sex ratio data from the 1997-2017 ADFG longline surveys, we fit a generalized additive model (GAM) using the `gam()` function in the `mgcv` R package (Wood 2011). The probability of being female-at-age $r_a$ is modeled as a smooth function of age $a$
+
+$$\ln(\frac{r_a}{r_a-1})=s(a) .$$
+
+Fits to the data suggest that female sablefish make up the majority of catch-at-age in the survey until roughly age-18 and then decline to 30% at age-40 (Figure 2C). Predicted values of proportion female-at-age were used to estimate spawning stock biomass within the model. 
 
 ## Catch
 
@@ -218,6 +212,32 @@ $$L(\tau)=\lambda_{\tau}\sum_{i=1}^{T+A-2}\tau_i^2,$$
 
 where $\lambda_{\phi}$=0.1.
 
+# References
+
+Akaike, H. 1974. A new look at the statistical model identification. IEEE Transactions on Automatic Control 19:716–723.
+
+Beder, A., J. Stahl. 2016. Northern Southeast Inside Commercial Sablefish Fishery and Survey Activities in Southeast Alaska, 2015. Alaska Department of Fish and Game, Fishery Management Report No. 15-27, Anchorage, Alaska.
+
+Carlile, D.W., Richardson, B., Cartwright, M., and O'Connell, V.M. 2002. Southeast Alaska sablefish stock assessment activities 1988–2001, Alaska Department of Fish and Game, Division of Commercial Fisheries Juneau, Alaska.
+
+Depaoli, S., James P. Clifton, and Patrice R. Cobb. 2016. Just Another Gibbs Sampler (JAGS) Flexible Software for MCMC Implementation. Journal of Educational and Behavioral Statistics 41.6: 628-649.
+
+Dressel, S.C. 2009. 2006 Northern Southeast Inside sablefish stock assessment and 2007 forecast and quota. Alaska Department of Fish and Game, Fishery Data Series No. 09-50, Anchorage, Alaska.
+
+Fournier, D.A., H.J. Skaug, J. Ancheta, J. Ianelli, A. Magnusson, M.N. Maunder, A. Nielsen, and J. Sibert. 2012. AD Model Builder: using automatic differentiation for statistical inference of highly parameterized complex nonlinear models. Optim. Methods Softw. 27, 233-249.
+
+Hanselman, D. H., C. J. Rodgveller, K. H. Fenske, S. K. Shotwell, K. B. Echave, P. W. Malecha, and C. R. Lunsford. 2018. Chapter 3: Assessment of the sablefish stock in Alaska. In: Stock assessment and fishery evaluation report for the groundfish resources of the GOA and BS/AI as projected for 2019. North Pacific Fishery Management Council, 605 W 4th Ave, Suite 306 Anchorage, AK 99501.
+
+Hanselman, D. H., C. J. Rodgveller, C. R. Lunsford, and K. H Fenske. 2017. Chapter 3: Assessment of the sablefish stock in Alaska. In: Stock assessment and fishery evaluation report for the groundfish resources of the GOA and BS/AI as projected for 2018. North Pacific Fishery Management Council, 605 W 4th Ave, Suite 306 Anchorage, AK 99501.
+
+Johnson, S. L., and T. J. Quinn II. 1988. Catch-Age Analysis with Auxiliary Information of sablefish in the Gulf of Alaska. Contract report to National Marine Fisheries Service, Auke Bay, Alaska. 79 pp. Center for Fisheries and Ocean Sciences, University of Alaska, Juneau, Alaska.
+
+Kasper Kristensen, Anders Nielsen, Casper W. Berg, Hans Skaug, Bradley M. Bell (2016). TMB: Automatic Differentiation and Laplace Approximation. Journal of Statistical Software, 70(5), 1-21.<doi:10.18637/jss.v070.i05>.
+
+Mueter, F. 2010. Evaluation of stock assessment and modeling options to assess sablefish population levels and status in the Northern Southeast Inside (NSEI) management area. Alaska Department of Fish and Game, Special Publication No. 10-01, Anchorage, Alaska.
+
+Wood, S.N. (2011) Fast stable restricted maximum likelihood and marginal likelihood estimation of semiparametric generalized linear models. Journal of the Royal Statistical Society (B) 73(1):3-36.
+
 # Tables
 
 ```{r defn_tbl, echo=FALSE}
@@ -277,4 +297,6 @@ kable(def_tbl, booktabs = TRUE, format = "latex", escape = FALSE) %>%
 # Figures
 
 ```{r map, fig.cap="Location of scallop beds in ADF&G statewide scallop dredge survey areas. Dark outlines indicate beds surveyed in 2017."}
-knitr::include_graphics(here("figs/2017/ScalSurveyOverview_17_171215c.jpg"))
+# knitr::include_graphics(here("figs/2017/ScalSurveyOverview_17_171215c.jpg"))
+```
+

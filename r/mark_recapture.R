@@ -1701,9 +1701,9 @@ results %>%
 results %>% 
   gather("time_period", "N.avg", contains("N.avg")) %>% 
   group_by(year) %>% 
-  summarise(estimate = median(N.avg),
-            q025 = quantile(N.avg, 0.025),
-            q975 = quantile(N.avg, 0.975)) %>% 
+  summarise(estimate = median(N.avg) / 1e6,
+            q025 = quantile(N.avg, 0.025) / 1e6,
+            q975 = quantile(N.avg, 0.975) / 1e6) %>% 
   write_csv("output/mr_index.csv")
 # 
 # ggsave(paste0("figures/model1_N_retrospective_", 
