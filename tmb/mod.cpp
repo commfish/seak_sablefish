@@ -21,6 +21,27 @@ template<class Type>
   DATA_SCALAR(sigma_cpue)       // assumed CV of 20% (currently use for all cpue indices)
   DATA_SCALAR(omega)            // effective sample size for age comps (currently use for all age comps)
 
+  // Priors ("p_" denotes prior)
+  DATA_SCALAR(p_fsh_q)          // prior fishery catchability coefficient (on natural scale)
+  DATA_SCALAR(sigma_fsh_q)      // sigma for fishery q
+  DATA_SCALAR(p_srv1_q)         // prior 1-hr soak survey catchability coefficient (on natural scale)
+  DATA_SCALAR(sigma_srv1_q)     // sigma for 1-hr soak survey q
+  DATA_SCALAR(p_srv2_q)         // prior 3+hr soak survey catchability coefficient (on natural scale)
+  DATA_SCALAR(sigma_srv2_q)     // sigma for 3+hr soak survey q
+  DATA_SCALAR(p_mr_q)           // prior on mark-recapture catchability coefficient (on natural scale)
+  DATA_SCALAR(sigma_mr_q)       // sigma for mark-recapture q
+ 
+  // Weights on likelihood componets("wt_" denotes weight)
+  DATA_SCALAR(wt_catch)         // catch
+  DATA_SCALAR(wt_fsh_cpue)      // fishery cpue
+  DATA_SCALAR(wt_srv1_cpue)     // 1-hr soak survey
+  DATA_SCALAR(wt_srv2_cpue)     // 3+hr soak survey
+  DATA_SCALAR(wt_mr)            // mark-recapture abundance  
+  DATA_SCALAR(wt_fsh_age)       // fishery age comps
+  DATA_SCALAR(wt_srv_age)       // survey age comps
+  DATA_SCALAR(wt_rec_like)      // penalty on recruitment deviations
+  DATA_SCALAR(wt_fpen)          // penality on fishing mortality deviations
+
   // INDICES OF ABUNDANCE
   
   // Catch
@@ -309,7 +330,7 @@ template<class Type>
       expl_biom(i) += data_srv_waa(j) * fsh_sel(j) * N(i,j) * surv_fsh; 
 
       // Vulnerable abundance to the survey at the beginning of the survey
-      vuln_abd(i) += srv_sel(j) * N(i,j) * surv_srv * 1e3;
+      vuln_abd(i) += srv_sel(j) * N(i,j) * surv_srv;
 
       // Spawning biomass
       spawn_biom(i) += data_srv_waa(j) * N(i,j) * exp(-spawn_month * M) * prop_fem(j) * prop_mature(j);
@@ -332,7 +353,7 @@ template<class Type>
   // std::cout << "Predicted MR \n" << pred_mr << "\n";
   
   for (int i = 0; i < nyr; i++) {
-    pred_mr_all(i) = mr_q * vuln_abd(i) ;/// 1e6;        // All years
+    pred_mr_all(i) = mr_q * vuln_abd(i) ; // All years
   }
   // std::cout << "Predicted MR for all years\n" << pred_mr_all << "\n";
  
@@ -374,7 +395,7 @@ template<class Type>
       pred_fsh_age(i-syr_fsh_age,j) = C(i,j) / sumC;
     }
   }
-   // std::cout << "Predicted fishery age comps\n" << pred_fsh_age << "\n";
+  // std::cout << "Predicted fishery age comps\n" << pred_fsh_age << "\n";
 
   // Predicted survey age compositions
 
@@ -420,16 +441,16 @@ template<class Type>
   // Priors
 
   // // Fishery cpue catchability coefficient
-  // priors(0) = square( log(fsh_q / Type(0.02)) ) / ( 2 * square(Type(0.5)) ); // 0.025
+  // priors(0) = square( log(fsh_q / p_fsh_q) ) / ( 2 * square(sigma_fsh_q) ); // 0.025
   // 
   // // 1-hr soak survey catchability coefficient
-  // priors(1) = square( log(srv1_q / Type(0.09)) ) / ( 2 * square(Type(0.5)) );
+  // priors(1) = square( log(srv1_q / p_srv1_q) ) / ( 2 * square(sigma_srv1_q) );
   // 
   // // 3-hr soak survey catchability coefficient
-  // priors(2) = square( log(srv2_q / Type(0.02)) ) / ( 2 * square(Type(0.5)) );
+  // priors(2) = square( log(srv2_q / p_srv2_q) ) / ( 2 * square(sigma_srv2_q) );
 
   // Mark-recapture abundance estimate catchability coefficient
-  priors(3) = square( log(mr_q / Type(1.0)) ) / ( 2 * square(Type(0.05)) );
+  priors(3) = square( log(mr_q / p_mr_q) ) / ( 2 * square(sigma_mr_q) );
 
   // std::cout << "priors\n" << priors << "\n";
   
@@ -438,6 +459,7 @@ template<class Type>
     catch_like += square(log(data_catch(i) + 0.00001) - log(pred_catch(i) + 0.00001));
   }
   catch_like /= Type(2.0) * square(sigma_catch);
+  catch_like *= wt_catch;     // Likelihood weight
   // std::cout << "Catch likelihood\n" << catch_like << "\n";
   
   // Fishery CPUE: lognormal
@@ -445,24 +467,28 @@ template<class Type>
     index_like(0) += square( log(data_fsh_cpue(i) / pred_fsh_cpue(i)) ) /
       Type(2.0) * square(sigma_cpue);
   }
+  index_like(0) *= wt_fsh_cpue; // Likelihood weight
 
   // 1-hr soak survey CPUE: lognormal
   for (int i = 0; i < nyr_srv1_cpue; i++) {
     index_like(1) += square( log(data_srv1_cpue(i) / pred_srv1_cpue(i)) ) /
       Type(2.0) * square(sigma_cpue);
   }
+  index_like(1) *= wt_srv1_cpue; // Likelihood weight
 
   // 3-hr soak survey CPUE: lognormal
   for (int i = 0; i < nyr_srv2_cpue; i++) {
     index_like(2) += square( log(data_srv2_cpue(i) / pred_srv2_cpue(i)) ) /
       Type(2.0) * square(sigma_cpue);
   }
+  index_like(2) *= wt_srv2_cpue; // Likelihood weight
 
   // Mark-recapture index: lognormal
   for (int i = 0; i < nyr_mr; i++) {
     index_like(3) += square( log(data_mr(i) / pred_mr(i)) ) /
       Type(2.0) * square(sigma_mr(i));
   }
+  index_like(3) *= wt_mr;        // Likelihood weight
   // std::cout << "Index likelihoods\n" << index_like << "\n";
 
   // Offset for fishery age compositions
@@ -476,8 +502,10 @@ template<class Type>
       age_like(0) -= (data_fsh_age(i,j) + Type(0.00001)) * log(pred_fsh_age(i,j) + Type(0.00001));
     }
   }
-  age_like(0) *= omega;       // effective sample size
-  age_like(0) -= offset(0);   // subtract offset
+  age_like(0) *= omega;         // effective sample size
+  age_like(0) -= offset(0);     // subtract offset
+  age_like(0) *= wt_fsh_age;    // likelihood weight
+  
 
   // Offset for survey age compositions
   for (int i = 0; i < nyr_srv_age; i++) {
@@ -490,8 +518,9 @@ template<class Type>
       age_like(1) -= (data_srv_age(i,j) + Type(0.00001)) * log(pred_srv_age(i,j) + Type(0.00001));
     }
   }
-  age_like(1) *= omega;       // effective sample size
-  age_like(1) -= offset(1);   // substract offset
+  age_like(1) *= omega;         // effective sample size
+  age_like(1) -= offset(1);     // substract offset
+  age_like(1) *= wt_srv_age;    // likelihood weight
 
   // std::cout << "Age comp offset\n" << offset << "\n";
   // std::cout << "Age comp likelihoods\n" << age_like << "\n";
@@ -502,7 +531,7 @@ template<class Type>
   for (int i = 0; i < n_rec; i++) {
     rec_like += square(log_rec_devs(i));
   }
-  rec_like *= Type(0.1);      // Weight
+  rec_like *= wt_rec_like;      // weight
 
   // std::cout << "Log recruitment deviations\n" << log_rec_devs << "\n";
   // std::cout << "Recruitment likelihood\n" << rec_like << "\n";
@@ -511,7 +540,7 @@ template<class Type>
     for (int i = 0; i < nyr; i++) {
     fpen += square(log_F_devs(i));
   }
-  fpen *= Type(0.1);          // Weight
+  fpen *= wt_fpen;              // weight
   
   // std::cout << "Log fishing mortality deviations\n" << log_F_devs << "\n";
   // std::cout << "Penality for fishing mortality\n" << fpen << "\n";
@@ -586,6 +615,7 @@ template<class Type>
   REPORT(rec_like);         // Recruitment deviations
   REPORT(fpen);             // Fishing mortality deviations
   REPORT(obj_fun);          // Total objective function
+  REPORT(offset);           // Offsets for multinomial
 
   return(obj_fun);          
   

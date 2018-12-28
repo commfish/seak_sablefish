@@ -175,7 +175,7 @@ full_join(sum_catch, cpue_ts) %>%
               spread(survey, annual_cpue)) %>% 
   full_join(mr_sum) %>%
   select(year, catch, fsh_cpue = cpue, srv1_cpue = `1-hr soak`, srv2_cpue = `3+hr soak`,
-         mr = estimate, mr_sd) %>% 
+         mr = estimate, mr_sd = sd) %>% 
   mutate(index = year -min(year)) -> ts
   
 write_csv(ts, "data/tmb_inputs/abd_indices.csv")
