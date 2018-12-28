@@ -293,7 +293,7 @@ template<class Type>
   // Predicted annual catch
   for (int i = 0; i < nyr; i++) {
     for (int j = 0; j < nage; j++) {
-      pred_catch(i) += C(i,j) * data_fsh_waa(j);
+      pred_catch(i) += C(i,j) * data_fsh_waa(j) / 1e3; // in mt
     }
   }
   
@@ -344,16 +344,16 @@ template<class Type>
   
   // Predicted values
 
-  // Mark-recapture catchability and predicted abundance
+  // Mark-recapture catchability and predicted abundance (in millions)
   Type mr_q = exp(mr_logq);
 
   for (int i = 0; i < nyr_mr; i++) {
-    pred_mr(i) = mr_q * vuln_abd(yrs_mr(i));// / 1e6;    // Just in years with a MR estimate
+    pred_mr(i) = mr_q * vuln_abd(yrs_mr(i)) / 1e6; // Just in years with a MR estimate
   }
   // std::cout << "Predicted MR \n" << pred_mr << "\n";
   
   for (int i = 0; i < nyr; i++) {
-    pred_mr_all(i) = mr_q * vuln_abd(i) ; // All years
+    pred_mr_all(i) = mr_q * vuln_abd(i) / 1e6; // All years
   }
   // std::cout << "Predicted MR for all years\n" << pred_mr_all << "\n";
  
@@ -440,14 +440,14 @@ template<class Type>
 
   // Priors
 
-  // // Fishery cpue catchability coefficient
-  // priors(0) = square( log(fsh_q / p_fsh_q) ) / ( 2 * square(sigma_fsh_q) ); // 0.025
-  // 
-  // // 1-hr soak survey catchability coefficient
-  // priors(1) = square( log(srv1_q / p_srv1_q) ) / ( 2 * square(sigma_srv1_q) );
-  // 
-  // // 3-hr soak survey catchability coefficient
-  // priors(2) = square( log(srv2_q / p_srv2_q) ) / ( 2 * square(sigma_srv2_q) );
+  // Fishery cpue catchability coefficient
+  priors(0) = square( log(fsh_q / p_fsh_q) ) / ( 2 * square(sigma_fsh_q) ); // 0.025
+
+  // 1-hr soak survey catchability coefficient
+  priors(1) = square( log(srv1_q / p_srv1_q) ) / ( 2 * square(sigma_srv1_q) );
+
+  // 3-hr soak survey catchability coefficient
+  priors(2) = square( log(srv2_q / p_srv2_q) ) / ( 2 * square(sigma_srv2_q) );
 
   // Mark-recapture abundance estimate catchability coefficient
   priors(3) = square( log(mr_q / p_mr_q) ) / ( 2 * square(sigma_mr_q) );

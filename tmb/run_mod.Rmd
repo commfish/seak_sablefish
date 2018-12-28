@@ -1,28 +1,33 @@
+---
+title: "ASA Results"
+output:
+  bookdown::pdf_document2:
+    #fig_caption: yes
+    toc: no #yes
+    number_sections: false
+---
 
-# ASA that includes catch, fishery and survey CPUE, mark-recapture abundance
-# estimates, fishery and survey weight-at-age, survey data about maturity-at-age
-# and proportions-at-age, and fishery and survey age compositions. No sex
-# structure.
+```{r setup, include = FALSE, message=FALSE, warning=FALSE}
 
-# Libraries and helper functions ----
+options(kableExtra.latex.load_packages = FALSE)
 
-source("r/helper.r")
-source("r/functions.r")
+source("../r/helper.r")
+source("../r/functions.r")
 
 library(TMB)
+library(kableExtra)
 
-# Data -----
+options(scipen = 9999, digits = 4)
 
-ts <- read_csv("data/tmb_inputs/abd_indices.csv")        # time series
-age <- read_csv("data/tmb_inputs/agecomps.csv")          # age comps
-bio <- read_csv("data/tmb_inputs/maturity_sexratio.csv") # proportion mature and proportion-at-age in the survey
-waa <- read_csv("data/tmb_inputs/waa.csv")               # weight-at-age
+# Data
+ts <- read_csv("../data/tmb_inputs/abd_indices.csv")        # time series
+age <- read_csv("../data/tmb_inputs/agecomps.csv")          # age comps
+bio <- read_csv("../data/tmb_inputs/maturity_sexratio.csv") # proportion mature and proportion-at-age in the survey
+waa <- read_csv("../data/tmb_inputs/waa.csv")               # weight-at-age
 
 # Starting values
-finits <- read_csv("data/tmb_inputs/inits_f_devs.csv")   # log F devs
-rinits <- read_csv("data/tmb_inputs/inits_rec_devs.csv") # log rec devs
-
-setwd("tmb")
+finits <- read_csv("../data/tmb_inputs/inits_f_devs.csv")   # log F devs
+rinits <- read_csv("../data/tmb_inputs/inits_rec_devs.csv") # log rec devs
 
 # Model dimensions
 syr <- min(ts$year)       # model start year
@@ -39,6 +44,9 @@ srv1_cpue <- filter(ts, !is.na(srv1_cpue))
 srv2_cpue <- filter(ts, !is.na(srv2_cpue))
 fsh_age <- filter(age, Source == "Fishery")
 srv_age <- filter(age, Source == "Survey")
+```
+
+```{r model_objects, include = FALSE, message=FALSE, warning=FALSE}
 
 # Structure data for TMB - must use same variable names as .cpp
 data <- list(
@@ -54,12 +62,12 @@ data <- list(
   omega = 50,
   
   # Priors ("p_" denotes prior)
-  p_fsh_q = 0.02,
-  sigma_fsh_q = 0.5,
+  p_fsh_q = 0.001,
+  sigma_fsh_q = 1,
   p_srv1_q = 0.001,
-  sigma_srv1_q = 0.5,
-  p_srv2_q = 0.002,
-  sigma_srv2_q = 0.5,
+  sigma_srv1_q = 1,
+  p_srv2_q = 0.001,
+  sigma_srv2_q = 1,
   p_mr_q = 1.0,
   sigma_mr_q = 0.01,
   
@@ -81,7 +89,7 @@ data <- list(
   nyr_mr = n_distinct(mr, mr),
   yrs_mr = mr %>% distinct(index) %>% pull(),
   data_mr = pull(mr, mr),
-  sigma_mr = pull(mr, mr_sd), #rep(0.05, 10)
+  sigma_mr = pull(mr, mr_sd), # rep(0.05, 10),
   
   # Fishery CPUE
   nyr_fsh_cpue = fsh_cpue %>% n_distinct(fsh_cpue),
@@ -172,20 +180,10 @@ upper <- c(             # Upper bounds
   Inf,                  # Mean log F  
   rep(15, nyr)          # log F deviations  
 )
+```
 
-# Run model ----
 
-# Use map to turn off parameters, either for testing with dummy, phasing, or to
-# fix parameter values
-
-# When testing the code
-# map <- list(fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
-#           srv_sel50 = factor(NA), srv_sel95 = factor(NA),
-#           fsh_logq = factor(NA), srv1_logq = factor(NA),
-#           srv2_logq = factor(NA), mr_logq = factor(NA),
-#           log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
-#           log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr))
-        
+```{r run_mod, include = FALSE, message=FALSE, warning=FALSE}
 # Compile
 compile("mod.cpp")
 dyn.load(dynlib("mod"))
@@ -198,40 +196,70 @@ model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
 fit <- nlminb(model$par, model$fn, model$gr,
               control=list(eval.max=100000,iter.max=1000),
               lower = lower, upper = upper)
-for (i in 1:100){
+
+for (i in 1:10){
   fit <- nlminb(model$env$last.par.best, model$fn, model$gr)}
 best <- model$env$last.par.best
-print(as.numeric(best))
+# print(as.numeric(best))
 rep <- sdreport(model)
+# print(best)
+
+est <- stack(as.list(rep, what = "Estimate")) %>% 
+  select(Parameter = ind, Estimate = values) %>% 
+  bind_cols(stack(as.list(rep, what = "Std")) %>% 
+  select(`SE` = values))
+
+```
+
+## Parameter estimates
+
+```{r test5, echo = FALSE}
+kable(est, "latex",  longtable = TRUE) %>% #booktabs = TRUE,
+  kable_styling(latex_options = c("hold_position", "repeat_header"))
+```
+
+## Catchability
+
+Estimates on natural scale
+
+Fishery q:  `r exp(as.list(rep, what = "Estimate")$fsh_logq)`
+
+Survey (1-hr soak) q:  `r exp(as.list(rep, what = "Estimate")$srv1_logq)`
+
+Survey (3+hr soak) q:  `r exp(as.list(rep, what = "Estimate")$srv2_logq)`
+
+Mark-recapture q:  `r exp(as.list(rep, what = "Estimate")$mr_logq)`
 
 
+## Likelihood components
 
+Catchability priors: `r model$report()$priors`
 
+Catch: `r model$report()$catch_like`
 
-print(best)
-print(rep)
-model$report()$priors
-model$report()$catch_like
-model$report()$index_like
-model$report()$age_like
-model$report()$pred_mr
-model$report()$obj_fun
+Abundance indices (fsh, srv1, srv2, mr): `r model$report()$index_like`
 
-exp(as.list(rep, what = "Estimate")$fsh_logq)
-exp(as.list(rep, what = "Estimate")$srv1_logq)
-exp(as.list(rep, what = "Estimate")$srv2_logq)
-exp(as.list(rep, what = "Estimate")$mr_logq)
-# as.list(rep, what = "Std")
+Age comp `r model$report()$age_like`
 
+Multinomial offsets `r model$report()$offset`
 
-exp(as.list(rep, what = "Estimate")$log_rbar)
+Penalty on fishing mortality deviations: `r model$report()$fpen`
 
-# Plot time series ----
+Penalty on recruitment deviations: `r model$report()$rec_like`
+
+**Total likelihood**: `r model$report()$obj_fun`
+
+## Time series of catch and abundance indices
+
+```{r plot_ts, echo=FALSE, fig.height = 6.5, fig.width = 6, message=FALSE, warning=FALSE}
 
 # Catch 
 ts$pred_catch <- model$report()$pred_catch
 axis <- tickr(ts, year, 5)
 ggplot(ts, aes(x = year)) +
+  geom_ribbon(aes(ymin = catch - data$sigma_catch * catch, 
+                  ymax = catch + data$sigma_catch * catch),
+              alpha = 0.2,  fill = "grey") +
   geom_point(aes(y = catch)) +
   geom_line(aes(y = pred_catch), colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
@@ -240,6 +268,9 @@ ggplot(ts, aes(x = year)) +
 # Fishery cpue
 fsh_cpue$pred_fsh_cpue <- model$report()$pred_fsh_cpue
 ggplot(fsh_cpue, aes(x = year)) +
+  geom_ribbon(aes(ymin = fsh_cpue - data$sigma_cpue * fsh_cpue, 
+                  ymax = fsh_cpue + data$sigma_cpue * fsh_cpue),
+              alpha = 0.2,  fill = "grey") +
   geom_point(aes(y = fsh_cpue)) +
   geom_line(aes(y = pred_fsh_cpue), colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
@@ -255,6 +286,9 @@ ts %>%
                   model$report()$pred_srv2_cpue)) -> srv
 
 ggplot(srv, aes(x = year)) +
+  geom_ribbon(aes(ymin = obs - data$sigma_cpue * obs, 
+                  ymax = obs + data$sigma_cpue * obs),
+              alpha = 0.2,  fill = "grey") +
   geom_point(aes(y = obs, shape = survey)) +
   geom_line(aes(y = pred, group = survey), colour = "grey") +
   geom_vline(xintercept = 1997, linetype = 2, colour = "grey") +
@@ -268,10 +302,12 @@ mr %>%
   mutate(pred_mr = model$report()$pred_mr) %>% 
   select(year, pred_mr) %>% 
   right_join(ts %>%
-               select(year, mr) %>%
+               select(year, mr, mr_sd) %>%
                mutate(pred_mr_all = model$report()$pred_mr_all)) -> mr_plot
 
 ggplot(mr_plot, aes(x = year)) +
+  geom_errorbar(aes(x = year, ymin = mr - 2 * mr_sd, ymax = mr + 2 * mr_sd),
+              colour = "grey", width = 0) +
   geom_point(aes(y = mr)) +
   geom_line(aes(y = pred_mr, group = 1), colour = "grey") +
   # geom_point(aes(y = pred_mr), colour = "grey") +
@@ -282,138 +318,13 @@ ggplot(mr_plot, aes(x = year)) +
 plot_grid(p_catch, p_fsh, p_srv, p_mr, ncol = 1, align = 'hv', 
           labels = c('(A)', '(B)', '(C)', '(D)'))
 
-# ggsave(paste0("pred_abd_indices.png"), 
-#        dpi=300, height=7, width=6, units="in")
+```
 
+## Residuals for time series of catch and abundance indices
 
-# # Phase -----
-# 
-# # PHASE 1 - estimate mark-recapture catchability (mr_logq)
-# map <- list(dummy=factor(NA),
-#             fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
-#             srv_sel50 = factor(NA), srv_sel95 = factor(NA),
-#             fsh_logq = factor(NA), srv1_logq = factor(NA),
-#             srv2_logq = factor(NA), # mr_logq = factor(NA),
-#             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
-#             log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr))
-# model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
-# lower <- c(-15)
-# upper <- c(5)
-# fit <- nlminb(model$par, model$fn, model$gr,
-#               control=list(eval.max=100000,iter.max=1000),
-#               lower = lower, upper = upper)
-# best <- model$env$last.par.best
-# print(as.numeric(best))
-# model$report()$priors
-# model$report()$catch_like
-# model$report()$index_like
-# model$report()$age_like
-# model$report()$pred_mr
-# 
-# # PHASE 2 - estimate fishery and survey catchabilities and average F (fsh_logq,
-# # srv1_logq, srv2_logq, logFbar) and mr_logq
-# map <- list(dummy=factor(NA),
-#             fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
-#             srv_sel50 = factor(NA), srv_sel95 = factor(NA),
-#             # fsh_logq = factor(NA), #srv1_logq = factor(NA),
-#             #srv2_logq = factor(NA), # mr_logq = factor(NA),
-#             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
-#             #log_Fbar = factor(NA),
-#             log_F_devs = rep(factor(NA), nyr))
-# model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
-# lower <- c(rep(-15, 4),-Inf)
-# upper <- c(rep(5, 4), Inf)
-# phase2_inits <- c(parameters$fsh_logq, parameters$srv1_logq,
-#                   parameters$srv2_logq, as.numeric(best), parameters$log_Fbar)
-# fit <- nlminb(phase2_inits, model$fn, model$gr,
-#               control=list(eval.max=100000,iter.max=1000),
-#               lower = lower, upper = upper)
-# best <- model$env$last.par.best
-# print(as.numeric(best))
-# 
-# # PHASE 3 - estimate recruitment deviations (log_rec_devs) and fsh_logq,
-# # srv1_logq, srv2_logq, log_Fbar, and mr_logq
-# map <- list(dummy=factor(NA),
-#             fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
-#             srv_sel50 = factor(NA), srv_sel95 = factor(NA),
-#             #fsh_logq = factor(NA), #srv1_logq = factor(NA),
-#             #srv2_logq = factor(NA), # mr_logq = factor(NA),
-#             log_rbar = factor(NA), # log_rec_devs = rep(factor(NA), nyr+nage-2),
-#             #log_Fbar = factor(NA),
-#             log_F_devs = rep(factor(NA), nyr))
-# model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
-# lower <- c(rep(-15, 4), rep(-10, nyr+nage-2), -Inf)
-# upper <- c(rep(5, 4), rep(10, nyr+nage-2), Inf)
-# phase3_inits <- c(as.numeric(best)[1:4], parameters$log_rec_devs, as.numeric(best)[5])
-# fit <- nlminb(phase3_inits, model$fn, model$gr,
-#               control=list(eval.max=100000,iter.max=1000),
-#               lower = lower, upper = upper)
-# best <- model$env$last.par.best
-# print(as.numeric(best))
-# 
-# # PHASE 4 - estimate fishing mortality deviations and selectivities and
-# # log_rec_devs, fsh_logq, srv1_logq, srv2_logq, log_Fbar and mr_logq
-# map <- list(dummy=factor(NA),
-#             # fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
-#             # srv_sel50 = factor(NA), srv_sel95 = factor(NA),
-#             #fsh_logq = factor(NA), #srv1_logq = factor(NA),
-#             #srv2_logq = factor(NA), #mr_logq = factor(NA),
-#             log_rbar = factor(NA)#, log_rec_devs = rep(factor(NA), nyr+nage-2),
-#             #log_Fbar = factor(NA),
-#             #log_F_devs = rep(factor(NA), nyr)
-#             )
-# model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
-# lower <- c(rep(0.1, 4), rep(-15, 4), rep(-10, nyr+nage-2), -Inf, rep(-15, nyr))
-# upper <- c(rep(10, 4), rep(5, 4), rep(10, nyr+nage-2), Inf, rep(15, nyr))
-# phase4_inits <- c(parameters$fsh_sel50, parameters$fsh_sel95,
-#                   parameters$srv_sel50, parameters$srv_sel95,
-#                   as.numeric(best), parameters$log_F_devs)
-# fit <- nlminb(phase4_inits, model$fn, model$gr,
-#               control=list(eval.max=100000,iter.max=1000),
-#               lower = lower, upper = upper)
-# best <- model$env$last.par.best
-# print(as.numeric(best))
-# 
-# # PHASE 5 - Estimate all parameters
-# map <- list(dummy=factor(NA)#,
-#             # fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
-#             # srv_sel50 = factor(NA), srv_sel95 = factor(NA),
-#             #fsh_logq = factor(NA), #srv1_logq = factor(NA),
-#             #srv2_logq = factor(NA), #mr_logq = factor(NA),
-#             #log_rbar = factor(NA)#, log_rec_devs = rep(factor(NA), nyr+nage-2),
-#             #log_Fbar = factor(NA),
-#             #log_F_devs = rep(factor(NA), nyr)
-#             )
-# model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
-# lower <- c(rep(0.1, 4), rep(-15, 4), -Inf, rep(-10, nyr+nage-2), -Inf, rep(-15, nyr))
-# upper <- c(rep(10, 4), rep(5, 4), Inf, rep(10, nyr+nage-2), Inf, rep(15, nyr))
-# phase5_inits <- c(as.numeric(best)[1:8], parameters$log_rbar, as.numeric(best)[9:length(best)])
-# fit <- nlminb(phase5_inits, model$fn, model$gr,
-#               control=list(eval.max=100000,iter.max=1000),
-#               lower = lower, upper = upper)
-# for (i in 1:5){
-#   fit <- nlminb(model$env$last.par.best, model$fn, model$gr)}
-# best <- model$env$last.par.best
-# print(as.numeric(best))
-# rep <- sdreport(model)
-# 
-# print(best)
-# print(rep)
-# VarCo <- solve(model$he())
-# # Check for Hessian
-# print(sqrt(diag(VarCo)))
-# 
-# # Likelihood components
-# # model$report()$priors
-# model$report()$catch_like
-# model$report()$index_like
-# model$report()$age_like
-# model$report()$fpen
-# model$report()$rec_like
-# model$report()$obj_fun
-# model$report()$offset
+Standardized residuals:
 
-# Resids for time series ----
+```{r plot_resids_ts, echo=FALSE, fig.height = 6.5, fig.width = 6, message=FALSE, warning=FALSE}
 ts %>% 
   mutate(catch_resid = catch - pred_catch,
          catch_sresid = catch_resid / sd(catch_resid)) -> ts
@@ -469,22 +380,23 @@ ggplot(mr_plot, aes(x = year, y = mr_sresid)) +
 
 plot_grid(r_catch, r_fsh, r_srv, r_mr, ncol = 1, align = 'hv', 
           labels = c('(A)', '(B)', '(C)', '(D)'))
+```
 
-# ggsave(paste0("presid_abd_indices.png"), 
-#        dpi=300, height=7, width=6, units="in")
+## Derived time series of recruitment, abundance, and biomass
 
-# Plot derived variables ----
+```{r plot_derivedvars, echo=FALSE, fig.height = 8, fig.width = 6, message=FALSE, warning=FALSE}
 ts %>% 
   mutate(Fmort = model$report()$Fmort,
-         pred_rec = model$report()$pred_rec,
-         biom = model$report()$biom,
-         expl_biom = model$report()$expl_biom,
-         vuln_abd = model$report()$vuln_abd,
-         spawn_biom = model$report()$spawn_biom,
-         exploit = catch / expl_biom) -> ts
+         pred_rec = model$report()$pred_rec / 1e6,
+         biom = model$report()$biom  / 1e3,
+         expl_biom = model$report()$expl_biom  / 1e3,
+         vuln_abd = model$report()$vuln_abd / 1e6,
+         spawn_biom = model$report()$spawn_biom / 1e3,
+         exploit = catch / (expl_biom / 1e3)) -> ts
 
 p <- ggplot(ts, aes(x = year)) +
-  scale_x_continuous( breaks = axis$breaks, labels = axis$labels)
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  scale_y_continuous(label = scales::comma)
 
 # Recruitment
 p + geom_point(aes(y = pred_rec)) +
@@ -513,19 +425,22 @@ p + geom_point(aes(y = spawn_biom)) +
 
 plot_grid(p_rec, p_biom, p_ebiom, p_vabd, p_sbiom, ncol = 1, align = 'hv',
           labels = c('(A)', '(B)', '(C)', '(D)', '(E)'))
+```
 
-ggsave(paste0("derived_ts.png"), 
-       dpi=300, height=7, width=6, units="in")
+## Estimate of fishing mortality
 
-# Plot F ----
+On natural scale
+
+```{r plot_F, echo=FALSE, message=FALSE, warning=FALSE}
 p + geom_point(aes(y = Fmort)) +
   geom_line(aes(y = Fmort, group = 1)) +
   labs(x = "", y = "Fishing mortality") 
 
-ggsave(paste0("fishing_mort.png"), 
-       dpi=300, height=4, width=6, units="in")
+```
 
-# Plot age comps ----
+## Fits to age comps
+
+```{r plot_resid_agecomps, echo=FALSE, message=FALSE, warning=FALSE}
 
 pred_fsh_age <- as.data.frame(model$report()$pred_fsh_age)
 names(pred_fsh_age) <- as.character(rec_age:plus_group)
@@ -572,10 +487,10 @@ age %>%
 
 # Custom axes
 axis <- tickr(agecomps, year, 5)
-age_labs <- c("2", "", "", "", "6", "", "", "", "10", "", "", "", "14", "",
-              "", "", "18", "", "", "", "22", "", "", "", "26", "",
-              "", "", "30", "", "", "", "34", "", "", "", "38", "",
-              "", "", "42+") 
+age_labs <- c("", "", "", "5", "", "", "", "", "10", "", "", "", "", "15",
+              "", "", "", "", "20", "", "", "", "", "25", "", "",
+              "", "", "30", "", "", "", "", "35", "", "", "", "",
+              "40", "", "") 
 
 ggplot(agecomps, aes(x = Age, y = year, size = std_resid,
                      fill = `Model performance`)) + 
@@ -589,10 +504,11 @@ ggplot(agecomps, aes(x = Age, y = year, size = std_resid,
   scale_x_discrete(breaks = unique(agecomps$Age), labels = age_labs) +
   scale_y_continuous(breaks = axis$breaks, labels = axis$labels) +
   theme(legend.position = "bottom")
+```
 
-ggsave("agecomps_residplot.png", dpi = 300, height = 7, width = 8, units = "in")
+## Fits to fishery age comps
 
-# Barplot age comps ----
+```{r plot_fsh_age, echo=FALSE, fig.height = 8, fig.width = 6, message=FALSE, warning=FALSE}
 
 # Fishery
 ggplot(agecomps %>% filter(Source == "Fishery")) +
@@ -600,13 +516,14 @@ ggplot(agecomps %>% filter(Source == "Fishery")) +
            stat = "identity", colour = "grey", fill = "lightgrey",
            width = 0.8, position = position_dodge(width = 0.5)) +
   geom_line(aes(x = Age, y = pred, group = 1), size = 0.6) +
-  facet_wrap(~ year, dir = "v", ncol = 5) +
+  facet_wrap(~ year, dir = "v", ncol = 2) +
   scale_x_discrete(breaks = unique(agecomps$Age), labels = age_labs) +
   labs(x = '\nAge', y = 'Proportion-at-age\n') 
+```
 
-ggsave("fsh_agecomps_barplot.png", dpi = 300, height = 6, width = 7, units = "in")
+## Fits to survey age comps
 
-# Survey
+```{r plot_srv_age, echo=FALSE, fig.height = 8, fig.width = 6, message=FALSE, warning=FALSE}
 agecomps %>% filter(Source == "Survey") %>% 
   ggplot() +
   geom_bar(aes(x = Age, y = obs), 
@@ -616,10 +533,11 @@ agecomps %>% filter(Source == "Survey") %>%
   facet_wrap(~ year, dir = "v", ncol = 3) +
   scale_x_discrete(breaks = unique(agecomps$Age), labels = age_labs) +
   labs(x = '\nAge', y = 'Proportion-at-age\n')
+```
 
-ggsave("srv_agecomps_barplot.png", dpi = 300, height = 8, width = 7, units = "in")
+## Selectivity
 
-# Plot selectivity ----
+```{r plot_selectivity, echo=FALSE, message=FALSE, warning=FALSE}
 
 agecomps %>% 
   ungroup %>% 
@@ -640,4 +558,4 @@ ggplot(sel, aes(x = Age, y = sel, colour = Source,
        colour = NULL, lty = NULL, shape = NULL) +
   theme(legend.position = c(.7, .4)) 
 
-ggsave("selectivity.png", dpi = 300, height = 4, width = 4, units = "in")
+```
