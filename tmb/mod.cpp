@@ -107,8 +107,10 @@ template<class Type>
   // Selectivity 
   PARAMETER(fsh_sel50);           // Fishery (50% selected)
   PARAMETER(fsh_sel95);           // Fishery (95% selected)
-  PARAMETER(srv_sel50);           // Survey (50% selected)
-  PARAMETER(srv_sel95);           // Survey (95% selected)
+  PARAMETER(srv_sel50);          // 1-hr soak time survey (50% selected)
+  PARAMETER(srv_sel95);          // 1-hr soak time survey (95% selected)
+  //PARAMETER(srv2_sel50);          // 3+hr soak time survey (50% selected)
+  //PARAMETER(srv2_sel95);          // 3+hr soak time survey (95% selected)
 
   // Catchability
   PARAMETER(fsh_logq);            // fishery       
@@ -139,9 +141,9 @@ template<class Type>
   matrix<Type> pred_srv_age(nyr_srv_age, nage);  // Survey
   
   // Predicted selectivity
-  vector<Type> fsh_sel(nage);     // Fishery selectivity-at-age (on natural scale)
-  vector<Type> srv_sel(nage);     // Survey selectivity-at-age (on natural scale)
-  
+  matrix<Type> fsh_sel(nyr, nage);    // Fishery selectivity-at-age (on natural scale)
+  matrix<Type> srv_sel(nyr, nage);    // Survey selectivity-at-age (on natural scale), both 1-hr and 3+hr soak times
+
   // Predicted annual fishing mortality
   vector<Type> Fmort(nyr);      // On natural scale
   
@@ -194,13 +196,22 @@ template<class Type>
   // Indexing: i = year, j = age
   
   // Fishery selectivity
-  for (int j = 0; j < nage; j++)
-    fsh_sel(j) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_sel50) / (fsh_sel95 - fsh_sel50)) );
-
+  for (int i = 0; i < nyr; i++) {
+    for (int j = 0; j < nage; j++) {
+      
+      fsh_sel(i,j) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_sel50) / (fsh_sel95 - fsh_sel50)) );
+      
+    }
+  }
+  
   // Survey selectivity
-  for (int j = 0; j < nage; j++)
-    srv_sel(j) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - srv_sel50) / (srv_sel95 - srv_sel50)) );
-
+  for (int i = 0; i < nyr; i++) {
+    for (int j = 0; j < nage; j++) {
+      
+    srv_sel(i,j) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - srv_sel50) / (srv_sel95 - srv_sel50)) );
+      
+    }
+  }
   // std::cout << fsh_sel << "\n";
   // std::cout << srv_sel << "\n";
 
@@ -212,7 +223,7 @@ template<class Type>
       Fmort(i) = exp(log_Fbar + log_F_devs(i));
 
       // Fishing mortality by year and age
-      F(i,j) = Fmort(i) * fsh_sel(j);
+      F(i,j) = Fmort(i) * fsh_sel(i,j);
 
       // Total mortality by year and age
       Z(i,j) = M + F(i,j);
@@ -327,10 +338,10 @@ template<class Type>
       biom(i) += data_srv_waa(j) * N(i,j) * surv_srv; 
 
       // Vulnerable biomass to the fishery at the beginning of the fishery
-      expl_biom(i) += data_srv_waa(j) * fsh_sel(j) * N(i,j) * surv_fsh; 
+      expl_biom(i) += data_srv_waa(j) * fsh_sel(i,j) * N(i,j) * surv_fsh; 
 
       // Vulnerable abundance to the survey at the beginning of the survey
-      vuln_abd(i) += srv_sel(j) * N(i,j) * surv_srv;
+      vuln_abd(i) += srv_sel(i,j) * N(i,j) * surv_srv;
 
       // Spawning biomass
       spawn_biom(i) += data_srv_waa(j) * N(i,j) * exp(-spawn_month * M) * prop_fem(j) * prop_mature(j);
@@ -403,10 +414,10 @@ template<class Type>
   for (int i = 0; i < nyr_srv_age; i++) {
     Type sumN = 0;
     for (int j = 0; j < nage; j++) {
-      sumN += N(yrs_srv_age(i),j) * srv_sel(j);
+      sumN += N(yrs_srv_age(i),j) * srv_sel(yrs_srv_age(i),j);
     }
     for (int j = 0; j < nage; j++) {
-      pred_srv_age(i,j) = N(yrs_srv_age(i),j) * srv_sel(j) / sumN;
+      pred_srv_age(i,j) = N(yrs_srv_age(i),j) * srv_sel(yrs_srv_age(i),j) / sumN;
     }
   }
 

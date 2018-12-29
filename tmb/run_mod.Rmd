@@ -544,8 +544,8 @@ agecomps %>%
   distinct(age, Age) %>% 
   mutate(age = as.numeric(age)) %>% 
   arrange(age) %>% 
-  mutate(Fishery = model$report()$fsh_sel,
-         Survey = model$report()$srv_sel) %>% 
+  mutate(Fishery = model$report()$fsh_sel[1,],
+         Survey = model$report()$srv_sel[1,]) %>% 
   gather("Source", "sel", c(Fishery, Survey)) %>% 
   filter(age <= 15) -> sel
 
