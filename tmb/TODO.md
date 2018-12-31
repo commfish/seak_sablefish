@@ -12,10 +12,14 @@
 [ ]	**Work with groundfish biologists to obtain the raw mark-recapture data from 2003 and 2004** 
 
 [ ]	Use data to estimate variances and effective sample sizes for the various abundance indices and age compositions. Currently the sigmas for the abundance indices and effective sample sizes for the age comps are assumed constant values, which is likely unrealistic
-      [X] Mark-recapture
-      [ ] Fishery cpue
-      [ ] Survey cpue
-      [ ] Age comps
+     
+     [X] Mark-recapture
+     
+     [ ] Fishery cpue
+     
+     [ ] Survey cpue
+     
+     [ ] Age comps
       
 [ ]	Evaluate the current ageing error matrix and include it in the model
 
@@ -34,9 +38,9 @@
 
 [ ] Refine the implementation of phasing, starting values, and weighting for the various likelihood components.
 
-[ ] Consideration should be given to time-varying selectivity given there are multiple fisheries (that are aggregated)
+[X] Consideration should be given to time-varying selectivity given there are multiple fisheries (that are aggregated)
 
-[ ] Test alternative models to determine if the same selectivity for the two surveys is appropriate 
+[X] Test alternative models to determine if the same selectivity for the two surveys is appropriate 
 
 [ ] Develop the TMB code to estimate biological reference points within the model
 
