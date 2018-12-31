@@ -11,10 +11,16 @@ template<class Type>
   Type objective_function<Type>::operator() ()
 {
   // **DATA SECTION**
-    
+  
+  // Model dimensions
   DATA_INTEGER(nyr)             // number of years in the model
   DATA_INTEGER(nage)            // number of ages in the model
   
+  // Time varying parameter blocks - each vector contains the terminal years of
+  // each time block
+  DATA_IVECTOR(blks_fsh_sel)    // fishery selectivity 
+  DATA_IVECTOR(blks_srv_sel)    // survey selectivity 
+    
   // Fixed parameters
   DATA_SCALAR(M)                // assumed constant natural mortality
   DATA_SCALAR(sigma_catch)      // assumed CV of 5% for catch
@@ -105,12 +111,10 @@ template<class Type>
   PARAMETER(dummy);          
 
   // Selectivity 
-  PARAMETER(fsh_sel50);           // Fishery (50% selected)
-  PARAMETER(fsh_sel95);           // Fishery (95% selected)
-  PARAMETER(srv_sel50);          // 1-hr soak time survey (50% selected)
-  PARAMETER(srv_sel95);          // 1-hr soak time survey (95% selected)
-  //PARAMETER(srv2_sel50);          // 3+hr soak time survey (50% selected)
-  //PARAMETER(srv2_sel95);          // 3+hr soak time survey (95% selected)
+  PARAMETER_VECTOR(fsh_sel50);    // Fishery (age at 50% selected)
+  PARAMETER_VECTOR(fsh_sel95);    // Fishery (age at 95% selected)
+  PARAMETER_VECTOR(srv_sel50);    // Survey (age at 50% selected)
+  PARAMETER_VECTOR(srv_sel95);    // Survey (age at 95% selected)
 
   // Catchability
   PARAMETER(fsh_logq);            // fishery       
@@ -193,27 +197,52 @@ template<class Type>
   
   // **MODEL**
   
-  // Indexing: i = year, j = age
+  // Indexing: i = year, j = age, h = time block
   
   // Fishery selectivity
-  for (int i = 0; i < nyr; i++) {
-    for (int j = 0; j < nage; j++) {
-      
-      fsh_sel(i,j) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_sel50) / (fsh_sel95 - fsh_sel50)) );
-      
-    }
+  
+  // for (int i = 0; i < nyr; i++) {
+  //   for (int j = 0; j < nage; j++) {
+  //     
+  //     fsh_sel(i,j) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_sel50) / (fsh_sel95 - fsh_sel50)) );
+  //     
+  //   }
+  // }
+  
+  int i = 0;
+  
+  for(int h = 0; h < blks_fsh_sel.size(); h++){
+    do{ 
+      for (int j = 0; j < nage; j++) {
+        fsh_sel(i,j) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_sel50(h)) / (fsh_sel95(h) - fsh_sel50(h))) );
+      }
+      i++;
+    } while (i <= blks_fsh_sel(h));
+  }
+    
+  // Survey selectivity
+  
+  // for (int i = 0; i < nyr; i++) {
+  //   for (int j = 0; j < nage; j++) {
+  //     
+  //   srv_sel(i,j) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - srv_sel50) / (srv_sel95 - srv_sel50)) );
+  //     
+  //   }
+  // }
+  
+  i = 0;
+  
+  for(int h = 0; h < blks_srv_sel.size(); h++){
+    do{ 
+      for (int j = 0; j < nage; j++) {
+        srv_sel(i,j) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - srv_sel50(h)) / (srv_sel95(h) - srv_sel50(h))) );
+      }
+      i++;
+    } while (i <= blks_srv_sel(h));
   }
   
-  // Survey selectivity
-  for (int i = 0; i < nyr; i++) {
-    for (int j = 0; j < nage; j++) {
-      
-    srv_sel(i,j) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - srv_sel50) / (srv_sel95 - srv_sel50)) );
-      
-    }
-  }
-  // std::cout << fsh_sel << "\n";
-  // std::cout << srv_sel << "\n";
+  std::cout << fsh_sel << "\n";
+  std::cout << srv_sel << "\n";
 
   // Mortality and survivorship
   for (int i = 0; i < nyr; i++) {

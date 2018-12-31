@@ -46,7 +46,11 @@ data <- list(
   # Model dimensions
   nyr = nyr,
   nage = nage,
-
+  
+  # Time varying parameters - each vector contains the terminal years of each time block
+  blks_fsh_sel = c(16, 37), # fishery selectivity 
+  blks_srv_sel = c(16, 37), # survey selectivity
+  
   # Fixed parameters
   M = 0.1,
   sigma_catch = 0.05,
@@ -54,12 +58,12 @@ data <- list(
   omega = 50,
   
   # Priors ("p_" denotes prior)
-  p_fsh_q = 0.02,
-  sigma_fsh_q = 0.5,
+  p_fsh_q = 0.001,
+  sigma_fsh_q = 1,
   p_srv1_q = 0.001,
-  sigma_srv1_q = 0.5,
-  p_srv2_q = 0.002,
-  sigma_srv2_q = 0.5,
+  sigma_srv1_q = 1,
+  p_srv2_q = 0.001,
+  sigma_srv2_q = 1,
   p_mr_q = 1.0,
   sigma_mr_q = 0.01,
   
@@ -81,7 +85,7 @@ data <- list(
   nyr_mr = n_distinct(mr, mr),
   yrs_mr = mr %>% distinct(index) %>% pull(),
   data_mr = pull(mr, mr),
-  sigma_mr = pull(mr, mr_sd), #rep(0.05, 10)
+  sigma_mr = pull(mr, mr_sd), # rep(0.05, 10),
   
   # Fishery CPUE
   nyr_fsh_cpue = fsh_cpue %>% n_distinct(fsh_cpue),
@@ -129,14 +133,14 @@ data <- list(
 
 # Parameter starting values
 parameters <- list(
-
+  
   dummy = 0,   # Used for troubleshooting model               
-
+  
   # Selectivity
-  fsh_sel50 = 3.52,
-  fsh_sel95 = 5.43,
-  srv_sel50 = 3.86,
-  srv_sel95 = 5.13, 
+  fsh_sel50 = rep(3.52, length(data$blks_fsh_sel)),
+  fsh_sel95 = rep(5.43, length(data$blks_fsh_sel)),
+  srv_sel50 = rep(3.86, length(data$blks_srv_sel)),
+  srv_sel95 = rep(5.13, length(data$blks_srv_sel)), 
   
   # Catchability
   fsh_logq = -3.6726,
@@ -156,7 +160,7 @@ parameters <- list(
 
 # Parameter bounds
 lower <- c(             # Lower bounds
-  rep(0.1, 4),          # Selectivity
+  rep(0.1, length(data$blks_fsh_sel) + length(data$blks_srv_sel)),          # Selectivity
   rep(-15, 4),          # Catchability log_q
   -Inf,                 # Mean recruitment
   rep(-10, nyr+nage-2), # log recruitment deviations
@@ -165,7 +169,7 @@ lower <- c(             # Lower bounds
 )
 
 upper <- c(             # Upper bounds
-  rep(10, 4),           # Selectivity
+  rep(10, length(data$blks_fsh_sel) + length(data$blks_srv_sel)),           # Selectivity
   rep(5, 4),            # Catchability q
   Inf,                  # Mean recruitment
   rep(10, nyr+nage-2),  # log recruitment deviations
@@ -179,12 +183,14 @@ upper <- c(             # Upper bounds
 # fix parameter values
 
 # When testing the code
-# map <- list(fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
-#           srv_sel50 = factor(NA), srv_sel95 = factor(NA),
-#           fsh_logq = factor(NA), srv1_logq = factor(NA),
-#           srv2_logq = factor(NA), mr_logq = factor(NA),
-#           log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
-#           log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr))
+# map <- list(fsh_sel50 = rep(factor(NA), length(data$blks_fsh_sel)), 
+#             fsh_sel95 = rep(factor(NA), length(data$blks_fsh_sel)),
+#             srv_sel50 = rep(factor(NA), length(data$blks_srv_sel)), 
+#             srv_sel95 = rep(factor(NA), length(data$blks_srv_sel)),
+#             fsh_logq = factor(NA), srv1_logq = factor(NA),
+#             srv2_logq = factor(NA), mr_logq = factor(NA),
+#             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
+#             log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr))
         
 # Compile
 compile("mod.cpp")
@@ -203,11 +209,6 @@ for (i in 1:100){
 best <- model$env$last.par.best
 print(as.numeric(best))
 rep <- sdreport(model)
-
-
-
-
-
 print(best)
 print(rep)
 model$report()$priors
@@ -216,6 +217,8 @@ model$report()$index_like
 model$report()$age_like
 model$report()$pred_mr
 model$report()$obj_fun
+
+
 
 exp(as.list(rep, what = "Estimate")$fsh_logq)
 exp(as.list(rep, what = "Estimate")$srv1_logq)
@@ -621,20 +624,53 @@ ggsave("srv_agecomps_barplot.png", dpi = 300, height = 8, width = 7, units = "in
 
 # Plot selectivity ----
 
-agecomps %>% 
-  ungroup %>% 
-  distinct(age, Age) %>% 
-  mutate(age = as.numeric(age)) %>% 
-  arrange(age) %>% 
-  mutate(Fishery = model$report()$fsh_sel,
-         Survey = model$report()$srv_sel) %>% 
-  gather("Source", "sel", c(Fishery, Survey)) %>% 
-  filter(age <= 15) -> sel
+# Extract selectivity matrices and convert to dfs and create a second index col
+# as a dummy var (must supply an interval to foverlaps). Set as data.table
+# object so it is searchable
+sel <- model$report()$fsh_sel %>% as.data.frame() %>% 
+  mutate(Selectivity = "Fishery") %>% 
+  bind_rows(model$report()$srv_sel %>% as.data.frame() %>% 
+              mutate(Selectivity = "Survey"))
 
-ggplot(sel, aes(x = Age, y = sel, colour = Source, 
-                shape = Source, lty = Source, group = Source)) +
+names(sel) <- c(unique(agecomps$age), "Selectivity")
+
+sel <- sel %>% 
+  mutate(year = rep(ts$year, 2)) %>% 
+  gather("Age", "proportion", -c(year, Selectivity)) %>% 
+  mutate(year2 = year) # needed for foverlaps()
+
+setDT(sel)
+
+# Look up table for selectivity time blocks
+blks_sel <- data.frame(Selectivity = c(rep("Fishery", length(data$blks_fsh_sel)),
+                                       rep("Survey", length(data$blks_srv_sel))),
+                       end = c(data$blks_fsh_sel, data$blks_srv_sel)) %>%
+  left_join(ts %>%
+              mutate(end = index) %>% 
+              select(year, end), by = "end") %>% 
+  rename(end_year = year) %>% 
+  # Define start of the interval based on the end of the interval
+  group_by(Selectivity) %>% 
+  mutate(start_year = c(min(ts$year), head(end_year, -1) + 1)) 
+  
+
+setkey(setDT(blks_sel), Selectivity, start_year, end_year)
+
+# Match each year to the start and end year in blks_sel
+foverlaps(x = sel, y = blks_sel,
+          by.x = c("Selectivity", "year", "year2"),
+          type = "within") -> sel
+
+sel <- sel %>% 
+  mutate(`Time blocks` = paste0(start_year, "-", end_year),
+         age = as.numeric(Age)) %>% 
+  filter(age <= 15)
+
+ggplot(sel, aes(x = age, y = proportion, colour = `Time blocks`, 
+                shape = `Time blocks`, lty = `Time blocks`, group = `Time blocks`)) +
   geom_point() +
   geom_line() +
+  facet_wrap(~Selectivity) +
   scale_colour_grey() +
   labs(y = "Selectivity\n", x = NULL, 
        colour = NULL, lty = NULL, shape = NULL) +
