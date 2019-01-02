@@ -166,12 +166,12 @@ template<class Type>
   matrix<Type> S(nyr, nage);    // Survivorship
   matrix<Type> C(nyr, nage);    // Catch in numbers
 
-  // Derived vectors by year 
-  vector<Type> pred_rec(nyr);   // Predicted age-2 recruitment
-  vector<Type> biom(nyr);       // Total age-2+ biomass
-  vector<Type> expl_biom(nyr);  // Vulnerable biomass to fishery at the beginning of the fishery
-  vector<Type> vuln_abd(nyr);   // Vulnerable abundance to survey at the beginning of the survey
-  vector<Type> spawn_biom(nyr); // Spawning biomass
+  // Derived vectors by year + projected values
+  vector<Type> pred_rec(nyr);     // Predicted age-2 recruitment
+  vector<Type> biom(nyr+1);       // Total age-2+ biomass, projected 1 year forward
+  vector<Type> expl_biom(nyr+1);  // Vulnerable biomass to fishery at the beginning of the fishery, projected 1 year forward
+  vector<Type> vuln_abd(nyr+1);   // Vulnerable abundance to survey at the beginning of the survey, projected 1 year forward
+  vector<Type> spawn_biom(nyr+1); // Spawning biomass
   biom.setZero();
   expl_biom.setZero();
   vuln_abd.setZero();
@@ -182,13 +182,10 @@ template<class Type>
   Type surv_fsh;                // Annual natural survival at time of fishery
   Type surv_spawn;              // Annual natural survival at time of spawning
   Type pred_rbar;               // Predicted mean recruitment
-  Type biom_proj;               // Projected biomass
-  Type expl_biom_proj;          // Projected vulnerable biomass to fishery at the beginning of the fishery
-  Type spawn_biom_proj;         // Projected spawning biomass
   
   // SPR-based reference points
   int n_Fxx = Fxx_levels.size();        // Number of Fs estimated
-  vector<Type> Fxx(n_Fxx + 1);          // Separate Fxx matrix that is scaled to fully selected values (+1 includes F=0)
+  vector<Type> Fxx(n_Fxx + 1);          // Separate Fxx vector that is scaled to fully selected values (+1 includes F=0)
   matrix<Type> Nspr(n_Fxx + 1, nage);   // Matrix of spawning numbers-at-age *FLAG* number of rows = number of estimated F_xx% (e.g. 3 = F35,F40,F50)
   vector<Type> SBPR(n_Fxx + 1);         // Spawning biomass per recruit at various fishing levels
   vector<Type> SB(n_Fxx + 1);           // Equilibrium spawning biomass at various fishing levels
@@ -378,7 +375,7 @@ template<class Type>
   // std::cout << "sum_rec\n" << sum_rec << "\n";
   // std::cout << "pred_rbar\n" << pred_rbar << "\n";
 
-  // Various flavors of predicted biomass estimates
+  // Various flavors of projected biomass estimates
   for (int i = 0; i < nyr; i++) {
     for (int j = 0; j < nage; j++) {
 
@@ -395,6 +392,15 @@ template<class Type>
       spawn_biom(i) += data_srv_waa(j) * N(i,j) * surv_spawn * prop_fem(j) * prop_mature(j);
     }
   }
+  
+  // Project those values into the next year 
+  for (int j = 0; j < nage; j++) {
+    biom(nyr) += data_srv_waa(j) * N(nyr,j) * surv_srv; 
+    expl_biom(nyr) += data_srv_waa(j) * fsh_sel(nyr-1,j) * N(nyr,j) * surv_fsh; 
+    vuln_abd(nyr) += srv_sel(nyr-1,j) * N(nyr,j) * surv_srv;
+    spawn_biom(nyr) += data_srv_waa(j) * N(nyr,j) * surv_spawn * prop_fem(j) * prop_mature(j);
+  }
+    
   // std::cout << "Predicted biomass\n" << biom << "\n";
   // std::cout << "Predicted exploited biomass\n" << expl_biom << "\n";
   // std::cout << "Predicted vulnerable abundance\n" << vuln_abd << "\n";
@@ -487,12 +493,6 @@ template<class Type>
   //     pred_srv_age(i,j) = N(yrs_srv_age(i),j) * srv_sel(j) / sum(N(yrs_srv_age(i)) * srv_sel(j));
   //   }
   // }
-
-  // FLAG - Add Projected biomass section - just add nyr+1 to the existing
-  // vectors?
-  // biom_proj
-  // expl_biom_proj
-  // spawn_biom_proj
 
   // Compute SPR rates and spawning biomass under different Fxx levels
   
@@ -728,13 +728,16 @@ template<class Type>
   REPORT(vuln_abd);         // Vulnerable abundance to survey at the beginning of the survey
   REPORT(spawn_biom);       // Spawning biomass
   
+  // SPR-based biological reference points and ABC
+  REPORT(Fxx);              // Vector of Fs scaled to fully selected values
+  REPORT(SBPR);             // Vector of spawning biomass per recruit at various Fxx levels
+  REPORT(SB);               // Vector of spawning biomass at various Fxx levels
+  REPORT(ABC);              // ABC at various Fxx levels
+  
   // Other derived and projected values
   REPORT(surv_srv);         // Annual natural survival at time of survey
   REPORT(surv_fsh);         // Annual natural survival at time of fishery
   REPORT(pred_rbar);        // Predicted mean recruitment
-  REPORT(biom_proj);        // Projected biomass
-  REPORT(expl_biom_proj);   // Projected vulnerable biomass to fishery at the beginning of the fishery
-  REPORT(spawn_biom_proj);  // Projected spawning biomass
   
   // Priors, likelihoods, offsets, and penalty functions
   REPORT(priors);           // q priors
