@@ -1,14 +1,21 @@
-## Code for processing Chatham Strait Southeast Alaska sablefish data for population assessments  
+# Northern Southeast Inside Waters (NSEI) sablefish (*Anoplopoma fimbria*) stock assessment
 
 Please direct any questions to: 
 Jane Sullivan jane.sullivan1@alaska.gov
 or
 Ben Williams ben.williams@alaska.gov
 
+## Fishery development and history 
 
-# DATA SOURCES
+*History for NSEI and SSEI fisheries copied from recent Board of Fish Report*
 
-## Commercial fishery data 
+State managed fisheries currently occur in NSEI (Chatham Strait) and SSEI (Clarence Strait and adjacent waters of Dixon Entrance). Sablefish have been harvested in the internal waters of Southeast Alaska since the early 1900s. Prior to the 1940s, sablefish were primarily landed as bycatch in the halibut fishery (Bracken 1983). Halibut longline gear was modified in the late 1940s to target sablefish. Until the 1970s, harvest levels fluctuated widely due to low price and better opportunities in other fisheries. Pot gear was first introduced in 1970 in the Clarence Strait and Dixon Entrance areas and the pot fishery accounted for 33% of the total harvest in the early 1970s. In 1981, the NSEI fishery was restricted to longline gear only, but pot gear was still allowed in the SSEI Subdistrict.
+
+Sablefish have been historically managed with limitations on fishing seasons and harvest levels. Season limitations were first imposed in 1945 for the NSEI management area and in 1982 for the SSEI management area (Bracken 1983). Fishing seasons continued to be shortened in both areas as effort escalated in the 1970s and 1980s. GHRs based on historic catches were established for both areas in 1980. In 1985, a limited entry program was implemented for both the NSEI and SSEI sablefish fisheries. However, the number of vessels and overall operating efficiency of the longline fleet increased significantly after the limited entry program was implemented. In order to stay within GHRs, the department continued to reduce the number of fishing days in both areas. In the NSEI area, the number of fishing days fell from 76 days in 1980 to one day in 1987 (Table 12). One-day openings continued in the NSEI area through 1993. In 1993, the NSEI fleet harvested 3,640,000 dressed lb, which was 2,140,000 dressed lb over the upper bound of the GHR (1,500,000 dressed lb). In an effort to improve management, the board adopted an equal quota share (EQS) system for the NSEI area in 1994.
+
+## DATA SOURCES
+
+### Commercial fishery data 
 1. Source: Longline and Pot (a relatively new fishery)
 2. Catch and effort:
 	- Nistorical cpue/catch data separate? (lbs/hook, 1980-1996, Dave Carlile?)
@@ -28,7 +35,7 @@ Ben Williams ben.williams@alaska.gov
 	- Depth: Start of set, end of set, or mean (fathom or meters?)
 	- I also have columns 'G_STAT_AREA_GROUP', 'SAMPLE_TYPE_CODE', and 'SPECIMEN_NO', but I don't know what these mean.
 
-## Sport and personal use/subsistence catch (currently there are no queries for this)
+### Sport and personal use/subsistence catch (currently there are no queries for this)
 1. Source: Sport, charter, and personal use/subsistence
 2. Catch and effort:
 	- Charter logbooks
@@ -40,7 +47,7 @@ Ben Williams ben.williams@alaska.gov
 	- Area: Management area, stat area
 	- Potential for recaptures?
 
-## ADFG Longline Survey
+### ADFG Longline Survey
 1. Source: Longline survey (OceanAK, except for ages?)
 2. Catch and effort:
 	- Whole (or round) lbs by trip and by set (sablefish per hook)
@@ -55,7 +62,7 @@ Ben Williams ben.williams@alaska.gov
 	- Depth: Start of set, end of set, or mean (fathom or meters?)
 	- I also have columns 'Subset No' and 'Subset Condition', but I don't know what these mean.
 
-## ADFG Pot Survey
+### ADFG Pot Survey
 1. Source: Pot survey (OceanAK?)
 2. Catch and effort:
 	- Number caught
@@ -69,9 +76,9 @@ Ben Williams ben.williams@alaska.gov
 	- Depth
 	- I also have columns 'Subset No' and 'Subset Condition', but I don't know what these mean.
 
-## Marked fish tagged and released in the pot survey for recapture in the survey and fishery  
+### Marked fish tagged and released in the pot survey for recapture in the survey and fishery  
 
-## Product recovery rates for sablefish
+### Product recovery rates for sablefish
 
 Ice and slime assumed to be 2% of total weight.
 
@@ -82,11 +89,11 @@ Ice and slime assumed to be 2% of total weight.
 | 7             | Headed and gutted, Western cut | 0.68 |
 | 9 (08 in IFDB)| Headed and gutted, Eastern cut | 0.63 |
 
-# PAST QUERIES (from Kray Van Kirk February 2017)
+## PAST QUERIES (from Kray Van Kirk February 2017)
 
-## Commercial fishery queries
+### Commercial fishery queries
 
-### annual_catch
+#### annual_catch
 
 Total annual commercial longline catch in metric tons for ASA
 
@@ -101,14 +108,14 @@ Groundfish Fish Tickets
 ```
 
 
-### legacy fishery cpue
+#### legacy fishery cpue
 
 Values from Dave Carlile, pounds per hook. 1980 - 1996. 
 Logbook data for these years NOT entered into IFDB; manually constructed.
 
 **NO QUERY OR OTHER DOCUMENTATION**
 
-### cpue_fsh
+#### cpue_fsh
 
 Used to calculate commercial longline fishery CPUE
 Output from Scott Johnson following the execution of Martina's script to define set target. 1997 - present
@@ -116,7 +123,7 @@ Output from Scott Johnson following the execution of Martina's script to define 
 **NO QUERY OR OTHER DOCUMENTATION**
 
 
-### fish_bio_data
+#### fish_bio_data
 
 Need an explanation of G_STAT_AREA_GROUP (e.g. NSEI 22, NSEI 15), SPECIMEN_NO, SAMPLE_TYPE_CODE, WEIGHT_KILOGRAMS (round? ice/slime? some of these are really heavy, e.g. 17 kg)
 NOTE: when running, always make sure that all data have been read and uploaded into IFDB by the ADU
@@ -129,9 +136,9 @@ NOTE: when running, always make sure that all data have been read and uploaded i
 	g_management_area_code = 'NSEI' AND project_code = '02'
 ```
  
-## Longline survey queries
+### Longline survey queries
 
-### cpue_srv
+#### cpue_srv
 
 Used to calculate Chatham longline survey CPUE
 
@@ -147,7 +154,7 @@ SURVEY >> LONGLINE SURVEY - CATCH AND HOOK ACCOUNTING
     Order By Clause	year, project_code, trip_no,effort_no,subset_no																				
 ```
 
-### srv_bio_data
+#### srv_bio_data
 
 **FLAG** - What does Effort No mean in this context? What day and depth were these collected? Date collected?
 
@@ -168,9 +175,9 @@ Criteria	Year is between 1988 AND Present AND
 ```
 
 
-## Pot survey 
+### Pot survey 
 
-### POT_LENGTH_FREQUENCY_15 (and 04_13)
+#### POT_LENGTH_FREQUENCY_15 (and 04_13)
 
 Lengths of fish marked on the pot survey.
 04_13 are legacy values between 2004 - 2013 - split for 2015+ due Excel limitation on row numbers; likely corrected with the implementation of ZANDER instead of ALEX
@@ -187,7 +194,7 @@ BIOLOGICAL DATA >> Age-Sex-Size Tagged at Sea
 ```
 
 
-### pot_sex
+#### pot_sex
 
 Subsample of those fish on the pot marking survey sacrificed to obtain sex data. Note that this table is distinct from POT_LENGTH above, as this one selects from Age-Sex-Size *Sampled* at Sea, not *Tagged* pot_sex and srv_bio_data could potentially be joined into a single call, wait for ZANDER?
 
@@ -204,7 +211,7 @@ BIOLOGICAL DATA >> Age-Sex-Size Sampled at Sea
     	project_code = '11'							
 ```
 
-### tagged_recovery_lengths
+#### tagged_recovery_lengths
 Used only to show differences between tagged retentions and non-tagged retentions in the commercial fishery; not used for any formal calcs
 
 **FLAG** Are these all the tag recoveries?
@@ -219,9 +226,9 @@ BIOLOGICAL DATA >> Tag Release and Recovery for Mapping
     	species_code = '710'	
 ```
 
-## Other
+### Other
 
-### sablefish_ADU_age
+#### sablefish_ADU_age
 Used to calculate the aging-error matrix for the ASA. Spreadsheet from Kevin McNeel at the ADF&G Age Determination Lab. These data are not currently stored in useable format in IFDB, so Kevin prepares it for us. This isn't necessarily something that needs to be updated and run every single year, but don't let more than one year go between updates. 
 
 **NO QUERY OR OTHER DOCUMENTATION**
