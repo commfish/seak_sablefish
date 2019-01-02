@@ -27,6 +27,9 @@ template<class Type>
   DATA_SCALAR(sigma_cpue)       // assumed CV of 20% (currently use for all cpue indices)
   DATA_SCALAR(omega)            // effective sample size for age comps (currently use for all age comps)
 
+  // Fxx levels that correspond with spr_Fxx in Parameter section
+  DATA_VECTOR(Fxx_levels)       // e.g. F35=0.35, F40=0.40, and F50=0.50
+  
   // Priors ("p_" denotes prior)
   DATA_SCALAR(p_fsh_q)          // prior fishery catchability coefficient (on natural scale)
   DATA_SCALAR(sigma_fsh_q)      // sigma for fishery q
@@ -47,6 +50,7 @@ template<class Type>
   DATA_SCALAR(wt_srv_age)       // survey age comps
   DATA_SCALAR(wt_rec_like)      // penalty on recruitment deviations
   DATA_SCALAR(wt_fpen)          // penality on fishing mortality deviations
+  DATA_SCALAR(wt_spr)           // penalty on spawner per recruit calcs
 
   // INDICES OF ABUNDANCE
   
@@ -65,9 +69,9 @@ template<class Type>
   DATA_VECTOR(data_fsh_cpue)    // vector of estimates
     
   // Survey (1-hr soak time) cpue 
-  DATA_INTEGER(nyr_srv1_cpue)    // number of years 
-  DATA_IVECTOR(yrs_srv1_cpue)    // vector of years
-  DATA_VECTOR(data_srv1_cpue)    // vector of estimates
+  DATA_INTEGER(nyr_srv1_cpue)     // number of years 
+  DATA_IVECTOR(yrs_srv1_cpue)     // vector of years
+  DATA_VECTOR(data_srv1_cpue)     // vector of estimates
 
   // Survey (3-hr soak time) cpue
   DATA_INTEGER(nyr_srv2_cpue)     // number of years 
@@ -130,6 +134,10 @@ template<class Type>
   PARAMETER(log_Fbar);            // Mean F on log scale 
   PARAMETER_VECTOR(log_F_devs);   // Annual deviations from log_Fbar (nyr)
   
+  // SPR-based fishing mortality rates, i.e. the F at which the spawning biomass
+  // per recruit is reduced to xx% of its value in an unfished stock
+  PARAMETER_VECTOR(spr_Fxx);      // e.g. F35, F40, F50
+  
   // **DERIVED QUANTITIES**
   
   // Predicted indices of abundance
@@ -177,6 +185,23 @@ template<class Type>
   Type expl_biom_proj;          // Projected vulnerable biomass to fishery at the beginning of the fishery
   Type spawn_biom_proj;         // Projected spawning biomass
   
+  // SPR-based reference points
+  int n_Fxx = Fxx_levels.size();        // Number of Fs estimated
+  vector<Type> Fxx(n_Fxx + 1);          // Separate Fxx matrix that is scaled to fully selected values (+1 includes F=0)
+  matrix<Type> Nspr(n_Fxx + 1, nage);   // Matrix of spawning numbers-at-age *FLAG* number of rows = number of estimated F_xx% (e.g. 3 = F35,F40,F50)
+  vector<Type> SBPR(n_Fxx + 1);         // Spawning biomass per recruit at various fishing levels
+  vector<Type> SB(n_Fxx + 1);           // Equilibrium spawning biomass at various fishing levels
+  Nspr.setZero();
+  SBPR.setZero();
+  SB.setZero();
+  
+  // ABC calculation
+  matrix<Type> sel_Fxx(n_Fxx, nage);    // Age-specific fully-selected fishing mortality at each Fxx%
+  matrix<Type> Z_Fxx(n_Fxx, nage);      // Total mortality at each Fxx%
+  matrix<Type> S_Fxx(n_Fxx, nage);      // Total survivorship at each Fxx%
+  vector<Type> ABC(n_Fxx);              // ABCs at each F_xx%
+  ABC.setZero();
+  
   // Priors, likelihoods, offsets, and penalty functions
   vector<Type> priors(4);       // Priors for catchability coefficients
   priors.setZero();
@@ -186,6 +211,7 @@ template<class Type>
   Type catch_like = 0;          // Catch  
   Type rec_like = 0;            // Recruitment
   Type fpen = 0;                // Penality for Fmort regularity
+  Type spr_pen = 0;             // Penality for SPR-based reference points
   
   vector<Type> index_like(4);   // Fishery cpue, survey cpue, MR estimates 
   index_like.setZero();
@@ -195,19 +221,18 @@ template<class Type>
   
   Type obj_fun = 0;             // Objective function
   
+  Type c = 0.00001;             // Tiny constant to prevent likelihoods from going to 0
+  
   // **MODEL**
   
-  // Indexing: i = year, j = age, h = time block
+  // Indexing: i = year, j = age, h = time block, x = Fxx level
   
-  // Fishery selectivity
+  // Fishery selectivity 
   
-  // for (int i = 0; i < nyr; i++) {
-  //   for (int j = 0; j < nage; j++) {
-  //     
-  //     fsh_sel(i,j) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_sel50) / (fsh_sel95 - fsh_sel50)) );
-  //     
-  //   }
-  // }
+  // The do while allows you to estimate parameters within a time block. It
+  // "does" the looping over year and age "while" within the time block, then
+  // iterates to the next block. Year is not in a for loop because it is
+  // iterated by the do statement.
   
   int i = 0;
   
@@ -221,15 +246,6 @@ template<class Type>
   }
     
   // Survey selectivity
-  
-  // for (int i = 0; i < nyr; i++) {
-  //   for (int j = 0; j < nage; j++) {
-  //     
-  //   srv_sel(i,j) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - srv_sel50) / (srv_sel95 - srv_sel50)) );
-  //     
-  //   }
-  // }
-  
   i = 0;
   
   for(int h = 0; h < blks_srv_sel.size(); h++){
@@ -241,8 +257,8 @@ template<class Type>
     } while (i <= blks_srv_sel(h));
   }
   
-  std::cout << fsh_sel << "\n";
-  std::cout << srv_sel << "\n";
+  // std::cout << fsh_sel << "\n";
+  // std::cout << srv_sel << "\n";
 
   // Mortality and survivorship
   for (int i = 0; i < nyr; i++) {
@@ -298,7 +314,7 @@ template<class Type>
   }
   
   // Plus group for start year + 1 to final year + 1 (sum of cohort survivors and
-  // survivng memebers of last year's plus group)
+  // surviving memebers of last year's plus group)
   for (int i = 0; i < nyr; i++) {
     N(i+1,nage-1) += N(i,nage-1) * S(i,nage-1);
   }
@@ -476,27 +492,79 @@ template<class Type>
   // expl_biom_proj
   // spawn_biom_proj
 
-  // FLAG - Add section to compute SPR and management reference points
-
+  // Compute SPR rates and spawning biomass under different Fxx levels
+  
+  // Use selectivity in most recent time block for all
+  // calculations.
+  vector<Type> spr_fsh_sel(nage);
+  spr_fsh_sel = fsh_sel.row(nyr-1);
+  // std::cout << "spr fishery selectivity\n" << spr_fsh_sel << "\n";
+  
+  Fxx(0) = 0;     // No fishing
+  
+  // Scale Fxx to fully selected values (not necessary for logistic selectivity
+  // b/c max is 1 but may be needed for other selectivity types in future
+  // development).
+  for(int x = 1; x <= n_Fxx; x++) {
+    Fxx(x) = spr_Fxx(x-1) * max(spr_fsh_sel);
+  }
+  // std::cout << "Fxx\n" << Fxx << "\n";
+  
+  // Populate numbers of potential spawners at age matrix
+  for(int x = 0; x <= n_Fxx; x++) {
+    
+    Nspr(x,0) = Type(1.0);    // Initialize SPR with 1
+    
+    // Survival equation by age
+    for(int j = 1; j < nage - 1; j++) {
+      Nspr(x,j) = Nspr(x,j-1) * exp(-1.0 * Fxx(x) * spr_fsh_sel(j-1) + M);
+    }
+    
+    // Plus group
+    Nspr(x,nage-1) = Nspr(x,nage-2) * exp(-1.0 * Fxx(x) * spr_fsh_sel(nage-2) + M) / 
+      (1.0 - exp(-1.0 * Fxx(x) * spr_fsh_sel(nage-1) + M));
+  }
+  // std::cout << "Number of spawners\n" << Nspr << "\n"; 
+  
+  // Spawning biomass per recruit matrix
+  for(int x = 0; x <= n_Fxx; x++) {
+    for(int j = 0; j < nage; j++) {
+      SBPR(x) +=  Nspr(x,j) * prop_fem(j) * prop_mature(j) * data_srv_waa(j) *exp(-spawn_month * M);
+    }
+  }
+  // std::cout << "Spawning biomass per recruit\n" << SBPR << "\n";
+  
+  // Virgin spawning biomass (no fishing), assuming average recruitment
+  SB(0) = SBPR(0) * exp(log_rbar);
+  
+  // Spawning biomass as a fraction of virgin spawning biomass
+  for(int x = 1; x <= n_Fxx; x++) {
+    SB(x) = Fxx_levels(x-1) * SB(0);
+  }
+  // std::cout << "Spawning biomass\n" << SB << "\n";
+  
+  // Get Allowable Biological Catch 
+  
+  
   // Priors
-
+  
   // Fishery cpue catchability coefficient
-  priors(0) = square( log(fsh_q / p_fsh_q) ) / ( 2 * square(sigma_fsh_q) ); // 0.025
-
+  priors(0) = square( log(fsh_q / p_fsh_q) ) / ( 2 * square(sigma_fsh_q) ); 
+  
   // 1-hr soak survey catchability coefficient
   priors(1) = square( log(srv1_q / p_srv1_q) ) / ( 2 * square(sigma_srv1_q) );
-
+  
   // 3-hr soak survey catchability coefficient
   priors(2) = square( log(srv2_q / p_srv2_q) ) / ( 2 * square(sigma_srv2_q) );
-
+  
   // Mark-recapture abundance estimate catchability coefficient
   priors(3) = square( log(mr_q / p_mr_q) ) / ( 2 * square(sigma_mr_q) );
-
+  
   // std::cout << "priors\n" << priors << "\n";
   
   // Catch: lognormal
   for (int i = 0; i < nyr; i++) {
-    catch_like += square(log(data_catch(i) + 0.00001) - log(pred_catch(i) + 0.00001));
+    catch_like += square(log(data_catch(i) + c) - log(pred_catch(i) + c));
   }
   catch_like /= Type(2.0) * square(sigma_catch);
   catch_like *= wt_catch;     // Likelihood weight
@@ -508,21 +576,21 @@ template<class Type>
       Type(2.0) * square(sigma_cpue);
   }
   index_like(0) *= wt_fsh_cpue; // Likelihood weight
-
+  
   // 1-hr soak survey CPUE: lognormal
   for (int i = 0; i < nyr_srv1_cpue; i++) {
     index_like(1) += square( log(data_srv1_cpue(i) / pred_srv1_cpue(i)) ) /
       Type(2.0) * square(sigma_cpue);
   }
   index_like(1) *= wt_srv1_cpue; // Likelihood weight
-
+  
   // 3-hr soak survey CPUE: lognormal
   for (int i = 0; i < nyr_srv2_cpue; i++) {
     index_like(2) += square( log(data_srv2_cpue(i) / pred_srv2_cpue(i)) ) /
       Type(2.0) * square(sigma_cpue);
   }
   index_like(2) *= wt_srv2_cpue; // Likelihood weight
-
+  
   // Mark-recapture index: lognormal
   for (int i = 0; i < nyr_mr; i++) {
     index_like(3) += square( log(data_mr(i) / pred_mr(i)) ) /
@@ -530,60 +598,66 @@ template<class Type>
   }
   index_like(3) *= wt_mr;        // Likelihood weight
   // std::cout << "Index likelihoods\n" << index_like << "\n";
-
+  
   // Offset for fishery age compositions
   for (int i = 0; i < nyr_fsh_age; i++) {
-    offset(0) -= omega * ( (data_fsh_age(i) + Type(0.00001)) * log(data_fsh_age(i) + Type(0.00001)) );
+    offset(0) -= omega * ( (data_fsh_age(i) + c) * log(data_fsh_age(i) + c) );
   }
-
+  
   // Fishery age compositions: multinomial
   for (int i = 0; i < nyr_fsh_age; i++) {
     for (int j = 0; j < nage; j++) {
-      age_like(0) -= (data_fsh_age(i,j) + Type(0.00001)) * log(pred_fsh_age(i,j) + Type(0.00001));
+      age_like(0) -= (data_fsh_age(i,j) + c) * log(pred_fsh_age(i,j) + c);
     }
   }
   age_like(0) *= omega;         // effective sample size
   age_like(0) -= offset(0);     // subtract offset
   age_like(0) *= wt_fsh_age;    // likelihood weight
   
-
+  
   // Offset for survey age compositions
   for (int i = 0; i < nyr_srv_age; i++) {
-    offset(1) -= omega * ( (data_srv_age(i) + Type(0.00001)) * log(data_srv_age(i) + Type(0.00001)) );
+    offset(1) -= omega * ( (data_srv_age(i) + c) * log(data_srv_age(i) + c) );
   }
-
+  
   // Survey age compositions: multinomial
   for (int i = 0; i < nyr_srv_age; i++) {
     for (int j = 0; j < nage; j++) {
-      age_like(1) -= (data_srv_age(i,j) + Type(0.00001)) * log(pred_srv_age(i,j) + Type(0.00001));
+      age_like(1) -= (data_srv_age(i,j) + c) * log(pred_srv_age(i,j) + c);
     }
   }
   age_like(1) *= omega;         // effective sample size
   age_like(1) -= offset(1);     // substract offset
   age_like(1) *= wt_srv_age;    // likelihood weight
-
+  
   // std::cout << "Age comp offset\n" << offset << "\n";
   // std::cout << "Age comp likelihoods\n" << age_like << "\n";
   
   // Penalty for recruitment
   Type n_rec = log_rec_devs.size();
-
+  
   for (int i = 0; i < n_rec; i++) {
     rec_like += square(log_rec_devs(i));
   }
   rec_like *= wt_rec_like;      // weight
-
+  
   // std::cout << "Log recruitment deviations\n" << log_rec_devs << "\n";
   // std::cout << "Recruitment likelihood\n" << rec_like << "\n";
   
   // Regularity penalty on fishing mortality
-    for (int i = 0; i < nyr; i++) {
+  for (int i = 0; i < nyr; i++) {
     fpen += square(log_F_devs(i));
   }
   fpen *= wt_fpen;              // weight
   
+  // Large penalty on SPR calculations
+  for(int x = 1; x <= n_Fxx; x++) {
+    spr_pen += wt_spr * square( SB(x) / SB(0) - Fxx_levels(x-1));
+  }   
+  
   // std::cout << "Log fishing mortality deviations\n" << log_F_devs << "\n";
   // std::cout << "Penality for fishing mortality\n" << fpen << "\n";
+  // std::cout << "Penality for SPR calcs\n" << spr_pen << "\n";
   
   // Sum likelihood components
   obj_fun += priors(0);         // Fishery q
@@ -599,6 +673,7 @@ template<class Type>
   obj_fun += age_like(1);       // Survey age compositions
   obj_fun += rec_like;          // Recruitment deviations
   obj_fun += fpen;              // Fishing mortality deviations
+  obj_fun += spr_pen;           // SPR calculations
   
   // std::cout << "Objective function\n" << obj_fun << "\n";
   

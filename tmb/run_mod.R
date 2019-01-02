@@ -57,6 +57,9 @@ data <- list(
   sigma_cpue = 0.1,
   omega = 50,
   
+  # Fxx levels that correspond with spr_Fxx in Parameter section
+  Fxx_levels = c(0.35, 0.40, 0.50),
+  
   # Priors ("p_" denotes prior)
   p_fsh_q = 0.001,
   sigma_fsh_q = 1,
@@ -77,6 +80,7 @@ data <- list(
   wt_srv_age = 1.0,
   wt_rec_like = 0.1,
   wt_fpen = 0.1,
+  wt_spr = 200,
   
   # Catch
   data_catch = ts$catch,
@@ -155,7 +159,12 @@ parameters <- list(
   
   # Fishing mortality
   log_Fbar = -1.8289,
-  log_F_devs = finits$finits
+  log_F_devs = finits$finits,
+  
+  # SPR-based fishing mortality rates, i.e. the F at which the spawning biomass
+  # per recruit is reduced to xx% of its value in an unfished stock
+  spr_Fxx = c(0.128, 0.105, 0.071)       # e.g. F35, F40, F50
+  
 )
 
 # Parameter bounds
@@ -183,21 +192,22 @@ upper <- c(             # Upper bounds
 # fix parameter values
 
 # When testing the code
-# map <- list(fsh_sel50 = rep(factor(NA), length(data$blks_fsh_sel)), 
-#             fsh_sel95 = rep(factor(NA), length(data$blks_fsh_sel)),
-#             srv_sel50 = rep(factor(NA), length(data$blks_srv_sel)), 
-#             srv_sel95 = rep(factor(NA), length(data$blks_srv_sel)),
-#             fsh_logq = factor(NA), srv1_logq = factor(NA),
-#             srv2_logq = factor(NA), mr_logq = factor(NA),
-#             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
-#             log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr))
-        
+map <- list(fsh_sel50 = rep(factor(NA), length(data$blks_fsh_sel)),
+            fsh_sel95 = rep(factor(NA), length(data$blks_fsh_sel)),
+            srv_sel50 = rep(factor(NA), length(data$blks_srv_sel)),
+            srv_sel95 = rep(factor(NA), length(data$blks_srv_sel)),
+            fsh_logq = factor(NA), srv1_logq = factor(NA),
+            srv2_logq = factor(NA), mr_logq = factor(NA),
+            log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
+            log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
+            spr_Fxx = rep(factor(NA), length(data$Fxx_levels)))
+
 # Compile
 compile("mod.cpp")
 dyn.load(dynlib("mod"))
 
 # # Estimate everything at once
-map <- list(dummy=factor(NA))
+# map <- list(dummy=factor(NA))
 
 model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
 
