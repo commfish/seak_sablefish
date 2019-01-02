@@ -180,6 +180,7 @@ template<class Type>
   // Other derived and projected values
   Type surv_srv;                // Annual natural survival at time of survey
   Type surv_fsh;                // Annual natural survival at time of fishery
+  Type surv_spawn;              // Annual natural survival at time of spawning
   Type pred_rbar;               // Predicted mean recruitment
   Type biom_proj;               // Projected biomass
   Type expl_biom_proj;          // Projected vulnerable biomass to fishery at the beginning of the fishery
@@ -246,7 +247,8 @@ template<class Type>
   }
     
   // Survey selectivity
-  i = 0;
+  
+  i = 0;     // re-set i to 0 (do not redeclare)
   
   for(int h = 0; h < blks_srv_sel.size(); h++){
     do{ 
@@ -283,10 +285,11 @@ template<class Type>
   // std::cout << Z << "\n";
   // std::cout << S << "\n";
 
-  // Annual natural survival at time of survey and fishery (fraction surviving
+  // Annual natural survival at time of survey, fishery, and spawning (fraction surviving
   // from beginning of year to the time of survey and fishery)
   surv_srv = exp(-1.0 * srv_month * M);
   surv_fsh = exp(-1.0 * fsh_month * M);
+  surv_spawn = exp(-1.0 * spawn_month * M);
 
   // std::cout << surv_srv << "\n";
   // std::cout << surv_fsh << "\n";
@@ -389,10 +392,9 @@ template<class Type>
       vuln_abd(i) += srv_sel(i,j) * N(i,j) * surv_srv;
 
       // Spawning biomass
-      spawn_biom(i) += data_srv_waa(j) * N(i,j) * exp(-spawn_month * M) * prop_fem(j) * prop_mature(j);
+      spawn_biom(i) += data_srv_waa(j) * N(i,j) * surv_spawn * prop_fem(j) * prop_mature(j);
     }
   }
-  
   // std::cout << "Predicted biomass\n" << biom << "\n";
   // std::cout << "Predicted exploited biomass\n" << expl_biom << "\n";
   // std::cout << "Predicted vulnerable abundance\n" << vuln_abd << "\n";
@@ -529,7 +531,7 @@ template<class Type>
   // Spawning biomass per recruit matrix
   for(int x = 0; x <= n_Fxx; x++) {
     for(int j = 0; j < nage; j++) {
-      SBPR(x) +=  Nspr(x,j) * prop_fem(j) * prop_mature(j) * data_srv_waa(j) *exp(-spawn_month * M);
+      SBPR(x) +=  Nspr(x,j) * prop_fem(j) * prop_mature(j) * data_srv_waa(j) * surv_spawn;
     }
   }
   // std::cout << "Spawning biomass per recruit\n" << SBPR << "\n";
@@ -543,9 +545,21 @@ template<class Type>
   }
   // std::cout << "Spawning biomass\n" << SB << "\n";
   
-  // Get Allowable Biological Catch 
-  
-  
+  // Get Allowable Biological Catch for different Fxx levels
+  for(int x = 0; x < n_Fxx; x++) {
+    // Preliminary calcs
+    for(int j = 0; j < nage; j++) {
+      sel_Fxx(x,j) = Fxx(x+1) * spr_fsh_sel(j);   // Fully selected fishing mortality at age
+      Z_Fxx(x,j) = M + sel_Fxx(x,j);              // Total instantaneous mortality at age
+      S_Fxx(x,j) = exp(-Z_Fxx(x,j));              // Total survival at age
+    }
+    // ABC calculation
+    for(int j = 0; j < nage; j++) {
+      ABC(x) += data_fsh_waa(j) * sel_Fxx(x,j) / Z_Fxx(x,j) * N(nyr, j) * (1.0 - S_Fxx(x,j));
+    }
+  }
+  // std::cout << "ABC\n" << ABC << "\n";
+
   // Priors
   
   // Fishery cpue catchability coefficient

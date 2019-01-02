@@ -192,22 +192,22 @@ upper <- c(             # Upper bounds
 # fix parameter values
 
 # When testing the code
-map <- list(fsh_sel50 = rep(factor(NA), length(data$blks_fsh_sel)),
-            fsh_sel95 = rep(factor(NA), length(data$blks_fsh_sel)),
-            srv_sel50 = rep(factor(NA), length(data$blks_srv_sel)),
-            srv_sel95 = rep(factor(NA), length(data$blks_srv_sel)),
-            fsh_logq = factor(NA), srv1_logq = factor(NA),
-            srv2_logq = factor(NA), mr_logq = factor(NA),
-            log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
-            log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
-            spr_Fxx = rep(factor(NA), length(data$Fxx_levels)))
+# map <- list(fsh_sel50 = rep(factor(NA), length(data$blks_fsh_sel)),
+#             fsh_sel95 = rep(factor(NA), length(data$blks_fsh_sel)),
+#             srv_sel50 = rep(factor(NA), length(data$blks_srv_sel)),
+#             srv_sel95 = rep(factor(NA), length(data$blks_srv_sel)),
+#             fsh_logq = factor(NA), srv1_logq = factor(NA),
+#             srv2_logq = factor(NA), mr_logq = factor(NA),
+#             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
+#             log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
+#             spr_Fxx = rep(factor(NA), length(data$Fxx_levels)))
 
 # Compile
 compile("mod.cpp")
 dyn.load(dynlib("mod"))
 
 # # Estimate everything at once
-# map <- list(dummy=factor(NA))
+map <- list(dummy=factor(NA))
 
 model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
 
@@ -227,8 +227,6 @@ model$report()$index_like
 model$report()$age_like
 model$report()$pred_mr
 model$report()$obj_fun
-
-
 
 exp(as.list(rep, what = "Estimate")$fsh_logq)
 exp(as.list(rep, what = "Estimate")$srv1_logq)
