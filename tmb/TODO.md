@@ -7,7 +7,7 @@
 
 [ ]	**Work with groundfish biologists to assess the utility of the 1-hr soak time survey (1988-1996). If we decide to use this as an index obtain raw data**
 
-[ ]	**Work with goundfish biologists to determine if we should account for a change in selectivity or catchability when the fishery changed from open access to limited entry or any other points since 1980**
+[X]	Work with goundfish biologists to determine if we should account for a change in selectivity or catchability when the fishery changed from open access to limited entry or any other points since 1980
 
 [ ]	**Work with groundfish biologists to obtain the raw mark-recapture data from 2003 and 2004** 
 
@@ -42,7 +42,7 @@
 
 [X] Test alternative models to determine if the same selectivity for the two surveys is appropriate 
 
-[ ] Develop the TMB code to estimate biological reference points within the model
+[X] Develop the TMB code to estimate biological reference points within the model
 
 [ ] Include assumed discard mortality
 
