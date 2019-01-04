@@ -25,12 +25,15 @@ rinits <- read_csv("data/tmb_inputs/inits_rec_devs.csv") # log rec devs
 setwd("tmb")
 
 # Model dimensions
-syr <- min(ts$year)       # model start year
-lyr <- max(ts$year)       # end year
-nyr <- length(syr:lyr)    # number of years        
-rec_age <- min(waa$age)   # recruitment age                  
+syr <- min(ts$year)                   # model start year
+lyr <- max(ts$year)                   # end year
+nyr <- length(syr:lyr)                # number of years        
+rec_age <- min(waa$age)               # recruitment age                  
 plus_group <- max(waa$age)            # plus group age
 nage <- length(rec_age:plus_group)    # number of ages
+# number of years to project forward *FLAG* eventually add to cpp file,
+# currently just for graphics
+nproj <- 1                            
 
 # Subsets
 mr <- filter(ts, !is.na(mr))
@@ -252,7 +255,6 @@ exp(as.list(rep, what = "Estimate")$srv1_logq)
 exp(as.list(rep, what = "Estimate")$srv2_logq)
 exp(as.list(rep, what = "Estimate")$mr_logq)
 # as.list(rep, what = "Std")
-
 
 exp(as.list(rep, what = "Estimate")$log_rbar)
 
@@ -505,16 +507,21 @@ plot_grid(r_catch, r_fsh, r_srv, r_mr, ncol = 1, align = 'hv',
 
 # Plot derived variables ----
 ts %>% 
-  mutate(Fmort = model$report()$Fmort,
-         pred_rec = model$report()$pred_rec,
-         biom = model$report()$biom,
-         expl_biom = model$report()$expl_biom,
-         vuln_abd = model$report()$vuln_abd,
-         spawn_biom = model$report()$spawn_biom,
-         exploit = catch / expl_biom) -> ts
+  # Add another year to hold projected values
+  full_join(data.frame(year = max(ts$year) + nproj)) %>%
+  # For ts by numbers go divide by 1e6 to get values in millions, for biomass
+  # divide by 1e3 to go from kg to mt
+  mutate(Fmort = c(model$report()$Fmort, rep(NA, nproj)),
+         pred_rec = c(model$report()$pred_rec, rep(NA, nproj)) / 1e6,
+         biom = model$report()$biom / 1e3,
+         expl_biom = model$report()$expl_biom / 1e3,
+         vuln_abd = model$report()$vuln_abd / 1e6,
+         spawn_biom = model$report()$spawn_biom / 1e3,
+         exploit = catch / expl_biom / 1e3) -> ts
 
 p <- ggplot(ts, aes(x = year)) +
-  scale_x_continuous( breaks = axis$breaks, labels = axis$labels)
+  scale_x_continuous( breaks = axis$breaks, labels = axis$labels)+
+  scale_y_continuous(label = scales::comma)
 
 # Recruitment
 p + geom_point(aes(y = pred_rec)) +
@@ -662,7 +669,7 @@ sel <- model$report()$fsh_sel %>% as.data.frame() %>%
 names(sel) <- c(unique(agecomps$age), "Selectivity")
 
 sel <- sel %>% 
-  mutate(year = rep(ts$year, 2)) %>% 
+  mutate(year = rep(ts$year[1:nyr], 2)) %>% 
   gather("Age", "proportion", -c(year, Selectivity)) %>% 
   mutate(year2 = year) # needed for foverlaps()
 
@@ -701,6 +708,6 @@ ggplot(sel, aes(x = age, y = proportion, colour = `Time blocks`,
   scale_colour_grey() +
   labs(y = "Selectivity\n", x = NULL, 
        colour = NULL, lty = NULL, shape = NULL) +
-  theme(legend.position = c(.7, .4)) 
+  theme(legend.position = c(.85, .15)) 
 
-ggsave("selectivity.png", dpi = 300, height = 4, width = 4, units = "in")
+ggsave("selectivity.png", dpi = 300, height = 4, width = 6, units = "in")
