@@ -16,6 +16,10 @@ template<class Type>
   DATA_INTEGER(nyr)             // number of years in the model
   DATA_INTEGER(nage)            // number of ages in the model
   
+ // Switch for recruitment estimate: 0 = penalized likelihood (fixed sigma_r), 1
+ // = random effects
+  DATA_INTEGER(random_rec)
+    
   // Time varying parameter blocks - each vector contains the terminal years of
   // each time block
   DATA_IVECTOR(blks_fsh_sel)    // fishery selectivity 
@@ -129,6 +133,7 @@ template<class Type>
   // Recruitment (rec_devs include a parameter for all ages in the inital yr plus age-2 in all yrs)
   PARAMETER(log_rbar);            // Mean recruitment
   PARAMETER_VECTOR(log_rec_devs); // Recruitment deviations (nyr+nage-2)
+  PARAMETER(log_sigma_r);         // Variability in rec devs, only estimated when using random effects (random_rec=1)
   
   // Fishing mortality
   PARAMETER(log_Fbar);            // Mean F on log scale 
@@ -178,10 +183,11 @@ template<class Type>
   spawn_biom.setZero();
   
   // Other derived and projected values
-  Type surv_srv;                // Annual natural survival at time of survey
-  Type surv_fsh;                // Annual natural survival at time of fishery
-  Type surv_spawn;              // Annual natural survival at time of spawning
-  Type pred_rbar;               // Predicted mean recruitment
+  Type surv_srv;                        // Annual natural survival at time of survey
+  Type surv_fsh;                        // Annual natural survival at time of fishery
+  Type surv_spawn;                      // Annual natural survival at time of spawning
+  Type pred_rbar;                       // Predicted mean recruitment
+  Type sigma_r = exp(log_sigma_r);      // Estimated recruitment on natural scale 
   
   // SPR-based reference points
   int n_Fxx = Fxx_levels.size();        // Number of Fs estimated
@@ -647,13 +653,29 @@ template<class Type>
   // std::cout << "Age comp offset\n" << offset << "\n";
   // std::cout << "Age comp likelihoods\n" << age_like << "\n";
   
-  // Penalty for recruitment
+  // Recruitment - random_rec switches between penalized likelihood and random
+  // effects
   Type n_rec = log_rec_devs.size();
   
-  for (int i = 0; i < n_rec; i++) {
-    rec_like += square(log_rec_devs(i));
+  // Penalized likelihood, sigma_r fixed, bias correction for lognormal
+  // likelihood (-0.5*sigma^2) needed to get mean instead of median from
+  // distribution
+  if (random_rec == 0) {
+    for (int i = 0; i < n_rec; i++) {
+      rec_like += square(log_rec_devs(i) - Type(0.5) * square(sigma_r));    
+    }
+    rec_like *= wt_rec_like;      // weight
   }
-  rec_like *= wt_rec_like;      // weight
+  
+  // Random effects: mean = 0, sigma_r estimated, same bias correction as
+  // penalized likelihood for lognormal distribution
+  if (random_rec == 1) {
+    for (int i = 0; i < n_rec; i++) {
+      rec_like -= log(sigma_r) - Type(0.5) * square(log_rec_devs(i) - Type(0.5) * square(sigma_r)) / square(sigma_r);    
+      // Should be equivalent to:
+      // rec_like -= dnorm(log_rec_dev(i) - Type(0.5) * square(sigma_r) , Type(0.0), sigma_r, true); 
+    }
+  }
   
   // std::cout << "Log recruitment deviations\n" << log_rec_devs << "\n";
   // std::cout << "Recruitment likelihood\n" << rec_like << "\n";

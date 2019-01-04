@@ -46,7 +46,7 @@
 
 [ ] Include assumed discard mortality
 
-[ ] Estimate recruitment and fishing mortality deviations as random effects 
+[X] Estimate recruitment as a random effect 
 
 [ ] Explore the benefits of a sex-structured model to deal with the fact that at-age females are larger than males
 
@@ -69,3 +69,21 @@
 [X] Use standardized instead of raw residuals 
 
 [X] Include zeros on the plots to help place the trends in context
+
+# QUESTIONS
+
+## Dana
+
+[ ] Do you not distinguish between fishery and survey weight-at-age?
+
+[ ] For sex-structured model with sex-specific weight-at-age and age comps, do you have estimate sex-specific F values? Looks that way cased on your catch biomass in year equation from Box 1, but not sure.
+
+[ ] Do you estimate init_N_devs and rec_devs in the same or separate vectors?
+
+## Andre
+
+[ ] Check likelihood for random effects (negative sign correct?)
+
+[ ] Estimating init_N_devs and rec_devs in the same vector as a random effect (seems like it could skew it)
+
+[ ] Grant recommended against estimate F_devs as random effects because it could lead to underestimation via shrinkage. Not a problem since we don't need a variance parameter estimated?

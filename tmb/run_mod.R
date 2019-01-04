@@ -25,12 +25,15 @@ rinits <- read_csv("data/tmb_inputs/inits_rec_devs.csv") # log rec devs
 setwd("tmb")
 
 # Model dimensions
-syr <- min(ts$year)       # model start year
-lyr <- max(ts$year)       # end year
-nyr <- length(syr:lyr)    # number of years        
-rec_age <- min(waa$age)   # recruitment age                  
+syr <- min(ts$year)                   # model start year
+lyr <- max(ts$year)                   # end year
+nyr <- length(syr:lyr)                # number of years        
+rec_age <- min(waa$age)               # recruitment age                  
 plus_group <- max(waa$age)            # plus group age
 nage <- length(rec_age:plus_group)    # number of ages
+# number of years to project forward *FLAG* eventually add to cpp file,
+# currently just for graphics
+nproj <- 1                            
 
 # Subsets
 mr <- filter(ts, !is.na(mr))
@@ -46,6 +49,10 @@ data <- list(
   # Model dimensions
   nyr = nyr,
   nage = nage,
+  
+  # Switch recruitment estimation: 0 = penalized likelihood (fixed sigma_r), 1 =
+  # random effects
+  random_rec = 1,
   
   # Time varying parameters - each vector contains the terminal years of each time block
   blks_fsh_sel = c(16, 37), # fishery selectivity 
@@ -156,6 +163,7 @@ parameters <- list(
   # age-2 in all yrs, nyr+nage-2)
   log_rbar = -0.3798,
   log_rec_devs = rinits$rinits,
+  log_sigma_r = 0.1823216, # Federal value of 1.2 on log scale, Sigler et al. (2002)
   
   # Fishing mortality
   log_Fbar = -1.8289,
@@ -171,8 +179,9 @@ parameters <- list(
 lower <- c(             # Lower bounds
   rep(0.1, length(data$blks_fsh_sel) + length(data$blks_srv_sel)),          # Selectivity
   rep(-15, 4),          # Catchability log_q
-  -Inf,                 # Mean recruitment
+  -Inf,                 # log mean recruitment
   rep(-10, nyr+nage-2), # log recruitment deviations
+  -Inf,                 # log sigma R  
   -Inf,                 # Mean log F
   rep(-15, nyr)         # log F deviations
 )
@@ -180,8 +189,9 @@ lower <- c(             # Lower bounds
 upper <- c(             # Upper bounds
   rep(10, length(data$blks_fsh_sel) + length(data$blks_srv_sel)),           # Selectivity
   rep(5, 4),            # Catchability q
-  Inf,                  # Mean recruitment
+  Inf,                  # log mean recruitment
   rep(10, nyr+nage-2),  # log recruitment deviations
+  Inf,                  # log sigma R
   Inf,                  # Mean log F  
   rep(15, nyr)          # log F deviations  
 )
@@ -206,10 +216,22 @@ upper <- c(             # Upper bounds
 compile("mod.cpp")
 dyn.load(dynlib("mod"))
 
-# # Estimate everything at once
+# Setup random effects
+random_vars <- c()
+if (data$random_rec == 1) {
+  random_vars <- c("log_rec_devs")
+}
+# Estimate everything at once
 map <- list(dummy=factor(NA))
 
-model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
+# Fix parameter if sigma_r is not estimated via random effects
+if(data$random_rec == 0) {
+  map$log_sigma_r <- factor(NA)
+}
+
+model <- MakeADFun(data, parameters, DLL = "mod", 
+                   silent = TRUE, map = map,
+                   random = random_vars)
 
 fit <- nlminb(model$par, model$fn, model$gr,
               control=list(eval.max=100000,iter.max=1000),
@@ -233,7 +255,6 @@ exp(as.list(rep, what = "Estimate")$srv1_logq)
 exp(as.list(rep, what = "Estimate")$srv2_logq)
 exp(as.list(rep, what = "Estimate")$mr_logq)
 # as.list(rep, what = "Std")
-
 
 exp(as.list(rep, what = "Estimate")$log_rbar)
 
@@ -486,16 +507,21 @@ plot_grid(r_catch, r_fsh, r_srv, r_mr, ncol = 1, align = 'hv',
 
 # Plot derived variables ----
 ts %>% 
-  mutate(Fmort = model$report()$Fmort,
-         pred_rec = model$report()$pred_rec,
-         biom = model$report()$biom,
-         expl_biom = model$report()$expl_biom,
-         vuln_abd = model$report()$vuln_abd,
-         spawn_biom = model$report()$spawn_biom,
-         exploit = catch / expl_biom) -> ts
+  # Add another year to hold projected values
+  full_join(data.frame(year = max(ts$year) + nproj)) %>%
+  # For ts by numbers go divide by 1e6 to get values in millions, for biomass
+  # divide by 1e3 to go from kg to mt
+  mutate(Fmort = c(model$report()$Fmort, rep(NA, nproj)),
+         pred_rec = c(model$report()$pred_rec, rep(NA, nproj)) / 1e6,
+         biom = model$report()$biom / 1e3,
+         expl_biom = model$report()$expl_biom / 1e3,
+         vuln_abd = model$report()$vuln_abd / 1e6,
+         spawn_biom = model$report()$spawn_biom / 1e3,
+         exploit = catch / expl_biom / 1e3) -> ts
 
 p <- ggplot(ts, aes(x = year)) +
-  scale_x_continuous( breaks = axis$breaks, labels = axis$labels)
+  scale_x_continuous( breaks = axis$breaks, labels = axis$labels)+
+  scale_y_continuous(label = scales::comma)
 
 # Recruitment
 p + geom_point(aes(y = pred_rec)) +
@@ -643,7 +669,7 @@ sel <- model$report()$fsh_sel %>% as.data.frame() %>%
 names(sel) <- c(unique(agecomps$age), "Selectivity")
 
 sel <- sel %>% 
-  mutate(year = rep(ts$year, 2)) %>% 
+  mutate(year = rep(ts$year[1:nyr], 2)) %>% 
   gather("Age", "proportion", -c(year, Selectivity)) %>% 
   mutate(year2 = year) # needed for foverlaps()
 
@@ -682,6 +708,6 @@ ggplot(sel, aes(x = age, y = proportion, colour = `Time blocks`,
   scale_colour_grey() +
   labs(y = "Selectivity\n", x = NULL, 
        colour = NULL, lty = NULL, shape = NULL) +
-  theme(legend.position = c(.7, .4)) 
+  theme(legend.position = c(.85, .15)) 
 
-ggsave("selectivity.png", dpi = 300, height = 4, width = 4, units = "in")
+ggsave("selectivity.png", dpi = 300, height = 4, width = 6, units = "in")
