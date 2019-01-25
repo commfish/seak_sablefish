@@ -582,9 +582,9 @@ template<class Type>
   
   // std::cout << "priors\n" << priors << "\n";
   
-  // Catch: lognormal
+  // Catch: normal
   for (int i = 0; i < nyr; i++) {
-    catch_like += square(log(data_catch(i) + c) - log(pred_catch(i) + c));
+    catch_like += square((data_catch(i) - pred_catch(i)) / pred_catch(i));
   }
   catch_like /= Type(2.0) * square(sigma_catch);
   catch_like *= wt_catch;     // Likelihood weight
@@ -671,7 +671,7 @@ template<class Type>
   // penalized likelihood for lognormal distribution
   if (random_rec == 1) {
     for (int i = 0; i < n_rec; i++) {
-      rec_like -= log(sigma_r) - Type(0.5) * square(log_rec_devs(i) - Type(0.5) * square(sigma_r)) / square(sigma_r);    
+      rec_like += log(sigma_r) + Type(0.5) * square(log_rec_devs(i) - Type(0.5) * square(sigma_r)) / square(sigma_r);    
       // Should be equivalent to:
       // rec_like -= dnorm(log_rec_dev(i) - Type(0.5) * square(sigma_r) , Type(0.0), sigma_r, true); 
     }

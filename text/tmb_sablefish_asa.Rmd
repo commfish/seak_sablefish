@@ -111,15 +111,21 @@ Natural mortality $M$ was assumed constant over time and age and is fixed at 0.1
 
 # Estimated parameters
 
-We estimated 109 parameters in the model as follows: 
+## Selectivity
 
-+ 4 selectivity parameters:  $s_{50}^{fsh}$, $s_{95}^{fsh}$, $s_{50}^{srv}$, $s_{95}^{srv}$, where $s_{50}$ and $s_{95}$ represent the ages at which 50% and 95% of individuals are selected by the longline gear for the fishery ($fsh$) and survey ($srv$) respectively. 
+At least four selectivity parameters are estimated:  $s_{50}^{fsh}$, $s_{95}^{fsh}$, $s_{50}^{srv}$, $s_{95}^{srv}$, where $s_{50}$ and $s_{95}$ represent the ages at which 50% and 95% of individuals are selected by the longline gear for the fishery ($fsh$) and survey ($srv$) respectively. There is flexibility to define discrete time blocks $h$ for both fishery and survey selectivity.
 
-+ 4 catchability parameters estimated in log-space:  $\text{ln}(q_{fsh})$, $\text{ln}(q_{srv1})$, $\text{ln}(q_{srv2})$, and $\text{ln}(q_{MR})$.
+## Catchability
 
-+ 1 parameter for mean log-recruitment, $\mu_R$, and `r nyr-nage-2` ($T$ + $A$ - 2) log-recruitment deviations, $\tau_i$ (Figure cartoon).
+Currently four parameters for catchability are estimated:  $\text{ln}(q_{fsh})$, $\text{ln}(q_{srv1})$, $\text{ln}(q_{srv2})$, and $\text{ln}(q_{MR})$.
 
-+	1 parameter for mean log-fishing mortality, $\mu_F$, and `r nyr` ($T$) log-fishing mortality deviations, $\phi_t$.
+## Recruitment
+
+There is one parameter estimated for mean log-recruitment, $\mu_R$, and `r nyr-nage-2` ($T$ + $A$ - 2) log-recruitment deviations, $\tau_i$ (Figure cartoon). Following the Federal assessment, if recruitment is estimated using penalized likelihood, the parameter that describes the variability of recruitment deviations on the log-scale, $\text{ln}(\sigma_R)$, is fixed at 0.1823 (Sigler et al. 2002, Hanselman et al. 2018). However, if recruitment deviations are estimated as random effects, $\text{ln}(\sigma_R)$ is an estimated parameter.
+
+## Fishing mortality
+
+There is one parameter estimated for mean log-fishing mortality, $\mu_F$, and `r nyr` ($T$) log-fishing mortality deviations, $\phi_t$.
 
 # Population dynamics
 
@@ -183,12 +189,12 @@ $$\hat{Y}_t=\sum_{a=a_0}^{A} w_a^{fsh} \cdot C_{t,a}.$$
 
 The total likelihood to be maximized includes the sum of the following likelihood components $L$, which received individual weights $\lambda$:
 
-1.  Catch ($Y$) is modeled using a log-normal likelihood where $\sigma_Y$ was assumed to be 0.05:
+1.  Catch ($Y$) is modeled using a normal likelihood where $\sigma_Y$ was assumed to be 0.05:
 
-$$L(Y)=\lambda_Y\frac{1}{2\sigma_Y^2}\sum_{t=1}^{T}\mbox{ln}(Y_t)-\mbox{ln}(\hat{Y}_t) ,$$
+$$L(Y)=\lambda_Y\frac{1}{2\sigma_Y^2}\sum_{t=1}^{T}\bigg(\frac{Y_t-\hat{Y}_t}{\hat{Y}_t}\bigg)^2 ,$$
 where $\lambda_Y$ = 1.0.
 
-2.  Fishery CPUE, the two survey CPUE indices, and the mark-recapture abundance index were modeled using log-normal likelihoods, where $\sigma_I$ was assumed to be 0.20 for the survey and fishery CPUEs and annual posterior standard deviations were used for the mark-recapture abundance index:
+2.  Fishery CPUE, the two survey CPUE indices, and the mark-recapture abundance index were modeled using lognormal likelihoods, where $\sigma_I$ was assumed to be 0.20 for the survey and fishery CPUEs and annual posterior standard deviations were used for the mark-recapture abundance index:
 
 $$L(I)=\lambda_I\frac{1}{2\sigma_I^2}\sum_{t=1}^{T_I}\mbox{ln}(I_t)-\mbox{ln}(\hat{I}_t) ,$$
 
@@ -200,17 +206,23 @@ $$L(P)=\lambda_P\sum_{t=1}^{T_P} - \omega \sum_{a=a_0}^{A} (P_{t,a}+c)\cdot\mbox
 
 where $T_P$ is the number of years of data for each age composition, $lambda_P$ is set to 1.0, and $c$ is a small constant set at 0.0001 that prevents the composition from being 0 in the likelihood calculation.
 
-4.  A penalty on annual log-fishing mortality deviations ($\phi_t$) is included as
+4.  Annual log-fishing mortality deviations ($\phi_t$) are included with a penalized lognormal likelihood, where
 
 $$L(\phi)=\lambda_{\phi}\sum_{t=1}^{T}\phi_t^2,$$
 
 where $\lambda_{\phi}$=0.1.
 
-5.  Similarly, a penalty on log-recruitment deviations ($\tau_i$) is included as
+5.  Recruitment deviations ($\tau_i$) can be included using a penalized lognormal likelihood
 
-$$L(\tau)=\lambda_{\tau}\sum_{i=1}^{T+A-2}\tau_i^2,$$
+$$L(\tau)=\lambda_{\tau}\sum_{i=1}^{T+A-2}(\tau_i-0.5\sigma_R^2)^2,$$
 
-where $\lambda_{\phi}$=0.1.
+where $\lambda_{\phi}$=0.1 and $\sigma_R$ is fixed at 1.2 as in the Federal assessment (Hanselman et al. 2018).
+
+Alternatively, recruitment deviations can be estimated as a random effect, where
+
+$$L(\tau)=\sum_{i=1}^{T+A-2}\mbox{ln}(\sigma_R)+\frac{(\tau_i-0.5\sigma_R^2)^2}{2\sigma_R}.$$ 
+
+All likelihood components assuming a lognormal distribution include a bias correction ($-0.5\sigma^2$) needed to obtain the expected value (mean) instead of the median.
 
 # References
 
