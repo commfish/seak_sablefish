@@ -5,23 +5,23 @@
 
 [X]	Use predicted values from a weight-based von Bertalanffy model instead of mean weight-at-age (especially important for older ages which are poorly represented in the data)
 
-[ ]	**Work with groundfish biologists to assess the utility of the 1-hr soak time survey (1988-1996). If we decide to use this as an index obtain raw data**
+[X]	Work with groundfish biologists to assess the utility of the 1-hr soak time survey (1988-1996). If we decide to use this as an index obtain raw data. - We decided that these data do not provide a useable index of abundance. I have taken it out of the code.
 
 [X]	Work with goundfish biologists to determine if we should account for a change in selectivity or catchability when the fishery changed from open access to limited entry or any other points since 1980
 
-[ ]	**Work with groundfish biologists to obtain the raw mark-recapture data from 2003 and 2004** 
+[X]	Work with groundfish biologists to obtain the raw mark-recapture data from 2003 and 2004. These are no longer available.
 
-[ ]	Use data to estimate variances and effective sample sizes for the various abundance indices and age compositions. Currently the sigmas for the abundance indices and effective sample sizes for the age comps are assumed constant values, which is likely unrealistic
+[X]	Use data to estimate variances and effective sample sizes for the various abundance indices and age compositions. Currently the sigmas for the abundance indices and effective sample sizes for the age comps are assumed constant values, which is likely unrealistic.
      
      [X] Mark-recapture
      
-     [ ] Fishery cpue
+     [X] Fishery cpue
      
-     [ ] Survey cpue
+     [X] Survey cpue
      
-     [ ] Age comps
+     [X] Age comps - I used the square root of the total number of fish aged in a year as the effective sample size. Should revisit in the future.
       
-[ ]	Evaluate the current ageing error matrix and include it in the model
+[X]	Evaluate the current ageing error matrix. - I included the ageing error matrix estimated by Kray Van Kirk for the 2017 assessment. It it is a topic that should be revisitted in the future when time permits.
 
 
 ## Model
@@ -56,6 +56,10 @@
 
 [ ] Develop priors and move towards a Bayesian implementation of this assessment
 
+[X] Add ageing error matrix
+
+[ ] Split rec_devs and init_devs into separate variables
+
 ## Text and figures
 
 [X] Put the report in R markdown
@@ -82,8 +86,8 @@
 
 ## Andre
 
-[ ] Check likelihood for random effects (negative sign correct?)
+[X] Check likelihood for random effects (negative sign correct?)
 
-[ ] Estimating init_N_devs and rec_devs in the same vector as a random effect (seems like it could skew it)
+[X] Estimating init_N_devs and rec_devs in the same vector as a random effect (seems like it could skew it)
 
 [ ] Grant recommended against estimate F_devs as random effects because it could lead to underestimation via shrinkage. Not a problem since we don't need a variance parameter estimated?

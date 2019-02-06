@@ -49,7 +49,7 @@
 # --- = 91 = Pot
 
 # most recent year of data
-YEAR <- 2017
+YEAR <- 2018
 
 # Load ----
 source("r/helper.R")

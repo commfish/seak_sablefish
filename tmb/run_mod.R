@@ -18,6 +18,21 @@ age <- read_csv("data/tmb_inputs/agecomps.csv")          # age comps
 bio <- read_csv("data/tmb_inputs/maturity_sexratio.csv") # proportion mature and proportion-at-age in the survey
 waa <- read_csv("data/tmb_inputs/waa.csv")               # weight-at-age
 
+# # Measure of sample size for survey age compositon (square root of number of
+# ages read per year - nsamples_srv1_age(1,nyrs_srv_age)
+
+
+# Ageing error transition matrix: proportion at reader age given TRUE age -
+# ageage(1,nages,1,nages) There are no true ages in ADF&G data; only
+# RELEASE_AUTHORITATIVE for comparison of following reads for a given otolith
+# Ageing error matrix constructed from 1988 - 2013 read data from both
+# commercial longline and longline survey samples Kray Van Kirk updated and
+# improved code originally developed by Pete Hulson dated 2015-12-08. I haven't
+# reviewed the code or data, but need to use this one for now until I have time
+# in future years.
+ageing_error <- read_csv("data/tmb_inputs/ageing_error.csv", col_names = FALSE)
+names(ageing_error) <- 2:42
+
 # Starting values
 finits <- read_csv("data/tmb_inputs/inits_f_devs.csv")   # log F devs
 rinits <- read_csv("data/tmb_inputs/inits_rec_devs.csv") # log rec devs
@@ -38,8 +53,7 @@ nproj <- 1
 # Subsets
 mr <- filter(ts, !is.na(mr))
 fsh_cpue <- filter(ts, !is.na(fsh_cpue))
-srv1_cpue <- filter(ts, !is.na(srv1_cpue))
-srv2_cpue <- filter(ts, !is.na(srv2_cpue))
+srv_cpue <- filter(ts, !is.na(srv_cpue))
 fsh_age <- filter(age, Source == "Fishery")
 srv_age <- filter(age, Source == "Survey")
 
@@ -55,14 +69,12 @@ data <- list(
   random_rec = 1,
   
   # Time varying parameters - each vector contains the terminal years of each time block
-  blks_fsh_sel = c(16, 37), # fishery selectivity 
-  blks_srv_sel = c(16, 37), # survey selectivity
+  
+  blks_fsh_sel = c(5, 14, 37), #  fishery selectivity: limited entry in 1985, EQS in 1994 
+  blks_srv_sel = c(37), # no breaks survey selectivity
   
   # Fixed parameters
   M = 0.1,
-  sigma_catch = 0.05,
-  sigma_cpue = 0.1,
-  omega = 50,
   
   # Fxx levels that correspond with spr_Fxx in Parameter section
   Fxx_levels = c(0.35, 0.40, 0.50),
@@ -70,18 +82,15 @@ data <- list(
   # Priors ("p_" denotes prior)
   p_fsh_q = 0.001,
   sigma_fsh_q = 1,
-  p_srv1_q = 0.001,
-  sigma_srv1_q = 1,
-  p_srv2_q = 0.001,
-  sigma_srv2_q = 1,
+  p_srv_q = 0.001,
+  sigma_srv_q = 1,
   p_mr_q = 1.0,
   sigma_mr_q = 0.01,
   
   # Weights on likelihood components ("wt_" denotes weight)
   wt_catch = 1.0,
   wt_fsh_cpue = 1.0,
-  wt_srv1_cpue = 1.0,
-  wt_srv2_cpue = 1.0,
+  wt_srv_cpue = 1.0,
   wt_mr = 1.0,
   wt_fsh_age = 1.0,
   wt_srv_age = 1.0,
@@ -91,27 +100,25 @@ data <- list(
   
   # Catch
   data_catch = ts$catch,
+  sigma_catch = pull(ts, sigma_catch),
   
   # Mark-recapture estimates
   nyr_mr = n_distinct(mr, mr),
   yrs_mr = mr %>% distinct(index) %>% pull(),
   data_mr = pull(mr, mr),
-  sigma_mr = pull(mr, mr_sd), # rep(0.05, 10),
+  sigma_mr = mr %>% pull(sigma_mr),
   
   # Fishery CPUE
   nyr_fsh_cpue = fsh_cpue %>% n_distinct(fsh_cpue),
   yrs_fsh_cpue = fsh_cpue %>% distinct(index) %>% pull(),
   data_fsh_cpue = pull(fsh_cpue, fsh_cpue),
+  sigma_fsh_cpue = pull(fsh_cpue, sigma_fsh_cpue),
   
-  # Survey CPUE 1-hr soak time
-  nyr_srv1_cpue = srv1_cpue %>% n_distinct(srv1_cpue),
-  yrs_srv1_cpue = srv1_cpue %>% distinct(index) %>% pull(),
-  data_srv1_cpue = pull(srv1_cpue, srv1_cpue),
-  
-  # Survey CPUE 3+ hr soak time
-  nyr_srv2_cpue = srv2_cpue %>% n_distinct(srv2_cpue),
-  yrs_srv2_cpue = srv2_cpue %>% distinct(index) %>% pull(),
-  data_srv2_cpue = pull(srv2_cpue, srv2_cpue),
+  # Survey CPUE 
+  nyr_srv_cpue = srv_cpue %>% n_distinct(srv_cpue),
+  yrs_srv_cpue = srv_cpue %>% distinct(index) %>% pull(),
+  data_srv_cpue = pull(srv_cpue, srv_cpue),
+  sigma_srv_cpue = pull(srv_cpue, sigma_srv_cpue),
   
   # Timing in month fractions
   spawn_month = 2/12, # Feb
@@ -132,12 +139,17 @@ data <- list(
   # Fishery age comps
   nyr_fsh_age = fsh_age %>% distinct(year) %>% nrow(),
   yrs_fsh_age = fsh_age %>% distinct(index) %>% pull(),
-  data_fsh_age = fsh_age %>% select(-c(year, index, Source)) %>% as.matrix(),
+  data_fsh_age = fsh_age %>% select(-c(year, index, Source, effn)) %>% as.matrix(),
+  effn_fsh_age = pull(fsh_age, effn),
   
   # Survey age comps
   nyr_srv_age = srv_age %>% distinct(year) %>% nrow(),
   yrs_srv_age = srv_age %>% distinct(index) %>% pull(),
-  data_srv_age = srv_age %>% select(-c(year, index, Source)) %>% as.matrix()
+  data_srv_age = srv_age %>% select(-c(year, index, Source, effn)) %>% as.matrix(),
+  effn_srv_age = pull(srv_age, effn),
+  
+  # Ageing error matrix
+  ageing_error = as.matrix(ageing_error)
 )
 
 # Parameters ----
@@ -155,8 +167,7 @@ parameters <- list(
   
   # Catchability
   fsh_logq = -3.6726,
-  srv1_logq = -3.8929,
-  srv2_logq = -2.4019,
+  srv_logq = -2.4019,
   mr_logq = -0.0001,
   
   # Recruitment (rec_devs include a parameter for all ages in the inital yr plus
@@ -206,8 +217,7 @@ upper <- c(             # Upper bounds
 #             fsh_sel95 = rep(factor(NA), length(data$blks_fsh_sel)),
 #             srv_sel50 = rep(factor(NA), length(data$blks_srv_sel)),
 #             srv_sel95 = rep(factor(NA), length(data$blks_srv_sel)),
-#             fsh_logq = factor(NA), srv1_logq = factor(NA),
-#             srv2_logq = factor(NA), mr_logq = factor(NA),
+#             fsh_logq = factor(NA), srv_logq = factor(NA), mr_logq = factor(NA),
 #             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
 #             log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
 #             spr_Fxx = rep(factor(NA), length(data$Fxx_levels)))
@@ -224,6 +234,16 @@ if (data$random_rec == 1) {
 # Estimate everything at once
 map <- list(dummy=factor(NA))
 
+# Turn off parameters that don't scale the population
+map <- list(dummy=factor(NA),
+            fsh_sel50 = rep(factor(NA), length(data$blks_fsh_sel)),
+            fsh_sel95 = rep(factor(NA), length(data$blks_fsh_sel)),
+            srv_sel50 = rep(factor(NA), length(data$blks_srv_sel)),
+            srv_sel95 = rep(factor(NA), length(data$blks_srv_sel)),
+            log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
+            spr_Fxx = rep(factor(NA), length(data$Fxx_levels))
+            )
+
 # Fix parameter if sigma_r is not estimated via random effects
 if(data$random_rec == 0) {
   map$log_sigma_r <- factor(NA)
@@ -236,8 +256,11 @@ model <- MakeADFun(data, parameters, DLL = "mod",
 fit <- nlminb(model$par, model$fn, model$gr,
               control=list(eval.max=100000,iter.max=1000),
               lower = lower, upper = upper)
-for (i in 1:100){
-  fit <- nlminb(model$env$last.par.best, model$fn, model$gr)}
+
+for (i in 1:3){
+  fit <- nlminb(model$env$last.par.best, model$fn, model$gr)
+}
+
 best <- model$env$last.par.best
 print(as.numeric(best))
 rep <- sdreport(model)
@@ -251,72 +274,11 @@ model$report()$pred_mr
 model$report()$obj_fun
 
 exp(as.list(rep, what = "Estimate")$fsh_logq)
-exp(as.list(rep, what = "Estimate")$srv1_logq)
-exp(as.list(rep, what = "Estimate")$srv2_logq)
+exp(as.list(rep, what = "Estimate")$srv_logq)
 exp(as.list(rep, what = "Estimate")$mr_logq)
 # as.list(rep, what = "Std")
 
 exp(as.list(rep, what = "Estimate")$log_rbar)
-
-# Plot time series ----
-
-# Catch 
-ts$pred_catch <- model$report()$pred_catch
-axis <- tickr(ts, year, 5)
-ggplot(ts, aes(x = year)) +
-  geom_point(aes(y = catch)) +
-  geom_line(aes(y = pred_catch), colour = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  labs(x = "", y = "\n\nCatch\n(round mt)") -> p_catch
-
-# Fishery cpue
-fsh_cpue$pred_fsh_cpue <- model$report()$pred_fsh_cpue
-ggplot(fsh_cpue, aes(x = year)) +
-  geom_point(aes(y = fsh_cpue)) +
-  geom_line(aes(y = pred_fsh_cpue), colour = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  labs(x = "", y = "\n\nFishery CPUE\n(round kg/hook)") -> p_fsh
-
-# Survey cpue
-ts %>% 
-  select(year, contains("srv")) %>% 
-  gather("survey", "obs", c("srv1_cpue", "srv2_cpue")) %>%
-  na.omit() %>%
-  mutate(survey = ifelse(survey == "srv1_cpue", "1-hr soak", "3+hr soak"),
-         pred = c(model$report()$pred_srv1_cpue,
-                  model$report()$pred_srv2_cpue)) -> srv
-
-ggplot(srv, aes(x = year)) +
-  geom_point(aes(y = obs, shape = survey)) +
-  geom_line(aes(y = pred, group = survey), colour = "grey") +
-  geom_vline(xintercept = 1997, linetype = 2, colour = "grey") +
-  # scale_y_continuous(limits = c(0.05, 0.45)) +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL, shape = NULL) +
-  theme(legend.position = c(.1, .8)) -> p_srv
-
-# Mark recapture 
-mr %>% 
-  mutate(pred_mr = model$report()$pred_mr) %>% 
-  select(year, pred_mr) %>% 
-  right_join(ts %>%
-               select(year, mr) %>%
-               mutate(pred_mr_all = model$report()$pred_mr_all)) -> mr_plot
-
-ggplot(mr_plot, aes(x = year)) +
-  geom_point(aes(y = mr)) +
-  geom_line(aes(y = pred_mr, group = 1), colour = "grey") +
-  # geom_point(aes(y = pred_mr), colour = "grey") +
-  geom_line(aes(y = pred_mr_all, group = 1), lty = 2, colour = "grey") +
-  scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
-  labs(x = "", y = "\n\nAbundance\n(millions)") -> p_mr
-
-plot_grid(p_catch, p_fsh, p_srv, p_mr, ncol = 1, align = 'hv', 
-          labels = c('(A)', '(B)', '(C)', '(D)'))
-
-# ggsave(paste0("pred_abd_indices.png"), 
-#        dpi=300, height=7, width=6, units="in")
-
 
 # # Phase -----
 # 
@@ -444,6 +406,56 @@ plot_grid(p_catch, p_fsh, p_srv, p_mr, ncol = 1, align = 'hv',
 # model$report()$rec_like
 # model$report()$obj_fun
 # model$report()$offset
+
+# Plot time series ----
+
+# Catch 
+ts$pred_catch <- model$report()$pred_catch
+axis <- tickr(ts, year, 5)
+ggplot(ts, aes(x = year)) +
+  geom_point(aes(y = catch)) +
+  geom_line(aes(y = pred_catch), colour = "grey") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = NULL, y = "\n\nCatch\n(round mt)") -> p_catch
+
+# Fishery cpue
+fsh_cpue$pred_fsh_cpue <- model$report()$pred_fsh_cpue
+ggplot(fsh_cpue, aes(x = year)) +
+  geom_point(aes(y = fsh_cpue)) +
+  geom_line(aes(y = pred_fsh_cpue), colour = "grey") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = NULL, y = "\n\nFishery CPUE\n(round kg/hook)") -> p_fsh
+
+# Survey cpue
+
+srv_cpue$pred_srv_cpue <- model$report()$pred_srv_cpue
+ggplot(srv_cpue, aes(x = year)) +
+  geom_point(aes(y = srv_cpue)) +
+  geom_line(aes(y = pred_srv_cpue), colour = "grey") +
+  scale_x_continuous(limits = c(min(ts$year), max(ts$year)),
+                     breaks = axis$breaks, labels = axis$labels) +
+  labs(x = NULL, y = "\n\nSurvey CPUE\n(number/hook)") -> p_srv
+
+# Mark recapture 
+mr %>% 
+  mutate(pred_mr = model$report()$pred_mr) %>% 
+  select(year, pred_mr) %>% 
+  right_join(ts %>%
+               select(year, mr) %>%
+               mutate(pred_mr_all = model$report()$pred_mr_all)) -> mr_plot
+
+ggplot(mr_plot, aes(x = year)) +
+  geom_point(aes(y = mr)) +
+  geom_line(aes(y = pred_mr, group = 1), colour = "grey") +
+  geom_line(aes(y = pred_mr_all, group = 1), lty = 2, colour = "grey") +
+  scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+  labs(x = NULL, y = "\n\nAbundance\n(millions)") -> p_mr
+
+plot_grid(p_catch, p_fsh, p_srv, p_mr, ncol = 1, align = 'hv', 
+          labels = c('(A)', '(B)', '(C)', '(D)'))
+
+# ggsave(paste0("pred_abd_indices.png"), 
+#        dpi=300, height=7, width=6, units="in")
 
 # Resids for time series ----
 ts %>% 

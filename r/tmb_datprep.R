@@ -22,9 +22,12 @@ read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"),
   group_by(year) %>% 
   summarize(total_pounds = sum(whole_pounds)) %>% 
   # Convert lbs to mt
-  mutate(catch = total_pounds * 0.000453592) %>% 
+  mutate(catch = total_pounds * 0.000453592,
+         sigma_catch = 0.05,
+         upper_catch = catch + catch * sigma_catch,
+         lower_catch = catch - catch * sigma_catch) %>% 
   select(-total_pounds) %>% 
-  filter(year >= syr) -> sum_catch
+  filter(year >= syr) -> catch
 
 # Fishery CPUE ----
 
@@ -41,7 +44,8 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", lyr,".csv"),
 # Nominal CPUE 
 fsh_cpue %>% 
   group_by(year) %>% 
-  summarise(cpue = mean(std_cpue_kg)) -> fsh_sum 
+  summarise(fsh_cpue = mean(std_cpue_kg),
+            sigma_fsh_cpue = sd(std_cpue_kg)) -> fsh_cpue 
 
 # Historical CPUE 
 
@@ -60,123 +64,102 @@ read_csv("data/fishery/legacy_fisherycpue_1980_1996.csv",
 
 data.frame(year = 1980:1996,
            # Convert to kg
-           cpue = hist_cpue * 0.453592) %>% 
-  bind_rows(fsh_sum ) %>% 
-  mutate(upper = cpue + 0.2 * cpue,
-         lower = cpue - 0.2 * cpue) -> cpue_ts
-
+           fsh_cpue = hist_cpue * 0.453592,
+           sigma_fsh_cpue = 0.2) %>% 
+  bind_rows(fsh_cpue) %>% 
+  mutate(upper_fsh_cpue = fsh_cpue + fsh_cpue * sigma_fsh_cpue,
+         lower_fsh_cpue = fsh_cpue - fsh_cpue * sigma_fsh_cpue) -> fsh_cpue
 
 # Survey NPUE ----
 
-read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) -> srv_sum
-
-# FLAG Survey 2 - 3+hr soak time. I didn't vet these values and got them from Franz's
-# data file
-
-data.frame(year = 1988:1996,
-           annual_cpue = c(0.2290,	0.1260,	0.1220,	0.1580,	0.1150,	0.2280,	
-                           0.1720,	0.1520,	0.1600),
-           survey = "1-hr soak")  %>% 
-  full_join(srv_sum %>% 
-              mutate(survey = "3+hr soak")) %>% 
-  mutate(CIupper = annual_cpue + 0.2 * annual_cpue,
-         CIlower = annual_cpue - 0.2 * annual_cpue) %>% 
-  mutate(CIlower = ifelse(CIlower < 0, 0, CIlower)) -> srv_sum
+read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) %>% 
+  select(year, srv_cpue = annual_cpue, sigma_srv_cpue = sdev) %>% 
+  mutate(upper_srv_cpue = srv_cpue + srv_cpue * sigma_srv_cpue,
+         lower_srv_cpue = srv_cpue - srv_cpue * sigma_srv_cpue) -> srv_cpue
 
 # Mark-recapture index ----
 
-read_csv(paste0("output/mr_index.csv")) -> mr_sum
+read_csv(paste0("output/mr_index.csv")) %>% 
+  select(year, mr = estimate, sigma_mr = sd) %>% 
+  mutate(upper_mr = mr + mr * sigma_mr,
+         lower_mr = mr - mr * sigma_mr) -> mr
 
-# *FLAG* F. Mueter (2010) had data for 2003 and 2004. I could include his
-# Petersen estimates + his 2*se - Dec 2018 I asked A. Olson to track these data
-# down and will not use these in an analysis until I have the raw data.
-# early_mr <- data.frame(year = c(2003, 2004), estimate = c(2.775, 2.675), q025 =
-#                         c(2.5429, 2.4505), q975 = c(3.0071, 2.8995))
-
-# Alternatively, these are KVK's esitmates for 2003 and 2004
-# early_mr <- data.frame(year = c(2003, 2004), 
-#                        estimate = c(1633115.34,	1734101.552),
-#                        q025 = c(NA, NA), 
-#                        q975 = c(NA, NA))
-
-# bind_rows(early_mr, mr_sum) -> mr_sum
-# 
 # mr_sum %>% 
 #   full_join(data.frame(year = min(mr_sum$year):lyr)) %>% 
 #   arrange(year) -> mr_sum
 
 # Graphics ----
 
-axis <- tickr(cpue_ts, year, 5)
+axis <- tickr(fsh_cpue, year, 5)
 
-sum_catch %>% 
-  mutate(upper =  catch + 0.05 * catch,
-         lower = catch - 0.05 * catch) %>% 
+catch %>% 
   ggplot() + 
   geom_point(aes(year, catch)) +
   geom_line(aes(year, catch)) +
-  geom_ribbon(aes(year, ymin = lower, ymax = upper),
+  geom_ribbon(aes(year, ymin = lower_catch, ymax = upper_catch),
               alpha = 0.2,  fill = "grey") +
-  geom_vline(xintercept = 1997, linetype = 2, colour = "grey") +
+  # Board implemented Limitted Entry in 1985
+  geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
+  # Board implemented Equal Quota Share in 1994
+  geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   scale_y_continuous(labels = scales::comma) +
-  labs(x = "", y = "\n\nCatch\n(round mt)") -> catch
+  labs(x = "", y = "\n\nCatch\n(round mt)") -> catch_plot
 
-ggplot(cpue_ts) +
-  geom_point(aes(year, cpue)) +
-  geom_line(aes(year, cpue)) +
-  geom_ribbon(aes(year, ymin = lower , ymax = upper),
+ggplot(fsh_cpue) +
+  geom_point(aes(year, fsh_cpue)) +
+  geom_line(aes(year, fsh_cpue)) +
+  geom_ribbon(aes(year, ymin = lower_fsh_cpue , ymax = upper_fsh_cpue),
               alpha = 0.2,  fill = "grey") +
-  geom_vline(xintercept = 1997, linetype = 2, colour = "grey") +
+  # Board implemented Limitted Entry in 1985
+  geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
+  # Board implemented Equal Quota Share in 1994
+  geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  lims(y = c(0, 1.4)) +
-  labs(x = "", y = "\n\nFishery CPUE\n(round kg/hook)") -> cpue
+  # lims(y = c(0, 1.05)) +
+  labs(x = "", y = "\n\nFishery CPUE\n(round kg/hook)") -> fsh_cpue_plot
 
-ggplot(data = srv_sum) +
-  geom_point(aes(year, annual_cpue, shape = survey)) +
-  geom_line(aes(year, annual_cpue)) +
-  geom_vline(xintercept = 1997, linetype = 2, colour = "grey") +
-  geom_ribbon(aes(year, ymin = CIlower, ymax = CIupper),
+ggplot(data = srv_cpue) +
+  geom_point(aes(year, srv_cpue)) +
+  geom_line(aes(year, srv_cpue)) +
+  geom_ribbon(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue),
               alpha = 0.2, col = "white", fill = "grey") +
   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, labels = axis$labels) + 
-  lims(y = c(0, 0.5)) +
-  labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL, shape = NULL) +
-  theme(legend.position = c(.1, .8))-> srv
+  # lims(y = c(0, 0.3)) +
+  labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL) -> srv_cpue_plot
 
-mr_sum %>% 
+mr %>% 
   mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
   pad(interval = "year") %>% 
   mutate(year = year(year),
          Year = factor(year)) %>% 
-  gather("Abundance", "N", estimate) %>% 
-  # mutate(# interpolate the CI in missing years for plotting purposes
-  #        q025 = zoo::na.approx(q025, maxgap = 20, rule = 2),
-  #        q975 = zoo::na.approx(q975, maxgap = 20, rule = 2)) %>% 
+  gather("Abundance", "N", mr) %>% 
+  mutate(# interpolate the CI in missing years for plotting purposes
+         lower_mr = zoo::na.approx(lower_mr, maxgap = 20, rule = 2),
+         upper_mr = zoo::na.approx(upper_mr, maxgap = 20, rule = 2)) %>%
   ggplot() +
-  geom_errorbar(aes(x = year, ymin = N - 2*sd, ymax = N + 2*sd),
-              colour = "grey", width = 0) +
-  # geom_ribbon(aes(x = year, ymin = N - 2*sd, ymax = N + 2*sd),
-  #             alpha = 0.2, colour = "white", fill = "grey") +
+  # geom_errorbar(aes(x = year, ymin = N - 2*sd, ymax = N + 2*sd),
+  #             colour = "grey", width = 0) +
+  geom_ribbon(aes(x = year, ymin = lower_mr, ymax = upper_mr),
+              alpha = 0.2, colour = "white", fill = "grey") +
   geom_point(aes(x = year, y = N)) +
   geom_line(aes(x = year, y = N, group = Abundance)) +
   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, 
                      labels = axis$labels) +
-  ylim(c(0, 3.8)) +
-  labs(x = "", y = "\n\nAbundance\n(millions)") -> mr
+  # ylim(c(0, 3.8)) +
+  labs(x = "", y = "\n\nAbundance\n(millions)") -> mr_plot
   
-plot_grid(catch, cpue, srv, mr, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)', '(D)'))
+plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)', '(D)'))
 
 ggsave(paste0("figures/tmb/abd_indices.png"),
        dpi=300, height=6, width=6, units="in")
 
 
-full_join(sum_catch, cpue_ts) %>% 
-  full_join(srv_sum %>% 
-              spread(survey, annual_cpue)) %>% 
-  full_join(mr_sum) %>%
-  select(year, catch, fsh_cpue = cpue, srv1_cpue = `1-hr soak`, srv2_cpue = `3+hr soak`,
-         mr = estimate, mr_sd = sd) %>% 
-  mutate(index = year -min(year)) -> ts
+full_join(catch, fsh_cpue) %>% 
+  full_join(srv_cpue) %>% 
+  full_join(mr) %>% 
+  select(-contains("lower"), -contains("upper")) %>% 
+  mutate(index = year - min(year)) -> ts
   
 write_csv(ts, "data/tmb_inputs/abd_indices.csv")
 
@@ -399,11 +382,11 @@ agecomps %>%
 # Sample sizes 
 agecomps %>% 
   group_by(year, Source) %>% 
-  summarize(n = sum(n)) 
+  summarize(n = sum(n)) -> n_agecomps
 
 axisy <- tickr(agecomps, year, 5)
 
-ggplot(agecomps, aes(x = age, y = year, size = proportion)) + #*FLAG* could swap size with proportion_scaled
+ggplot(agecomps, aes(x = age, y = year, size = proportion)) +
   geom_hline(yintercept = seq(2000, 2015, by = 5), 
              colour = "grey", linetype = 3, alpha = 0.7) +  
   geom_point(shape = 21, colour = "black", fill = "black") +
@@ -421,8 +404,13 @@ agecomps %>%
   left_join(data.frame(year = syr:lyr) %>% 
               mutate(index = year - min(year))) -> agecomps
 
+# Add in effective sample size. For now effn = sqrt(n) until tuning methods can
+# be developed.
+full_join(select(agecomps, -n), n_agecomps) %>%
+  mutate(effn = sqrt(n)) -> agecomps
+
 # Reshape
-agecomps %>% dcast(year + index + Source ~ age, value.var = "proportion") -> agecomps
+agecomps %>% dcast(year + index + Source + effn ~ age, value.var = "proportion") -> agecomps
 agecomps[is.na(agecomps)] <- 0
 
 write_csv(agecomps, "data/tmb_inputs/agecomps.csv")
