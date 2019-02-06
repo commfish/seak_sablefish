@@ -38,15 +38,7 @@
 
 [ ] Refine the implementation of phasing, starting values, and weighting for the various likelihood components.
 
-[X] Consideration should be given to time-varying selectivity given there are multiple fisheries (that are aggregated)
-
-[X] Test alternative models to determine if the same selectivity for the two surveys is appropriate 
-
-[X] Develop the TMB code to estimate biological reference points within the model
-
 [ ] Include assumed discard mortality
-
-[X] Estimate recruitment as a random effect 
 
 [ ] Explore the benefits of a sex-structured model to deal with the fact that at-age females are larger than males
 
@@ -56,9 +48,18 @@
 
 [ ] Develop priors and move towards a Bayesian implementation of this assessment
 
+[X] Split rec_devs and rinit_devs into separate variables
+
+[X] Estimate recruitment as a random effect 
+
 [X] Add ageing error matrix
 
-[ ] Split rec_devs and init_devs into separate variables
+[X] Consideration should be given to time-varying selectivity given there are multiple fisheries (that are aggregated)
+
+[X] Test alternative models to determine if the same selectivity for the two surveys is appropriate 
+
+[X] Develop the TMB code to estimate biological reference points within the model
+
 
 ## Text and figures
 

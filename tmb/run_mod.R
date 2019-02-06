@@ -18,10 +18,6 @@ age <- read_csv("data/tmb_inputs/agecomps.csv")          # age comps
 bio <- read_csv("data/tmb_inputs/maturity_sexratio.csv") # proportion mature and proportion-at-age in the survey
 waa <- read_csv("data/tmb_inputs/waa.csv")               # weight-at-age
 
-# # Measure of sample size for survey age compositon (square root of number of
-# ages read per year - nsamples_srv1_age(1,nyrs_srv_age)
-
-
 # Ageing error transition matrix: proportion at reader age given TRUE age -
 # ageage(1,nages,1,nages) There are no true ages in ADF&G data; only
 # RELEASE_AUTHORITATIVE for comparison of following reads for a given otolith
@@ -35,7 +31,8 @@ names(ageing_error) <- 2:42
 
 # Starting values
 finits <- read_csv("data/tmb_inputs/inits_f_devs.csv")   # log F devs
-rinits <- read_csv("data/tmb_inputs/inits_rec_devs.csv") # log rec devs
+inits_rec_dev <- read_csv("data/tmb_inputs/inits_rec_devs.csv") # log rec devs
+inits_rinit <- read_csv("data/tmb_inputs/inits_rinit.csv") # log rec devs
 
 setwd("tmb")
 
@@ -170,10 +167,13 @@ parameters <- list(
   srv_logq = -2.4019,
   mr_logq = -0.0001,
   
-  # Recruitment (rec_devs include a parameter for all ages in the inital yr plus
-  # age-2 in all yrs, nyr+nage-2)
+  # Log mean recruitment and deviations (nyr)
   log_rbar = -0.3798,
-  log_rec_devs = rinits$rinits,
+  log_rec_devs = inits_rec_dev$inits_rec_dev,
+  # Log mean initial numbers-at-age and deviations (nage-2)
+  log_rinit = 0.10,
+  log_rinit_devs = inits_rinit$inits_rinit,
+  # Variability in rec_devs and rinit_devs
   log_sigma_r = 0.1823216, # Federal value of 1.2 on log scale, Sigler et al. (2002)
   
   # Fishing mortality
@@ -191,7 +191,9 @@ lower <- c(             # Lower bounds
   rep(0.1, length(data$blks_fsh_sel) + length(data$blks_srv_sel)),          # Selectivity
   rep(-15, 4),          # Catchability log_q
   -Inf,                 # log mean recruitment
-  rep(-10, nyr+nage-2), # log recruitment deviations
+  rep(-10, nyr),        # log recruitment deviations
+  -Inf,                 # log mean init numbers-at-age
+  rep(-10, nage-2),     # log initial numbers-at-age deviations
   -Inf,                 # log sigma R  
   -Inf,                 # Mean log F
   rep(-15, nyr)         # log F deviations
@@ -201,7 +203,9 @@ upper <- c(             # Upper bounds
   rep(10, length(data$blks_fsh_sel) + length(data$blks_srv_sel)),           # Selectivity
   rep(5, 4),            # Catchability q
   Inf,                  # log mean recruitment
-  rep(10, nyr+nage-2),  # log recruitment deviations
+  rep(10, nyr),         # log recruitment deviations
+  Inf,                 # log mean init numbers-at-age
+  rep(10, nage-2),     # log initial numbers-at-age deviations
   Inf,                  # log sigma R
   Inf,                  # Mean log F  
   rep(15, nyr)          # log F deviations  
@@ -280,132 +284,132 @@ exp(as.list(rep, what = "Estimate")$mr_logq)
 
 exp(as.list(rep, what = "Estimate")$log_rbar)
 
-# # Phase -----
-# 
-# # PHASE 1 - estimate mark-recapture catchability (mr_logq)
-# map <- list(dummy=factor(NA),
-#             fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
-#             srv_sel50 = factor(NA), srv_sel95 = factor(NA),
-#             fsh_logq = factor(NA), srv1_logq = factor(NA),
-#             srv2_logq = factor(NA), # mr_logq = factor(NA),
-#             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
-#             log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr))
-# model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
-# lower <- c(-15)
-# upper <- c(5)
-# fit <- nlminb(model$par, model$fn, model$gr,
-#               control=list(eval.max=100000,iter.max=1000),
-#               lower = lower, upper = upper)
-# best <- model$env$last.par.best
-# print(as.numeric(best))
+# Phase -----
+
+# PHASE 1 - estimate mark-recapture catchability (mr_logq)
+map <- list(dummy=factor(NA),
+            fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
+            srv_sel50 = factor(NA), srv_sel95 = factor(NA),
+            fsh_logq = factor(NA), srv1_logq = factor(NA),
+            srv2_logq = factor(NA), # mr_logq = factor(NA),
+            log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
+            log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr))
+model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
+lower <- c(-15)
+upper <- c(5)
+fit <- nlminb(model$par, model$fn, model$gr,
+              control=list(eval.max=100000,iter.max=1000),
+              lower = lower, upper = upper)
+best <- model$env$last.par.best
+print(as.numeric(best))
+model$report()$priors
+model$report()$catch_like
+model$report()$index_like
+model$report()$age_like
+model$report()$pred_mr
+
+# PHASE 2 - estimate fishery and survey catchabilities and average F (fsh_logq,
+# srv1_logq, srv2_logq, logFbar) and mr_logq
+map <- list(dummy=factor(NA),
+            fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
+            srv_sel50 = factor(NA), srv_sel95 = factor(NA),
+            # fsh_logq = factor(NA), #srv1_logq = factor(NA),
+            #srv2_logq = factor(NA), # mr_logq = factor(NA),
+            log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
+            #log_Fbar = factor(NA),
+            log_F_devs = rep(factor(NA), nyr))
+model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
+lower <- c(rep(-15, 4),-Inf)
+upper <- c(rep(5, 4), Inf)
+phase2_inits <- c(parameters$fsh_logq, parameters$srv1_logq,
+                  parameters$srv2_logq, as.numeric(best), parameters$log_Fbar)
+fit <- nlminb(phase2_inits, model$fn, model$gr,
+              control=list(eval.max=100000,iter.max=1000),
+              lower = lower, upper = upper)
+best <- model$env$last.par.best
+print(as.numeric(best))
+
+# PHASE 3 - estimate recruitment deviations (log_rec_devs) and fsh_logq,
+# srv1_logq, srv2_logq, log_Fbar, and mr_logq
+map <- list(dummy=factor(NA),
+            fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
+            srv_sel50 = factor(NA), srv_sel95 = factor(NA),
+            #fsh_logq = factor(NA), #srv1_logq = factor(NA),
+            #srv2_logq = factor(NA), # mr_logq = factor(NA),
+            log_rbar = factor(NA), # log_rec_devs = rep(factor(NA), nyr+nage-2),
+            #log_Fbar = factor(NA),
+            log_F_devs = rep(factor(NA), nyr))
+model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
+lower <- c(rep(-15, 4), rep(-10, nyr+nage-2), -Inf)
+upper <- c(rep(5, 4), rep(10, nyr+nage-2), Inf)
+phase3_inits <- c(as.numeric(best)[1:4], parameters$log_rec_devs, as.numeric(best)[5])
+fit <- nlminb(phase3_inits, model$fn, model$gr,
+              control=list(eval.max=100000,iter.max=1000),
+              lower = lower, upper = upper)
+best <- model$env$last.par.best
+print(as.numeric(best))
+
+# PHASE 4 - estimate fishing mortality deviations and selectivities and
+# log_rec_devs, fsh_logq, srv1_logq, srv2_logq, log_Fbar and mr_logq
+map <- list(dummy=factor(NA),
+            # fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
+            # srv_sel50 = factor(NA), srv_sel95 = factor(NA),
+            #fsh_logq = factor(NA), #srv1_logq = factor(NA),
+            #srv2_logq = factor(NA), #mr_logq = factor(NA),
+            log_rbar = factor(NA)#, log_rec_devs = rep(factor(NA), nyr+nage-2),
+            #log_Fbar = factor(NA),
+            #log_F_devs = rep(factor(NA), nyr)
+            )
+model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
+lower <- c(rep(0.1, 4), rep(-15, 4), rep(-10, nyr+nage-2), -Inf, rep(-15, nyr))
+upper <- c(rep(10, 4), rep(5, 4), rep(10, nyr+nage-2), Inf, rep(15, nyr))
+phase4_inits <- c(parameters$fsh_sel50, parameters$fsh_sel95,
+                  parameters$srv_sel50, parameters$srv_sel95,
+                  as.numeric(best), parameters$log_F_devs)
+fit <- nlminb(phase4_inits, model$fn, model$gr,
+              control=list(eval.max=100000,iter.max=1000),
+              lower = lower, upper = upper)
+best <- model$env$last.par.best
+print(as.numeric(best))
+
+# PHASE 5 - Estimate all parameters
+map <- list(dummy=factor(NA)#,
+            # fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
+            # srv_sel50 = factor(NA), srv_sel95 = factor(NA),
+            #fsh_logq = factor(NA), #srv1_logq = factor(NA),
+            #srv2_logq = factor(NA), #mr_logq = factor(NA),
+            #log_rbar = factor(NA)#, log_rec_devs = rep(factor(NA), nyr+nage-2),
+            #log_Fbar = factor(NA),
+            #log_F_devs = rep(factor(NA), nyr)
+            )
+model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
+lower <- c(rep(0.1, 4), rep(-15, 4), -Inf, rep(-10, nyr+nage-2), -Inf, rep(-15, nyr))
+upper <- c(rep(10, 4), rep(5, 4), Inf, rep(10, nyr+nage-2), Inf, rep(15, nyr))
+phase5_inits <- c(as.numeric(best)[1:8], parameters$log_rbar, as.numeric(best)[9:length(best)])
+fit <- nlminb(phase5_inits, model$fn, model$gr,
+              control=list(eval.max=100000,iter.max=1000),
+              lower = lower, upper = upper)
+for (i in 1:5){
+  fit <- nlminb(model$env$last.par.best, model$fn, model$gr)}
+best <- model$env$last.par.best
+print(as.numeric(best))
+rep <- sdreport(model)
+
+print(best)
+print(rep)
+VarCo <- solve(model$he())
+# Check for Hessian
+print(sqrt(diag(VarCo)))
+
+# Likelihood components
 # model$report()$priors
-# model$report()$catch_like
-# model$report()$index_like
-# model$report()$age_like
-# model$report()$pred_mr
-# 
-# # PHASE 2 - estimate fishery and survey catchabilities and average F (fsh_logq,
-# # srv1_logq, srv2_logq, logFbar) and mr_logq
-# map <- list(dummy=factor(NA),
-#             fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
-#             srv_sel50 = factor(NA), srv_sel95 = factor(NA),
-#             # fsh_logq = factor(NA), #srv1_logq = factor(NA),
-#             #srv2_logq = factor(NA), # mr_logq = factor(NA),
-#             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
-#             #log_Fbar = factor(NA),
-#             log_F_devs = rep(factor(NA), nyr))
-# model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
-# lower <- c(rep(-15, 4),-Inf)
-# upper <- c(rep(5, 4), Inf)
-# phase2_inits <- c(parameters$fsh_logq, parameters$srv1_logq,
-#                   parameters$srv2_logq, as.numeric(best), parameters$log_Fbar)
-# fit <- nlminb(phase2_inits, model$fn, model$gr,
-#               control=list(eval.max=100000,iter.max=1000),
-#               lower = lower, upper = upper)
-# best <- model$env$last.par.best
-# print(as.numeric(best))
-# 
-# # PHASE 3 - estimate recruitment deviations (log_rec_devs) and fsh_logq,
-# # srv1_logq, srv2_logq, log_Fbar, and mr_logq
-# map <- list(dummy=factor(NA),
-#             fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
-#             srv_sel50 = factor(NA), srv_sel95 = factor(NA),
-#             #fsh_logq = factor(NA), #srv1_logq = factor(NA),
-#             #srv2_logq = factor(NA), # mr_logq = factor(NA),
-#             log_rbar = factor(NA), # log_rec_devs = rep(factor(NA), nyr+nage-2),
-#             #log_Fbar = factor(NA),
-#             log_F_devs = rep(factor(NA), nyr))
-# model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
-# lower <- c(rep(-15, 4), rep(-10, nyr+nage-2), -Inf)
-# upper <- c(rep(5, 4), rep(10, nyr+nage-2), Inf)
-# phase3_inits <- c(as.numeric(best)[1:4], parameters$log_rec_devs, as.numeric(best)[5])
-# fit <- nlminb(phase3_inits, model$fn, model$gr,
-#               control=list(eval.max=100000,iter.max=1000),
-#               lower = lower, upper = upper)
-# best <- model$env$last.par.best
-# print(as.numeric(best))
-# 
-# # PHASE 4 - estimate fishing mortality deviations and selectivities and
-# # log_rec_devs, fsh_logq, srv1_logq, srv2_logq, log_Fbar and mr_logq
-# map <- list(dummy=factor(NA),
-#             # fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
-#             # srv_sel50 = factor(NA), srv_sel95 = factor(NA),
-#             #fsh_logq = factor(NA), #srv1_logq = factor(NA),
-#             #srv2_logq = factor(NA), #mr_logq = factor(NA),
-#             log_rbar = factor(NA)#, log_rec_devs = rep(factor(NA), nyr+nage-2),
-#             #log_Fbar = factor(NA),
-#             #log_F_devs = rep(factor(NA), nyr)
-#             )
-# model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
-# lower <- c(rep(0.1, 4), rep(-15, 4), rep(-10, nyr+nage-2), -Inf, rep(-15, nyr))
-# upper <- c(rep(10, 4), rep(5, 4), rep(10, nyr+nage-2), Inf, rep(15, nyr))
-# phase4_inits <- c(parameters$fsh_sel50, parameters$fsh_sel95,
-#                   parameters$srv_sel50, parameters$srv_sel95,
-#                   as.numeric(best), parameters$log_F_devs)
-# fit <- nlminb(phase4_inits, model$fn, model$gr,
-#               control=list(eval.max=100000,iter.max=1000),
-#               lower = lower, upper = upper)
-# best <- model$env$last.par.best
-# print(as.numeric(best))
-# 
-# # PHASE 5 - Estimate all parameters
-# map <- list(dummy=factor(NA)#,
-#             # fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
-#             # srv_sel50 = factor(NA), srv_sel95 = factor(NA),
-#             #fsh_logq = factor(NA), #srv1_logq = factor(NA),
-#             #srv2_logq = factor(NA), #mr_logq = factor(NA),
-#             #log_rbar = factor(NA)#, log_rec_devs = rep(factor(NA), nyr+nage-2),
-#             #log_Fbar = factor(NA),
-#             #log_F_devs = rep(factor(NA), nyr)
-#             )
-# model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
-# lower <- c(rep(0.1, 4), rep(-15, 4), -Inf, rep(-10, nyr+nage-2), -Inf, rep(-15, nyr))
-# upper <- c(rep(10, 4), rep(5, 4), Inf, rep(10, nyr+nage-2), Inf, rep(15, nyr))
-# phase5_inits <- c(as.numeric(best)[1:8], parameters$log_rbar, as.numeric(best)[9:length(best)])
-# fit <- nlminb(phase5_inits, model$fn, model$gr,
-#               control=list(eval.max=100000,iter.max=1000),
-#               lower = lower, upper = upper)
-# for (i in 1:5){
-#   fit <- nlminb(model$env$last.par.best, model$fn, model$gr)}
-# best <- model$env$last.par.best
-# print(as.numeric(best))
-# rep <- sdreport(model)
-# 
-# print(best)
-# print(rep)
-# VarCo <- solve(model$he())
-# # Check for Hessian
-# print(sqrt(diag(VarCo)))
-# 
-# # Likelihood components
-# # model$report()$priors
-# model$report()$catch_like
-# model$report()$index_like
-# model$report()$age_like
-# model$report()$fpen
-# model$report()$rec_like
-# model$report()$obj_fun
-# model$report()$offset
+model$report()$catch_like
+model$report()$index_like
+model$report()$age_like
+model$report()$fpen
+model$report()$rec_like
+model$report()$obj_fun
+model$report()$offset
 
 # Plot time series ----
 

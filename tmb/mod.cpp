@@ -124,9 +124,11 @@ template<class Type>
   PARAMETER(mr_logq);             // mark-recapture 
     
   // Recruitment (rec_devs include a parameter for all ages in the inital yr plus age-2 in all yrs)
-  PARAMETER(log_rbar);            // Mean recruitment
-  PARAMETER_VECTOR(log_rec_devs); // Recruitment deviations (nyr+nage-2)
-  PARAMETER(log_sigma_r);         // Variability in rec devs, only estimated when using random effects (random_rec=1)
+  PARAMETER(log_rbar);                // Mean recruitment
+  PARAMETER_VECTOR(log_rec_devs);     // Annual recruitment deviations (formerly nyr+nage-2, now nyr)
+  PARAMETER(log_rinit);               // Mean initial numbers-at-age in syr
+  PARAMETER_VECTOR(log_rinit_devs);   // Age-specific deviations from log_rinit (nage-2)
+  PARAMETER(log_sigma_r);             // Variability in rec_devs and rinits, only estimated when using random effects (random_rec=1)
   
   // Fishing mortality
   PARAMETER(log_Fbar);            // Mean F on log scale 
@@ -291,17 +293,17 @@ template<class Type>
   
   // Abundance and recruitment
 
-  // Start year: recruitment age + 1 to plus group - 1
+  // Start year: initial numbers-at-age (sage + 1 to plus group - 1)
   for (int j = 1; j < nage-1; j++) {
-    N(0,j) = exp(log_rbar - M * Type(j) + log_rec_devs(nage-j-2));
+    N(0,j) = exp(log_rinit - M * Type(j) + log_rinit_devs(j-1));
   }
 
   // Start year: plus group
-  N(0,nage-1) = exp(log_rbar - M * Type(nage-1)) / (1 - exp(-M));
+  N(0,nage-1) = exp(log_rinit - M * Type(nage-1)) / (1 - exp(-M));
 
   // Recruitment in all years (except the projected year)
   for (int i = 0; i < nyr; i++) {
-    N(i,0) = exp(log_rbar + log_rec_devs(nage+i-2));
+    N(i,0) = exp(log_rbar + log_rec_devs(i));
   }
 
   // Project remaining N matrix
@@ -319,7 +321,7 @@ template<class Type>
 
   // Projected recruitment (average over recent 15 years, excluding most recent
   // 2 years), where the indexing of log_rec_devs(0,nyr+nage-3)
-  for (int i = nyr+nage-3-16; i <= nyr+nage-3-2; i++) {
+  for (int i = nyr-16; i <= nyr-2; i++) {
     N(nyr,0) += exp(log_rbar + log_rec_devs(i));
   }
   N(nyr,0) /= Type(15.0);
@@ -637,30 +639,49 @@ template<class Type>
   // std::cout << "Age comp likelihoods\n" << age_like << "\n";
 
   // Recruitment - random_rec switches between penalized likelihood and random
-  // effects
-  Type n_rec = log_rec_devs.size();
+  // effects. Shared sigma_r between rinit_devs and rec_devs, rinit_devs are the
+  // same as the rec_devs but have been reduced by mortality. They were kept
+  // separate to help with accounting.
 
   // Penalized likelihood, sigma_r fixed, bias correction for lognormal
   // likelihood (-0.5*sigma^2) needed to get mean instead of median from
   // distribution
   if (random_rec == 0) {
-    for (int i = 0; i < n_rec; i++) {
+    
+    // Annual recruitment deviations
+    for (int i = 0; i < nyr; i++) {
       rec_like += square(log_rec_devs(i) - Type(0.5) * square(sigma_r));
     }
+    
+    // Initial numbers-at-age (sage + 1 to plus group - 1)
+    for (int j = 0; j < nage - 2; j++) {
+      rec_like += square(log_rinit_devs(j) - Type(0.5) * square(sigma_r));
+    }
+    
     rec_like *= wt_rec_like;      // weight
+    
   }
 
   // Random effects: mean = 0, sigma_r estimated, same bias correction as
   // penalized likelihood for lognormal distribution
   if (random_rec == 1) {
-    for (int i = 0; i < n_rec; i++) {
+    
+    // Recruitment deviations
+    for (int i = 0; i < nyr; i++) {
       rec_like += log(sigma_r) + Type(0.5) * square(log_rec_devs(i) - Type(0.5) * square(sigma_r)) / square(sigma_r);
-      // Should be equivalent to:
-      // rec_like -= dnorm(log_rec_dev(i) - Type(0.5) * square(sigma_r) , Type(0.0), sigma_r, true);
+      // Should be equivalent to: rec_like -= dnorm(log_rec_dev(i) - Type(0.5) * square(sigma_r) , Type(0.0), sigma_r, true);
     }
+    
+    // Initial numbers-at-age (sage + 1 to plus group - 1)
+    for (int j = 0; j < nage - 2; j++) {
+      rec_like += log(sigma_r) + Type(0.5) * square(log_rinit_devs(j) - Type(0.5) * square(sigma_r)) / square(sigma_r);
+    }
+    
+    rec_like *= wt_rec_like;      // weight
+    
   }
-
   // std::cout << "Log recruitment deviations\n" << log_rec_devs << "\n";
+  // std::cout << "Log deviations for initial numbers-at-age\n" << log_rinit_devs << "\n";
   // std::cout << "Recruitment likelihood\n" << rec_like << "\n";
 
   // Regularity penalty on fishing mortality
