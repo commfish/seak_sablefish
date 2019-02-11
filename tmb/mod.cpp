@@ -349,7 +349,7 @@ template<class Type>
   // Predicted annual catch
   for (int i = 0; i < nyr; i++) {
     for (int j = 0; j < nage; j++) {
-      pred_catch(i) += C(i,j) * data_fsh_waa(j) ; // / 1e3; // in mt
+      pred_catch(i) += C(i,j) * data_fsh_waa(j) ;  // / 1e3 in mt
     }
   }
   
@@ -412,12 +412,12 @@ template<class Type>
   Type mr_q = exp(mr_logq);
 
   for (int i = 0; i < nyr_mr; i++) {
-    pred_mr(i) = mr_q * vuln_abd(yrs_mr(i)) ; // / 1e6; // Just in years with a MR estimate
+    pred_mr(i) = mr_q * vuln_abd(yrs_mr(i)); //  / 1e6 Just in years with a MR estimate
   }
   // std::cout << "Predicted MR \n" << pred_mr << "\n";
   
   for (int i = 0; i < nyr; i++) {
-    pred_mr_all(i) = mr_q * vuln_abd(i) ; // / 1e6; // All years
+    pred_mr_all(i) = mr_q * vuln_abd(i); // / 1e6 All years
   }
   // std::cout << "Predicted MR for all years\n" << pred_mr_all << "\n";
  

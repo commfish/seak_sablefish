@@ -401,3 +401,221 @@ tickr <- function(
                            !!VAR, "")) %>%
     select(breaks = UQ(VAR), labels)
 }
+
+#' Build parameter bounds
+#' Original code by Grant Adams, adapted for use with the sablefish model
+#' 
+#' @param param_list Parameter list object built from \code{\link{build_params}}
+#'
+#' @return List of upper and lower bounds
+#' @export
+#'
+build_bounds <- function(param_list = NULL, data_list){
+  
+  upper_bnd <- param_list
+  lower_bnd <- param_list
+  
+  # upper_bnd <- lapply(upper_bnd, as.numeric)
+  # lower_bnd <- lapply(lower_bnd, as.numeric)
+  
+  # General bounds
+  for(i in 1:length(param_list)){
+    upper_bnd[[i]] <- replace(upper_bnd[[i]], values = rep(Inf, length(upper_bnd[[i]])))
+    lower_bnd[[i]] <- replace(lower_bnd[[i]], values = rep(-Inf, length(lower_bnd[[i]])))
+  }
+  
+  # Fishery selectivity
+  lower_bnd$fsh_sel50 <- replace(lower_bnd$fsh_sel50, values = rep(0.1, length(lower_bnd$fsh_sel50)))
+  lower_bnd$fsh_sel95 <- replace(lower_bnd$fsh_sel95, values = rep(0.1, length(lower_bnd$fsh_sel95)))
+  upper_bnd$fsh_sel50 <- replace(upper_bnd$fsh_sel50, values = rep(10, length(upper_bnd$fsh_sel50)))
+  upper_bnd$fsh_sel95 <- replace(upper_bnd$fsh_sel95, values = rep(10, length(upper_bnd$fsh_sel95)))  
+  
+  # Survey selectivity
+  lower_bnd$sel_sel50 <- replace(lower_bnd$sel_sel50, values = rep(0.1, length(lower_bnd$sel_sel50)))
+  lower_bnd$sel_sel95 <- replace(lower_bnd$sel_sel95, values = rep(0.1, length(lower_bnd$sel_sel95)))
+  upper_bnd$sel_sel50 <- replace(upper_bnd$sel_sel50, values = rep(10, length(upper_bnd$sel_sel50)))
+  upper_bnd$sel_sel95 <- replace(upper_bnd$sel_sel95, values = rep(10, length(upper_bnd$sel_sel95)))  
+  
+  # Fishery catchability
+  lower_bnd$fsh_logq <- replace(lower_bnd$fsh_logq, values = rep(-15, length(lower_bnd$fsh_logq)))
+  upper_bnd$fsh_logq <- replace(upper_bnd$fsh_logq, values = rep(5, length(upper_bnd$fsh_logq)))
+  
+  # Survey catchability
+  lower_bnd$srv_logq <- replace(lower_bnd$srv_logq, values = rep(-15, length(lower_bnd$srv_logq)))
+  upper_bnd$srv_logq <- replace(upper_bnd$srv_logq, values = rep(5, length(upper_bnd$srv_logq)))
+  
+  # Mark-recapture catchability
+  lower_bnd$mr_logq <- replace(lower_bnd$mr_logq, values = rep(-0.1, length(lower_bnd$mr_logq)))
+  upper_bnd$mr_logq <- replace(upper_bnd$mr_logq, values = rep(0.1, length(upper_bnd$mr_logq)))
+  
+  # Recruitment devs
+  lower_bnd$log_rec_devs <- replace(lower_bnd$log_rec_devs, values = rep(-10, length(lower_bnd$log_rec_devs)))
+  upper_bnd$log_rec_devs <- replace(upper_bnd$log_rec_devs, values = rep(10, length(upper_bnd$log_rec_devs)))
+  
+  # Initial numbers-at-age devs
+  lower_bnd$log_rinit_devs <- replace(lower_bnd$log_rinit_devs, values = rep(-10, length(lower_bnd$log_rinit_devs)))
+  upper_bnd$log_rinit_devs <- replace(upper_bnd$log_rinit_devs, values = rep(10, length(upper_bnd$log_rinit_devs)))
+  
+  # F devs
+  lower_bnd$log_F_devs <- replace(lower_bnd$log_F_devs, values = rep(-15, length(lower_bnd$log_F_devs)))
+  upper_bnd$log_F_devs <- replace(upper_bnd$log_F_devs, values = rep(15, length(upper_bnd$log_F_devs)))
+  
+  # SPR F rates
+  lower_bnd$spr_Fxx <- replace(lower_bnd$spr_Fxx, values = rep(0.01, length(lower_bnd$spr_Fxx)))
+  upper_bnd$spr_Fxx <- replace(upper_bnd$spr_Fxx, values = rep(1, length(upper_bnd$spr_Fxx)))
+  
+  # Put bounds together
+  bounds <- list(upper= upper_bnd, lower = lower_bnd)
+  
+  # Make sure inits are within bounds
+  if( sum(unlist(bounds$upper) < as.numeric(unlist(param_list))) > 0 | sum(as.numeric(unlist(param_list)) < unlist(bounds$lower)) > 0 ){
+    lower_check <- param_list
+    upper_check <- param_list
+    param_check <- data.frame(matrix(NA, nrow = length(param_list), ncol = 3))
+    colnames(param_check) <- c("Parameter", "Lower", "Upper")
+    param_check$Parameter <- names(param_list)
+    
+    for(i in 1:length(param_list)){
+      lower_check[[i]] <- param_list[[i]] < lower_bnd[[i]]
+      upper_check[[i]] <- param_list[[i]] > upper_bnd[[i]]
+      param_check$Lower[i] <- sum(lower_check[[i]])
+      param_check$Upper[i] <- sum(upper_check[[i]])
+    }
+    
+    print("Non-zero value indicates error in initial value")
+    print(param_check)
+    stop("Initial parameter values are not within bounds")
+  }
+  
+  return(bounds)
+}
+
+build_phases <- function(param_list = NULL, data_list){
+  
+  phases <- param_list
+  
+  # General bounds
+  for(i in 1:length(param_list)){
+    phases[[i]] <- replace(phases[[i]], values = rep(1, length(phases[[i]])))
+  }
+  
+  # DEBUG
+  phases$dummy <- 0
+  
+  # 1: Scaling parameters: log_rbar, log_rinit, mr_logq
+  
+  # 2: Secondary scaling parameters
+  phases$log_rec_devs <- replace(phases$log_rec_devs, values = rep(2, length(phases$log_rec_devs)))
+  phases$log_rinit_devs <- replace(phases$log_rinit_devs, values = rep(2, length(phases$log_rinit_devs)))
+  phases$log_Fbar <- replace(phases$log_Fbar, values = rep(2, length(phases$log_Fbar)))
+  phases$log_sigma_r <- replace(phases$log_sigma_r, values = rep(2, length(phases$log_sigma_r)))
+  
+  # 3: Fishing mortality devs and catchability
+  phases$log_F_devs <- replace(phases$log_F_devs, values = rep(3, length(phases$log_F_devs)))
+  phases$fsh_logq <- replace(phases$fsh_logq, values = rep(2, length(phases$fsh_logq)))
+  phases$srv_logq <- replace(phases$srv_logq, values = rep(2, length(phases$srv_logq)))
+  
+  # 4: Selectivity
+  phases$fsh_sel50 <- replace(phases$fsh_sel50, values = rep(4, length(phases$fsh_sel50)))
+  phases$fsh_sel95 <- replace(phases$fsh_sel95, values = rep(4, length(phases$fsh_sel95)))
+  phases$srv_sel50 <- replace(phases$srv_sel50, values = rep(4, length(phases$srv_sel50)))
+  phases$srv_sel95 <- replace(phases$srv_sel95, values = rep(4, length(phases$srv_sel95)))
+  
+  # 5: Reference points
+  phases$spr_Fxx <- replace(phases$spr_Fxx, values = rep(5, length(phases$spr_Fxx)))
+  
+  return(phases)
+}
+
+
+phases <- build_phases(parameters, data)
+
+TMBphase(data, parameters, random = random_vars, phases, model_name = "mod", debug = FALSE)
+
+# Original code by Gavin Fay, adaped for use in the sablefish model
+TMBphase <- function(data, parameters, random, phases, model_name,
+                     optimizer = "nlminb", debug = FALSE) {
+  
+  # function to fill list component with a factor
+  fill_vals <- function(x,vals){rep(as.factor(vals), length(x))}
+  
+  # compile the model
+  TMB::compile(paste0(model_name,".cpp"))
+  dyn.load(TMB::dynlib(model_name))
+  DLL_use <- model_name  
+  
+  #loop over phases
+  for (phase_cur in 1:max(unlist(phases))) {
+    phase_cur <- 2
+    
+    # If debugging build the map to have all parameters as factored NAs
+    if (debug == TRUE) {
+      map_use <- parameters
+      for(i in 1:length(map_use)){
+        map_use[[i]] <- replace(map_use[[i]], values = rep(NA, length(map_use[[i]])))
+      }
+      map_use <- map_use[!names(map_use) %in% "dummy"]
+      
+      for(i in 1:length(map_use)){
+        map_use[[i]] <- factor(map_use[[i]])
+      }
+      
+    } else {
+      
+      # work out the map for this phase if phases for parameters is less than the
+      # current phase then map will contain a factor filled with NAs
+      map_use <- list()
+      map_use$dummy <- fill_vals(parameters$dummy, NA)
+      j <- 1 # change to 0 if you get rid of the dummy debugging feature
+      for (i in 1:length(parameters)) {
+        if (phases[[i]]>phase_cur) {
+          j <- j+1
+          map_use[[j]] <- fill_vals(parameters[[i]], NA)
+          names(map_use)[j] <- names(parameters)[i]               
+        }
+      }
+      map_use
+    }
+    # remove the random effects if they are not estimated
+    # random <- random_vars
+    random_use <- random[!random%in%names(map_use)]
+    
+    # Build upper and lower parameter bounds and remove any that are not
+    # estimated (should be the inverse of the map_use)
+    bounds <- build_bounds(param_list = parameters)
+    bounds$upper <- bounds$upper[!names(bounds$upper) %in% names(map_use)]
+    bounds$lower <- bounds$lower[!names(bounds$lower) %in% names(map_use)]
+    
+    # Remove inactive parameters from bounds and vectorize
+    lower <- unlist(bounds$lower)
+    upper <- unlist(bounds$upper)
+    
+    # Remove random effects from bounds
+    if (data$random_rec == TRUE) {
+      lower <- lower[!c(random %in% names(lower))]
+      upper <- upper[!c(random %in% names(upper))]
+    }
+    
+    # initialize the parameters at values in previous phase
+    params_use <- parameters
+    if (phase_cur>1) params_use <- obj$env$parList(opt$par)
+    
+    # Fit the model
+    obj <- TMB::MakeADFun(data,params_use,random=random_use,DLL=DLL_use,map=map_use)  
+    
+    TMB::newtonOption(obj,smartsearch=FALSE)
+    # obj$fn()
+    # obj$gr()
+    opt <- nlminb(obj$par,obj$fn,obj$gr,
+                  control=list(eval.max=100000,iter.max=1000),
+                  lower = lower, upper = upper)
+    rep <- TMB::sdreport(obj)
+    rep
+    
+    #close phase loop
+  }
+  
+  return(rep)  
+  
+  #close function TMBphase
+}

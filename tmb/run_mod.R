@@ -63,11 +63,11 @@ data <- list(
   
   # Switch recruitment estimation: 0 = penalized likelihood (fixed sigma_r), 1 =
   # random effects
-  random_rec = 1,
+  random_rec = 0,
   
   # Time varying parameters - each vector contains the terminal years of each time block
   
-  blks_fsh_sel = c(5, 14, 37), #  fishery selectivity: limited entry in 1985, EQS in 1994 
+  blks_fsh_sel = c(37), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, 37)
   blks_srv_sel = c(37), # no breaks survey selectivity
   
   # Fixed parameters
@@ -165,13 +165,13 @@ parameters <- list(
   # Catchability
   fsh_logq = -3.6726,
   srv_logq = -2.4019,
-  mr_logq = -0.0001,
+  mr_logq = -0.00000001,
   
   # Log mean recruitment and deviations (nyr)
-  log_rbar = -0.3798,
+  log_rbar = 2.5,
   log_rec_devs = inits_rec_dev$inits_rec_dev,
   # Log mean initial numbers-at-age and deviations (nage-2)
-  log_rinit = 0.10,
+  log_rinit = 3.5,
   log_rinit_devs = inits_rinit$inits_rinit,
   # Variability in rec_devs and rinit_devs
   log_sigma_r = 0.1823216, # Federal value of 1.2 on log scale, Sigler et al. (2002)
@@ -235,6 +235,12 @@ random_vars <- c()
 if (data$random_rec == 1) {
   random_vars <- c("log_rec_devs")
 }
+
+# Fix parameter if sigma_r is not estimated via random effects
+if(data$random_rec == 0) {
+  map$log_sigma_r <- factor(NA)
+}
+
 # Estimate everything at once
 map <- list(dummy=factor(NA))
 
@@ -244,14 +250,9 @@ map <- list(dummy=factor(NA),
             fsh_sel95 = rep(factor(NA), length(data$blks_fsh_sel)),
             srv_sel50 = rep(factor(NA), length(data$blks_srv_sel)),
             srv_sel95 = rep(factor(NA), length(data$blks_srv_sel)),
-            log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
+             log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
             spr_Fxx = rep(factor(NA), length(data$Fxx_levels))
             )
-
-# Fix parameter if sigma_r is not estimated via random effects
-if(data$random_rec == 0) {
-  map$log_sigma_r <- factor(NA)
-}
 
 model <- MakeADFun(data, parameters, DLL = "mod", 
                    silent = TRUE, map = map,
@@ -288,26 +289,53 @@ exp(as.list(rep, what = "Estimate")$log_rbar)
 
 # PHASE 1 - estimate mark-recapture catchability (mr_logq)
 map <- list(dummy=factor(NA),
-            fsh_sel50 = factor(NA), fsh_sel95 = factor(NA),
-            srv_sel50 = factor(NA), srv_sel95 = factor(NA),
-            fsh_logq = factor(NA), srv1_logq = factor(NA),
-            srv2_logq = factor(NA), # mr_logq = factor(NA),
-            log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
-            log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr))
-model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map)
-lower <- c(-15)
-upper <- c(5)
+            fsh_sel50 = rep(factor(NA), length(data$blks_fsh_sel)), fsh_sel95 = rep(factor(NA), length(data$blks_fsh_sel)),
+            srv_sel50 = rep(factor(NA), length(data$blks_srv_sel)), srv_sel95 = rep(factor(NA), length(data$blks_srv_sel)),
+            fsh_logq = factor(NA), srv_logq = factor(NA), mr_logq = factor(NA),
+            # log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr),
+            # log_rinit = factor(NA), log_rinit_devs = rep(factor(NA), nage-2),
+            log_sigma_r = factor(NA),
+            log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
+            spr_Fxx = rep(factor(NA), length(data$Fxx_levels)))
+
+# Setup random effects
+random_vars <- c()
+if (data$random_rec == 1) {
+  random_vars <- c("log_rec_devs")
+}
+
+model <- MakeADFun(data, parameters, DLL = "mod", silent = TRUE, map = map,
+                   random = random_vars)
+lower <- c(-Inf,                 # log mean recruitment
+           rep(-10, nyr),        # log recruitment deviations
+           -Inf,                 # log mean init numbers-at-age
+           rep(-10, nage-2),     # log initial numbers-at-age deviations
+           -Inf)                 # log sigma R)
+
+upper <- c(Inf,                  # log mean recruitment
+           rep(10, nyr),         # log recruitment deviations
+           Inf,                  # log mean init numbers-at-age
+           rep(10, nage-2),      # log initial numbers-at-age deviations
+           Inf)                  # log sigma R)
+
+# Remove random effects from bounds
+if (random_rec == TRUE) {
+  lower <- lower[-grep(random_vars, names(lower))]
+  upper <- upper[-grep(random_vars, names(upper))]
+}
+
 fit <- nlminb(model$par, model$fn, model$gr,
               control=list(eval.max=100000,iter.max=1000),
               lower = lower, upper = upper)
+model$report(model$env$last.par.best)
+
 best <- model$env$last.par.best
 print(as.numeric(best))
-model$report()$priors
-model$report()$catch_like
-model$report()$index_like
-model$report()$age_like
-model$report()$pred_mr
-
+rep <- sdreport(model)
+print(summary(rep))
+exp(as.list(rep, what = "Estimate")$mr_logq)
+model$report()$pred_mr_all
+data$data_mr
 # PHASE 2 - estimate fishery and survey catchabilities and average F (fsh_logq,
 # srv1_logq, srv2_logq, logFbar) and mr_logq
 map <- list(dummy=factor(NA),
