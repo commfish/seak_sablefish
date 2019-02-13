@@ -588,7 +588,7 @@ query <-
 
   from    out_g_bio_eff_age_sex_size_tag
 
-  where   species_code = '710' and project_code in ('11', '611') and year >= 2003" 
+  where   species_code = '710' and project_code in ('11', '611') and year >= 2005" 
 
 dbGetQuery(ifdb_channel, query) -> tag_releases
 
@@ -645,7 +645,7 @@ query <-
 
   from    out_g_bio_tag_recovery
 
-  where   species_code = '710' and year >= 2003"
+  where   species_code = '710' and year >= 2005"
 
 dbGetQuery(ifdb_channel, query) -> tag_recoveries
 
@@ -671,21 +671,18 @@ write_csv(tag_recoveries, paste0("data/fishery/tag_recoveries_",
 
 tag_recoveries %>% 
   group_by(year, info_source) %>% 
-  summarize(n_distinct(tag_no))
-
-tag_recoveries %>% 
-  group_by(YEAR, TAG_BATCH_NO, G_MANAGEMENT_AREA_CODE) %>% 
-  summarise(n = n_distinct(TAG_NO)) 
+  summarize(n_distinct(tag_no)) %>% View()
 
 # Countbacks ----
 
 # Daily accounting of observed fish and tag recoveries in the NSEI fishery.
 
-# These data is not stored in the database. It's currently in heavily formatted
-# spreadsheets with inconsistent data types (one column can have empty cells, Yes, yes, N/A, NA, etc.) in
-# M:/SABLEFISH/CHATHAM/<year>/<year> port daily summary.xlxs. There are
-# equivalent 2003 data but I don't know where they're stored. Asked Mike Vaughn
-# if he'd look for them on 2018-02-16.  I worked with Amy Jo Linsley in PB to
+# These data are not stored in the database. It's currently in heavily formatted
+# spreadsheets with inconsistent data types (one column can have empty cells,
+# Yes, yes, N/A, NA, etc.) in M:/SABLEFISH/CHATHAM/<year>/<year> port daily
+# summary.xlxs. There are equivalent 2003 data but I don't know where they're
+# stored. Asked Mike Vaughn if he'd look for them on 2018-02-16. It has been
+# confirmed that these data are lost. I worked with Amy Jo Linsley in PB to
 # clean these up and convert them to csvs, but there were lots of errors (e.g.
 # missing values that could have easily been filled in using fish ticket or
 # logbook data, incorrect trip_nos, or duplicate records). These were all fixed
