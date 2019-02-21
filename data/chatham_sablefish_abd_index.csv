@@ -40,4 +40,5 @@ year, abundance_age2plus , abc_round_lbs , biomass_round_lbs_age4plus , harvest_
 2014,"1,783,315","952,538","14,933,685", F_50% ,, 2014 NSEI assessment Van Kirk 
 2015,"1,766,525","986,481","15,212,730", F_50% ,, 2015 NSEI assessment Van Kirk 
 2016,"1,445,938","807,559","12,951,596", F_50% ,, 2016 NSEI assessment Van Kirk 
-2017,"1,564,409","850,113","13,502,591", F_50% ,, 2017 NSEI assessment Van Kirk 
+2017,"1,927,382","850,113","16,265,597", F_50% ,"hindcast, not used for mgt", 2018 NSEI assessment Sullivan (ABC from 2017 NSEI assessment Van Kirk)
+2018,"1,931,191","965,354","16,454,232",F_50%,forecast,2018 NSEI assessment Sullivan

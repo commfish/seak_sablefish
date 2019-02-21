@@ -104,6 +104,19 @@ dwprod_channel <- dbConnect(drv = dbDriver('Oracle'),
                           password = ora$dwprod_pw, 
                           dbname = dwprod)
 
+# Stat areas ----
+
+# Stat area information by database type (includes additional info like state vs
+# fed waters, effective dates for stat area codes, ADFG/NMFS mgt areas, etc.)
+query <-
+  " select  stat_area, database_type as stat_area_type, region, waters,
+          start_date, end_date, g_mgt_area_district, g_nmfs_area
+
+  from    dwgross.ge_stat_area "
+
+dbGetQuery(dwprod_channel, query) -> stat_areas 
+
+stat_areas %>% rename(STAT = STAT_AREA) -> stat_areas
 # Fishery removals ----
 
 # gef = gross earnings file. This was pitched to me by J. Shriver as the
@@ -113,73 +126,64 @@ dwprod_channel <- dbConnect(drv = dbDriver('Oracle'),
 # group code = 'C' = Sablefish, code descriptions at
 # https://www.cfec.state.ak.us/misc/FshyDesC.htm
 
+# query <-
+# " select  adfg_b_batch_year as year, adfg_h_date_landed as date_landed,
+#           adfg_h_gear_code as gear_code, adfg_h_port as port_code, 
+#           cfec_harvest_area, adfg_h_permit_fishery as cfec_permit, 
+#           adfg_i_delivery_code as delivery_code, adfg_i_harvest_code as harvest_code, 
+#           adfg_h_mgt_program_id as mgt_program_code, adfg_i_species_code as species_code, 
+#           adfg_i_stat_area as stat_area, adfg_h_stat_area_type as stat_area_type, 
+#           cfec_landing_status as landing_status, adfg_i_pounds as pounds, 
+#           adfg_i_whole_pounds as whole_pounds
+# 
+#   from    dwgross.ge_gross_earnings 
+# 
+#   where   adfg_i_species_code = '710' "
+# 
+# system.time(dbGetQuery(dwprod_channel, query) -> gef ) 
+# 
+# 
+# merge(gef, stat_areas, by = c("STAT_AREA", "STAT_AREA_TYPE")) %>% 
+#   filter(G_MGT_AREA_DISTRICT == "NSEI") -> gef
+# 
+# write_csv(gef, paste0("data/fishery/raw_data/nseiharvest_gef_",
+#                           min(gef$YEAR), "_", max(gef$YEAR), ".csv"))
+# 
+# # This summary will include IFQ caught in state waters. Can filter
+# # that using the management program code field.
+# read_csv(paste0("data/fishery/raw_data/nseiharvest_gef_",
+#                 min(gef$YEAR), "_", max(gef$YEAR), ".csv"), 
+#          guess_max = 50000) %>% 
+#   filter(G_MGT_AREA_DISTRICT == "NSEI") %>% 
+#   droplevels() %>% 
+#   mutate(
+#     date = ymd(as.Date(DATE_LANDED)), #ISO 8601 format
+#     julian_day = yday(date),
+#     # BEWARE: Landings are always entered as POUNDS and then converted to
+#     # WHOLE_POUNDS using a conversion factor related to the disposition code.
+#     # Prior to 1985 there was no disposition code for landings, which is why
+#     # WHOLE_POUNDS is not populated prior to 1985. Here we assume fish were
+#     # delivered whole prior to 1985, because that's the best we have.
+#     whole_pounds = ifelse(WHOLE_POUNDS == 0, POUNDS, WHOLE_POUNDS),
+#     # Aggregate gear field codes (lookup table in GEF_Variable_Descriptions....xls)
+#     Gear = derivedFactor("HAL" = GEAR_CODE %in% c("61", "06"), #hook-and-line aka longline
+#                               "POT" = GEAR_CODE %in% c("91", "09"),
+#                               "TRW" = GEAR_CODE %in% c("07", "47", "27", "17"), # non-pelagic/bottom trawl, pelagic/mid-water trawl, otter trawl, or beam trawl
+#                               "JIG" = GEAR_CODE %in% c("26"), # mechanical jigs
+#                               "TRL" = GEAR_CODE %in% c("05", "25", "15"), # hand troll, dinglebar troll
+#                               "GNT" = GEAR_CODE %in% c("03", "04", "41"), # set, drift, or sunken gillnet
+#                               "UNK" = GEAR_CODE %in% c("99"))) %>% # unknown
+#   select(year = YEAR, date, julian_day, Mgmt_area = G_MGT_AREA_DISTRICT, Stat = STAT_AREA,
+#          Waters = WATERS, Port = PORT_CODE,  Cfec_permit = CFEC_PERMIT, Mgmt_cde = MGT_PROGRAM_CODE, 
+#          Delivery_cde = DELIVERY_CODE, Harvest_cde = HARVEST_CODE, Landing_cde = LANDING_STATUS, 
+#          Spp_cde = SPECIES_CODE, whole_pounds, pounds = POUNDS) -> gef
+# 
+# write_csv(gef, paste0("data/fishery/nseiharvest_gef_",
+#                       min(gef$year), "_", max(gef$year), ".csv"))
+
+# Harvest from IFDB - what managers are using
 query <-
-" select  adfg_b_batch_year as year, adfg_h_date_landed as date_landed,
-          adfg_h_gear_code as gear_code, adfg_h_port as port_code, 
-          cfec_harvest_area, adfg_h_permit_fishery as cfec_permit, 
-          adfg_i_delivery_code as delivery_code, adfg_i_harvest_code as harvest_code, 
-          adfg_h_mgt_program_id as mgt_program_code, adfg_i_species_code as species_code, 
-          adfg_i_stat_area as stat_area, adfg_h_stat_area_type as stat_area_type, 
-          cfec_landing_status as landing_status, adfg_i_pounds as pounds, 
-          adfg_i_whole_pounds as whole_pounds
-
-  from    dwgross.ge_gross_earnings 
-
-  where   adfg_i_species_code = '710' "
-
-system.time(dbGetQuery(dwprod_channel, query) -> gef ) 
-
-# Stat area information by database type (includes additional info like state vs
-# fed waters, effective dates for stat area codes, ADFG/NMFS mgt areas, etc.)
-query <- 
-" select  stat_area, database_type as stat_area_type, region, waters, 
-          start_date, end_date, g_mgt_area_district, g_nmfs_area 
-
-  from    dwgross.ge_stat_area "
-
-dbGetQuery(dwprod_channel, query) -> stat_areas
-
-merge(gef, stat_areas, by = c("STAT_AREA", "STAT_AREA_TYPE")) %>% 
-  filter(G_MGT_AREA_DISTRICT == "NSEI") -> gef
-
-write_csv(gef, paste0("data/fishery/raw_data/nseiharvest_gef_",
-                          min(gef$YEAR), "_", max(gef$YEAR), ".csv"))
-
-# This summary will include IFQ caught in state waters. Can filter
-# that using the management program code field.
-read_csv(paste0("data/fishery/raw_data/nseiharvest_gef_",
-                min(gef$YEAR), "_", max(gef$YEAR), ".csv"), 
-         guess_max = 50000) %>% 
-  filter(G_MGT_AREA_DISTRICT == "NSEI") %>% 
-  droplevels() %>% 
-  mutate(
-    date = ymd(as.Date(DATE_LANDED)), #ISO 8601 format
-    julian_day = yday(date),
-    # BEWARE: Landings are always entered as POUNDS and then converted to
-    # WHOLE_POUNDS using a conversion factor related to the disposition code.
-    # Prior to 1985 there was no disposition code for landings, which is why
-    # WHOLE_POUNDS is not populated prior to 1985. Here we assume fish were
-    # delivered whole prior to 1985, because that's the best we have.
-    whole_pounds = ifelse(WHOLE_POUNDS == 0, POUNDS, WHOLE_POUNDS),
-    # Aggregate gear field codes (lookup table in GEF_Variable_Descriptions....xls)
-    Gear = derivedFactor("HAL" = GEAR_CODE %in% c("61", "06"), #hook-and-line aka longline
-                              "POT" = GEAR_CODE %in% c("91", "09"),
-                              "TRW" = GEAR_CODE %in% c("07", "47", "27", "17"), # non-pelagic/bottom trawl, pelagic/mid-water trawl, otter trawl, or beam trawl
-                              "JIG" = GEAR_CODE %in% c("26"), # mechanical jigs
-                              "TRL" = GEAR_CODE %in% c("05", "25", "15"), # hand troll, dinglebar troll
-                              "GNT" = GEAR_CODE %in% c("03", "04", "41"), # set, drift, or sunken gillnet
-                              "UNK" = GEAR_CODE %in% c("99"))) %>% # unknown
-  select(year = YEAR, date, julian_day, Mgmt_area = G_MGT_AREA_DISTRICT, Stat = STAT_AREA,
-         Waters = WATERS, Port = PORT_CODE,  Cfec_permit = CFEC_PERMIT, Mgmt_cde = MGT_PROGRAM_CODE, 
-         Delivery_cde = DELIVERY_CODE, Harvest_cde = HARVEST_CODE, Landing_cde = LANDING_STATUS, 
-         Spp_cde = SPECIES_CODE, whole_pounds, pounds = POUNDS) -> gef
-
-write_csv(gef, paste0("data/fishery/nseiharvest_gef_",
-                      min(gef$year), "_", max(gef$year), ".csv"))
-
-# Alternative query using IFDB
-query <-
-" select  year, adfg_no, trip_no, vessel_name, port_code, gear,
+  paste0(" select  year, adfg_no, trip_no, vessel_name, port_code, gear,
           catch_date, sell_date, harvest_code, harvest, g_stat_area,
           g_management_area_code, species_code, pounds, round_pounds,
           delivery_code, g_cfec_fishery_group, g_cfec_fishery
@@ -187,15 +191,15 @@ query <-
   from    out_g_cat_ticket
 
   where   species_code = '710' and
-          g_management_area_code = 'NSEI' "
+          g_management_area_code = 'NSEI' and year = ", YEAR)
 
 dbGetQuery(ifdb_channel, query) -> ifdb_catch
 
 write_csv(ifdb_catch, paste0("data/fishery/raw_data/nseiharvest_ifdb_",
-                      min(ifdb_catch$YEAR), "_", max(ifdb_catch$YEAR), ".csv"))
+                      max(ifdb_catch$YEAR), ".csv"))
 
 read_csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
-                min(ifdb_catch$YEAR), "_", max(ifdb_catch$YEAR), ".csv"), 
+                max(ifdb_catch$YEAR), ".csv"), 
          guess_max = 50000) %>% 
   mutate(date = ymd(as.Date(CATCH_DATE)), #ISO 8601 format
          julian_day = yday(date),
@@ -210,7 +214,16 @@ read_csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
          Adfg = ADFG_NO, trip_no = TRIP_NO, sell_date, Vessel = VESSEL_NAME, Port = PORT_CODE,  
          Cfec_permit = G_CFEC_FISHERY, Delivery_cde = DELIVERY_CODE, 
          Harvest = HARVEST, Harvest_cde = HARVEST_CODE, Spp_cde = SPECIES_CODE, 
-         whole_pounds, pounds = POUNDS) -> ifdb_catch
+         whole_pounds, pounds = POUNDS) %>% 
+  mutate(Stat = as.character(Stat),
+         Harvest_cde = as.character(Harvest_cde)) -> ifdb_catch
+
+# Data quieried before (that way you're using the same data that was used for
+# the assessment, starting in 2017)
+read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"), 
+         guess_max = 50000) -> past_catch
+
+bind_rows(past_catch, ifdb_catch) -> ifdb_catch
 
 write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
                              min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
@@ -273,7 +286,7 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
 # sets).
 
 query <- 
-  " select  year, project_code, trip_no, adfg_no, longline_system_code, sell_date, 
+  paste0(" select  year, project_code, trip_no, adfg_no, longline_system_code, sell_date, 
             hook_size, hook_spacing, number_of_skates, number_of_hooks,
             average_depth_meters, g_management_area_code, g_stat_area, trip_target, set_target,
             effort_no, sable_lbs_per_set, time_set, time_hauled, 
@@ -281,15 +294,15 @@ query <-
 
     from    sablefish_cpue_final_view
 
-    where   g_management_area_code = 'NSEI' "
+    where   g_management_area_code = 'NSEI' and year = ", YEAR)
 
 dbGetQuery(ifdb_channel, query) -> fsh_eff
 
 write_csv(fsh_eff, paste0("data/fishery/raw_data/fishery_cpue_",
-                          min(fsh_eff$YEAR), "_", max(fsh_eff$YEAR), ".csv"))
+                          max(fsh_eff$YEAR), ".csv"))
 
 read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
-                min(fsh_eff$YEAR), "_", max(fsh_eff$YEAR), ".csv"), 
+                max(fsh_eff$YEAR), ".csv"), 
          guess_max = 50000) %>% 
   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
   # hooks and cpue
@@ -308,6 +321,14 @@ read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
          sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
          start_lon = START_LONGITUDE_DECIMAL_DEGREE) -> fsh_eff
 
+# Data quieried before (that way you're using the same data that was used for
+# the assessment, starting in 2017)
+read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR-1, ".csv"), 
+         guess_max = 50000) %>% 
+  mutate(Size = as.character(Size)) -> past_fsh_eff
+
+bind_rows(past_fsh_eff, fsh_eff) -> fsh_eff
+
 write_csv(fsh_eff, paste0("data/fishery/fishery_cpue_",
                    min(fsh_eff$year), "_", max(fsh_eff$year), ".csv"))
 
@@ -317,7 +338,7 @@ write_csv(fsh_eff, paste0("data/fishery/fishery_cpue_",
 # for longline survey data
 
 query <-
-" select  year, project_code, trip_no, adfg_no, vessel_name, sell_date, g_stat_area,
+  paste0(" select  year, project_code, trip_no, adfg_no, vessel_name, sell_date, g_stat_area,
           g_management_area_code, sample_type, species_code, length_type_code, 
           length_type, length_millimeters / 10 as length, weight_kilograms,
           age, age_readability_code, age_readability, sex_code, 
@@ -327,15 +348,15 @@ query <-
 
   where   species_code = '710' and
           project_code in ('02', '17') and
-          g_management_area_code = 'NSEI' "
+          g_management_area_code = 'NSEI' and year = ", YEAR)
 
 dbGetQuery(ifdb_channel, query) -> fsh_bio
 
 write_csv(fsh_bio, paste0("data/fishery/raw_data/fishery_bio_", 
-                 min(fsh_bio$YEAR), "_", max(fsh_bio$YEAR), ".csv"))
+                 max(fsh_bio$YEAR), ".csv"))
 
 read_csv(paste0("data/fishery/raw_data/fishery_bio_", 
-                min(fsh_bio$YEAR), "_", max(fsh_bio$YEAR), ".csv"), 
+                max(fsh_bio$YEAR), ".csv"), 
          guess_max = 50000) %>% 
   mutate(date = ymd(as.Date(SELL_DATE)), #ISO 8601 format
          julian_day = yday(date),
@@ -352,74 +373,38 @@ read_csv(paste0("data/fishery/raw_data/fishery_bio_",
          Stat = G_STAT_AREA, Mgmt_area = G_MANAGEMENT_AREA_CODE,
          Sample_type = SAMPLE_TYPE, Spp_cde = SPECIES_CODE, 
          length = LENGTH, weight = WEIGHT_KILOGRAMS,
-         age = AGE, Sex, Maturity) -> fsh_bio
+         age = AGE, Sex, Maturity) %>% 
+  mutate(Adfg = as.character(Adfg)) -> fsh_bio
+
+# Data quieried before (that way you're using the same data that was used for
+# the assessment, starting in 2017)
+read_csv(paste0("data/fishery/fishery_bio_2000_", YEAR-1, ".csv"), 
+         guess_max = 50000) %>% 
+  mutate(Maturity = as.character(Maturity)) -> past_fsh_bio
+
+bind_rows(past_fsh_bio, fsh_bio) -> fsh_bio
 
 write_csv(fsh_bio, paste0("data/fishery/fishery_bio_", 
                           min(fsh_bio$year), "_", max(fsh_bio$year), ".csv"))
 
 # Longline survey cpue ----
 
-query <- 
-" select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
-          time_first_buoy_onboard, number_of_stations, hooks_per_set, hook_size, 
-          hook_spacing_inches, sample_freq, last_skate_sampled, effort_no, station_no, species_code, 
-          g_stat_area as stat, start_latitude_decimal_degrees as start_lat,
-          start_longitude_decimal_degree as start_lon, end_latitude_decimal_degrees as end_lat,
-          end_longitude_decimal_degrees as end_lon, avg_depth_fathoms * 1.8288 as depth_meters, 
-          number_hooks, bare, bait, invalid, hagfish_slime, unknown, numbers, discard_status_code, 
-          subset_condition_code
-
-  from    output.out_g_sur_longline_catch_bi
-  
-  where   species_code = '710' and
-          project_code in ('603', '03')"
-          
-dbGetQuery(zprod_channel, query) -> srv_eff
-
-# View doesn't have management areas, join with stat_area look up as a check
-# (the project code should be enough because they're area-specific)
-
-query <- 
-  " select  g_stat_area as stat, g_management_area_code
-    from    lookup.g_stat_area"
-
-dbGetQuery(zprod_channel, query) -> stat_areas
-
-merge(srv_eff, stat_areas, by = "STAT") -> srv_eff
-
-# Also merge in discard status codes
-query <- "select * from discard_status"
-dbGetQuery(ifdb_channel, query) -> discard_codes
-
-merge(srv_eff, discard_codes, by = "DISCARD_STATUS_CODE") -> srv_eff
-
-write_csv(srv_eff, paste0("data/survey/raw_data/llsrv_cpue_",
-                          min(srv_eff$YEAR), "_", YEAR, ".csv"))
-
-read_csv(paste0("data/survey/raw_data/llsrv_cpue_",
-                min(srv_eff$YEAR), "_", YEAR, ".csv"), 
-         guess_max = 50000) %>% 
-  filter(YEAR <= YEAR) %>% #the programmers have some dummy data in the db for the upcoming year
-  mutate(date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
-         julian_day = yday(date),
-         soak = difftime(TIME_HAULED, TIME_SET, units = "hours")) %>% 
-  select(year = YEAR, Mgmt_area = G_MANAGEMENT_AREA_CODE, Project_cde = PROJECT_CODE, 
-         trip_no = TRIP_NO, Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
-         Stat = STAT, Mgmt_area = G_MANAGEMENT_AREA_CODE, Spp_cde = SPECIES_CODE, 
-         set = EFFORT_NO, start_lat = START_LAT, start_lon = START_LON, end_lat = END_LAT,
-         end_lon = END_LON, depth = DEPTH_METERS, no_hooks = NUMBER_HOOKS, hooks_bare = BARE,
-         hooks_bait = BAIT, hook_invalid = INVALID, hooks_sablefish = NUMBERS,
-         discard_status_cde = DISCARD_STATUS_CODE, discard_status = DISCARD_STATUS) -> srv_eff
-
-write_csv(srv_eff, paste0("data/survey/llsrv_cpue_",
-                          min(srv_eff$year), "_", YEAR, ".csv"))
-
 # Discrepancy between a couple longline survey views. *FLAG* use this for
 # sablefish industry mtg analysis until i can figure it out.
 
+# There are two longline survey CPUE views: For CPUE you want
+# output.out_g_sur_longline_hook_acc_bi. out_g_sur_longline_hook_acc_bi sums the
+# total number of sablefish while out_g_sur_longline_catch_bi splits out by
+# retained, lost, discard, etc. For the 2017 assessment (2018 forecast) I used
+# the correct view for CPUE calculation but the incorrect one in the
+# mark-recapture models #3 and #4. These were not used for management, and the
+# code has been corrected for the 2018 assessments. The old query and associated
+# data files were removed.
+
 query <- 
-" select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
-          time_first_buoy_onboard, number_of_stations, hooks_per_set, hook_size, 
+  paste0(" select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
+          time_second_anchor_overboard as time_set, time_first_buoy_onboard as time_hauled,
+          number_of_stations, hooks_per_set, hook_size, 
           hook_spacing_inches, sample_freq, last_skate_sampled, effort_no, station_no,
           g_stat_area as stat, start_latitude_decimal_degrees as start_lat,
           start_longitude_decimal_degree as start_lon, end_latitude_decimal_degrees as end_lat,
@@ -429,18 +414,17 @@ query <-
 
   from    output.out_g_sur_longline_hook_acc_bi
   
-  where   project_code in ('603', '03')"
+  where   project_code in ('603', '03') and year = ", YEAR)
+
 
 dbGetQuery(zprod_channel, query) -> srv_eff
 
-write_csv(srv_eff, paste0("data/survey/raw_data/llsrv_cpue_",
-                          min(srv_eff$YEAR), "_", YEAR, "2.csv"))
+write_csv(srv_eff, paste0("data/survey/raw_data/llsrv_cpue_", YEAR, ".csv"))
 
-read_csv(paste0("data/survey/raw_data/llsrv_cpue_",
-                min(srv_eff$YEAR), "_", YEAR, "2.csv"), 
+read_csv(paste0("data/survey/raw_data/llsrv_cpue_", YEAR, ".csv"), 
          guess_max = 50000) %>% 
   filter(YEAR <= YEAR) %>% #the programmers have some dummy data in the db for the upcoming year
-  mutate(date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
+  mutate(date = ymd(as.Date(TIME_SET)), #ISO 8601 format
          julian_day = yday(date)) %>% 
   select(year = YEAR, Project_cde = PROJECT_CODE, Station_no = STATION_NO,
          trip_no = TRIP_NO, Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
@@ -449,21 +433,24 @@ read_csv(paste0("data/survey/raw_data/llsrv_cpue_",
          hooks_bait = BAIT, hook_invalid = INVALID, hooks_sablefish = SABLEFISH,
          subset_condition_cde = SUBSET_CONDITION_CODE) -> srv_eff
 
-write_csv(srv_eff, paste0("data/survey/llsrv_cpue_",
-                          min(srv_eff$year), "_", YEAR, "2.csv"))
+# Past finalize data
+read_csv(paste0("data/survey/llsrv_cpue_1985_", YEAR-1, ".csv"), 
+         guess_max = 50000) -> past_srv_eff
+
+bind_rows(past_srv_eff, srv_eff) -> srv_eff
+
+write_csv(srv_eff, paste0("data/survey/llsrv_cpue_", min(srv_eff$year), "_", max(srv_eff$year), ".csv"))
 
 # Longline survey biological ----
 
 # Chatham Strait Longline Survey biological data. originally stored in ifdb
 # under out_g_bio_effort_age_sex_size but since the development of ACES (the
 # mobile app used on the survey), which was not compatible with ALEX, all bio
-# data has migrated to zprod under output.out_g_sur_longline_specimen
-
-
-# These are stored in the modern database, Zander (aka ZPROD)
+# data has migrated to zprod under output.out_g_sur_longline_specimen. These are
+# now stored in the modern database, Zander (aka ZPROD)
 
 query <-
-" select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
+  paste0(" select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
           time_first_buoy_onboard, number_of_stations, hooks_per_set, hook_size, 
           hook_spacing_inches, sample_freq, last_skate_sampled, effort_no, station_no, species_code, 
           g_stat_area as stat, start_latitude_decimal_degrees as start_lat,
@@ -475,7 +462,7 @@ query <-
   from    output.out_g_sur_longline_specimen
 
   where   species_code = '710' and
-          project_code in ('603', '03')"
+          project_code in ('603', '03') and year = ", YEAR)
 
 dbGetQuery(zprod_channel, query) -> srv_bio
 
@@ -484,11 +471,9 @@ dbGetQuery(zprod_channel, query) -> srv_bio
 
 merge(srv_bio, stat_areas, by = "STAT") -> srv_bio
 
-write_csv(srv_bio, paste0("data/survey/raw_data/llsrv_bio_",
-                          min(srv_bio$YEAR), "_", YEAR, ".csv"))
+write_csv(srv_bio, paste0("data/survey/raw_data/llsrv_bio_", max(srv_bio$YEAR), ".csv"))
 
-read_csv(paste0("data/survey/raw_data/llsrv_bio_",
-                min(srv_bio$YEAR), "_", max(srv_bio$YEAR), ".csv"), 
+read_csv(paste0("data/survey/raw_data/llsrv_bio_", max(srv_bio$YEAR), ".csv"), 
          guess_max = 50000) %>% 
   mutate(date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
          julian_day = yday(date),Sex = derivedFactor("Male" = SEX_CODE == "01",
@@ -497,13 +482,19 @@ read_csv(paste0("data/survey/raw_data/llsrv_bio_",
          Maturity = derivedFactor("0" = MATURITY_CODE %in% c("01", "02"), 
                                   "1" = MATURITY_CODE %in% c("03", "04", "05", "06", "07"),
                                   .default = NA)) %>% 
-  select(year = YEAR, Mgmt_area = G_MANAGEMENT_AREA_CODE, Project_cde = PROJECT_CODE, 
+  select(year = YEAR, Mgmt_area = G_MGT_AREA_DISTRICT, Project_cde = PROJECT_CODE, 
          trip_no = TRIP_NO, Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
          Stat = STAT, Spp_cde = SPECIES_CODE, set = EFFORT_NO, start_lat = START_LAT, 
          start_lon = START_LON, end_lat = END_LAT, end_lon = END_LON, depth = DEPTH_METERS, 
          length = LENGTH, weight = WEIGHT, age = AGE, Sex, Maturity, age_type_code = AGE_TYPE_CODE, 
          age_readability = AGE_READABILITY_CODE, otolith_condition = OTOLITH_CONDITION_CODE )  %>% 
   filter(Mgmt_area == 'NSEI') -> srv_bio
+
+read_csv(paste0("data/survey/llsrv_bio_1985_", YEAR-1, ".csv"), 
+         guess_max = 50000) %>% 
+  mutate(Maturity = as.character(Maturity)) -> past_srv_bio
+
+bind_rows(past_srv_bio, srv_bio) -> srv_bio
 
 write_csv(srv_bio, paste0("data/survey/llsrv_bio_",
                           min(srv_bio$year), "_", max(srv_bio$year), ".csv"))
@@ -528,7 +519,7 @@ write_csv(srv_bio, paste0("data/survey/llsrv_bio_",
 # pot surveys, and includes fish that were not tagged (tag_no = 'T-').
 
 query <- 
-" select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
+  paste0(" select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
           time_first_buoy_onboard, effort_no, station_no, species_code, 
           g_stat_area as stat, management_area, start_latitude_decimal_degrees as start_lat,
           start_longitude_decimal_degree as start_lon, end_latitude_decimal_degrees as end_lat,
@@ -541,15 +532,14 @@ query <-
 
   where   species_code = '710' and
           gear_code = '91' and
-          project_code in ('11', '611') "
+          project_code in ('11', '611') and year = ", YEAR)
+
 
 dbGetQuery(ifdb_channel, query) -> pot_bio
 
-write_csv(pot_bio, paste0("data/survey/raw_data/potsrv_bio_",
-                          min(pot_bio$YEAR), "_", max(pot_bio$YEAR), ".csv"))
+write_csv(pot_bio, paste0("data/survey/raw_data/potsrv_bio_", max(pot_bio$YEAR), ".csv"))
 
-read_csv(paste0("data/survey/raw_data/potsrv_bio_",
-                min(pot_bio$YEAR), "_", max(pot_bio$YEAR), ".csv"), 
+read_csv(paste0("data/survey/raw_data/potsrv_bio_", max(pot_bio$YEAR), ".csv"), 
          guess_max = 50000) %>% 
   mutate(date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
          julian_day = yday(date),Sex = derivedFactor("Male" = SEX_CODE == "01",
@@ -567,6 +557,12 @@ read_csv(paste0("data/survey/raw_data/potsrv_bio_",
          age_readability = AGE_READABILITY_CODE, tag_no = TAG_NO, 
          discard_status = DISCARD_STATUS, release_condition_cde = RELEASE_CONDITION_CODE )  -> pot_bio
 
+read_csv(paste0("data/survey/potsrv_bio_1981_", YEAR-1, ".csv"), 
+         guess_max = 50000) %>% 
+  mutate(Maturity = as.character(Maturity)) -> past_pot_bio
+
+bind_rows(past_pot_bio, pot_bio) -> pot_bio
+
 write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
                           min(pot_bio$year), "_", max(pot_bio$year), ".csv"))
 
@@ -581,14 +577,14 @@ write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
 # reference the batch_no's with fish recovered outside of the directed fishery.
 # Note that each year has a unique tag_batch_no
 
-query <- 
-" select  year, project_code, trip_no, time_second_anchor_overboard, species_code, 
+query <- paste0(
+  " select  year, project_code, trip_no, time_second_anchor_overboard, species_code, 
           g_stat_area as stat, management_area, length_millimeters / 10 as length, 
           tag_no, tag_batch_no, discard_status, release_condition_code, comments
 
   from    out_g_bio_eff_age_sex_size_tag
 
-  where   species_code = '710' and project_code in ('11', '611') and year >= 2005" 
+  where   species_code = '710' and project_code in ('11', '611') and year = ", YEAR)
 
 dbGetQuery(ifdb_channel, query) -> tag_releases
 
@@ -605,10 +601,10 @@ dbGetQuery(ifdb_channel, query) -> tag_releases
 # 08 - Lacks vigor, shows ill effects from capture and handling (NMFS 3)
 
 write_csv(tag_releases, paste0("data/survey/raw_data/tag_releases_",
-                          min(tag_releases$YEAR), "_", max(tag_releases$YEAR), ".csv"))
+                          max(tag_releases$YEAR), ".csv"))
 
 read_csv(paste0("data/survey/raw_data/tag_releases_",
-                       min(tag_releases$YEAR), "_", max(tag_releases$YEAR), ".csv"), 
+                       max(tag_releases$YEAR), ".csv"), 
          guess_max = 50000) %>% 
   mutate(date = ymd(as.Date(TIME_SECOND_ANCHOR_OVERBOARD)), #ISO 8601 format
          julian_day = yday(date)) %>% 
@@ -616,6 +612,14 @@ read_csv(paste0("data/survey/raw_data/tag_releases_",
          Stat = STAT, Mgmt_area = MANAGEMENT_AREA, length = LENGTH, tag_no = TAG_NO, tag_batch_no = TAG_BATCH_NO, 
          release_condition_cde = RELEASE_CONDITION_CODE, discard_status = DISCARD_STATUS,
          comments = COMMENTS) -> tag_releases
+
+
+# Data quieried before (that way you're using the same data that was used for
+# the assessment, starting in 2017)
+read_csv(paste0("data/survey/tag_releases_2003_", YEAR-1, ".csv"), 
+         guess_max = 50000) -> past_releases
+
+bind_rows(past_releases, tag_releases) -> tag_releases
 
 write_csv(tag_releases, paste0("data/survey/tag_releases_",
                                min(tag_releases$year), "_", max(tag_releases$year), ".csv"))
@@ -637,23 +641,23 @@ tag_releases %>% group_by(year, discard_status) %>% summarise(n_distinct(tag_no)
 # batch_no's to the tag_releases. Also includes recapture lengths (careful to
 # only use sampler lengths)
 
-query <-
-" select  tag_no, tag_batch_no, tag_event_code, tag_event, year, project_code, 
+query <- paste0(
+  " select  tag_no, tag_batch_no, tag_event_code, tag_event, year, project_code, 
           trip_no, species_code, landing_date, catch_date, g_management_area_code, 
           g_stat_area, g_stat_area_group, vessel_type, length_millimeters / 10 as length, measurer_type, 
           information_source, tag_returned_by_type, comments
 
   from    out_g_bio_tag_recovery
 
-  where   species_code = '710' and year >= 2005"
+  where   species_code = '710' and year = ", YEAR)
 
 dbGetQuery(ifdb_channel, query) -> tag_recoveries
 
 write_csv(tag_recoveries, paste0("data/fishery/raw_data/tag_recoveries_",
-                               min(tag_recoveries$YEAR), "_", max(tag_recoveries$YEAR), ".csv"))
+                               max(tag_recoveries$YEAR), ".csv"))
 
 read_csv(paste0("data/fishery/raw_data/tag_recoveries_",
-                min(tag_recoveries$YEAR), "_", max(tag_recoveries$YEAR), ".csv"), 
+                max(tag_recoveries$YEAR), ".csv"), 
          guess_max = 50000) %>% 
   mutate(landing_date = ymd(as.Date(LANDING_DATE)), #ISO 8601 format
          landing_julian_day = yday(landing_date),
@@ -665,13 +669,21 @@ read_csv(paste0("data/fishery/raw_data/tag_recoveries_",
          measurer_type = MEASURER_TYPE, info_source = INFORMATION_SOURCE, returned_by = TAG_RETURNED_BY_TYPE,
          comments = COMMENTS) -> tag_recoveries
 
+
+# Data quieried before (that way you're using the same data that was used for
+# the assessment, starting in 2017)
+read_csv(paste0("data/fishery/tag_recoveries_2003_", YEAR-1, ".csv"), 
+         guess_max = 50000) -> past_recoveries
+
+bind_rows(past_recoveries, tag_recoveries) -> tag_recoveries
+
 write_csv(tag_recoveries, paste0("data/fishery/tag_recoveries_",
                                min(tag_recoveries$year), "_", max(tag_recoveries$year), ".csv"))
 
 
 tag_recoveries %>% 
   group_by(year, info_source) %>% 
-  summarize(n_distinct(tag_no)) %>% View()
+  summarize(n_distinct(tag_no))
 
 # Countbacks ----
 
@@ -684,22 +696,46 @@ tag_recoveries %>%
 # stored. Asked Mike Vaughn if he'd look for them on 2018-02-16. It has been
 # confirmed that these data are lost. I worked with Amy Jo Linsley in PB to
 # clean these up and convert them to csvs, but there were lots of errors (e.g.
-# missing values that could have easily been filled in using fish ticket or
-# logbook data, incorrect trip_nos, or duplicate records). These were all fixed
-# by hand. It's also impossible to tell which records were omitted for analysis
-# in a given year, which is probably why KVK's numbers don't match up with past
+# missing values that could have been filled in using fish ticket or logbook
+# data, incorrect trip_nos, or duplicate records). These were all fixed by hand.
+# It's also impossible to tell which records were omitted for analysis in a
+# given year, which is probably why KVK's numbers don't match up with past
 # numbers and won't match up with mine either.
 
-list.files(path = "data/fishery/raw_data/", pattern = "nsei_daily_tag_accounting", full.names = TRUE) %>% 
-  map_df(~read.csv(.)) %>% 
-  mutate(date = ymd(as.Date(date, "%m/%d/%Y")),
-         year = year(date),
-         julian_day = yday(date),
-         total_obs = unmarked + marked,
-         whole_kg = round_lbs * 0.453592)  %>% 
-  write_csv(paste("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
+# Follow up Feb 2018: The spreadsheet was in poor shape again this year. I have
+# followed up several times about 2003 data and can confirm now that it is lost.
+# I've impressed on A. Olson the importance that these data be entered and
+# stored in a safer way.
+
+# Original in 2017:
+# list.files(path = "data/fishery/raw_data/", pattern = "nsei_daily_tag_accounting", full.names = TRUE) %>% 
+#   map_df(~read.csv(.)) %>% 
+#   mutate(date = ymd(as.Date(date, "%m/%d/%Y")),
+#          year = year(date),
+#          julian_day = yday(date),
+#          total_obs = unmarked + marked,
+#          whole_kg = round_lbs * 0.453592) %>% 
+#   write_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
+
+# Now that these data are finalized, add on each year:
+read_csv(paste0("data/fishery/raw_data/nsei_daily_tag_accounting_", YEAR, ".csv"),
+         guess_max = 50000) %>% 
+    mutate(date = ymd(as.Date(date, "%m/%d/%Y")),
+           year = year(date),
+           julian_day = yday(date),
+           total_obs = unmarked + marked,
+           whole_kg = round_lbs * 0.453592) -> counts
   
+read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR-1, ".csv"),
+         guess_max = 50000) -> past_counts
+
+bind_rows(counts, past_counts) -> counts
+
+write_csv(counts, paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
+
 # Historical tagging ----
+
+# Not used, just an fyi
 
 query <-
 " select  *
