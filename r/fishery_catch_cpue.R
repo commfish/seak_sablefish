@@ -2,13 +2,13 @@
 # Fishery catch 1985-present, fishery CPUE 1997-present
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2018-04-09
+# Last edited: Feb 2019
 
 source("r/helper.r")
 source("r/functions.r")
 
 # Most recent year of data
-YEAR <- 2017
+YEAR <- 2018
 
 # Harvest ----
 
@@ -172,13 +172,34 @@ ggplot(fsh_cpue, aes(Stat, std_cpue, fill = Year)) +
 ggsave(paste0("figures/fshcpue_trendsbyStat_",min(fsh_cpue$year), "_", YEAR, ".png"), 
        dpi=400, height=4, width=7.5, units="in")
 
-# 4 vessels driving the downward trend of cpue in Fred. Sound
-fsh_cpue %>% filter(Stat %in% c("345702", "335702") & year == 2017) %>% distinct(Adfg)
-# 13 vessels driving downward trend in N. Chatham
-fsh_cpue %>% filter(Stat %in% c("345731", "345803") & year == 2017) %>% distinct(Adfg)
-# Out >40 vessels total - shows that bulk of effort is in S Chatham
-fsh_cpue %>% filter(year == 2017) %>% distinct(Adfg)
+# No one fished in Fred. Sound in 2018
+fsh_cpue %>% filter(Stat %in% c("345702", "335701") & year == YEAR) %>% distinct(Adfg)
+# 12 vessels fished N Chatham, saw uptick in cpue 
+fsh_cpue %>% filter(Stat %in% c("345731", "345803") & year == YEAR) %>% distinct(Adfg)
+# Decrease in S Chatham, but also decrease in number of boats fishing there.
+fsh_cpue %>% filter(Stat %in% c("345603")) %>% group_by(year) %>%  summarize(n_distinct(Adfg)) %>% View()
+fsh_cpue %>% filter(Stat %in% c("335701")) %>% group_by(year) %>%  summarize(n_distinct(Adfg)) %>% View()
 
+fsh_cpue %>% 
+  group_by(year, Stat) %>% 
+  summarize(trips = n_distinct(trip_no),
+            vessels = n_distinct(trip_no)) -> stat_sum
+
+
+# Trends over time by area
+ggplot(fsh_cpue %>% filter(! Stat %in% c("345702", "335701")), aes(year, std_cpue, fill = Year)) + 
+  geom_boxplot() +
+  scale_fill_manual(values = rev(colorspace::sequential_hcl(c = 0, l = c(30, 90), 
+                                                            power = c(1/5, 1.3), 
+                                                            n_distinct(fsh_cpue$year))),
+                    guide = FALSE) +
+  facet_wrap(~Stat) +
+  labs(x = "", y = "Fishery CPUE (round pounds per hook)\n") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) 
+
+
+# Summary about Fishery CPUE in 2018  
+  
 # Gear performance by Stat
 ggplot(fsh_cpue, aes(Stat, cpue, fill = Gear)) + geom_boxplot()
 # Gear performance over time
@@ -337,9 +358,9 @@ AIC(m9, m11)
 summary(m11)
 plot(m11, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
 
-# Relationship between depth and soak time - highest cpue in > 450 m
-# and ~ 10 hr soak time
-vis.gam(m11, c('depth', 'soak'), plot.type='contour', type='response', color='topo', too.far=0.15)
+# # Relationship between depth and soak time - highest cpue in > 450 m
+# # and ~ 10 hr soak time
+# vis.gam(m11, c('depth', 'soak'), plot.type='contour', type='response', color='topo', too.far=0.15)
 
 # GAM summary ----
 
@@ -408,18 +429,20 @@ fsh_sum %>%
               select(year, cpue = bt_cpue, upper = bt_upper, lower = bt_lower) %>% 
               mutate(CPUE = "GAM")) %>% 
   ggplot() +
-  geom_point(aes(year, cpue, colour = CPUE, shape = CPUE), size = 2) +
-  geom_line(aes(year, cpue, colour = CPUE, group = CPUE), size = 1) +
   geom_ribbon(aes(year, ymin = lower, ymax = upper, fill = CPUE), 
               colour = "white", alpha = 0.2) +
+  geom_point(aes(year, cpue, colour = CPUE, shape = CPUE), size = 2) +
+  geom_line(aes(year, cpue, colour = CPUE, group = CPUE), size = 1) +
+  # scale_colour_grey(name = "Standardized CPUE") +
+  # scale_fill_grey(name = "Standardized CPUE") +
   scale_colour_manual(values = c("darkcyan", "goldenrod"), name = "Standardized CPUE") +
   scale_fill_manual(values = c("darkcyan", "goldenrod"), name = "Standardized CPUE") +
   scale_shape_manual(values = c(19, 17), name = "Standardized CPUE") +
-  scale_x_continuous(breaks = seq(min(fsh_cpue$year), YEAR, 4)) +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   labs(x = "", y = "Fishery CPUE (lbs/hook)\n") +
-  theme(legend.position = "bottom")
+  theme(legend.position = c(0.8, 0.2))
 
-ggsave("figures/compare_stdcpue_llfsh.png", dpi=300, height=4, width=7, units="in")
+ggsave(paste0("figures/compare_stdcpue_llfsh_", YEAR, ".png"), dpi=300, height=4, width=7, units="in")
 
 # Percent change in fishery nominal cpue compared to a ten year rolling average
 fsh_sum %>% 
@@ -431,8 +454,10 @@ fsh_sum %>%
 fsh_sum %>% 
   filter(year >= YEAR - 1) %>%
   select(year, annual_cpue) %>% 
-  dcast("annual_cpue" ~ year) %>% 
-  mutate(perc_change_ly = (`2017` - `2016`) / `2016` * 100)
+  dcast("annual_cpue" ~ year) -> perc_ch
+
+names(perc_ch) <- c("cpue", "last_year", "this_year") 
+perc_ch %>% mutate(perc_change_ly = (`this_year` - `last_year`) / `last_year` * 100)
 
 # Historical CPUE ----
 
@@ -475,4 +500,5 @@ ggsave(paste0("figures/fshcpue_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
 
 # Write to file
-write_csv(cpue_ts, paste0("output/nominalwpue_var_llfsh_", min(cpue_ts$year), "_", YEAR, ".csv"))
+write_csv(cpue_ts, paste0("output/fshcpue_", min(cpue_ts$year), "_", YEAR, ".csv"))
+# write_csv(cpue_ts, paste0("output/nominalwpue_var_llfsh_", min(cpue_ts$year), "_", YEAR, ".csv"))

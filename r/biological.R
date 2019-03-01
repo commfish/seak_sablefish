@@ -7,7 +7,7 @@ source("r/helper.r")
 source("r/functions.r")
 library(ggridges)
 
-YEAR <- 2017
+YEAR <- 2018
 rec_age <- 2
 plus_group <- 42
 
@@ -93,7 +93,62 @@ expand.grid(Source = unique(emp_waa$Source),
   group_by(Source, Sex) %>% 
   mutate(weight = zoo::na.approx(weight, maxgap = 20, rule = 2)) -> emp_waa
 
-write_csv(emp_waa, paste0("output/empircal_waa.csv"))
+write_csv(emp_waa, paste0("output/empircal_waa_", YEAR, ".csv"))
+
+# Changes in weight-at-age
+
+
+srv_bio %>% 
+  select(year, Project_cde, Sex, age, weight) %>% 
+  filter(year >= 1997) %>% 
+  filter(!is.na(weight) & !is.na(age) & !is.na(Sex)) %>% 
+  filter(year <= YEAR & age >= rec_age) %>% 
+  group_by(year, Sex, age) %>% 
+  summarise(weight = mean(weight) %>% round(4)) %>%  
+  ungroup() %>% 
+  mutate(Year = as.character(year),
+         Age = factor(age),
+         cohort = year - age,
+         Cohort = as.factor(cohort))-> df
+
+pal <- ggthemes::canva_pal("Warm and cool")(4) 
+
+# By cohort
+df_cohort <- df %>% 
+         filter(cohort >= 2000 & cohort <= 2014 & age >=3 & age <= 5) %>% 
+         droplevels()
+
+# Axis ticks for plot (see helper.r tickr() fxn for details)
+axis <- tickr(df_cohort, year, 5)
+
+ggplot(df_cohort, aes(year, weight, colour = Cohort, group = Cohort)) +
+  geom_line(size = 1) +
+  geom_point(aes(fill = Cohort), show.legend = FALSE, size = 1) +
+  facet_grid(~ Sex) +
+  labs(x = "Year", y = "Weight-at-age (grams)\n", colour = "Cohort") +
+  guides(colour = guide_legend(ncol = 9)) +
+  scale_colour_manual(values = colorRampPalette(pal)(n_distinct(df_cohort$Cohort))) +
+  theme(legend.position = "bottom") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels)# -> waa_cohort_plot
+
+df %>% 
+  filter(Age %in% c("2", "3", "3", "4")) %>% 
+  droplevels() -> df
+df %>% 
+  group_by(Age, Sex) %>% 
+  summarize(mean_weight = mean(weight, na.rm = TRUE)) -> means
+
+ggplot(df, 
+       aes(year, weight, group = Age, colour = Age)) + 
+  geom_line() + 
+  geom_point() +
+  facet_wrap(~ Sex, ncol = 1) +
+  geom_hline(data = means, aes(colour = Age, yintercept = mean_weight), alpha = 0.4, linetype = 2) + 
+  labs(x = "Year", y = "Weight-at-age (grams)\n", colour = "Age") +
+  theme(legend.position = "bottom") +
+  scale_colour_manual(values = colorRampPalette(pal)(n_distinct(df$Age))) +
+  guides(colour = guide_legend(nrow = 1)) +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels)
 
 # Length-based Ludwig von Bertalanffy growth model -----
 
@@ -808,10 +863,10 @@ ggplot(byage, aes(x = age)) +
   scale_colour_manual(values = c("black", "grey")) +
   scale_fill_manual(values = c("black", "grey")) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  theme(legend.position = c(0.8, 0.8))
+  theme(legend.position = c(0.8, 0.8)) -> byage_plot
 
-ggsave("figures/proportion_fembyage.png", dpi=300, 
-       height=4, width=7,  units="in")
+# ggsave(paste0("figures/proportion_fembyage_", YEAR, ".png"), dpi=300, 
+#        height=4, width=7,  units="in")
 
 # proportion of females by year in the fishery and survey
 
@@ -893,20 +948,22 @@ ggplot(data = byyear, aes(x = year)) +
   expand_limits(y = c(0.0, 1)) +
   geom_hline(yintercept = 0.5, lty = 2, col = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  xlab("") +
+  xlab("\nYear") +
   ylab("Proportion of females\n") +
   scale_colour_manual(values = c("black", "grey")) +
   scale_fill_manual(values = c("black", "grey")) +
-  theme(legend.position = c(0.8, 0.2))
+  theme(legend.position = "none") -> byyear_plot
+# ggsave(paste0("figures/proportion_fembyyear_", YEAR, ".png"), dpi=300,  height=4, width=7, units="in")
 
-ggsave("figures/proportion_fembyyear.png", dpi=300,  height=4, width=7, units="in")
+plot_grid(byage_plot, byyear_plot, align = c("h"), ncol = 1)
+ggsave(paste0("figures/sex_ratios_", YEAR, ".png"), dpi=300,  height=6, width=7, units="in")
 
 # proportion of females by year and age in survey and fishery
 
-f_sex_ratio(data = filter(srv_bio, age %in% aa), 
-              src = "LL survey", year, age) %>% 
-  bind_rows(f_sex_ratio(data = filter(fsh_bio, age %in% aa), 
-              src = "LL fishery", year, age)) -> byyrage
+# f_sex_ratio(data = filter(srv_bio, age %in% aa), 
+#               src = "LL survey", year, age) %>% 
+#   bind_rows(f_sex_ratio(data = filter(fsh_bio, age %in% aa), 
+#               src = "LL fishery", year, age)) -> byyrage
 
 # Age compositions ----
 
@@ -930,11 +987,11 @@ rbind(
 all_bio %>% 
   count(Source, Sex, year, age) %>%
   group_by(Source, Sex, year) %>% 
-  mutate(proportion = round( n / sum(n), 4)) %>% 
+  mutate(proportion = round( n / sum(n), 5)) %>% 
   bind_rows(all_bio %>% # Age comps (sexes combined)
           count(Source, year, age) %>%
           group_by(Source, year) %>% 
-          mutate(proportion = round( n / sum(n), 4),
+          mutate(proportion = round( n / sum(n), 5),
                  Sex = "Sex combined")) -> agecomps   #%>% 
   # *FLAG* weight the proportion-at-age by the sample size in a given year
   # (N_year) divided by the total sample size (N)
@@ -963,7 +1020,7 @@ expand.grid(year = unique(agecomps$year),
   full_join(agecomps) %>%
   fill_by_value(n, proportion, value = 0) %>% 
   mutate(Age = factor(age),
-         proportion = round(proportion, 3)) %>%
+         proportion = round(proportion, 5)) %>%
   # Keep only relevant years for each Source
   filter(c(Source == "LL fishery" & year >= 2002) |
            c(Source == "LL survey" & year >= 1997) |
@@ -992,6 +1049,7 @@ agecomps %>%
   geom_bar(stat = "identity",
            position = "dodge") +
            # position = position_dodge(preserve = "single")) +
+  scale_fill_grey(start = 0.3, end = 0.8) +
   scale_x_continuous(breaks = seq(min(agecomps$age), max(agecomps$age), 4), 
                      labels =  seq(min(agecomps$age), max(agecomps$age), 4)) +
   labs(x = "\nAge", y = "Proportion\n") +
@@ -1002,16 +1060,15 @@ ggsave(paste0("figures/agecomp_bargraph_", YEAR, ".png"),
 
 # All years smoothed by source
 agecomps %>% 
-  filter(Sex == "Sex combined") %>% 
-ggplot(aes(x = age, y = proportion, colour = Source)) +
+  filter(age < plus_group & Sex == "Sex combined") %>% 
+ggplot(aes(x = age, y = proportion, colour = Source, linetype = Source)) +
   geom_point(size = 1, alpha = 0.1) +
   stat_smooth(size = 1, se = FALSE) +
-  # facet_wrap( ~ Sex) +
-  # lims(y = c(0, 0.1)) + 
+  scale_colour_grey() +
+  # scale_colour_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb")) +
   scale_y_continuous(limits = c(0, 0.1),
                      breaks = round(seq(min(agecomps$proportion), 0.1, 0.02), 2), 
                      labels =  round(seq(min(agecomps$proportion), 0.1, 0.02), 2)) +
-  scale_colour_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb")) +
   xlab('\nAge') +
   ylab('Proportion\n') +
   theme(legend.position = c(0.8, 0.8))
@@ -1139,7 +1196,7 @@ expand.grid(year = unique(lencomps$year),
   full_join(lencomps) %>%
   fill_by_value(n, proportion, value = 0) %>% 
   mutate(#length_bin = factor(length_bin),
-         proportion = round(proportion, 3)) %>%
+         proportion = round(proportion, 4)) %>%
   # Keep only relevant years for each Source
   filter(c(Source == "LL fishery" & year >= 2002) |
            c(Source == "LL survey" & year >= 1997) |
@@ -1193,7 +1250,7 @@ ggplot() +
   facet_wrap(~ year, ncol = 1) +
   labs(x = "\nFork length (cm)", y = "Proportion\n")
 
-ggsave("figures/llsrv_fem_lengthcomps_2014_2017.png", 
+ggsave(paste0("figures/llsrv_fem_lengthcomps_2014_", YEAR, ".png"), 
        dpi=300,  height=6, width=5.5, units="in")
 
 f_lencomps <- lencomps %>% 
@@ -1218,7 +1275,7 @@ ggplot() +
                    labels = seq(41, 99, 6)) +
   labs(x = "\nFork length (cm)", y = "Proportion\n")
 
-ggsave("figures/llfsh_fem_lengthcomps_2014_2017.png", 
+ggsave(paste0("figures/llfsh_fem_lengthcomps_2014_", YEAR, ".png"), 
        dpi=300, height=6, width=5.5, units="in")
 
 # All years smoothed by source

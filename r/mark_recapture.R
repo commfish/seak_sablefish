@@ -1,9 +1,7 @@
 # Mark-recapture analysis
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2018-02-13
-
-# ** currently missing daily tag accounting for 2003, 2017 will need to be updated when finalized by M. Vaughn.
+# Last edited: Feb 2018
 
 source("r/helper.r")
 source("r/functions.r")
@@ -14,7 +12,8 @@ library(purrr)
 # Variable definitions ----
 
 # N.0 = number of sablefish in Chatham Strait at time of marking
-# K.0 = number of marks released
+# K   = number of marks released
+# K.0 = number of marks released after tagging of small fish has been accounted for 
 # D.0 = number of marks that are not available to either the LL survey or to the fishery
 # D_i = number of tags lost in a time period that should be decremented from the
 #       next time period
@@ -32,16 +31,15 @@ library(purrr)
 # years were different from the numbers in those years. I'm instead going to
 # pull numbers (total marked, recovered, dead tags) from the database, that way
 # it's at least reproducible. I'm only using data >= 2005 because I can't find
-# any batch 15 (2004) tag recoveries. It turns out in 2004 ADF&G was experimenting
-# with PIT tags, which was not successful. I asked Aaron Baldwin if he'd track
-# down the batch 15 recoveries on 2018-02-21. 
+# any batch 15 (2004) tag recoveries. It turns out in 2004 ADF&G was
+# experimenting with PIT tags, which was not successful. Part of the 2003
+# countback data were completely lost, making abundance estimation in that year
+# impossible.
 
-# Make this an object for when it changes. Our goal should be at least getting
-# back to 2003.
 FIRST_YEAR <- 2005 
 
 # Assessment year
-YEAR <- 2017
+YEAR <- 2018
 
 # years without a marking survey
 NO_MARK_SRV <- c(2011, 2014, 2016)
@@ -50,11 +48,13 @@ NO_MARK_SRV <- c(2011, 2014, 2016)
 
 # A summary of past estimated abundance and biomass in a given year - I use the
 # abundance_age2plus to help inform the prior of the starting abundance (it will
-# still be vague). See Priors and starting values section
+# still be vague). See Priors and starting values section. Currently I add this
+# value manually to the .csv until I can figure out a slicker way to update it
+# each year.
 read_csv("data/chatham_sablefish_abd_index.csv") -> assessment_summary
 
 # Past years of mark-recapture variables, summarized to best of my ability based
-# on files on the server. This is just used for comparison purposes.
+# on going through old Excel files on the server. This is just used for comparison purposes.
 read_csv("data/fishery/raw_data/mr_variable_summary.csv") -> mr_summary
 
 # Released tags ----
@@ -62,13 +62,15 @@ read_csv("data/fishery/raw_data/mr_variable_summary.csv") -> mr_summary
 # Released fish. Each year has a unique batch_no.
 
 read_csv(paste0("data/survey/tag_releases_2003_", YEAR, ".csv"), 
-         guess_max = 50000) -> releases
+         guess_max = 50000) %>% 
+  filter(year >= FIRST_YEAR) -> releases
 
-releases %>% group_by(discard_status) %>% summarise(n_distinct(tag_no)) # All tagged and released or re-released
+releases %>% group_by(discard_status) %>% summarise(n_distinct(tag_no)) # Check - these should be all tagged and released
 
 # Temporary lookup table for year and tag batch no combos
 releases %>% 
   mutate(year_batch = paste0(year, "_", tag_batch_no)) %>% 
+  filter(year >= FIRST_YEAR) %>% 
   distinct(year_batch) -> tag_summary
 
 # Recovered tags ----
@@ -119,13 +121,19 @@ recoveries %>%
          year_trip = paste0(year, "_", trip_no),
          # use landing_date (same as the countbacks - see section below), otherwise catch_date
          date = as.Date(ifelse(is.na(landing_date), catch_date, landing_date))) %>% 
-  filter(year_batch %in% tag_summary$year_batch) -> recoveries
+  filter(year >= FIRST_YEAR & year_batch %in% tag_summary$year_batch) -> recoveries
 
-# There is only one Project_cde NA and it is a personal use trip, should be code
+# Check for Project_cde NAs and if there are any check with A. Baldwin or
+# whoever is leading the tagging project. In the past there have been occasional
+# tags that were recovered in the personal use or commercial fishery that were
+# left as NAs and need to be fixed
+filter(recoveries, is.na(Project_cde)) %>% distinct(tag_no)
+
+# Project_cde NA that are personal use trips should be code
 # "27" - change it to appropriate code
 recoveries %>% 
   mutate(Project_cde = ifelse(is.na(Project_cde) &
-                                grepl("Personal Use", comments), 
+                                grepl(c("Personal Use|subsistance|sport"), comments), 
                               "27", Project_cde)) -> recoveries
 
 # Size selectivity differences ----
@@ -141,30 +149,34 @@ recoveries %>%
   summarize(min = min(length, na.rm = TRUE),
             max = max(length, na.rm = TRUE))
 
-# Create bins
+# Create bins. Used 5-cm bins b/c the data is a little sparse
 releases %>% 
-  filter(year >= FIRST_YEAR &
-           !is.na(length)) %>% 
+  filter(!is.na(length)) %>% 
   mutate(length_bin = cut(length, breaks = seq(32.5, 117.5, 5),
                           labels = paste(seq(35, 115, 5)))) %>% 
   select(year, rel_date = date, rel_stat = Stat, tag_no, tag_batch_no, rel_len = length, 
          rel_bin = length_bin) -> rel_sel
 
-# Same for recoveries
+# Same for recoveries, only use measurements from scientific staff
 recoveries %>% 
-  filter(year >= FIRST_YEAR & 
-           !is.na(length) &
+  filter(!is.na(length) &
            measurer_type == "Scientific staff") %>% 
   mutate(length_bin = cut(length, breaks = seq(32.5, 117.5, 5),
                           labels = paste(seq(35, 115, 5)))) %>% 
   select(year, rec_date = date, rec_stat = Stat, tag_no, tag_batch_no, rec_len = length, 
          rec_bin = length_bin) -> rec_sel
 
-# Growth in tagged individuals
+# Growth in tagged individuals by bin
 merge(rel_sel, rec_sel, by = c("year", "tag_no", "tag_batch_no")) %>% 
-  mutate(growth = rec_len - rel_len) %>%
+  mutate(growth = rec_len - rel_len) %>% 
   # lots of negative growth... 
-  filter(!growth < 0) %>% 
+  filter(!growth < 0) -> growth
+
+# Lots of unrealistic outliers, omit growth over 5 cm
+hist(growth$growth)
+
+growth %>% 
+  filter(growth < 5) %>% 
   arrange(year, rel_bin) %>% 
   group_by(rel_bin) %>% 
   summarize(n = length(tag_no),
@@ -174,12 +186,28 @@ merge(rel_sel, rec_sel, by = c("year", "tag_no", "tag_batch_no")) %>%
   # Deal with outliers in shoulder length bins: if the sample size of less than
   # 25, assume 0 growth
   mutate(g = ifelse(n < 25, 0, mean_g)) %>% 
-  select(rel_bin, g) -> growth
+  select(rel_bin, g) %>% 
+  # join back in any bins that did not have growth estimated, assign these as 0
+  # growth
+  full_join(data.frame(rel_bin = paste0(seq(35, 115, 5)))) -> growth
 
-write_csv(growth, "output/tag_estimated_growth.csv")
+growth[is.na(growth)] <- 0
+
+# Rearrange
+growth %>% 
+  mutate(tmp = as.numeric(rel_bin)) %>% 
+  arrange(tmp) %>% 
+  select(-tmp) -> growth
+
+write_csv(growth, paste0("output/tag_estimated_growth_", min(rel_sel$year), 
+                         "_", max(rel_sel$year), ".csv"))
+
+# # Alternative using last year's growth
+# growth <- read_csv(paste0("output/tag_estimated_growth_", min(rel_sel$year), 
+#                 "_", max(rel_sel$year)-1, ".csv"))
 
 # Add growth to released fish then recalculate the bins
-merge(rel_sel, growth, by = "rel_bin") %>% 
+merge(rel_sel, growth, by = "rel_bin") %>%
   mutate(growth_len = rel_len + g,
          growth_bin = cut(growth_len, breaks = seq(32.5, 117.5, 5),
                           labels = paste(seq(35, 115, 5)))) %>% 
@@ -285,18 +313,16 @@ rec_sel %>%
   group_by(year) %>% 
   summarize(cutoff = min(as.numeric(as.character(rec_bin)))) %>% 
   right_join(growth_sel, "year") %>% 
-  mutate(growth_bin = as.numeric(as.character(growth_bin))) %>% 
+  mutate(growth_bin = as.numeric(as.character(growth_bin))) %>% #View()
   filter(growth_bin < cutoff) %>% 
   distinct(year, tag_no) -> throw_out
 
-# Total number tagged and released by year
+throw_out %>% group_by(year) %>% summarize(n_distinct(tag_no))
+
+# Total number tagged and released by year plus define length of time period 1
 releases %>% 
-  filter(year >= FIRST_YEAR &
-           # Remove the one tag once adjustments for size-selectivity have been
-           # made
-           !tag_no %in% throw_out$tag_no) %>% 
   group_by(year, tag_batch_no) %>% 
-  summarise(K.0 = n_distinct(tag_no),
+  summarise(K = n_distinct(tag_no), # total fish tagged
             potsrv_beg = min(date),
             potsrv_end = max(date),
             # FLAG: Mueter (2007) defined the length of time period 1 (t.1) as
@@ -310,11 +336,16 @@ releases %>%
             potsrv_middle = (potsrv_end - potsrv_beg) / 2 + potsrv_beg) %>% 
   mutate(year_batch = paste0(year, "_", tag_batch_no)) -> tag_summary
 
+# Remove tags that fall below the cutoff value to account for size-selectivity 
+releases %>%  filter(!tag_no %in% throw_out$tag_no) -> releases
+
+# Add these to tag_summary as K.0
+releases %>% 
+  group_by(year, tag_batch_no) %>% 
+  summarise(K.0 = n_distinct(tag_no)) %>% left_join(tag_summary) -> tag_summary
+
 # Movement in Chatham ----
 
-# *FLAG* in the future do a better job accounting for recoveries outside of
-# Chatham (need to go back to recoveries df and sort it out by project cde). For
-# now, just focus on movement within Chatham.
 merge(rel_sel, 
       rec_sel %>% 
         filter(!is.na(rec_stat)) %>% 
@@ -339,8 +370,10 @@ table(releases = move$rel_stat,
   data.frame() %>% 
   group_by(year, releases) %>% 
   mutate(N = sum(Freq), # number of releases in an area
-         Probability = Freq/N) %>%  # probability of being recaptured in an area if released in an area
-  ggplot(aes(x = releases, y = recaptures)) +
+         # probability of being recaptured in an area if released in an area
+         Probability = Freq/N) -> move
+
+ggplot(move, aes(x = releases, y = recaptures)) +
   geom_tile(aes(fill = Probability), colour = "grey") +
   facet_wrap(~ year, ncol = 2) +
   scale_fill_gradient(low = "white", high = "black", space = "Lab",
@@ -361,6 +394,23 @@ table(releases = move$rel_stat,
 # darker above means movement northward, darker below means movement southward.
 
 ggsave(paste0("figures/movement_matrix_", 
+              FIRST_YEAR, "_", YEAR, ".png"), 
+       dpi=300, height=8.5, width=7.5, units="in")
+
+# Alternative movement graphic that shows sample size
+ggplot(move, aes(x = releases, y = recaptures)) +
+  geom_tile(aes(fill = Probability), colour = "grey") +
+  geom_point(aes(size = Freq), shape = 21, colour = "black") +
+  scale_size(limits = c(1, max(move$Freq)), range = c(0, 4.5)) +  
+  facet_wrap(~ year, ncol = 2) +
+  labs(x = '\nAge', y = '') +
+  # guides(size = FALSE) +
+  scale_fill_gradient(low = "white", high = "grey35", space = "Lab",
+                      na.value = "red", guide = "colourbar",
+                      name = "Proportion") +
+  labs(x = "\nRelease Stat Area", y = "Recapture Stat Area\n", size = "No. of\ntagged fish")
+
+ggsave(paste0("figures/movement_matrix_with_N_", 
               FIRST_YEAR, "_", YEAR, ".png"), 
        dpi=300, height=8.5, width=7.5, units="in")
 
@@ -398,12 +448,13 @@ read_csv(paste0("data/survey/llsrv_bio_1985_", YEAR,".csv"),
 # LL survey effort ----
 
 # Get start and end dates, total n (number of fish observed for marks), and fishery npue
-
-srv_cpue <- read_csv(paste0("data/survey/llsrv_cpue_1988_", YEAR, ".csv"), 
+srv_cpue <- read_csv(paste0("data/survey/llsrv_cpue_1985_", YEAR, ".csv"), 
                      guess_max = 50000) %>% 
   filter(year >= FIRST_YEAR)
 
+# Add survey NPUE and survey dates to tag summary
 srv_cpue %>%
+  filter(!c(is.na(no_hooks) | no_hooks == 0)) %>% 
   mutate(
     #standardize hook spacing (Sigler & Lunsford 2001, CJFAS) changes in 
     #hook spacing. pers. comm. with aaron.baldwin@alaska.gov: 1995 & 1996 -
@@ -414,25 +465,36 @@ srv_cpue %>%
                        ifelse(year == 1997, 2.2 * no_hooks * (1 - exp(-0.57 * (72 * 0.0254))),
                               ifelse( year %in% c(1998, 1999), 2.2 * no_hooks * (1 - exp(-0.57 * (64 * 0.0254))),
                                       2.2 * no_hooks * (1 - exp(-0.57 * (78 * 0.0254)))))),
-    # std_hooks = ifelse(year < 1997, 2.2 * no_hooks * (1 - exp(-0.57 * 3)),
-    #                    2.2 * no_hooks * (1 - exp(-0.57 * 2))),
-    # Per Mike Vaughn & Aaron Baldwin, only use discard status "01" for retained,
-    # b/c these are the ones that are checked for marks
-    sablefish_retained = ifelse(discard_status_cde == "01", hooks_sablefish, 0),
+    # Get rid of NAs
+    hooks_sablefish = ifelse(is.na(hooks_sablefish), 0, hooks_sablefish),
     # number of sablefish/1000 hooks, following Mueter 2007
-    std_cpue = sablefish_retained / (std_hooks / 1000)) %>% 
+    std_cpue = hooks_sablefish / (std_hooks / 1000)) %>% 
   group_by(year) %>%
   summarise(llsrv_beg = min(date),
             llsrv_end = max(date),
-            n.1 = sum(sablefish_retained),
-            C.1 = sum(sablefish_retained),
             NPUE.1 = mean(std_cpue) %>% round(1)) %>% 
   left_join(srv_mean_weights, by = "year") %>% 
   # estimate wpue: kg sablefish/1000 hooks, following Mueter 2007  
   mutate(WPUE.1 = (NPUE.1 * mean_weight_1) %>% round(1)) %>% 
   right_join(tag_summary, by = "year") -> tag_summary
 
-# Fishery countbacks ----
+# Longline survey countbacks -----
+
+# Number of fish checked for marks on survey
+srv_count <- read_csv(paste0("data/survey/llsrv_by_condition_1988_", YEAR, ".csv"), 
+                      guess_max = 50000) %>% 
+  filter(year >= FIRST_YEAR)
+
+srv_count %>% 
+  # Per Mike Vaughn & Aaron Baldwin, only use discard status "01" for retained,
+  # b/c these are the ones that are checked for marks
+  mutate(sablefish_retained = ifelse(discard_status_cde == "01", hooks_sablefish, 0)) %>% 
+  group_by(year) %>%
+  summarise(n.1 = sum(sablefish_retained), # number checked for marks
+            C.1 = sum(sablefish_retained)) %>% # catch in numbers
+  right_join(tag_summary, by = "year") -> tag_summary              
+
+# Fishery countbacks ----               
 
 # Daily tag accounting data in the fishery, includes catch. Note that many of
 # the comments indicate that not all fish were observed, so be careful using
@@ -510,7 +572,7 @@ marks %>% group_by(year) %>%
 recoveries %>% 
   filter(year_trip %in% marks$year_trip & Project_cde == "02") %>% 
   group_by(year_trip) %>% 
-  summarize(tags_from_fishery = n_distinct(tag_no)) %>% 
+  summarize(tags_from_fishery = n_distinct(tag_no)) %>% #write_csv("tst_2017.csv")
   right_join(marks, by = "year_trip") -> marks
 
 # Remove these matched tags from the releases df so they don't get double-counted by accident. 
@@ -528,11 +590,10 @@ anti_join(recoveries %>%
   summarize(tags_from_fishery = n_distinct(tag_no)) -> no_match # 7 trips from 2008, all in the NSEI
 
 # *FLAG* don't add these landings back in right now, otherwise the population
-# assessment is way off. Wait until I have a chance to work with M. Vaughn.
-# # See if these landings have fish tickets. These 7 trips from 2008 are in the IFDB and look like they were missed. I'm
-# # choosing to add them into the marks df, because they are from the NSEI state
-# # managed fishery and appear not to have been accounted for in the countbacks
-# # spreadsheets.
+# assessment in 2008 is way off. These 7 trips from 2008 are in the IFDB and
+# look like they were missed. Should they be added to the marks df? They are
+# from the NSEI state managed fishery and appear not to have been accounted for
+# in the countbacks spreadsheets.
 # fsh_tx %>% 
 #   filter(year_trip %in% no_match$year_trip) %>% 
 #   group_by(year, trip_no, year_trip, sell_date, julian_day) %>% 
@@ -547,8 +608,7 @@ anti_join(recoveries %>%
 #   fill_by_value(observed_flag, all_observed, value = "No") -> marks
 
 # Remove these matched tags from the releases df so they don't get double-counted by accident. 
-recoveries %>% 
-  filter(!c(year_trip %in% no_match$year_trip & Project_cde == "02")) -> recoveries
+recoveries %>% filter(!c(year_trip %in% no_match$year_trip & Project_cde == "02")) -> recoveries
 
 # Pothole - check that all fish ticket trips have been accounted for in the NSEI in other
 # years in the daily accounting form... or not. How about next year. This is a mess.
@@ -645,7 +705,7 @@ right_join(recoveries %>%
   dcast(year ~ D, value.var = "n", fill = 0) %>% 
   left_join(tag_summary, by = "year") -> tag_summary
 
-# Currently n.1 and k.1 refelct observed and marked in the longline survey. Add
+# Currently n.1 and k.1 reflect observed and marked in the longline survey. Add
 # similar columns for the fishery
 daily_marks %>% 
   group_by(year) %>% 
@@ -1197,7 +1257,7 @@ convergence_summary %>%
     # is ok.
     Point.est. >= 1.1) -> not_converged
 
-not_converged %>% distinct(model, P) # do not include models that estimate q unless they have > 3 periods
+not_converged %>% distinct(model, P) # do not include models that estimate q unless they have > 6 periods
 
 # Models with P>=6
 dic_summary %>% 
@@ -1211,16 +1271,17 @@ dic_summary %>%
   group_by(model) %>% 
   filter(delta_DIC == min(delta_DIC)) -> top_models
 
-# Tmp: fixed n_summary_out in mr_jags, need to re-run.
 bind_rows(mod1_posterior_ls[[5]] %>% select(N.avg, year, model, P),
           mod2_posterior_ls[[5]] %>% select(N.avg, year, model, P),
           mod3_posterior_ls[[5]] %>% select(N.avg, year, model, P),
           mod4_posterior_ls[[5]] %>% select(N.avg, year, model, P)) %>% 
   group_by(model, year, P) %>% 
   # mutate(N.avg = N.avg / 1000000) %>% 
-  summarize(median = median(N.avg),
+  summarize(mean = mean(N.avg),
             q025 = quantile(N.avg, 0.025),
             q975 = quantile(N.avg, 0.975)) -> N_summary
+
+N_summary %>% filter(model == "Model1") %>% write_csv(paste0("output/N_summary_tagsremoved_", YEAR, ".csv"))
 
 N_summary %>% 
   mutate(mod_version = paste(year, model, P, sep = "_"),
@@ -1244,48 +1305,35 @@ tag_summary %>%
          q025 = Estimate - chap_ci,
          model = "Model0",
          P = 1) %>% 
-  select(year, model, P, Estimate) %>% 
+  select(year, model, P, Estimate, q975, q025) %>% 
   filter(year == YEAR) %>% 
   full_join(top_models) %>% 
   write_csv(paste0("output/top_models_", YEAR, ".csv"))
 
-# N_summary %>%
-#   group_by(year) %>%
-#   summarize(min = min(N.avg),
-#             max = max(N.avg)) %>%
-#   melt(id.vars = "year", measure.vars = c("min", "max"), value.name = "N.avg") %>%
-#   left_join(N_summary, by = c("year", "N.avg")) %>%
-#   bind_rows(
-#     # N estimates for top models
-#     N_summary %>%
-#       filter(mod_version %in% top_models$mod_version) %>%
-#       mutate(variable = "best_fit") ) %>%
-#   arrange(year)
-
-ggplot() +
-  geom_histogram(data = N_summary %>% 
-                   # leave out models that did not converge
-                   filter(!mod_version %in% not_converged$mod_version), 
-                 aes(N.avg),  binwidth = 0.05) +
-  geom_vline(data = N_summary %>%
-               filter(mod_version2 %in% top_mods2$mod_version2),
-             aes(colour = model, linetype = model,
-                 xintercept = N.avg),
-             size = 1) +
-  facet_wrap(~year, ncol = 2) +
-  labs(x = "\nAbundance estimate (millions)", 
-       y = "Frequency\n") +
-  scale_color_brewer(palette = "BrBG") +
-  theme(legend.position = "bottom",
-        legend.title = element_blank(),
-        legend.text = element_text(size = 14))
-
-# Histogram shows point estimates for all model versions (P = 2-9), except the
-# ones that did not converge. Coloured vertical bars show point estimate of
-# "best fit" model by DIC.
-ggsave(paste0("figures/Nest_range_histogram", 
-              FIRST_YEAR, "_", YEAR, ".png"), 
-       dpi=300, height=8.5, width=7.5, units="in")
+# ggplot() +
+#   geom_histogram(data = N_summary %>% 
+#                    # leave out models that did not converge
+#                    filter(!mod_version %in% not_converged$mod_version), 
+#                  aes(median),  binwidth = 0.05) +
+#   # geom_vline(data = N_summary %>%
+#   #              filter(mod_version2 %in% top_mods2$mod_version2),
+#   #            aes(colour = model, linetype = model,
+#   #                xintercept = N.avg),
+#   #            size = 1) +
+#   facet_wrap(~year, ncol = 2) +
+#   labs(x = "\nAbundance estimate (millions)", 
+#        y = "Frequency\n") +
+#   scale_color_brewer(palette = "BrBG") +
+#   theme(legend.position = "bottom",
+#         legend.title = element_blank(),
+#         legend.text = element_text(size = 14))
+# 
+# # Histogram shows point estimates for all model versions (P = 2-9), except the
+# # ones that did not converge. Coloured vertical bars show point estimate of
+# # "best fit" model by DIC.
+# ggsave(paste0("figures/Nest_range_histogram", 
+#               FIRST_YEAR, "_", YEAR, ".png"), 
+#        dpi=300, height=8.5, width=7.5, units="in")
 
 # Summary of posterior distributions of quantities of interest, including
 # period-specific estimates of N (N[]), estimates of mean abundance (N.avg), net
@@ -1551,7 +1599,7 @@ results %>%
        y = "\nPosterior distribution") +
   xlim(c(-30, 40))
 
-ggsave(paste0("figures/net_migration_estimates.png"), 
+ggsave(paste0("figures/net_migration_estimates", YEAR, ".png"), 
        dpi=300, height=8.5, width=7.5, units="in")
 
 # N thru time ----
@@ -1579,10 +1627,9 @@ post_sums %>%
 ggsave(paste0("figures/Nest_byP_2005_", YEAR, ".png"), 
        dpi=300, height=11, width=11, units="in")
 
-head(model_dat)
-
 # Plot catchability and obs vs. fitted NPUE
-results <- mod3_posterior_ls[[5]]
+# results <- mod3_posterior_ls[[5]]
+results <- mod4_posterior_ls[[5]]
 
 results %>% 
   group_by(year) %>% 
@@ -1641,16 +1688,68 @@ ggplot() +
        y = "CPUE (sablefish per 1000 hooks)\n") +
   theme(legend.position = "none")
 
-ggsave(paste0("figures/NPUE_obsvsfitted.png"), 
+# ggsave(paste0("figures/NPUE_obsvsfitted_mod3_", YEAR, ".png"), 
+#        dpi=300, height=8.5, width=7.5, units="in")
+
+ggsave(paste0("figures/NPUE_obsvsfitted_mod4_", YEAR, ".png"), 
        dpi=300, height=8.5, width=7.5, units="in")
                         
+# In 2018 the models with NPUE only fit the data well when migration was included:
+
+NPUE <- mod3_posterior_ls[[5]] %>% filter(year == YEAR) %>% 
+  bind_rows(mod4_posterior_ls[[5]] %>% filter(year == YEAR)) %>% 
+  select(model, year, P, contains("npue.hat")) %>% 
+  melt(id.vars = c("model", "year", "P")) %>% 
+  group_by(model, year, variable) %>% 
+  summarize(NPUE = median(value),
+            q025 = quantile(value, 0.025),
+            q975 = quantile(value, 0.975)) %>% 
+  mutate(Type = "Estimated",
+         P = fct_recode(variable,
+                        `2` = "npue.hat[2]" ,
+                        `3` = "npue.hat[3]" ,
+                        `4` = "npue.hat[4]" ,
+                        `5` = "npue.hat[5]",
+                        `6` = "npue.hat[6]"),
+         Model = fct_recode(model,
+                            `Model 3 (includes fishery CPUE)` = "Model3",
+                            `Model 4 (includes fishery CPUE and migration)` = "Model4")) %>% 
+  select(-variable)
+
+NPUE_dat <- data_df[[5]] %>% 
+  filter(year == YEAR) %>% 
+  select(P = catch_strata, NPUE)
+
+ggplot() +
+  geom_point(data = NPUE_dat,
+             aes(x = P, y = NPUE)) +
+  geom_smooth(data = NPUE %>% filter(Type == "Estimated"),
+              aes(x = P, y = NPUE, group = Type), colour = "grey") +
+  geom_ribbon(data = NPUE %>% filter(Type == "Estimated"),
+              aes(x = P, ymin = q025, ymax = q975, 
+                  group = Type), 
+              alpha = 0.2, fill = "grey") +
+  scale_colour_manual(values = c("grey", "black")) +
+  facet_wrap(~ Model, ncol = 1) +
+  labs(x = "\nTime period",
+       y = "CPUE (sablefish per 1000 hooks)\n") +
+  theme(legend.position = "none")
+
+ggsave(paste0("figures/NPUE_mod3_vs_mod4_", YEAR, ".png"), 
+       dpi=300, height=4, width=6, units="in")
 
 # Model 1 P = 6 Results ----
 
 results <- mod1_posterior_ls[[5]]
 model_years <- unique(tag_summary$year)
 
+write_csv(results, paste0("output/final_mod_posterior_", 
+                                     min(results$year), "_", max(results$year), ".csv"))
+
 # Credibility intervals N and p, N by time period
+df <- data.frame(year = FIRST_YEAR:YEAR)
+axis <- tickr(df, year, 2)
+
 results %>% 
   gather("time_period", "N.avg", contains("N.avg")) %>% 
   group_by(year, time_period) %>% 
@@ -1658,38 +1757,44 @@ results %>%
             q025 = quantile(N.avg, 0.025),
             q975 = quantile(N.avg, 0.975)) %>% 
   arrange(year, time_period) %>% 
-  # left_join(assessment_summary %>% 
-  #             select(year, `Previous estimate` = abundance_age2plus) %>% 
-  #             mutate(`Previous estimate` = ifelse(year == 2017, NA, `Previous estimate`)), 
-  #           by = "year") %>% 
   ungroup() %>% 
   mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
   pad(interval = "year") %>% 
   mutate(year = year(year),
          Year = factor(year)) %>%
-  gather("Abundance", "N", `Current estimate`) %>% 
-  mutate(N = N / 1000000,
+  left_join(assessment_summary %>%
+              select(year, `Previous estimate` = abundance_age2plus) %>%
+              mutate(`Previous estimate` = ifelse(year == YEAR, NA, `Previous estimate`)),
+            by = "year") %>%
+  gather("Abundance", "N", c(`Current estimate`, `Previous estimate`)) %>% 
+  mutate(N = N / 1e6,
          # interpolate the CI in missing years for plotting purposes
-         q025 = zoo::na.approx(q025 / 1000000, maxgap = 20, rule = 2),
-         q975 = zoo::na.approx(q975 / 1000000, maxgap = 20, rule = 2)) %>%
+         q025 = zoo::na.approx(q025 / 1e6, maxgap = 20, rule = 2),
+         q975 = zoo::na.approx(q975 / 1e6, maxgap = 20, rule = 2)) %>%
   ggplot() +
   geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), 
-             size = 3) +
+             size = 1.5) +
   geom_smooth(aes(x = year, y = N, col = Abundance), 
               se = FALSE) +
   geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
-              alpha = 0.2, fill = "#F8766D") +
+              alpha = 0.2, fill = "grey") +
   scale_x_continuous(breaks = seq(min(model_years), max(model_years), 2), 
                      labels = seq(min(model_years), max(model_years), 2)) +
-  geom_point(data = assessment_summary %>% 
-               filter(year %in% c(2017)) %>% 
-               mutate(est = abundance_age2plus / 1000000),
-             aes(x = year, y = est), 
-             shape = 8, size = 3, colour = "darkcyan") +
-  # ylim(c(1, 3.5)) +
+  geom_point(data = assessment_summary %>%
+               filter(year %in% c(YEAR)) %>%
+               mutate(est = abundance_age2plus / 1e6),
+             aes(x = year, y = est),
+             shape = 8, size = 1.5, colour = "grey") +
+  scale_colour_grey() +
+  ylim(c(0, 3.5)) +
   labs(x = "", y = "Number of sablefish (millions)\n",
        colour = NULL, shape = NULL) +
-  theme(legend.position = c(.8, .8))
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  theme(legend.position = c(.8, .2))
+
+ggsave(paste0("figures/model1_N_retrospective_",
+              FIRST_YEAR, "_", YEAR, ".png"),
+       dpi=300, height=4, width=6, units="in")
 
 # Write results to file for ASA
 # results %>% 
@@ -1706,30 +1811,29 @@ results %>%
             q025 = quantile(N.avg, 0.025) / 1e6,
             q975 = quantile(N.avg, 0.975) / 1e6) %>% 
   write_csv("output/mr_index.csv")
-# 
-# ggsave(paste0("figures/model1_N_retrospective_", 
-#               FIRST_YEAR, "_", YEAR, ".png"), 
-#        dpi=300, height=4, width=6, units="in")
-
 
 # results %>%
-#   gather("time_period", "p", contains("p[")) %>% 
-#   group_by(year, time_period) %>% 
+#   gather("time_period", "p", contains("p[")) %>%
+#   group_by(year, time_period) %>%
 #   summarise(median = median(p),
 #             q025 = quantile(p, 0.025),
-#             q975 = quantile(p, 0.975)) 
+#             q975 = quantile(p, 0.975))
 
 # results %>%
 #   gather("time_period", "N", contains("N[")) %>%
 #   group_by(year, time_period) %>%
-#   summarise(median = median(N),
-#             q025 = quantile(N, 0.025),
-#             q975 = quantile(N, 0.975)) %>%
-#   arrange(year, time_period) %>% View()
+#   summarise(mean = mean(N) / 1e6,
+#             q025 = quantile(N, 0.025) / 1e6,
+#             q975 = quantile(N, 0.975) / 1e6) %>%
+#   arrange(year, time_period) %>% 
+#   ggplot(aes(x = time_period, y = mean)) +
+#   geom_point() +
+#   geom_line() +
+#   facet_wrap(~year)
 
 # Posterior distributions from the last 4 years with MR data
 results %>% 
-  filter(year > 2010) %>%
+  filter(year > 2012) %>%
   group_by(year) %>% 
   mutate(N.avg = N.avg / 1000000,
          q025 = quantile(N.avg, 0.025),
@@ -1747,10 +1851,12 @@ results %>%
 
 results %>% 
   group_by(year) %>% 
-  summarize(N.avg = mean(N.avg) ,
+  summarize(N_current = mean(N.avg) ,
          q025 = quantile(N.avg, 0.025),
          q975 = quantile(N.avg, 0.975))  %>% 
   left_join(assessment_summary) -> assessment_summary
+
+write_csv(assessment_summary, paste0("output/assessment_summary_", YEAR, ".csv"))
 
 results %>% 
   group_by(year) %>% 
@@ -1760,7 +1866,7 @@ results %>%
 
 ci[c(2:4)] <- lapply(ci[,c(2:4)], prettyNum, trim=TRUE, big.mark=",")
 
-ci %>% filter(year == 2017) %>% 
+ci %>% #filter(year == YEAR) %>% 
   select(`Estimate N` = N, `Lower CI` = q025, 
          `Upper CI` = q975) %>% 
   kable()
@@ -1768,801 +1874,7 @@ ci %>% filter(year == 2017) %>%
 # Tag summary
 
 tag_summary %>% 
-  select(Year = year, `$K_0$` = K.0, `$D_0$` = D.0, 
+  select(Year = year, `$K$` = K, `$K_0$` = K.0, `$D_0$` = D.0, 
          `$k_{srv}$` = k.1, `$n_{srv}$` = n.1, `$D_{srv}$` = D.1,
          `$k_{fsh}$` = k_fishery, `$n_{fsh}$` = n_fishery, `$D_{fsh}$` = D_fishery) %>% 
-  write_csv("output/tag_summary_report.csv")
-
-# Forecast/YPR Inputs ----
-
-# All inputs from biological.r
-
-# NOAA fishery and survey age-based selectivity coefficients Fishery females, males, then
-# survey females, males Manual input from Dana's NMFS spreadsheet - request from
-# him
-
-f50_f <-  3.86
-fslp_f <- 2.61
-f50_m <-  4.22
-fslp_m <- 2.61
-
-s50_f <- 3.75
-sslp_f <- 2.21
-s50_m <- 3.72
-sslp_m <- 2.21
-
-# Selectivity vectors 
-age <- 2:42
-
-f_sel <- 1 / (1 + exp(-fslp_f * (age - f50_f)))
-m_sel <- 1 / (1 + exp(-fslp_m * (age - f50_m)))
-sf_sel <- 1 / (1 + exp(-sslp_f * (age - s50_f)))
-sm_sel <- 1 / (1 + exp(-sslp_m * (age - s50_m)))
-
-# Input estimate of abundance from previous year last year's full recruitment
-# 'F' values, total commercial catch, and M. Clip data, not tag data. This is
-# the POOLED estimate of abundance, which is subsequently partitioned into
-# sex-specific selectivities below
-
-# M assumed = 0.1
-# Selectivities from above
-# Read in female SURVEY weight-at-age in order to 
-# calculate spawning biomass and F levels
-#
-# Recall that we then use FISHERY weights-at-age
-# to calculate exploitable biomass
-
-# F implemented in previous year fishery. From assessment
-F_previous <- 0.0683 #0.0677 in 2016
-
-mort <- 0.1 # natural mortality
-
-# Weight-at-age
-read_csv(paste0("output/pred_waa_1997_", YEAR, ".csv"),
-         guess_max = 50000) %>% 
-  dcast(Source + Sex ~ age, value.var = "weight") -> waa
-
-# Female, survey
-wt_s_f <- waa %>% 
-  filter(Source == "LL survey" &
-           Sex == "Female") %>% 
-  select(matches("^[[:digit:]]+$")) %>% 
-  as.numeric() 
-
-# Male, survey
-wt_s_m <- waa %>% 
-  filter(Source == "LL survey" &
-           Sex == "Male") %>% 
-  select(matches("^[[:digit:]]+$")) %>% 
-  as.numeric()
-
-#Female, fishery
-wt_f_f <- waa %>% 
-  filter(Source == "LL fishery" &
-           Sex == "Female") %>% 
-  select(matches("^[[:digit:]]+$")) %>% 
-  as.numeric()
-
-# Male, fishery
-wt_f_m <- waa %>% 
-  filter(Source == "LL fishery" &
-           Sex == "Male") %>% 
-  select(matches("^[[:digit:]]+$")) %>% 
-  as.numeric()
-
-# Maturity at age, female survey
-read_csv("output/fem_maturityatage_llsrv.csv",
-         guess_max = 50000) %>% 
-  dcast(. ~ age, value.var = "probability") %>% 
-  select(matches("^[[:digit:]]+$")) %>% 
-  as.numeric() -> mat_s_f
-  
-#Check to make sure all have been read in as numeric vectors
-length(wt_s_f); length(wt_s_m); length(wt_f_f); length(wt_f_m); length(mat_s_f)
-
-# Multiply N by fishery proportions to estimate *EXPLOITED* 
-# numbers-at-age and divide by age-specific selectivity
-#
-# AS PER MUETER 2010 sablefish ASA report to ADF&G, the 'exploited' population
-# refers to the population targeted by both gear AND fishing fleet behavior
-# 'Exploitable' means those vulnerable solely to gear under conditions of random
-# sampling
-
-# Sex ratio in the commercial fishery in YEAR
-female_p <- read_csv("output/sexratio_byyear.csv", guess_max = 50000) %>% 
-  filter(Source == "LL fishery" & year == YEAR) %>% 
-  select(proportion) %>% 
-  as.numeric() 
-
-male_p <- 1 - female_p
-
-# Translate mark-recapture abundance into general exploited
-# abundance by partitioning mark-recapture abundance into
-# fishery age composition and then dividing by selectivity
-#
-# Note that male abundance at ages 2 and 3 will be MUCH higher
-# than female because male selectivity at age for those cohorts
-# is much lower than females
-
-N_MR_sex <- assessment_summary %>% 
-  filter(year == YEAR) %>% 
-  select(N.avg) %>% 
-  as.numeric()
-
-# Fishery age comps for YEAR
-read_csv("output/agecomps.csv", guess_max = 50000) %>% 
-  filter(Source == "LL fishery" & 
-           year == YEAR &
-           Sex %in% c("Female", "Male")) %>% 
-  dcast(Sex ~ age, value.var = "proportion") -> agecomps
-
-f <- filter(agecomps, Sex == "Female") %>% select(-Sex) %>% as.numeric()
-m <- filter(agecomps, Sex == "Male") %>% select(-Sex) %>% as.numeric()
-
-AGE <- 2:42
-Nm <- 1:41
-Nf <- 1:41
-
-# Discard mortality ----
-
-# From M. Vaughn and K. Carroll 2018-06-04: Size grade and cost definition from
-# processor will be used to define the probability of retaining a fish
-grades <- data.frame(
-  kg = c(0.5, 0.7, 1.4, 2.2, 2.9, 3.6, 5.0),
-  # Based off conversation with A. Alson 2018-06-04, set grade 3/4 as 50%
-  # probability of retention (p), and very low for grades below.
-  p = c(0.0, 0.0, 0.1, 0.5, 1.0, 1, 1.0)) %>%  
-  right_join(data.frame(kg = seq(0.5, 8.5, by = 0.1)) %>% 
-               mutate(grade = derivedFactor('no_grade' = kg < 0.7,
-                                            '1/2' = kg >= 0.7 & kg < 1.4,
-                                            '2/3' = kg >= 1.4 & kg < 2.2,
-                                            '3/4' = kg >= 2.2 & kg < 2.9,
-                                            '4/5' = kg >= 2.9 & kg < 3.6,
-                                            '5/7' = kg >= 3.6 & kg < 5,
-                                            '7+' = kg >= 5,
-                                            .method = "unique",
-                                            .ordered = TRUE),
-                      price = derivedFactor('$0' = grade == 'no_grade',
-                                            '$1.00' = grade == '1/2',
-                                            '$2.20' = grade == '2/3',
-                                            '$3.25' = grade == '3/4',
-                                            '$4.75' = grade == '4/5',
-                                            '$7.55' = grade == '5/7',
-                                            '$8.05' = grade == '7+',
-                                            .method = "unique",
-                                            .ordered = TRUE),
-                      # For plotting purposes (alternating grey and white panels)
-                      plot_cde = ifelse(grade %in% c('no_grade', '2/3', '4/5', '7+'), "0", "1")), by = "kg") %>% # 
-  # set p = 1 for all large fish, interpolate p's using a cubic spline across
-  # smaller sizes
-  mutate(p = ifelse(kg > 3.6, 1, zoo::na.spline(p)),
-         lbs = 2.20462 * kg, # convert to lbs for visualization in memo
-         kg = round(kg, 1),
-         lbs2 = round(lbs, 0),
-         y = 1 - p)
-
-# *FLAG* Assume that the discard fishery has the same selectivity as the survey.
-# Other notes: Grades 1/2 and 2/3 are usually only for the survey, but now these
-# small fish are showing up in force in the fishery, so map these p_retain
-# (probabilities of retention) to the survey selectivies and survey
-# weight-at-ages. This is an indication that selectivity in the fishery may look
-# more like the survey at smaller sizes. *FLAG* Need to revisit this
-# (selectivity) in future years.
-
-# Female and male probabilities of discarding at age
-f_discard <- 1 - data.frame(age = AGE, kg = wt_s_f) %>% 
-  left_join(grades, by = "kg") %>% 
-  pull(p)
-
-m_discard <- 1 - data.frame(age = AGE, kg = wt_s_m) %>% 
-  left_join(grades, by = "kg") %>% 
-  pull(p)
-
-# Plot size, sex, and age-specific probabilities of discarding a fish that
-# parameterize model
-# Min lbs by grade
-grades %>% 
-  filter(lbs <= 12) %>% 
-  group_by(grade, price, plot_cde) %>% 
-  summarize(mn = min(lbs),
-            mx = max(lbs),
-            mu = mean(lbs)) %>% 
-  ungroup() %>% 
-  mutate(label = paste0(price, "/lb"),
-         y = c(0.9, 0.8, 0.5, 0.6, 0.25, 0.1, 0.1))  -> grades2
-
-axis <- tickr(grades, lbs2 , 1)
-
-ggplot() +
-  geom_line(data = grades %>% filter(lbs <= 12), aes(x = lbs, y = y), size = 1) +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
- geom_rect(data = grades2, aes(xmin = mn, xmax = mx, ymin = -Inf, ymax = Inf, fill = plot_cde, group = 1), 
-           colour = NA, alpha = 0.2, show.legend = FALSE) +
-  scale_fill_manual(values = c("white", "grey80")) +
-  labs(x = "\n Round weight (lbs)", y = "Probability of discarding a fish\n") + 
-  geom_text(data = grades2, aes(label = label, x = mu, y = y), 
-            vjust = 1, family = "Times", size = 2.5) -> size 
-
-data.frame(Age = AGE, Female = f_discard, Male = m_discard) %>% 
-  melt(id.vars = c("Age"), measure.vars = c("Female", "Male"), variable.name = "Sex") -> dis_sex 
-
-axis <- tickr(dis_sex, Age, 5)
-
-ggplot(dis_sex, aes(x = Age, y = value, col = Sex, linetype = Sex)) +
-  geom_line(size = 1) +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  scale_color_manual(values = c("black", "grey75")) + 
-  scale_linetype_manual(values = c(1, 4)) + 
-  ylim(c(0, 1)) +
-  labs(x = "\nAge", y = "") +
-  theme(legend.position = c(.8, .8)) -> sex
-
-plot_grid(size, sex, align = "h")
-
-ggsave(paste0("figures/probt_discard.png"), dpi=300,  height=4, width=7,  units="in")
-
-for(i in 1:41){
-  
-  Nm[i] <- (N_MR_sex * male_p * m[i]) / m_sel[i]
-  Nf[i] <- (N_MR_sex * female_p * f[i]) / f_sel[i]
-
-}
-
-sum(Nf+Nm) 
-
-# Assume discard mortality = 0.16, same as halibut directed fishery
-
-dm <- 0.16
-
-# PROPAGATE LAST YEAR'S ESTIMATED ABUNDANCE-AT-AGE USING STANDARD 
-# AGE-STRUCTURED EQUATIONS. NOTE: AGE 2 TRANSLATES **WITH** MORTALITY 
-
-#Fishing mortality * selectivity. Note that we are using HALF of the previous
-#full-recruitment F value due to the estimate of abundance being the MEAN
-#abundance in the middle of the commercial fishery. The first term is the
-#retention portion of the fishery. The second term is the discard mortality,
-#which we are assuming has the same selectivity as the survey (catching smaller
-#fish).
-Fm <- F_previous/2 * m_sel + sm_sel * m_discard * dm
-Ff <- F_previous/2 * f_sel + sf_sel * f_discard * dm
-
-N_fp <- 1:41 # THIS IS FOR FEMALE SPAWNING BIOMASS
-N_mp <- 1:41 # THIS IS FOR MALES
-
-N_fp[1] <- Nf[1]
-N_mp[1] <- Nm[1]
-
-# Ages 3 - 41
-for(i in 2:40){
-  N_fp[i] <- Nf[i-1] * exp(-(Ff[i-1] + mort))
-  N_mp[i] <- Nm[i-1] * exp(-(Fm[i-1] + mort))
-}
-
-# Plus class
-N_mp[41] <- Nm[40] * exp(-(Fm[40] + mort)) + 
-  ((Nm[40] * exp(-(Fm[40] + mort))) * exp(-(Fm[41] + mort)))
-
-N_fp[41] <- Nf[40] * exp(-(Ff[40] + mort)) +
-  ((Nf[40] * exp(-(Ff[40] + mort))) * exp(-((Ff[41]) + mort)))
-
-
-#CHECK
-N_sex <- sum(N_fp,N_mp)
-
-N_sex
-N_MR_sex
-
-# BEGIN CALCS FOR FORECAST NUMBERS
-# KILOGRAMS TO POUNDS = 2.20462
-
-#kilograms to pounds
-ktp <- 2.20462
-
-# Spawning Biomass
-SB_age_s <- 1:41
-
-SB_age_s <- N_fp * mat_s_f * wt_s_f * ktp
-
-SBs <- sum(SB_age_s)
-
-SBs
-
-# Simulate pop to get F levels ----
-
-# YPR analysis (from yield_per_recruit.r)
-
-# M and F
-# Note that Fs = a placeholder to check the N vector
-# F is replaced during estimation
-
-F <- 0.0
-
-# Simulated population (females)
-# UNFISHED Spawning biomass (F = 0)
-
-#Abundance-at-age
-N <- 1:41
-
-N[1] <- 500
-
-for(i in 2:40){
-  
-  N[i] <- N[i-1] * exp(-((F * f_sel[i-1]) + mort))
-  
-  }
-
-N[41] <- N[40] * exp(-((F * f_sel[40]) + mort)) + ((N[40] * exp(-((F * f_sel[40]) + mort))) * exp(-((F * f_sel[41]) + mort)))
-N
-sum(N)
-
-SB_age <- 1:41
-
-SB_age <- N * mat_s_f * wt_s_f * ktp
-SB <- sum(SB_age)
-SB
-
-# Parameter estimation
-SB60 <- 0.6 * SB
-SB55 <- 0.55* SB
-SB50 <- 0.5 * SB
-SB45 <- 0.45* SB
-SB40 <- 0.4 * SB
-SB35 <- 0.35* SB
-
-# Spawning biomass function to compute values 
-SBf <- function(x,SB) {
-  
-  NS <- 500
-  
-  for(i in 1:41){
-    
-    if(i == 1)
-      N[i] <- NS
-    else
-      N[i] <- N[i-1] * exp(-((x * f_sel[i-1]) + mort))
-    }
-  
-  N[41] <- N[40] * exp(-((x * f_sel[40]) + mort)) + ((N[40] * exp(-((x * f_sel[40]) + mort))) * exp(-((x * f_sel[41]) + mort)))
-  
-  SB_ageS <- N * mat_s_f * wt_s_f * ktp
-  
-  SBS <- sum(SB_ageS)
-  
-  (SBS - SB)^2
-  
-}
-
-fit60 <- optimize(f = SBf, SB = SB60, lower = 0.01, upper = 0.2)
-fit55 <- optimize(f = SBf, SB = SB55, lower = 0.01, upper = 0.2)
-fit50 <- optimize(f = SBf, SB = SB50, lower = 0.01, upper = 0.2)
-fit45 <- optimize(f = SBf, SB = SB45, lower = 0.01, upper = 0.2)
-fit40 <- optimize(f = SBf, SB = SB40, lower = 0.01, upper = 0.2)
-fit35 <- optimize(f = SBf, SB = SB35, lower = 0.01, upper = 0.2)
-
-Fxx <- c(fit35$minimum, fit40$minimum, fit45$minimum, fit50$minimum, fit55$minimum, fit60$minimum)
-
-Fxx
-
-# FULL RECRUITMENT FISHING MORTALITY USING **SURVEY** WEIGHT-AT-AGE FOR 
-# SPAWNING BIOMASS CALCS
-
-F35 <- Fxx[[1]]
-F40 <- Fxx[[2]]
-F45 <- Fxx[[3]]
-F50 <- Fxx[[4]]
-F55 <- Fxx[[5]]
-F60 <- Fxx[[6]]
-
-# Forecast ----
-
-##QUOTAS FOR VARIOUS F LEVELS
-
-Q35s <- sum((N_fp * wt_f_f * ktp)* ((F35 * f_sel) / (((F35 * f_sel) + mort)) * (1 - exp(-((F35 * f_sel) + mort))))+
-             (N_mp * wt_f_m * ktp) * ((F35 * m_sel)/(((F35 * m_sel) + mort)) * (1 - exp(-((F35 * m_sel) + mort)))))
-
-Q40s <- sum((N_fp * wt_f_f * ktp)* ((F40 * f_sel) / (((F40 * f_sel) + mort)) * (1 - exp(-((F40 * f_sel) + mort))))+
-             (N_mp * wt_f_m * ktp) * ((F40 * m_sel)/(((F40 * m_sel) + mort)) * (1 - exp(-((F40 * m_sel) + mort)))))
-
-Q45s <- sum((N_fp * wt_f_f * ktp)* ((F45 * f_sel) / (((F45 * f_sel) + mort)) * (1 - exp(-((F45 * f_sel) + mort))))+
-             (N_mp * wt_f_m * ktp) * ((F45 * m_sel)/(((F45 * m_sel) + mort)) * (1 - exp(-((F45 * m_sel) + mort)))))
-
-Q50s <- sum((N_fp * wt_f_f * ktp)* ((F50 * f_sel) / (((F50 * f_sel) + mort)) * (1 - exp(-((F50 * f_sel) + mort))))+
-             (N_mp * wt_f_m * ktp) * ((F50 * m_sel)/(((F50 * m_sel) + mort)) * (1 - exp(-((F50 * m_sel) + mort)))))
-
-Q55s <- sum((N_fp * wt_f_f * ktp)* ((F55 * f_sel) / (((F55 * f_sel) + mort)) * (1 - exp(-((F55 * f_sel) + mort))))+
-             (N_mp * wt_f_m * ktp) * ((F55 * m_sel)/(((F55 * m_sel) + mort)) * (1 - exp(-((F55 * m_sel) + mort)))))
-
-Q60s <- sum((N_fp * wt_f_f * ktp)* ((F60 * f_sel) / (((F60 * f_sel) + mort)) * (1 - exp(-((F60 * f_sel) + mort))))+
-             (N_mp * wt_f_m * ktp) * ((F60 * m_sel)/(((F60 * m_sel) + mort)) * (1 - exp(-((F60 * m_sel) + mort)))))
-
-quota_s<-(c(Q35s,Q40s,Q45s,Q50s,Q55s,Q60s))
-
-quota_s
-
-# THIS IS TOTAL EXPLOITED BIOMASS - TOTAL ABUNDANCE PARTITIONED INTO COHORTS * 
-# FISHERY WEIGHT * SELECTIVITY (REFER: Q&D bottom page 339)
-
-exp_b <- ktp * sum((N_fp * wt_f_f * f_sel) + (N_mp * wt_f_m * m_sel))
-exp_b
-
-exp_n<-sum((N_fp*f_sel)+(N_mp*m_sel))
-exp_n
-
-# For retrospective/forecast plot in Forecast summary
-fcast <- data.frame(year = 2018, n = exp_n) %>% 
-  mutate(`Current estimate` = n) %>% 
-  select(- n)
-
-# Bargraph of forecasted numbers at age by sex for presentation
-data.frame(age = 2:42, 
-           Sex = c(rep("Female", 41), rep("Male", 41)),
-           N = c(N_fp * f_sel, N_mp * m_sel)) %>% 
-  mutate(N = N / 1000,
-         Age = factor(age)) %>% 
-ggplot(aes(Age, N, fill = Sex)) +
-  geom_bar(stat = "identity",
-           position = "dodge") +
-  # position = position_dodge(preserve = "single")) +
-  scale_x_discrete(breaks = seq(2, 42, 4), 
-                     labels =  seq(2, 42, 4)) +
-  labs(x = "\nAge", y = "Abundance\n") +
-  theme(legend.position = c(0.9, 0.7))
-
-ggsave(paste0("figures/forecasted_Natage_", YEAR + 1, ".png"), 
-       dpi=300, height=3, width=9, units="in")
-
-# Bargraph for presentation
-# agecomps %>% 
-#   filter(year == YEAR & Source == "LL fishery" &
-#            Sex %in% c("Male", "Female")) %>% 
-#   ggplot(aes(age, proportion, fill = Sex)) +
-#   geom_bar(stat = "identity",
-#            position = "dodge") +
-#   # position = position_dodge(preserve = "single")) +
-#   scale_x_continuous(breaks = seq(min(agecomps$age), max(agecomps$age), 4), 
-#                      labels =  seq(min(agecomps$age), max(agecomps$age), 4)) +
-#   labs(x = "\nAge", y = "Proportion\n") +
-#   theme(legend.position = c(0.9, 0.7))
-# 
-# ggsave(paste0("figures/agecomp_bargraph_", YEAR, ".png"), 
-#        dpi=300, height=3, width=9, units="in")
-
-# Format tables
-
-v2018 <- c(exp_n, exp_b, F50, Q50s) #, Q45s, Q40s) 
-
-# From 2017 assessment
-
-v2017 <- c(N_MR_sex, 13502591, 0.0683, 850113)
-
-format(round((v2018 - v2017)/v2017 * 100, 1),  nsmall=1) -> perc_change
-
-v2017[c(1, 2, 4)] <- lapply(v2017[c(1, 2, 4)], prettyNum, trim=TRUE, big.mark=",")
-v2017[3] <- lapply(v2017[3], format, nsmall=3, digits=3)
-
-v2018[c(1, 2, 4)] <- lapply(v2018[c(1, 2, 4)], prettyNum, trim=TRUE, big.mark=",")
-v2018[3] <- lapply(v2018[3], format, nsmall=3, digits=3)
-
-rbind(v2017, v2018, perc_change) %>% data.frame() -> forecast
-
-save(forecast, file = paste0("output/forecast_table_", YEAR+1, ".rda"))
-
-# 2017 exploitable biomass ---- Re-calculate this for the updated summary table
-# since the 2017 exploitable biomass was so low.
-
-N_MR_sex
-
-AGE <- 2:42
-Nm <- 1:41
-Nf <- 1:41
-
-for(i in 1:41){
-  
-  Nm[i] <- (N_MR_sex * male_p * m[i]) / m_sel[i]
-  Nf[i] <- (N_MR_sex * female_p * f[i]) / f_sel[i]
-  
-}
-
-sum(Nf+Nm) 
-
-upd2017_expb <- ktp * sum((Nm * wt_f_f  * f_sel) + (Nf * wt_f_m * m_sel))
-
-# Adjust for high recruitment ----
-
-# Justification for using a different quantile of the N posterior: Option 1: (1)
-# determine what proportion of fish are under 7 (a50 = 6.4), (2) take the 50th +
-# that percent under age-7 to adjust the quantile used from the N posterior.
-# Conservative because a much greater proportion of the exploitable pop is
-# immature than in previous years. - did not choose this method.
-
-Nme <- 1:41
-Nfe <- 1:41
-
-for(i in 1:41){
-  Nme[i] <- (N_MR_sex * male_p * m[i]) 
-  Nfe[i] <- (N_MR_sex * female_p * f[i]) 
-}
-
-# Option 1: take an "immaturity" adjustment
-data.frame(age = AGE,
-           Nme = Nme,
-           Nfe = Nfe) %>% 
-  mutate(N = Nme + Nfe) %>% 
-  mutate(total = sum(N)) %>% 
-  filter(age <= 7) %>% 
-  mutate(suba50 = sum(N),
-         prop_suba50 = suba50/total) %>% 
-  distinct(prop_suba50) %>% 
-  pull(prop_suba50) -> imm_adj # immaturity adjustment 
-
-# Option 2: just choose a percentile. I chose this method.
-imm_adj <- 0.35 
-
-results %>% 
-  filter(year == YEAR) %>%
-  mutate(N.avg = N.avg / 1000000,
-         q025 = quantile(N.avg, 0.025),
-         q975 = quantile(N.avg, 0.975),
-         imm_adj = quantile(N.avg, .5 - imm_adj),
-         ci = ifelse(N.avg >= q025 & N.avg <=q975, 1, 0),
-         median = median(N.avg)) -> adj_results 
-
-adj_results %>% 
-  ggplot(aes(N.avg)) + 
-  geom_histogram(fill = "white", alpha = 0.9, bins = 100, color = 'black') + 
-  geom_histogram(data = . %>% filter(ci==1), 
-                 aes(N.avg), fill = "grey50", alpha = 0.9, bins = 100) +
-  geom_vline(aes(xintercept = median), col = "black", size = 1) +
-  geom_vline(aes(xintercept = imm_adj), col = "black", lty = 2, size = 1) +
-  labs(x = "\nNumber of sablefish in millions",
-       y = "Posterior distribution\n")
-
-ggsave(paste0("figures/mod1_Nposterior_adjustment.png"), 
-       dpi=300,  height=4, width=7,  units="in")
-
-adj_N_MR_sex <- adj_results %>% 
-  distinct(imm_adj) %>% 
-  transmute(imm_adj = imm_adj * 1e6) %>% 
-  pull
-
-# Calculate adjusted 2017 exploitable biomass
-
-Nm <- 1:41
-Nf <- 1:41
-
-for(i in 1:41){
-  
-  Nm[i] <- (adj_N_MR_sex * male_p * m[i]) / m_sel[i]
-  Nf[i] <- (adj_N_MR_sex * female_p * f[i]) / f_sel[i]
-  
-}
-
-sum(Nf+Nm) 
-
-adj_upd2017_expb <- ktp * sum((Nm * wt_f_f  * f_sel) + (Nf * wt_f_m * m_sel))
-
-
-N_fp <- 1:41 # THIS IS FOR FEMALE SPAWNING BIOMASS
-N_mp <- 1:41 # THIS IS FOR MALES
-
-N_fp[1] <- Nf[1]
-N_mp[1] <- Nm[1]
-
-# Ages 3 - 41
-for(i in 2:40){
-  N_fp[i] <- Nf[i-1] * exp(-(Ff[i-1] + mort))
-  N_mp[i] <- Nm[i-1] * exp(-(Fm[i-1] + mort))
-}
-
-# Plus class
-N_mp[41] <- Nm[40] * exp(-(Fm[40] + mort)) + 
-  ((Nm[40] * exp(-(Fm[40] + mort))) * exp(-(Fm[41] + mort)))
-
-N_fp[41] <- Nf[40] * exp(-(Ff[40] + mort)) +
-  ((Nf[40] * exp(-(Ff[40] + mort))) * exp(-((Ff[41]) + mort)))
-
-
-#CHECK
-N_sex <- sum(N_fp,N_mp)
-
-N_sex
-adj_N_MR_sex
-
-# BEGIN CALCS FOR FORECAST NUMBERS
-# KILOGRAMS TO POUNDS = 2.20462
-
-#kilograms to pounds
-ktp <- 2.20462
-
-# Spawning Biomass
-SB_age_s <- 1:41
-
-SB_age_s <- N_fp * mat_s_f * wt_s_f * ktp
-
-SBs <- sum(SB_age_s)
-
-SBs
-
-# Simulate pop to get F levels ----
-
-# M and F
-# Note that Fs = a placeholder to check the N vector
-# F is replaced during estimation
-
-F <- 0.0
-
-# Simulated population (females)
-# UNFISHED Spawning biomass (F = 0)
-
-#Abundance-at-age
-N <- 1:41
-
-N[1] <- 500
-
-for(i in 2:40){
-  
-  N[i] <- N[i-1] * exp(-((F * f_sel[i-1]) + mort))
-  
-}
-
-N[41] <- N[40] * exp(-((F * f_sel[40]) + mort)) + ((N[40] * exp(-((F * f_sel[40]) + mort))) * exp(-((F * f_sel[41]) + mort)))
-N
-sum(N)
-
-SB_age <- 1:41
-
-SB_age <- N * mat_s_f * wt_s_f * ktp
-SB <- sum(SB_age)
-SB
-
-# Parameter estimation
-SB60 <- 0.6 * SB
-SB55 <- 0.55* SB
-SB50 <- 0.5 * SB
-SB45 <- 0.45* SB
-SB40 <- 0.4 * SB
-SB35 <- 0.35* SB
-
-# Spawning biomass function to compute values 
-SBf <- function(x,SB) {
-  
-  NS <- 500
-  
-  for(i in 1:41){
-    
-    if(i == 1)
-      N[i] <- NS
-    else
-      N[i] <- N[i-1] * exp(-((x * f_sel[i-1]) + mort))
-  }
-  
-  N[41] <- N[40] * exp(-((x * f_sel[40]) + mort)) + ((N[40] * exp(-((x * f_sel[40]) + mort))) * exp(-((x * f_sel[41]) + mort)))
-  
-  SB_ageS <- N * mat_s_f * wt_s_f * ktp
-  
-  SBS <- sum(SB_ageS)
-  
-  (SBS - SB)^2
-  
-}
-
-fit60 <- optimize(f = SBf, SB = SB60, lower = 0.01, upper = 0.2)
-fit55 <- optimize(f = SBf, SB = SB55, lower = 0.01, upper = 0.2)
-fit50 <- optimize(f = SBf, SB = SB50, lower = 0.01, upper = 0.2)
-fit45 <- optimize(f = SBf, SB = SB45, lower = 0.01, upper = 0.2)
-fit40 <- optimize(f = SBf, SB = SB40, lower = 0.01, upper = 0.2)
-fit35 <- optimize(f = SBf, SB = SB35, lower = 0.01, upper = 0.2)
-
-Fxx <- c(fit35$minimum, fit40$minimum, fit45$minimum, fit50$minimum, fit55$minimum, fit60$minimum)
-
-Fxx
-
-# FULL RECRUITMENT FISHING MORTALITY USING **SURVEY** WEIGHT-AT-AGE FOR 
-# SPAWNING BIOMASS CALCS
-
-F35 <- Fxx[[1]]
-F40 <- Fxx[[2]]
-F45 <- Fxx[[3]]
-F50 <- Fxx[[4]]
-F55 <- Fxx[[5]]
-F60 <- Fxx[[6]]
-
-# Forecast ----
-
-##QUOTAS FOR VARIOUS F LEVELS
-
-
-adj_Q50s <- sum((N_fp * wt_f_f * ktp)* ((F50 * f_sel) / (((F50 * f_sel) + mort)) * (1 - exp(-((F50 * f_sel) + mort))))+
-              (N_mp * wt_f_m * ktp) * ((F50 * m_sel)/(((F50 * m_sel) + mort)) * (1 - exp(-((F50 * m_sel) + mort)))))
-
-# THIS IS TOTAL EXPLOITED BIOMASS - TOTAL ABUNDANCE PARTITIONED INTO COHORTS * 
-# FISHERY WEIGHT * SELECTIVITY (REFER: Q&D bottom page 339)
-
-adj_2018_exp_b <- ktp * sum((N_fp * wt_f_f * f_sel) + (N_mp * wt_f_m * m_sel))
-
-
-adj_2018_exp_n<-sum((N_fp*f_sel)+(N_mp*m_sel))
-
-adj_2018_exp_n
-adj_2018_exp_b
-adj_Q50s
-F50
-
-# Updated summary table ----
-
-data.frame("Quantity" = c("Exploited abundance (2017 value from last year)",
-                          "Exploited abundance",
-                          "Exploited abundance (adjusted for uncertainty in recruitment)",
-                          "Exploited biomass (2017 value from last year)",
-                          "Exploited biomass",
-                          "Exploited biomass (adjusted for uncertainty in recruitment)",
-                          "$F_{ABC}=F_{50}$",
-                          "$ABC$ (round lbs)",
-                          "$ABC_{adj}$ (round lbs)"),
-           "Y2017" = c(1564409, N_MR_sex, adj_N_MR_sex,
-                       13502591, upd2017_expb, adj_upd2017_expb,
-                       0.0683, 850113, 850113),
-           "Y2018" = c(adj_2018_exp_n, exp_n, adj_2018_exp_n,
-                       adj_2018_exp_b, exp_b, adj_2018_exp_b,
-                       F50, Q50s, adj_Q50s)) %>% 
-  write_csv("output/2018_summary_table.csv")
-
-# Updated retrospective plot ----
-
-# Graph with forecast abundance estimate
-
-# Credibility intervals N and p, N by time period
-results %>% 
-  gather("time_period", "N.avg", contains("N.avg")) %>% 
-  group_by(year, time_period) %>% 
-  summarise(`Current estimate` = median(N.avg),
-            q025 = quantile(N.avg, 0.025),
-            q975 = quantile(N.avg, 0.975)) %>% 
-  arrange(year, time_period) %>% 
-  left_join(assessment_summary %>% 
-              select(year, `Previous estimate` = abundance_age2plus), 
-            by = "year") %>% 
-  # bind_rows(fcast) %>% 
-  ungroup() %>% 
-  mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
-  pad(interval = "year") %>% 
-  mutate(year = year(year),
-         Year = factor(year),
-         `Current estimate adjusted` = ifelse(year == YEAR, adj_N_MR_sex, `Current estimate`)) %>% 
-  # Add forecasted year
-  bind_rows(data.frame(year = YEAR + 1,
-                       time_period = "N.avg", 
-                       "Current estimate" = exp_n, 
-                       q025 = NA, 
-                       q975 = NA, 
-                       "Previous estimate" = NA,
-                       Year = factor(YEAR + 1),
-                       "Current estimate adjusted" = adj_2018_exp_n,
-                       check.names = FALSE)) %>% 
-  gather("Abundance", "N", `Previous estimate`, `Current estimate`, `Current estimate adjusted`) %>% 
-  mutate(N = N / 1000000,
-         # interpolate the CI in missing years for plotting purposes
-         q025 = zoo::na.approx(q025 / 1000000, maxgap = 20, rule = 2),
-         q975 = zoo::na.approx(q975 / 1000000, maxgap = 20, rule = 2),
-         # get rid of interpolated values for forecast
-         q025 = ifelse(year == YEAR + 1, NA, q025),
-         q975 = ifelse(year == YEAR + 1, NA, q975)) -> forec_plot
-
-axis <- tickr(forec_plot, year, 2)
-
-ggplot(data = forec_plot) +
-  geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), size = 2) +
-  geom_smooth(aes(x = year, y = N, col = Abundance, linetype = Abundance), 
-              se = FALSE) +
-  geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
-              alpha = 0.2, fill = "grey70") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  scale_color_manual(values = c("black", "black", "grey75")) + 
-  scale_linetype_manual(values = c(4, 1, 2)) + 
-  ylim(c(1, 3.5)) +
-  labs(x = "", y = "Number of sablefish (millions)\n",
-       colour = NULL, shape = NULL, linetype = NULL) +
-  theme(legend.position = c(.8, .8))
-
-ggsave(paste0("figures/model1_N_retrospective_", FIRST_YEAR, "_", YEAR, ".png"), 
-       dpi=300,  height=4, width=7,  units="in")
+  write_csv(paste0("output/tag_summary_report_", YEAR, ".csv"))

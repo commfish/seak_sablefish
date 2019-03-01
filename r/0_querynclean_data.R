@@ -389,17 +389,14 @@ write_csv(fsh_bio, paste0("data/fishery/fishery_bio_",
 
 # Longline survey cpue ----
 
-# Discrepancy between a couple longline survey views. *FLAG* use this for
-# sablefish industry mtg analysis until i can figure it out.
-
 # There are two longline survey CPUE views: For CPUE you want
 # output.out_g_sur_longline_hook_acc_bi. out_g_sur_longline_hook_acc_bi sums the
 # total number of sablefish while out_g_sur_longline_catch_bi splits out by
 # retained, lost, discard, etc. For the 2017 assessment (2018 forecast) I used
 # the correct view for CPUE calculation but the incorrect one in the
 # mark-recapture models #3 and #4. These were not used for management, and the
-# code has been corrected for the 2018 assessments. The old query and associated
-# data files were removed.
+# code has been corrected for the 2018 assessments. The other view is used for
+# mark-recapture purposes because all retained fish are checked for marks/tags.
 
 query <- 
   paste0(" select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
@@ -440,6 +437,52 @@ read_csv(paste0("data/survey/llsrv_cpue_1985_", YEAR-1, ".csv"),
 bind_rows(past_srv_eff, srv_eff) -> srv_eff
 
 write_csv(srv_eff, paste0("data/survey/llsrv_cpue_", min(srv_eff$year), "_", max(srv_eff$year), ".csv"))
+
+# Longline survey countbacks ----
+
+# Per Mike Vaughn & Aaron Baldwin only discard status "01" for retained fish are
+# checked for marks on the longline survey. Because of this, we need to use a
+# separate view out_g_sur_longline_catch_bi because the view used for CPUE
+# doesn't include a discard condition code.
+
+query <- 
+  " select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
+time_first_buoy_onboard, number_of_stations, hooks_per_set, hook_size, 
+hook_spacing_inches, sample_freq, last_skate_sampled, effort_no, station_no, species_code, 
+g_stat_area as stat, number_hooks, bare, bait, invalid, hagfish_slime, unknown, numbers, discard_status_code, 
+subset_condition_code
+
+from    output.out_g_sur_longline_catch_bi
+
+where   species_code = '710' and
+project_code in ('603', '03')"
+          
+dbGetQuery(zprod_channel, query) -> srv_eff
+
+# Merge in discard status codes
+query <- "select * from discard_status"
+dbGetQuery(ifdb_channel, query) -> discard_codes
+
+merge(srv_eff, discard_codes, by = "DISCARD_STATUS_CODE") -> srv_eff
+
+write_csv(srv_eff, paste0("data/survey/raw_data/llsrv_by_condition_",
+                          min(srv_eff$YEAR), "_", YEAR, ".csv"))
+
+read_csv(paste0("data/survey/raw_data/llsrv_by_condition_",
+                min(srv_eff$YEAR), "_", YEAR, ".csv"), 
+         guess_max = 50000) %>% 
+  filter(YEAR <= YEAR) %>% #the programmers have some dummy data in the db for the upcoming year
+  mutate(date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
+         julian_day = yday(date)) %>% 
+  select(year = YEAR, Project_cde = PROJECT_CODE, 
+         trip_no = TRIP_NO, Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, 
+         julian_day, Stat = STAT, Spp_cde = SPECIES_CODE, 
+         set = EFFORT_NO, no_hooks = NUMBER_HOOKS, hooks_bare = BARE,
+         hooks_bait = BAIT, hook_invalid = INVALID, hooks_sablefish = NUMBERS,
+         discard_status_cde = DISCARD_STATUS_CODE, discard_status = DISCARD_STATUS) -> srv_eff
+
+write_csv(srv_eff, paste0("data/survey/llsrv_by_condition_",
+                          min(srv_eff$year), "_", YEAR, ".csv"))
 
 # Longline survey biological ----
 
@@ -685,7 +728,7 @@ tag_recoveries %>%
   group_by(year, info_source) %>% 
   summarize(n_distinct(tag_no))
 
-# Countbacks ----
+# Fishery countbacks ----
 
 # Daily accounting of observed fish and tag recoveries in the NSEI fishery.
 

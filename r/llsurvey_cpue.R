@@ -1,12 +1,12 @@
 # Longline Survey cpue
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2017-10-09
+# Last edited: Feb 2019
 
 # load ----
 source("r/helper.r")
 source("r/functions.r")
-YEAR <- 2017
+YEAR <- 2018
 
 # Explore hook standardization relationship ----
 
@@ -53,13 +53,14 @@ ggplot(hk_stand, aes(x = no_hooks, y = std_hooks, col = factor(hook_space))) +
   geom_abline(slope = 1, col = "red", linetype = 2) 
 
 # data -----
-srv_cpue <- read_csv(paste0("data/survey/llsrv_cpue_1985_", YEAR, "2.csv"),
+srv_cpue <- read_csv(paste0("data/survey/llsrv_cpue_1985_", YEAR, ".csv"),
                      guess_max = 500000)
 
 srv_cpue  %>% 
   filter(year >= 1997 & 
            # Mike Vaughn 2018-03-06: Sets (aka subsets with 12 or more invalid hooks are subset condition code "02" or invalid)
            subset_condition_cde != "02") %>% 
+  filter(!c(is.na(no_hooks) | no_hooks == 0)) %>% 
   mutate(Year = factor(year),
          Stat = factor(Stat),
          #standardize hook spacing (Sigler & Lunsford 2001, CJFAS) changes in 
@@ -84,8 +85,6 @@ srv_cpue  %>%
          # raw_cpue = sablefish_retained/no_hooks
   ) -> srv_cpue
 
-
-
 hist(srv_cpue$std_cpue)
 srv_cpue %>% 
   group_by(year) %>% 
@@ -105,21 +104,16 @@ write_csv(srv_sum,
 
 # figures
 
-axis <- tickr(srv_sum, year, 3)
+axis <- tickr(srv_sum, year, 4)
 ggplot(data = srv_sum) +
-  # geom_jitter() + 
   geom_point(aes(year, annual_cpue)) +
   geom_line(aes(year, annual_cpue)) +
-  # geom_ribbon(aes(year, ymin = CIlower, ymax = CIupper),
   geom_ribbon(aes(year, ymin = annual_cpue - sdev, ymax = annual_cpue + sdev),
               alpha = 0.2, col = "white", fill = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   lims(y = c(0, 0.4)) +
-  ylab("Survey CPUE (number of sablefish per hook)\n") +
-  xlab("") #+
-  # theme(plot.title = element_text(hjust = .5)) +
-  # geom_vline(xintercept = 9.5, linetype = 2, col = "grey")
+  labs(x = NULL, y = "Survey CPUE (number of sablefish per hook)\n") 
 
-ggsave("figures/npue_llsrv.png", 
+ggsave(paste0("figures/npue_llsrv_", YEAR, ".png"), 
        dpi=300, height=4, width=7, units="in")
 

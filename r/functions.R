@@ -528,9 +528,9 @@ build_phases <- function(param_list = NULL, data_list){
 }
 
 
-phases <- build_phases(parameters, data)
+# phases <- build_phases(parameters, data)
 
-TMBphase(data, parameters, random = random_vars, phases, model_name = "mod", debug = FALSE)
+# TMBphase(data, parameters, random = random_vars, phases, model_name = "mod", debug = FALSE)
 
 # Original code by Gavin Fay, adaped for use in the sablefish model
 TMBphase <- function(data, parameters, random, phases, model_name,

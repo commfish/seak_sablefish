@@ -48,7 +48,7 @@
 
 [ ] Develop priors and move towards a Bayesian implementation of this assessment
 
-[ ] Change selectivity (or add another option) for a50/k parameterization for selectivity
+[ ] Change selectivity (or add another option) for a50/k parameterization, vectorize parameters?
 
 [X] Split rec_devs and rinit_devs into separate variables
 
