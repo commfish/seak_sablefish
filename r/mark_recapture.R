@@ -1290,19 +1290,16 @@ N_summary %>%
 N_summary %>% 
   filter(mod_version %in% top_models$mod_version) %>% 
   left_join(top_models, by = c("year", "model", "P", "mod_version")) %>% 
-  select(year, model, P, Estimate = median, q025, q975, deviance, parameter_penalty, delta_DIC) -> top_models 
+  select(year, model, P, Estimate = mean, q025, q975, deviance, parameter_penalty, delta_DIC) -> top_models 
   
 tag_summary %>% 
-  # CI formula from wikipedia 
-  mutate(Estimate = ((K.0 - D.0 - D.1 + 1)*(n.1 + 1) / (k.1 + 1)) - 1,
-         chap_ci = K.0 - D.0 - D.1 + n.1 - k.1 + 
-           (K.0 - D.0 - D.1 - k.1 + 0.5) * (n.1 - k.1 + 0.5) / (k.1 + 0.5) * 
-           exp(1 - 0.95 / 2) *
-           sqrt(1 / (k.1 + 0.5) + 1 / (K.0 - D.0 - D.1 - k.1 + 0.5) + 
-                  1 / (n.1 - k.1 + 0.5) + 
-                  (k.1 + 0.5) / (n.1 - k.1 + 0.5) * (K.0 - D.0 - D.1 - k.1 + 0.5)),
-         q975 = Estimate + chap_ci,
-         q025 = Estimate - chap_ci,
+  mutate(K = K.0 - D.0 - D.1, # marks released & available to NSEI survey and fishery
+         n = n.1 + n_fishery, # fish examined for marks in NSEI survey and fishery
+         k = k.1 + k_fishery, # fish caught with marks in NSEI survey and fishery
+         Estimate = ( (K + 1) * (n + 1) /  (k + 1) ) - 1, # Simple Chapman
+         var = ( (K + 1) * (n + 1) * (K - k) * (n - k) ) / ( (k + 1)^2 * (k + 2) ),
+         q975 = Estimate + 1.965 * sqrt(var),
+         q025 = Estimate - 1.965 * sqrt(var),
          model = "Model0",
          P = 1) %>% 
   select(year, model, P, Estimate, q975, q025) %>% 
