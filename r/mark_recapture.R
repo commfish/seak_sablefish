@@ -1297,8 +1297,8 @@ tag_summary %>%
          n = n.1 + n_fishery, # fish examined for marks in NSEI survey and fishery
          k = k.1 + k_fishery, # fish caught with marks in NSEI survey and fishery
          Estimate = ( (K + 1) * (n + 1) /  (k + 1) ) - 1, # Simple Chapman
-         var = ( (K + 1) * (n + 1) * (K - k) * (n - k) ) / ( (k + 1)^2 * (k + 2) ),
-         q975 = Estimate + 1.965 * sqrt(var),
+         var = ( (K + 1) * (n + 1) * (K - k) * (n - k) ) / ( (k + 1)^2 * (k + 2) ), # variance
+         q975 = Estimate + 1.965 * sqrt(var), 
          q025 = Estimate - 1.965 * sqrt(var),
          model = "Model0",
          P = 1) %>% 

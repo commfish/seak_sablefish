@@ -174,7 +174,7 @@ parameters <- list(
   log_rinit = 3.5,
   log_rinit_devs = inits_rinit$inits_rinit,
   # Variability in rec_devs and rinit_devs
-  log_sigma_r = 0.1823216, # Federal value of 1.2 on log scale, Sigler et al. (2002)
+  log_sigma_r = log(1.2), # Federal value of 1.2 on log scale
   
   # Fishing mortality
   log_Fbar = -1.8289,
@@ -186,45 +186,10 @@ parameters <- list(
   
 )
 
-# Parameter bounds
-lower <- c(             # Lower bounds
-  rep(0.1, length(data$blks_fsh_sel) + length(data$blks_srv_sel)),          # Selectivity
-  rep(-15, 4),          # Catchability log_q
-  -Inf,                 # log mean recruitment
-  rep(-10, nyr),        # log recruitment deviations
-  -Inf,                 # log mean init numbers-at-age
-  rep(-10, nage-2),     # log initial numbers-at-age deviations
-  -Inf,                 # log sigma R  
-  -Inf,                 # Mean log F
-  rep(-15, nyr)         # log F deviations
-)
-
-upper <- c(             # Upper bounds
-  rep(10, length(data$blks_fsh_sel) + length(data$blks_srv_sel)),           # Selectivity
-  rep(5, 4),            # Catchability q
-  Inf,                  # log mean recruitment
-  rep(10, nyr),         # log recruitment deviations
-  Inf,                 # log mean init numbers-at-age
-  rep(10, nage-2),     # log initial numbers-at-age deviations
-  Inf,                  # log sigma R
-  Inf,                  # Mean log F  
-  rep(15, nyr)          # log F deviations  
-)
-
 # Run model ----
 
 # Use map to turn off parameters, either for testing with dummy, phasing, or to
 # fix parameter values
-
-# When testing the code
-# map <- list(fsh_sel50 = rep(factor(NA), length(data$blks_fsh_sel)),
-#             fsh_sel95 = rep(factor(NA), length(data$blks_fsh_sel)),
-#             srv_sel50 = rep(factor(NA), length(data$blks_srv_sel)),
-#             srv_sel95 = rep(factor(NA), length(data$blks_srv_sel)),
-#             fsh_logq = factor(NA), srv_logq = factor(NA), mr_logq = factor(NA),
-#             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr+nage-2),
-#             log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
-#             spr_Fxx = rep(factor(NA), length(data$Fxx_levels)))
 
 # Compile
 compile("mod.cpp")
@@ -233,16 +198,46 @@ dyn.load(dynlib("mod"))
 # Setup random effects
 random_vars <- c()
 if (data$random_rec == 1) {
-  random_vars <- c("log_rec_devs")
+  random_vars <- c("log_rec_devs", "log_rinit_devs")
 }
 
 # Fix parameter if sigma_r is not estimated via random effects
-if(data$random_rec == 0) {
-  map$log_sigma_r <- factor(NA)
-}
+# if(data$random_rec == 0) {
+#   random_vars <- rep(factor(NA),2)
+# }
+
+phases <- build_phases(parameters, data)
+
+TMBphase(data, parameters, random = random_vars, phases, model_name = "mod", debug = FALSE)
+
+
 
 # Estimate everything at once
 map <- list(dummy=factor(NA))
+
+library(TMBhelper)
+
+
+model <- MakeADFun(data, parameters, DLL = "mod", 
+                   silent = TRUE, map = map,
+                   random = random_vars)
+
+bounds <- build_bounds(parameters, data)
+
+bounds$upper <- bounds$upper[!names(bounds$upper) %in% names(map_use)]
+
+# Remove inactive parameters from bounds and vectorize
+lower <- unlist(bounds$lower)
+upper <- unlist(bounds$upper)
+
+opt <- TMBhelper::Optimize(obj = model, 
+                           fn = model$fn, 
+                           gr = model$gr,
+                           startpar = model$par,
+                           # control=list(eval.max=100000,iter.max=1000),
+                           lower = lower, 
+                           upper = upper, 
+                           loopnum = 5)
 
 # Turn off parameters that don't scale the population
 map <- list(dummy=factor(NA),

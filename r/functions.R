@@ -402,14 +402,9 @@ tickr <- function(
     select(breaks = UQ(VAR), labels)
 }
 
-#' Build parameter bounds
-#' Original code by Grant Adams, adapted for use with the sablefish model
-#' 
-#' @param param_list Parameter list object built from \code{\link{build_params}}
-#'
-#' @return List of upper and lower bounds
-#' @export
-#'
+# Build parameter bounds
+# Original code by Grant Adams, adapted for use with the sablefish model
+
 build_bounds <- function(param_list = NULL, data_list){
   
   upper_bnd <- param_list
@@ -527,11 +522,6 @@ build_phases <- function(param_list = NULL, data_list){
   return(phases)
 }
 
-
-# phases <- build_phases(parameters, data)
-
-# TMBphase(data, parameters, random = random_vars, phases, model_name = "mod", debug = FALSE)
-
 # Original code by Gavin Fay, adaped for use in the sablefish model
 TMBphase <- function(data, parameters, random, phases, model_name,
                      optimizer = "nlminb", debug = FALSE) {
@@ -546,11 +536,13 @@ TMBphase <- function(data, parameters, random, phases, model_name,
   
   #loop over phases
   for (phase_cur in 1:max(unlist(phases))) {
-    phase_cur <- 2
+    
+    # phase_cur <- 1 # for debugging fxn
     
     # If debugging build the map to have all parameters as factored NAs
     if (debug == TRUE) {
       map_use <- parameters
+      
       for(i in 1:length(map_use)){
         map_use[[i]] <- replace(map_use[[i]], values = rep(NA, length(map_use[[i]])))
       }
@@ -566,7 +558,9 @@ TMBphase <- function(data, parameters, random, phases, model_name,
       # current phase then map will contain a factor filled with NAs
       map_use <- list()
       map_use$dummy <- fill_vals(parameters$dummy, NA)
+      
       j <- 1 # change to 0 if you get rid of the dummy debugging feature
+      
       for (i in 1:length(parameters)) {
         if (phases[[i]]>phase_cur) {
           j <- j+1
@@ -576,9 +570,14 @@ TMBphase <- function(data, parameters, random, phases, model_name,
       }
       map_use
     }
+    
     # remove the random effects if they are not estimated
-    # random <- random_vars
     random_use <- random[!random%in%names(map_use)]
+    
+    # Recruitment deviation sigmas - turn off if not estimating
+    if(data$random_rec == FALSE){
+      map_use$log_sigma_r <- replace(map_use$log_sigma_r, values = rep(NA, length(map_use$log_sigma_r)))
+    }
     
     # Build upper and lower parameter bounds and remove any that are not
     # estimated (should be the inverse of the map_use)
@@ -592,8 +591,8 @@ TMBphase <- function(data, parameters, random, phases, model_name,
     
     # Remove random effects from bounds
     if (data$random_rec == TRUE) {
-      lower <- lower[!c(random %in% names(lower))]
-      upper <- upper[!c(random %in% names(upper))]
+      lower <- lower[!c(random_use %in% names(lower))]
+      upper <- upper[!c(random_use %in% names(upper))]
     }
     
     # initialize the parameters at values in previous phase
@@ -616,6 +615,4 @@ TMBphase <- function(data, parameters, random, phases, model_name,
   }
   
   return(rep)  
-  
-  #close function TMBphase
 }
