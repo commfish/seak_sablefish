@@ -2,10 +2,11 @@
 # Fishery catch 1985-present, fishery CPUE 1997-present
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: Feb 2019
+# Last edited: March 2019
 
 source("r/helper.r")
 source("r/functions.r")
+library("rms")   #install.packages("rms") # simple bootstrap confidence intervals
 
 # Most recent year of data
 YEAR <- 2018
@@ -136,6 +137,27 @@ fsh_cpue %>%
 
 ggsave(paste0("figures/fishery_tripandvessel_trends_1997_", YEAR, ".png"), 
        dpi=300, height=6, width=5, units="in")
+
+# Bootstrap ----
+
+axis <- tickr(fsh_cpue, year, 4)
+
+# Simple bootstrap confidence intervals (smean.cl.boot from rms)
+fsh_cpue %>%
+  group_by(year) %>%
+  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot
+
+ggplot(plot_boot) +
+  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper), 
+              alpha = 0.1, fill = "grey55") +
+  geom_point(aes(x = year, y = Mean), size = 1) +
+  geom_line(aes(x = year, y = Mean)) +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  lims(y = c(0.4, 1.1))
+  
+ggsave(paste0("figures/fshcpue_bootCI_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=7, units="in")
 
 # New CPUE analysis for NSEI, mirroring what was done by Jenny and Ben in SSEI
 
@@ -494,7 +516,7 @@ ggplot(cpue_ts_short) +
               alpha = 0.2,  fill = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   lims(y = c(0, 1.5)) +
-  labs(x = "", y = "Fishery CPUE (round pounds per hook)\n") 
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") 
 
 ggsave(paste0("figures/fshcpue_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")

@@ -504,18 +504,18 @@ include_graphics(paste0("../figures/sex_ratios_", YEAR, ".png"))
 ##### Page Break
 
 ```{r srv_cpue_fig, echo=FALSE, out.width = '100%'}
-include_graphics(paste0("../figures/npue_llsrv_", YEAR, ".png"))
+include_graphics(paste0("../figures/srvcpue_bootCI_1997_", YEAR, ".png"))
 ```
 
-`r fig('srv_cpue', caption = paste0('Longline survey CPUE in sablefish per hook (+/- 1 standard deviation), 1997-', YEAR ,'. '))`
+`r fig('srv_cpue', caption = paste0('Longline survey CPUE in sablefish per hook with simple bootstrap 95% confidence intervals, 1997-', YEAR ,'. '))`
 
 ##### Page Break
 
 ```{r fsh_cpue_fig, echo=FALSE, out.width = '100%'}
-include_graphics(paste0("../figures/fshcpue_1997_", YEAR, ".png"))
+include_graphics(paste0("../figures/fshcpue_bootCI_1997_", YEAR, ".png"))
 ```
 
-`r fig('fsh_cpue', caption = paste0('Commercial longline fishery CPUE in round lb per hook (+/- 1 standard deviation), 1997-', YEAR ,'. '))`
+`r fig('fsh_cpue', caption = paste0('Commercial longline fishery CPUE in round lb per hook with simple bootstrap 95% confidence intervals, 1997-', YEAR ,'. '))`
 
 ##### Page Break
 

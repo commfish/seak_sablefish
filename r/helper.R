@@ -20,6 +20,7 @@ if(!require("tidyr"))   install.packages("tidyr") # reshaping data
 if(!require("knitr"))   install.packages("knitr") # r markdown
 if(!require("forcats"))   install.packages("forcats") # releveling factors
 if(!require("cowplot"))   install.packages("cowplot") # plot_grid and so much else
+
 # install.packages("devtools")
 # devtools::install_github("ben-williams/FNGr")
 # library("FNGr")

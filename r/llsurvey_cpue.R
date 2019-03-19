@@ -1,11 +1,13 @@
 # Longline Survey cpue
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: Feb 2019
+# Last edited: March 2019
 
 # load ----
 source("r/helper.r")
 source("r/functions.r")
+library("rms")   #install.packages("rms") # simple bootstrap confidence intervals
+
 YEAR <- 2018
 
 # Explore hook standardization relationship ----
@@ -85,6 +87,28 @@ srv_cpue  %>%
          # raw_cpue = sablefish_retained/no_hooks
   ) -> srv_cpue
 
+# Bootstrap ----
+
+axis <- tickr(srv_cpue, year, 4)
+
+# Simple bootstrap confidence intervals (smean.cl.boot from rms)
+srv_cpue %>%
+  group_by(year) %>%
+  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot
+
+ggplot(plot_boot) +
+  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper), 
+              alpha = 0.1, fill = "grey55") +
+  geom_point(aes(x = year, y = Mean), size = 1) +
+  geom_line(aes(x = year, y = Mean)) +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Survey CPUE (number of sablefish per hook)\n") +
+  lims(y = c(0.15, 0.3)) 
+  
+ggsave(paste0("figures/srvcpue_bootCI_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=7, units="in")
+
+# With +/- 1 sd ----
 hist(srv_cpue$std_cpue)
 srv_cpue %>% 
   group_by(year) %>% 
