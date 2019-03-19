@@ -94,3 +94,13 @@
 [X] Estimating init_N_devs and rec_devs in the same vector as a random effect (seems like it could skew it)
 
 [ ] Grant recommended against estimate F_devs as random effects because it could lead to underestimation via shrinkage. Not a problem since we don't need a variance parameter estimated?
+
+** To be incorporated as issues **
+Change log:
+Summary tables – I agree with your feedback regarding Table 1 (the extended summary table), however I was unable to include all the salient information (including percent changes) without making things even more confusing. I spoke with Andrew and he recommended some formatting changes that make the table much clearer and easier to interpret. The sections of the table are now broken apart with dashed lines and quantities that are recommended for management (or were recommended for management last year) are highlighted in bold. The shortened summary table on page 1 is now exclusively the bold values so that the percentages reflect changes from last year to this year. 
+
+Topics for discussion:
+15th percentile – Ben: Need to chat with Andrew to make sure he wants this reduction coming from the assessment as opposed to from his authority as manager. Andrew: My preference would be to have this done in the assessment as it can be consistently done and probably would be less debated by industry.  Also, having precautionary measures in the assessment and in management (decrements) I think pairs really well together.
+
+To be addressed in the future:
+Mark-recapture notation: Not important now, but for future reference I’m a fan of n1, n2, m2 since k is used for growth rate in the vonB model and n is typically used for # or time – M, R, C is also viable – but the M has a conflict with nat mort
