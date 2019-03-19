@@ -3,7 +3,7 @@ title: "2019 Chatham Strait Sablefish Stock Assessment"
 output:
   word_document:
     reference_docx: word-styles-reference.docx
-  html_document: default
+  html_document: default  
   pdf_document: default
 editor_options: 
   chunk_output_type: console
@@ -37,7 +37,6 @@ YEAR <- 2018
 # Libraries/themes
 source("r/helper.r")
 source("r/functions.r")
-
 
 # Data  ----
 
@@ -411,17 +410,22 @@ Williams, B, and K. Van Kirk. 2017. 2017 NSEI Sablefish Assessment. State of Ala
 
 Zheng, J. and M. S. M. Siddeek. 2018. Bristol Bay Red King Crab stock assessment in Fall 2018. *In* Stock assessment and fishery evaluation report for the King and Tanner crab fisheries of the Bering Sea and Aleutian Islands Regions. North Pacific Fishery Management Council, 605 W 4th Ave, Suite 306 Anchorage, AK 99501.
 
+##### Page Break
+
 # Tables
 
-
-`r tbl('full_summary', caption = paste0('Estimated and forecasted exploited abundance, biomass, target fishing mortality $F$, and acceptable biological catch $ABC$ for ', YEAR ,' and ', YEAR + 1, '. For abundance, biomass, and $ABC$, the ', YEAR, ' value from last year (forecasted from the 2015 tagging survey) is compared to current ', YEAR, ' estimates, both *status quo* and recommended values that have been adjusted for uncertainty in recruitment. '))`
+`r tbl('full_summary', caption = paste0('Estimated and forecasted exploited abundance, biomass, target fishing mortality $F$, and acceptable biological catch $ABC$ for ', YEAR ,' and ', YEAR + 1, '. For abundance, biomass, and $ABC$, the ', YEAR, ' value from last year (forecasted from the ', YEAR-1, ' tagging survey) is compared to current ', YEAR, ' estimates, both *status quo* and recommended values that have been adjusted for uncertainty in recruitment. '))`
 
 
 ```{r full_summary, echo=FALSE, message=FALSE, warning=FALSE}
 
-kable(summary_tbl, align = c('l', 'r', 'r', 'r'))
+kable(summary_tbl, align = c('l', 'r', 'r', 'r')) #%>% 
+  # row_spec(c(1,4,7,9), bold = TRUE) %>% 
+  # row_spec(c(3,6), hline_after = TRUE)
  
 ```
+
+##### Page Break
 
 `r tbl('varb_defns', caption = paste0('Notation for mark-recapture models used in the ', YEAR ,' stock assessment. '))`
 
@@ -429,11 +433,15 @@ kable(summary_tbl, align = c('l', 'r', 'r', 'r'))
 kable(varb_descriptions)
 ```
 
+##### Page Break
+
 `r tbl('tag_sum', caption = paste0('A summary of data inputs to the mark-recapture models, including total individuals tagged ($K$), the total number of tags remaining once size-selectivity is accounted for ($K_0$), tags not available to the longline survey or fishery (captured in other fisheries or outside Chatham, $D_0$), recaptured individuals in the longline survey and fishery ($k_{srv}$ and $k_{fsh}$), number of sampled individuals in the longline survey and fishery ($n_{srv}$ and $n_{fsh}$), tags not available to the fishery (captured outside Chatham or in other fisheries during the survey, $D_{srv}$), and tags recaptured in other fisheries or outside Chatham during the fishery ($D_{fsh}$) for years with a tagging survey from 2005-', YEAR ,'.'))`
 
 ```{r tags, echo=FALSE, out.width = '100%'}
 kable(tag_sum, align = c('l', 'r', 'r', 'r', 'r', 'r'))
 ```
+
+##### Page Break
 
 `r tbl('mods', caption = paste0('A description of the mark-recapture models compared in ', YEAR ,'. '))`
 
@@ -441,12 +449,15 @@ kable(tag_sum, align = c('l', 'r', 'r', 'r', 'r', 'r'))
 kable(mod_descriptions, align = c('l', 'l', 'l'))
 ```
 
+##### Page Break
+
 `r tbl('top_mods', caption = paste0('Results from candidate models in ', YEAR ,', including abundance estimate (median) and 95% credible intervals, deviance, parameter penalty, and delta $DIC$ (delta $DIC$ less than or equal to 2 are models with the most statistical support). '))`
 
 ```{r topmods, echo=FALSE, out.width = '100%'}
 kable(top_mods, align = c('l', 'r', 'r', 'r', 'r', 'r', 'r'))
 ```
 
+##### Page Break
 
 # Figures
 
@@ -456,17 +467,24 @@ include_graphics(paste0("../figures/fishery_harvest_1985_", YEAR, ".png"))
 
 `r fig('catch', caption = paste0('Fishery harvest in Chatham Strait from 1985-', YEAR, '. The vertical dashed line marks the transition of the fishery from limited entry to equal quota share in 1994.'))`
 
+##### Page Break
+
 ```{r 'forec_Natage', echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/forecasted_Natage_", YEAR+1, "_adj.png"))
 ```
 
-`r fig('forec_Natage', caption = paste0('Forecasted numbers-at-age by sex for ', YEAR+1, ' using the recommended adjusted abundance estimate.'))`
+`r fig('forec_Natage', caption = paste0('Forecasted numbers-at-age by sex for ', YEAR+1, ' using the author-recommended abundance estimate.'))`
+
+##### Page Break
+
 
 ```{r Nposterior, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/mod1_Nposterior_adjustment_", YEAR, ".png"))
 ```
 
 `r fig('N_posterior', caption = paste0('The posterior distribution of abundance (sablefish in millions) in ', YEAR ,'. The shaded area represents the 95% credible interval, the solid horizontal line is the mean abundance estimate, and the dashed horizontal line is the adjusted abundance estimate (15th percentile) recommended for the ', YEAR + 1, ' forecast.'))`
+
+##### Page Break
 
 
 ```{r retrospec, echo=FALSE, out.width = '100%'}
@@ -475,11 +493,15 @@ include_graphics(paste0("../figures/model1_N_retrospective_2005_", YEAR, ".png")
 
 `r fig('retro', caption = paste0("Abundance estimates from the current model (black points), adjusted current model (black triangles), and previous estimates of abundance (grey squares) from 2005-", YEAR ,". Shaded areas are 95% credible intervals from the current estimates' posterior distributions. The grey square in ", YEAR ," is the forecasted abundance from ", YEAR-1 ,". Loess smoothers aid in the visualization of trends over time."))`
 
+##### Page Break
+
 ```{r propfem, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/sex_ratios_", YEAR, ".png"))
 ```
 
 `r fig('propfem', caption = paste0('Proportion of females at age in the commercial longline fishery (black) 2002-', YEAR, ' and longline survey (grey) 1988-', YEAR, ' (top panel). Proportion of females by year (all ages combined) in the fishery (black) and survey (grey) are presented for the same years (bottom panel). Shaded areas and smoothed curves are the predicted values and standard errors from a generalized additive model.'))`
+
+##### Page Break
 
 ```{r srv_cpue_fig, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/npue_llsrv_", YEAR, ".png"))
@@ -487,11 +509,15 @@ include_graphics(paste0("../figures/npue_llsrv_", YEAR, ".png"))
 
 `r fig('srv_cpue', caption = paste0('Longline survey CPUE in sablefish per hook (+/- 1 standard deviation), 1997-', YEAR ,'. '))`
 
+##### Page Break
+
 ```{r fsh_cpue_fig, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/fshcpue_1997_", YEAR, ".png"))
 ```
 
 `r fig('fsh_cpue', caption = paste0('Commercial longline fishery CPUE in round lb per hook (+/- 1 standard deviation), 1997-', YEAR ,'. '))`
+
+##### Page Break
 
 ```{r srv_agecomps, echo=FALSE, out.width = '100%'}
 knitr::include_graphics("../figures/bubble_survey_agecomp_byyear.png")
@@ -499,11 +525,15 @@ knitr::include_graphics("../figures/bubble_survey_agecomp_byyear.png")
 
 `r fig('srv_agecomps', caption = paste0('Proportions-at-age for males and females in the ADF&G longline survey, 1997-', YEAR ,'.'))`
 
+##### Page Break
+
 ```{r fsh_agecomps, echo=FALSE, out.width = '100%'}
 include_graphics("../figures/bubble_fishery_agecomp_byyear.png")
 ```
 
 `r fig('fsh_agecomps', caption = paste0('Proportions-at-age for males and females in the longline fishery, 2002-', YEAR ,'.'))`
+
+##### Page Break
 
 ```{r ypr_inputs, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/ypr_bio_inputs_", YEAR, ".png"))
@@ -511,11 +541,15 @@ include_graphics(paste0("../figures/ypr_bio_inputs_", YEAR, ".png"))
 
 `r fig('bio_inputs', caption = paste0('Sex-specific weight-at-age (kg) from the longline fishery and survey (top panel), and proportion mature-at-age for females estimated from the longline survey (bottom panel). These values are used as inputs to the yield per recruit model and $ABC$ calculation.'))`
 
+##### Page Break
+
 ```{r discard, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/retention_prob_", YEAR, ".png"))
 ```
 
 `r fig('discard_mort', caption = paste0('The probability of retaining a fish as a function of weight (left panel), sex, and age (right panel).'))`
+
+##### Page Break
 
 ```{r fmort_discards, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/fmort_discards_", YEAR, ".png"))
@@ -523,11 +557,15 @@ include_graphics(paste0("../figures/fmort_discards_", YEAR, ".png"))
 
 `r fig('F_discards', caption = paste0('A comparison of equivalent fishing mortality rates by age and sex when discard mortality is assumed to be zero (solid line) and when it assumed to be 0.16 (dashed line).'))`
 
-```{r NMME, echo=FALSE, out.width = '100%'}
-include_graphics(paste0("../figures/NMME_sst_forec_", YEAR+1, "02.png"))
+##### Page Break
+
+```{r cum_length, echo=FALSE, out.width = '100%'}
+include_graphics(paste0("../figures/rel_rec_cumproplength_2005_", YEAR, ".png"))
 ```
 
 `r fig('cum_length', caption = paste0('The proportion at length released (light grey), predicted growth after release (dark grey), and recaptured (black) in Chatham Strait by 5-cm length bins, 2005-', YEAR ,'.'))`
+
+##### Page Break
 
 ```{r movement_mat, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/movement_matrix_with_N_2005_", YEAR, ".png"))
@@ -535,11 +573,15 @@ include_graphics(paste0("../figures/movement_matrix_with_N_2005_", YEAR, ".png")
 
 `r fig('movement_mat', caption = paste0('The probability of being recaptured in a statistical area given release area, 2005-', YEAR ,'. The relative size of the circle represents the number of tagged fish recaptured in each area. Statistical areas are arranged roughly north to south along each axis.'))`
 
+##### Page Break
+
 ```{r migrationestimates, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/net_migration_estimates", YEAR, ".png"))
 ```
 
 `r fig('net_migration', caption = paste0('Posterior distribution of net migration into Chatham Strait with 95% credible intervals shaded (Model 2, P=6). The median is denoted by the dashed vertical line. The solid horizontal line at net 0 migration aids in visualization of results across years with a tagging survey, 2005-', YEAR ,'. '))`
+
+##### Page Break
 
 ```{r fittednpue, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/NPUE_mod3_vs_mod4_", YEAR, ".png"))
