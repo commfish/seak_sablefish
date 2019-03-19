@@ -43,7 +43,7 @@ catch_ifdb %>%
 ggplot(catch_plot, aes(x = julian_day)) +
   geom_line(aes(y = cum_pounds/1000000)) +
   facet_wrap(~ year, ncol = 1) +
-  labs(x = "Julian Day", y = "Millions lbs") +
+  labs(x = "Julian Day", y = "Millions lb") +
   ylim(0, 1)
 
 catch_ifdb %>% 
@@ -59,7 +59,7 @@ ggplot(sum_catch %>%
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   # add a line for EQS starting in 1994 (1997 in the SSEI).
   geom_vline(xintercept = 1994, lty = 5, colour = "grey") +
-  labs(x = "", y = "Fishery harvest (millions lbs)\n") +
+  labs(x = "", y = "Fishery harvest (millions lb)\n") +
   ylim(0, 6)
 
 write_csv(sum_catch, paste0("output/harvest_1985_", YEAR, ".csv"))
@@ -439,7 +439,7 @@ fsh_sum %>%
   scale_fill_manual(values = c("darkcyan", "goldenrod"), name = "Standardized CPUE") +
   scale_shape_manual(values = c(19, 17), name = "Standardized CPUE") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  labs(x = "", y = "Fishery CPUE (lbs/hook)\n") +
+  labs(x = "", y = "Fishery CPUE (round lb/hook)\n") +
   theme(legend.position = c(0.8, 0.2))
 
 ggsave(paste0("figures/compare_stdcpue_llfsh_", YEAR, ".png"), dpi=300, height=4, width=7, units="in")

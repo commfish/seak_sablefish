@@ -5,11 +5,13 @@ output:
     reference_docx: word-styles-reference.docx
   html_document: default
   pdf_document: default
+editor_options: 
+  chunk_output_type: console
 ---
 
 Authors: Jane Sullivan, Ben Williams, and Andrew Olson
 
-To: Andrew Olson, Karla Bush
+To: Andrew Olson
 
 Cc: Chris Siddon, Ben Williams
 
@@ -52,12 +54,12 @@ read_csv(paste0("output/fshcpue_1980_", YEAR, ".csv")) -> fsh_sum
 
 ```{r sumtbl1, include=FALSE}
 
-read_csv(paste0("output/", YEAR + 1, "_summary_table.csv")) -> summary_tbl
+read_csv(paste0("output/", YEAR + 1, "_summary_table.csv")) -> summary_tbl_raw
 
-diff <- formatC(abs(summary_tbl[9,3] - summary_tbl[9,2]), format = "d", big.mark = ",")
-diff_notadj <- formatC(abs(summary_tbl[8,3] - summary_tbl[8,2]), format = "d", big.mark = ",")
+diff <- formatC(abs(summary_tbl_raw[9,3] - summary_tbl_raw[9,2]), format = "d", big.mark = ",")
+diff_notadj <- formatC(abs(summary_tbl_raw[8,3] - summary_tbl_raw[8,2]), format = "d", big.mark = ",")
   
-summary_tbl %>% 
+summary_tbl_raw %>% 
   # Formatting
   mutate(`Percent change (%)` = formatC((Y2019 - Y2018) / Y2018 * 100, format="f", digits=1),
          `2018` = ifelse(Y2018 > 1, formatC(Y2018, format="d", big.mark=","), formatC(Y2018, format="f", digits=4)),
@@ -73,13 +75,25 @@ perc_change <- summary_tbl[9,4]
 ABC_notadj <- summary_tbl[8,3]
 perc_change_notadj <- summary_tbl[8,4]
 
-# ABC from last year
-abd_lyadj <- summary_tbl[3,2]
-abd_ly <- summary_tbl[1,2]
-abd_foradj <- summary_tbl[1,3]
+# abundance last year as estimated this year and adjusted for uncertaintly in recruitment
+abd_lyadj <- summary_tbl_raw[3,2]$Y2018 / 1e6
 
-# Abbreviated summary table
-short_sum <- summary_tbl[c(3, 6, 7, 9),]
+# abundance last year as forecasted from the previous year and used for mgmt in YEAR
+abd_ly <- summary_tbl_raw[1,2]$Y2018 / 1e6
+
+# forecasted abundance recommended for management in current year
+abd_foradj <- summary_tbl_raw[1,3]$Y2019 / 1e6
+
+eval_abd <- ifelse(abd_lyadj > abd_ly, "an increase from the ",
+                   ifelse(abd_lyadj == abd_ly, "the same as the ", "a decrease from the "))
+                      
+# format these values for text
+abd_lyadj <- formatC(abd_lyadj, format="f", digits = 2)
+abd_ly <- formatC(abd_ly, format="f", digits = 2)
+abd_foradj <- formatC(abd_foradj, format="f", digits = 2)
+
+# Abbreviated summary table for use in top of document. These are values that were used for management last year or are recommended for management in the upcoming year
+short_sum <- summary_tbl[c(1, 4, 7, 9),]
 
 ```
 
@@ -97,13 +111,13 @@ read_csv(paste0("output/harvest_1985_", YEAR, ".csv")) -> catch
 
 #Summary 
 
-- The commercial catch in Chatham Strait in `r YEAR` was `r formatC(catch %>% filter(year == YEAR) %>% pull(total_pounds), format="d", big.mark=",")` round pounds (`r fig('catch', display = "cite")`).
+- The commercial catch in Chatham Strait in `r YEAR` was `r formatC(catch %>% filter(year == YEAR) %>% pull(total_pounds), format="d", big.mark=",")` round lb (`r fig('catch', display = "cite")`).
 
-- The `r YEAR+1` recommended Allowable Biological Catch ($ABC_{adj}$) for Northern Southeast Inside Waters (NSEI - Chatham Strait) at a fully-selected fishing mortality of $F_{50\%}$ = `r ABC_adj` round pounds (`r tbl('full_summary', display = "cite")`). This is a `r diff` pound increase (`r perc_change`%) from the `r YEAR` $ABC$ of `r ABC_ly` round pounds.
+- The `r YEAR+1` recommended Allowable Biological Catch ($ABC$) for Northern Southeast Inside Waters (NSEI - Chatham Strait) at a fully-selected fishing mortality of $F_{50\%}$ = `r ABC_adj` round lb (`r tbl('full_summary', display = "cite")`). This is a `r diff` lb increase (`r perc_change`%) from the `r YEAR` $ABC$ of `r ABC_ly` round lb.
 
-- The recommended adjustment to the $ABC$ accounts for the continued uncertainty in the 2013 and 2014 year classes. The 2014 year class is estimated to be the largest recruitment event for sablefish since 1977 (Hanselman et al. `r YEAR`). If the `r YEAR` $ABC$ is not adjusted and assessment methodology remains constant from previous years, the $ABC$ would be `r ABC_notadj` pounds, a `r diff_notadj` pound increase (`r perc_change_notadj`%) from `r YEAR` (`r tbl('full_summary', display = "cite")`). Because fish younger than 7 years comprise approximately 20% of the forecasted exploited biomass for `r YEAR+1` and less than 50% of females are estimated to be mature at this age, this adjustment will help protect future spawning potential for this year class (`r fig('forec_Natage', display="cite")`).
+- An adjustment to the $ABC$ is recommended to account for continued uncertainty in the size of 2013 and 2014 year classes. This adjustment was made by using the 15th percentile from the posterior distribution of the mark-recapture abundance estimate instead of the mean as the input to the forecast model (`r (fig('N_posterior', display = "cite")`). The 2014 year class is estimated to be the largest recruitment event for sablefish since 1977 (Hanselman et al. `r YEAR`). If the `r YEAR` $ABC$ is not adjusted, the `r YEAR+1` $ABC$ would be `r ABC_notadj` lb, a `r diff_notadj` lb increase (`r perc_change_notadj`%) from `r YEAR` (`r tbl('full_summary', display = "cite")`). Because fish younger than 7 years comprise approximately 20% of the forecasted exploited biomass for `r YEAR+1` and less than 50% of females are estimated to be mature at this age, this adjustment will help protect future spawning potential for these year classes (`r fig('forec_Natage', display="cite")`).
 
-- The adjusted population estimate from the `r YEAR` mark-recapture study in Chatham Strait is `r abd_lyadj` individuals (`r tbl('full_summary', display = "cite")`). This is a revised estimate and a change from the previous estimate of `r abd_ly` individuals forecasted from the `r YEAR-1` mark-recapture study. The recommended forecast of abundance for `r YEAR+1` is `r abd_foradj` individuals (`r fig('retro', display="cite")`; `r tbl('full_summary', display = "cite")`). The forecasted abundance will always be lower than the current year's estimate of abundance under the current management model.
+- The recommended population estimate from the `r YEAR` mark-recapture study in Chatham Strait is `r abd_lyadj` individuals (`r tbl('full_summary', display = "cite")`). This is `r eval_abd` forecasted `r YEAR-1` mark-recapture estimate of `r abd_ly` sablefish. The forecast abundance for `r YEAR+1` is `r abd_foradj` individuals (`r fig('retro', display="cite")`; `r tbl('full_summary', display = "cite")`). Note that the forecasted abundance will always be lower than the current year's estimate of abundance under the current management model.
 
 - Female sablefish continue to be retained in greater proportion in the commercial fishery. The proportion of females observed in the commercial catch is greater than the proportion of females in the longline survey for all ages (`r fig('propfem', display="cite")`).
 
@@ -128,7 +142,7 @@ srv_sum %>%
 
 ```
 
-- Catch per unit effort (CPUE) in the `r YEAR` ADF&G Chatham Strait longline survey `r srv_ly$eval_ly` relative to `r YEAR-1` from `r formatC(srv_ly$lastyr, format="f", digits=2)` to `r formatC(srv_ly$thisyr, format="f", digits=2)` numbers per hook (`r formatC(abs(srv_ly$perc_change_ly), format="f", digits=1)`%) (`r fig('srv_cpue', display = "cite")`). This reflects a `r formatC(abs(srv_lt$perc_change_lt), format="f", digits=1)`% `r srv_lt$eval_lt` from the ten year average CPUE of `r formatC(srv_lt$lt_mean, format="f", digits=2)` sablefish per hook. Overall CPUE has been stable since 1997.
+- Catch per unit effort (CPUE) in the `r YEAR` ADF&G Chatham Strait longline survey `r srv_ly$eval_ly` relative to `r YEAR-1` from `r formatC(srv_ly$lastyr, format="f", digits=2)` to `r formatC(srv_ly$thisyr, format="f", digits=2)` numbers per hook (`r formatC(abs(srv_ly$perc_change_ly), format="f", digits=1)`%) (`r fig('srv_cpue', display = "cite")`). This reflects a `r formatC(abs(srv_lt$perc_change_lt), format="f", digits=1)`% `r srv_lt$eval_lt` from the ten year average CPUE of `r formatC(srv_lt$lt_mean, format="f", digits=2)` sablefish per hook. Survey CPUE has been stable since 1997 and has not tracked trends in abundance estimated from mark-recapture studies (`r fig('retro', display="cite")`).
 
 ```{r fishery_cpue, echo=FALSE, message=FALSE}
 # Percent change in compared to a ten year rolling average
@@ -149,9 +163,9 @@ fsh_sum %>%
          eval_ly = ifelse(perc_change_ly < 0, "decreased", "increased")) -> fsh_ly
 ```
 
-- Commercial longline fishery CPUE  `r fsh_ly$eval_ly` relative to `r YEAR-1` from `r formatC(fsh_ly$lastyr, format="f", digits=2)` to `r formatC(fsh_ly$thisyr, format="f", digits=2)` pounds per hook (`r formatC(abs(fsh_ly$perc_change_ly), format="f", digits=1)`%) (`r fig('fsh_cpue', display = "cite")`). This is only a `r formatC(abs(fsh_lt$perc_change_lt), format="f", digits=1)`% `r fsh_lt$eval_lt` from the ten-year average CPUE of `r formatC(fsh_lt$lt_mean, format="f", digits=2)` pounds per hook. This increase may be attributed to the large influx of fish recruiting to the fishery from the 2014 year class.
+- Commercial longline fishery CPUE  `r fsh_ly$eval_ly` relative to `r YEAR-1` from `r formatC(fsh_ly$lastyr, format="f", digits=2)` to `r formatC(fsh_ly$thisyr, format="f", digits=2)` lb per hook (`r formatC(abs(fsh_ly$perc_change_ly), format="f", digits=1)`%) (`r fig('fsh_cpue', display = "cite")`). This increase could be attributed to the large influx of fish recruiting to the fishery from the 2014 year class. However, fishery CPUE in `r YEAR` was only a `r formatC(abs(fsh_lt$perc_change_lt), format="f", digits=1)`% `r fsh_lt$eval_lt` from the ten-year average CPUE of `r formatC(fsh_lt$lt_mean, format="f", digits=2)` lb per hook. Fishery CPUE has been relatively stable since 2006.
 
-- Strong recruitment from the 2013 and 2014 year classes were observed in the ADF&G longline survey age composition (`r fig('srv_agecomps', display = "cite")`). The 2014 year class was first observed in the 2016 commercial fishery age-composition data as age-2 fish (`r fig('fsh_agecomps', display = "cite")`). Similar to last year, the Federal stock assessment authors are treating this recruitment event with caution by capping the recruitment estimate at the previous maximum recruitment value from 1977 (Hanselman et al. `r YEAR`, Hanselman et al. `r YEAR-1`). As described earlier, the estimated abundance was adjusted to reflect this uncertainty.
+- The 2013 and 2014 year classes were well-represented in the ADF&G longline survey age composition (`r fig('srv_agecomps', display = "cite")`). The 2014 year class was first observed in the 2016 commercial fishery age-composition data as age-2 fish (`r fig('fsh_agecomps', display = "cite")`). Similar to last year, the Federal stock assessment authors are treating this recruitment event with caution by capping the recruitment estimate at the previous maximum recruitment value from 1977 (Hanselman et al. `r YEAR`, Hanselman et al. `r YEAR-1`). As described earlier, the estimated abundance was adjusted to reflect this uncertainty.
 
 ```{r fed_summary, echo=FALSE, message=FALSE}
 
@@ -162,17 +176,17 @@ fed <- data.frame(ABC_thisyr = 15068, # YEAR + 1 final ABC (whale corrected)
          eval = ifelse(perc_change < 0, "decrease", "increase")) 
 ```
 
-- Although the Federal stock assessment for sablefish reported an increase in the survey index and had projected an increase in biomass in `r YEAR`, they saw a decrease in estimated spawning biomass and recommended that the Acceptable Biological Catch for `r YEAR+1` stay constant from `r YEAR`. The recommended Federal $ABC$ for the `r YEAR+1` commercial longline sablefish fishery is `r formatC(fed$ABC_thisyr, format="d", big.mark=",")` tons, a `r formatC(abs(fed$perc_change), format="f", digits=1)`% `r fed$eval` from the `r YEAR` $ABC$ of `r formatC(fed$ABC_lastyr, format="d", big.mark=",")` tons after whale depredation was accounted for (Hanselman et al. `r YEAR`). This relects a 45% downward adjustment from the maximum permissable $ABC$ (Hanselman et al. `r YEAR`). There is continued uncertainty in the 2014 year class, which is now estimated to be 30% less than it was last year, along with heightened concern over continued warming conditions and a lack of old fish in the population (Hanselman et al. `r YEAR`). As in past years, it is important to remember that the $F_{ABC}$ presented in the summary table above is not directly comparable to the Federal harvest policy of $F_{40\%}$, because the methods used to assess abundance and determine $F$ values are different. 
+- Although the Federal stock assessment for sablefish reported an increase in the survey index and had projected an increase in biomass in `r YEAR`, they saw a decrease in estimated spawning biomass and recommended that the Acceptable Biological Catch for `r YEAR+1` stay constant from `r YEAR`. The recommended Federal $ABC$ for the `r YEAR+1` commercial longline sablefish fishery is `r formatC(fed$ABC_thisyr, format="d", big.mark=",")` tons, a `r formatC(abs(fed$perc_change), format="f", digits=1)`% `r fed$eval` from the `r YEAR` $ABC$ of `r formatC(fed$ABC_lastyr, format="d", big.mark=",")` tons after whale depredation was accounted for (Hanselman et al. `r YEAR`). This reflects a 45% reduction from the maximum permissable $ABC$ (Hanselman et al. `r YEAR`). There is continued uncertainty in the 2014 year class, which is now estimated to be 30% less than it was last year, along with heightened concern over continued warming conditions and a lack of old fish in the population (Hanselman et al. `r YEAR`). As in past years, it is important to remember that the $F_{ABC}$ presented in the summary table above is not directly comparable to the Federal harvest policy of $F_{40\%}$, because the methods used to assess abundance and determine $F$ values are different. 
 
 - The NSEI sablefish assessment was developed as a reproducible research product (de Leeuw 2001). It is hosted publicly on the web-based version control service GitHub at https://github.com/commfish/seak_sablefish. This product is considered conditionally reproducible, meaning that potential users must formally request any confidential data sourced in the code to produce the full assessment (Schwab et al. 2000). However, survey and other non-confidential data are made available, and all queries and subsequent transformations to the data are included in the analysis. 
 
 # Changes to the NSEI sablefish assessment for `r YEAR+1` relative to `r YEAR`
 
-1.  Due to the high volume of small fish encountered in the `r YEAR-1` and `r YEAR` fisheries, discard mortality was incorporated directly into last year's population dynamics model instead of deducted in the decrements process used to calculate the Annual Harvest Objective ($AHO$). This year these methods were refined using equations commonly applied in size-structured models to king and tanner crab stocks in Alaska (e.g. Zheng and Siddeek 2018). Estimated discard mortality was deducted from the forecasted quota under $F_{50}$ and is reflected in the $ABC$. In addition, longline survey weight-at-age is now used to calculate exploited biomass and $ABC$ instead of fishery weight-at-age. Longline survey weight-at-age provides a more accurate portrayal of size-at-age of the exploitable population, because it includes fish that would be discarded at young ages in the fishery (`r fig('bio_inputs', display = "cite")`). The fishery opens directly following the end of the longline survey, so it is unlikely a seasonal effect could account for the differences in fishery and survey weight-at-age. Because no data exists on discards, the probability of a fish being retained was informed by processor grade definitions and prices and modeled as a function of weight, sex, and age (`r fig('discard_mort', display = "cite")`). This method of accounting for discards shifts fishing mortality toward older ages, especially for males that are slower growing than females (`r fig('F_discards', display = "cite")`). Stachura et al. (2012) estimated discard mortality to be 11.7% using release-recapture data from a longline survey in Southeast Alaska to estimate discard mortality. However, it is likely that discard mortality in a fishery is higher due to careful fish handling on survey vessels during tagging experiments. We therefore used 16%, the discard mortality rate from the Pacific halibut fishery (Gilroy and Stewart 2013). The halibut fishery serves as a good proxy for sablefish, because they are fished with the same or similar gear and frequently by the same vessels and crew. Moreover they are both considered sturdy fish that do not experience barotrauma and are known to survive well in laboratory experiments.
+1.  Fishermen are allowed to discard small fish as long as they are healthy during the fishery (i.e not dead, sand flea bitten, etc.) in order to maximize profit. Due to the high volume of small fish encountered in the `r YEAR-1` and `r YEAR` fisheries, discard mortality was incorporated directly into last year's population dynamics model instead of deducted in the decrements process used to calculate the Annual Harvest Objective ($AHO$). This year these methods were refined using equations commonly applied in size-structured models to king and tanner crab stocks in Alaska (e.g. Zheng and Siddeek 2018). Estimated discard mortality was deducted from the forecasted quota under $F_{50}$ and is reflected in the $ABC$. In addition, longline survey weight-at-age is now used to calculate exploited biomass and $ABC$ instead of fishery weight-at-age. Longline survey weight-at-age provides a more accurate portrayal of size-at-age of the exploitable population, because it includes smaller fish that would be discarded in the fishery (`r fig('bio_inputs', display = "cite")`). The fishery opens directly following the end of the longline survey, as such, it is unlikely a seasonal effect could account for the differences in fishery and survey weight-at-age. Because data on discards is not collected, the probability of a fish being retained was informed by processor grade definitions and prices and modeled as a function of weight, sex, and age (`r fig('discard_mort', display = "cite")`). This method of accounting for discards shifts fishing mortality toward older ages, especially for males that are slower growing than females (`r fig('F_discards', display = "cite")`). Stachura et al. (2012) estimated discard mortality to be 11.7% using release-recapture data from a longline survey in Southeast Alaska. However, it is likely that discard mortality in a fishery is higher due to careful fish handling on survey vessels during tagging experiments. We therefore used 16%, the discard mortality rate from the Pacific halibut fishery (Gilroy and Stewart 2013). The halibut fishery is assumed as a good proxy for sablefish, because the fisheries utilize similar gear and frequently the same vessels and crew participate in both fisheries. Moreover, both species are considered hardy, do not experience barotrauma, and are known to survive well in laboratory experiments.
 
 2.  In past assessments the plus group (age 42+) weight-at-age was calculated as the empirical mean weight from all samples aged 42 and older. Because this estimate was influenced by outliers, we now use the predicted value for age-42 fish from the weight-based von Bertalanffy growth model used to estimate weight-at-age for all other ages. Weight-at-age and maturity estimates used in the yield-per-recruit model, estimate of biomass, and $ABC$ calculations are presented in `r fig('bio_inputs', display = "cite")`.
 
-3.  A preliminary age-structured model is presented as an Appendix to this report. Once this model is reviewed by managers and stakeholders, it will be presented as an alternative to the current management model.
+3.  A preliminary age-structured model is presented as an Appendix to this report. Once reviewed by managers and stakeholders, it will be presented as an alternative to the current management model.
 
 # Section I: `r YEAR` Acceptable Biological Catch (ABC)
 
@@ -206,7 +220,7 @@ A prior analysis of 40 years of sablefish recruitment in the Gulf of Alaska foun
 
 Sea surface temperature forecasts from the North American Multi-Model Ensemble (NMME) show continued warm conditions and persistence of the the Blob in the Gulf of Alaska through the `r YEAR + 1` spring and summer seasons (`r fig('NMME', display = "cite")`; Kirtman et al. 2014; https://www.cpc.ncep.noaa.gov/products/NMME/seasanom.shtml). The PTI in 2017/18 was close to zero, indicating average surface currents in the Gulf of Alaska (Zador et al. 2018). Taken together, these findings may suggest mixed signs for success of current age-0 sablefish. Sigler et al. (2001) also found that sablefish growth of a year class was correlated with recruitment strength, which suggests that tracking body condition may provide clues to overall health and survival of strong year classes.
 
-The recommended adjusted abundance estimate of `r abd_lyadj` for `r YEAR` was partitioned into sex-specific age classes using the `r YEAR` commercial fishery age compositions and projected into `r YEAR+1` (Section III). This produced an estimated forecast of exploited abundance of `r abd_foradj` individuals for `r YEAR+1`. Multiplying by longline survey weight-at-age produced an estimate of exploited biomass of `r summary_tbl[6,3]` round pounds. Mean weight-at-age was predicted from a weight-based Ludwig von Bertalanffy growth model fit to survey weight and age data from 1997 to `r YEAR`.  
+The recommended adjusted abundance estimate of `r abd_lyadj` for `r YEAR` was partitioned into sex-specific age classes using the `r YEAR` commercial fishery age compositions and projected into `r YEAR+1` (Section III). This produced an estimated forecast of exploited abundance of `r abd_foradj` individuals for `r YEAR+1`. Multiplying by longline survey weight-at-age produced an estimate of exploited biomass of `r summary_tbl[6,3]` round lb. Mean weight-at-age was predicted from a weight-based Ludwig von Bertalanffy growth model fit to survey weight and age data from 1997 to `r YEAR`.  
 
 # Section II: Mark-recapture analysis
 
@@ -364,7 +378,7 @@ Similarly, the biomass of fish dying due to discarding $D_t$ with an assumed dis
 
 $$D_{t}= \sum_{k=1}^{2}\sum_{a=2}^{a+}w_{k,a}N_{t,a}\frac{\Omega_{k,a}S_{k,a}(1-R_{k,a})F}{Z_{k,a}}(1-\mbox{exp}(-Z_{k,a})).$$
 
-The $ABC$ for `r YEAR+1` is calculated as the difference between the landed catch and the amount of fish dying due to discard, $ABC_t = L_t - D_t$. Using the adjusted abundance estimate, the landed and discarded portions of the catch were estimated to be 1,140,009 and 20,672 round pounds, with a resulting ABC of 1,119,337 round pounds.
+The $ABC$ for `r YEAR+1` is calculated as the difference between the landed catch and the amount of fish dying due to discard, $ABC_t = L_t - D_t$. Using the adjusted abundance estimate, the landed and discarded portions of the catch were estimated to be 1,140,009 and 20,672 round lb, with a resulting ABC of 1,119,337 round lb.
 
 # Future work and recommendations
   
@@ -470,6 +484,13 @@ include_graphics(paste0("../figures/forecasted_Natage_", YEAR+1, "_adj.png"))
 
 `r fig('forec_Natage', caption = paste0('Forecasted numbers-at-age by sex for ', YEAR+1, ' using the recommended adjusted abundance estimate.'))`
 
+```{r Nposterior, echo=FALSE, out.width = '100%'}
+include_graphics(paste0("../figures/mod1_Nposterior_adjustment_", YEAR, ".png"))
+```
+
+`r fig('N_posterior', caption = paste0('The posterior distribution of abundance (sablefish in millions) in ', YEAR ,'. The shaded area represents the 95% credible interval, the solid horizontal line is the mean abundance estimate, and the dashed horizontal line is the adjusted abundance estimate (15th percentile) recommended for the ', YEAR + 1, ' forecast.'))`
+
+
 ```{r retrospec, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/model1_N_retrospective_2005_", YEAR, ".png"))
 ```
@@ -492,7 +513,7 @@ include_graphics(paste0("../figures/npue_llsrv_", YEAR, ".png"))
 include_graphics(paste0("../figures/fshcpue_1997_", YEAR, ".png"))
 ```
 
-`r fig('fsh_cpue', caption = paste0('Commercial longline fishery CPUE in round pounds per hook (+/- 1 standard deviation), 1997-', YEAR ,'. '))`
+`r fig('fsh_cpue', caption = paste0('Commercial longline fishery CPUE in round lb per hook (+/- 1 standard deviation), 1997-', YEAR ,'. '))`
 
 ```{r srv_agecomps, echo=FALSE, out.width = '100%'}
 knitr::include_graphics("../figures/bubble_survey_agecomp_byyear.png")
@@ -523,12 +544,6 @@ include_graphics(paste0("../figures/fmort_discards_", YEAR, ".png"))
 ```
 
 `r fig('F_discards', caption = paste0('A comparison of equivalent fishing mortality rates by age and sex when discard mortality is assumed to be zero (solid line) and when it assumed to be 0.16 (dashed line).'))`
-
-```{r Nposterior, echo=FALSE, out.width = '100%'}
-include_graphics(paste0("../figures/mod1_Nposterior_adjustment_", YEAR, ".png"))
-```
-
-`r fig('N_posterior', caption = paste0('The posterior distribution of abundance (sablefish in millions) in ', YEAR ,'. The shaded area represents the 95% credible interval, the solid horizontal line is the mean abundance estimate, and the dashed horizontal line is the adjusted abundance estimate (15th percentile) recommended for the ', YEAR + 1, ' forecast.'))`
 
 ```{r NMME, echo=FALSE, out.width = '100%'}
 include_graphics(paste0("../figures/NMME_sst_forec_", YEAR+1, "02.png"))

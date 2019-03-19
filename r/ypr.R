@@ -39,7 +39,7 @@ assessment_summary <- read_csv(paste0("output/assessment_summary_", YEAR, ".csv"
 
 f50_f <-  3.86
 fslp_f <- 2.61
-f50_m <-  4.22
+f50_m <-  4.22f
 fslp_m <- 2.61
 
 s50_f <- 3.75
@@ -248,7 +248,7 @@ ggplot() +
   geom_rect(data = grades2, aes(xmin = mn, xmax = mx, ymin = -Inf, ymax = Inf, fill = plot_cde, group = 1), 
             colour = NA, alpha = 0.2, show.legend = FALSE) +
   scale_fill_manual(values = c("white", "grey80")) +
-  labs(x = "\n Round weight (lbs)", y = "Probability of retention\n") + 
+  labs(x = "\n Round weight (lb)", y = "Probability of retention\n") + 
   geom_text(data = grades2, aes(label = label, x = mu, y = y), 
             vjust = 1, family = "Times", size = 2.5) -> size 
 
@@ -697,8 +697,8 @@ data.frame("Quantity" = c("Exploited abundance (2018 value from last year)",
                           "Exploited biomass",
                           "Exploited biomass (adjusted for uncertainty in recruitment)",
                           "$F_{ABC}=F_{50}$",
-                          "$ABC$ (round lbs, 2018 value from last year)",
-                          "$ABC_{adj}$ (round lbs)"),
+                          "$ABC$ (round lb, 2018 value from last year)",
+                          "$ABC$ (round lb)"),
            "Y2018" = c(1931191, N_MR_sex, adj_N_MR_sex,
                        16454232, exp_b, adj_updYEAR_expb,
                        0.0635, 965354, 965354),
