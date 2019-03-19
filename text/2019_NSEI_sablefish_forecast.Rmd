@@ -491,7 +491,7 @@ include_graphics(paste0("../figures/mod1_Nposterior_adjustment_", YEAR, ".png"))
 include_graphics(paste0("../figures/model1_N_retrospective_2005_", YEAR, ".png"))
 ```
 
-`r fig('retro', caption = paste0("Abundance estimates from the current model (black points), adjusted current model (black triangles), and previous estimates of abundance (grey squares) from 2005-", YEAR ,". Shaded areas are 95% credible intervals from the current estimates' posterior distributions. The grey square in ", YEAR ," is the forecasted abundance from ", YEAR-1 ,". Loess smoothers aid in the visualization of trends over time."))`
+`r fig('retro', caption = paste0("Abundance estimates from the current model that have been adjusted for uncertainty in recruiment (black points), current estimates before the adjustment (black triangles), and previous estimates of abundance that were used for management in a given year (grey squares) from 2005-", YEAR ,". Shaded areas are 95% credible intervals from the current estimates' posterior distributions prior to adjustments. The grey square in ", YEAR ," is the forecasted abundance from ", YEAR-1 ,"."))`
 
 ##### Page Break
 

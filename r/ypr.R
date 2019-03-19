@@ -39,7 +39,7 @@ assessment_summary <- read_csv(paste0("output/assessment_summary_", YEAR, ".csv"
 
 f50_f <-  3.86
 fslp_f <- 2.61
-f50_m <-  4.22f
+f50_m <-  4.22
 fslp_m <- 2.61
 
 s50_f <- 3.75
@@ -716,7 +716,7 @@ data.frame("Quantity" = c("Exploited abundance (2018 value from last year)",
 results %>% 
   gather("time_period", "N.avg", contains("N.avg")) %>% 
   group_by(year, time_period) %>% 
-  summarise(`Current estimate` = median(N.avg),
+  summarise(`Estimate before adjustment` = mean(N.avg),
             q025 = quantile(N.avg, 0.025),
             q975 = quantile(N.avg, 0.975)) %>% 
   arrange(year, time_period) %>% 
@@ -729,18 +729,18 @@ results %>%
   pad(interval = "year") %>% 
   mutate(year = year(year),
          Year = factor(year),
-         `Current estimate adjusted` = ifelse(year == YEAR, adj_N_MR_sex, `Current estimate`)) %>% 
+         `Adjusted estimate recommended for forecast` = ifelse(year == YEAR, adj_N_MR_sex, `Estimate before adjustment`)) %>% 
   # Add forecasted year
   bind_rows(data.frame(year = YEAR + 1,
                        time_period = "N.avg", 
-                       "Current estimate" = exp_n, 
+                       "Estimate before adjustment" = exp_n, 
                        q025 = NA, 
                        q975 = NA, 
                        "Previous estimate" = NA,
                        Year = factor(YEAR + 1),
-                       "Current estimate adjusted" = adj_FOREC_exp_n,
+                       "Adjusted estimate recommended for forecast" = adj_FOREC_exp_n,
                        check.names = FALSE)) %>% 
-  gather("Abundance", "N", `Previous estimate`, `Current estimate`, `Current estimate adjusted`) %>% 
+  gather("Abundance", "N", `Previous estimate`, `Estimate before adjustment`, `Adjusted estimate recommended for forecast`) %>% 
   mutate(N = N / 1000000,
          # interpolate the CI in missing years for plotting purposes
          q025 = zoo::na.approx(q025 / 1000000, maxgap = 20, rule = 2),
@@ -751,15 +751,19 @@ results %>%
 
 axis <- tickr(forec_plot, year, 2)
 
-ggplot(data = forec_plot) +
-  geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), size = 2) +
-  geom_smooth(aes(x = year, y = N, col = Abundance, linetype = Abundance), 
-              se = FALSE) +
+ggplot(data = forec_plot) +  
   geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
-              alpha = 0.2, fill = "grey70") +
+              alpha = 0.1, fill = "grey55") +
+  geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), size = 1) +
+  # geom_smooth(aes(x = year, y = N, col = Abundance, linetype = Abundance), 
+  #             se = FALSE) +
+  geom_line(data = forec_plot %>% filter(!is.na(N)),
+            aes(x = year, y = N, col = Abundance, linetype = Abundance)) +
+
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  # scale_color_manual(values = c("grey50", "grey50", "black")) + 
   scale_color_manual(values = c("black", "black", "grey75")) + 
-  scale_linetype_manual(values = c(4, 1, 2)) + 
+  scale_linetype_manual(values = c(1, 4, 2)) + 
   ylim(c(1, 3.5)) +
   labs(x = "", y = "Number of sablefish (millions)\n",
        colour = NULL, shape = NULL, linetype = NULL) +
