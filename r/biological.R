@@ -713,7 +713,7 @@ broom::augment(x = fit_age_year,
 
 # Comparison of maturity at age curves. Blue is derived from length-based
 # maturity cuve, red is estimated directly from age. Light lines are annual mean
-# preditions, dark lines are the means.
+# predictions, dark lines are the means.
 maturity_at_age_plot +
   geom_line(data = pred_age,
             aes(x = age, y = fitted, group = Year), 
