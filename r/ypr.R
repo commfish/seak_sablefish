@@ -223,7 +223,6 @@ grades <- data.frame(
 
 # Female and male probabilities of retention at age based on survey (population) weight-at-age 
 f_retention <- data.frame(age = age, kg = round(wt_s_f, 1)) %>% left_join(grades, by = "kg") %>%  pull(p)
-
 m_retention <- data.frame(age = age, kg = round(wt_s_m, 1)) %>% left_join(grades, by = "kg") %>% pull(p)
 
 # Plot size, sex, and age-specific probabilities of discarding a fish that
@@ -381,8 +380,12 @@ ggplot(fmort_df, aes(x = age, y = fmort, linetype = `Discard mortality`)) +
 ggsave(paste0("figures/fmort_discards_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
 
-# Fm <- Fm_old
-# Ff <- Ff_old
+# *FLAG_DISCARD* To test impact of including discard mortality, comment out when not in use
+dm <- 0
+f_retention <- data.frame(age = age, p = 1) %>%  pull(p)
+m_retention <- data.frame(age = age, p = 1) %>%  pull(p)
+Fm <- Fm_old
+Ff <- Ff_old
 
 N_fp <- 1:41 # THIS IS FOR FEMALE SPAWNING BIOMASS
 N_mp <- 1:41 # THIS IS FOR MALES
@@ -465,11 +468,14 @@ SBf <- function(x,SB) {
     if(i == 1)
       N[i] <- NS
     else
-      # N[i] <- N[i-1] * exp(-((x * f_sel[i-1]) + mort ))
-      N[i] <- N[i-1] * exp(-( mort + x * f_sel[i-1] * (f_retention[i-1] + dm * (1 - f_retention[i-1]) ) ))
-  }
+      # Base management reference point on landed catch otherwise the estimated
+      # F is much higher to account for the fact that you have to fish harder on
+      # the population in order to kill the same biomass of fish when you
+      # account for dm
+      N[i] <- N[i-1] * exp(-((x * f_sel[i-1]) + mort ))  
+    }
   
-  # Did not add discard mortality here b/c it is zero for the plus group
+  # Plus group
   N[41] <- N[40] * exp(-((x * f_sel[40]) + mort)) + N[40] * exp(-( mort + x * f_sel[40] )) * exp(-( mort + x * f_sel[41]))
   
   SB_ageS <- N * mat_s_f * wt_s_f * ktp
@@ -504,9 +510,6 @@ Q50 <- sum( (N_fp * wt_f_f * ktp) * (f_retention * F50 * f_sel) / (f_Z50) * (1 -
 # Discards
 D50 <- sum( (N_fp * wt_f_f * ktp) * (F50 * f_sel * dm * (1 - f_retention)) / (f_Z50) * (1 - exp(-(f_Z50))) +
               (N_mp * wt_f_m * ktp) * (F50 * m_sel * dm * (1 - m_retention)) / (m_Z50) * (1 - exp(-(m_Z50))))
-
-# Deduct discard mortality from quota
-Q50 <- Q50 - D50
 
 # Total exploited biomass (Reference: Quinn and Deriso p 339)
 exp_b <- ktp * sum((N_fp * wt_f_f * f_sel) + (N_mp * wt_f_m * m_sel))
@@ -544,7 +547,7 @@ forec_byage %>%
 ggsave(paste0("figures/forecasted_Natage_", YEAR + 1, ".png"), 
        dpi=300, height=5, width=7, units="in")
 
-vFOREC <- c(exp_n, exp_b, F50, Q50) #, Q45s, Q40s) 
+vFOREC <- c(exp_n, exp_b, F50, Q50) 
 
 # Inputs for previous assessment
 
@@ -560,7 +563,10 @@ vFOREC[3] <- lapply(vFOREC[3], format, nsmall=3, digits=3)
 
 rbind(vYEAR, vFOREC, perc_change) %>% data.frame() -> forecast
 
-save(forecast, file = paste0("output/forecast_table_", YEAR+1, ".rda"))
+# *FLAG_DISCARD* To test impact of including discard mortality, comment out when not in use
+save(forecast, file = paste0("output/forecast_table_", YEAR+1, "_NO_DM.rda"))
+
+# save(forecast, file = paste0("output/forecast_table_", YEAR+1, ".rda"))
 
 # Update the YEAR exploitable biomass ---- 
 
@@ -668,9 +674,6 @@ adj_Q50 <- sum( (N_fp * wt_f_f * ktp) * (f_retention * F50 * f_sel) / (f_Z50) * 
 adj_D50 <- sum( (N_fp * wt_f_f * ktp) * (F50 * f_sel * dm * (1 - f_retention)) / (f_Z50) * (1 - exp(-(f_Z50))) +
               (N_mp * wt_f_m * ktp) * (F50 * m_sel * dm * (1 - m_retention)) / (m_Z50) * (1 - exp(-(m_Z50))))
 
-# Remove discards from quota
-adj_Q50 <- adj_Q50 - adj_D50
-
 # THIS IS TOTAL EXPLOITED BIOMASS - TOTAL ABUNDANCE PARTITIONED INTO COHORTS * 
 # FISHERY WEIGHT * SELECTIVITY (REFER: Q&D bottom page 339)
 
@@ -697,15 +700,19 @@ data.frame("Quantity" = c("Exploited abundance (2018 value from last year)",
                           "Exploited biomass",
                           "Exploited biomass (adjusted for uncertainty in recruitment)",
                           "$F_{ABC}=F_{50}$",
-                          "$ABC$ (round lb, 2018 value from last year)",
-                          "$ABC$ (round lb)"),
+                          "Mortality from discards (round lb)",
+                          "Mortality from discards using adjusted abundance estimate (round lb)",
+                          "$ABC$ before adjustment (round lb, 2018 value from last year)",
+                          "$ABC$ (round lb, 2018 value from last year)"),
            "Y2018" = c(1931191, N_MR_sex, adj_N_MR_sex,
-                       16454232, exp_b, adj_updYEAR_expb,
-                       0.0635, 965354, 965354),
+                       16454232, updYEAR_expb, adj_updYEAR_expb,
+                       0.0635, NA, NA, 965354, 965354),
            "Y2019" = c(adj_FOREC_exp_n, exp_n, adj_FOREC_exp_n,
                        adj_FOREC_exp_b, exp_b, adj_FOREC_exp_b,
-                       F50, Q50, adj_Q50)) %>% 
-  write_csv(paste0("output/",YEAR+1, "_summary_table.csv"))
+                       F50, D50, adj_D50, Q50, adj_Q50)) %>% 
+  # *FLAG_DISCARD* To test impact of including discard mortality, comment out when not in use
+  write_csv(paste0("output/",YEAR+1, "_summary_table_NO_DM.csv"))
+  # write_csv(paste0("output/",YEAR+1, "_summary_table.csv"))
 
 
 # Updated retrospective plot ----
