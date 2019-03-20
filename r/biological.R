@@ -97,7 +97,6 @@ write_csv(emp_waa, paste0("output/empircal_waa_", YEAR, ".csv"))
 
 # Changes in weight-at-age
 
-
 srv_bio %>% 
   select(year, Project_cde, Sex, age, weight) %>% 
   filter(year >= 1997) %>% 
@@ -323,7 +322,7 @@ bind_rows(tidy(male_fit) %>% mutate(Sex = "Male"),
   mutate(Survey = "ADFG Longline",
          Years = paste0(min(laa_sub$year), "-", max(laa_sub$year)),
          Region = "Chatham Strait",
-         Function = "Allometric") %>% 
+         Function = "Allometric - NLS") %>% 
   full_join(allom_sub %>% 
               group_by(Sex) %>% 
               summarise(n = n())) -> allom_pars
@@ -343,6 +342,28 @@ ggplot(allom_sub, aes(length, weight, col = Sex, shape = Sex)) +
 ggsave(paste0("figures/allometry_chathamllsurvey_1997_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
   
+# Allometry using linear fxn ----
+lw <- lm(log(weight) ~ log(length), data = allom_sub) # estimate on log transformed
+lwfit <- exp(fitted(lw) * exp((sigma(lw)^2) / 2)) # adjust for bias
+lwresid <- allom_sub$weight - lwfit # calculate resids
+plot(lwfit, lwresid) # always plot to see how things look
+abline(h=0, lty=4)
+summary(lw)  # are values the same/similar?
+
+lw_f <- lm(log(weight) ~ log(length), data = filter(allom_sub, Sex == "Female"))
+lw_m <- lm(log(weight) ~ log(length), data = filter(allom_sub, Sex == "Male"))
+
+bind_rows(tidy(lw_f) %>% mutate(Sex = "Female"),
+          tidy(lw_m) %>% mutate(Sex = "Male")) %>% 
+  bind_rows(tidy(lw) %>% mutate(Sex = "Combined")) %>% 
+  mutate(Parameter = derivedFactor("a" = term == "(Intercept)",
+                                   "b" = term == "log(length)"),
+         Estimate = ifelse(Parameter == "a", exp(estimate), estimate),
+         Function = "Allometric - LM log trans") %>% 
+  select(Function, Parameter, Estimate, Sex) %>% 
+  bind_rows(select(allom_pars, Function, Parameter, Estimate, Sex)) %>% 
+  arrange(Sex, Parameter)
+
 # Weight-based Ludwig von Bertalanffy growth model ----
 
 # subsets by weight, age, sex
