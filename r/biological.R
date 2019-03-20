@@ -1107,16 +1107,15 @@ agecompdat <- agecomps %>%
            age <= 30) %>% 
   ungroup()
 
-axisy <- tickr(agecompdat, year, 3)
-axisx <- tickr(agecompdat, age, 10)
+axisx <- tickr(agecompdat, year, 5)
+axisy <- tickr(agecompdat, age, 5)
 
 ggplot(data = agecompdat,
-       aes(x = age, y = year, size = proportion)) + #*FLAG* could swap size with proportion_scaled
+       aes(x = year, y = age, size = proportion)) + #*FLAG* could swap size with proportion_scaled
   geom_point(shape = 21, fill = "black", colour = "black") +
   scale_size(range = c(0, 4)) +
   facet_wrap(~ Sex) +
-  xlab('\nObserved age') +
-  ylab('') +
+  labs(x = "\nYear", y = "Observed age\n") +
   guides(size = FALSE) +
   scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
   scale_y_continuous(breaks = axisy$breaks, labels = axisy$labels)
@@ -1131,16 +1130,15 @@ agecompdat <- agecomps %>%
            age <= 30) %>% 
   ungroup()
 
-axisy <- tickr(agecompdat, year, 3)
-axisx <- tickr(agecompdat, age, 10)
+axisx <- tickr(agecompdat, year, 5)
+axisy <- tickr(agecompdat, age, 5)
 
 ggplot(data = agecompdat,
-       aes(x = age, y = year, size = proportion)) + #*FLAG* could swap size with proportion_scaled
+       aes(x = year, y = age, size = proportion)) + #*FLAG* could swap size with proportion_scaled
   geom_point(shape = 21, colour = "black", fill = "black") +
   scale_size(range = c(0, 4)) +
   facet_wrap(~ Sex) +
-  xlab('\nObserved age') +
-  ylab('') +
+  labs(x = "\nYear", y = "Observed age\n") +
   guides(size = FALSE) +
   scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
   scale_y_continuous(breaks = axisy$breaks, labels = axisy$labels)
