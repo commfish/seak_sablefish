@@ -235,7 +235,7 @@ rel_sel %>%
              col = period, shape = period, group = period)) + 
   geom_point() +
   geom_line() +
-  facet_wrap(~year, ncol = 2) +
+  facet_wrap(~year, ncol = 2, dir = "v") +
   scale_x_discrete(breaks = seq(40, 110, 10), 
                    labels = seq(40, 110, 10)) +
   # scale_colour_manual(values = c("#a6bddb", "#0570b0", "#023858")) +
@@ -290,7 +290,7 @@ rel_sel %>%
              col = period, shape = period, group = period)) + 
   geom_point() +
   geom_line() +
-  facet_wrap(~year, ncol = 2) +
+  facet_wrap(~year, ncol = 2, dir = "v") +
   scale_x_discrete(breaks = seq(40, 110, 10), 
                      labels = seq(40, 110, 10)) +
   # scale_colour_manual(values = c("#a6bddb", "#0570b0", "#023858")) +
@@ -375,7 +375,7 @@ table(releases = move$rel_stat,
 
 ggplot(move, aes(x = releases, y = recaptures)) +
   geom_tile(aes(fill = Probability), colour = "grey") +
-  facet_wrap(~ year, ncol = 2) +
+  facet_wrap(~ year, ncol = 2, dir = "v") +
   scale_fill_gradient(low = "white", high = "black", space = "Lab",
                       na.value = "red", guide = "colourbar",
                       name = "Probability\n") +
@@ -402,7 +402,7 @@ ggplot(move, aes(x = releases, y = recaptures)) +
   geom_tile(aes(fill = Probability), colour = "grey") +
   geom_point(aes(size = Freq), shape = 21, colour = "black") +
   scale_size(limits = c(1, max(move$Freq)), range = c(0, 4.5)) +  
-  facet_wrap(~ year, ncol = 2) +
+  facet_wrap(~ year, ncol = 2, dir = "v") +
   labs(x = '\nAge', y = '') +
   # guides(size = FALSE) +
   scale_fill_gradient(low = "white", high = "grey35", space = "Lab",
@@ -735,14 +735,14 @@ ggplot(daily_marks,
        aes(x = julian_day, y = mean_weight)) +
   geom_point() +
   geom_smooth(method = 'lm') +
-  facet_wrap(~ year) +
+  facet_wrap(~ year, dir = "v") +
   labs(x = "Julian Day", y = "Mean Individual Weight (kg)")
 
 ggplot(daily_marks,
        aes(x = julian_day, y = mean_npue)) +
   geom_point() +
   geom_smooth(method = 'lm') +
-  facet_wrap(~ year, scales = "free", ncol = 2) +
+  facet_wrap(~ year, scales = "free", ncol = 2, dir = "v") +
   labs(x = "Julian Day", y = "Number sablefish per 1000 hooks\n")
 
 # Stratify by time ----
@@ -1418,7 +1418,7 @@ ggplot(post_sums %>% filter(variable == "N.avg" #&
        y = "Abundance scaled within models\n") +
   scale_color_brewer(palette = "BrBG", "") +
   scale_linetype_manual(values = 1:4, "") +
-    facet_wrap(~ year, ncol = 2)
+  facet_wrap(~ year, ncol = 2, dir = "v")
 
 ggsave(paste0("figures/N_scaledwithin_2005_", YEAR, ".png"), 
        dpi=300, height=7, width=7, units="in")
@@ -1455,7 +1455,7 @@ ggplot(post_sums %>% filter(variable == "N.avg")) +
   labs(x = "\nNumber of time periods",
        y = "Abundance scaled between models\n") +
   scale_color_brewer(palette = "BrBG") +
-  facet_wrap(~ year, ncol = 2)
+  facet_wrap(~ year, ncol = 2, dir = "v")
 
 ggsave(paste0("figures/N_scaledbtwn_2005_", YEAR, ".png"), 
        dpi=300, height=7, width=7, units="in")
@@ -1492,7 +1492,7 @@ ggplot(post_sums %>% filter(variable == "r")) +
   geom_hline(yintercept = 0, linetype = 2) +
   labs(x = "\nNumber of time periods",
        y = "Net migration scaled within models\n") +
-  facet_wrap(~ year, ncol = 2)
+  facet_wrap(~ year, ncol = 2, dir = "v")
 
 # Examination of migration (r) (scaled between models) - Model 2 has higher
 # estimates of r in all years except 2008 and 2017.
@@ -1508,7 +1508,7 @@ ggplot(post_sums %>% filter(variable == "r")) +
        y = "Net migration scaled between models\n") +
   scale_color_manual(values = c("#dfc27d", "#018571")) +
   scale_linetype_manual(values = c(2, 4)) +
-  facet_wrap(~ year, ncol = 2)
+  facet_wrap(~ year, ncol = 2, dir = "v")
 
 # Variance in r decreases with P, as with N.avg and is greater in Model 2 than
 # Model 4
@@ -1540,7 +1540,7 @@ ggplot(post_sums %>% filter(variable == "q")) +
        y = "Catchability scaled within models\n") +
   scale_color_manual(values = c("#80cdc1", "#018571")) +
   scale_linetype_manual(values = c(3, 4)) +
-  facet_wrap(~ year, ncol = 2)
+  facet_wrap(~ year, ncol = 2, dir = "v")
 
 # Examination of of catchability (q) estimates(scaled between models) - there
 # appears to be few differences between models.
@@ -1556,7 +1556,7 @@ ggplot(post_sums %>% filter(variable == "q")) +
        y = "Catchability scaled between models\n") +
   scale_color_manual(values = c("#80cdc1", "#018571")) +
   scale_linetype_manual(values = c(3, 4)) +
-  facet_wrap(~ year, ncol = 2)
+  facet_wrap(~ year, ncol = 2, dir = "v")
 
 # The variance estimate of q is very high when P=2, but otherwise stays constant
 # across all values of P (does not decrease with increasing P as with other
@@ -1591,7 +1591,7 @@ results %>%
                  aes(r), fill = "grey50", alpha = 0.9, bins = 100) +
   geom_vline(aes(xintercept = median), col = "black", lty = 2, size = 1) +
   geom_vline(aes(xintercept = 0), col = "black") +
-  facet_wrap(~ year, ncol = 2) +
+  facet_wrap(~ year, ncol = 2, dir = "v") +
   labs(x = "\nNet migration of sablefish (x 1000)",
        y = "\nPosterior distribution") +
   xlim(c(-30, 40))
@@ -1639,7 +1639,7 @@ results %>%
   geom_histogram(data = . %>% filter(ci==1), 
                  aes(q), fill = "grey50", alpha = 0.6, bins = 100) +
   geom_vline(aes(xintercept = median), col = "black", lty = 2, size = 1) +
-  facet_wrap(~ year, ncol = 2) +
+  facet_wrap(~ year, ncol = 2, dir = "v") +
   labs(x = "Catchability (q)",
        y = "Posterior distribution") +
   xlim(c(0.00002, 0.00009))
@@ -1680,7 +1680,7 @@ ggplot() +
                     fill = Type, group = Type), 
               alpha = 0.2, fill = "grey") +
   scale_colour_manual(values = c("grey", "black")) +
-  facet_wrap(~ year, ncol = 2) +
+  facet_wrap(~ year, ncol = 2, dir = "v") +
   labs(x = "\nTime period",
        y = "CPUE (sablefish per 1000 hooks)\n") +
   theme(legend.position = "none")
@@ -1794,16 +1794,10 @@ ggsave(paste0("figures/model1_N_retrospective_",
        dpi=300, height=4, width=6, units="in")
 
 # Write results to file for ASA
-# results %>% 
-#   gather("time_period", "N.avg", contains("N.avg")) %>% 
-#   group_by(year) %>% 
-#   summarise(estimate = round(median(N.avg) / 1e6, 4),
-#             q025 = round(quantile(N.avg, 0.025) / 1e6, 4),
-#             q975 = round(quantile(N.avg, 0.975) / 1e6, 4)) %>% 
 results %>% 
   gather("time_period", "N.avg", contains("N.avg")) %>% 
   group_by(year) %>% 
-  summarise(estimate = median(N.avg) / 1e6,
+  summarise(estimate = mean(N.avg) / 1e6,
             sd = sd(N.avg) / 1e6,
             q025 = quantile(N.avg, 0.025) / 1e6,
             q975 = quantile(N.avg, 0.975) / 1e6) %>% 
@@ -1842,7 +1836,7 @@ results %>%
   geom_histogram(data = . %>% filter(ci==1), 
                  aes(N.avg), fill = 4, alpha = 0.6, bins = 100) +
   geom_vline(aes(xintercept = median), col = "red", linetype = 2, size = 1) +
-  facet_wrap(~ year) +
+  facet_wrap(~ year, dir = "v") +
   labs(x = "Number of sablefish in millions",
        y = "Posterior distribution")
 
@@ -1875,3 +1869,4 @@ tag_summary %>%
          `$k_{srv}$` = k.1, `$n_{srv}$` = n.1, `$D_{srv}$` = D.1,
          `$k_{fsh}$` = k_fishery, `$n_{fsh}$` = n_fishery, `$D_{fsh}$` = D_fishery) %>% 
   write_csv(paste0("output/tag_summary_report_", YEAR, ".csv"))
+
