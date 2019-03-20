@@ -587,4 +587,4 @@ include_graphics(paste0("../figures/net_migration_estimates", YEAR, ".png"))
 include_graphics(paste0("../figures/NPUE_mod3_vs_mod4_", YEAR, ".png"))
 ```
 
-`r fig('mod3_vs_mod4', caption = paste0('Observed (black) and model-estimated (grey) CPUE (sablefish per 1000 hooks) in the longline fishery in ', YEAR, ' for Model 3 (top panel), which included CPUE, and Model 4 (bottom panel), which included CPUE and allowed for migration. Grey shaded areas show 95% credible intervals from the posterior distribution.'))`
+`r fig('mod3_vs_mod4', caption = paste0('Observed (black) and model-estimated (grey) CPUE (sablefish / 1000 hooks) in the ', YEAR, ' longline fishery in for Model 3 (top panel), which included CPUE, and Model 4 (bottom panel), which included CPUE and allowed for migration. Grey shaded areas show 95% credible intervals from the posterior distribution. Models 0, 1, and 2 are not included in this comparison because they do not estimate CPUE.'))`
