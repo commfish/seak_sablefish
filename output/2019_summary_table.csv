@@ -7,6 +7,6 @@ Exploited biomass,19005932.574422322,20146483.823350374
 Exploited biomass (adjusted for uncertainty in recruitment),17206356.1234441,18238914.293860078
 $F_{ABC}=F_{50}$,0.0635,0.06322316050502248
 Mortality from discards (round lb),NA,19156.705628277443
-Mortality from discards using adjusted abundance estimate (round lb),NA,17342.853232875164
-"$ABC$ before adjustment (round lb, 2018 value from last year)",965354,1058840.386935811
-"$ABC$ (round lb, 2018 value from last year)",965354,958584.1002099138
+Mortality from discards using adjusted abundance (round lb),NA,17342.853232875164
+$ABC$ before adjustment (round lb),965354,1058840.386935811
+Recommended $ABC$ (round lb),965354,958584.1002099138
