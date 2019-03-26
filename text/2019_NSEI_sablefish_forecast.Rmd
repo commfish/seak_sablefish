@@ -57,13 +57,18 @@ read_csv(paste0("output/", YEAR + 1, "_summary_table.csv")) -> summary_tbl_raw
 
 diff <- formatC(abs(summary_tbl_raw[9,3] - summary_tbl_raw[9,2]), format = "d", big.mark = ",")
 diff_notadj <- formatC(abs(summary_tbl_raw[8,3] - summary_tbl_raw[8,2]), format = "d", big.mark = ",")
-  
+
 summary_tbl_raw %>% 
   # Formatting
-  mutate(`Percent change (%)` = formatC((Y2019 - Y2018) / Y2018 * 100, format="f", digits=1),
-         `2018` = ifelse(Y2018 > 1, formatC(Y2018, format="d", big.mark=","), formatC(Y2018, format="f", digits=4)),
-         `2019` = ifelse(Y2019 > 1, formatC(Y2019, format="d", big.mark=","), formatC(Y2019, format="f", digits=4))) %>% 
+  mutate(`Percent change (%)` = ifelse(is.na(Y2018), "", # NA placeholder for discard mortality
+                                       formatC((Y2019 - Y2018) / Y2018 * 100, format="f", digits=1)),
+         `2018` = ifelse(Y2018 > 1, formatC(Y2018, format="d", big.mark=","), 
+                         formatC(Y2018, format="f", digits=4)),
+         `2019` = ifelse(Y2019 > 1, formatC(Y2019, format="d", big.mark=","), 
+                         formatC(Y2019, format="f", digits=4))) %>% 
   select(Quantity, `2018`, `2019`, `Percent change (%)`) -> summary_tbl
+
+summary_tbl[is.na(summary_tbl)] <- ""
 
 # recommended adjusted ABC
 ABC_adj <- summary_tbl[9,3]
@@ -92,13 +97,10 @@ abd_ly <- formatC(abd_ly, format="f", digits = 2)
 abd_foradj <- formatC(abd_foradj, format="f", digits = 2)
 
 # Abbreviated summary table for use in top of document. These are values that were used for management last year or are recommended for management in the upcoming year
-short_sum <- summary_tbl[c(1, 4, 7, 9),]
+short_sum <- summary_tbl[c(1, 4, 7, 9, 11),]
 
-summary_tbl %>% replace_na(list(`2018` = " ", `Percent change (%)` = " "))
-
-replace(summary_tbl$`Percent change (%)`, "NA", "")
-
-summary_tbl[is.na(summary_tbl)] <- ""
+short_sum %>% 
+  mutate(Quantity = ifelse(grepl("discards", Quantity), "Mortality from discards (round lb)", Quantity)) -> short_sum
 ```
 
 ```{r short_summary, echo=FALSE, message=FALSE, warning=FALSE}
