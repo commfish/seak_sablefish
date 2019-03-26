@@ -94,6 +94,11 @@ abd_foradj <- formatC(abd_foradj, format="f", digits = 2)
 # Abbreviated summary table for use in top of document. These are values that were used for management last year or are recommended for management in the upcoming year
 short_sum <- summary_tbl[c(1, 4, 7, 9),]
 
+summary_tbl %>% replace_na(list(`2018` = " ", `Percent change (%)` = " "))
+
+replace(summary_tbl$`Percent change (%)`, "NA", "")
+
+summary_tbl[is.na(summary_tbl)] <- ""
 ```
 
 ```{r short_summary, echo=FALSE, message=FALSE, warning=FALSE}
