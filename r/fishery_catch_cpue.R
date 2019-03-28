@@ -49,7 +49,7 @@ ggplot(catch_plot, aes(x = julian_day)) +
 
 catch_ifdb %>% 
   group_by(year) %>% 
-  summarize(total_pounds = sum(whole_pounds)) -> sum_catch
+  dplyr::summarize(total_pounds = sum(whole_pounds)) -> sum_catch
 
 axis <- tickr(sum_catch, year, 3)
 ggplot(sum_catch %>% 
@@ -128,8 +128,8 @@ fsh_cpue %>%
   gather(Variable, Count, -year) %>% 
   distinct() %>%   
   ggplot(aes(x = year, y = Count)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
+  geom_line() +
+  geom_point(size = 1) +
   facet_wrap(~ Variable, ncol = 1, scales = "free") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "") +
@@ -204,7 +204,7 @@ fsh_cpue %>% filter(Stat %in% c("335701")) %>% group_by(year) %>%  summarize(n_d
 
 fsh_cpue %>% 
   group_by(year, Stat) %>% 
-  summarize(trips = n_distinct(trip_no),
+  dplyr::summarize(trips = n_distinct(trip_no),
             vessels = n_distinct(trip_no)) -> stat_sum
 
 

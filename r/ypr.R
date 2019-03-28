@@ -586,144 +586,21 @@ save(forecast, file = paste0("output/forecast_table_", YEAR+1, ".rda"))
 
 updYEAR_expb <- ktp * sum((N_mp * wt_f_f  * f_sel) + (N_fp * wt_f_m * m_sel))
 
-# Adjust for high recruitment ----
-
-imm_adj <- 0.35 # Results in taking the lower 15th percentile of the posterior samples
-#imm_adj <- 0.45 # Results in taking the lower 15th percentile of the posterior samples
-
-results %>% 
-  filter(year == YEAR) %>%
-  mutate(N.avg = N.avg / 1e6,
-         q025 = quantile(N.avg, 0.025),
-         q975 = quantile(N.avg, 0.975),
-         imm_adj = quantile(N.avg, .5 - imm_adj),
-         ci = ifelse(N.avg >= q025 & N.avg <=q975, 1, 0),
-         mean = mean(N.avg),
-         median = median(N.avg)) -> adj_results 
-
-adj_results %>% 
-  ggplot(aes(N.avg)) + 
-  geom_histogram(fill = "white", alpha = 0.9, bins = 100, color = 'black') + 
-  geom_histogram(data = . %>% filter(ci==1), 
-                 aes(N.avg), fill = "grey50", alpha = 0.9, bins = 100) +
-  geom_vline(aes(xintercept = mean), col = "black", size = 1) +
-  # geom_vline(aes(xintercept = median), col = "red", size = 1) +
-  geom_vline(aes(xintercept = imm_adj), col = "black", lty = 2, size = 1) +
-  labs(x = "\nNumber of sablefish in millions",
-       y = "Posterior distribution\n")
-
-ggsave(paste0("figures/mod1_Nposterior_adjustment_", YEAR, ".png"), 
-       dpi=300,  height=4, width=7,  units="in")
-
-adj_N_MR_sex <- adj_results %>% 
-  distinct(imm_adj) %>% 
-  transmute(imm_adj = imm_adj * 1e6) %>% 
-  pull
-
-# Calculate adjusted exploitable biomass
-
-Nm <- 1:41
-Nf <- 1:41
-
-for(i in 1:41){
-  
-  Nm[i] <- (adj_N_MR_sex * male_p * m[i]) / m_sel[i]
-  Nf[i] <- (adj_N_MR_sex * female_p * f[i]) / f_sel[i]
-  
-}
-
-sum(Nf+Nm) 
-
-N_fp <- 1:41 # females
-N_mp <- 1:41 # males
-
-N_fp[1] <- Nf[1]
-N_mp[1] <- Nm[1]
-
-# Ages 3 - 41
-for(i in 2:40){
-  N_fp[i] <- Nf[i-1] * exp(-(Ff[i-1] + mort))
-  N_mp[i] <- Nm[i-1] * exp(-(Fm[i-1] + mort))
-}
-
-# Plus class
-N_mp[41] <- Nm[40] * exp(-(Fm[40] + mort)) + 
-  ((Nm[40] * exp(-(Fm[40] + mort))) * exp(-(Fm[41] + mort)))
-
-N_fp[41] <- Nf[40] * exp(-(Ff[40] + mort)) +
-  ((Nf[40] * exp(-(Ff[40] + mort))) * exp(-((Ff[41]) + mort)))
-
-N_sex <- sum(N_fp,N_mp)
-
-#CHECK
-N_sex
-adj_N_MR_sex
-
-adj_updYEAR_expb <- ktp * sum((N_mp * wt_f_f  * f_sel) + (N_fp * wt_f_m * m_sel))
-
-# Spawning Biomass
-SB_age_s <- 1:41
-
-SB_age_s <- N_fp * mat_s_f * wt_s_f * ktp
-
-SBs <- sum(SB_age_s)
-
-SBs
-
-# Re-run forecast with adjusted N----
-
-# Total mortality
-f_Z50 <- mort + F50 * f_sel * (f_retention + dm * (1 - f_retention))
-m_Z50 <- mort + F50 * m_sel * (m_retention + dm * (1 - m_retention))
-
-# Total pounds encountering the gear
-adj_T50 <- sum( (N_fp * wt_f_f * ktp) * (F50 * f_sel) / (f_Z50) * (1 - exp(-(f_Z50))) +
-              (N_mp * wt_f_m * ktp) * (F50 * m_sel) / (m_Z50) * (1 - exp(-(m_Z50))))
-
-# Pounds landed (quota)
-adj_Q50 <- sum( (N_fp * wt_f_f * ktp) * (f_retention * F50 * f_sel) / (f_Z50) * (1 - exp(-(f_Z50))) +
-              (N_mp * wt_f_m * ktp) * (m_retention * F50 * m_sel) / (m_Z50) * (1 - exp(-(m_Z50))))
-
-# Discards
-adj_D50 <- sum( (N_fp * wt_f_f * ktp) * (F50 * f_sel * dm * (1 - f_retention)) / (f_Z50) * (1 - exp(-(f_Z50))) +
-              (N_mp * wt_f_m * ktp) * (F50 * m_sel * dm * (1 - m_retention)) / (m_Z50) * (1 - exp(-(m_Z50))))
-
-# THIS IS TOTAL EXPLOITED BIOMASS - TOTAL ABUNDANCE PARTITIONED INTO COHORTS * 
-# FISHERY WEIGHT * SELECTIVITY (REFER: Q&D bottom page 339)
-
-adj_FOREC_exp_b <- ktp * sum((N_fp * wt_f_f * f_sel) + (N_mp * wt_f_m * m_sel))
-
-
-adj_FOREC_exp_n<-sum((N_fp*f_sel)+(N_mp*m_sel))
-
-exp_n
-adj_FOREC_exp_n
-
-exp_b
-adj_FOREC_exp_b
-
-adj_Q50
-F50
-
-# Updated summary table ----
+# Summary table ----
 
 data.frame("Quantity" = c("Exploited abundance (2018 value from last year)",
-                          "Exploited abundance",
-                          "Exploited abundance (adjusted for uncertainty in recruitment)",
-                          "Exploited biomass (2018 value from last year)",
-                          "Exploited biomass",
-                          "Exploited biomass (adjusted for uncertainty in recruitment)",
+                          "Updated exploited abundance",
+                          "Exploited biomass (round lb, 2018 value from last year)",
+                          "Updated exploited biomass (round lb)",
                           "$F_{ABC}=F_{50}$",
                           "Mortality from discards (round lb)",
-                          "Mortality from discards using adjusted abundance (round lb)",
-                          "$ABC$ before adjustment (round lb)",
                           "Recommended $ABC$ (round lb)"),
-           "Y2018" = c(1931191, N_MR_sex, adj_N_MR_sex,
-                       16454232, updYEAR_expb, adj_updYEAR_expb,
-                       0.0635, NA, NA, 965354, 965354),
-           "Y2019" = c(adj_FOREC_exp_n, exp_n, adj_FOREC_exp_n,
-                       adj_FOREC_exp_b, exp_b, adj_FOREC_exp_b,
-                       F50, D50, adj_D50, Q50, adj_Q50)) %>% 
+           "Y2018" = c(1931191, N_MR_sex, 
+                       16454232, updYEAR_expb,
+                       0.0635, NA, 965354),
+           "Y2019" = c(exp_n, exp_n, 
+                      exp_b, exp_b,
+                       F50, D50, Q50)) %>% 
   # *FLAG_DISCARD* To test impact of including discard mortality, comment out when not in use
   # write_csv(paste0("output/",YEAR+1, "_summary_table_NO_DM.csv"))
   write_csv(paste0("output/",YEAR+1, "_summary_table.csv"))
@@ -736,7 +613,7 @@ data.frame("Quantity" = c("Exploited abundance (2018 value from last year)",
 results %>% 
   gather("time_period", "N.avg", contains("N.avg")) %>% 
   group_by(year, time_period) %>% 
-  summarise(`Estimate before adjustment` = mean(N.avg),
+  summarise(current_estimate = mean(N.avg),
             q025 = quantile(N.avg, 0.025),
             q975 = quantile(N.avg, 0.975)) %>% 
   arrange(year, time_period) %>% 
@@ -749,18 +626,17 @@ results %>%
   pad(interval = "year") %>% 
   mutate(year = year(year),
          Year = factor(year),
-         `Adjusted estimate recommended for forecast` = ifelse(year == YEAR, adj_N_MR_sex, `Estimate before adjustment`)) %>% 
+         `Current estimate recommended for forecast` = ifelse(year == YEAR, N_MR_sex, current_estimate)) %>% 
   # Add forecasted year
   bind_rows(data.frame(year = YEAR + 1,
                        time_period = "N.avg", 
-                       "Estimate before adjustment" = exp_n, 
                        q025 = NA, 
                        q975 = NA, 
                        "Previous estimate" = NA,
                        Year = factor(YEAR + 1),
-                       "Adjusted estimate recommended for forecast" = adj_FOREC_exp_n,
+                       "Current estimate recommended for forecast" = exp_n,
                        check.names = FALSE)) %>% 
-  gather("Abundance", "N", `Previous estimate`, `Estimate before adjustment`, `Adjusted estimate recommended for forecast`) %>% 
+  gather("Abundance", "N", `Previous estimate`, `Current estimate recommended for forecast`) %>% 
   mutate(N = N / 1000000,
          # interpolate the CI in missing years for plotting purposes
          q025 = zoo::na.approx(q025 / 1000000, maxgap = 20, rule = 2),
@@ -776,18 +652,15 @@ ggplot(data = forec_plot) +
               alpha = 0.1, fill = "grey55") +
   geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), 
              size = 1.5) +
-  # geom_smooth(aes(x = year, y = N, col = Abundance, linetype = Abundance), 
-  #             se = FALSE) +
   geom_line(data = forec_plot %>% filter(!is.na(N)),
             aes(x = year, y = N, col = Abundance, linetype = Abundance)) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  # scale_color_manual(values = c("grey50", "grey50", "black")) + 
-  scale_color_manual(values = c("black", "black", "grey75")) + 
-  scale_linetype_manual(values = c(1, 4, 2)) + 
+  scale_color_manual(values = c("black", "grey75")) + 
+  scale_linetype_manual(values = c(1, 4)) + 
   ylim(c(1, 3.5)) +
   labs(x = "", y = "Number of sablefish (millions)\n",
        colour = NULL, shape = NULL, linetype = NULL) +
-  theme(legend.position = c(.7, .8))
+  theme(legend.position = c(.7, .9))
 
 ggsave(paste0("figures/model1_N_retrospective_", FIRST_YEAR, "_", YEAR, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
@@ -797,66 +670,14 @@ ggsave(paste0("figures/model1_N_retrospective_", FIRST_YEAR, "_", YEAR, ".png"),
 assessment_summary %>% select(year, abc = abc_round_lbs) %>% 
   bind_rows(data.frame(year = YEAR + 1,
                        abc = Q50)) %>% 
-  # right_join(data.frame(year = 2005:YEAR+1)) %>% 
-  mutate(Abundance = "notadj") %>% 
-  bind_rows(assessment_summary %>% select(year, abc = abc_round_lbs) %>% 
-              bind_rows(data.frame(year = YEAR + 1,
-                                   abc = adj_Q50)) %>% 
-              # right_join(data.frame(year = 2005:YEAR+1)) %>% 
-              mutate(Abundance = "adj")) %>% 
-  mutate(Abundance = factor(Abundance,
-                            levels = c("notadj", "adj"),
-                            labels = c("Not adjusted", "Adjusted for uncertaintly in recruitment"),
-                            ordered = TRUE)) -> df
+  bind_rows(assessment_summary %>% select(year, abc = abc_round_lbs)) -> df
 
-ggplot(df, aes(x = year, y = abc / 1e6, colour = Abundance, group = Abundance)) + 
+ggplot(df, aes(x = year, y = abc / 1e6)) + 
   geom_point() +
   geom_line() +
-  scale_colour_manual(values = c("grey", "black")) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  labs(x = NULL, y = "ABC (million round lb)\n",
-       colour = "Treatment of 2018 abundance estimate") +
-  scale_y_continuous(limits = c(0, 2.5)) +
-  theme(legend.position = c(0.7, 0.8))
+  labs(x = NULL, y = "ABC (million round lb)\n") +
+  scale_y_continuous(limits = c(0, 2.5)) 
 
-# Updated forecast by age ----
-
-data.frame(age = age, 
-           Sex = c(rep("Female", 41), rep("Male", 41)),
-           N = c(N_fp * f_sel, N_mp * m_sel),
-           B = ktp * c(N_fp * wt_f_f * f_sel, N_mp * wt_f_m * m_sel)) %>% 
-  mutate(N = N / 1000,
-         B = B / 1000,
-         Age = factor(age)) -> forec_byage
-
-# Proportion exploitable abundance that is 50% or less mature
-forec_byage %>% filter(age < 7) %>% summarize(sum(N)) %>% pull / forec_byage %>% summarize(sum(N)) %>% pull
-
-# Proportion exploitable biomass that is 50% or less mature
-forec_byage %>% filter(age < 7) %>% summarize(sum(B)) %>% pull / forec_byage %>% summarize(sum(B)) %>% pull
-
-axis <- tickr(forec_byage, age, 5)
-
-# Bargraph of forecasted numbers at age by sex
-forec_byage %>% 
-  ggplot(aes(age, N)) +
-  geom_bar(stat = "identity", fill = "grey",  position = "dodge", width = 0.8) +
-  facet_wrap(~Sex, ncol = 1) +
-  scale_x_continuous(breaks = axis$breaks, labels =  axis$labels) +
-  labs(x = "\nAge", y = "Numbers (x 1000)\n") +
-  theme(legend.position = c(0.9, 0.7))
-
-ggsave(paste0("figures/forecasted_Natage_", YEAR + 1, "_adj.png"), 
-       dpi=300, height=5, width=7, units="in")
-
-# Bargraph of forecasted numbers at age by sex
-forec_byage %>% 
-  ggplot(aes(age, B)) +
-  geom_bar(stat = "identity", fill = "grey",  position = "dodge", width = 0.8) +
-  facet_wrap(~Sex, ncol = 1) +
-  scale_x_continuous(breaks = axis$breaks, labels =  axis$labels) +
-  labs(x = "\nAge", y = "Biomass (x 1000 round lb)\n") +
-  theme(legend.position = c(0.9, 0.7))
-
-ggsave(paste0("figures/forecasted_biomatage_", YEAR + 1, "_adj.png"), 
-       dpi=300, height=5, width=7, units="in")
+ggsave(paste0("figures/ABC_", FIRST_YEAR, "_", YEAR, ".png"), 
+       dpi=300,  height=4, width=7,  units="in")
