@@ -118,7 +118,7 @@ read_csv(paste0("output/harvest_1985_", YEAR, ".csv")) -> catch
 
 - The `r YEAR+1` recommended Allowable Biological Catch ($ABC$) for Northern Southeast Inside Waters (NSEI - Chatham Strait) at a fully-selected fishing mortality of $F_{50\%}$ = `r ABC` round lb (`r tbl('full_summary', display = "cite")`, `r fig('ABC_ts', display = "cite")`). This is a `r diff` lb increase (`r perc_change`%) from the `r YEAR` $ABC$ of `r ABC_ly` round lb.
 
-- The population estimate from the `r YEAR` mark-recapture study in Chatham Strait is `r abd_YEAR_upd` individuals (`r tbl('full_summary', display = "cite")`). This is `r eval_abd` forecasted `r YEAR-1` mark-recapture estimate of `r abd_YEAR_ly` sablefish for `r YEAR`. The forecast abundance for `r YEAR+1` is `r abd_FOREC` individuals (`r fig('retro', display="cite")`; `r tbl('full_summary', display = "cite")`). Note that the forecasted abundance will always be lower than the current year's estimate of abundance under the current management model.
+- The population estimate from the `r YEAR` mark-recapture study in Chatham Strait is `r abd_YEAR_upd` individuals (`r tbl('full_summary', display = "cite")`, `r fig('retro', display="cite")`). This is `r eval_abd` forecasted `r YEAR-1` mark-recapture estimate of `r abd_YEAR_ly` sablefish for `r YEAR`. The forecast abundance for `r YEAR+1` is `r abd_FOREC` individuals (`r tbl('full_summary', display = "cite")`, `r fig('retro', display="cite")`). Note that the forecasted abundance will always be lower than the current year's estimate of abundance under the current management model.
 
 - Despite the large increase in abundance, fish younger than 7 years comprise approximately 20% of the forecasted abundance for `r YEAR+1`, and less than 50% of females are estimated to be mature at this age (`r fig('forec_Natage', display="cite")`). Using a discard mortality of 16%, the estimated mortality from discarding small fish is `r discards` round lb. We recommend that this discard mortality is accounted for in the calculation of the Annual Harvest Objective ($AHO$). The methods used to estimate discard mortality are described in Sections I and IV of this document.
 
@@ -208,7 +208,7 @@ The `r YEAR` marking survey released `r formatC(tagged, format="d", big.mark=","
 
 The `r YEAR` abundance estimate of `r abd_YEAR_upd` was partitioned into sex-specific age classes using the `r YEAR` commercial fishery age compositions and projected into `r YEAR+1` (Section IV). This produced an estimated forecast of exploited abundance of `r abd_FOREC` individuals for `r YEAR+1`. Multiplying by longline survey weight-at-age produced a forecast of exploited biomass of `r summary_tbl[4,3]` round lb (`r tbl('full_summary', display = "cite")`). Mean weight-at-age was predicted from a weight-based Ludwig von Bertalanffy growth model fit to survey weight and age data from 1997 to `r YEAR` (`r fig('bio_inputs', display = "cite")`). 
 
-Fishing mortality $F$ was obtained from a yield-per-recruit analysis and fixed to $F=F_{50}$, where $F_{50}$ corresponds to the $F$ that would reduce the spawning biomass to 50% of the unfished biomass. Biological inputs to the yield-per-recruit model included longline survey weight-at-age and estimated maturity from the longline survey (`r fig('bio_inputs', display = "cite")`). An $ABC$ of `r ABC` round lb was calculated as the landed portion of the total catch under $F_{50}$. The discarded portion of the catch that is assumed to die given a 16% discard mortality rate was calculated as `r discards` round lb (Section IV, `r tbl('full_summary', display = "cite")`). 
+The fishing mortality used to calculate the $ABC$ ($F_{ABC}$) was obtained from a yield-per-recruit analysis and fixed to $F_{ABC}=F_{50\%}$, where $F_{50\%}$ corresponds to the $F$ that would reduce the spawning biomass to 50% of the unfished levels. Biological inputs to the yield-per-recruit model included longline survey weight-at-age and estimated maturity from the longline survey (`r fig('bio_inputs', display = "cite")`). An $ABC$ of `r ABC` round lb was calculated as the landed portion of the total catch under $F_{50\%}$. The discarded portion of the catch that is assumed to die given a 16% discard mortality rate was calculated as `r discards` round lb (Section IV, `r tbl('full_summary', display = "cite")`). 
 
 ```{r fed_summary, echo=FALSE, message=FALSE}
 
@@ -219,7 +219,7 @@ fed <- data.frame(ABC_thisyr = 15068, # YEAR + 1 final ABC (whale corrected)
          eval = ifelse(perc_change < 0, "decrease", "increase")) 
 ```
 
-Unlike last year, the resultant changes in $ABC$ from `r YEAR-1` to `r YEAR` are different between NOAA and ADF&G. Although the Federal stock assessment for sablefish reported an increase in the survey index and had projected an increase in biomass in `r YEAR`, they saw a decrease in estimated spawning biomass and recommended that the Allowable Biological Catch for `r YEAR+1` stay constant from `r YEAR`. The recommended Federal $ABC$ for the `r YEAR+1` commercial longline sablefish fishery is `r formatC(fed$ABC_thisyr, format="d", big.mark=",")` tons, a `r formatC(abs(fed$perc_change), format="f", digits=1)`% `r fed$eval` from the `r YEAR` $ABC$ of `r formatC(fed$ABC_lastyr, format="d", big.mark=",")` tons after whale depredation was accounted for (Hanselman et al. `r YEAR`). This reflects a 45% reduction from the maximum permissable $ABC$ (Hanselman et al. `r YEAR`). This recommendation was accepted by the North Pacific Fishery Management Council in December `r YEAR`. Here a `r perc_change`% incease is recommended. As in past years, it is important to remember that the $F_{ABC}$ presented in the summary table above is not directly comparable to the Federal harvest policy of $F_{40\%}$, because the methods used to assess abundance and determine $F$ values are different. 
+Unlike last year, the resultant changes in $ABC$ from `r YEAR-1` to `r YEAR` are different between NOAA and ADF&G. Although the Federal stock assessment for sablefish reported an increase in the survey index and had projected an increase in biomass in `r YEAR`, they saw a decrease in estimated spawning biomass and recommended that the Allowable Biological Catch for `r YEAR+1` stay constant from `r YEAR`. The recommended Federal $ABC$ for the `r YEAR+1` commercial longline sablefish fishery is `r formatC(fed$ABC_thisyr, format="d", big.mark=",")` tons, a `r formatC(abs(fed$perc_change), format="f", digits=1)`% `r fed$eval` from the `r YEAR` $ABC$ of `r formatC(fed$ABC_lastyr, format="d", big.mark=",")` tons after whale depredation was accounted for (Hanselman et al. `r YEAR`). This reflects a 45% reduction from the maximum permissable $ABC$ (Hanselman et al. `r YEAR`). This recommendation was accepted by the North Pacific Fishery Management Council in December `r YEAR`. Here a `r perc_change`% incease in the $ABC$ is recommended for the NSEI. As in past years, it is important to remember that the $F_{ABC}$ presented in the summary table above is not directly comparable to the Federal harvest policy of $F_{40\%}$, because the methods used to assess abundance and determine $F$ values are different. 
 
 # Section III: Mark-recapture analysis
 
@@ -359,7 +359,7 @@ $$N_{`r YEAR+1`,s,a} = \left\{ \begin{array}{ll}
 
 where $p_{s,a}$ is the fishery age composition by sex $s$ in `r YEAR`, $\phi_s$ is the sex ratio in the fishery in `r YEAR`, and $S_{s,a}$ is the sex-specific fishery selectivity-at-age (Hanselman et al. `r YEAR`). 
 
-Total instantaneous mortality-at-age $Z_{s,a}$ is the sum of fishing mortality $F_{s,a}$ and natural mortality $M$, which is assumed to be 0.10 (Johnson and Quinn, 1998). Fully-selected fishing mortality $F$ is obtained from yield-per-recruit tables, and fixed to $F=F_{50}$, where $F_{50}$ corresponds to the $F$ that would reduce the spawning biomass to 50% of the unfished biomass. Biological inputs to the yield-per-recruit model included longline survey weight-at-age and estimated maturity from the longline survey (`r fig('bio_inputs', display = "cite")`).
+Total instantaneous mortality-at-age $Z_{s,a}$ is the sum of fishing mortality $F_{s,a}$ and natural mortality $M$, which is assumed to be 0.10 (Johnson and Quinn 1998). The fully-selected fishing mortality used to calculate $ABC$ ($F_{ABC}$) is obtained from yield-per-recruit tables, and fixed to $F_{ABC}=F_{50\%}$, where $F_{50\%}$ corresponds to the $F$ that would reduce the spawning biomass to 50% of unfished levels. Biological inputs to the yield-per-recruit model included longline survey weight-at-age and estimated maturity from the longline survey (`r fig('bio_inputs', display = "cite")`).
 
 Fishing mortality is modeled as a function of fishery selectivity $S_{s,a}$, retention probability $R_{s,a}$ (the age-specific probability of being landed given being caught), and discard mortality $\Omega$:
 
@@ -481,7 +481,7 @@ include_graphics(paste0("../figures/fishery_harvest_1985_", YEAR, ".png"))
 include_graphics(paste0("../figures/ABC_2005_", YEAR+1, ".png"))
 ```
 
-`r fig('ABC_ts', caption = paste0('Acceptable biological catch $ABC$ in millions of round lb recommended by ADF&G, 2005-', YEAR+1, '. The grey dashed vertical line marks a change in harvest policy from $F_{40}$ before 2009, $F_{45}$ in 2009, and $F_{50}$ in 2010 to present.'))`
+`r fig('ABC_ts', caption = paste0('Acceptable biological catch $ABC$ in millions of round lb recommended by ADF&G, 2005-', YEAR+1, '. The grey dashed vertical line marks a change in harvest policy from $F_{40\\%}$ before 2009, to $F_{45\\%}$ in 2009, and $F_{50\\%}$ after 2009.'))`
 
 ##### Abundance over time restrospective
 
@@ -585,7 +585,7 @@ include_graphics(paste0("../figures/movement_matrix_with_N_2005_", YEAR, ".png")
 include_graphics(paste0("../figures/net_migration_estimates", YEAR, ".png"))
 ```
 
-`r fig('net_migration', caption = paste0('Posterior distribution of net migration into Chatham Strait with 95% credible intervals shaded (Model 2, P=6). The median is denoted by the dashed vertical line. The solid horizontal line at net 0 migration aids in visualization of results across years with a tagging survey, 2005-', YEAR ,'. '))`
+`r fig('net_migration', caption = paste0('Posterior distribution of net migration into Chatham Strait with 95% credible intervals shaded (Model 2, $P=6$). The median is denoted by the dashed vertical line. The solid horizontal line at net 0 migration aids in visualization of results across years with a tagging survey, 2005-', YEAR ,'. '))`
 
 ##### NPUE predicted from mark-recapture models
 
@@ -593,4 +593,4 @@ include_graphics(paste0("../figures/net_migration_estimates", YEAR, ".png"))
 include_graphics(paste0("../figures/NPUE_mod3_vs_mod4_", YEAR, ".png"))
 ```
 
-`r fig('mod3_vs_mod4', caption = paste0('Observed (black) and model-estimated (grey) CPUE (sablefish / 1000 hooks) in the ', YEAR, ' longline fishery in for Model 3 (top panel), which included CPUE, and Model 4 (bottom panel), which included CPUE and allowed for migration. Grey shaded areas show 95% credible intervals from the posterior distribution. Models 0, 1, and 2 are not included in this comparison because they do not estimate CPUE.'))`
+`r fig('mod3_vs_mod4', caption = paste0('Observed (black) and model-estimated (grey) CPUE (sablefish / 1000 hooks) in the ', YEAR, ' longline fishery for Model 3 (top panel), which included CPUE, and Model 4 (bottom panel), which included CPUE and allowed for migration. Grey shaded areas show 95% credible intervals from the posterior distribution. Models 0, 1, and 2 are not included in this comparison because they do not estimate CPUE.'))`
