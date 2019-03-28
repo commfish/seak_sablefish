@@ -116,7 +116,7 @@ read_csv(paste0("output/harvest_1985_", YEAR, ".csv")) -> catch
 
 - The commercial catch in Chatham Strait in `r YEAR` was `r formatC(catch %>% filter(year == YEAR) %>% pull(total_pounds), format="d", big.mark=",")` round lb (`r fig('catch', display = "cite")`).
 
-- The `r YEAR+1` recommended Allowable Biological Catch ($ABC$) for Northern Southeast Inside Waters (NSEI - Chatham Strait) at a fully-selected fishing mortality of $F_{50\%}$ = `r ABC` round lb (`r tbl('full_summary', display = "cite")`). This is a `r diff` lb increase (`r perc_change`%) from the `r YEAR` $ABC$ of `r ABC_ly` round lb.
+- The `r YEAR+1` recommended Allowable Biological Catch ($ABC$) for Northern Southeast Inside Waters (NSEI - Chatham Strait) at a fully-selected fishing mortality of $F_{50\%}$ = `r ABC` round lb (`r tbl('full_summary', display = "cite")`, `r fig('ABC_ts', display = "cite")`). This is a `r diff` lb increase (`r perc_change`%) from the `r YEAR` $ABC$ of `r ABC_ly` round lb.
 
 - The population estimate from the `r YEAR` mark-recapture study in Chatham Strait is `r abd_YEAR_upd` individuals (`r tbl('full_summary', display = "cite")`). This is `r eval_abd` forecasted `r YEAR-1` mark-recapture estimate of `r abd_YEAR_ly` sablefish for `r YEAR`. The forecast abundance for `r YEAR+1` is `r abd_FOREC` individuals (`r fig('retro', display="cite")`; `r tbl('full_summary', display = "cite")`). Note that the forecasted abundance will always be lower than the current year's estimate of abundance under the current management model.
 
@@ -375,7 +375,7 @@ The biomass of discarded sablefish estimated to die with an assumed discard mort
 
 $$D_{`r YEAR+1`}= \sum_{s=1}^{2}\sum_{a=2}^{a+}w_{s,a}(N_{`r YEAR+1`,s,a})\frac{\Omega S_{s,a}(1-R_{s,a})F}{Z_{s,a}}(1-\mbox{exp}(-Z_{s,a})).$$
 
-The $ABC$ for `r YEAR+1` was estimated to be `r ABC` round lb, and the discarded portion of the catch was estimated to be `r discards` round lb (`r tbl('full_summary', display = "cite")`). 
+The $ABC$ for `r YEAR+1` was estimated to be `r ABC` round lb, and the discarded portion of the catch was estimated to be `r discards` round lb (`r tbl('full_summary', display = "cite")`). `r fig('ABC_ts', display = "cite")` shows the `r YEAR+1` $ABC$ in the context of $ABC$s recommended by ADF&G since 2005.
 
 # Section V: Future work and recommendations
   
@@ -474,6 +474,14 @@ include_graphics(paste0("../figures/fishery_harvest_1985_", YEAR, ".png"))
 ```
 
 `r fig('catch', caption = paste0('Fishery harvest in Chatham Strait from 1985-', YEAR, '. The vertical dashed line marks the transition of the fishery from limited entry to equal quota share in 1994.'))`
+
+##### ABC over time
+
+```{r abc_ts, echo=FALSE, out.width = '100%'}
+include_graphics(paste0("../figures/ABC_2005_", YEAR+1, ".png"))
+```
+
+`r fig('ABC_ts', caption = paste0('Acceptable biological catch $ABC$ in millions of round lb recommended by ADF&G, 2005-', YEAR+1, '. The grey dashed vertical line marks a change in harvest policy from $F_{40}$ before 2009, $F_{45}$ in 2009, and $F_{50}$ in 2010 to present.'))`
 
 ##### Abundance over time restrospective
 

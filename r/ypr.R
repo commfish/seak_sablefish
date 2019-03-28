@@ -645,7 +645,7 @@ results %>%
          q025 = ifelse(year == YEAR + 1, NA, q025),
          q975 = ifelse(year == YEAR + 1, NA, q975)) -> forec_plot
 
-axis <- tickr(forec_plot, year, 2)
+axis <- tickr(forec_plot, year, 3)
 
 ggplot(data = forec_plot) +  
   geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
@@ -675,9 +675,10 @@ assessment_summary %>% select(year, abc = abc_round_lbs) %>%
 ggplot(df, aes(x = year, y = abc / 1e6)) + 
   geom_point() +
   geom_line() +
+  geom_vline(xintercept = 2009, lty = 2, colour = "lightgrey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = NULL, y = "ABC (million round lb)\n") +
   scale_y_continuous(limits = c(0, 2.5)) 
 
-ggsave(paste0("figures/ABC_", FIRST_YEAR, "_", YEAR, ".png"), 
+ggsave(paste0("figures/ABC_", FIRST_YEAR, "_", YEAR+1, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
