@@ -371,7 +371,7 @@ mr_jags <- function(
   coda_res_out %>% 
     group_by(year) %>% 
     mutate(N.avg = N.avg / 1000000) %>% 
-    summarize(median = median(N.avg),
+    summarize(mean = mean(N.avg),
            q025 = quantile(N.avg, 0.025),
            q975 = quantile(N.avg, 0.975)) %>% 
     mutate(model = mod_name) -> n_summary_out
