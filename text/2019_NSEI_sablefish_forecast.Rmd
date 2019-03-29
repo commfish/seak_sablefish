@@ -262,17 +262,17 @@ mod_descriptions <- data.frame(Model = c("Model 0", "Model 1", "Model 2", "Model
 
 The mark-recapture study forms the foundation for current sablefish management in Chatham Strait. The most commonly used method for abundance estimation and the model that was used for many years by ADF&G is the Chapman estimator:
 
-$$N = \frac{(K+1)(n+1)}{k+1}-1,$$
+$$N = \frac{(K_0+1)(n+1)}{k+1}-1,$$
 
-where $N$ is the estimated population abundance, $K$ is the total number of individuals tagged in the population, $n$ is the number of individuals checked for marks at the time of recapture, and $k$ is the number of marked individuals out of $n$. The variance of the abundance estimate is calculated as
+where $N$ is the estimated population abundance, $K_0$ is the total number of individuals tagged in the population, $n$ is the number of individuals checked for marks at the time of recapture, and $k$ is the number of marked individuals out of $n$. The variance of the abundance estimate is calculated as
 
-$$\mbox{var}(N) = \frac{(K+1)(n+1)(K-k)(n-k)}{(k+1)^2(k+2)}.$$
+$$\mbox{var}(N) = \frac{(K_0+1)(n+1)(K_0-k)(n-k)}{(k+1)^2(k+2)}.$$
 
-A description of all model variables is found in `r tbl('varb_defns', display = "cite")`, and a summary of the mark-recapture data since 2005 is found in `r tbl('tag_sum', display = "cite")`. ADF&G did not conduct a tagging survey in 2011, 2014, or 2016 due to budget restrictions.
+A description of all model variables is found in `r tbl('varb_defns', display = "cite")`, and a summary of the mark-recapture data since 2005 is found in `r tbl('tag_sum', display = "cite")`. The ADF&G did not conduct a tagging survey in 2011, 2014, or 2016 due to budget restrictions. In the equations above, $n$ and $k$ represent the combined observed samples and marks in the fishery and survey, and tags captured in other fisheries or outside Chatham before or during the survey ($D_0$ and $D_{srv}$) are deducted from $K_0$ prior to estimation (`r tbl('tag_sum', display = "cite")`). 
 
 There are four primary assumptions integral to the Chapman estimator, which have been discussed in detail in previous iterations of this memo (Williams and Van Kirk 2017, Dressel 2009, Mueter 2010). Briefly, these assumptions include a closed population (no movement in or out of the study area), equal probability of recapture, sufficient time between marking and recapture to allow for marked individuals to be randomly distributed throughout the unmarked population, and no tag loss or errors. Violations to these assumptions can be mitigated through study design, treatment of data, and changes to model structure. A combination of approaches were utlized to meet or relax these assumptions including:
 
-1.  Potential differences in the size selectivity between the pot survey and longline survey and fishery were accounted for by (1) estimating growth between May and August using known length recaptured individuals, (2) comparing the cumulative length distributions between tagged and recaptured fish, and (3) adjusting sample sizes accordingly. Despite the differences in selectivity between pot and longline gear, minimal differences in the cumulative length distributions between marked and recaptured since 2005 were found, which suggests that in most years the size distribution tagged in the pot survey well represents the the fishery (`r fig('cum_length', display = "cite")`). The 2018 survey was a notable exception; the size distribution of the recaptured fish was much larger than that of the released (`r fig('cum_length', display = "cite")`). A record number of fish were tagged in 2018, and catch rates were so high that the number of pots fished in a set was reduced from 40 to 20. Because a large number of small fish were tagged and none of the tags were recovered in the fishery, `r tags_removed` tags were removed prior to analysis (`r tbl('tag_sum', display = "cite")`). 
+1.  Potential differences in the size selectivity between the pot survey and longline survey and fishery were accounted for by (1) estimating growth between May and August using known length recaptured individuals, (2) comparing the cumulative length distributions between tagged and recaptured fish, and (3) adjusting sample sizes accordingly. Despite the differences in selectivity between pot and longline gear, minimal differences in the cumulative length distributions between marked and recaptured since 2005 were found, which suggests that in most years the size distribution tagged in the pot survey well represents the the fishery (`r fig('cum_length', display = "cite")`). The 2018 survey was a notable exception; the size distribution of the recaptured fish was much larger than that of the released (`r fig('cum_length', display = "cite")`). A record number of fish were tagged in 2018, and catch rates were so high that the number of pots fished in a set was reduced from 40 to 20. Because a large number of small fish were tagged and none of the tags were recovered in the fishery, `r tags_removed` tags were removed prior to analysis (the difference between $K$ and $K_0$ in `r tbl('tag_sum', display = "cite")`). 
 
 2.  To assess the assumption that there is sufficient time between marking and recapture to allow for tagged individuals to be randomly distributed, movement in the population between statistical areas was explored. Results suggest that the population is sufficiently mixed across study years (`r fig('movement_mat', display = "cite")`). These findings are consistent with Mueter (2010) and lend support to the current study design of the mark-recapture project.
 
@@ -367,7 +367,7 @@ $$F_{s,a}=S_{s,a}(R_{s,a}+\Omega(1-R_{s,a}))F.$$
 
 Discard mortality $\Omega$ is assumed to be 0.16, the discard mortality used in the Pacific halibut fishery (Gilroy and Stewart 2013). Pacific halibut are a reasonable proxy for sablefish because they are large-bodied, long-lived benthic fish that do not experience barotrauma. Retention probability by sex and age $R_{a,s}$ is informed by processor grade and price and defined as a function of weight, which is converted to age and sex using survey weight-at-age (`r fig('discard_mort', display = "cite")`). This method of accounting for discards shifts fishing mortality toward older ages, especially for males that are slower growing than females (`r fig('F_discards', display = "cite")`).
 
-Using longline survey weight-at-age by sex $w_{s,a}$ from a weight-based von Bertalanffy growth model, a modified Baranov catch equation is used to calculate the acceptable biological catch in `r YEAR+1` $ABC_{`r YEAR+1`}$:
+Using longline survey weight-at-age by sex $w_{s,a}$ from a weight-based von Bertalanffy growth model, a modified Baranov catch equation is used to calculate the $ABC$ in `r YEAR+1`:
 
 $$ABC_{`r YEAR+1`}= \sum_{s=1}^{2}\sum_{a=2}^{a+}w_{s,a}(N_{`r YEAR+1`,s,a})\frac{R_{s,a}S_{s,a}F}{Z_{s,a}}(1-\mbox{exp}(-Z_{s,a})).$$
 
@@ -375,7 +375,7 @@ The biomass of discarded sablefish estimated to die with an assumed discard mort
 
 $$D_{`r YEAR+1`}= \sum_{s=1}^{2}\sum_{a=2}^{a+}w_{s,a}(N_{`r YEAR+1`,s,a})\frac{\Omega S_{s,a}(1-R_{s,a})F}{Z_{s,a}}(1-\mbox{exp}(-Z_{s,a})).$$
 
-The $ABC$ for `r YEAR+1` was estimated to be `r ABC` round lb, and the discarded portion of the catch was estimated to be `r discards` round lb (`r tbl('full_summary', display = "cite")`). `r fig('ABC_ts', display = "cite")` shows the `r YEAR+1` $ABC$ in the context of $ABC$s recommended by ADF&G since 2005.
+The `r YEAR+1` $ABC$ is estimated to be `r ABC` round lb, and the discarded portion of the catch is `r discards` round lb (`r tbl('full_summary', display = "cite")`). `r fig('ABC_ts', display = "cite")` shows the `r YEAR+1` $ABC$ in the context of $ABC$s recommended by ADF&G since 2005.
 
 # Section V: Future work and recommendations
   
@@ -424,7 +424,7 @@ Zheng, J. and M. S. M. Siddeek. 2018. Bristol Bay Red King Crab stock assessment
 
 # Tables
 
-`r tbl('full_summary', caption = paste0('Estimated and forecasted exploited abundance, biomass, target fishing mortality $F$, mortality from discarded fish, and the recommended acceptable biological catch $ABC$ for ', YEAR ,' and ', YEAR + 1, '. For abundance, biomass, and $ABC$, the ', YEAR, ' value from last year (forecasted from the ', YEAR-1, ' tagging survey) is compared to current ', YEAR, ' estimates'))`
+`r tbl('full_summary', caption = paste0('Estimated and forecasted exploited abundance, biomass, target fishing mortality $F$, mortality from discarded fish, and the recommended acceptable biological catch $ABC$ for ', YEAR ,' and ', YEAR + 1, '. For abundance, biomass, and $ABC$, the ', YEAR, ' value from last year (forecasted from the ', YEAR-1, ' tagging survey) is compared to current ', YEAR, ' estimates.'))`
 
 
 ```{r full_summary, echo=FALSE, message=FALSE, warning=FALSE}
@@ -585,7 +585,7 @@ include_graphics(paste0("../figures/movement_matrix_with_N_2005_", YEAR, ".png")
 include_graphics(paste0("../figures/net_migration_estimates", YEAR, ".png"))
 ```
 
-`r fig('net_migration', caption = paste0('Posterior distribution of net migration into Chatham Strait with 95% credible intervals shaded (Model 2, $P=6$). The median is denoted by the dashed vertical line. The solid horizontal line at net 0 migration aids in visualization of results across years with a tagging survey, 2005-', YEAR ,'. '))`
+`r fig('net_migration', caption = paste0('Posterior distribution of net migration into Chatham Strait with 95% credible intervals shaded (Model 2, $P=6$). The median is denoted by the dashed vertical line. The solid vertical line at net 0 migration aids in visualization of results across years with a tagging survey, 2005-', YEAR ,'. '))`
 
 ##### NPUE predicted from mark-recapture models
 
