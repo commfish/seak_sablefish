@@ -1,8 +1,8 @@
 Quantity,Y2018,Y2019
-Exploited abundance (2018 value from last year),1931191,2486487.326297486
-Updated exploited abundance,2704444.8703573323,2486487.326297486
-"Exploited biomass (round lb, 2018 value from last year)",16454232,20146483.823350374
-Updated exploited biomass (round lb),19005932.574422322,20146483.823350374
-$F_{ABC}=F_{50}$,0.0635,0.06322316050502248
-Mortality from discards (round lb),NA,19156.705628277443
-Recommended $ABC$ (round lb),965354,1058840.386935811
+Exploited abundance (2018 value from last year),1931191,2484601.4964606566
+Updated exploited abundance,2702393.734695131,2484601.4964606566
+"Exploited biomass (round lb, 2018 value from last year)",16454232,20131204.0992595
+Updated exploited biomass (round lb),18991517.88010776,20131204.0992595
+$F_{ABC}=F_{50\%}$,0.0635,0.06322316050502248
+Mortality from discards (round lb),NA,19142.176582958335
+Recommended $ABC$ (round lb),965354,1058037.3292354941

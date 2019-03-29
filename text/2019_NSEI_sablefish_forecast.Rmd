@@ -21,11 +21,11 @@ Presentation to industry: Tuesday, April 30
 
 Initial Draft: Friday, March 1
 
-Internal ADF&G review: TBD
+Internal ADF&G review: Friday, March 15
 
-Final version approved by reviewers & managers: TBD  
+Final version approved by reviewers & managers: Friday, May 17  
 
-Public announcement of formal quota: TBD
+Public announcement of formal quota: Friday, June 7
 
 ```{r set-options, echo=FALSE, message=FALSE, warning=FALSE}
 

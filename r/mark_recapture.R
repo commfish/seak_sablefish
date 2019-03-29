@@ -310,6 +310,10 @@ ggsave(paste0("figures/rel_rec_cumproplength_",
 # growth length bin less than the cut off out.
 
 rec_sel %>% 
+  # *FLAG* removing this single tag that NOAA returned to ADFG on 20190328 that
+  # is officially the smallest recovered fish that we have since 2005 from the
+  # fishery and was recaptured outside of Chatham in 365630.
+  filter(!tag_no %in% "T-089116") %>% 
   group_by(year) %>% 
   summarize(cutoff = min(as.numeric(as.character(rec_bin)))) %>% 
   right_join(growth_sel, "year") %>% 
@@ -325,7 +329,7 @@ releases %>%
   summarise(K = n_distinct(tag_no), # total fish tagged
             potsrv_beg = min(date),
             potsrv_end = max(date),
-            # FLAG: Mueter (2007) defined the length of time period 1 (t.1) as
+            # Mueter (2007) defined the length of time period 1 (t.1) as
             # the number of days between the middle of the pot survey and the
             # middle of the LL survey, and t.2 as the middle of the LL survey to
             # the end of the first fishing period. We have changed this methodology
@@ -572,7 +576,7 @@ marks %>% group_by(year) %>%
 recoveries %>% 
   filter(year_trip %in% marks$year_trip & Project_cde == "02") %>% 
   group_by(year_trip) %>% 
-  summarize(tags_from_fishery = n_distinct(tag_no)) %>% #write_csv("tst_2017.csv")
+  summarize(tags_from_fishery = n_distinct(tag_no)) %>% 
   right_join(marks, by = "year_trip") -> marks
 
 # Remove these matched tags from the releases df so they don't get double-counted by accident. 
@@ -593,22 +597,22 @@ anti_join(recoveries %>%
 # assessment in 2008 is way off. These 7 trips from 2008 are in the IFDB and
 # look like they were missed. Should they be added to the marks df? They are
 # from the NSEI state managed fishery and appear not to have been accounted for
-# in the countbacks spreadsheets.
-# fsh_tx %>% 
-#   filter(year_trip %in% no_match$year_trip) %>% 
-#   group_by(year, trip_no, year_trip, sell_date, julian_day) %>% 
-#   summarise(whole_kg = sum(whole_kg)) %>% 
-#   rename(date = sell_date) %>% 
-#   left_join(no_match, by = "year_trip") %>% 
-#   select(-Mgmt_area) %>% 
-#   full_join(marks, by = c("year", "trip_no", "year_trip", "date", "julian_day",
-#                           "whole_kg", "tags_from_fishery")) %>% 
-#   arrange(date)  %>% 
-#   fill_by_value(unmarked, marked, bio_samples, total_obs, value = 0) %>% 
-#   fill_by_value(observed_flag, all_observed, value = "No") -> marks
+# in the countbacks spreadsheets. fsh_tx %>% filter(year_trip %in%
+# no_match$year_trip) %>% group_by(year, trip_no, year_trip, sell_date,
+# julian_day) %>% summarise(whole_kg = sum(whole_kg)) %>% rename(date =
+# sell_date) %>% left_join(no_match, by = "year_trip") %>% select(-Mgmt_area)
+# %>% full_join(marks, by = c("year", "trip_no", "year_trip", "date",
+# "julian_day", "whole_kg", "tags_from_fishery")) %>% arrange(date)  %>%
+# fill_by_value(unmarked, marked, bio_samples, total_obs, value = 0) %>%
+# fill_by_value(observed_flag, all_observed, value = "No") -> marks
+#
+# These tags were entered 20190328 by M. Vaughn (see issue #29). Trips in the
+# 9000 series are assigned to bio samples that do not have logbooks or samples
+# from a tendered trip where the fish are mixed.
+no_match %>% filter(!year_trip %in% c("2018_9001", "2018_9003", "2018_9004")) -> no_match
 
 # Remove these matched tags from the releases df so they don't get double-counted by accident. 
-recoveries %>% filter(!c(year_trip %in% no_match$year_trip & Project_cde == "02")) -> recoveries
+recoveries %>% filter(!c(year_trip %in% no_match$year_trip & Project_cde == "02") ) -> recoveries
 
 # Pothole - check that all fish ticket trips have been accounted for in the NSEI in other
 # years in the daily accounting form... or not. How about next year. This is a mess.
@@ -1767,12 +1771,13 @@ results %>%
   mutate(N = N / 1e6,
          # interpolate the CI in missing years for plotting purposes
          q025 = zoo::na.approx(q025 / 1e6, maxgap = 20, rule = 2),
-         q975 = zoo::na.approx(q975 / 1e6, maxgap = 20, rule = 2)) %>%
-  ggplot() +
+         q975 = zoo::na.approx(q975 / 1e6, maxgap = 20, rule = 2)) -> df
+
+ggplot(df) +
   geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), 
              size = 1.5) +
-  geom_smooth(aes(x = year, y = N, col = Abundance), 
-              se = FALSE) +
+  geom_line(data = df %>% filter(!is.na(N)), 
+            aes(x = year, y = N, col = Abundance, linetype = Abundance)) +
   geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
               alpha = 0.2, fill = "grey") +
   scale_x_continuous(breaks = seq(min(model_years), max(model_years), 2), 
@@ -1783,13 +1788,13 @@ results %>%
              aes(x = year, y = est),
              shape = 8, size = 1.5, colour = "grey") +
   scale_colour_grey() +
-  ylim(c(0, 3.5)) +
+  ylim(c(1, 3.5)) +
   labs(x = "", y = "Number of sablefish (millions)\n",
-       colour = NULL, shape = NULL) +
+       colour = NULL, shape = NULL, linetype = NULL) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  theme(legend.position = c(.8, .2))
+  theme(legend.position = c(.7, .9))
 
-ggsave(paste0("figures/model1_N_retrospective_",
+ggsave(paste0("figures/model1_N_retro_noforec_",
               FIRST_YEAR, "_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
 
