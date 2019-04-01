@@ -9,7 +9,7 @@ source("r/helper.r")
 source("r/functions.r")
 
 syr <- 1980
-lyr <- 2017
+lyr <- YEAR <- 2018
 nyr <- length(syr:lyr)
 
 rec_age <- 2
@@ -151,9 +151,8 @@ mr %>%
   
 plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)', '(D)'))
 
-ggsave(paste0("figures/tmb/abd_indices.png"),
+ggsave(paste0("figures/tmb/abd_indices_", YEAR, ".png"),
        dpi=300, height=6, width=6, units="in")
-
 
 full_join(catch, fsh_cpue) %>% 
   full_join(srv_cpue) %>% 
@@ -384,19 +383,19 @@ agecomps %>%
   group_by(year, Source) %>% 
   summarize(n = sum(n)) -> n_agecomps
 
-axisy <- tickr(agecomps, year, 5)
+axisx <- tickr(agecomps, year, 5)
 
-ggplot(agecomps, aes(x = age, y = year, size = proportion)) +
-  geom_hline(yintercept = seq(2000, 2015, by = 5), 
-             colour = "grey", linetype = 3, alpha = 0.7) +  
+ggplot(agecomps, aes(x = year, y = age, size = proportion)) +
+  # geom_hline(yintercept = seq(2000, 2015, by = 5), 
+  #            colour = "grey", linetype = 3, alpha = 0.7) +  
   geom_point(shape = 21, colour = "black", fill = "black") +
   scale_size(range = c(0, 4)) +
   facet_wrap(~ Source) +
   xlab('\nAge') +
   ylab('') +
   guides(size = FALSE) +
-  scale_y_continuous(breaks = axisy$breaks, labels = axisy$labels) +
-  scale_x_continuous(breaks = unique(agecomps$age), labels = age_labs) 
+  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
+  scale_y_continuous(breaks = unique(agecomps$age), labels = age_labs) 
 
 ggsave("figures/tmb/agecomps.png", dpi = 300, height = 5, width = 7, units = "in")
 
@@ -475,7 +474,7 @@ inits_rec_dev <- c(-0.0188002294100, -0.0697329463801, -0.152542991556,
                    0.00714024634689, -0.928016835774, 0.285420095181,
                    -0.138735004317, 0.469180409653, 0.566364647489,
                    0.349805017285, -0.448967807172, -0.169286675728,
-                   -1.42262349732, -1.74624961284)
+                   -1.42262349732, -1.74624961284, -1.42262349732)
 
 inits_rec_dev <- data.frame(year = syr:lyr,
                             inits_rec_dev = inits_rec_dev)
@@ -483,3 +482,4 @@ inits_rec_dev <- data.frame(year = syr:lyr,
 write_csv(finits, "data/tmb_inputs/inits_f_devs.csv")
 write_csv(inits_rinit, "data/tmb_inputs/inits_rinit.csv")
 write_csv(inits_rec_dev, "data/tmb_inputs/inits_rec_devs.csv")
+

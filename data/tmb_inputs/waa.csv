@@ -1,124 +1,124 @@
 Source,Sex,age,weight,Age
-Fishery (sexes combined),Combined,2,2.0259,2
-Fishery (sexes combined),Combined,3,2.2472,3
-Fishery (sexes combined),Combined,4,2.4596,4
-Fishery (sexes combined),Combined,5,2.6616,5
-Fishery (sexes combined),Combined,6,2.8525,6
-Fishery (sexes combined),Combined,7,3.0318,7
-Fishery (sexes combined),Combined,8,3.1993,8
-Fishery (sexes combined),Combined,9,3.3551,9
+Fishery (sexes combined),Combined,2,1.9783,2
+Fishery (sexes combined),Combined,3,2.208,3
+Fishery (sexes combined),Combined,4,2.4282,4
+Fishery (sexes combined),Combined,5,2.6375,5
+Fishery (sexes combined),Combined,6,2.8349,6
+Fishery (sexes combined),Combined,7,3.0198,7
+Fishery (sexes combined),Combined,8,3.1922,8
+Fishery (sexes combined),Combined,9,3.352,9
 Fishery (sexes combined),Combined,10,3.4995,10
-Fishery (sexes combined),Combined,11,3.6328,11
-Fishery (sexes combined),Combined,12,3.7555,12
-Fishery (sexes combined),Combined,13,3.8681,13
-Fishery (sexes combined),Combined,14,3.9713,14
-Fishery (sexes combined),Combined,15,4.0657,15
-Fishery (sexes combined),Combined,16,4.1517,16
-Fishery (sexes combined),Combined,17,4.2302,17
-Fishery (sexes combined),Combined,18,4.3015,18
-Fishery (sexes combined),Combined,19,4.3664,19
-Fishery (sexes combined),Combined,20,4.4252,20
-Fishery (sexes combined),Combined,21,4.4786,21
-Fishery (sexes combined),Combined,22,4.5269,22
-Fishery (sexes combined),Combined,23,4.5707,23
-Fishery (sexes combined),Combined,24,4.6102,24
-Fishery (sexes combined),Combined,25,4.646,25
-Fishery (sexes combined),Combined,26,4.6783,26
-Fishery (sexes combined),Combined,27,4.7075,27
-Fishery (sexes combined),Combined,28,4.7339,28
-Fishery (sexes combined),Combined,29,4.7576,29
-Fishery (sexes combined),Combined,30,4.7791,30
-Fishery (sexes combined),Combined,31,4.7984,31
-Fishery (sexes combined),Combined,32,4.8158,32
-Fishery (sexes combined),Combined,33,4.8315,33
-Fishery (sexes combined),Combined,34,4.8457,34
-Fishery (sexes combined),Combined,35,4.8584,35
-Fishery (sexes combined),Combined,36,4.8699,36
-Fishery (sexes combined),Combined,37,4.8802,37
-Fishery (sexes combined),Combined,38,4.8895,38
-Fishery (sexes combined),Combined,39,4.8979,39
-Fishery (sexes combined),Combined,40,4.9054,40
-Fishery (sexes combined),Combined,41,4.9122,41
-Fishery (sexes combined),Combined,42,4.9183,42+
-Survey females (spawning biomass),Female,2,1.3513,2
-Survey females (spawning biomass),Female,3,1.6238,3
-Survey females (spawning biomass),Female,4,1.9009,4
-Survey females (spawning biomass),Female,5,2.1781,5
-Survey females (spawning biomass),Female,6,2.4518,6
-Survey females (spawning biomass),Female,7,2.7192,7
-Survey females (spawning biomass),Female,8,2.9779,8
-Survey females (spawning biomass),Female,9,3.2263,9
-Survey females (spawning biomass),Female,10,3.4632,10
-Survey females (spawning biomass),Female,11,3.6879,11
-Survey females (spawning biomass),Female,12,3.8999,12
-Survey females (spawning biomass),Female,13,4.0989,13
-Survey females (spawning biomass),Female,14,4.2852,14
-Survey females (spawning biomass),Female,15,4.459,15
-Survey females (spawning biomass),Female,16,4.6205,16
-Survey females (spawning biomass),Female,17,4.7703,17
-Survey females (spawning biomass),Female,18,4.9089,18
-Survey females (spawning biomass),Female,19,5.0368,19
-Survey females (spawning biomass),Female,20,5.1547,20
-Survey females (spawning biomass),Female,21,5.2632,21
-Survey females (spawning biomass),Female,22,5.3629,22
-Survey females (spawning biomass),Female,23,5.4543,23
-Survey females (spawning biomass),Female,24,5.5381,24
-Survey females (spawning biomass),Female,25,5.6148,25
-Survey females (spawning biomass),Female,26,5.6849,26
-Survey females (spawning biomass),Female,27,5.749,27
-Survey females (spawning biomass),Female,28,5.8076,28
-Survey females (spawning biomass),Female,29,5.861,29
-Survey females (spawning biomass),Female,30,5.9096,30
-Survey females (spawning biomass),Female,31,5.954,31
-Survey females (spawning biomass),Female,32,5.9944,32
-Survey females (spawning biomass),Female,33,6.0312,33
-Survey females (spawning biomass),Female,34,6.0647,34
-Survey females (spawning biomass),Female,35,6.0952,35
-Survey females (spawning biomass),Female,36,6.1229,36
-Survey females (spawning biomass),Female,37,6.1481,37
-Survey females (spawning biomass),Female,38,6.171,38
-Survey females (spawning biomass),Female,39,6.1918,39
-Survey females (spawning biomass),Female,40,6.2107,40
-Survey females (spawning biomass),Female,41,6.2278,41
-Survey females (spawning biomass),Female,42,6.2434,42+
-Survey (sexes combined),Combined,2,1.22,2
-Survey (sexes combined),Combined,3,1.5041,3
-Survey (sexes combined),Combined,4,1.7823,4
-Survey (sexes combined),Combined,5,2.0484,5
-Survey (sexes combined),Combined,6,2.2985,6
-Survey (sexes combined),Combined,7,2.5301,7
-Survey (sexes combined),Combined,8,2.742,8
-Survey (sexes combined),Combined,9,2.9342,9
-Survey (sexes combined),Combined,10,3.1071,10
-Survey (sexes combined),Combined,11,3.2617,11
-Survey (sexes combined),Combined,12,3.3991,12
-Survey (sexes combined),Combined,13,3.5208,13
-Survey (sexes combined),Combined,14,3.628,14
-Survey (sexes combined),Combined,15,3.7223,15
-Survey (sexes combined),Combined,16,3.805,16
-Survey (sexes combined),Combined,17,3.8773,17
-Survey (sexes combined),Combined,18,3.9404,18
-Survey (sexes combined),Combined,19,3.9954,19
-Survey (sexes combined),Combined,20,4.0433,20
-Survey (sexes combined),Combined,21,4.0849,21
-Survey (sexes combined),Combined,22,4.121,22
-Survey (sexes combined),Combined,23,4.1524,23
-Survey (sexes combined),Combined,24,4.1795,24
-Survey (sexes combined),Combined,25,4.2031,25
-Survey (sexes combined),Combined,26,4.2234,26
-Survey (sexes combined),Combined,27,4.2411,27
-Survey (sexes combined),Combined,28,4.2563,28
-Survey (sexes combined),Combined,29,4.2695,29
-Survey (sexes combined),Combined,30,4.2809,30
-Survey (sexes combined),Combined,31,4.2908,31
-Survey (sexes combined),Combined,32,4.2993,32
-Survey (sexes combined),Combined,33,4.3066,33
-Survey (sexes combined),Combined,34,4.313,34
-Survey (sexes combined),Combined,35,4.3185,35
-Survey (sexes combined),Combined,36,4.3232,36
-Survey (sexes combined),Combined,37,4.3273,37
-Survey (sexes combined),Combined,38,4.3308,38
-Survey (sexes combined),Combined,39,4.3339,39
-Survey (sexes combined),Combined,40,4.3365,40
-Survey (sexes combined),Combined,41,4.3388,41
-Survey (sexes combined),Combined,42,4.3407,42+
+Fishery (sexes combined),Combined,11,3.6353,11
+Fishery (sexes combined),Combined,12,3.7599,12
+Fishery (sexes combined),Combined,13,3.8738,13
+Fishery (sexes combined),Combined,14,3.9777,14
+Fishery (sexes combined),Combined,15,4.0724,15
+Fishery (sexes combined),Combined,16,4.1584,16
+Fishery (sexes combined),Combined,17,4.2365,17
+Fishery (sexes combined),Combined,18,4.3072,18
+Fishery (sexes combined),Combined,19,4.3712,19
+Fishery (sexes combined),Combined,20,4.429,20
+Fishery (sexes combined),Combined,21,4.4812,21
+Fishery (sexes combined),Combined,22,4.5283,22
+Fishery (sexes combined),Combined,23,4.5708,23
+Fishery (sexes combined),Combined,24,4.609,24
+Fishery (sexes combined),Combined,25,4.6434,25
+Fishery (sexes combined),Combined,26,4.6744,26
+Fishery (sexes combined),Combined,27,4.7022,27
+Fishery (sexes combined),Combined,28,4.7273,28
+Fishery (sexes combined),Combined,29,4.7497,29
+Fishery (sexes combined),Combined,30,4.7699,30
+Fishery (sexes combined),Combined,31,4.7881,31
+Fishery (sexes combined),Combined,32,4.8043,32
+Fishery (sexes combined),Combined,33,4.8189,33
+Fishery (sexes combined),Combined,34,4.832,34
+Fishery (sexes combined),Combined,35,4.8438,35
+Fishery (sexes combined),Combined,36,4.8543,36
+Fishery (sexes combined),Combined,37,4.8638,37
+Fishery (sexes combined),Combined,38,4.8722,38
+Fishery (sexes combined),Combined,39,4.8798,39
+Fishery (sexes combined),Combined,40,4.8866,40
+Fishery (sexes combined),Combined,41,4.8927,41
+Fishery (sexes combined),Combined,42,4.8982,42+
+Survey females (spawning biomass),Female,2,1.302,2
+Survey females (spawning biomass),Female,3,1.5797,3
+Survey females (spawning biomass),Female,4,1.8626,4
+Survey females (spawning biomass),Female,5,2.1459,5
+Survey females (spawning biomass),Female,6,2.4256,6
+Survey females (spawning biomass),Female,7,2.6985,7
+Survey females (spawning biomass),Female,8,2.9621,8
+Survey females (spawning biomass),Female,9,3.2148,9
+Survey females (spawning biomass),Female,10,3.4551,10
+Survey females (spawning biomass),Female,11,3.6823,11
+Survey females (spawning biomass),Female,12,3.8961,12
+Survey females (spawning biomass),Female,13,4.0963,13
+Survey females (spawning biomass),Female,14,4.2829,14
+Survey females (spawning biomass),Female,15,4.4564,15
+Survey females (spawning biomass),Female,16,4.6171,16
+Survey females (spawning biomass),Female,17,4.7656,17
+Survey females (spawning biomass),Female,18,4.9025,18
+Survey females (spawning biomass),Female,19,5.0284,19
+Survey females (spawning biomass),Female,20,5.1441,20
+Survey females (spawning biomass),Female,21,5.25,21
+Survey females (spawning biomass),Female,22,5.347,22
+Survey females (spawning biomass),Female,23,5.4356,23
+Survey females (spawning biomass),Female,24,5.5165,24
+Survey females (spawning biomass),Female,25,5.5903,25
+Survey females (spawning biomass),Female,26,5.6576,26
+Survey females (spawning biomass),Female,27,5.7187,27
+Survey females (spawning biomass),Female,28,5.7744,28
+Survey females (spawning biomass),Female,29,5.825,29
+Survey females (spawning biomass),Female,30,5.871,30
+Survey females (spawning biomass),Female,31,5.9127,31
+Survey females (spawning biomass),Female,32,5.9506,32
+Survey females (spawning biomass),Female,33,5.9849,33
+Survey females (spawning biomass),Female,34,6.0161,34
+Survey females (spawning biomass),Female,35,6.0443,35
+Survey females (spawning biomass),Female,36,6.0699,36
+Survey females (spawning biomass),Female,37,6.093,37
+Survey females (spawning biomass),Female,38,6.114,38
+Survey females (spawning biomass),Female,39,6.133,39
+Survey females (spawning biomass),Female,40,6.1502,40
+Survey females (spawning biomass),Female,41,6.1657,41
+Survey females (spawning biomass),Female,42,6.1798,42+
+Survey (sexes combined),Combined,2,1.1937,2
+Survey (sexes combined),Combined,3,1.4806,3
+Survey (sexes combined),Combined,4,1.7621,4
+Survey (sexes combined),Combined,5,2.0316,5
+Survey (sexes combined),Combined,6,2.2849,6
+Survey (sexes combined),Combined,7,2.5192,7
+Survey (sexes combined),Combined,8,2.7336,8
+Survey (sexes combined),Combined,9,2.9277,9
+Survey (sexes combined),Combined,10,3.1021,10
+Survey (sexes combined),Combined,11,3.2579,11
+Survey (sexes combined),Combined,12,3.3961,12
+Survey (sexes combined),Combined,13,3.5183,13
+Survey (sexes combined),Combined,14,3.6258,14
+Survey (sexes combined),Combined,15,3.7202,15
+Survey (sexes combined),Combined,16,3.8028,16
+Survey (sexes combined),Combined,17,3.8749,17
+Survey (sexes combined),Combined,18,3.9377,18
+Survey (sexes combined),Combined,19,3.9924,19
+Survey (sexes combined),Combined,20,4.0399,20
+Survey (sexes combined),Combined,21,4.0811,21
+Survey (sexes combined),Combined,22,4.1168,22
+Survey (sexes combined),Combined,23,4.1477,23
+Survey (sexes combined),Combined,24,4.1744,24
+Survey (sexes combined),Combined,25,4.1975,25
+Survey (sexes combined),Combined,26,4.2175,26
+Survey (sexes combined),Combined,27,4.2348,27
+Survey (sexes combined),Combined,28,4.2497,28
+Survey (sexes combined),Combined,29,4.2626,29
+Survey (sexes combined),Combined,30,4.2737,30
+Survey (sexes combined),Combined,31,4.2832,31
+Survey (sexes combined),Combined,32,4.2915,32
+Survey (sexes combined),Combined,33,4.2986,33
+Survey (sexes combined),Combined,34,4.3048,34
+Survey (sexes combined),Combined,35,4.31,35
+Survey (sexes combined),Combined,36,4.3146,36
+Survey (sexes combined),Combined,37,4.3185,37
+Survey (sexes combined),Combined,38,4.3219,38
+Survey (sexes combined),Combined,39,4.3248,39
+Survey (sexes combined),Combined,40,4.3274,40
+Survey (sexes combined),Combined,41,4.3295,41
+Survey (sexes combined),Combined,42,4.3314,42+
