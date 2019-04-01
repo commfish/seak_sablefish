@@ -2,7 +2,9 @@
 # Libraries, ggplot themes, and user-defined fxns.
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2017-10-03
+# Last edited: April 2019
+
+options(scipen = 999) # turn off scientific notation
 
 # libraries ----
 

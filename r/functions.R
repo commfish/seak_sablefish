@@ -385,6 +385,11 @@ mr_jags <- function(
    
 }
 
+# Tick marks ----
+
+# Format ggplot figures with ticked axes (especially good for marking year and
+# age) 
+
 # Depends on dplyr
 tickr <- function(
   data, # dataframe
@@ -401,6 +406,8 @@ tickr <- function(
                            !!VAR, "")) %>%
     select(breaks = UQ(VAR), labels)
 }
+
+# TMB functions ----
 
 # Build parameter bounds
 # Original code by Grant Adams, adapted for use with the sablefish model
@@ -504,7 +511,7 @@ build_phases <- function(param_list = NULL, data_list){
   phases$log_rinit_devs <- replace(phases$log_rinit_devs, values = rep(2, length(phases$log_rinit_devs)))
   phases$log_Fbar <- replace(phases$log_Fbar, values = rep(2, length(phases$log_Fbar)))
   phases$log_sigma_r <- replace(phases$log_sigma_r, values = rep(2, length(phases$log_sigma_r)))
-  
+
   # 3: Fishing mortality devs and catchability
   phases$log_F_devs <- replace(phases$log_F_devs, values = rep(3, length(phases$log_F_devs)))
   phases$fsh_logq <- replace(phases$fsh_logq, values = rep(2, length(phases$fsh_logq)))
@@ -525,6 +532,12 @@ build_phases <- function(param_list = NULL, data_list){
 # Original code by Gavin Fay, adaped for use in the sablefish model
 TMBphase <- function(data, parameters, random, phases, model_name,
                      optimizer = "nlminb", debug = FALSE) {
+  
+  # debugging fxn
+  # random <-  random_vars <- NULL
+  # phases <- build_phases(parameters, data)
+  # model_name <- "mod"
+  # debug <- FALSE
   
   # function to fill list component with a factor
   fill_vals <- function(x,vals){rep(as.factor(vals), length(x))}
@@ -559,6 +572,11 @@ TMBphase <- function(data, parameters, random, phases, model_name,
       map_use <- list()
       map_use$dummy <- fill_vals(parameters$dummy, NA)
       
+      # if not using random effects, assign log_sigma_r an NA in the map so it's not estimated
+      if (data$random_rec == FALSE) {
+        map_use$log_sigma_r <- fill_vals(parameters$log_sigma_r, NA)
+      }
+      
       j <- 1 # change to 0 if you get rid of the dummy debugging feature
       
       for (i in 1:length(parameters)) {
@@ -571,13 +589,8 @@ TMBphase <- function(data, parameters, random, phases, model_name,
       map_use
     }
     
-    # remove the random effects if they are not estimated
-    random_use <- random[!random%in%names(map_use)]
-    
-    # Recruitment deviation sigmas - turn off if not estimating
-    if(data$random_rec == FALSE){
-      map_use$log_sigma_r <- replace(map_use$log_sigma_r, values = rep(NA, length(map_use$log_sigma_r)))
-    }
+    # remove the random effects if they are not estimated *FLAG* redundant?
+    # random_use <- random[!random%in%names(map_use)]
     
     # Build upper and lower parameter bounds and remove any that are not
     # estimated (should be the inverse of the map_use)
@@ -590,9 +603,9 @@ TMBphase <- function(data, parameters, random, phases, model_name,
     upper <- unlist(bounds$upper)
     
     # Remove random effects from bounds
-    if (data$random_rec == TRUE) {
-      lower <- lower[!c(random_use %in% names(lower))]
-      upper <- upper[!c(random_use %in% names(upper))]
+    if (data$random_rec == FALSE) {
+      lower <- lower[!names(lower) %in% "log_sigma_r"]
+      upper <- upper[!names(lower) %in% "log_sigma_r"]
     }
     
     # initialize the parameters at values in previous phase
@@ -600,7 +613,7 @@ TMBphase <- function(data, parameters, random, phases, model_name,
     if (phase_cur>1) params_use <- obj$env$parList(opt$par)
     
     # Fit the model
-    obj <- TMB::MakeADFun(data,params_use,random=random_use,DLL=DLL_use,map=map_use)  
+    obj <- TMB::MakeADFun(data,params_use,random=NULL,DLL=DLL_use,map=map_use)  
     
     TMB::newtonOption(obj,smartsearch=FALSE)
     # obj$fn()

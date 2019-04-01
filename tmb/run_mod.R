@@ -9,7 +9,7 @@
 source("r/helper.r")
 source("r/functions.r")
 
-library(TMB)
+library(TMB) 
 
 # Data -----
 
@@ -190,6 +190,11 @@ parameters <- list(
 
 # Use map to turn off parameters, either for testing with dummy, phasing, or to
 # fix parameter values
+#
+# If you have a single sigma_r that governs the rinits and the rec_devs, in
+# MakeADFun() the random = c("rinits", "rec_devs") not random = "sigma_r". When
+# you're building the map for phases, it's sigma_r that gets muted as an "NA" if
+# it's not estimated as a random effect
 
 # Compile
 compile("mod.cpp")
@@ -202,17 +207,15 @@ if (data$random_rec == 1) {
 }
 
 # Fix parameter if sigma_r is not estimated via random effects
-# if(data$random_rec == 0) {
-#   random_vars <- rep(factor(NA),2)
-# }
+if(data$random_rec == 0) {
+  random_vars <- NULL #rep(factor(NA),2)
+}
 
 phases <- build_phases(parameters, data)
 
 TMBphase(data, parameters, random = random_vars, phases, model_name = "mod", debug = FALSE)
 
-
-
-# Estimate everything at once
+# Estimate everything at once 
 map <- list(dummy=factor(NA))
 
 library(TMBhelper)
@@ -314,7 +317,7 @@ upper <- c(Inf,                  # log mean recruitment
            Inf)                  # log sigma R)
 
 # Remove random effects from bounds
-if (random_rec == TRUE) {
+if (data$random_rec == TRUE) {
   lower <- lower[-grep(random_vars, names(lower))]
   upper <- upper[-grep(random_vars, names(upper))]
 }
