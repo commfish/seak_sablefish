@@ -417,9 +417,6 @@ build_bounds <- function(param_list = NULL, data_list){
   upper_bnd <- param_list
   lower_bnd <- param_list
   
-  # upper_bnd <- lapply(upper_bnd, as.numeric)
-  # lower_bnd <- lapply(lower_bnd, as.numeric)
-  
   # General bounds
   for(i in 1:length(param_list)){
     upper_bnd[[i]] <- replace(upper_bnd[[i]], values = rep(Inf, length(upper_bnd[[i]])))
@@ -427,16 +424,12 @@ build_bounds <- function(param_list = NULL, data_list){
   }
   
   # Fishery selectivity
-  lower_bnd$fsh_sel50 <- replace(lower_bnd$fsh_sel50, values = rep(0.1, length(lower_bnd$fsh_sel50)))
-  lower_bnd$fsh_sel95 <- replace(lower_bnd$fsh_sel95, values = rep(0.1, length(lower_bnd$fsh_sel95)))
-  upper_bnd$fsh_sel50 <- replace(upper_bnd$fsh_sel50, values = rep(10, length(upper_bnd$fsh_sel50)))
-  upper_bnd$fsh_sel95 <- replace(upper_bnd$fsh_sel95, values = rep(10, length(upper_bnd$fsh_sel95)))  
+  lower_bnd$fsh_slx_pars[,,] <- replace(lower_bnd$fsh_slx_pars[,,], values = 0.1) 
+  upper_bnd$fsh_slx_pars[,,] <- replace(upper_bnd$fsh_slx_pars[,,], values = 10) 
   
   # Survey selectivity
-  lower_bnd$sel_sel50 <- replace(lower_bnd$sel_sel50, values = rep(0.1, length(lower_bnd$sel_sel50)))
-  lower_bnd$sel_sel95 <- replace(lower_bnd$sel_sel95, values = rep(0.1, length(lower_bnd$sel_sel95)))
-  upper_bnd$sel_sel50 <- replace(upper_bnd$sel_sel50, values = rep(10, length(upper_bnd$sel_sel50)))
-  upper_bnd$sel_sel95 <- replace(upper_bnd$sel_sel95, values = rep(10, length(upper_bnd$sel_sel95)))  
+  lower_bnd$srv_slx_pars[,,] <- replace(lower_bnd$srv_slx_pars[,,], values = 0.1) 
+  upper_bnd$srv_slx_pars[,,] <- replace(upper_bnd$srv_slx_pars[,,], values = 10) 
   
   # Fishery catchability
   lower_bnd$fsh_logq <- replace(lower_bnd$fsh_logq, values = rep(-15, length(lower_bnd$fsh_logq)))
@@ -518,11 +511,9 @@ build_phases <- function(param_list = NULL, data_list){
   phases$srv_logq <- replace(phases$srv_logq, values = rep(2, length(phases$srv_logq)))
   
   # 4: Selectivity
-  phases$fsh_sel50 <- replace(phases$fsh_sel50, values = rep(4, length(phases$fsh_sel50)))
-  phases$fsh_sel95 <- replace(phases$fsh_sel95, values = rep(4, length(phases$fsh_sel95)))
-  phases$srv_sel50 <- replace(phases$srv_sel50, values = rep(4, length(phases$srv_sel50)))
-  phases$srv_sel95 <- replace(phases$srv_sel95, values = rep(4, length(phases$srv_sel95)))
-  
+  phases$fsh_slx_pars[,,] <- replace(phases$fsh_slx_pars[,,], values = 4)
+  phases$srv_slx_pars[,,] <- replace(phases$srv_slx_pars[,,], values = 4)
+
   # 5: Reference points
   phases$spr_Fxx <- replace(phases$spr_Fxx, values = rep(5, length(phases$spr_Fxx)))
   

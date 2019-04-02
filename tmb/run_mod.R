@@ -61,15 +61,18 @@ data <- list(
   # Model dimensions
   nyr = nyr,
   nage = nage,
+  nsex = nsex,
   
   # Switch recruitment estimation: 0 = penalized likelihood (fixed sigma_r), 1 =
   # random effects
   random_rec = 0,
   
-  # Time varying parameters - each vector contains the terminal years of each time block
+  # Switch for selectivity type: 0 = a50, a95 logistic; 1 = a50, slope logistic
+  slx_type = 0,
   
-  blks_fsh_sel = c(37), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, 37)
-  blks_srv_sel = c(37), # no breaks survey selectivity
+  # Time varying parameters - each vector contains the terminal years of each time block
+  blks_fsh_slx = c(37), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, 37)
+  blks_srv_slx = c(37), # no breaks survey selectivity
   
   # Fixed parameters
   M = 0.1,
@@ -161,13 +164,55 @@ parameters <- list(
   
   dummy = 0,   # Used for troubleshooting model               
   
-  # Selectivity
-  fsh_sel50 = rep(3.52, length(data$blks_fsh_sel)),
-  fsh_sel95 = rep(5.43, length(data$blks_fsh_sel)),
-  srv_sel50 = rep(3.86, length(data$blks_srv_sel)),
-  srv_sel95 = rep(5.13, length(data$blks_srv_sel)), 
+  # Fishery selectivity
+  fsh_slx_pars = 
+    # Logistic with a50 and a95, data$slx_type = 0
+    if(data$slx_type == 0) {array(data = c(rep(3.52, length(data$blks_fsh_slx)),
+                                           rep(5.43, length(data$blks_fsh_slx))),
+                                  # 2 = number of parameters for this slx_type (e.g. logistic
+                                  # has 2 parameters)
+                                  dim = c(length(data$blks_fsh_slx), 2, nsex))
+    } else {# Logistic with a50 and slope, data$slx_type = 1 use if else {} if you want
+      # to add more than 2 selectivity options
+      array(data = c(rep(4.04, length(data$blks_fsh_slx)),
+                     rep(2.61, length(data$blks_fsh_slx))),
+            # 2 = number of parameters for this slx_type (e.g. logistic
+            # has 2 parameters)
+            dim = c(length(data$blks_fsh_slx), 2, nsex))},
+  # SEX-STRUCTURED
+  # fsh_slx_pars = array(data = c(rep(4.22, length(data$blks_fsh_slx)), # males first matrix of array
+  #                          rep(2.61, length(data$blks_fsh_slx)),
+  #                          rep(3.86, length(data$blks_fsh_slx)), # females second
+  #                          rep(2.61, length(data$blks_fsh_slx))),
+  #                 # 2 = number of parameters for this slx_type (e.g. logistic
+  #                 # has 2 parameters)
+  #                 dim = c(length(data$blks_fsh_slx), 2, nsex))
   
-  # Catchability
+  # Survey selectivity
+  srv_slx_pars = 
+    # Logistic with a50 and a95, data$slx_type = 0
+    if(data$slx_type == 0) {array(data = c(rep(3.86, length(data$blks_srv_slx)),
+                                           rep(5.13, length(data$blks_srv_slx))),
+                                  # 2 = number of parameters for this slx_type (e.g. logistic
+                                  # has 2 parameters)
+                                  dim = c(length(data$blks_srv_slx), 2, nsex))
+    } else {# Logistic with a50 and slope, data$slx_type = 1 use if else {} if you want
+      # to add more than 2 selectivity options
+      array(data = c(rep(3.73, length(data$blks_srv_slx)),
+                     rep(2.21, length(data$blks_srv_slx))),
+            # 2 = number of parameters for this slx_type (e.g. logistic
+            # has 2 parameters)
+            dim = c(length(data$blks_srv_slx), 2, nsex))},
+  # SEX-STRUCTURED
+  # srv_slx_pars = array(data = c(rep(3.72, length(data$blks_srv_slx)), # males first matrix of array
+  #                          rep(2.21, length(data$blks_srv_slx)),
+  #                          rep(3.75, length(data$blks_srv_slx)), # females second
+  #                          rep(2.21, length(data$blks_srv_slx))),
+  #                 # 2 = number of parameters for this slx_type (e.g. logistic
+  #                 # has 2 parameters)
+  #                 dim = c(length(data$blks_srv_slx), 2, nsex))
+
+    # Catchability
   fsh_logq = -3.6726,
   srv_logq = -2.4019,
   mr_logq = -0.00000001,
@@ -219,10 +264,12 @@ if(data$random_rec == 0) {
 phases <- build_phases(parameters, data)
 
 # Debug
-map <- list(fsh_sel50 = rep(factor(NA), length(data$blks_fsh_sel)),
-            fsh_sel95 = rep(factor(NA), length(data$blks_fsh_sel)),
-            srv_sel50 = rep(factor(NA), length(data$blks_srv_sel)),
-            srv_sel95 = rep(factor(NA), length(data$blks_srv_sel)),
+map <- list(fsh_slx_pars = factor(array(data = c(rep(factor(NA), length(data$blks_fsh_slx)),
+                                     rep(factor(NA), length(data$blks_fsh_slx))),
+                            dim = c(length(data$blks_fsh_slx), 2, nsex))),
+            srv_slx_pars = factor(array(data = c(rep(factor(NA), length(data$blks_srv_slx)),
+                                                 rep(factor(NA), length(data$blks_srv_slx))),
+                                        dim = c(length(data$blks_srv_slx), 2, nsex))),
             fsh_logq = factor(NA), srv_logq = factor(NA), mr_logq = factor(NA),
             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr),
             log_rinit = factor(NA), log_rinit_devs = rep(factor(NA), nage-2),
@@ -237,7 +284,7 @@ fit <- nlminb(model$par, model$fn, model$gr,
               control=list(eval.max=100000,iter.max=1000))
 
 # Run model
-fit <- TMBphase(data, parameters, random = random_vars, phases, model_name = "mod", debug = FALSE)
+fit <- TMBphase(data, parameters, random = random_vars, phases, model_name = "mod", debug = TRUE)
 
 fit
 # Estimate everything at once 
@@ -596,9 +643,9 @@ ggsave("srv_agecomps_barplot.png", dpi = 300, height = 8, width = 7, units = "in
 # Extract selectivity matrices and convert to dfs and create a second index col
 # as a dummy var (must supply an interval to foverlaps). Set as data.table
 # object so it is searchable
-sel <- model$report()$fsh_sel %>% as.data.frame() %>% 
+sel <- model$report()$fsh_slx %>% as.data.frame() %>% 
   mutate(Selectivity = "Fishery") %>% 
-  bind_rows(model$report()$srv_sel %>% as.data.frame() %>% 
+  bind_rows(model$report()$srv_slx %>% as.data.frame() %>% 
               mutate(Selectivity = "Survey"))
 
 names(sel) <- c(unique(agecomps$age), "Selectivity")
@@ -611,9 +658,9 @@ sel <- sel %>%
 setDT(sel)
 
 # Look up table for selectivity time blocks
-blks_sel <- data.frame(Selectivity = c(rep("Fishery", length(data$blks_fsh_sel)),
-                                       rep("Survey", length(data$blks_srv_sel))),
-                       end = c(data$blks_fsh_sel, data$blks_srv_sel)) %>%
+blks_sel <- data.frame(Selectivity = c(rep("Fishery", length(data$blks_fsh_slx)),
+                                       rep("Survey", length(data$blks_fsh_slx))),
+                       end = c(data$blks_fsh_slx, data$blks_srv_slx)) %>%
   left_join(ts %>%
               mutate(end = index) %>% 
               select(year, end), by = "end") %>% 
