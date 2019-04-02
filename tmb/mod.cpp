@@ -87,10 +87,10 @@ template<class Type>
   // Proportion female at age in the survey (all years combined)
   DATA_VECTOR(prop_fem)
   
-  // Weight-at-age (currently all years combined)
-  DATA_VECTOR(data_fsh_waa)       // Fishery (sexes combined)
-  DATA_VECTOR(data_srv_waa)       // Survey (sexes combined)
-  DATA_VECTOR(data_fem_waa)       // Survey female weight-at-age (used for spawning biomass)
+  // Weight-at-age (rows = 1, all years combined; cols = nage; matrices = 0 for
+  // males, 1 for females)
+  DATA_ARRAY(data_srv_waa)       // Survey (sex-specific)
+  //std::cout << data_srv_waa << "\n";
     
   // Fishery age comps
   DATA_INTEGER(nyr_fsh_age)       // number of years 
@@ -354,7 +354,7 @@ template<class Type>
   // Predicted annual catch
   for (int i = 0; i < nyr; i++) {
     for (int j = 0; j < nage; j++) {
-      pred_catch(i) += C(i,j) * data_fsh_waa(j) ;  // / 1e3 in mt
+      pred_catch(i) += C(i,j) * data_srv_waa(0,j,0) ;  // / 1e3 in mt
     }
   }
   
@@ -385,25 +385,25 @@ template<class Type>
     for (int j = 0; j < nage; j++) {
 
       // Total biomass at time of longline survey
-      biom(i) += data_srv_waa(j) * N(i,j) * surv_srv; 
+      biom(i) += data_srv_waa(0,j,0) * N(i,j) * surv_srv; 
 
       // Vulnerable biomass to the fishery at the beginning of the fishery
-      expl_biom(i) += data_srv_waa(j) * fsh_sel(i,j) * N(i,j) * surv_fsh;   // sex-specific
+      expl_biom(i) += data_srv_waa(0,j,0) * fsh_sel(i,j) * N(i,j) * surv_fsh;   // sex-specific
 
       // Vulnerable abundance to the survey at the beginning of the survey
       vuln_abd(i) += srv_sel(i,j) * N(i,j) * surv_srv;  // sex-specific
 
       // Spawning biomass
-      spawn_biom(i) += data_srv_waa(j) * N(i,j) * surv_spawn * prop_fem(j) * prop_mature(j); // remove prop fem because Nijk will only be for females
+      spawn_biom(i) += data_srv_waa(0,j,0) * N(i,j) * surv_spawn * prop_fem(j) * prop_mature(j); // remove prop fem because Nijk will only be for females
     }
   }
   
   // Project those values into the next year 
   for (int j = 0; j < nage; j++) {
-    biom(nyr) += data_srv_waa(j) * N(nyr,j) * surv_srv; 
-    expl_biom(nyr) += data_srv_waa(j) * fsh_sel(nyr-1,j) * N(nyr,j) * surv_fsh; 
+    biom(nyr) += data_srv_waa(0,j,0) * N(nyr,j) * surv_srv; 
+    expl_biom(nyr) += data_srv_waa(0,j,0) * fsh_sel(nyr-1,j) * N(nyr,j) * surv_fsh; 
     vuln_abd(nyr) += srv_sel(nyr-1,j) * N(nyr,j) * surv_srv;
-    spawn_biom(nyr) += data_srv_waa(j) * N(nyr,j) * surv_spawn * prop_fem(j) * prop_mature(j); // remove prop fem because Nijk will only be for females
+    spawn_biom(nyr) += data_srv_waa(0,j,0) * N(nyr,j) * surv_spawn * prop_fem(j) * prop_mature(j); // remove prop fem because Nijk will only be for females
   }
     
   // std::cout << "Predicted biomass\n" << biom << "\n";
@@ -528,7 +528,7 @@ template<class Type>
   // Spawning biomass per recruit matrix
   for(int x = 0; x <= n_Fxx; x++) {
     for(int j = 0; j < nage; j++) {
-      SBPR(x) +=  Nspr(x,j) * prop_fem(j) * prop_mature(j) * data_srv_waa(j) * surv_spawn; // *FLAG* get rid of prop_fem
+      SBPR(x) +=  Nspr(x,j) * prop_fem(j) * prop_mature(j) * data_srv_waa(0,j,0) * surv_spawn; // *FLAG* get rid of prop_fem
     }
   }
   // std::cout << "Spawning biomass per recruit\n" << SBPR << "\n";
@@ -553,7 +553,7 @@ template<class Type>
     }
     // ABC calculation 
     for(int j = 0; j < nage; j++) {
-      ABC(x) += data_fsh_waa(j) * sel_Fxx(x,j) / Z_Fxx(x,j) * N(nyr, j) * (1.0 - S_Fxx(x,j));
+      ABC(x) += data_srv_waa(0,j,0) * sel_Fxx(x,j) / Z_Fxx(x,j) * N(nyr, j) * (1.0 - S_Fxx(x,j));
     }
   }
   // std::cout << "ABC\n" << ABC << "\n";

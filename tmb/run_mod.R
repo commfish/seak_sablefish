@@ -43,6 +43,7 @@ nyr <- length(syr:lyr)                # number of years
 rec_age <- min(waa$age)               # recruitment age                  
 plus_group <- max(waa$age)            # plus group age
 nage <- length(rec_age:plus_group)    # number of ages
+nsex <- 1                             # single sex or sex-structured
 # number of years to project forward *FLAG* eventually add to cpp file,
 # currently just for graphics
 nproj <- 1                            
@@ -129,9 +130,13 @@ data <- list(
   prop_fem = bio$prop_fem,
   
   # Weight-at-age
-  data_fsh_waa = filter(waa, Source == "Fishery (sexes combined)") %>% pull(weight),
-  data_srv_waa = filter(waa, Source == "Survey (sexes combined)") %>% pull(weight),
-  data_fem_waa = filter(waa, Source == "Survey females (spawning biomass)") %>% pull(weight),
+  data_srv_waa = filter(waa, Source == "Survey (females)") %>% 
+    pull(weight) %>% 
+    matrix(ncol = nage, nrow = nsex) %>% 
+    # currently weight-at-age is averaged over all years. If for whatever reason
+    # you wanted to include multiple time periods for weight-at-age, you would
+    # change the number of rows from 1 to the number of time periods
+    array(dim = c(1, nage, nsex)),
   
   # Fishery age comps
   nyr_fsh_age = fsh_age %>% distinct(year) %>% nrow(),
@@ -213,9 +218,28 @@ if(data$random_rec == 0) {
 
 phases <- build_phases(parameters, data)
 
+# Debug
+map <- list(fsh_sel50 = rep(factor(NA), length(data$blks_fsh_sel)),
+            fsh_sel95 = rep(factor(NA), length(data$blks_fsh_sel)),
+            srv_sel50 = rep(factor(NA), length(data$blks_srv_sel)),
+            srv_sel95 = rep(factor(NA), length(data$blks_srv_sel)),
+            fsh_logq = factor(NA), srv_logq = factor(NA), mr_logq = factor(NA),
+            log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr),
+            log_rinit = factor(NA), log_rinit_devs = rep(factor(NA), nage-2),
+            log_sigma_r = factor(NA), log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
+            spr_Fxx = rep(factor(NA), length(data$Fxx_levels)))
+
+model <- MakeADFun(data, parameters, DLL = "mod", 
+                   silent = TRUE, map = map,
+                   random = random_vars)
+
+fit <- nlminb(model$par, model$fn, model$gr,
+              control=list(eval.max=100000,iter.max=1000))
+
+# Run model
 fit <- TMBphase(data, parameters, random = random_vars, phases, model_name = "mod", debug = FALSE)
 
-sdreport
+fit
 # Estimate everything at once 
 map <- list(dummy = factor(NA), log_sigma_r = factor(NA))
 

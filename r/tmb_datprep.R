@@ -181,9 +181,8 @@ read_csv(paste0("data/survey/llsrv_bio_1985_", lyr,".csv"),
 waa <- read_csv("output/pred_waa.csv")
 
 waa %>% 
-  mutate(Source = derivedFactor("Fishery (sexes combined)" = Source == "LL fishery" & Sex == "Combined",
-                             "Survey (sexes combined)" = Source == "LL survey" & Sex == "Combined",
-                             "Survey females (spawning biomass)" = Source == "LL survey" & Sex == "Female",
+  mutate(Source = derivedFactor("Survey (males)" = Source == "LL survey" & Sex == "Male",
+                             "Survey (females)" = Source == "LL survey" & Sex == "Female",
                              .default = NA),
          Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
                                       "9", "10", "11", "12", "13", "14", "15",
