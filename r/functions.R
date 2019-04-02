@@ -621,11 +621,11 @@ TMBphase <- function(data, parameters, random, phases, model_name,
     opt <- nlminb(obj$par,obj$fn,obj$gr,
                   control=list(eval.max=100000,iter.max=1000),
                   lower = lower, upper = upper)
-    rep <- TMB::sdreport(obj)
-    rep
+    # rep <- TMB::sdreport(obj)
+    # rep
     
     #close phase loop
   }
   
-  return(rep)  
+  return(opt)  
 }
