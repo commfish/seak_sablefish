@@ -413,8 +413,8 @@ template<class Type>
 
   // Catch
 
-  // Catch in sex-specific numbers-at-age (F already incorporates fishery
-  // selectivity-at-age)
+  // Baranov catch eqn - Catch in sex-specific numbers-at-age (F already
+  // incorporates fishery selectivity-at-age)
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
@@ -536,7 +536,7 @@ template<class Type>
   for (int i = 0; i < nyr_mr; i++) {
     pred_mr(i) = mr_q * tot_vuln_abd(yrs_mr(i)); //  / 1e6 Just in years with a MR estimate
   }
-  std::cout << "Predicted MR \n" << pred_mr << "\n";
+  // std::cout << "Predicted MR \n" << pred_mr << "\n";
 
   for (int i = 0; i < nyr; i++) {
     pred_mr_all(i) = mr_q * tot_vuln_abd(i); // / 1e6 All years
@@ -549,7 +549,7 @@ template<class Type>
   for (int i = 0; i < nyr_fsh_cpue; i++) {
     pred_fsh_cpue(i) = fsh_q * tot_expl_biom(yrs_fsh_cpue(i));
   }
-  std::cout << "Predicted fishery cpue\n" << pred_fsh_cpue << "\n";
+  // std::cout << "Predicted fishery cpue\n" << pred_fsh_cpue << "\n";
 
   // Survey catchability and predicted survey cpue
   Type srv_q = exp(srv_logq);
@@ -557,59 +557,95 @@ template<class Type>
   for (int i = 0; i < nyr_srv_cpue; i++) {
     pred_srv_cpue(i) = srv_q * tot_vuln_abd(yrs_srv_cpue(i));
   }
-  std::cout << "Predicted srv cpue\n" << pred_srv_cpue << "\n";
+  // std::cout << "Predicted srv cpue\n" << pred_srv_cpue << "\n";
 
-  // // Predicted fishery age compositions - *FLAG* check on sample sizes by year and sex
-  // 
-  // // sumC = temporary variable, sum catch in numbers-at-age by year
+  // Predicted fishery age compositions - *FLAG* check on sample sizes by year and sex
+  for (int i = 0; i < nyr_fsh_age; i++) {
+    
+    // sumC = temporary variable, catch in numbers summed over age and sex in a
+    // given year
+    Type sumC = 0; 
+    for (int k = 0; k < nsex; k++) {
+      for (int j = 0; j < nage; j++) {
+        sumC += C(yrs_fsh_age(i),j,k);
+      }
+    }
+    // sumC_age = temporary vector of catch in numbers by age in a given year
+    // (combine sexes since we currently do not have sex-structured age comps)
+    vector<Type> sumC_age(nage);
+    sumC_age.setZero();
+    for (int k = 0; k < nsex; k++) {
+      for (int j = 0; j < nage; j++) {
+        sumC_age(j) += C(yrs_fsh_age(i),j,k);
+      }
+    }
+    
+    // Get predicted age comps (proportions-at-age) and apply ageing error
+    // matrix
+    for (int j = 0; j < nage; j++) {
+      pred_fsh_age(i,j) = sumC_age(j) / sumC;
+      // pred_fsh_age(i,j) *= ageing_error(j,j);
+    }
+    
+    // Loop over each year i
+  }
+  // std::cout << "Predicted fishery age comps\n" << pred_fsh_age << "\n";
+
+  // Test do the predicted age comps sum to 1
+  // vector<Type> tst(nyr_fsh_age);
   // for (int i = 0; i < nyr_fsh_age; i++) {
-  //   Type sumC = 0;
   //   for (int j = 0; j < nage; j++) {
-  //     sumC += C(yrs_fsh_age(i),j);
-  //   }
-  //   for (int j = 0; j < nage; j++) {
-  //     pred_fsh_age(i,j) = C(yrs_fsh_age(i),j) / sumC;
-  //     pred_fsh_age(i,j) *= ageing_error(j,j);    // Ageing error matrix
+  //     tst(i) += pred_fsh_age(i,j);
   //   }
   // }
-  // // std::cout << "Predicted fishery age comps\n" << pred_fsh_age << "\n";
+  // std::cout << "Do the comps sum to 1?\n" << tst << "\n";
   // 
-  // // Predicted survey age compositions
-  // 
-  // // sumN = temporary variable sum numbers-at-age by year
+  // Type tst_n = tst.size();
+  // std::cout << "Length of tst vector\n" << tst_n << "\n";
+  
+  // Predicted survey age compositions
+  for (int i = 0; i < nyr_srv_age; i++) {
+    
+    // sumN_age = temporary vector of catch in numbers by age in a given year
+    // (combine sexes since we currently do not have sex-structured age comps)
+    vector<Type> sumN_age(nage);
+    sumN_age.setZero();
+    for (int k = 0; k < nsex; k++) {
+      for (int j = 0; j < nage; j++) {
+        sumN_age(j) += vuln_abd(yrs_srv_age(i),j,k);
+      }
+    }
+    // Get predicted age comps (proportions-at-age) and apply ageing error
+    // matrix
+    for (int j = 0; j < nage; j++) {
+      pred_srv_age(i,j) = sumN_age(j) / tot_vuln_abd(yrs_srv_age(i));
+     // pred_srv_age(i,j) *= ageing_error(j,j);    
+    }
+    // Loop over each year i
+  }
+
+  // Test do the predicted age comps sum to 1
+  // vector<Type> tst(nyr_srv_age);
   // for (int i = 0; i < nyr_srv_age; i++) {
-  //   Type sumN = 0;
   //   for (int j = 0; j < nage; j++) {
-  //     sumN += N(yrs_srv_age(i),j) * srv_slx(yrs_srv_age(i),j);
-  //   }
-  //   for (int j = 0; j < nage; j++) {
-  //     pred_srv_age(i,j) = N(yrs_srv_age(i),j) * srv_slx(yrs_srv_age(i),j) / sumN;
-  //     pred_srv_age(i,j) *= ageing_error(j,j);    // Ageing error matrix
+  //     tst(i) += pred_srv_age(i,j);
   //   }
   // }
+  // std::cout << "Do the comps sum to 1?\n" << tst << "\n";
   // 
-  // // // Test do the predicted age comps sum to 1
-  // // vector<Type> tst(nyr_srv_age);
-  // // for (int i = 0; i < nyr_srv_age; i++) {
-  // //   for (int j = 0; j < nage; j++) {
-  // //     tst(i) += pred_srv_age(i,j);
-  // //   }
-  // // }
-  // // std::cout << "Do the comps sum to 1?\n" << tst << "\n";
-  // // 
-  // // Type tst_n = tst.size();
-  // // std::cout << "Length of tst vector\n" << tst_n << "\n";
-  // 
-  // // FLAG - would like to know the TMB syntax to do the age comps in fewer
-  // // lines, for example:
-  // // for (int i = 0; i < nyr_srv_age; i++) {
-  // //   for (int j = 0; j < nage; j++) {
-  // //     pred_srv_age(i,j) = N(yrs_srv_age(i),j) * srv_slx(j) / sum(N(yrs_srv_age(i)) * srv_slx(j));
-  // //   }
-  // // }
-  // 
-  // // Compute SPR rates and spawning biomass under different Fxx levels - *FLAG* only do this for female
-  // 
+  // Type tst_n = tst.size();
+  // std::cout << "Length of tst vector\n" << tst_n << "\n";
+
+  // FLAG - would like to know the TMB syntax to do the age comps in fewer
+  // lines, for example:
+  // for (int i = 0; i < nyr_srv_age; i++) {
+  //   for (int j = 0; j < nage; j++) {
+  //     pred_srv_age(i,j) = N(yrs_srv_age(i),j) * srv_slx(j) / sum(N(yrs_srv_age(i)) * srv_slx(j));
+  //   }
+  // }
+
+  // Compute SPR rates and spawning biomass under different Fxx levels - *FLAG* only do this for female
+
   // // Use selectivity in most recent time block for all
   // // calculations.
   // vector<Type> spr_fsh_slx(nage); // *FLAG* only grab female!!!
