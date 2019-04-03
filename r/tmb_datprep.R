@@ -183,6 +183,7 @@ waa <- read_csv("output/pred_waa.csv")
 waa %>% 
   mutate(Source = derivedFactor("Survey (males)" = Source == "LL survey" & Sex == "Male",
                              "Survey (females)" = Source == "LL survey" & Sex == "Female",
+                             "Survey (sexes combined)" = Source == "LL survey" & Sex == "Combined",
                              .default = NA),
          Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
                                       "9", "10", "11", "12", "13", "14", "15",

@@ -133,19 +133,32 @@ data <- list(
   prop_mature = matrix(data = rep(bio$prop_mature, 1),
                        ncol = nage, byrow = TRUE),
   
-  # Sex ratio in the survey
-  sex_ratio = matrix(data =  c(c(1 - bio$prop_fem), # Proprtion male
+  # Vector of prop_fem *Need both prop_fem and sex_ratio to accommodate single
+  # sex and sex-structured models*. In sex-structured version, the N matrix is
+  # already split so you don't need prop_fem in spawning biomass calculation (it
+  # will be a vector of 1's).
+  prop_fem = if (nsex == 1) {bio$prop_fem} else { rep(1, nage) } ,
+
+  # Sex ratio in the survey (matrix of 1's if single sex model so that N matrix
+  # doesn't get split up by sex ratio)
+  sex_ratio = if (nsex == 1) {matrix(data = 1, ncol = nage)
+    } else {matrix(data =  c(c(1 - bio$prop_fem), # Proprtion male
                                bio$prop_fem), # Proportion female
-                     ncol = nage, byrow = TRUE),
-  
-  # Weight-at-age
-  data_srv_waa = filter(waa, Source == "Survey (females)") %>% 
-    pull(weight) %>% 
-    matrix(ncol = nage, nrow = nsex) %>% 
-    # currently weight-at-age is averaged over all years. If for whatever reason
-    # you want to include multiple time periods for weight-at-age, you would
-    # change the number of rows from 1 to the number of time periods
-    array(dim = c(1, nage, nsex)),
+                     ncol = nage, byrow = TRUE)},
+
+  # Weight-at-age: currently weight-at-age is averaged over all years. If for whatever reason
+  # you want to include multiple time periods for weight-at-age, you would
+  # change the number of rows from 1 to the number of time periods or years
+  data_srv_waa = 
+    if (nsex == 1) { # Single sex model
+      filter(waa, Source == "Survey (sexes combined)") %>% 
+    pull(weight) %>%  matrix(ncol = nage, nrow = nsex)  %>% 
+    array(dim = c(1, nage, nsex))} else {
+     # Sex-structured - males in first matrix, females in second
+      filter(waa, Source %in% c("Survey (males)", "Survey (females)")) %>% 
+        mutate(sex = ifelse(Sex == "Male", 1, 2)) %>% arrange(sex) %>% 
+        pull(weight) %>% matrix(ncol = nage, nrow = nsex)  %>% 
+        array(dim = c(1, nage, nsex))},
   
   # Fishery age comps
   nyr_fsh_age = fsh_age %>% distinct(year) %>% nrow(),
