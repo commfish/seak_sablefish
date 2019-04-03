@@ -128,8 +128,10 @@ data <- list(
   srv_month = 7/12,   # Jul
   fsh_month = 8/12,   # Aug
   
-  # Proportion mature-at-age
-  prop_mature = bio$prop_mature,
+  # Proportion mature-at-age - flexible to vary over time if you wanted, where
+  # rows would be time blocks or annual variations
+  prop_mature = matrix(data = rep(bio$prop_mature, 1),
+                       ncol = nage, byrow = TRUE),
   
   # Sex ratio in the survey
   sex_ratio = matrix(data =  c(c(1 - bio$prop_fem), # Proprtion male

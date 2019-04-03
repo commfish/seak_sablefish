@@ -85,15 +85,17 @@ template<class Type>
   DATA_SCALAR(srv_month)          // month when survey begins (July)
   DATA_SCALAR(fsh_month)          // month when fishery begins (August)
   
-  // Proportion mature at age (all years combined)
-  DATA_VECTOR(prop_mature)
+  // Proportion mature at age (rows = 1, cols = nage); the rows could one day
+  // represent annual or time-varying maturity
+  DATA_MATRIX(prop_mature)
     
   // Sex ratio in survey (all years combined). First row males at age, second
   // row females at age.
   DATA_MATRIX(sex_ratio)
   
   // Weight-at-age (rows = 1, all years combined; cols = nage; matrices = 0 for
-  // males, 1 for females)
+  // males, 1 for females); the rows could one day represent annual or
+  // time-varying weight-at-age
   DATA_ARRAY(data_srv_waa)       // Survey (sex-specific)
   //std::cout << data_srv_waa << "\n";
     
@@ -168,17 +170,30 @@ template<class Type>
   array<Type> S(nyr, nage, nsex);     // Survivorship
   array<Type> C(nyr, nage, nsex);     // Catch in numbers
 
-  // Derived vectors by year + projected values
-  vector<Type> pred_rec(nyr);     // Predicted age-2 recruitment
-  vector<Type> biom(nyr+1);       // Total age-2+ biomass, projected 1 year forward
-  vector<Type> expl_biom(nyr+1);  // Vulnerable biomass to fishery at the beginning of the fishery, projected 1 year forward
-  vector<Type> vuln_abd(nyr+1);   // Vulnerable abundance to survey at the beginning of the survey, projected 1 year forward
-  vector<Type> spawn_biom(nyr+1); // Spawning biomass
-  biom.setZero();
-  expl_biom.setZero();
-  vuln_abd.setZero();
-  spawn_biom.setZero();
+  // Derived time series of recruitment, biomass, and abundance (+ projected values)
   
+  vector<Type> pred_rec(nyr);               // Predicted age-2 recruitment
+  
+  array<Type> biom(nyr+1, nage, nsex);      // Biomass by year, age, and sex, projected 1 year forward
+  vector<Type> tot_biom(nyr+1);             // Summed over age and sex
+  biom.setZero();
+  tot_biom.setZero();
+  
+  array<Type> expl_biom(nyr+1, nage, nsex); // Vulnerable biomass to fishery at the beginning of the fishery, projected 1 year forward
+  vector<Type> tot_expl_biom(nyr+1);        // Summed over age and sex
+  expl_biom.setZero();
+  tot_expl_biom.setZero();
+  
+  array<Type> vuln_abd(nyr+1, nage, nsex);  // Vulnerable abundance to survey at the beginning of the survey, projected 1 year forward
+  vector<Type> tot_vuln_abd(nyr+1);          // Summed over age and sex
+  vuln_abd.setZero();
+  tot_vuln_abd.setZero();
+  
+  matrix<Type> spawn_biom(nyr+1, nage);     // Spawning biomass, just females
+  vector<Type> tot_spawn_biom(nyr+1);       // Summed over age
+  spawn_biom.setZero();
+  tot_spawn_biom.setZero();
+
   // Other derived and projected values
   array<Type> survival_srv(nyr, nage, nsex);      // Annual natural survival at time of survey
   array<Type> survival_fsh(nyr, nage, nsex);      // Annual natural survival at time of fishery
@@ -396,110 +411,154 @@ template<class Type>
 
   // std::cout << N << "\n";
 
-  // // Catch
-  // 
-  // // Catch in numbers-at-age (F already incorporates fishery selectivity-at-age)
-  // for (int i = 0; i < nyr; i++) {
-  //   for (int j = 0; j < nage; j++) {
-  //     C(i,j) = N(i,j) * F(i,j) * (1 - S(i,j)) / Z(i,j);
-  //   }
-  // }
-  // 
-  // // std::cout << C << "\n";
-  // 
-  // pred_catch.setZero(); // Initialize
-  // 
-  // // Predicted annual catch
-  // for (int i = 0; i < nyr; i++) {
-  //   for (int j = 0; j < nage; j++) {
-  //     pred_catch(i) += C(i,j) * data_srv_waa(0,j,0) ;  // / 1e3 in mt
-  //   }
-  // }
-  // 
-  // // std::cout << C << "\n";
-  // // std::cout << pred_catch << "\n";
-  // 
-  // // Predicted recruitment by year
-  // for (int i = 0; i < nyr; i++) {
-  //   pred_rec(i) = N(i,0); // sum over the sexes
-  // }
-  // 
-  // // std::cout << "Predicted recruitment\n" << pred_rec << "\n";
-  // 
-  // // Mean recruitment
-  // Type len_rec = pred_rec.size();
-  // Type sum_rec = 0; // temporary variable (sum over predicted recruitment values)
-  // 
-  // for (int i = 0; i < nyr; i++) {
-  //   sum_rec += pred_rec(i);
-  // }
-  // pred_rbar = sum_rec / len_rec;
-  // 
-  // // std::cout << "sum_rec\n" << sum_rec << "\n";
-  // // std::cout << "pred_rbar\n" << pred_rbar << "\n";
-  // 
-  // // Various flavors of projected biomass estimates
-  // for (int i = 0; i < nyr; i++) {
-  //   for (int j = 0; j < nage; j++) {
-  // 
-  //     // Total biomass at time of longline survey
-  //     biom(i) += data_srv_waa(0,j,0) * N(i,j) * survival_srv; 
-  // 
-  //     // Vulnerable biomass to the fishery at the beginning of the fishery
-  //     expl_biom(i) += data_srv_waa(0,j,0) * fsh_slx(i,j) * N(i,j) * survival_fsh;   // sex-specific
-  // 
-  //     // Vulnerable abundance to the survey at the beginning of the survey
-  //     vuln_abd(i) += srv_slx(i,j) * N(i,j) * survival_srv;  // sex-specific
-  // 
-  //     // Spawning biomass
-  //     spawn_biom(i) += data_srv_waa(0,j,0) * N(i,j) * survival_spawn * prop_fem(j) * prop_mature(j); // remove prop fem because Nijk will only be for females
-  //   }
-  // }
-  // 
-  // // Project those values into the next year 
-  // for (int j = 0; j < nage; j++) {
-  //   biom(nyr) += data_srv_waa(0,j,0) * N(nyr,j) * survival_srv; 
-  //   expl_biom(nyr) += data_srv_waa(0,j,0) * fsh_slx(nyr-1,j) * N(nyr,j) * survival_fsh; 
-  //   vuln_abd(nyr) += srv_slx(nyr-1,j) * N(nyr,j) * survival_srv;
-  //   spawn_biom(nyr) += data_srv_waa(0,j,0) * N(nyr,j) * survival_spawn * prop_fem(j) * prop_mature(j); // remove prop fem because Nijk will only be for females
-  // }
-  //   
-  // // std::cout << "Predicted biomass\n" << biom << "\n";
-  // // std::cout << "Predicted exploited biomass\n" << expl_biom << "\n";
-  // // std::cout << "Predicted vulnerable abundance\n" << vuln_abd << "\n";
-  // // std::cout << "Predicted spawning biomass\n" << spawn_biom << "\n";
-  // 
-  // // Predicted values - *FLAG* sum across sexes such that there is a single q for each index
-  // 
-  // // Mark-recapture catchability and predicted abundance (in millions)
-  // Type mr_q = exp(mr_logq);
-  // 
-  // for (int i = 0; i < nyr_mr; i++) {
-  //   pred_mr(i) = mr_q * vuln_abd(yrs_mr(i)); //  / 1e6 Just in years with a MR estimate
-  // }
-  // // std::cout << "Predicted MR \n" << pred_mr << "\n";
-  // 
-  // for (int i = 0; i < nyr; i++) {
-  //   pred_mr_all(i) = mr_q * vuln_abd(i); // / 1e6 All years
-  // }
-  // // std::cout << "Predicted MR for all years\n" << pred_mr_all << "\n";
-  // 
-  // // Fishery catchability and predicted cpue
-  // Type fsh_q = exp(fsh_logq);
-  // 
-  // for (int i = 0; i < nyr_fsh_cpue; i++) {
-  //   pred_fsh_cpue(i) = fsh_q * expl_biom(yrs_fsh_cpue(i));
-  // }
-  // // std::cout << "Predicted fishery cpue\n" << pred_fsh_cpue << "\n";
-  // 
-  // // Survey catchability and predicted survey cpue
-  // Type srv_q = exp(srv_logq);
-  // 
-  // for (int i = 0; i < nyr_srv_cpue; i++) {
-  //   pred_srv_cpue(i) = srv_q * vuln_abd(yrs_srv_cpue(i));
-  // }
-  // // std::cout << "Predicted srv cpue\n" << pred_srv_cpue << "\n";
-  // 
+  // Catch
+
+  // Catch in sex-specific numbers-at-age (F already incorporates fishery
+  // selectivity-at-age)
+  for (int k = 0; k < nsex; k++) {
+    for (int i = 0; i < nyr; i++) {
+      for (int j = 0; j < nage; j++) {
+        C(i,j,k) = N(i,j,k) * F(i,j,k) * (1 - S(i,j,k)) / Z(i,j,k);
+      }
+    }
+  }
+  // std::cout << C << "\n";
+
+  pred_catch.setZero(); // Initialize
+
+  // Predicted annual catch
+  for (int k = 0; k < nsex; k++) {
+    for (int i = 0; i < nyr; i++) {
+      for (int j = 0; j < nage; j++) {
+        // The 0 in data_srv_waa(0,j,k) is a place holder if you ever wanted
+        // time-varying weight-at-age
+        pred_catch(i) += C(i,j,k) * data_srv_waa(0,j,k) ;  // / 1e3 in mt
+      }
+    }
+  }
+  // std::cout << C << "\n";
+  // std::cout << pred_catch << "\n";
+
+  // Predicted recruitment by year, summed over the sexes
+  for (int k = 0; k < nsex; k++) {
+    for (int i = 0; i < nyr; i++) {
+      pred_rec(i) += N(i,0,k); 
+    }
+  }
+  // std::cout << "Predicted recruitment\n" << pred_rec << "\n";
+
+  // Mean recruitment
+  Type len_rec = pred_rec.size();
+  Type sum_rec = 0; // temporary variable (sum over predicted recruitment values)
+
+  for (int i = 0; i < nyr; i++) {
+    sum_rec += pred_rec(i);
+  }
+  pred_rbar = sum_rec / len_rec;
+
+  // std::cout << "sum_rec\n" << sum_rec << "\n";
+  // std::cout << "pred_rbar\n" << pred_rbar << "\n";
+
+  // Various flavors of projected biomass estimates [Note: the 0 in
+  // data_srv_waa(0,j,k) and prop_mature(0,k) is a place holder if you ever
+  // wanted time blocks or annual variation in weight-at-age or maturity]
+  
+  for (int k = 0; k < nsex; k++) {
+    for (int i = 0; i < nyr; i++) {
+      for (int j = 0; j < nage; j++) {
+        
+        // Total biomass at time of longline survey
+        biom(i,j,k) = data_srv_waa(0,j,k) * N(i,j,k) * survival_srv(i,j,k);
+        
+        // Vulnerable biomass to the fishery at the beginning of the fishery
+        expl_biom(i,j,k) = data_srv_waa(0,j,k) * fsh_slx(i,j,k) * N(i,j,k) * survival_fsh(i,j,k);
+        
+        // Vulnerable abundance to the survey at the beginning of the survey
+        vuln_abd(i,j,k) = srv_slx(i,j,k) * N(i,j,k) * survival_srv(i,j,k);
+        
+        // Spawning biomass (just females)
+        if (k == 1) {
+          spawn_biom(i,j) = data_srv_waa(0,j,k) * N(i,j,k) * survival_spawn(i,j,k) * prop_mature(0,j); 
+        }
+        
+      }
+    }
+  }
+  
+  // Project those values into the next year
+  for (int k = 0; k < nsex; k++) {
+    for (int j = 0; j < nage; j++) {
+      biom(nyr,j,k) = data_srv_waa(0,j,k) * N(nyr,j,k) * survival_srv(nyr-1,j,k);
+      expl_biom(nyr,j,k) = data_srv_waa(0,j,k) * fsh_slx(nyr-1,j,k) * N(nyr,j,k) * survival_fsh(nyr-1,j,k);
+      vuln_abd(nyr,j,k) = srv_slx(nyr-1,j,k) * N(nyr,j,k) * survival_srv(nyr-1,j,k);
+      if (k == 1) { // just for females
+        spawn_biom(nyr,j) = data_srv_waa(0,j,k) * N(nyr,j,k) * survival_spawn(nyr-1,j,k) * prop_mature(0,j); 
+      }
+    }
+  }
+  // std::cout << "Predicted biomass by age and sex \n" << biom << "\n";
+  // std::cout << "Predicted exploited biomass by age and sex \n" << expl_biom << "\n";
+  // std::cout << "Predicted vulnerable abundance by age and sex \n" << vuln_abd << "\n";
+  // std::cout << "Predicted spawning biomass by age\n" << spawn_biom << "\n";
+
+  // Sum variables to get an annual total
+  for (int k = 0; k < nsex; k++) {
+    for (int i = 0; i <= nyr; i++) {    // include projection year
+      for (int j = 0; j < nage; j++) {
+        
+        // Total biomass at time of longline survey
+        tot_biom(i) += biom(i,j,k);
+        
+        // Vulnerable biomass to the fishery at the beginning of the fishery
+        tot_expl_biom(i) += expl_biom(i,j,k);
+        
+        // Vulnerable abundance to the survey at the beginning of the survey
+        tot_vuln_abd(i) += vuln_abd(i,j,k);
+        
+        // Spawning biomass (just females)
+        if (k == 1) {
+          tot_spawn_biom(i) += spawn_biom(i,j); 
+        }
+        
+      }
+    }
+  }
+  // std::cout << "Annual predicted biomass \n" << tot_biom << "\n";
+  // std::cout << "Annual predicted exploited biomass\n" << tot_expl_biom << "\n";
+  // std::cout << "Annual predicted vulnerable abundance\n" << tot_vuln_abd << "\n";
+  // std::cout << "Annual predicted spawning biomass\n" << tot_spawn_biom << "\n";
+  
+  // Predicted values
+
+  // Mark-recapture catchability and predicted abundance (in millions)
+  Type mr_q = exp(mr_logq);
+
+  for (int i = 0; i < nyr_mr; i++) {
+    pred_mr(i) = mr_q * tot_vuln_abd(yrs_mr(i)); //  / 1e6 Just in years with a MR estimate
+  }
+  std::cout << "Predicted MR \n" << pred_mr << "\n";
+
+  for (int i = 0; i < nyr; i++) {
+    pred_mr_all(i) = mr_q * tot_vuln_abd(i); // / 1e6 All years
+  }
+  // std::cout << "Predicted MR for all years\n" << pred_mr_all << "\n";
+
+  // Fishery catchability and predicted cpue
+  Type fsh_q = exp(fsh_logq);
+
+  for (int i = 0; i < nyr_fsh_cpue; i++) {
+    pred_fsh_cpue(i) = fsh_q * tot_expl_biom(yrs_fsh_cpue(i));
+  }
+  std::cout << "Predicted fishery cpue\n" << pred_fsh_cpue << "\n";
+
+  // Survey catchability and predicted survey cpue
+  Type srv_q = exp(srv_logq);
+
+  for (int i = 0; i < nyr_srv_cpue; i++) {
+    pred_srv_cpue(i) = srv_q * tot_vuln_abd(yrs_srv_cpue(i));
+  }
+  std::cout << "Predicted srv cpue\n" << pred_srv_cpue << "\n";
+
   // // Predicted fishery age compositions - *FLAG* check on sample sizes by year and sex
   // 
   // // sumC = temporary variable, sum catch in numbers-at-age by year
