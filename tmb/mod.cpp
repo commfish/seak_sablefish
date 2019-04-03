@@ -30,7 +30,7 @@ template<class Type>
   DATA_IVECTOR(blks_srv_slx)    // survey selectivity 
     
   // Fixed parameters
-  DATA_SCALAR(M)                // assumed constant natural mortality
+  DATA_ARRAY(M)                 // natural mortality by year, age, and sex. assume constant M=0.1
 
   // Fxx levels that correspond with spr_Fxx in Parameter section
   DATA_VECTOR(Fxx_levels)       // e.g. F35=0.35, F40=0.40, and F50=0.50
@@ -88,8 +88,9 @@ template<class Type>
   // Proportion mature at age (all years combined)
   DATA_VECTOR(prop_mature)
     
-  // Proportion female at age in the survey (all years combined)
-  DATA_VECTOR(prop_fem)
+  // Sex ratio in survey (all years combined). First row males at age, second
+  // row females at age.
+  DATA_MATRIX(sex_ratio)
   
   // Weight-at-age (rows = 1, all years combined; cols = nage; matrices = 0 for
   // males, 1 for females)
@@ -160,12 +161,12 @@ template<class Type>
   // Predicted annual fishing mortality
   vector<Type> Fmort(nyr);      // On natural scale
   
-  // Derived matrices by year and age
-  matrix<Type> N(nyr+1, nage);  // Abundance-at-age, projected 1 year forward
-  matrix<Type> Z(nyr, nage);    // Total mortality
-  matrix<Type> F(nyr, nage);    // Fishing mortality
-  matrix<Type> S(nyr, nage);    // Survivorship
-  matrix<Type> C(nyr, nage);    // Catch in numbers
+  // Derived matrices by year, age, and sex
+  array<Type> N(nyr+1, nage, nsex);   // Abundance-at-age, projected 1 year forward
+  array<Type> Z(nyr, nage, nsex);     // Total mortality
+  array<Type> F(nyr, nage, nsex);     // Fishing mortality
+  array<Type> S(nyr, nage, nsex);     // Survivorship
+  array<Type> C(nyr, nage, nsex);     // Catch in numbers
 
   // Derived vectors by year + projected values
   vector<Type> pred_rec(nyr);     // Predicted age-2 recruitment
@@ -179,11 +180,11 @@ template<class Type>
   spawn_biom.setZero();
   
   // Other derived and projected values
-  Type surv_srv;                        // Annual natural survival at time of survey
-  Type surv_fsh;                        // Annual natural survival at time of fishery
-  Type surv_spawn;                      // Annual natural survival at time of spawning
-  Type pred_rbar;                       // Predicted mean recruitment
-  Type sigma_r = exp(log_sigma_r);      // Estimated recruitment on natural scale 
+  array<Type> survival_srv(nyr, nage, nsex);      // Annual natural survival at time of survey
+  array<Type> survival_fsh(nyr, nage, nsex);      // Annual natural survival at time of fishery
+  array<Type> survival_spawn(nyr, nage, nsex);    // Annual natural survival at time of spawning
+  Type pred_rbar;                                 // Predicted mean recruitment
+  Type sigma_r = exp(log_sigma_r);                // Estimated recruitment on natural scale 
   
   // SPR-based reference points
   int n_Fxx = Fxx_levels.size();        // Number of Fs estimated
@@ -293,85 +294,108 @@ template<class Type>
   // std::cout << fsh_slx << "\n Fishery selectivity";
   // std::cout << srv_slx << "\n Survey selectivity";
 
-  // // Mortality and survivorship
-  // for (int i = 0; i < nyr; i++) {
-  //   for (int j = 0; j < nage; j++) {
-  // 
-  //     // Annual fishing mortality
-  //     Fmort(i) = exp(log_Fbar + log_F_devs(i));
-  // 
-  //     // Fishing mortality by year and age *FLAG* here is where you add
-  //     // sex-structure, by multiplying Fmort by the sex-specific selectivity
-  //     F(i,j) = Fmort(i) * fsh_slx(i,j);
-  // 
-  //     // Total mortality by year and age *FLAG* Zijk
-  //     Z(i,j) = M + F(i,j);
-  // 
-  //     // Survivorship by year and age
-  //     S(i,j) = exp(-1.0 * Z(i,j));
-  //   }
-  // }
-  // 
-  // // std::cout << Fmort << "\n";
-  // // std::cout << F << "\n";
-  // // std::cout << Z << "\n";
-  // // std::cout << S << "\n";
-  // 
-  // // Annual natural survival at time of survey, fishery, and spawning (fraction surviving
-  // // from beginning of year to the time of survey and fishery)
-  // surv_srv = exp(-1.0 * srv_month * M);
-  // surv_fsh = exp(-1.0 * fsh_month * M);
-  // surv_spawn = exp(-1.0 * spawn_month * M);
-  // 
-  // // std::cout << surv_srv << "\n";
-  // // std::cout << surv_fsh << "\n";
-  // 
-  // // Abundance and recruitment
-  // 
-  // // Start year: initial numbers-at-age (sage + 1 to plus group - 1). *FLAG*
-  // // Nijk here then multiply line 299 by 0.5 (assuming 50/50 sex ratio). Put sex
-  // // on outer loop, age on inner loop
-  // for (int j = 1; j < nage-1; j++) {
-  //   N(0,j) = exp(log_rinit - M * Type(j) + log_rinit_devs(j-1));
-  // }
-  // 
-  // // Start year: plus group *FLAG* same thing here for sex structure
-  // N(0,nage-1) = exp(log_rinit - M * Type(nage-1)) / (1 - exp(-M));
-  // 
-  // // Recruitment in all years (except the projected year) *FLAG*
-  // // Nijk here then multiply right side by 0.5 (assuming 50/50 sex ratio). Put sex
-  // // on outer loop, age on inner loop
-  // for (int i = 0; i < nyr; i++) {
-  //   N(i,0) = exp(log_rbar + log_rec_devs(i));
-  // }
-  // 
-  // // Project remaining N matrix
-  // for (int i = 0; i < nyr; i++) {
-  //   for (int j=0; j < nage-1; j++) {
-  //     N(i+1,j+1) = N(i,j) * S(i,j); // here N and S are both sex-specific
-  //   }
-  // }
-  // 
-  // // Plus group for start year + 1 to final year + 1 (sum of cohort survivors and
-  // // surviving memebers of last year's plus group)
-  // for (int i = 0; i < nyr; i++) {
-  //   N(i+1,nage-1) += N(i,nage-1) * S(i,nage-1); // here N and S are both sex-specific
-  // }
-  // 
-  // // Projected recruitment (average over recent 15 years, excluding most recent
-  // // 2 years), where the indexing of log_rec_devs(0,nyr+nage-3)
-  // for (int i = nyr-16; i <= nyr-2; i++) {
-  //   N(nyr,0) += exp(log_rbar + log_rec_devs(i)); // * 0.5 for sex-structure
-  // }
-  // N(nyr,0) /= Type(15.0);
-  // 
-  // // FLAG - Alternative way using mean(). Want to find a way to sum() over
-  // // vector
-  // // vector<Type> tmp = exp(log_rbar + log_rec_devs(nyr+nage-3-16, nyr+nage-3-2));
-  // // N(nyr,0) = mean(tmp);
-  // 
-  // // std::cout << N << "\n";
-  // 
+  // Mortality and survivorship
+  
+  for (int i = 0; i < nyr; i++) {
+    Fmort(i) = exp(log_Fbar + log_F_devs(i)); // Annual fishing mortality
+  }
+  
+  for (int k = 0; k < nsex; k++) {
+    for (int i = 0; i < nyr; i++) {
+      for (int j = 0; j < nage; j++) {
+        
+      // Fishing mortality by year, age, and sex
+      F(i,j,k) = Fmort(i) * fsh_slx(i,j,k);
+
+      // Total mortality by year, age, and sex
+      Z(i,j,k) = M(i,j,k) + F(i,j,k);
+
+      // Survivorship by year, age, and sex
+      S(i,j,k) = exp(-1.0 * Z(i,j,k));
+      }
+    }
+  }
+
+  // std::cout << Fmort << "\n";
+  // std::cout << F << "\n";
+  // std::cout << Z << "\n";
+  // std::cout << S << "\n";
+
+  // Annual natural survival at time of survey, fishery, and spawning (fraction
+  // surviving from beginning of year to the time of survey and fishery). These
+  // quantities have the flexibility to vary by year, age, or sex, but currently
+  // do not.
+  for (int k = 0; k < nsex; k++) {
+    for (int i = 0; i < nyr; i++) {
+      for (int j = 0; j < nage; j++) {
+        survival_srv(i,j,k) = exp(-1.0 * srv_month * M(i,j,k));
+        survival_fsh(i,j,k) = exp(-1.0 * fsh_month * M(i,j,k));
+        survival_spawn(i,j,k) = exp(-1.0 * spawn_month * M(i,j,k));
+      }
+    }
+  }
+  
+  // std::cout << survival_srv << "\n";
+  // std::cout << survival_fsh << "\n";
+
+  // Abundance and recruitment
+
+  // Start year: initial numbers-at-age (sage + 1 to plus group - 1). *FLAG*
+  // Nijk here I've assumed the sex ratio from the survey. Could also use 0.5
+  // (assuming 50/50 sex ratio). Don't know what the standard practice is here.
+  for (int k = 0; k < nsex; k++) {
+    for (int j = 1; j < nage-1; j++) {
+      N(0,j,k) = exp(log_rinit - M(0,j,k) * Type(j) + log_rinit_devs(j-1)) * sex_ratio(k,j);
+    }
+  }
+
+  // Start year: plus group *FLAG* sex ratio from survey or 50/50 or ?
+  for (int k = 0; k < nsex; k++) {
+    N(0,nage-1,k) = exp(log_rinit - M(0,nage-1,k) * Type(nage-1)) / (1 - exp(-M(0,nage-1,k))) * sex_ratio(k,nage-1);
+  }
+  
+  // Recruitment in all years (except the projected year) *FLAG* sex ratio from
+  // survey or 50/50 or ?
+  for (int k = 0; k < nsex; k++) {
+    for (int i = 0; i < nyr; i++) {
+      N(i,0,k) = exp(log_rbar + log_rec_devs(i)) * sex_ratio(k,0);
+    }
+  }
+  
+  // Project remaining N matrix
+  for (int k = 0; k < nsex; k++) {
+    for (int i = 0; i < nyr; i++) {
+      for (int j=0; j < nage-1; j++) {
+        N(i+1,j+1,k) = N(i,j,k) * S(i,j,k);   // S is total survivorship
+      }
+    }
+  }
+  
+  // Plus group for start year + 1 to final year + 1 (sum of cohort survivors and
+  // surviving memebers of last year's plus group)
+  for (int k = 0; k < nsex; k++) {
+    for (int i = 0; i < nyr; i++) {
+      N(i+1,nage-1,k) += N(i,nage-1,k) * S(i,nage-1,k); 
+    }
+  }
+  
+  // Projected recruitment (average over recent 15 years, excluding most recent
+  // 2 years), where the indexing of log_rec_devs(0,nyr+nage-3) *FLAG* sex ratio from
+  // survey or 50/50 or ?
+  for (int k = 0; k < nsex; k++) {
+    for (int i = nyr-16; i <= nyr-2; i++) {
+      N(nyr,0,k) += exp(log_rbar + log_rec_devs(i)) * sex_ratio(k,0); 
+    }
+    N(nyr,0,k) /= Type(15.0);
+  }
+
+  // FLAG - Alternative way using mean(). Want to find a way to sum() over
+  // vector
+  // vector<Type> tmp = exp(log_rbar + log_rec_devs(nyr+nage-3-16, nyr+nage-3-2));
+  // N(nyr,0) = mean(tmp);
+
+  // std::cout << N << "\n";
+
   // // Catch
   // 
   // // Catch in numbers-at-age (F already incorporates fishery selectivity-at-age)
@@ -419,25 +443,25 @@ template<class Type>
   //   for (int j = 0; j < nage; j++) {
   // 
   //     // Total biomass at time of longline survey
-  //     biom(i) += data_srv_waa(0,j,0) * N(i,j) * surv_srv; 
+  //     biom(i) += data_srv_waa(0,j,0) * N(i,j) * survival_srv; 
   // 
   //     // Vulnerable biomass to the fishery at the beginning of the fishery
-  //     expl_biom(i) += data_srv_waa(0,j,0) * fsh_slx(i,j) * N(i,j) * surv_fsh;   // sex-specific
+  //     expl_biom(i) += data_srv_waa(0,j,0) * fsh_slx(i,j) * N(i,j) * survival_fsh;   // sex-specific
   // 
   //     // Vulnerable abundance to the survey at the beginning of the survey
-  //     vuln_abd(i) += srv_slx(i,j) * N(i,j) * surv_srv;  // sex-specific
+  //     vuln_abd(i) += srv_slx(i,j) * N(i,j) * survival_srv;  // sex-specific
   // 
   //     // Spawning biomass
-  //     spawn_biom(i) += data_srv_waa(0,j,0) * N(i,j) * surv_spawn * prop_fem(j) * prop_mature(j); // remove prop fem because Nijk will only be for females
+  //     spawn_biom(i) += data_srv_waa(0,j,0) * N(i,j) * survival_spawn * prop_fem(j) * prop_mature(j); // remove prop fem because Nijk will only be for females
   //   }
   // }
   // 
   // // Project those values into the next year 
   // for (int j = 0; j < nage; j++) {
-  //   biom(nyr) += data_srv_waa(0,j,0) * N(nyr,j) * surv_srv; 
-  //   expl_biom(nyr) += data_srv_waa(0,j,0) * fsh_slx(nyr-1,j) * N(nyr,j) * surv_fsh; 
-  //   vuln_abd(nyr) += srv_slx(nyr-1,j) * N(nyr,j) * surv_srv;
-  //   spawn_biom(nyr) += data_srv_waa(0,j,0) * N(nyr,j) * surv_spawn * prop_fem(j) * prop_mature(j); // remove prop fem because Nijk will only be for females
+  //   biom(nyr) += data_srv_waa(0,j,0) * N(nyr,j) * survival_srv; 
+  //   expl_biom(nyr) += data_srv_waa(0,j,0) * fsh_slx(nyr-1,j) * N(nyr,j) * survival_fsh; 
+  //   vuln_abd(nyr) += srv_slx(nyr-1,j) * N(nyr,j) * survival_srv;
+  //   spawn_biom(nyr) += data_srv_waa(0,j,0) * N(nyr,j) * survival_spawn * prop_fem(j) * prop_mature(j); // remove prop fem because Nijk will only be for females
   // }
   //   
   // // std::cout << "Predicted biomass\n" << biom << "\n";
@@ -562,7 +586,7 @@ template<class Type>
   // // Spawning biomass per recruit matrix
   // for(int x = 0; x <= n_Fxx; x++) {
   //   for(int j = 0; j < nage; j++) {
-  //     SBPR(x) +=  Nspr(x,j) * prop_fem(j) * prop_mature(j) * data_srv_waa(0,j,0) * surv_spawn; // *FLAG* get rid of prop_fem
+  //     SBPR(x) +=  Nspr(x,j) * prop_fem(j) * prop_mature(j) * data_srv_waa(0,j,0) * survival_spawn; // *FLAG* get rid of prop_fem
   //   }
   // }
   // // std::cout << "Spawning biomass per recruit\n" << SBPR << "\n";
@@ -798,8 +822,8 @@ template<class Type>
   // REPORT(ABC);              // ABC at various Fxx levels
   // 
   // // Other derived and projected values
-  // REPORT(surv_srv);         // Annual natural survival at time of survey
-  // REPORT(surv_fsh);         // Annual natural survival at time of fishery
+  // REPORT(survival_srv);     // Annual natural survival at time of survey
+  // REPORT(survival_fsh);     // Annual natural survival at time of fishery
   // REPORT(pred_rbar);        // Predicted mean recruitment
   // 
   // // Priors, likelihoods, offsets, and penalty functions

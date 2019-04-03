@@ -68,14 +68,16 @@ data <- list(
   random_rec = 0,
   
   # Switch for selectivity type: 0 = a50, a95 logistic; 1 = a50, slope logistic
-  slx_type = 0,
+  slx_type = 1,
   
   # Time varying parameters - each vector contains the terminal years of each time block
   blks_fsh_slx = c(37), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, 37)
   blks_srv_slx = c(37), # no breaks survey selectivity
   
-  # Fixed parameters
-  M = 0.1,
+  # Natural mortality (fixed to 0.1 per Johnson and Quinn 1988). Can accomodate
+  # variation by year, age, or sex, but currently M is fixed across all
+  # dimensions.
+  M = array(data = 0.1, dim = c(nyr, nage, nsex)),
   
   # Fxx levels that correspond with spr_Fxx in Parameter section
   Fxx_levels = c(0.35, 0.40, 0.50),
@@ -129,15 +131,17 @@ data <- list(
   # Proportion mature-at-age
   prop_mature = bio$prop_mature,
   
-  # Proportion female-at-age in the survey
-  prop_fem = bio$prop_fem,
+  # Sex ratio in the survey
+  sex_ratio = matrix(data =  c(c(1 - bio$prop_fem), # Proprtion male
+                               bio$prop_fem), # Proportion female
+                     ncol = nage, byrow = TRUE),
   
   # Weight-at-age
   data_srv_waa = filter(waa, Source == "Survey (females)") %>% 
     pull(weight) %>% 
     matrix(ncol = nage, nrow = nsex) %>% 
     # currently weight-at-age is averaged over all years. If for whatever reason
-    # you wanted to include multiple time periods for weight-at-age, you would
+    # you want to include multiple time periods for weight-at-age, you would
     # change the number of rows from 1 to the number of time periods
     array(dim = c(1, nage, nsex)),
   
@@ -261,8 +265,6 @@ if(data$random_rec == 0) {
   random_vars <- NULL #rep(factor(NA),2)
 }
 
-phases <- build_phases(parameters, data)
-
 # Debug
 map <- list(fsh_slx_pars = factor(array(data = c(rep(factor(NA), length(data$blks_fsh_slx)),
                                      rep(factor(NA), length(data$blks_fsh_slx))),
@@ -284,6 +286,7 @@ fit <- nlminb(model$par, model$fn, model$gr,
               control=list(eval.max=100000,iter.max=1000))
 
 # Run model
+phases <- build_phases(parameters, data)
 fit <- TMBphase(data, parameters, random = random_vars, phases, model_name = "mod", debug = TRUE)
 
 fit
