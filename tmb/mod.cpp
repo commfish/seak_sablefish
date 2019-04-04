@@ -24,6 +24,9 @@ template<class Type>
   // Switch for selectivity type: 0 = a50, a95 logistic; 1 = a50, slope logistic
   DATA_INTEGER(slx_type)
     
+  // Swtich for age composition type (hopefully one day length too): 0 = multinomial; 1 = Dirichlet-multinomial
+  DATA_INTEGER(comp_type)
+    
   // Time varying parameter blocks - each vector contains the terminal years of
   // each time block
   DATA_IVECTOR(blks_fsh_slx)    // fishery selectivity 
@@ -113,13 +116,15 @@ template<class Type>
   DATA_INTEGER(nyr_fsh_age)       // number of years 
   DATA_IVECTOR(yrs_fsh_age)       // vector of years
   DATA_MATRIX(data_fsh_age)       // matrix of observations (year, age)
-  DATA_VECTOR(effn_fsh_age)       // effective sample size
+  DATA_VECTOR(n_fsh_age)          // raw sample size for age comps
+  DATA_VECTOR(effn_fsh_age)       // effective sample size (currently square root of n_fsh_age)
   
   // Survey age comps
   DATA_INTEGER(nyr_srv_age)       // number of years
   DATA_IVECTOR(yrs_srv_age)       // vector of years
   DATA_MATRIX(data_srv_age)       // matrix of observations (year, age)
-  DATA_VECTOR(effn_srv_age)       // effective sample size
+  DATA_VECTOR(n_srv_age)          // raw sample size for age comps
+  DATA_VECTOR(effn_srv_age)       // effective sample size (currently square root of n_srv_age)
     
   // Ageing error transition matrix (proportion at reader age given true age)
   DATA_MATRIX(ageing_error)
@@ -153,6 +158,11 @@ template<class Type>
   // per recruit is reduced to xx% of its value in an unfished stock
   PARAMETER_VECTOR(spr_Fxx);      // e.g. F35, F40, F50
   
+  //  Parameter related to effective sample size for Dirichlet-multinomial
+  //  likelihood used for composition data. Eqn 11 in Thorson et al. 2017.
+  PARAMETER(log_fsh_theta);
+  PARAMETER(log_srv_theta);
+    
   // **DERIVED QUANTITIES**
   
   // Predicted indices of abundance
@@ -787,33 +797,97 @@ template<class Type>
   index_like(2) *= wt_mr;        // Likelihood weight
   // std::cout << "Index likelihoods\n" << index_like << "\n";
 
-  // Offset for fishery age compositions
-  for (int i = 0; i < nyr_fsh_age; i++) {
-    offset(0) -= effn_fsh_age(i) * (data_fsh_age(i) + c) * log(data_fsh_age(i) + c);
-  }
-
-  // Fishery age compositions: multinomial
-  for (int i = 0; i < nyr_fsh_age; i++) {
-    for (int j = 0; j < nage; j++) {
-      age_like(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(pred_fsh_age(i,j) + c);
+  // Likelihood for fishery age compositions
+  Type fsh_theta = exp(log_fsh_theta);      // Dirichlet-multinomial parameter
+  vector<Type> sum1_fsh(nyr_fsh_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)  
+  vector<Type> sum2_fsh(nyr_fsh_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017) 
+  
+  for (int i = 0; i < nyr_fsh_age; i++) { 
+    
+    // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
+    switch (comp_type) {  
+    
+    case 0: // Multinomial
+      
+      // Offset
+      offset(0) -= effn_fsh_age(i) * (data_fsh_age(i) + c) * log(data_fsh_age(i) + c);
+      
+      // Likelihood
+      for (int j = 0; j < nage; j++) {
+        age_like(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(pred_fsh_age(i,j) + c);
       }
-  }
-  age_like(0) -= offset(0);     // subtract offset
-  age_like(0) *= wt_fsh_age;    // likelihood weight
+      
+      age_like(0) -= offset(0);     // subtract offset
+      age_like(0) *= wt_fsh_age;    // likelihood weight
+      
+      break;
+      
+    case 1: // Dirichlet-multinomial (D-M)
 
-  // Offset for survey age compositions
-  for (int i = 0; i < nyr_srv_age; i++) {
-    offset(1) -= effn_srv_age(i) * (data_srv_age(i) + c) * log(data_srv_age(i) + c);
-  }
-
-  // Survey age compositions: multinomial
-  for (int i = 0; i < nyr_srv_age; i++) {
-    for (int j = 0; j < nage; j++) {
-      age_like(1) -= effn_srv_age(i) * (data_srv_age(i,j) + c) * log(pred_srv_age(i,j) + c);
+      // Preliminary calcs
+      for (int j = 0; j < nage; j++) {
+        // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+        sum1_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + Type(1.0) ); 
+        // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017) 
+        sum2_fsh(i) += lgamma( n_fsh_age(i) + data_fsh_age(i,j) + fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) ) -
+          lgamma( fsh_theta * n_fsh_age(i) - pred_fsh_age(i,j) );  
+      }
+      // Full nll for D-M, Eqn 10, Thorson et al. 2017
+      age_like(0) -= lgamma(n_fsh_age(i) + Type(1.0)) - sum1_fsh(i) + lgamma(fsh_theta * n_fsh_age(i)) - 
+        lgamma(n_fsh_age(i) + fsh_theta * n_fsh_age(i)) + sum2_fsh(i);
+      
+    break;  
+    
+    // case 2: // Multivariate logistic (MVL) - future development
+    
     }
   }
-  age_like(1) -= offset(1);     // substract offset
-  age_like(1) *= wt_srv_age;    // likelihood weight
+
+  // Likelihood for survey age compositions
+  Type srv_theta = exp(log_srv_theta);      // Dirichlet-multinomial parameter
+  vector<Type> sum1_srv(nyr_srv_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)  
+  vector<Type> sum2_srv(nyr_srv_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017) 
+  
+  for (int i = 0; i < nyr_srv_age; i++) { 
+    
+    // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
+    switch (comp_type) {  
+    
+    case 0: // Multinomial
+      
+      // Offset
+      offset(1) -= effn_srv_age(i) * (data_srv_age(i) + c) * log(data_srv_age(i) + c);
+      
+      // Likelihood
+      for (int j = 0; j < nage; j++) {
+        age_like(0) -= effn_srv_age(i) * (data_srv_age(i,j) + c) * log(pred_srv_age(i,j) + c);
+      }
+      
+      age_like(1) -= offset(0);     // subtract offset
+      age_like(1) *= wt_srv_age;    // likelihood weight
+      
+      break;
+      
+    case 1: // Dirichlet-multinomial (D-M)
+      
+      // Preliminary calcs
+      for (int j = 0; j < nage; j++) {
+        // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+        sum1_srv(i) += lgamma( n_srv_age(i) * data_srv_age(i,j) + Type(1.0) ); 
+        // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017) 
+        sum2_srv(i) += lgamma( n_srv_age(i) + data_srv_age(i,j) + srv_theta * n_srv_age(i) * pred_srv_age(i,j) ) -
+          lgamma( srv_theta * n_srv_age(i) - pred_srv_age(i,j) );  
+      }
+      // Full nll for D-M, Eqn 10, Thorson et al. 2017
+      age_like(1) -= lgamma(n_srv_age(i) + Type(1.0)) - sum1_srv(i) + lgamma(srv_theta * n_srv_age(i)) - 
+        lgamma(n_srv_age(i) + srv_theta * n_srv_age(i)) + sum2_srv(i);
+      
+      break;  
+      
+      // case 2: // Multivariate logistic (MVL) - future development
+      
+    }
+  }
 
   // std::cout << "Age comp offset\n" << offset << "\n";
   // std::cout << "Age comp likelihoods\n" << age_like << "\n";

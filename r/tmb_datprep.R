@@ -386,8 +386,6 @@ agecomps %>%
 axisx <- tickr(agecomps, year, 5)
 
 ggplot(agecomps, aes(x = year, y = age, size = proportion)) +
-  # geom_hline(yintercept = seq(2000, 2015, by = 5), 
-  #            colour = "grey", linetype = 3, alpha = 0.7) +  
   geom_point(shape = 21, colour = "black", fill = "black") +
   scale_size(range = c(0, 4)) +
   facet_wrap(~ Source) +
@@ -409,7 +407,7 @@ full_join(select(agecomps, -n), n_agecomps) %>%
   mutate(effn = sqrt(n)) -> agecomps
 
 # Reshape
-agecomps %>% dcast(year + index + Source + effn ~ age, value.var = "proportion") -> agecomps
+agecomps %>% dcast(year + index + Source + n + effn ~ age, value.var = "proportion") -> agecomps
 agecomps[is.na(agecomps)] <- 0
 
 write_csv(agecomps, "data/tmb_inputs/agecomps.csv")

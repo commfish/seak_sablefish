@@ -70,6 +70,10 @@ data <- list(
   # Switch for selectivity type: 0 = a50, a95 logistic; 1 = a50, slope logistic
   slx_type = 1,
   
+  # Swtich for age composition type (hopefully one day length comps too): 0 =
+  # multinomial; 1 = Dirichlet-multinomial
+  comp_type = 1,
+  
   # Time varying parameters - each vector contains the terminal years of each time block
   blks_fsh_slx = c(37), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, 37)
   blks_srv_slx = c(37), # no breaks survey selectivity
@@ -163,14 +167,16 @@ data <- list(
   # Fishery age comps
   nyr_fsh_age = fsh_age %>% distinct(year) %>% nrow(),
   yrs_fsh_age = fsh_age %>% distinct(index) %>% pull(),
-  data_fsh_age = fsh_age %>% select(-c(year, index, Source, effn)) %>% as.matrix(),
-  effn_fsh_age = pull(fsh_age, effn),
+  data_fsh_age = fsh_age %>% select(-c(year, index, Source, n, effn)) %>% as.matrix(),
+  n_fsh_age = pull(fsh_age, n),        # total sample size
+  effn_fsh_age = pull(fsh_age, effn),  # effective sample size, currently sqrt(n_fsh_age)
   
   # Survey age comps
   nyr_srv_age = srv_age %>% distinct(year) %>% nrow(),
   yrs_srv_age = srv_age %>% distinct(index) %>% pull(),
-  data_srv_age = srv_age %>% select(-c(year, index, Source, effn)) %>% as.matrix(),
-  effn_srv_age = pull(srv_age, effn),
+  data_srv_age = srv_age %>% select(-c(year, index, Source, n, effn)) %>% as.matrix(),
+  n_srv_age = pull(srv_age, n),        # total sample size
+  effn_srv_age = pull(srv_age, effn),  # effective sample size, currently sqrt(n_srv_age)
   
   # Ageing error matrix
   ageing_error = as.matrix(ageing_error)
@@ -263,7 +269,13 @@ parameters <- list(
   
   # SPR-based fishing mortality rates, i.e. the F at which the spawning biomass
   # per recruit is reduced to xx% of its value in an unfished stock
-  spr_Fxx = c(0.128, 0.105, 0.071)       # e.g. F35, F40, F50
+  spr_Fxx = c(0.128, 0.105, 0.071),       # e.g. F35, F40, F50
+  
+  # Parameter related to effective sample size for Dirichlet-multinomial
+  # likelihood used for composition data. Default of 10 taken from LIME model by
+  # M. Rudd. Estimated in log-space b/c it can only be positive.
+  log_fsh_theta = log(10),   
+  log_srv_theta = log(10)
 )
 
 # Run model ----
@@ -302,7 +314,8 @@ map <- list(fsh_slx_pars = factor(array(data = c(rep(factor(NA), length(data$blk
             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr),
             log_rinit = factor(NA), log_rinit_devs = rep(factor(NA), nage-2),
             log_sigma_r = factor(NA), log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
-            spr_Fxx = rep(factor(NA), length(data$Fxx_levels)))
+            spr_Fxx = rep(factor(NA), length(data$Fxx_levels)),
+            log_fsh_theta = factor(NA), log_srv_theta = factor(NA))
 
 model <- MakeADFun(data, parameters, DLL = "mod", 
                    silent = TRUE, map = map,

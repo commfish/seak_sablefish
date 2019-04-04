@@ -462,6 +462,14 @@ build_bounds <- function(param_list = NULL, data_list){
   # SPR F rates
   lower_bnd$spr_Fxx <- replace(lower_bnd$spr_Fxx, values = rep(0.001, length(lower_bnd$spr_Fxx)))
   upper_bnd$spr_Fxx <- replace(upper_bnd$spr_Fxx, values = rep(1, length(upper_bnd$spr_Fxx)))
+
+  # Fishery age comp Dirichlet-multinomial theta
+  lower_bnd$log_fsh_theta <- replace(lower_bnd$log_fsh_theta, values = rep(-5, length(lower_bnd$log_fsh_theta)))
+  upper_bnd$log_fsh_theta <- replace(upper_bnd$log_fsh_theta, values = rep(15, length(upper_bnd$log_fsh_theta)))
+  
+  # Fishery age comp Dirichlet-multinomial theta
+  lower_bnd$log_srv_theta <- replace(lower_bnd$log_srv_theta, values = rep(-5, length(lower_bnd$log_srv_theta)))
+  upper_bnd$log_srv_theta <- replace(upper_bnd$log_srv_theta, values = rep(15, length(upper_bnd$log_srv_theta)))
   
   # Put bounds together
   bounds <- list(upper= upper_bnd, lower = lower_bnd)
@@ -521,6 +529,11 @@ build_phases <- function(param_list = NULL, data_list){
   # 5: Reference points
   phases$spr_Fxx <- replace(phases$spr_Fxx, values = rep(5, length(phases$spr_Fxx)))
   
+  # 6: Dirichlet-multinomial theta parameters (this will get turned off if
+  # comp_type != 1 in the TMBphase function)
+  phases$log_fsh_theta <- replace(phases$log_fsh_theta, values = rep(6, length(phases$log_fsh_theta)))
+  phases$log_srv_theta <- replace(phases$log_srv_theta, values = rep(6, length(phases$log_srv_theta)))
+
   return(phases)
 }
 
@@ -570,6 +583,13 @@ TMBphase <- function(data, parameters, random, phases, model_name,
       # if not using random effects, assign log_sigma_r an NA in the map so it's not estimated
       if (data$random_rec == FALSE) {
         map_use$log_sigma_r <- fill_vals(parameters$log_sigma_r, NA)
+      }
+      
+      # if not using the Dirichlet-multinonial, assign log_fsh_theta and
+      # log_srv_theta NAs in the map so they're not estimated
+      if (data$comp_type != 1) {
+        map_use$log_fsh_theta <- fill_vals(parameters$log_fsh_theta, NA)
+        map_use$log_srv_theta <- fill_vals(parameters$log_srv_theta, NA)
       }
       
       j <- 1 # change to 0 if you get rid of the dummy debugging feature
