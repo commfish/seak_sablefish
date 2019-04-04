@@ -731,225 +731,226 @@ template<class Type>
   }
   // std::cout << "ABC\n" << ABC << "\n";
 
-  // // Priors
-  // 
-  // // Fishery cpue catchability coefficient
-  // priors(0) = square( log(fsh_q / p_fsh_q) ) / ( 2 * square(sigma_fsh_q) ); 
-  // 
-  // // Survey catchability coefficient
-  // priors(1) = square( log(srv_q / p_srv_q) ) / ( 2 * square(sigma_srv_q) );
-  // 
-  // // Mark-recapture abundance estimate catchability coefficient
-  // priors(2) = square( log(mr_q / p_mr_q) ) / ( 2 * square(sigma_mr_q) );
-  // 
-  //  // std::cout << "priors\n" << priors << "\n";
-  // 
-  // // Catch: normal (check?)
-  // // for (int i = 0; i < nyr; i++) {
-  // //   catch_like += square( (data_catch(i) - pred_catch(i)) / pred_catch(i)) /
-  // //     Type(2.0) * square(sigma_catch(i));
-  // // }
-  // 
-  // // // Catch: lognormal - *FLAG* pred_catch will be summed across sexes
+  // Priors
+
+  // Fishery cpue catchability coefficient
+  priors(0) = square( log(fsh_q / p_fsh_q) ) / ( 2 * square(sigma_fsh_q) );
+
+  // Survey catchability coefficient
+  priors(1) = square( log(srv_q / p_srv_q) ) / ( 2 * square(sigma_srv_q) );
+
+  // Mark-recapture abundance estimate catchability coefficient
+  priors(2) = square( log(mr_q / p_mr_q) ) / ( 2 * square(sigma_mr_q) );
+
+   // std::cout << "priors\n" << priors << "\n";
+
+  // Catch: normal (check)
   // for (int i = 0; i < nyr; i++) {
-  //   catch_like += square( log((data_catch(i) + c) / (pred_catch(i) + c)) )/
+  //   catch_like += square( (data_catch(i) - pred_catch(i)) / pred_catch(i)) /
   //     Type(2.0) * square(sigma_catch(i));
   // }
-  // 
-  // // Catch: lognormal2
-  // // for (int i = 0; i < nyr; i++) {
-  // //   catch_like += square( log(data_catch(i) + c) - log(pred_catch(i) + c) )/
-  // //     Type(2.0) * square(sigma_catch(i));
-  // // }
-  // catch_like *= wt_catch;     // Likelihood weight
-  // // std::cout << "Catch likelihood\n" << catch_like << "\n";
-  // 
-  // // Fishery CPUE: lognormal
-  // for (int i = 0; i < nyr_fsh_cpue; i++) {
-  //   index_like(0) += square( log((data_fsh_cpue(i) + c) / (pred_fsh_cpue(i) + c)) ) /
-  //     Type(2.0) * square(sigma_fsh_cpue(i));
-  // }
-  // index_like(0) *= wt_fsh_cpue; // Likelihood weight
-  // 
-  // // Survey CPUE: lognormal
-  // for (int i = 0; i < nyr_srv_cpue; i++) {
-  //   index_like(1) += square( log((data_srv_cpue(i) + c) / (pred_srv_cpue(i) + c)) ) /
-  //     Type(2.0) * square(sigma_srv_cpue(i));
-  // }
-  // index_like(1) *= wt_srv_cpue; // Likelihood weight
-  // 
-  // // Mark-recapture index: lognormal
-  // for (int i = 0; i < nyr_mr; i++) {
-  //   index_like(2) += square( log((data_mr(i) + c) / (pred_mr(i) + c)) ) /
-  //     Type(2.0) * square(sigma_mr(i));
-  // }
-  // index_like(2) *= wt_mr;        // Likelihood weight
-  // // std::cout << "Index likelihoods\n" << index_like << "\n";
-  // 
-  // // Offset for fishery age compositions - *FLAG* the age comps should be sex-structured, i.e. separate likelihood for each sex
-  // for (int i = 0; i < nyr_fsh_age; i++) {
-  //   offset(0) -= effn_fsh_age(i) * (data_fsh_age(i) + c) * log(data_fsh_age(i) + c);
-  // }
-  // 
-  // // Fishery age compositions: multinomial
-  // for (int i = 0; i < nyr_fsh_age; i++) {
-  //   for (int j = 0; j < nage; j++) {
-  //     age_like(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(pred_fsh_age(i,j) + c);
-  //     }
-  // }
-  // age_like(0) -= offset(0);     // subtract offset
-  // age_like(0) *= wt_fsh_age;    // likelihood weight
-  // 
-  // // Offset for survey age compositions
-  // for (int i = 0; i < nyr_srv_age; i++) {
-  //   offset(1) -= effn_srv_age(i) * (data_srv_age(i) + c) * log(data_srv_age(i) + c);
-  // }
-  // 
-  // // Survey age compositions: multinomial
-  // for (int i = 0; i < nyr_srv_age; i++) {
-  //   for (int j = 0; j < nage; j++) {
-  //     age_like(1) -= effn_srv_age(i) * (data_srv_age(i,j) + c) * log(pred_srv_age(i,j) + c);
-  //   }
-  // }
-  // age_like(1) -= offset(1);     // substract offset
-  // age_like(1) *= wt_srv_age;    // likelihood weight
-  // 
-  // // std::cout << "Age comp offset\n" << offset << "\n";
-  // // std::cout << "Age comp likelihoods\n" << age_like << "\n";
-  // 
-  // // Recruitment - random_rec switches between penalized likelihood and random
-  // // effects. Shared sigma_r between rinit_devs and rec_devs, rinit_devs are the
-  // // same as the rec_devs but have been reduced by mortality. They were kept
-  // // separate to help with accounting.
-  // 
-  // // Penalized likelihood, sigma_r fixed, bias correction for lognormal
-  // // likelihood (-0.5*sigma^2) needed to get mean instead of median from
-  // // distribution
-  // if (random_rec == 0) {
-  //   
-  //   // Annual recruitment deviations
-  //   for (int i = 0; i < nyr; i++) {
-  //     rec_like += square(log_rec_devs(i) - Type(0.5) * square(sigma_r));
-  //   }
-  //   
-  //   // Initial numbers-at-age (sage + 1 to plus group - 1)
-  //   for (int j = 0; j < nage - 2; j++) {
-  //     rec_like += square(log_rinit_devs(j) - Type(0.5) * square(sigma_r));
-  //   }
-  //   
-  //   rec_like *= wt_rec_like;      // weight
-  //   
-  // }
-  // 
-  // // Random effects: mean = 0, sigma_r estimated, same bias correction as
-  // // penalized likelihood for lognormal distribution
-  // if (random_rec == 1) {
-  //   
-  //   // Recruitment deviations
-  //   for (int i = 0; i < nyr; i++) {
-  //     rec_like += log(sigma_r) + Type(0.5) * square(log_rec_devs(i) - Type(0.5) * square(sigma_r)) / square(sigma_r);
-  //     // Should be equivalent to: rec_like -= dnorm(log_rec_dev(i) - Type(0.5) * square(sigma_r) , Type(0.0), sigma_r, true);
-  //   }
-  //   
-  //   // Initial numbers-at-age (sage + 1 to plus group - 1)
-  //   for (int j = 0; j < nage - 2; j++) {
-  //     rec_like += log(sigma_r) + Type(0.5) * square(log_rinit_devs(j) - Type(0.5) * square(sigma_r)) / square(sigma_r);
-  //   }
-  //   
-  //   rec_like *= wt_rec_like;      // weight
-  //   
-  // }
-  // // std::cout << "Log recruitment deviations\n" << log_rec_devs << "\n";
-  // // std::cout << "Log deviations for initial numbers-at-age\n" << log_rinit_devs << "\n";
-  // // std::cout << "Recruitment likelihood\n" << rec_like << "\n";
-  // 
-  // // Regularity penalty on fishing mortality
+
+  // Catch: lognormal
+  for (int i = 0; i < nyr; i++) {
+    catch_like += square( log((data_catch(i) + c) / (pred_catch(i) + c)) )/
+      Type(2.0) * square(sigma_catch(i));
+  }
+
+  // Catch: lognormal alternative (these should be equivalent)
   // for (int i = 0; i < nyr; i++) {
-  //   fpen += square(log_F_devs(i));
+  //   catch_like += square( log(data_catch(i) + c) - log(pred_catch(i) + c) )/
+  //     Type(2.0) * square(sigma_catch(i));
   // }
-  // fpen *= wt_fpen;              // weight
-  // 
-  // // Large penalty on SPR calculations
-  // for(int x = 1; x <= n_Fxx; x++) {
-  //   spr_pen += square( SB(x) / SB(0) - Fxx_levels(x-1));
-  // }
-  // spr_pen *=  wt_spr; 
-  // // std::cout << "Log fishing mortality deviations\n" << log_F_devs << "\n";
-  // // std::cout << "Penality for fishing mortality\n" << fpen << "\n";
-  // // std::cout << "Penality for SPR calcs\n" << spr_pen << "\n";
-  // 
-  // // Sum likelihood components
-  // obj_fun += priors(0);         // Fishery q
-  // obj_fun += priors(1);         // Survey q
-  // obj_fun += priors(2);         // Mark-recapture abndance index q
-  // obj_fun += catch_like;        // Catch // FLAG - NA/NaN function evaluation
-  // obj_fun += index_like(0);     // Fishery cpue
-  // obj_fun += index_like(1);     // Survey cpue
-  // obj_fun += index_like(2);     // Mark-recapture abundance index
-  // obj_fun += age_like(0);       // Fishery age compositions
-  // obj_fun += age_like(1);       // Survey age compositions
-  // obj_fun += rec_like;          // Recruitment deviations
-  // obj_fun += fpen;              // Fishing mortality deviations
-  // obj_fun += spr_pen;           // SPR calculations
-  // 
-  // // std::cout << "Objective function\n" << obj_fun << "\n";
   
-  obj_fun = dummy*dummy;        // TEST CODE
+  catch_like *= wt_catch;     // Likelihood weight
+  // std::cout << "Catch likelihood\n" << catch_like << "\n";
+
+  // Fishery CPUE: lognormal
+  for (int i = 0; i < nyr_fsh_cpue; i++) {
+    index_like(0) += square( log((data_fsh_cpue(i) + c) / (pred_fsh_cpue(i) + c)) ) /
+      Type(2.0) * square(sigma_fsh_cpue(i));
+  }
+  index_like(0) *= wt_fsh_cpue; // Likelihood weight
+
+  // Survey CPUE: lognormal
+  for (int i = 0; i < nyr_srv_cpue; i++) {
+    index_like(1) += square( log((data_srv_cpue(i) + c) / (pred_srv_cpue(i) + c)) ) /
+      Type(2.0) * square(sigma_srv_cpue(i));
+  }
+  index_like(1) *= wt_srv_cpue; // Likelihood weight
+
+  // Mark-recapture index: lognormal
+  for (int i = 0; i < nyr_mr; i++) {
+    index_like(2) += square( log((data_mr(i) + c) / (pred_mr(i) + c)) ) /
+      Type(2.0) * square(sigma_mr(i));
+  }
+  index_like(2) *= wt_mr;        // Likelihood weight
+  // std::cout << "Index likelihoods\n" << index_like << "\n";
+
+  // Offset for fishery age compositions
+  for (int i = 0; i < nyr_fsh_age; i++) {
+    offset(0) -= effn_fsh_age(i) * (data_fsh_age(i) + c) * log(data_fsh_age(i) + c);
+  }
+
+  // Fishery age compositions: multinomial
+  for (int i = 0; i < nyr_fsh_age; i++) {
+    for (int j = 0; j < nage; j++) {
+      age_like(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(pred_fsh_age(i,j) + c);
+      }
+  }
+  age_like(0) -= offset(0);     // subtract offset
+  age_like(0) *= wt_fsh_age;    // likelihood weight
+
+  // Offset for survey age compositions
+  for (int i = 0; i < nyr_srv_age; i++) {
+    offset(1) -= effn_srv_age(i) * (data_srv_age(i) + c) * log(data_srv_age(i) + c);
+  }
+
+  // Survey age compositions: multinomial
+  for (int i = 0; i < nyr_srv_age; i++) {
+    for (int j = 0; j < nage; j++) {
+      age_like(1) -= effn_srv_age(i) * (data_srv_age(i,j) + c) * log(pred_srv_age(i,j) + c);
+    }
+  }
+  age_like(1) -= offset(1);     // substract offset
+  age_like(1) *= wt_srv_age;    // likelihood weight
+
+  // std::cout << "Age comp offset\n" << offset << "\n";
+  // std::cout << "Age comp likelihoods\n" << age_like << "\n";
+
+  // Recruitment - random_rec switches between penalized likelihood and random
+  // effects. Shared sigma_r between rinit_devs and rec_devs, rinit_devs are the
+  // same as the rec_devs but have been reduced by mortality. They were kept
+  // separate to help with accounting.
+
+  // Penalized likelihood, sigma_r fixed, bias correction for lognormal
+  // likelihood (-0.5*sigma^2) needed to get mean instead of median from
+  // distribution
+  if (random_rec == 0) {
+
+    // Annual recruitment deviations
+    for (int i = 0; i < nyr; i++) {
+      rec_like += square(log_rec_devs(i) - Type(0.5) * square(sigma_r));
+    }
+
+    // Initial numbers-at-age (sage + 1 to plus group - 1)
+    for (int j = 0; j < nage - 2; j++) {
+      rec_like += square(log_rinit_devs(j) - Type(0.5) * square(sigma_r));
+    }
+
+    rec_like *= wt_rec_like;      // weight
+
+  }
+
+  // Random effects: mean = 0, sigma_r estimated, same bias correction as
+  // penalized likelihood for lognormal distribution
+  if (random_rec == 1) {
+
+    // Recruitment deviations
+    for (int i = 0; i < nyr; i++) {
+      rec_like += log(sigma_r) + Type(0.5) * square(log_rec_devs(i) - Type(0.5) * square(sigma_r)) / square(sigma_r);
+      // Should be equivalent to: rec_like -= dnorm(log_rec_dev(i) - Type(0.5) * square(sigma_r) , Type(0.0), sigma_r, true);
+    }
+
+    // Initial numbers-at-age (sage + 1 to plus group - 1)
+    for (int j = 0; j < nage - 2; j++) {
+      rec_like += log(sigma_r) + Type(0.5) * square(log_rinit_devs(j) - Type(0.5) * square(sigma_r)) / square(sigma_r);
+    }
+
+    rec_like *= wt_rec_like;      // weight
+
+  }
+  // std::cout << "Log recruitment deviations\n" << log_rec_devs << "\n";
+  // std::cout << "Log deviations for initial numbers-at-age\n" << log_rinit_devs << "\n";
+  // std::cout << "Recruitment likelihood\n" << rec_like << "\n";
+
+  // Regularity penalty on fishing mortality
+  for (int i = 0; i < nyr; i++) {
+    fpen += square(log_F_devs(i));
+  }
+  fpen *= wt_fpen;              // weight
+
+  // Large penalty on SPR calculations
+  for(int x = 1; x <= n_Fxx; x++) {
+    spr_pen += square( SB(x) / SB(0) - Fxx_levels(x-1));
+  }
+  spr_pen *=  wt_spr;
+  // std::cout << "Log fishing mortality deviations\n" << log_F_devs << "\n";
+  // std::cout << "Penality for fishing mortality\n" << fpen << "\n";
+  // std::cout << "Penality for SPR calcs\n" << spr_pen << "\n";
+
+  // Sum likelihood components
+  obj_fun += priors(0);         // Fishery q
+  obj_fun += priors(1);         // Survey q
+  obj_fun += priors(2);         // Mark-recapture abndance index q
+  obj_fun += catch_like;        // Catch // FLAG - NA/NaN function evaluation
+  obj_fun += index_like(0);     // Fishery cpue
+  obj_fun += index_like(1);     // Survey cpue
+  obj_fun += index_like(2);     // Mark-recapture abundance index
+  obj_fun += age_like(0);       // Fishery age compositions
+  obj_fun += age_like(1);       // Survey age compositions
+  obj_fun += rec_like;          // Recruitment deviations
+  obj_fun += fpen;              // Fishing mortality deviations
+  obj_fun += spr_pen;           // SPR calculations
+
+  // std::cout << "Objective function\n" << obj_fun << "\n";
+  
+  // obj_fun = dummy*dummy;        // TEST CODE
   
   // REPORT SECTION
   
-  // // Predicted indices of abundance
-  // REPORT(pred_catch);       // Catch
-  // REPORT(pred_mr);          // Mark-recapture index of abundance (only years with an estimate)
-  // REPORT(pred_mr_all);      // Mark-recapture index of abundance (all years)
-  // REPORT(pred_fsh_cpue);    // Fishery cpue
-  // REPORT(pred_srv_cpue);    // Survey cpue
-  // 
-  // // Predicted age compositions
-  // REPORT(pred_fsh_age);     // Fishery
-  // REPORT(pred_srv_age);     // Survey
-  // 
-  // // Predicted selectivity-at-age
-  // REPORT(fsh_slx);          // Fishery
-  // REPORT(srv_slx);          // Survey
-  // 
-  // // Predicted annual fishing mortality
-  // REPORT(Fmort);
-  // 
-  // // Derived matrices by year and age
-  // REPORT(N);                // Abundance-at-age, projected 1 year forward
-  // REPORT(Z);                // Total mortality
-  // REPORT(F);                // Fishing mortality
-  // REPORT(S);                // Survivorship
-  // REPORT(C);                // Catch in numbers at age
-  // 
-  // // Derived vectors by year
-  // REPORT(pred_rec);         // Predicted age-2 recruitment
-  // REPORT(biom);             // Total age-2+ biomass
-  // REPORT(expl_biom);        // Vulnerable biomass to fishery at the beginning of the fishery
-  // REPORT(vuln_abd);         // Vulnerable abundance to survey at the beginning of the survey
-  // REPORT(spawn_biom);       // Spawning biomass
-  // 
-  // // // SPR-based biological reference points and ABC
-  // REPORT(Fxx);              // Vector of Fs scaled to fully selected values
-  // REPORT(SBPR);             // Vector of spawning biomass per recruit at various Fxx levels
-  // REPORT(SB);               // Vector of spawning biomass at various Fxx levels
-  // REPORT(ABC);              // ABC at various Fxx levels
-  // 
-  // // Other derived and projected values
-  // REPORT(survival_srv);     // Annual natural survival at time of survey
-  // REPORT(survival_fsh);     // Annual natural survival at time of fishery
-  // REPORT(pred_rbar);        // Predicted mean recruitment
-  // 
-  // // Priors, likelihoods, offsets, and penalty functions
-  // REPORT(priors);           // q priors
-  // REPORT(catch_like);       // Catch
-  // REPORT(index_like);       // Abundance indices
-  // REPORT(age_like);         // Age compositions
-  // REPORT(rec_like);         // Recruitment deviations
-  // REPORT(fpen);             // Fishing mortality deviations
-  // REPORT(obj_fun);          // Total objective function
-  // REPORT(offset);           // Offsets for multinomial
+  // Predicted indices of abundance
+  REPORT(pred_catch);       // Catch
+  REPORT(pred_mr);          // Mark-recapture index of abundance (only years with an estimate)
+  REPORT(pred_mr_all);      // Mark-recapture index of abundance (all years)
+  REPORT(pred_fsh_cpue);    // Fishery cpue
+  REPORT(pred_srv_cpue);    // Survey cpue
+
+  // Predicted age compositions
+  REPORT(pred_fsh_age);     // Fishery
+  REPORT(pred_srv_age);     // Survey
+
+  // Predicted selectivity-at-age
+  REPORT(fsh_slx);          // Fishery
+  REPORT(srv_slx);          // Survey
+
+  // Predicted annual fishing mortality
+  REPORT(Fmort);
+
+  // Derived matrices by year and age
+  REPORT(N);                // Abundance-at-age, projected 1 year forward
+  REPORT(Z);                // Total mortality
+  REPORT(F);                // Fishing mortality
+  REPORT(S);                // Survivorship
+  REPORT(C);                // Catch in numbers at age
+
+  // Derived vectors by year
+  REPORT(pred_rec);         // Predicted age-2 recruitment
+  REPORT(biom);             // Total age-2+ biomass
+  REPORT(expl_biom);        // Vulnerable biomass to fishery at the beginning of the fishery
+  REPORT(vuln_abd);         // Vulnerable abundance to survey at the beginning of the survey
+  REPORT(spawn_biom);       // Spawning biomass
+
+  // // SPR-based biological reference points and ABC
+  REPORT(Fxx);              // Vector of Fs scaled to fully selected values
+  REPORT(SBPR);             // Vector of spawning biomass per recruit at various Fxx levels
+  REPORT(SB);               // Vector of spawning biomass at various Fxx levels
+  REPORT(ABC);              // ABC at various Fxx levels
+
+  // Other derived and projected values
+  REPORT(survival_srv);     // Annual natural survival at time of survey
+  REPORT(survival_fsh);     // Annual natural survival at time of fishery
+  REPORT(pred_rbar);        // Predicted mean recruitment
+
+  // Priors, likelihoods, offsets, and penalty functions
+  REPORT(priors);           // q priors
+  REPORT(catch_like);       // Catch
+  REPORT(index_like);       // Abundance indices
+  REPORT(age_like);         // Age compositions
+  REPORT(rec_like);         // Recruitment deviations
+  REPORT(fpen);             // Fishing mortality deviations
+  REPORT(obj_fun);          // Total objective function
+  REPORT(offset);           // Offsets for multinomial
 
   return(obj_fun);          
   

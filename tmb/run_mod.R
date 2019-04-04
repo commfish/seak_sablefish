@@ -43,7 +43,7 @@ nyr <- length(syr:lyr)                # number of years
 rec_age <- min(waa$age)               # recruitment age                  
 plus_group <- max(waa$age)            # plus group age
 nage <- length(rec_age:plus_group)    # number of ages
-nsex <- 1                             # single sex or sex-structured
+nsex <- 2                             # single sex or sex-structured
 # number of years to project forward *FLAG* eventually add to cpp file,
 # currently just for graphics
 nproj <- 1                            
@@ -185,53 +185,58 @@ parameters <- list(
   
   # Fishery selectivity
   fsh_slx_pars = 
-    # Logistic with a50 and a95, data$slx_type = 0
-    if(data$slx_type == 0) {array(data = c(rep(3.52, length(data$blks_fsh_slx)),
-                                           rep(5.43, length(data$blks_fsh_slx))),
-                                  # 2 = number of parameters for this slx_type (e.g. logistic
-                                  # has 2 parameters)
-                                  dim = c(length(data$blks_fsh_slx), 2, nsex))
-    } else {# Logistic with a50 and slope, data$slx_type = 1 use if else {} if you want
-      # to add more than 2 selectivity options
+    # Logistic with a50 and a95, data$slx_type = 0, single sex model
+    if(data$slx_type == 0 & nsex == 1) {
+      array(data = c(rep(4.12, length(data$blks_fsh_slx)), # Sexes combined
+                     rep(5.54, length(data$blks_fsh_slx))),
+            dim = c(length(data$blks_fsh_slx), 2, nsex)) # 2 = npar for this slx_type 
+    # Logistic with a50 and a95, data$slx_type = 0, sex-structured model
+    } else if (data$slx_type == 0 & nsex == 2) {
+      array(data = c(rep(4.33, length(data$blks_fsh_slx)), # Male
+                     rep(5.65, length(data$blks_fsh_slx)),
+                     rep(3.91, length(data$blks_fsh_slx)), # Female
+                     rep(5.43, length(data$blks_fsh_slx))),
+            dim = c(length(data$blks_fsh_slx), 2, nsex)) # 2 = npar for this slx_type 
+    # Logistic with a50 and slope, data$slx_type = 1, single sex model
+    } else if (data$slx_type == 1 & nsex == 1) {
       array(data = c(rep(4.04, length(data$blks_fsh_slx)),
                      rep(2.61, length(data$blks_fsh_slx))),
-            # 2 = number of parameters for this slx_type (e.g. logistic
-            # has 2 parameters)
-            dim = c(length(data$blks_fsh_slx), 2, nsex))},
-  # SEX-STRUCTURED
-  # fsh_slx_pars = array(data = c(rep(4.22, length(data$blks_fsh_slx)), # males first matrix of array
-  #                          rep(2.61, length(data$blks_fsh_slx)),
-  #                          rep(3.86, length(data$blks_fsh_slx)), # females second
-  #                          rep(2.61, length(data$blks_fsh_slx))),
-  #                 # 2 = number of parameters for this slx_type (e.g. logistic
-  #                 # has 2 parameters)
-  #                 dim = c(length(data$blks_fsh_slx), 2, nsex))
+            dim = c(length(data$blks_fsh_slx), 2, nsex)) # 2 = npar for this slx_type 
+    } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model
+      array(data = c(rep(4.22, length(data$blks_fsh_slx)), # male
+                     rep(2.61, length(data$blks_fsh_slx)),
+                     rep(3.86, length(data$blks_fsh_slx)), # female
+                     rep(2.61, length(data$blks_fsh_slx))),
+            dim = c(length(data$blks_fsh_slx), 2, nsex)) }, # 2 = npar for this slx_type 
   
   # Survey selectivity
   srv_slx_pars = 
-    # Logistic with a50 and a95, data$slx_type = 0
-    if(data$slx_type == 0) {array(data = c(rep(3.86, length(data$blks_srv_slx)),
-                                           rep(5.13, length(data$blks_srv_slx))),
-                                  # 2 = number of parameters for this slx_type (e.g. logistic
-                                  # has 2 parameters)
-                                  dim = c(length(data$blks_srv_slx), 2, nsex))
-    } else {# Logistic with a50 and slope, data$slx_type = 1 use if else {} if you want
-      # to add more than 2 selectivity options
-      array(data = c(rep(3.73, length(data$blks_srv_slx)),
+    # Logistic with a50 and a95, data$slx_type = 0, single sex model
+    if(data$slx_type == 0 & nsex == 1) {
+      array(data = c(rep(3.86, length(data$blks_srv_slx)),
+                     rep(5.21, length(data$blks_srv_slx))),
+            dim = c(length(data$blks_srv_slx), 2, nsex)) # 2 = npar for this slx_type 
+    # Logistic with a50 and a95, data$slx_type = 0, sex-structured model
+    } else if (data$slx_type == 0 & nsex == 2) {
+      array(data = c(rep(3.68, length(data$blks_srv_slx)),
+                     rep(5.21, length(data$blks_srv_slx)),
+                     rep(3.68, length(data$blks_srv_slx)),
+                     rep(5.21, length(data$blks_srv_slx))),
+            dim = c(length(data$blks_srv_slx), 2, nsex)) # 2 = npar for this slx_type 
+    # Logistic with a50 and slope, data$slx_type = 1, single sex model
+    } else if (data$slx_type == 1 & nsex == 1) {
+      array(data = c(rep(3.68, length(data$blks_srv_slx)),
                      rep(2.21, length(data$blks_srv_slx))),
-            # 2 = number of parameters for this slx_type (e.g. logistic
-            # has 2 parameters)
-            dim = c(length(data$blks_srv_slx), 2, nsex))},
-  # SEX-STRUCTURED
-  # srv_slx_pars = array(data = c(rep(3.72, length(data$blks_srv_slx)), # males first matrix of array
-  #                          rep(2.21, length(data$blks_srv_slx)),
-  #                          rep(3.75, length(data$blks_srv_slx)), # females second
-  #                          rep(2.21, length(data$blks_srv_slx))),
-  #                 # 2 = number of parameters for this slx_type (e.g. logistic
-  #                 # has 2 parameters)
-  #                 dim = c(length(data$blks_srv_slx), 2, nsex))
-
-    # Catchability
+            dim = c(length(data$blks_srv_slx), 2, nsex)) # 2 = npar for this slx_type 
+    # Logistic with a50 and slope, data$slx_type = 1, sex-structured model
+    } else { 
+      array(data = c(rep(3.68, length(data$blks_srv_slx)), # males first matrix of array
+                     rep(2.21, length(data$blks_srv_slx)),
+                     rep(3.68, length(data$blks_srv_slx)), # females second
+                     rep(2.21, length(data$blks_srv_slx))),
+            dim = c(length(data$blks_srv_slx), 2, nsex)) }, # 2 = npar for this slx_type
+  
+  # Catchability
   fsh_logq = -3.6726,
   srv_logq = -2.4019,
   mr_logq = -0.00000001,
@@ -252,7 +257,6 @@ parameters <- list(
   # SPR-based fishing mortality rates, i.e. the F at which the spawning biomass
   # per recruit is reduced to xx% of its value in an unfished stock
   spr_Fxx = c(0.128, 0.105, 0.071)       # e.g. F35, F40, F50
-  
 )
 
 # Run model ----
@@ -302,7 +306,7 @@ fit <- nlminb(model$par, model$fn, model$gr,
 
 # Run model
 phases <- build_phases(parameters, data)
-fit <- TMBphase(data, parameters, random = random_vars, phases, model_name = "mod", debug = TRUE)
+fit <- TMBphase(data, parameters, random = random_vars, phases, model_name = "mod", debug = FALSE)
 
 fit
 # Estimate everything at once 
