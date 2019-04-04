@@ -414,6 +414,10 @@ tickr <- function(
 
 build_bounds <- function(param_list = NULL, data_list){
   
+  # Debug function
+  # param_list <- parameters
+  # data_list <- data
+  
   upper_bnd <- param_list
   lower_bnd <- param_list
   
@@ -440,8 +444,8 @@ build_bounds <- function(param_list = NULL, data_list){
   upper_bnd$srv_logq <- replace(upper_bnd$srv_logq, values = rep(5, length(upper_bnd$srv_logq)))
   
   # Mark-recapture catchability
-  lower_bnd$mr_logq <- replace(lower_bnd$mr_logq, values = rep(-0.1, length(lower_bnd$mr_logq)))
-  upper_bnd$mr_logq <- replace(upper_bnd$mr_logq, values = rep(0.1, length(upper_bnd$mr_logq)))
+  lower_bnd$mr_logq <- replace(lower_bnd$mr_logq, values = rep(-1, length(lower_bnd$mr_logq)))
+  upper_bnd$mr_logq <- replace(upper_bnd$mr_logq, values = rep(1, length(upper_bnd$mr_logq)))
   
   # Recruitment devs
   lower_bnd$log_rec_devs <- replace(lower_bnd$log_rec_devs, values = rep(-10, length(lower_bnd$log_rec_devs)))
@@ -456,7 +460,7 @@ build_bounds <- function(param_list = NULL, data_list){
   upper_bnd$log_F_devs <- replace(upper_bnd$log_F_devs, values = rep(15, length(upper_bnd$log_F_devs)))
   
   # SPR F rates
-  lower_bnd$spr_Fxx <- replace(lower_bnd$spr_Fxx, values = rep(0.01, length(lower_bnd$spr_Fxx)))
+  lower_bnd$spr_Fxx <- replace(lower_bnd$spr_Fxx, values = rep(0.001, length(lower_bnd$spr_Fxx)))
   upper_bnd$spr_Fxx <- replace(upper_bnd$spr_Fxx, values = rep(1, length(upper_bnd$spr_Fxx)))
   
   # Put bounds together
@@ -507,8 +511,8 @@ build_phases <- function(param_list = NULL, data_list){
 
   # 3: Fishing mortality devs and catchability
   phases$log_F_devs <- replace(phases$log_F_devs, values = rep(3, length(phases$log_F_devs)))
-  phases$fsh_logq <- replace(phases$fsh_logq, values = rep(2, length(phases$fsh_logq)))
-  phases$srv_logq <- replace(phases$srv_logq, values = rep(2, length(phases$srv_logq)))
+  phases$fsh_logq <- replace(phases$fsh_logq, values = rep(3, length(phases$fsh_logq)))
+  phases$srv_logq <- replace(phases$srv_logq, values = rep(3, length(phases$srv_logq)))
   
   # 4: Selectivity
   phases$fsh_slx_pars[,,] <- replace(phases$fsh_slx_pars[,,], values = 4)
@@ -524,12 +528,12 @@ build_phases <- function(param_list = NULL, data_list){
 TMBphase <- function(data, parameters, random, phases, model_name,
                      optimizer = "nlminb", debug = FALSE) {
   
-  # debugging fxn
+  # Debug function
   # random <-  random_vars <- NULL
   # phases <- build_phases(parameters, data)
   # model_name <- "mod"
   # debug <- FALSE
-  
+
   # function to fill list component with a factor
   fill_vals <- function(x,vals){rep(as.factor(vals), length(x))}
   
@@ -541,7 +545,7 @@ TMBphase <- function(data, parameters, random, phases, model_name,
   #loop over phases
   for (phase_cur in 1:max(unlist(phases))) {
     
-    # phase_cur <- 1 # for debugging fxn
+    # phase_cur <- 1 # Debug function
     
     # If debugging build the map to have all parameters as factored NAs
     if (debug == TRUE) {
@@ -598,7 +602,6 @@ TMBphase <- function(data, parameters, random, phases, model_name,
       lower <- lower[!names(lower) %in% "log_sigma_r"]
       upper <- upper[!names(lower) %in% "log_sigma_r"]
     }
-    
     # initialize the parameters at values in previous phase
     params_use <- parameters
     if (phase_cur>1) params_use <- obj$env$parList(opt$par)
@@ -607,15 +610,10 @@ TMBphase <- function(data, parameters, random, phases, model_name,
     obj <- TMB::MakeADFun(data,params_use,random=NULL,DLL=DLL_use,map=map_use)  
     
     TMB::newtonOption(obj,smartsearch=FALSE)
-    # obj$fn()
-    # obj$gr()
-    opt <- nlminb(obj$par,obj$fn,obj$gr,
-                  control=list(eval.max=100000,iter.max=1000),
+    opt <- nlminb(start = obj$par, objective = obj$fn, hessian = obj$gr,
+                  control=list(eval.max=100000,iter.max=1000, trace=TRUE),
                   lower = lower, upper = upper)
     rep <- TMB::sdreport(obj)
-    # rep
-    
-    #close phase loop
   }
   
   return(rep)  

@@ -183,13 +183,15 @@ parameters <- list(
   
   dummy = 0,   # Used for troubleshooting model               
   
-  # Fishery selectivity
+  # Fishery selectivity - starting values developed using NOAA selectivity
+  # curves
   fsh_slx_pars = 
     # Logistic with a50 and a95, data$slx_type = 0, single sex model
     if(data$slx_type == 0 & nsex == 1) {
       array(data = c(rep(4.12, length(data$blks_fsh_slx)), # Sexes combined
                      rep(5.54, length(data$blks_fsh_slx))),
             dim = c(length(data$blks_fsh_slx), 2, nsex)) # 2 = npar for this slx_type 
+      
     # Logistic with a50 and a95, data$slx_type = 0, sex-structured model
     } else if (data$slx_type == 0 & nsex == 2) {
       array(data = c(rep(4.33, length(data$blks_fsh_slx)), # Male
@@ -197,11 +199,13 @@ parameters <- list(
                      rep(3.91, length(data$blks_fsh_slx)), # Female
                      rep(5.43, length(data$blks_fsh_slx))),
             dim = c(length(data$blks_fsh_slx), 2, nsex)) # 2 = npar for this slx_type 
+      
     # Logistic with a50 and slope, data$slx_type = 1, single sex model
     } else if (data$slx_type == 1 & nsex == 1) {
       array(data = c(rep(4.04, length(data$blks_fsh_slx)),
                      rep(2.61, length(data$blks_fsh_slx))),
             dim = c(length(data$blks_fsh_slx), 2, nsex)) # 2 = npar for this slx_type 
+      
     } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model
       array(data = c(rep(4.22, length(data$blks_fsh_slx)), # male
                      rep(2.61, length(data$blks_fsh_slx)),
@@ -209,30 +213,33 @@ parameters <- list(
                      rep(2.61, length(data$blks_fsh_slx))),
             dim = c(length(data$blks_fsh_slx), 2, nsex)) }, # 2 = npar for this slx_type 
   
-  # Survey selectivity
+  # Survey selectivity - starting values developed using NOAA selectivity curves
   srv_slx_pars = 
     # Logistic with a50 and a95, data$slx_type = 0, single sex model
     if(data$slx_type == 0 & nsex == 1) {
       array(data = c(rep(3.86, length(data$blks_srv_slx)),
                      rep(5.21, length(data$blks_srv_slx))),
             dim = c(length(data$blks_srv_slx), 2, nsex)) # 2 = npar for this slx_type 
+      
     # Logistic with a50 and a95, data$slx_type = 0, sex-structured model
     } else if (data$slx_type == 0 & nsex == 2) {
-      array(data = c(rep(3.68, length(data$blks_srv_slx)),
+      array(data = c(rep(3.68, length(data$blks_srv_slx)), # male
                      rep(5.21, length(data$blks_srv_slx)),
-                     rep(3.68, length(data$blks_srv_slx)),
+                     rep(3.68, length(data$blks_srv_slx)), # female
                      rep(5.21, length(data$blks_srv_slx))),
             dim = c(length(data$blks_srv_slx), 2, nsex)) # 2 = npar for this slx_type 
+      
     # Logistic with a50 and slope, data$slx_type = 1, single sex model
     } else if (data$slx_type == 1 & nsex == 1) {
       array(data = c(rep(3.68, length(data$blks_srv_slx)),
                      rep(2.21, length(data$blks_srv_slx))),
             dim = c(length(data$blks_srv_slx), 2, nsex)) # 2 = npar for this slx_type 
+      
     # Logistic with a50 and slope, data$slx_type = 1, sex-structured model
     } else { 
-      array(data = c(rep(3.68, length(data$blks_srv_slx)), # males first matrix of array
+      array(data = c(rep(3.68, length(data$blks_srv_slx)), # male
                      rep(2.21, length(data$blks_srv_slx)),
-                     rep(3.68, length(data$blks_srv_slx)), # females second
+                     rep(3.68, length(data$blks_srv_slx)), # female
                      rep(2.21, length(data$blks_srv_slx))),
             dim = c(length(data$blks_srv_slx), 2, nsex)) }, # 2 = npar for this slx_type
   
