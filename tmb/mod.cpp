@@ -35,7 +35,7 @@ template<class Type>
   // Fixed parameters
   DATA_ARRAY(M)                 // natural mortality by year, age, and sex. assume constant M=0.1
 
-  // Fxx levels that correspond with spr_Fxx in Parameter section
+  // Fxx levels that correspond with log_spr_Fxx in Parameter section
   DATA_VECTOR(Fxx_levels)       // e.g. F35=0.35, F40=0.40, and F50=0.50
   
   // Priors ("p_" denotes prior)
@@ -135,8 +135,8 @@ template<class Type>
   PARAMETER(dummy);          
 
   // Selectivity 
-  PARAMETER_ARRAY(fsh_slx_pars);       // Fishery selectivity (slx_type controls parameterization)
-  PARAMETER_ARRAY(srv_slx_pars);       // Survey selectivity (slx_type controls parameterization)
+  PARAMETER_ARRAY(log_fsh_slx_pars);       // Fishery selectivity (slx_type controls parameterization)
+  PARAMETER_ARRAY(log_srv_slx_pars);       // Survey selectivity (slx_type controls parameterization)
 
   // Catchability
   PARAMETER(fsh_logq);            // fishery       
@@ -156,7 +156,7 @@ template<class Type>
   
   // SPR-based fishing mortality rates, i.e. the F at which the spawning biomass
   // per recruit is reduced to xx% of its value in an unfished stock
-  PARAMETER_VECTOR(spr_Fxx);      // e.g. F35, F40, F50
+  PARAMETER_VECTOR(log_spr_Fxx);      // e.g. F35, F40, F50
   
   //  Parameter related to effective sample size for Dirichlet-multinomial
   //  likelihood used for composition data. Eqn 11 in Thorson et al. 2017.
@@ -264,8 +264,25 @@ template<class Type>
   // Indexing: i = year, j = age, k = sex, h = time block, x = Fxx level
   
   // Fishery selectivity
-
-  // The do while allows you to estimate parameters within a time block. It
+  
+  // Number of parameters in the chosen selectivity type: 
+  int npar_slx = log_fsh_slx_pars.dim(1); // dim = array dimensions; 1 = # columns in array = # params in slx_type
+  // std::cout << npar_slx << "\n number of params for slx type\n";
+  
+  // Preliminary calcs to bring parameters out of log space
+  array<Type> fsh_slx_pars(log_fsh_slx_pars.dim);
+  fsh_slx_pars.setZero();
+  
+  for (int k = 0; k < nsex; k++) {
+    for (int h = 0; h < blks_fsh_slx.size(); h++) {
+      for (int n = 0; n < npar_slx; n++) { 
+        fsh_slx_pars(h,n,k) = exp(log_fsh_slx_pars(h,n,k));
+      }
+    }
+  }
+  // std::cout << fsh_slx_pars << "\n slx out of log space\n";
+  
+  // Notes on the following syntax: the do while allows you to estimate parameters within a time block. It
   // "does" the looping over year and age "while" within the time block, then
   // iterates to the next block. Year is not in a for loop because it is
   // iterated by the do statement.
@@ -275,70 +292,82 @@ template<class Type>
   // allows for a flexible number of parameters and time blocks)
   
   int i = 0;
-  
+
   for(int h = 0; h < blks_fsh_slx.size(); h++){
-    do{ 
+    do{
       for (int k = 0; k < nsex; k++) {
         for (int j = 0; j < nage; j++) {
-          
+
           // Selectivity switch (case 0 or 1 references the value of slx_type)
-          switch (slx_type) {  
-          
+          switch (slx_type) {
+
           case 0: // Logistic with a50 and a95, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = a95
             fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_slx_pars(h,0,k)) / (fsh_slx_pars(h,1,k) - fsh_slx_pars(h,0,k))) );
             break;
-            
-          case 1: // Logistic with a50 and slope, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = slope. 
+
+          case 1: // Logistic with a50 and slope, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = slope.
             //  *This is the preferred logistic parameterization b/c it reduces parameter correlation*
             fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(j - fsh_slx_pars(h,0,k)) * fsh_slx_pars(h,1,k) );
-            break;  
+            break;
           }
         }
       }
       i++;
     } while (i <= blks_fsh_slx(h));
   }
-    
+
   // Survey selectivity - see notes on syntax in fishery selectivity section
+
+  // Preliminary calcs to bring parameters out of log space
+  array<Type> srv_slx_pars(log_srv_slx_pars.dim);
+  srv_slx_pars.setZero();
   
+  for (int k = 0; k < nsex; k++) {
+    for (int h = 0; h < blks_srv_slx.size(); h++) {
+      for (int n = 0; n < npar_slx; n++) { 
+        srv_slx_pars(h,n,k) = exp(log_srv_slx_pars(h,n,k));
+      }
+    }
+  }
+
   i = 0;     // re-set i to 0 (do not redeclare)
-  
+
   for(int h = 0; h < blks_srv_slx.size(); h++){
-    do{ 
+    do{
       for (int k = 0; k < nsex; k++) {
         for (int j = 0; j < nage; j++) {
-          
+
           // Selectivity switch (case 0 or 1 references the value of slx_type)
-          switch (slx_type) {  
-          
+          switch (slx_type) {
+
           case 0: // Logistic with a50 and a95, where srv_slx_pars(h,0,k) = a50 and srv_slx_pars(h,1,k) = a95
             srv_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - srv_slx_pars(h,0,k)) / (srv_slx_pars(h,1,k) - fsh_slx_pars(h,0,k))) );
             break;
-            
-          case 1: // Logistic with a50 and slope, where srv_slx_pars(h,0,k) = a50 and srv_slx_pars(h,1,k) = slope. 
+
+          case 1: // Logistic with a50 and slope, where srv_slx_pars(h,0,k) = a50 and srv_slx_pars(h,1,k) = slope.
             //  *This is the preferred logistic parameterization b/c it reduces parameter correlation*
             srv_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(j - srv_slx_pars(h,0,k)) * srv_slx_pars(h,1,k) );
-            break;  
+            break;
           }
         }
       }
       i++;
     } while (i <= blks_srv_slx(h));
   }
-  
+
   // std::cout << fsh_slx << "\n Fishery selectivity";
   // std::cout << srv_slx << "\n Survey selectivity";
 
   // Mortality and survivorship
-  
+
   for (int i = 0; i < nyr; i++) {
     Fmort(i) = exp(log_Fbar + log_F_devs(i)); // Annual fishing mortality
   }
-  
+
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
-        
+
       // Fishing mortality by year, age, and sex
       F(i,j,k) = Fmort(i) * fsh_slx(i,j,k);
 
@@ -363,13 +392,13 @@ template<class Type>
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
-        survival_srv(i,j,k) = exp(-1.0 * srv_month * M(i,j,k));
-        survival_fsh(i,j,k) = exp(-1.0 * fsh_month * M(i,j,k));
-        survival_spawn(i,j,k) = exp(-1.0 * spawn_month * M(i,j,k));
+        survival_srv(i,j,k) = exp(Type(-1.0) * srv_month * M(i,j,k));
+        survival_fsh(i,j,k) = exp(Type(-1.0) * fsh_month * M(i,j,k));
+        survival_spawn(i,j,k) = exp(Type(-1.0) * spawn_month * M(i,j,k));
       }
     }
   }
-  
+
   // std::cout << survival_srv << "\n";
   // std::cout << survival_fsh << "\n";
 
@@ -388,7 +417,7 @@ template<class Type>
   for (int k = 0; k < nsex; k++) {
     N(0,nage-1,k) = exp(log_rinit - M(0,nage-1,k) * Type(nage-1)) / (1 - exp(-M(0,nage-1,k))) * sex_ratio(k,nage-1);
   }
-  
+
   // Recruitment in all years (except the projected year) *FLAG* sex ratio from
   // survey or 50/50 or ?
   for (int k = 0; k < nsex; k++) {
@@ -396,7 +425,7 @@ template<class Type>
       N(i,0,k) = exp(log_rbar + log_rec_devs(i)) * sex_ratio(k,0);
     }
   }
-  
+
   // Project remaining N matrix
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
@@ -405,21 +434,21 @@ template<class Type>
       }
     }
   }
-  
+
   // Plus group for start year + 1 to final year + 1 (sum of cohort survivors and
   // surviving memebers of last year's plus group)
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
-      N(i+1,nage-1,k) += N(i,nage-1,k) * S(i,nage-1,k); 
+      N(i+1,nage-1,k) += N(i,nage-1,k) * S(i,nage-1,k);
     }
   }
-  
+
   // Projected recruitment (average over recent 15 years, excluding most recent
   // 2 years), where the indexing of log_rec_devs(0,nyr+nage-3) *FLAG* sex ratio from
   // survey or 50/50 or ?
   for (int k = 0; k < nsex; k++) {
     for (int i = nyr-16; i <= nyr-2; i++) {
-      N(nyr,0,k) += exp(log_rbar + log_rec_devs(i)) * sex_ratio(k,0); 
+      N(nyr,0,k) += exp(log_rbar + log_rec_devs(i)) * sex_ratio(k,0);
     }
     N(nyr,0,k) /= Type(15.0);
   }
@@ -462,7 +491,7 @@ template<class Type>
   // Predicted recruitment by year, summed over the sexes
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
-      pred_rec(i) += N(i,0,k); 
+      pred_rec(i) += N(i,0,k);
     }
   }
   // std::cout << "Predicted recruitment\n" << pred_rec << "\n";
@@ -482,29 +511,29 @@ template<class Type>
   // Various flavors of projected biomass estimates [Note: the 0 in
   // data_srv_waa(0,j,k) and prop_mature(0,k) is a place holder if you ever
   // wanted time blocks or annual variation in weight-at-age or maturity]
-  
+
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
-        
+
         // Total biomass at time of longline survey
         biom(i,j,k) = data_srv_waa(0,j,k) * N(i,j,k) * survival_srv(i,j,k);
-        
+
         // Vulnerable biomass to the fishery at the beginning of the fishery
         expl_biom(i,j,k) = data_srv_waa(0,j,k) * fsh_slx(i,j,k) * N(i,j,k) * survival_fsh(i,j,k);
-        
+
         // Vulnerable abundance to the survey at the beginning of the survey
         vuln_abd(i,j,k) = srv_slx(i,j,k) * N(i,j,k) * survival_srv(i,j,k);
-        
+
         // Spawning biomass (just females)
         if (k == 1) {
-          spawn_biom(i,j) = data_srv_waa(0,j,k) * N(i,j,k) * survival_spawn(i,j,k) * prop_fem(j) * prop_mature(0,j); 
+          spawn_biom(i,j) = data_srv_waa(0,j,k) * N(i,j,k) * survival_spawn(i,j,k) * prop_fem(j) * prop_mature(0,j);
         }
-        
+
       }
     }
   }
-  
+
   // Project those values into the next year
   for (int k = 0; k < nsex; k++) {
     for (int j = 0; j < nage; j++) {
@@ -512,7 +541,7 @@ template<class Type>
       expl_biom(nyr,j,k) = data_srv_waa(0,j,k) * fsh_slx(nyr-1,j,k) * N(nyr,j,k) * survival_fsh(nyr-1,j,k);
       vuln_abd(nyr,j,k) = srv_slx(nyr-1,j,k) * N(nyr,j,k) * survival_srv(nyr-1,j,k);
       if (k == 1) { // just for females
-        spawn_biom(nyr,j) = data_srv_waa(0,j,k) * N(nyr,j,k) * survival_spawn(nyr-1,j,k) * prop_fem(j) * prop_mature(0,j); 
+        spawn_biom(nyr,j) = data_srv_waa(0,j,k) * N(nyr,j,k) * survival_spawn(nyr-1,j,k) * prop_fem(j) * prop_mature(0,j);
       }
     }
   }
@@ -525,21 +554,21 @@ template<class Type>
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i <= nyr; i++) {    // include projection year
       for (int j = 0; j < nage; j++) {
-        
+
         // Total biomass at time of longline survey
         tot_biom(i) += biom(i,j,k);
-        
+
         // Vulnerable biomass to the fishery at the beginning of the fishery
         tot_expl_biom(i) += expl_biom(i,j,k);
-        
+
         // Vulnerable abundance to the survey at the beginning of the survey
         tot_vuln_abd(i) += vuln_abd(i,j,k);
-        
+
         // Spawning biomass (just females)
         if (k == 1) {
-          tot_spawn_biom(i) += spawn_biom(i,j); 
+          tot_spawn_biom(i) += spawn_biom(i,j);
         }
-        
+
       }
     }
   }
@@ -547,7 +576,7 @@ template<class Type>
   // std::cout << "Annual predicted exploited biomass\n" << tot_expl_biom << "\n";
   // std::cout << "Annual predicted vulnerable abundance\n" << tot_vuln_abd << "\n";
   // std::cout << "Annual predicted spawning biomass\n" << tot_spawn_biom << "\n";
-  
+
   // Predicted values
 
   // Mark-recapture catchability and predicted abundance (in millions)
@@ -581,10 +610,10 @@ template<class Type>
 
   // Predicted fishery age compositions - *FLAG* check on sample sizes by year and sex
   for (int i = 0; i < nyr_fsh_age; i++) {
-    
+
     // sumC = temporary variable, catch in numbers summed over age and sex in a
     // given year
-    Type sumC = 0; 
+    Type sumC = 0;
     for (int k = 0; k < nsex; k++) {
       for (int j = 0; j < nage; j++) {
         sumC += C(yrs_fsh_age(i),j,k);
@@ -599,14 +628,14 @@ template<class Type>
         sumC_age(j) += C(yrs_fsh_age(i),j,k);
       }
     }
-    
+
     // Get predicted age comps (proportions-at-age) and apply ageing error
     // matrix
     for (int j = 0; j < nage; j++) {
       pred_fsh_age(i,j) = sumC_age(j) / sumC;
       // pred_fsh_age(i,j) *= ageing_error(j,j);
     }
-    
+
     // Loop over each year i
   }
   // std::cout << "Predicted fishery age comps\n" << pred_fsh_age << "\n";
@@ -619,13 +648,13 @@ template<class Type>
   //   }
   // }
   // std::cout << "Do the comps sum to 1?\n" << tst << "\n";
-  // 
+  //
   // Type tst_n = tst.size();
   // std::cout << "Length of tst vector\n" << tst_n << "\n";
-  
+
   // Predicted survey age compositions
   for (int i = 0; i < nyr_srv_age; i++) {
-    
+
     // sumN_age = temporary vector of catch in numbers by age in a given year
     // (combine sexes since we currently do not have sex-structured age comps)
     vector<Type> sumN_age(nage);
@@ -639,7 +668,7 @@ template<class Type>
     // matrix
     for (int j = 0; j < nage; j++) {
       pred_srv_age(i,j) = sumN_age(j) / tot_vuln_abd(yrs_srv_age(i));
-     // pred_srv_age(i,j) *= ageing_error(j,j);    
+     // pred_srv_age(i,j) *= ageing_error(j,j);
     }
     // Loop over each year i
   }
@@ -652,7 +681,7 @@ template<class Type>
   //   }
   // }
   // std::cout << "Do the comps sum to 1?\n" << tst << "\n";
-  // 
+  //
   // Type tst_n = tst.size();
   // std::cout << "Length of tst vector\n" << tst_n << "\n";
 
@@ -665,13 +694,20 @@ template<class Type>
   // }
 
   // Compute SPR rates and spawning biomass under different Fxx levels. Note
-  // this is only for the female component of the population.
+  // that biological reference points are only for the female component of the
+  // population.
+
+  // Preliminary calcs, get Fs out of log space
+  vector<Type> spr_Fxx(n_Fxx);
+  for(int x = 0; x < n_Fxx; x++) {
+    spr_Fxx(x) = exp(log_spr_Fxx(x));
+  }
 
   // For SPR calculations, use only female fishery selectivity in the most recent time block for all calculations. The 'nsex-1' should work
   // for both single sex and sex-structured versions
   vector<Type> spr_fsh_slx(nage);
   for (int j = 0; j < nage; j++) {
-      spr_fsh_slx(j) = fsh_slx(nyr-1,j,nsex-1);    
+      spr_fsh_slx(j) = fsh_slx(nyr-1,j,nsex-1);
   }
   // std::cout << "spr fishery selectivity\n" << spr_fsh_slx << "\n";
 
@@ -704,7 +740,7 @@ template<class Type>
   // Spawning biomass per recruit matrix
   for(int x = 0; x <= n_Fxx; x++) {
     for(int j = 0; j < nage; j++) {
-      
+
       if (nsex == 1) { // single sex model uses prop_fem vector
         SBPR(x) +=  Nspr(x,j) * prop_fem(j) * prop_mature(j) * data_srv_waa(0,j,0) * survival_spawn(nyr-1,j,nsex-1);
       }
@@ -771,7 +807,7 @@ template<class Type>
   //   catch_like += square( log(data_catch(i) + c) - log(pred_catch(i) + c) )/
   //     Type(2.0) * square(sigma_catch(i));
   // }
-  
+
   catch_like *= wt_catch;     // Likelihood weight
   // std::cout << "Catch likelihood\n" << catch_like << "\n";
 
@@ -799,93 +835,93 @@ template<class Type>
 
   // Likelihood for fishery age compositions
   Type fsh_theta = exp(log_fsh_theta);      // Dirichlet-multinomial parameter
-  vector<Type> sum1_fsh(nyr_fsh_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)  
-  vector<Type> sum2_fsh(nyr_fsh_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017) 
-  
-  for (int i = 0; i < nyr_fsh_age; i++) { 
-    
+  vector<Type> sum1_fsh(nyr_fsh_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+  vector<Type> sum2_fsh(nyr_fsh_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+
+  for (int i = 0; i < nyr_fsh_age; i++) {
+
     // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
-    switch (comp_type) {  
-    
+    switch (comp_type) {
+
     case 0: // Multinomial
-      
+
       // Offset
       offset(0) -= effn_fsh_age(i) * (data_fsh_age(i) + c) * log(data_fsh_age(i) + c);
-      
+
       // Likelihood
       for (int j = 0; j < nage; j++) {
         age_like(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(pred_fsh_age(i,j) + c);
       }
-      
+
       age_like(0) -= offset(0);     // subtract offset
       age_like(0) *= wt_fsh_age;    // likelihood weight
-      
+
       break;
-      
+
     case 1: // Dirichlet-multinomial (D-M)
 
       // Preliminary calcs
       for (int j = 0; j < nage; j++) {
         // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-        sum1_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + Type(1.0) ); 
-        // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017) 
+        sum1_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + Type(1.0) );
+        // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
         sum2_fsh(i) += lgamma( n_fsh_age(i) + data_fsh_age(i,j) + fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) ) -
-          lgamma( fsh_theta * n_fsh_age(i) - pred_fsh_age(i,j) );  
+          lgamma( fsh_theta * n_fsh_age(i) - pred_fsh_age(i,j) );
       }
       // Full nll for D-M, Eqn 10, Thorson et al. 2017
-      age_like(0) -= lgamma(n_fsh_age(i) + Type(1.0)) - sum1_fsh(i) + lgamma(fsh_theta * n_fsh_age(i)) - 
+      age_like(0) -= lgamma(n_fsh_age(i) + Type(1.0)) - sum1_fsh(i) + lgamma(fsh_theta * n_fsh_age(i)) -
         lgamma(n_fsh_age(i) + fsh_theta * n_fsh_age(i)) + sum2_fsh(i);
-      
-    break;  
-    
+
+    break;
+
     // case 2: // Multivariate logistic (MVL) - future development
-    
+
     }
   }
 
   // Likelihood for survey age compositions
   Type srv_theta = exp(log_srv_theta);      // Dirichlet-multinomial parameter
-  vector<Type> sum1_srv(nyr_srv_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)  
-  vector<Type> sum2_srv(nyr_srv_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017) 
-  
-  for (int i = 0; i < nyr_srv_age; i++) { 
-    
+  vector<Type> sum1_srv(nyr_srv_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+  vector<Type> sum2_srv(nyr_srv_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+
+  for (int i = 0; i < nyr_srv_age; i++) {
+
     // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
-    switch (comp_type) {  
-    
+    switch (comp_type) {
+
     case 0: // Multinomial
-      
+
       // Offset
       offset(1) -= effn_srv_age(i) * (data_srv_age(i) + c) * log(data_srv_age(i) + c);
-      
+
       // Likelihood
       for (int j = 0; j < nage; j++) {
         age_like(0) -= effn_srv_age(i) * (data_srv_age(i,j) + c) * log(pred_srv_age(i,j) + c);
       }
-      
+
       age_like(1) -= offset(0);     // subtract offset
       age_like(1) *= wt_srv_age;    // likelihood weight
-      
+
       break;
-      
+
     case 1: // Dirichlet-multinomial (D-M)
-      
+
       // Preliminary calcs
       for (int j = 0; j < nage; j++) {
         // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-        sum1_srv(i) += lgamma( n_srv_age(i) * data_srv_age(i,j) + Type(1.0) ); 
-        // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017) 
+        sum1_srv(i) += lgamma( n_srv_age(i) * data_srv_age(i,j) + Type(1.0) );
+        // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
         sum2_srv(i) += lgamma( n_srv_age(i) + data_srv_age(i,j) + srv_theta * n_srv_age(i) * pred_srv_age(i,j) ) -
-          lgamma( srv_theta * n_srv_age(i) - pred_srv_age(i,j) );  
+          lgamma( srv_theta * n_srv_age(i) - pred_srv_age(i,j) );
       }
       // Full nll for D-M, Eqn 10, Thorson et al. 2017
-      age_like(1) -= lgamma(n_srv_age(i) + Type(1.0)) - sum1_srv(i) + lgamma(srv_theta * n_srv_age(i)) - 
+      age_like(1) -= lgamma(n_srv_age(i) + Type(1.0)) - sum1_srv(i) + lgamma(srv_theta * n_srv_age(i)) -
         lgamma(n_srv_age(i) + srv_theta * n_srv_age(i)) + sum2_srv(i);
-      
-      break;  
-      
+
+      break;
+
       // case 2: // Multivariate logistic (MVL) - future development
-      
+
     }
   }
 
@@ -968,11 +1004,11 @@ template<class Type>
   obj_fun += spr_pen;           // SPR calculations
 
   // std::cout << "Objective function\n" << obj_fun << "\n";
-  
+
   // obj_fun = dummy*dummy;        // TEST CODE
-  
+
   // REPORT SECTION
-  
+
   // Predicted indices of abundance
   REPORT(pred_catch);       // Catch
   REPORT(pred_mr);          // Mark-recapture index of abundance (only years with an estimate)

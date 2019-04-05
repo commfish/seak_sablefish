@@ -428,12 +428,12 @@ build_bounds <- function(param_list = NULL, data_list){
   }
   
   # Fishery selectivity
-  lower_bnd$fsh_slx_pars[,,] <- replace(lower_bnd$fsh_slx_pars[,,], values = 0.1) 
-  upper_bnd$fsh_slx_pars[,,] <- replace(upper_bnd$fsh_slx_pars[,,], values = 10) 
+  lower_bnd$log_fsh_slx_pars[,,] <- replace(lower_bnd$log_fsh_slx_pars[,,], values = -2) 
+  upper_bnd$log_fsh_slx_pars[,,] <- replace(upper_bnd$log_fsh_slx_pars[,,], values = 2) 
   
   # Survey selectivity
-  lower_bnd$srv_slx_pars[,,] <- replace(lower_bnd$srv_slx_pars[,,], values = 0.1) 
-  upper_bnd$srv_slx_pars[,,] <- replace(upper_bnd$srv_slx_pars[,,], values = 10) 
+  lower_bnd$log_srv_slx_pars[,,] <- replace(lower_bnd$log_srv_slx_pars[,,], values = -2) 
+  upper_bnd$log_srv_slx_pars[,,] <- replace(upper_bnd$log_srv_slx_pars[,,], values = 2) 
   
   # Fishery catchability
   lower_bnd$fsh_logq <- replace(lower_bnd$fsh_logq, values = rep(-15, length(lower_bnd$fsh_logq)))
@@ -460,8 +460,8 @@ build_bounds <- function(param_list = NULL, data_list){
   upper_bnd$log_F_devs <- replace(upper_bnd$log_F_devs, values = rep(15, length(upper_bnd$log_F_devs)))
   
   # SPR F rates
-  lower_bnd$spr_Fxx <- replace(lower_bnd$spr_Fxx, values = rep(0.001, length(lower_bnd$spr_Fxx)))
-  upper_bnd$spr_Fxx <- replace(upper_bnd$spr_Fxx, values = rep(1, length(upper_bnd$spr_Fxx)))
+  lower_bnd$log_spr_Fxx <- replace(lower_bnd$log_spr_Fxx, values = rep(-5, length(lower_bnd$log_spr_Fxx)))
+  upper_bnd$log_spr_Fxx <- replace(upper_bnd$log_spr_Fxx, values = rep(0, length(upper_bnd$log_spr_Fxx)))
 
   # Fishery age comp Dirichlet-multinomial theta
   lower_bnd$log_fsh_theta <- replace(lower_bnd$log_fsh_theta, values = rep(-5, length(lower_bnd$log_fsh_theta)))
@@ -523,11 +523,11 @@ build_phases <- function(param_list = NULL, data_list){
   phases$srv_logq <- replace(phases$srv_logq, values = rep(3, length(phases$srv_logq)))
   
   # 4: Selectivity
-  phases$fsh_slx_pars[,,] <- replace(phases$fsh_slx_pars[,,], values = 4)
-  phases$srv_slx_pars[,,] <- replace(phases$srv_slx_pars[,,], values = 4)
+  phases$log_fsh_slx_pars[,,] <- replace(phases$log_fsh_slx_pars[,,], values = 4)
+  phases$log_srv_slx_pars[,,] <- replace(phases$log_srv_slx_pars[,,], values = 4)
 
   # 5: Reference points
-  phases$spr_Fxx <- replace(phases$spr_Fxx, values = rep(5, length(phases$spr_Fxx)))
+  phases$log_spr_Fxx <- replace(phases$log_spr_Fxx, values = rep(5, length(phases$log_spr_Fxx)))
   
   # 6: Dirichlet-multinomial theta parameters (this will get turned off if
   # comp_type != 1 in the TMBphase function)
