@@ -34,7 +34,9 @@ template<class Type>
     
   // Fixed parameters
   DATA_ARRAY(M)                 // natural mortality by year, age, and sex. assume constant M=0.1
-
+  DATA_ARRAY(dmr)               // discard mortality in the fishery by year, age, and sex. assume constant dmr 0 or 0.16
+  DATA_ARRAY(retention)         // probability of retaining a fish, sex- and age-based
+  
   // Fxx levels that correspond with log_spr_Fxx in Parameter section
   DATA_VECTOR(Fxx_levels)       // e.g. F35=0.35, F40=0.40, and F50=0.50
   
@@ -60,7 +62,7 @@ template<class Type>
   // INDICES OF ABUNDANCE
   
   // Catch
-  DATA_VECTOR(data_catch)       // vector of catch estimates
+  DATA_VECTOR(data_catch)       // vector of landed catch estimates
   DATA_VECTOR(sigma_catch)      // assumed CV of 5% for catch
     
   // Mark-recapture estimates
@@ -165,12 +167,17 @@ template<class Type>
     
   // **DERIVED QUANTITIES**
   
-  // Predicted indices of abundance
-  vector<Type> pred_catch(nyr);                 // Catch
+  // Predicted indices of catch and abundance
+  vector<Type> pred_catch(nyr);                 // Total catch biomass
+  vector<Type> pred_landed(nyr);                // Landed catch biomass
+  vector<Type> pred_wastage(nyr);               // Discarded biomass assumed dead
   vector<Type> pred_mr(nyr_mr);                 // Mark-recapture index of abundance (only years with an estimate)
   vector<Type> pred_mr_all(nyr);                // Mark-recapture index of abundance (all years!)
   vector<Type> pred_fsh_cpue(nyr_fsh_cpue);     // Fishery cpue
   vector<Type> pred_srv_cpue(nyr_srv_cpue);     // Survey cpue
+  pred_catch.setZero();   
+  pred_landed.setZero();  
+  pred_wastage.setZero(); 
 
   // Predicted age compositions
   matrix<Type> pred_fsh_age(nyr_fsh_age, nage);  // Fishery 
@@ -187,8 +194,10 @@ template<class Type>
   array<Type> N(nyr+1, nage, nsex);   // Abundance-at-age, projected 1 year forward
   array<Type> Z(nyr, nage, nsex);     // Total mortality
   array<Type> F(nyr, nage, nsex);     // Fishing mortality
-  array<Type> S(nyr, nage, nsex);     // Survivorship
-  array<Type> C(nyr, nage, nsex);     // Catch in numbers
+  array<Type> S(nyr, nage, nsex);     // Total survivorship (natural + fishing)
+  array<Type> C(nyr, nage, nsex);     // Total catch in numbers
+  array<Type> L(nyr, nage, nsex);     // Total landed catch in numbers
+  array<Type> D(nyr, nage, nsex);     // Total discards in numbers assumed to die post-release
 
   // Derived time series of recruitment, biomass, and abundance (+ projected values)
   
@@ -236,7 +245,9 @@ template<class Type>
   array<Type> Z_Fxx(n_Fxx, nage, nsex);         // Total mortality at each Fxx%
   array<Type> S_Fxx(n_Fxx, nage, nsex);         // Total survivorship at each Fxx%
   vector<Type> ABC(n_Fxx);                      // ABCs at each F_xx%
+  vector<Type> wastage(n_Fxx);                   // Discarded catch assumed to die under each F_xx%
   ABC.setZero();
+  wastage.setZero();
   
   // Priors, likelihoods, offsets, and penalty functions
   vector<Type> priors(3);       // Priors for catchability coefficients
@@ -361,25 +372,27 @@ template<class Type>
   // Mortality and survivorship
 
   for (int i = 0; i < nyr; i++) {
-    Fmort(i) = exp(log_Fbar + log_F_devs(i)); // Annual fishing mortality
+    Fmort(i) = exp(log_Fbar + log_F_devs(i)); // Total annual fishing mortality
   }
-
+  
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
-
-      // Fishing mortality by year, age, and sex
-      F(i,j,k) = Fmort(i) * fsh_slx(i,j,k);
-
-      // Total mortality by year, age, and sex
-      Z(i,j,k) = M(i,j,k) + F(i,j,k);
-
-      // Survivorship by year, age, and sex
-      S(i,j,k) = exp(-1.0 * Z(i,j,k));
+        
+        // Fishing mortality by year, age, and sex. If discard mortality (dmr)
+        // and retention probability = 1, this eqn collapses to Fmort(i) *
+        // fsh_slx(i,j,k)
+        F(i,j,k) = Fmort(i) * fsh_slx(i,j,k) * (retention(0,j,k) + dmr(i,j,k) * (Type(1.0) - retention(0,j,k)));
+        
+        // Total mortality by year, age, and sex
+        Z(i,j,k) = M(i,j,k) + F(i,j,k);
+        
+        // Survivorship by year, age, and sex
+        S(i,j,k) = exp(Type(-1.0) * Z(i,j,k));
       }
     }
   }
-
+  
   // std::cout << Fmort << "\n";
   // std::cout << F << "\n";
   // std::cout << Z << "\n";
@@ -460,33 +473,39 @@ template<class Type>
 
   // std::cout << N << "\n";
 
-  // Catch
-
-  // Baranov catch eqn - Catch in sex-specific numbers-at-age (F already
-  // incorporates fishery selectivity-at-age)
+  // In numbers-at-age: Total catch (C), landed catch (L), and discarded catch
+  // assumed to die (D). Currently assuming continuous F, but may want to add
+  // discrete F in the future. F is fully-selected, S is total survivorship. The
+  // 0 in data_srv_waa(0,j,k) is a place holder if you ever wanted time-varying
+  // weight-at-age.
+  
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
-        C(i,j,k) = N(i,j,k) * F(i,j,k) * (1 - S(i,j,k)) / Z(i,j,k);
+        
+        // Total catch in numbers and summed to get a total catch biomass by year
+        C(i,j,k) = N(i,j,k) * F(i,j,k) * (Type(1.0) - S(i,j,k)) / Z(i,j,k);
+        pred_catch(i) += C(i,j,k) * data_srv_waa(0,j,k) ;           // / 1e3 in mt
+        
+        // Landed catch in numbers and summed to get total landed catch in
+        // biomass by year
+        L(i,j,k) = retention(0,j,k) * N(i,j,k) * F(i,j,k) * (Type(1.0) - S(i,j,k)) / Z(i,j,k);
+        pred_landed(i) += L(i,j,k) * data_srv_waa(0,j,k) ;           // / 1e3 in mt
+        
+        // Discarded catch in numbers and summed to get total biomass of dead
+        // discards by year
+        D(i,j,k) = dmr(i,j,k) * (Type(1.0) - retention(0,j,k)) * N(i,j,k) * F(i,j,k) * (Type(1.0) - S(i,j,k)) / Z(i,j,k);
+        pred_wastage(i) += D(i,j,k) * data_srv_waa(0,j,k) ;           // / 1e3 in mt
+        
       }
     }
   }
-  // std::cout << C << "\n";
-
-  pred_catch.setZero(); // Initialize
-
-  // Predicted annual catch
-  for (int k = 0; k < nsex; k++) {
-    for (int i = 0; i < nyr; i++) {
-      for (int j = 0; j < nage; j++) {
-        // The 0 in data_srv_waa(0,j,k) is a place holder if you ever wanted
-        // time-varying weight-at-age
-        pred_catch(i) += C(i,j,k) * data_srv_waa(0,j,k) ;  // / 1e3 in mt
-      }
-    }
-  }
-  // std::cout << C << "\n";
-  // std::cout << pred_catch << "\n";
+  // std::cout << C << "\nTotal catch in numbers-at-age\n";
+  // std::cout << pred_catch << "\nPredicted total catch biomass\n"
+  // std::cout << L << "\nLanded catch in numbers-at-age\n";
+  // std::cout << pred_landed << "\nPredicted landed catch biomass\n"
+  // std::cout << D << "\nDead discards in numbers-at-age\n";
+  // std::cout << pred_wastage << "\nPredicted dead discarded biomass\n"
 
   // Predicted recruitment by year, summed over the sexes
   for (int k = 0; k < nsex; k++) {
@@ -766,17 +785,24 @@ template<class Type>
     for (int k = 0; k < nsex; k++) {
       for(int j = 0; j < nage; j++) {
 
-        sel_Fxx(x,j,k) = Fxx(x+1) * fsh_slx(nyr-1,j,k);       // Fully selected fishing mortality at age
+        // Fully selected fishing mortality by age and sex. If discard mortality
+        // (dmr) and retention probability = 1, this eqn collapses to Fmort *
+        // fsh_slx)
+        sel_Fxx(x,j,k) = Fxx(x+1) * fsh_slx(nyr-1,j,k) * (retention(0,j,k) + dmr(nyr-1,j,k) * (Type(1.0) - retention(0,j,k)));;       
         Z_Fxx(x,j,k) = M(nyr-1,j,nsex-1) + sel_Fxx(x,j,k);    // Total instantaneous mortality at age
         S_Fxx(x,j,k) = exp(-Z_Fxx(x,j,k));                    // Total survival at age
 
-        // ABC calculation
-        ABC(x) += data_srv_waa(0,j,k) * sel_Fxx(x,j,k) / Z_Fxx(x,j,k) * N(nyr-1,j,k) * (Type(1.0) - S_Fxx(x,j,k));
+        // ABC calculation (landed catch under Fxx)
+        ABC(x) += data_srv_waa(0,j,k) * retention(0,j,k) * N(nyr-1,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
+        
+        // Discarded catch assumed to die under Fxx
+        wastage(x) += data_srv_waa(0,j,k) * dmr(i,j,k) * (Type(1.0) - retention(0,j,k)) * N(nyr-1,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
       }
     }
   }
   // std::cout << "ABC\n" << ABC << "\n";
-
+  // std::cout << "Wastage\n" << wastage << "\n";
+  
   // Priors
 
   // Fishery cpue catchability coefficient
@@ -792,19 +818,19 @@ template<class Type>
 
   // Catch: normal (check)
   // for (int i = 0; i < nyr; i++) {
-  //   catch_like += square( (data_catch(i) - pred_catch(i)) / pred_catch(i)) /
+  //   catch_like += square( (data_catch(i) - pred_landed(i)) / pred_landed(i)) /
   //     Type(2.0) * square(sigma_catch(i));
   // }
 
   // Catch: lognormal
   for (int i = 0; i < nyr; i++) {
-    catch_like += square( log((data_catch(i) + c) / (pred_catch(i) + c)) )/
+    catch_like += square( log((data_catch(i) + c) / (pred_landed(i) + c)) )/
       Type(2.0) * square(sigma_catch(i));
   }
 
   // Catch: lognormal alternative (these should be equivalent)
   // for (int i = 0; i < nyr; i++) {
-  //   catch_like += square( log(data_catch(i) + c) - log(pred_catch(i) + c) )/
+  //   catch_like += square( log(data_catch(i) + c) - log(pred_landed(i) + c) )/
   //     Type(2.0) * square(sigma_catch(i));
   // }
 
@@ -920,7 +946,7 @@ template<class Type>
 
       break;
 
-      // case 2: // Multivariate logistic (MVL) - future development
+      // case 2: // Multivariate logistic - future development
 
     }
   }
@@ -1009,8 +1035,10 @@ template<class Type>
 
   // REPORT SECTION
 
-  // Predicted indices of abundance
-  REPORT(pred_catch);       // Catch
+  // Predicted indices of catch and abundance
+  REPORT(pred_catch);       // Total catch
+  REPORT(pred_landed);      // Landed catch
+  REPORT(pred_wastage);     // Discarded catch assumed to die
   REPORT(pred_mr);          // Mark-recapture index of abundance (only years with an estimate)
   REPORT(pred_mr_all);      // Mark-recapture index of abundance (all years)
   REPORT(pred_fsh_cpue);    // Fishery cpue
@@ -1046,6 +1074,7 @@ template<class Type>
   REPORT(SBPR);             // Vector of spawning biomass per recruit at various Fxx levels
   REPORT(SB);               // Vector of spawning biomass at various Fxx levels
   REPORT(ABC);              // ABC at various Fxx levels
+  REPORT(wastage);          // Dead discarded catch at various Fxx levels
 
   // Other derived and projected values
   REPORT(survival_srv);     // Annual natural survival at time of survey

@@ -13,10 +13,11 @@ library(TMB)
 
 # Data -----
 
-ts <- read_csv("data/tmb_inputs/abd_indices.csv")        # time series
-age <- read_csv("data/tmb_inputs/agecomps.csv")          # age comps
-bio <- read_csv("data/tmb_inputs/maturity_sexratio.csv") # proportion mature and proportion-at-age in the survey
-waa <- read_csv("data/tmb_inputs/waa.csv")               # weight-at-age
+ts <- read_csv("data/tmb_inputs/abd_indices.csv")             # time series
+age <- read_csv("data/tmb_inputs/agecomps.csv")               # age comps
+bio <- read_csv("data/tmb_inputs/maturity_sexratio.csv")      # proportion mature and proportion-at-age in the survey
+waa <- read_csv("data/tmb_inputs/waa.csv")                    # weight-at-age
+retention <- read_csv("data/tmb_inputs/retention_probs.csv")  # weight-at-age
 
 # Ageing error transition matrix: proportion at reader age given TRUE age -
 # ageage(1,nages,1,nages) There are no true ages in ADF&G data; only
@@ -36,7 +37,7 @@ inits_rinit <- read_csv("data/tmb_inputs/inits_rinit.csv") # log rec devs
 
 setwd("tmb")
 
-# Model dimensions
+# Model dimensions / user inputs
 syr <- min(ts$year)                   # model start year
 lyr <- max(ts$year)                   # end year
 nyr <- length(syr:lyr)                # number of years        
@@ -47,6 +48,8 @@ nsex <- 2                             # single sex or sex-structured
 # number of years to project forward *FLAG* eventually add to cpp file,
 # currently just for graphics
 nproj <- 1                            
+include_discards <- TRUE # include discard mortality, TRUE or FALSE
+
 
 # Subsets
 mr <- filter(ts, !is.na(mr))
@@ -82,6 +85,27 @@ data <- list(
   # variation by year, age, or sex, but currently M is fixed across all
   # dimensions.
   M = array(data = 0.1, dim = c(nyr, nage, nsex)),
+  
+  # Discard mortality rate in the directed fishery (currently either 0 or 0.16,
+  # borrowed from the halibut fishery)
+  dmr = array(data = ifelse(include_discards == TRUE, 0.16, 0), dim = c(nyr, nage, nsex)),
+
+  # Probability of retaining a fish, sex- and age-based
+  retention = 
+    # 100% retention (assuming no discards)
+    if(include_discards == FALSE & nsex == 1) {
+      array(data = 1,
+            # Number of rows could = time blocks but currently doesn't
+            dim = c(1, nage, nsex))
+      # Discards, single sex model
+    } else if (include_discards == TRUE & nsex == 1) {
+      array(data = filter(retention, Sex == "Combined") %>% pull(p),
+            dim = c(1, nage, nsex))
+    } else { # Discards, sex-structured
+      array(data = filter(retention, Sex %in% c("Female","Male")) %>%
+              mutate(sex = ifelse(Sex == "Male", 1, 2)) %>% 
+              arrange(sex) %>% pull(p), dim = c(1, nage, nsex))
+    },
   
   # Fxx levels that correspond with log_spr_Fxx in Parameter section
   Fxx_levels = c(0.35, 0.40, 0.50),

@@ -225,6 +225,13 @@ grades <- data.frame(
 f_retention <- data.frame(age = age, kg = round(wt_s_f, 1)) %>% left_join(grades, by = "kg") %>%  pull(p)
 m_retention <- data.frame(age = age, kg = round(wt_s_m, 1)) %>% left_join(grades, by = "kg") %>% pull(p)
 
+# Retention probability inputs for TMB model, single sex and sex-structued:
+waa_l %>% filter(Source == "LL survey") %>% 
+  mutate(kg = round(weight, 1)) %>%
+  left_join(grades, by = "kg") %>% 
+  select(Source, Sex, age, kg, grade, price, p) %>% 
+  write_csv("data/tmb_inputs/retention_probs.csv")
+
 # Plot size, sex, and age-specific probabilities of discarding a fish that
 # parameterize model
 # Min lbs by grade
