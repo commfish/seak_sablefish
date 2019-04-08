@@ -303,19 +303,19 @@ template<class Type>
   // allows for a flexible number of parameters and time blocks)
   
   int i = 0;
-
+  
   for(int h = 0; h < blks_fsh_slx.size(); h++){
     do{
       for (int k = 0; k < nsex; k++) {
         for (int j = 0; j < nage; j++) {
-
+          
           // Selectivity switch (case 0 or 1 references the value of slx_type)
           switch (slx_type) {
-
+          
           case 0: // Logistic with a50 and a95, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = a95
             fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_slx_pars(h,0,k)) / (fsh_slx_pars(h,1,k) - fsh_slx_pars(h,0,k))) );
             break;
-
+            
           case 1: // Logistic with a50 and slope, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = slope.
             //  *This is the preferred logistic parameterization b/c it reduces parameter correlation*
             fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(j - fsh_slx_pars(h,0,k)) * fsh_slx_pars(h,1,k) );
@@ -326,7 +326,9 @@ template<class Type>
       i++;
     } while (i <= blks_fsh_slx(h));
   }
-
+  
+  // std::cout << fsh_slx(1,1,1) << "\n Fishery selectivity \n";
+  
   // Survey selectivity - see notes on syntax in fishery selectivity section
 
   // Preliminary calcs to bring parameters out of log space
@@ -366,33 +368,32 @@ template<class Type>
     } while (i <= blks_srv_slx(h));
   }
 
-  // std::cout << fsh_slx << "\n Fishery selectivity";
-  // std::cout << srv_slx << "\n Survey selectivity";
+  // std::cout << srv_slx << "\n Survey selectivity \n";
 
   // Mortality and survivorship
 
   for (int i = 0; i < nyr; i++) {
     Fmort(i) = exp(log_Fbar + log_F_devs(i)); // Total annual fishing mortality
   }
-  
+
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
-        
+
         // Fishing mortality by year, age, and sex. If discard mortality (dmr)
         // and retention probability = 1, this eqn collapses to Fmort(i) *
         // fsh_slx(i,j,k)
         F(i,j,k) = Fmort(i) * fsh_slx(i,j,k) * (retention(0,j,k) + dmr(i,j,k) * (Type(1.0) - retention(0,j,k)));
-        
+
         // Total mortality by year, age, and sex
         Z(i,j,k) = M(i,j,k) + F(i,j,k);
-        
+
         // Survivorship by year, age, and sex
         S(i,j,k) = exp(Type(-1.0) * Z(i,j,k));
       }
     }
   }
-  
+
   // std::cout << Fmort << "\n";
   // std::cout << F << "\n";
   // std::cout << Z << "\n";
@@ -478,25 +479,25 @@ template<class Type>
   // discrete F in the future. F is fully-selected, S is total survivorship. The
   // 0 in data_srv_waa(0,j,k) is a place holder if you ever wanted time-varying
   // weight-at-age.
-  
+
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
-        
+
         // Total catch in numbers and summed to get a total catch biomass by year
         C(i,j,k) = N(i,j,k) * F(i,j,k) * (Type(1.0) - S(i,j,k)) / Z(i,j,k);
         pred_catch(i) += C(i,j,k) * data_srv_waa(0,j,k) ;           // / 1e3 in mt
-        
+
         // Landed catch in numbers and summed to get total landed catch in
         // biomass by year
         L(i,j,k) = retention(0,j,k) * N(i,j,k) * F(i,j,k) * (Type(1.0) - S(i,j,k)) / Z(i,j,k);
         pred_landed(i) += L(i,j,k) * data_srv_waa(0,j,k) ;           // / 1e3 in mt
-        
+
         // Discarded catch in numbers and summed to get total biomass of dead
         // discards by year
         D(i,j,k) = dmr(i,j,k) * (Type(1.0) - retention(0,j,k)) * N(i,j,k) * F(i,j,k) * (Type(1.0) - S(i,j,k)) / Z(i,j,k);
         pred_wastage(i) += D(i,j,k) * data_srv_waa(0,j,k) ;           // / 1e3 in mt
-        
+
       }
     }
   }
@@ -628,11 +629,17 @@ template<class Type>
   // std::cout << "Predicted srv cpue\n" << pred_srv_cpue << "\n";
 
   // Predicted fishery age compositions - *FLAG* check on sample sizes by year and sex
+
+  // Temporary variables for age comp calcs
+  Type sumC = 0;
+  vector<Type> sumC_age(nage);
+  vector<Type> sumN_age(nage);
+  
   for (int i = 0; i < nyr_fsh_age; i++) {
 
     // sumC = temporary variable, catch in numbers summed over age and sex in a
     // given year
-    Type sumC = 0;
+    sumC = 0;
     for (int k = 0; k < nsex; k++) {
       for (int j = 0; j < nage; j++) {
         sumC += C(yrs_fsh_age(i),j,k);
@@ -640,7 +647,6 @@ template<class Type>
     }
     // sumC_age = temporary vector of catch in numbers by age in a given year
     // (combine sexes since we currently do not have sex-structured age comps)
-    vector<Type> sumC_age(nage);
     sumC_age.setZero();
     for (int k = 0; k < nsex; k++) {
       for (int j = 0; j < nage; j++) {
@@ -676,7 +682,6 @@ template<class Type>
 
     // sumN_age = temporary vector of catch in numbers by age in a given year
     // (combine sexes since we currently do not have sex-structured age comps)
-    vector<Type> sumN_age(nage);
     sumN_age.setZero();
     for (int k = 0; k < nsex; k++) {
       for (int j = 0; j < nage; j++) {
@@ -788,21 +793,21 @@ template<class Type>
         // Fully selected fishing mortality by age and sex. If discard mortality
         // (dmr) and retention probability = 1, this eqn collapses to Fmort *
         // fsh_slx)
-        sel_Fxx(x,j,k) = Fxx(x+1) * fsh_slx(nyr-1,j,k) * (retention(0,j,k) + dmr(nyr-1,j,k) * (Type(1.0) - retention(0,j,k)));;       
+        sel_Fxx(x,j,k) = Fxx(x+1) * fsh_slx(nyr-1,j,k) * (retention(0,j,k) + dmr(nyr-1,j,k) * (Type(1.0) - retention(0,j,k)));
         Z_Fxx(x,j,k) = M(nyr-1,j,nsex-1) + sel_Fxx(x,j,k);    // Total instantaneous mortality at age
         S_Fxx(x,j,k) = exp(-Z_Fxx(x,j,k));                    // Total survival at age
 
         // ABC calculation (landed catch under Fxx)
         ABC(x) += data_srv_waa(0,j,k) * retention(0,j,k) * N(nyr-1,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
-        
-        // Discarded catch assumed to die under Fxx
-        wastage(x) += data_srv_waa(0,j,k) * dmr(i,j,k) * (Type(1.0) - retention(0,j,k)) * N(nyr-1,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
+
+        // // Discarded catch assumed to die under Fxx
+        wastage(x) += data_srv_waa(0,j,k) * dmr(nyr-1,j,k) * (Type(1.0) - retention(0,j,k)) * N(nyr-1,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
       }
     }
   }
   // std::cout << "ABC\n" << ABC << "\n";
   // std::cout << "Wastage\n" << wastage << "\n";
-  
+
   // Priors
 
   // Fishery cpue catchability coefficient
@@ -1071,6 +1076,7 @@ template<class Type>
 
   // // SPR-based biological reference points and ABC
   REPORT(Fxx);              // Vector of Fs scaled to fully selected values
+  REPORT(sel_Fxx);          // Fishery selectivity used in ABC calcs
   REPORT(SBPR);             // Vector of spawning biomass per recruit at various Fxx levels
   REPORT(SB);               // Vector of spawning biomass at various Fxx levels
   REPORT(ABC);              // ABC at various Fxx levels

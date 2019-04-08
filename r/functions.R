@@ -592,6 +592,14 @@ TMBphase <- function(data, parameters, random, phases, model_name,
         map_use$log_srv_theta <- fill_vals(parameters$log_srv_theta, NA)
       }
       
+      # Temporary debug trying to figure out why I'm getting NA/NaN function
+      # evaluation
+      if (tmp_debug == TRUE) {
+        map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
+        map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
+        map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
+      }
+      
       j <- 1 # change to 0 if you get rid of the dummy debugging feature
       
       for (i in 1:length(parameters)) {

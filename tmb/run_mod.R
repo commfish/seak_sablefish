@@ -6,6 +6,9 @@
 
 # Libraries and helper functions ----
 
+# Temporary debug flag, shut off estimation of mgmt ref pts
+tmp_debug <- TRUE
+
 source("r/helper.r")
 source("r/functions.r")
 
@@ -44,7 +47,7 @@ nyr <- length(syr:lyr)                # number of years
 rec_age <- min(waa$age)               # recruitment age                  
 plus_group <- max(waa$age)            # plus group age
 nage <- length(rec_age:plus_group)    # number of ages
-nsex <- 2                             # single sex or sex-structured
+nsex <- 1                             # single sex or sex-structured
 # number of years to project forward *FLAG* eventually add to cpp file,
 # currently just for graphics
 nproj <- 1                            
@@ -71,15 +74,15 @@ data <- list(
   random_rec = 0,
   
   # Switch for selectivity type: 0 = a50, a95 logistic; 1 = a50, slope logistic
-  slx_type = 1,
+  slx_type = 0,
   
   # Swtich for age composition type (hopefully one day length comps too): 0 =
   # multinomial; 1 = Dirichlet-multinomial
-  comp_type = 1,
+  comp_type = 0,
   
   # Time varying parameters - each vector contains the terminal years of each time block
-  blks_fsh_slx = c(37), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, 37)
-  blks_srv_slx = c(37), # no breaks survey selectivity
+  blks_fsh_slx = c(max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
+  blks_srv_slx = c(max(ts$index)), # no breaks survey selectivity
   
   # Natural mortality (fixed to 0.1 per Johnson and Quinn 1988). Can accomodate
   # variation by year, age, or sex, but currently M is fixed across all
@@ -312,10 +315,6 @@ parameters <- list(
 # you're building the map for phases, it's sigma_r that gets muted as an "NA" if
 # it's not estimated as a random effect
 
-# Compile
-compile("mod.cpp")
-dyn.load(dynlib("mod"))
-
 # Setup random effects
 random_vars <- c()
 if (data$random_rec == 1) {
@@ -340,6 +339,9 @@ map <- list(log_fsh_slx_pars = factor(array(data = c(rep(factor(NA), length(data
             log_sigma_r = factor(NA), log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
             log_spr_Fxx = rep(factor(NA), length(data$Fxx_levels)),
             log_fsh_theta = factor(NA), log_srv_theta = factor(NA))
+# Compile
+compile("mod.cpp")
+dyn.load(dynlib("mod"))
 
 model <- MakeADFun(data, parameters, DLL = "mod", 
                    silent = TRUE, map = map,
@@ -347,6 +349,16 @@ model <- MakeADFun(data, parameters, DLL = "mod",
 
 fit <- nlminb(model$par, model$fn, model$gr,
               control=list(eval.max=100000,iter.max=1000))
+
+model$report()$sel_Fxx
+model$report()$fsh_slx[39,,1]
+model$report()$pred_fsh_age[17,]
+model$report()$pred_srv_age[22,]
+model$report()$C[38,,]
+dim(model$report()$N)
+model$report()$N[39,,]
+model$report()$fsh_slx[,,1] %>% as.data.frame() %>% mutate(Sex = "Male", Selectivity = "Fishery")
+model$report()$age_like
 
 # Run model
 phases <- build_phases(parameters, data)
@@ -709,8 +721,9 @@ ggsave("srv_agecomps_barplot.png", dpi = 300, height = 8, width = 7, units = "in
 # Extract selectivity matrices and convert to dfs and create a second index col
 # as a dummy var (must supply an interval to foverlaps). Set as data.table
 # object so it is searchable
+if(nsex == 1) 
 sel <- model$report()$fsh_slx %>% as.data.frame() %>% 
-  mutate(Selectivity = "Fishery") %>% 
+  mutate(Selectivity = "Fishery", Sex = "Sexes combined") %>% 
   bind_rows(model$report()$srv_slx %>% as.data.frame() %>% 
               mutate(Selectivity = "Survey"))
 
