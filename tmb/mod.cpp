@@ -486,17 +486,17 @@ template<class Type>
 
         // Total catch in numbers and summed to get a total catch biomass by year
         C(i,j,k) = N(i,j,k) * F(i,j,k) * (Type(1.0) - S(i,j,k)) / Z(i,j,k);
-        pred_catch(i) += C(i,j,k) * data_srv_waa(0,j,k) ;           // / 1e3 in mt
+        pred_catch(i) += C(i,j,k) * data_srv_waa(0,j,k) / Type(1e3);           //  in mt
 
         // Landed catch in numbers and summed to get total landed catch in
         // biomass by year
         L(i,j,k) = retention(0,j,k) * N(i,j,k) * F(i,j,k) * (Type(1.0) - S(i,j,k)) / Z(i,j,k);
-        pred_landed(i) += L(i,j,k) * data_srv_waa(0,j,k) ;           // / 1e3 in mt
+        pred_landed(i) += L(i,j,k) * data_srv_waa(0,j,k) / Type(1e3) ;           // in mt
 
         // Discarded catch in numbers and summed to get total biomass of dead
         // discards by year
         D(i,j,k) = dmr(i,j,k) * (Type(1.0) - retention(0,j,k)) * N(i,j,k) * F(i,j,k) * (Type(1.0) - S(i,j,k)) / Z(i,j,k);
-        pred_wastage(i) += D(i,j,k) * data_srv_waa(0,j,k) ;           // / 1e3 in mt
+        pred_wastage(i) += D(i,j,k) * data_srv_waa(0,j,k) / Type(1e3) ;           // in mt
 
       }
     }
@@ -603,12 +603,12 @@ template<class Type>
   Type mr_q = exp(mr_logq);
 
   for (int i = 0; i < nyr_mr; i++) {
-    pred_mr(i) = mr_q * tot_vuln_abd(yrs_mr(i)); //  / 1e6 Just in years with a MR estimate
+    pred_mr(i) = mr_q * tot_vuln_abd(yrs_mr(i)) / Type(1e6); // Just in years with a MR estimate
   }
   // std::cout << "Predicted MR \n" << pred_mr << "\n";
 
   for (int i = 0; i < nyr; i++) {
-    pred_mr_all(i) = mr_q * tot_vuln_abd(i); // / 1e6 All years
+    pred_mr_all(i) = mr_q * tot_vuln_abd(i) / Type(1e6); // All years
   }
   // std::cout << "Predicted MR for all years\n" << pred_mr_all << "\n";
 
@@ -1069,6 +1069,12 @@ template<class Type>
 
   // Derived vectors by year
   REPORT(pred_rec);         // Predicted age-2 recruitment
+  REPORT(tot_biom);         // Total age-2+ biomass
+  REPORT(tot_expl_biom);    // Vulnerable biomass to fishery at the beginning of the fishery
+  REPORT(tot_vuln_abd);     // Vulnerable abundance to survey at the beginning of the survey
+  REPORT(tot_spawn_biom);   // Spawning biomass
+
+  // Derived arrays by year, age, sex
   REPORT(biom);             // Total age-2+ biomass
   REPORT(expl_biom);        // Vulnerable biomass to fishery at the beginning of the fishery
   REPORT(vuln_abd);         // Vulnerable abundance to survey at the beginning of the survey
