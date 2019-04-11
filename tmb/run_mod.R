@@ -47,11 +47,11 @@ nyr <- length(syr:lyr)                # number of years
 rec_age <- min(waa$age)               # recruitment age                  
 plus_group <- max(waa$age)            # plus group age
 nage <- length(rec_age:plus_group)    # number of ages
-nsex <- 2                             # single sex or sex-structured
+nsex <- 1                             # single sex or sex-structured
 # number of years to project forward *FLAG* eventually add to cpp file,
 # currently just for graphics
 nproj <- 1                            
-include_discards <- TRUE # include discard mortality, TRUE or FALSE
+include_discards <- FALSE # include discard mortality, TRUE or FALSE
 
 
 # Subsets
@@ -81,7 +81,7 @@ data <- list(
   comp_type = 0,
   
   # Time varying parameters - each vector contains the terminal years of each time block
-  blks_fsh_slx = c(max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
+  blks_fsh_slx = c(5,14,max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
   blks_srv_slx = c(max(ts$index)), # no breaks survey selectivity
   
   # Natural mortality (fixed to 0.1 per Johnson and Quinn 1988). Can accomodate
@@ -114,9 +114,9 @@ data <- list(
   Fxx_levels = c(0.35, 0.40, 0.50),
   
   # Priors ("p_" denotes prior)
-  p_fsh_q = 0.001,
+  p_fsh_q = 5.8e-8,
   sigma_fsh_q = 1,
-  p_srv_q = 0.001,
+  p_srv_q = exp(-18.15), 
   sigma_srv_q = 1,
   p_mr_q = 1.0,
   sigma_mr_q = 0.01,
@@ -277,9 +277,9 @@ parameters <- list(
             dim = c(length(data$blks_srv_slx), 2, nsex)) }, # 2 = npar for this slx_type
   
   # Catchability
-  fsh_logq = -3.6726,
-  srv_logq = -2.4019,
-  mr_logq = -0.00000001,
+  fsh_logq = -16.6,
+  srv_logq = -18.15,
+  mr_logq = 0.265902273,
   
   # Log mean recruitment and deviations (nyr)
   log_rbar = 2.5,
@@ -305,11 +305,6 @@ parameters <- list(
   log_srv_theta = log(10)
 )
 
-# Run model ----
-
-# Use map to turn off parameters, either for testing with dummy, phasing, or to
-# fix parameter values
-#
 # If you have a single sigma_r that governs the rinits and the rec_devs, in
 # MakeADFun() the random = c("rinits", "rec_devs") not random = "sigma_r". When
 # you're building the map for phases, it's sigma_r that gets muted as an "NA" if
@@ -325,6 +320,11 @@ if (data$random_rec == 1) {
 if(data$random_rec == 0) {
   random_vars <- NULL #rep(factor(NA),2)
 }
+
+# Run model ----
+
+# Use map to turn off parameters, either for testing with dummy, phasing, or to
+# fix parameter values
 
 # Debug
 # map <- list(log_fsh_slx_pars = factor(array(data = c(rep(factor(NA), length(data$blks_fsh_slx)),
@@ -360,30 +360,7 @@ opt <- out$opt # fit
 rep <- out$rep # sdreport
 print(rep)
 
-data.frame(parameter =  rep$par.fixed %>% names,
-           estimate = rep$par.fixed) %>% 
-  write_csv("../data/tmb_inputs/inits_v2.csv")
-
-best <- obj$env$last.par.best
-print(as.numeric(best))
-print(best)
-obj$report()$priors
-obj$report()$catch_like
-obj$report()$index_like
-obj$report()$age_like
-obj$report()$pred_mr
-obj$report()$obj_fun
-
-exp(as.list(rep, what = "Estimate")$fsh_logq)
-exp(as.list(rep, what = "Estimate")$srv_logq)
-exp(as.list(rep, what = "Estimate")$mr_logq)
-# as.list(rep, what = "Std")
-
-exp(as.list(rep, what = "Estimate")$log_rbar)
-# variance-covriance
-VarCo <- solve(obj$he())
-# Check for Hessian
-print(sqrt(diag(VarCo)))
+# Figures 
 
 # Fits to abundance indices, derived time series, and F
 plot_ts()
@@ -399,3 +376,35 @@ barplot_age("Fishery")
 
 # Plot selectivity
 plot_sel()
+
+
+data.frame(parameter =  rep$par.fixed %>% names,
+           estimate = rep$par.fixed) %>% 
+  write_csv("../data/tmb_inputs/inits_v2.csv")
+
+# Results ----
+best <- obj$env$last.par.best
+print(as.numeric(best))
+print(best)
+obj$report()$priors
+obj$report()$S[nyr,,1]
+obj$report()$S[1,,2]
+obj$report()$catch_like
+obj$report()$index_like
+obj$report()$age_like
+obj$report()$pred_mr
+obj$report()$obj_fun
+obj$report()$pred_landed ==obj$report()$pred_catch
+obj$report()$pred_wastage
+
+exp(as.list(rep, what = "Estimate")$fsh_logq)
+exp(as.list(rep, what = "Estimate")$srv_logq)
+exp(as.list(rep, what = "Estimate")$mr_logq)
+# as.list(rep, what = "Std")
+
+exp(as.list(rep, what = "Estimate")$log_rbar)
+# variance-covriance
+VarCo <- solve(obj$he())
+# Check for Hessian
+print(sqrt(diag(VarCo)))
+

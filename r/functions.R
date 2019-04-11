@@ -436,11 +436,11 @@ build_bounds <- function(param_list = NULL, data_list){
   upper_bnd$log_srv_slx_pars[,,] <- replace(upper_bnd$log_srv_slx_pars[,,], values = 2) 
   
   # Fishery catchability
-  lower_bnd$fsh_logq <- replace(lower_bnd$fsh_logq, values = rep(-15, length(lower_bnd$fsh_logq)))
+  lower_bnd$fsh_logq <- replace(lower_bnd$fsh_logq, values = rep(-30, length(lower_bnd$fsh_logq)))
   upper_bnd$fsh_logq <- replace(upper_bnd$fsh_logq, values = rep(5, length(upper_bnd$fsh_logq)))
   
   # Survey catchability
-  lower_bnd$srv_logq <- replace(lower_bnd$srv_logq, values = rep(-15, length(lower_bnd$srv_logq)))
+  lower_bnd$srv_logq <- replace(lower_bnd$srv_logq, values = rep(-30, length(lower_bnd$srv_logq)))
   upper_bnd$srv_logq <- replace(upper_bnd$srv_logq, values = rep(5, length(upper_bnd$srv_logq)))
   
   # Mark-recapture catchability
@@ -597,8 +597,9 @@ TMBphase <- function(data, parameters, random, phases, model_name,
       # evaluation
       if (tmp_debug == TRUE) {
         map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
-        map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
-        map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
+        # map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
+        # map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
+        # map_use$srv_logq <- fill_vals(parameters$srv_logq, NA)
       }
       
       j <- 1 # change to 0 if you get rid of the dummy debugging feature
@@ -705,6 +706,7 @@ plot_ts <- function(){
     geom_point(aes(y = catch), colour = "grey") +
     geom_line(aes(y = pred_catch)) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    scale_y_continuous(label = scales::comma) +
     labs(x = NULL, y = "\n\nCatch\n(round mt)") -> p_catch
   
   # Fishery cpue
