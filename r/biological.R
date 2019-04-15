@@ -114,11 +114,11 @@ pal <- ggthemes::canva_pal("Warm and cool")(4)
 
 # By cohort
 df_cohort <- df %>% 
-         filter(cohort >= 2000 & cohort <= 2014 & age >=3 & age <= 5) %>% 
+         filter(cohort >= 2010 & cohort <= 2015 & age >=2 & age <= 5) %>% 
          droplevels()
 
 # Axis ticks for plot (see helper.r tickr() fxn for details)
-axis <- tickr(df_cohort, year, 5)
+axis <- tickr(df_cohort, year, 2)
 
 ggplot(df_cohort, aes(year, weight, colour = Cohort, group = Cohort)) +
   geom_line(size = 1) +
@@ -130,12 +130,16 @@ ggplot(df_cohort, aes(year, weight, colour = Cohort, group = Cohort)) +
   theme(legend.position = "bottom") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels)# -> waa_cohort_plot
 
+ggsave("figures/waa_cohort.png", dpi = 300, height = 5, width = 7, units = "in")
+
 df %>% 
-  filter(Age %in% c("2", "3", "3", "4")) %>% 
+  filter(Age %in% c("2", "3", "4")) %>% 
   droplevels() -> df
 df %>% 
   group_by(Age, Sex) %>% 
-  summarize(mean_weight = mean(weight, na.rm = TRUE)) -> means
+  dplyr::summarize(mean_weight = mean(weight, na.rm = TRUE)) -> means
+
+axis <- tickr(df, year, 5)
 
 ggplot(df, 
        aes(year, weight, group = Age, colour = Age)) + 
@@ -148,6 +152,8 @@ ggplot(df,
   scale_colour_manual(values = colorRampPalette(pal)(n_distinct(df$Age))) +
   guides(colour = guide_legend(nrow = 1)) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels)
+
+ggsave("figures/waa_trends.png", dpi = 300, height = 5, width = 7, units = "in")
 
 # Length-based Ludwig von Bertalanffy growth model -----
 
@@ -1250,52 +1256,29 @@ mu_lencomps %>%
 s_lencomps <- lencomps %>% 
   filter(Source == "LL survey")
 
-ggplot() + 
-  geom_bar(data = s_lencomps %>% 
-             filter(year >= 2014 & 
-                      Sex == "Female"), 
-           aes(x = length_bin, y = proportion), 
-           stat = "identity") +
-  geom_line(data = mu_lencomps %>% 
-              filter(Source == "LL survey" & 
-                       Sex == "Female"),
-            aes(x = length_bin, y = proportion, group = 1), 
-            colour = "grey", size = 2) +
-  scale_y_continuous(limits = c(0, 0.16),
-                     breaks = round(seq(min(lencomps$proportion), 0.16, 0.06), 2), 
-                     labels =  round(seq(min(lencomps$proportion), 0.16, 0.06), 2)) +
-  scale_x_discrete(breaks = seq(41, 99, 6),
-                   labels = seq(41, 99, 6)) +
-  facet_wrap(~ year, ncol = 1) +
-  labs(x = "\nFork length (cm)", y = "Proportion\n")
-
-ggsave(paste0("figures/llsrv_fem_lengthcomps_2014_", YEAR, ".png"), 
-       dpi=300,  height=6, width=5.5, units="in")
-
 f_lencomps <- lencomps %>% 
   filter(Source == "LL fishery")
 
-ggplot() + 
-  geom_bar(data = f_lencomps %>% 
-             filter(year >= 2014 & 
-                      Sex == "Female"), 
-           aes(x = length_bin, y = proportion), 
-           stat = "identity") +
-  geom_line(data = mu_lencomps %>% 
-              filter(Source == "LL fishery" & 
-                       Sex == "Female"),
-            aes(x = length_bin, y = proportion, group = 1), 
-            colour = "grey", size = 2) +
-  facet_wrap(~ year, ncol = 1) +
-  scale_y_continuous(limits = c(0, 0.16),
-                     breaks = round(seq(min(lencomps$proportion), 0.16, 0.06), 2), 
-                     labels =  round(seq(min(lencomps$proportion), 0.16, 0.06), 2)) +
-  scale_x_discrete(breaks = seq(41, 99, 6),
-                   labels = seq(41, 99, 6)) +
-  labs(x = "\nFork length (cm)", y = "Proportion\n")
+# ggridge plots
 
-ggsave(paste0("figures/llfsh_fem_lengthcomps_2014_", YEAR, ".png"), 
-       dpi=300, height=6, width=5.5, units="in")
+lendat %>% 
+  filter(Source != "Pot survey") %>% 
+  mutate(Source = derivedFactor("Survey" = Source == "LL survey",
+                                "Fishery" = Source == "LL fishery",
+                                .ordered = TRUE)) %>% 
+  ggplot(aes(length, year, group = year, fill = year)) + 
+  geom_density_ridges(aes(point_fill = year, point_color = year),
+                      alpha = 0.3) +
+  geom_vline(xintercept = 61, linetype = 4) +
+  xlim(40, 90) + 
+  xlab("\nLength (cm)") + 
+  ylab(NULL) +
+  scale_y_reverse() +
+  theme(legend.position = "none") + 
+  facet_wrap(~ Source)
+
+ggsave("figures/lengthcomp_ggridges.png", 
+       dpi=300, height=8, width=10, units="in")
 
 # All years smoothed by source
 ggplot() +
@@ -1322,7 +1305,7 @@ ggsave("figures/lengthcomp_bydatasource.png",
 # New length comp figs, requested by AJ Lindley 2018-09-07
 lencomps %>% 
   group_by(year, Source, Sex) %>% 
-  summarize(N = sum(n),
+  dplyr::summarize(N = sum(n),
          label = paste0("n = ", prettyNum(N, big.mark = ","))) %>% 
   ungroup() %>% 
   mutate(length_bin = "91", proportion = 0.18) -> labels 
@@ -1399,7 +1382,7 @@ ggsave(paste0("figures/llfsh_lencomps_", YEAR-10, "_", YEAR, ".png"),
 lendat %>% 
   filter(Source %in% c("LL survey", "LL fishery")) %>% 
   group_by(Source, Sex, year) %>% 
-  summarize(mean = mean(length),
+  dplyr::summarize(mean = mean(length),
             min = min(length),
             max = max(length)) %>% 
   mutate(variable = "Fork length") -> lensum
@@ -1423,7 +1406,7 @@ bind_rows(
   srv_bio %>% mutate(Source = "LL survey") %>% select(!!!cols)) %>% 
   filter(year >= 1997 & Sex %in% c('Female', 'Male') & !is.na(age)) %>% 
   group_by(Source, Sex, year) %>% 
-  summarize(mean = mean(age),
+  dplyr::summarize(mean = mean(age),
             min = min(age),
             max = max(age)) %>% 
   mutate(variable = "Age") -> agesum

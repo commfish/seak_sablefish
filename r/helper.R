@@ -55,3 +55,23 @@ theme_sleek <- function(base_size = 12, base_family = "Times") {
 }
 
 theme_set(theme_sleek())
+
+# theme_present <- function(base_size = 16) {
+#   half_line <- base_size/2
+#   theme_light(base_size = 16) +
+#     theme(
+#       panel.grid.major = element_blank(),
+#       panel.grid.minor = element_blank(),
+#       axis.ticks.length = unit(half_line / 2.2, "pt"),
+#       strip.background = element_rect(fill = NA, colour = NA),
+#       strip.text.x = element_text(colour = "black"),
+#       strip.text.y = element_text(colour = "black"),
+#       panel.border = element_rect(fill = NA),
+#       legend.key.size = unit(0.9, "lines"),
+#       legend.key = element_rect(colour = NA, fill = NA),
+#       legend.background = element_rect(colour = NA, fill = NA)#,
+# 
+#     )
+# }
+# 
+# theme_set(theme_present())

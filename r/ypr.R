@@ -158,6 +158,7 @@ read_csv("output/agecomps.csv", guess_max = 50000) %>%
 f <- filter(agecomps, Sex == "Female") %>% pull(proportion)
 m <- filter(agecomps, Sex == "Male") %>% pull(proportion) 
 
+axis <- tickr(agecomps, age, 5)
 ggplot(agecomps, aes(x = age, y = proportion)) +
   geom_bar(stat = "identity",
            position = "dodge", width = 0.8, fill = "grey") +
@@ -238,7 +239,7 @@ waa_l %>% filter(Source == "LL survey") %>%
 grades %>% 
   filter(lbs <= 12) %>% 
   group_by(grade, price, plot_cde) %>% 
-  summarize(mn = min(lbs),
+  dplyr::summarize(mn = min(lbs),
             mx = max(lbs),
             mu = mean(lbs)) %>% 
   ungroup() %>% 
@@ -254,9 +255,9 @@ ggplot() +
   geom_rect(data = grades2, aes(xmin = mn, xmax = mx, ymin = -Inf, ymax = Inf, fill = plot_cde, group = 1), 
             colour = NA, alpha = 0.2, show.legend = FALSE) +
   scale_fill_manual(values = c("white", "grey80")) +
-  labs(x = "\n Round weight (lb)", y = "Probability of retention\n") + 
+  labs(x = "\n Round weight (lb)", y = "Retention probability\n") + 
   geom_text(data = grades2, aes(label = label, x = mu, y = y), 
-            vjust = 1, family = "Times", size = 2.5) -> size 
+            vjust = 1, size = 2.5) -> size 
 
 data.frame(Age = age, Female = f_retention, Male = m_retention) %>% 
   melt(id.vars = c("Age"), measure.vars = c("Female", "Male"), variable.name = "Sex") -> ret_sex 
@@ -274,11 +275,11 @@ ggplot(ret_sex, aes(x = Age, y = value, col = Sex, linetype = Sex)) +
 
 plot_grid(size, sex, align = "h")
 
-ggsave(paste0("figures/retention_prob_", YEAR, ".png"), dpi=300,  height=3.5, width=7,  units="in")
+ggsave(paste0("figures/retention_prob_", YEAR, ".png"), dpi=300,  height=4, width=8,  units="in")
 
 # Adjust F to include discard mortality ----
 
-N_MR_sex <- results %>% filter(year == YEAR) %>% summarize(mean(N.avg)) %>% pull()
+N_MR_sex <- results %>% filter(year == YEAR) %>% dplyr::summarize(mean(N.avg)) %>% pull()
 
 AGE <- 2:42
 Nm <- 1:41
@@ -540,10 +541,10 @@ data.frame(age = age,
          Age = factor(age)) -> forec_byage
 
 # Proportion exploitable abundance that is 50% or less mature
-forec_byage %>% filter(age < 7) %>% summarize(sum(N)) %>% pull / forec_byage %>% summarize(sum(N)) %>% pull
+forec_byage %>% filter(age < 7) %>% dplyr::summarize(sum(N)) %>% pull / forec_byage %>% dplyr::summarize(sum(N)) %>% pull
 
 # Proportion exploitable biomass that is 50% or less mature
-forec_byage %>% filter(age < 7) %>% summarize(sum(B)) %>% pull / forec_byage %>% summarize(sum(B)) %>% pull
+forec_byage %>% filter(age < 7) %>% dplyr::summarize(sum(B)) %>% pull / forec_byage %>% dplyr::summarize(sum(B)) %>% pull
 
 # Bargraph of forecasted numbers at age by sex
 forec_byage %>% 
@@ -670,7 +671,7 @@ ggplot(data = forec_plot) +
   theme(legend.position = c(.7, .9))
 
 ggsave(paste0("figures/model1_N_retrospective_", FIRST_YEAR, "_", YEAR, ".png"), 
-       dpi=300,  height=4, width=7,  units="in")
+       dpi=300,  height=4, width=,  units="in")
 
 # ABC time series ----
 
@@ -682,7 +683,7 @@ assessment_summary %>% select(year, abc = abc_round_lbs) %>%
 ggplot(df, aes(x = year, y = abc / 1e6)) + 
   geom_point() +
   geom_line() +
-  geom_vline(xintercept = 2009, lty = 2, colour = "lightgrey") +
+  # geom_vline(xintercept = 2009, lty = 2, colour = "lightgrey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = NULL, y = "ABC (million round lb)\n") +
   scale_y_continuous(limits = c(0, 2.5)) 
