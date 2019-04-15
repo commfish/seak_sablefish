@@ -152,7 +152,7 @@ mr %>%
 plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)', '(D)'))
 
 ggsave(paste0("figures/tmb/abd_indices_", YEAR, ".png"),
-       dpi=300, height=6, width=6, units="in")
+       dpi=300, height=8, width=7, units="in")
 
 full_join(catch, fsh_cpue) %>% 
   full_join(srv_cpue) %>% 
@@ -341,6 +341,59 @@ plot_grid(waa_plot, mat_plot, prop_fem, ncol = 1, align = 'hv', labels = c('(A)'
 ggsave(paste0("figures/tmb/bio_dat.png"),
        dpi=300, height=6, width=7, units="in")
 
+# Length compositions ----
+
+# Not used yet in ASA model - FLAG where are all the pot survey lengths? We
+# should have more years than we do. Filter out for now and come back to this
+# later.
+lencomps <- read_csv("output/lengthcomps.csv", guess_max = 500000)
+lencomps <- lencomps %>% 
+  mutate(Source = derivedVariable(`fsh_len` = Source == "LL fishery",
+                                  `srv_len` = Source == "LL survey",
+                                  `pot_srv_len` = Source == "Pot survey")) %>% 
+  filter(Source != "pot_srv_len")
+
+# Data source by year ----
+
+ts %>% 
+  gather("Source", "value", c(catch, fsh_cpue, srv_cpue, mr), na.rm = TRUE) %>% 
+  select(year, Source) %>% 
+  bind_rows(select(agecomps, year, Source)) %>% 
+  bind_rows(select(lencomps, year, Source)) %>% 
+  mutate(Source = derivedFactor(`Survey lengths` = Source == "srv_len",
+                                `Fishery lengths` = Source == "fsh_len",
+                                `Survey ages` = Source == "Survey",
+                                `Fishery ages` = Source == "Fishery",
+                                `Mark-recapture` = Source == "mr",
+                                `Survey CPUE` = Source == "srv_cpue",
+                                `Fishery CPUE` = Source == "fsh_cpue",
+                                `Catch` = Source == "catch",
+                                .ordered = TRUE)) -> df
+
+df %>% 
+  mutate(value = ifelse(year == YEAR & 
+                          Source %in% c("Mark-recapture", "Fishery ages", "Catch", "Fishery CPUE"),
+                        "1", "0")) -> df
+
+axisx <- tickr(df, year, 5)
+
+ggplot(df, aes(x = year, y = Source)) +
+  geom_point(shape = 21, colour = "black", fill = "black", size = 2) +
+  labs(x = NULL, y = NULL) +
+  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
+
+ggsave(paste0("figures/tmb/sable_data_all.png"),
+       dpi=300, height=4, width=6, units="in")
+
+ggplot(df, aes(x = year, y = Source, fill = value)) +
+  geom_point(shape = 21, colour = "black", size = 2) +
+  labs(x = NULL, y = NULL) +
+  guides(fill = FALSE) +
+  scale_fill_manual(values = c("white", "black")) +
+  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
+
+ggsave(paste0("figures/sable_data.png"),
+       dpi=300, height=3.5, width=7, units="in")
 # Age compositions ----
 
 # Fishery
@@ -395,7 +448,7 @@ ggplot(agecomps, aes(x = year, y = age, size = proportion)) +
   scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
   scale_y_continuous(breaks = unique(agecomps$age), labels = age_labs) 
 
-ggsave("figures/tmb/agecomps.png", dpi = 300, height = 5, width = 7, units = "in")
+ggsave("figures/tmb/agecomps.png", dpi = 300, height = 7, width = 9, units = "in")
 
 agecomps %>% 
   left_join(data.frame(year = syr:lyr) %>% 

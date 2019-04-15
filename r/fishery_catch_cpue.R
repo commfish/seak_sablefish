@@ -41,33 +41,75 @@ catch_ifdb %>%
   summarise(pounds = sum(whole_pounds)) %>% 
   mutate(cum_pounds = cumsum(pounds)) -> catch_plot
 
-ggplot(catch_plot, aes(x = julian_day)) +
+ggplot(catch_plot, aes(x = julian_day, colour = factor(year), group = factor(year))) +
   geom_line(aes(y = cum_pounds/1000000)) +
-  facet_wrap(~ year, ncol = 1) +
+  # facet_wrap(~ year, ncol = 1) +
   labs(x = "Julian Day", y = "Millions lb") +
   ylim(0, 1)
-
+  
 catch_ifdb %>% 
   group_by(year) %>% 
   dplyr::summarize(total_pounds = sum(whole_pounds)) -> sum_catch
 
-axis <- tickr(sum_catch, year, 3)
+axis <- tickr(sum_catch, year, 5)
 ggplot(sum_catch %>% 
          filter(year >= 1985), 
-       aes(x = year, y = total_pounds/1000000)) +
+       aes(x = year, y = total_pounds/1e6)) +
   geom_line(group=1) +
   geom_point() +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   # add a line for EQS starting in 1994 (1997 in the SSEI).
-  geom_vline(xintercept = 1994, lty = 5, colour = "grey") +
-  labs(x = "", y = "Fishery harvest (millions lb)\n") +
-  ylim(0, 6)
+  geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
+  labs(x = NULL, y = "Fishery harvest (millions lb)\n") +
+  ylim(0, 6) -> catch
 
 write_csv(sum_catch, paste0("output/harvest_1985_", YEAR, ".csv"))
 
+catch
 ggsave(paste0("figures/fishery_harvest_1985_", YEAR, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
 
+'%ni%' <- Negate('%in%')
+
+catch_ifdb %>% filter(year == YEAR) %>% distinct(Port)
+catch_ifdb %>% filter(year == YEAR) %>% distinct(Vessel)
+catch_ifdb %>% filter(year == YEAR & Port == "HOM") %>% View()
+catch_ifdb %>% 
+  mutate(Port = derivedFactor(`SIT` = Port == "SIT",
+                              `JNU` = Port == "JNU",
+                              `PBG` = Port == "PBG",
+                              `OTH` = Port %ni% c("SIT", "JNU", "PBG"))) %>% 
+  filter(year >= 1985) %>% 
+  group_by(year, Port) %>% 
+  dplyr::summarise(pounds = sum(whole_pounds),
+                   n_cfec = n_distinct(Cfec_permit),
+                   n_vessels = n_distinct(Vessel)) %>% 
+  filter(n_vessels > 3) %>% 
+  group_by(year) %>% 
+  mutate(tot_pounds = sum(pounds),
+         perc = pounds/tot_pounds * 100) -> port_catch
+
+ggplot(port_catch, aes(x = year, y = pounds/1e6, colour = Port, group = Port)) +
+  geom_line()
+
+ggplot(port_catch, aes(x = year, y = perc, fill = Port)) +
+  geom_bar(stat = "identity", width = 1, colour = "black") +
+  scale_fill_grey(start = 0.15, end = 1) +
+  # add a line for EQS starting in 1994 (1997 in the SSEI).
+  geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  theme(legend.position = c(0.87,0.8),
+        legend.background = element_rect(color = "black", 
+                                         fill = "white", 
+                                         linetype = "solid")) +
+  labs(x = NULL, y = "Percent\n", fill = NULL) -> port
+
+plot_grid(catch, port, ncol = 1, align = 'hv')
+
+ggsave(paste0("figures/catch_byport_", YEAR, ".png"),
+       dpi=300, height=8, width=7, units="in")
+
+View(port_catch)
 # Consolidation of fishery - number of vessels fishing and total number of trips
 # in Chatham over time
 
@@ -121,26 +163,31 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
     total_trips = n_distinct(trip_no)) %>% 
   ungroup() -> fsh_cpue
 
-axis <- tickr(fsh_cpue, year, 3)
+fsh_cpue %>% filter(year == YEAR) %>% 
+  select(total_vessels, total_trips) %>% distinct()
+  dplyr::summarise(n_trips = n_distinct(trip_no),
+                   n_vessels = n_distinct(V))
+
+axis <- tickr(fsh_cpue, year, 5)
 
 fsh_cpue %>% 
   select(year, Vessels = total_vessels, Trips = total_trips) %>% 
   gather(Variable, Count, -year) %>% 
-  distinct() %>%   
+  distinct() %>%   View()
   ggplot(aes(x = year, y = Count)) +
   geom_line() +
   geom_point(size = 1) +
   facet_wrap(~ Variable, ncol = 1, scales = "free") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "") +
-  ylim(0, NA)
+  ylim(0, NA) -> trips_vessels
 
-ggsave(paste0("figures/fishery_tripandvessel_trends_1997_", YEAR, ".png"), 
+ggsave(plot = trips_vessels,paste0("figures/fishery_tripandvessel_trends_1997_", YEAR, ".png"), 
        dpi=300, height=6, width=5, units="in")
 
 # Bootstrap ----
 
-axis <- tickr(fsh_cpue, year, 4)
+axis <- tickr(fsh_cpue, year, 5)
 
 # Simple bootstrap confidence intervals (smean.cl.boot from rms)
 fsh_cpue %>%

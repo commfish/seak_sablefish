@@ -544,12 +544,6 @@ template<class Type>
 
         // Vulnerable abundance to the survey at the beginning of the survey
         vuln_abd(i,j,k) = srv_slx(i,j,k) * N(i,j,k) * survival_srv(i,j,k);
-
-        // Spawning biomass (just females)
-        if (k == 1) {
-          spawn_biom(i,j) = data_srv_waa(0,j,k) * N(i,j,k) * survival_spawn(i,j,k) * prop_fem(j) * prop_mature(0,j);
-        }
-
       }
     }
   }
@@ -560,15 +554,11 @@ template<class Type>
       biom(nyr,j,k) = data_srv_waa(0,j,k) * N(nyr,j,k) * survival_srv(nyr-1,j,k);
       expl_biom(nyr,j,k) = data_srv_waa(0,j,k) * fsh_slx(nyr-1,j,k) * N(nyr,j,k) * survival_fsh(nyr-1,j,k);
       vuln_abd(nyr,j,k) = srv_slx(nyr-1,j,k) * N(nyr,j,k) * survival_srv(nyr-1,j,k);
-      if (k == 1) { // just for females
-        spawn_biom(nyr,j) = data_srv_waa(0,j,k) * N(nyr,j,k) * survival_spawn(nyr-1,j,k) * prop_fem(j) * prop_mature(0,j);
-      }
     }
   }
   // std::cout << "Predicted biomass by age and sex \n" << biom << "\n";
   // std::cout << "Predicted exploited biomass by age and sex \n" << expl_biom << "\n";
   // std::cout << "Predicted vulnerable abundance by age and sex \n" << vuln_abd << "\n";
-  // std::cout << "Predicted spawning biomass by age\n" << spawn_biom << "\n";
 
   // Sum variables to get an annual total
   for (int k = 0; k < nsex; k++) {
@@ -583,18 +573,56 @@ template<class Type>
 
         // Vulnerable abundance to the survey at the beginning of the survey
         tot_vuln_abd(i) += vuln_abd(i,j,k);
-
-        // Spawning biomass (just females)
-        if (k == 1) {
-          tot_spawn_biom(i) += spawn_biom(i,j);
-        }
-
       }
     }
   }
   // std::cout << "Annual predicted biomass \n" << tot_biom << "\n";
   // std::cout << "Annual predicted exploited biomass\n" << tot_expl_biom << "\n";
   // std::cout << "Annual predicted vulnerable abundance\n" << tot_vuln_abd << "\n";
+
+  // Female spawning biomass: Calculated a little differently if model is
+  // single-sex or sex-structured
+  
+  if (nsex == 1) {
+    
+    // By year and age
+    for (int i = 0; i < nyr; i++) {
+      for (int j = 0; j < nage; j++) {
+        spawn_biom(i,j) = data_srv_waa(0,j,0) * N(i,j,0) * survival_spawn(i,j,0) * prop_fem(j) * prop_mature(0,j);
+      }
+    }
+    // Projected
+    for (int j = 0; j < nage; j++) {
+      spawn_biom(nyr,j) = data_srv_waa(0,j,0) * N(nyr,j,0) * survival_spawn(nyr-1,j,0) * prop_fem(j) * prop_mature(0,j);
+    }
+    // Annual totals, summed over age
+    for (int i = 0; i <= nyr; i++) {    // include projection year
+      for (int j = 0; j < nage; j++) {
+        tot_spawn_biom(i) += spawn_biom(i,j);
+      }
+    }
+  }
+  
+  if (nsex == 2) {
+    
+    // By year and age
+    for (int i = 0; i < nyr; i++) {
+      for (int j = 0; j < nage; j++) {
+        spawn_biom(i,j) = data_srv_waa(0,j,1) * N(i,j,1) * survival_spawn(i,j,1) * prop_mature(0,j);
+      }
+    }
+    // Projected
+    for (int j = 0; j < nage; j++) {
+      spawn_biom(nyr,j) = data_srv_waa(0,j,1) * N(nyr,j,1) * survival_spawn(nyr-1,j,1) * prop_mature(0,j);
+    }
+    // Annual totals, summed over age
+    for (int i = 0; i <= nyr; i++) {    // include projection year
+      for (int j = 0; j < nage; j++) {
+        tot_spawn_biom(i) += spawn_biom(i,j);
+      }
+    }
+  }
+  // std::cout << "Predicted spawning biomass by age\n" << spawn_biom << "\n";
   // std::cout << "Annual predicted spawning biomass\n" << tot_spawn_biom << "\n";
 
   // Predicted values
@@ -603,12 +631,12 @@ template<class Type>
   Type mr_q = exp(mr_logq);
 
   for (int i = 0; i < nyr_mr; i++) {
-    pred_mr(i) = mr_q * tot_vuln_abd(yrs_mr(i)) / Type(1e6); // Just in years with a MR estimate
+    pred_mr(i) = mr_q * tot_vuln_abd(yrs_mr(i)) / Type(1e6); //  Just in years with a MR estimate
   }
   // std::cout << "Predicted MR \n" << pred_mr << "\n";
 
   for (int i = 0; i < nyr; i++) {
-    pred_mr_all(i) = mr_q * tot_vuln_abd(i) / Type(1e6); // All years
+    pred_mr_all(i) = mr_q * tot_vuln_abd(i) / Type(1e6); //  All years
   }
   // std::cout << "Predicted MR for all years\n" << pred_mr_all << "\n";
 
@@ -616,7 +644,7 @@ template<class Type>
   Type fsh_q = exp(fsh_logq);
 
   for (int i = 0; i < nyr_fsh_cpue; i++) {
-    pred_fsh_cpue(i) = fsh_q * tot_expl_biom(yrs_fsh_cpue(i));
+    pred_fsh_cpue(i) = fsh_q * tot_expl_biom(yrs_fsh_cpue(i)); // * Type(1e3);
   }
   // std::cout << "Predicted fishery cpue\n" << pred_fsh_cpue << "\n";
 
@@ -822,24 +850,27 @@ template<class Type>
    // std::cout << "priors\n" << priors << "\n";
 
   // Catch: normal (check)
-  // for (int i = 0; i < nyr; i++) {
-  //   catch_like += square( (data_catch(i) - pred_landed(i)) / pred_landed(i)) /
-  //     Type(2.0) * square(sigma_catch(i));
-  // }
-
-  // Catch: lognormal
   for (int i = 0; i < nyr; i++) {
-    catch_like += square( log((data_catch(i) + c) / (pred_landed(i) + c)) )/
+    catch_like += square( (data_catch(i) - pred_landed(i)) / pred_landed(i)) /
       Type(2.0) * square(sigma_catch(i));
   }
+
+  // Catch: lognormal
+  // for (int i = 0; i < nyr; i++) {
+  //   catch_like += square( log((data_catch(i) + c) / (pred_landed(i) + c)) )/
+  //     Type(2.0) * square(sigma_catch(i));
+  // }
 
   // Catch: lognormal alternative (these should be equivalent)
   // for (int i = 0; i < nyr; i++) {
   //   catch_like += square( log(data_catch(i) + c) - log(pred_landed(i) + c) )/
   //     Type(2.0) * square(sigma_catch(i));
   // }
-
-  catch_like *= wt_catch;     // Likelihood weight
+  // for (int i = 0; i < nyr; i++) {
+  //   catch_like += square(data_catch(i) - pred_catch(i));
+  // }
+  
+  catch_like *=  wt_catch;     // Likelihood weight
   // std::cout << "Catch likelihood\n" << catch_like << "\n";
 
   // Fishery CPUE: lognormal
@@ -847,7 +878,7 @@ template<class Type>
     index_like(0) += square( log((data_fsh_cpue(i) + c) / (pred_fsh_cpue(i) + c)) ) /
       Type(2.0) * square(sigma_fsh_cpue(i));
   }
-  index_like(0) *= wt_fsh_cpue; // Likelihood weight
+  index_like(0) *= 0;//wt_fsh_cpue; // Likelihood weight
 
   // Survey CPUE: lognormal
   for (int i = 0; i < nyr_srv_cpue; i++) {
@@ -1021,12 +1052,12 @@ template<class Type>
   // std::cout << "Penality for SPR calcs\n" << spr_pen << "\n";
 
   // Sum likelihood components
-  obj_fun += priors(0);         // Fishery q
-  obj_fun += priors(1);         // Survey q
-  obj_fun += priors(2);         // Mark-recapture abndance index q
-  obj_fun += catch_like;        // Catch // FLAG - NA/NaN function evaluation
-  obj_fun += index_like(0);     // Fishery cpue
-  obj_fun += index_like(1);     // Survey cpue
+  // obj_fun += priors(0);         // Fishery q
+  // obj_fun += priors(1);         // Survey q
+  // obj_fun += priors(2);         // Mark-recapture abndance index q
+  obj_fun += catch_like;        // Catch
+  // obj_fun += index_like(0);     // Fishery cpue
+  // obj_fun += index_like(1);     // Survey cpue
   obj_fun += index_like(2);     // Mark-recapture abundance index
   obj_fun += age_like(0);       // Fishery age compositions
   obj_fun += age_like(1);       // Survey age compositions

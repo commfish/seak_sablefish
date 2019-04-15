@@ -89,7 +89,7 @@ srv_cpue  %>%
 
 # Bootstrap ----
 
-axis <- tickr(srv_cpue, year, 4)
+axis <- tickr(srv_cpue, year, 5)
 
 # Simple bootstrap confidence intervals (smean.cl.boot from rms)
 srv_cpue %>%
@@ -102,7 +102,7 @@ ggplot(plot_boot) +
   geom_point(aes(x = year, y = Mean), size = 1) +
   geom_line(aes(x = year, y = Mean)) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  labs(x = "", y = "Survey CPUE (number of sablefish per hook)\n") +
+  labs(x = "", y = "Survey CPUE (number per hook)\n") +
   lims(y = c(0.15, 0.3)) 
   
 ggsave(paste0("figures/srvcpue_bootCI_1997_", YEAR, ".png"),
@@ -128,7 +128,7 @@ write_csv(srv_sum,
 
 # figures
 
-axis <- tickr(srv_sum, year, 4)
+axis <- tickr(srv_sum, year, 5)
 ggplot(data = srv_sum) +
   geom_point(aes(year, annual_cpue)) +
   geom_line(aes(year, annual_cpue)) +
@@ -136,7 +136,7 @@ ggplot(data = srv_sum) +
               alpha = 0.2, col = "white", fill = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   lims(y = c(0, 0.4)) +
-  labs(x = NULL, y = "Survey CPUE (number of sablefish per hook)\n") 
+  labs(x = NULL, y = "Survey CPUE (number per hook)\n") 
 
 ggsave(paste0("figures/npue_llsrv_", YEAR, ".png"), 
        dpi=300, height=4, width=7, units="in")
