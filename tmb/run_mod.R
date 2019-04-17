@@ -82,7 +82,7 @@ data <- list(
   comp_type = 0,
   
   # Time varying parameters - each vector contains the terminal years of each time block
-  blks_fsh_slx = c(max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
+  blks_fsh_slx = c(14, max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
   blks_srv_slx = c(max(ts$index)), # no breaks survey selectivity
   
   # Natural mortality (fixed to 0.1 per Johnson and Quinn 1988). Can accomodate
@@ -284,7 +284,7 @@ parameters <- list(
   
   # Log mean recruitment and deviations (nyr)
   log_rbar = 2.5,
-  log_rec_devs = inits %>% filter(grepl("rec_devs", parameter)) %>% pull(estimate),
+  log_rec_devs = inits %>% filter(grepl("rec_devs", parameter)) %>% pull(estimate) %>% head(nyr),
 #inits_rec_dev$inits_rec_dev,
 
   # Log mean initial numbers-at-age and deviations (nage-2)
@@ -297,7 +297,7 @@ parameters <- list(
   
   # Fishing mortality
   log_Fbar = -1.8289,
-  log_F_devs = inits %>% filter(grepl("F_devs", parameter)) %>% pull(estimate),
+  log_F_devs = inits %>% filter(grepl("F_devs", parameter)) %>% pull(estimate) %>% head(nyr),
 #finits$finits,
   
   # SPR-based fishing mortality rates, i.e. the F at which the spawning biomass
@@ -345,14 +345,12 @@ plot_ts_resids()
 plot_derived_ts()
 plot_F()
 
-# Fits to age comps
 agecomps <- reshape_age()
-plot_age_resids()
+plot_sel() # Selectivity
+plot_age_resids() # Fits to age comps
 barplot_age("Survey")
 barplot_age("Fishery")
 
-# Plot selectivity
-plot_sel()
 
 data.frame(parameter =  rep$par.fixed %>% names,
            estimate = rep$par.fixed) %>% 
@@ -373,6 +371,7 @@ obj$report()$obj_fun
 obj$report()$pred_landed ==obj$report()$pred_catch
 obj$report()$pred_wastage * 2204.62
 obj$report()$ABC * 2.20462
+obj$report()$Fxx
 
 exp(as.list(rep, what = "Estimate")$fsh_logq)
 exp(as.list(rep, what = "Estimate")$srv_logq)

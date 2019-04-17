@@ -547,7 +547,7 @@ TMBphase <- function(data, parameters, random, model_name,
   # model_name <- "mod"
   # debug <- FALSE
 
-    phases <- build_phases(parameters, data)
+  phases <- build_phases(parameters, data)
   
   # function to fill list component with a factor
   fill_vals <- function(x,vals){rep(as.factor(vals), length(x))}
@@ -598,8 +598,8 @@ TMBphase <- function(data, parameters, random, model_name,
       # Temporary debug trying to figure out why I'm getting NA/NaN function
       # evaluation
       if (tmp_debug == TRUE) {
-        # map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
-        map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
+        map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
+        # map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
         # map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
         # map_use$mr_logq <- fill_vals(parameters$mr_logq, NA)
       }
@@ -1003,7 +1003,7 @@ plot_sel <- function() {
   
   # Look up table for selectivity time blocks
   blks_sel <- data.frame(Selectivity = c(rep("Fishery", length(data$blks_fsh_slx)),
-                                         rep("Survey", length(data$blks_fsh_slx))),
+                                         rep("Survey", length(data$blks_srv_slx))),
                          end = c(data$blks_fsh_slx, data$blks_srv_slx)) %>%
     left_join(ts %>%
                 mutate(end = index) %>% 

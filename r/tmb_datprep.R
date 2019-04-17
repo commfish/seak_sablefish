@@ -19,6 +19,7 @@ nage <- length(rec_age:plus_group)
 # Harvest ----
 read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"), 
                        guess_max = 50000) %>% 
+  filter(year >= syr) %>% 
   group_by(year) %>% 
   summarize(total_pounds = sum(whole_pounds)) %>% 
   # Convert lbs to mt
@@ -39,7 +40,7 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", lyr,".csv"),
   mutate(# standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
          std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (hook_space / 39.37))), 
          # convert lbs to kg
-         std_cpue_kg = sable_lbs_set * 0.453592 / std_hooks) -> fsh_cpue  
+         std_cpue_kg = (sable_lbs_set * 0.453592) / std_hooks) -> fsh_cpue  
 
 # Nominal CPUE 
 fsh_cpue %>% 
@@ -56,7 +57,7 @@ fsh_cpue %>%
 # data/legacy_fishery_cpue.csv. Similarly, I moved and renamed the same file as
 # data/fishery/legacy_fisherycpue_1980_1996.csv
 
-read_csv("data/fishery/legacy_fisherycpue_1980_1996.csv", 
+read_csv("data/fishery/legacy_fisherycpue_1980_1996.csv",
          col_names = FALSE) %>% as.numeric() -> hist_cpue
 
 # Use the mean CV from 1997-present to estimate the variance for legacy CPUE
@@ -65,8 +66,8 @@ read_csv("data/fishery/legacy_fisherycpue_1980_1996.csv",
 data.frame(year = 1980:1996,
            # Convert to kg
            fsh_cpue = hist_cpue * 0.453592,
-           sigma_fsh_cpue = 0.2) %>% 
-  bind_rows(fsh_cpue) %>% 
+           sigma_fsh_cpue = 0.2) %>%
+  bind_rows(fsh_cpue) %>%
   mutate(upper_fsh_cpue = fsh_cpue + fsh_cpue * sigma_fsh_cpue,
          lower_fsh_cpue = fsh_cpue - fsh_cpue * sigma_fsh_cpue) -> fsh_cpue
 
@@ -90,7 +91,7 @@ read_csv(paste0("output/mr_index.csv")) %>%
 
 # Graphics ----
 
-axis <- tickr(fsh_cpue, year, 5)
+axis <- tickr(catch, year, 5)
 
 catch %>% 
   ggplot() + 
