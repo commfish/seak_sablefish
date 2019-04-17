@@ -73,7 +73,7 @@ ggsave(paste0("figures/fishery_harvest_1985_", YEAR, ".png"),
 
 catch_ifdb %>% filter(year == YEAR) %>% distinct(Port)
 catch_ifdb %>% filter(year == YEAR) %>% distinct(Vessel)
-catch_ifdb %>% filter(year == YEAR & Port == "HOM") %>% View()
+# catch_ifdb %>% filter(year == YEAR & Port == "HOM") 
 catch_ifdb %>% 
   mutate(Port = derivedFactor(`SIT` = Port == "SIT",
                               `JNU` = Port == "JNU",

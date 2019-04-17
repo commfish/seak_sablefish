@@ -444,7 +444,7 @@ build_bounds <- function(param_list = NULL, data_list){
   upper_bnd$srv_logq <- replace(upper_bnd$srv_logq, values = rep(5, length(upper_bnd$srv_logq)))
   
   # Mark-recapture catchability
-  lower_bnd$mr_logq <- replace(lower_bnd$mr_logq, values = rep(-1, length(lower_bnd$mr_logq)))
+  lower_bnd$mr_logq <- replace(lower_bnd$mr_logq, values = rep(-20, length(lower_bnd$mr_logq)))
   upper_bnd$mr_logq <- replace(upper_bnd$mr_logq, values = rep(1, length(upper_bnd$mr_logq)))
   
   # Recruitment devs
@@ -538,7 +538,7 @@ build_phases <- function(param_list = NULL, data_list){
 }
 
 # Original code by Gavin Fay, adaped for use in the sablefish model
-TMBphase <- function(data, parameters, random, phases, model_name,
+TMBphase <- function(data, parameters, random, model_name,
                      optimizer = "nlminb", debug = FALSE) {
   
   # Debug function
@@ -547,6 +547,8 @@ TMBphase <- function(data, parameters, random, phases, model_name,
   # model_name <- "mod"
   # debug <- FALSE
 
+    phases <- build_phases(parameters, data)
+  
   # function to fill list component with a factor
   fill_vals <- function(x,vals){rep(as.factor(vals), length(x))}
   
@@ -596,10 +598,10 @@ TMBphase <- function(data, parameters, random, phases, model_name,
       # Temporary debug trying to figure out why I'm getting NA/NaN function
       # evaluation
       if (tmp_debug == TRUE) {
-        map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
-        # map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
+        # map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
+        map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
         # map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
-        # map_use$srv_logq <- fill_vals(parameters$srv_logq, NA)
+        # map_use$mr_logq <- fill_vals(parameters$mr_logq, NA)
       }
       
       j <- 1 # change to 0 if you get rid of the dummy debugging feature
@@ -808,7 +810,7 @@ plot_derived_ts <<- function() {
            expl_biom = obj$report()$tot_expl_biom / 1e3,
            vuln_abd = obj$report()$tot_vuln_abd / 1e6,
            spawn_biom = obj$report()$tot_spawn_biom / 1e3,
-           exploit = catch / expl_biom / 1e3) -> ts
+           exploit = catch / (expl_biom / 1e3)) -> ts
   
   axis <- tickr(ts, year, 5)
   
@@ -1026,11 +1028,11 @@ plot_sel <- function() {
   
   axis <- tickr(sel, age, 3)
   
-  ggplot(sel, aes(x = age, y = proportion, colour = `Time blocks`, 
-                  shape = `Time blocks`, lty = `Time blocks`, group = `Time blocks`)) +
+  ggplot(sel, aes(x = age, y = proportion, colour = Selectivity, 
+                  shape = Selectivity, lty = Selectivity, group = Selectivity)) +
     geom_point() +
     geom_line() +
-    facet_grid(Sex~Selectivity) +
+    facet_grid(Sex~`Time blocks`) +
     scale_colour_grey() +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     labs(y = "Selectivity\n", x = NULL, 
