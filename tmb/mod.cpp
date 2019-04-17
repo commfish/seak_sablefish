@@ -208,10 +208,14 @@ template<class Type>
   biom.setZero();
   tot_biom.setZero();
   
-  array<Type> expl_biom(nyr+1, nage, nsex); // Vulnerable biomass to fishery at the beginning of the fishery, projected 1 year forward
+  array<Type> expl_biom(nyr+1, nage, nsex); // Exploitable biomass to fishery at the beginning of the fishery, projected 1 year forward
+  array<Type> expl_abd(nyr+1, nage, nsex);  // Exploitable abundance to fishery at the beginning of the fishery, projected 1 year forward
   vector<Type> tot_expl_biom(nyr+1);        // Summed over age and sex
+  vector<Type> tot_expl_abd(nyr+1);         // Summed over age and sex
   expl_biom.setZero();
   tot_expl_biom.setZero();
+  expl_abd.setZero();
+  tot_expl_abd.setZero();
   
   array<Type> vuln_abd(nyr+1, nage, nsex);  // Vulnerable abundance to survey at the beginning of the survey, projected 1 year forward
   vector<Type> tot_vuln_abd(nyr+1);          // Summed over age and sex
@@ -318,7 +322,7 @@ template<class Type>
             
           case 1: // Logistic with a50 and slope, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = slope.
             //  *This is the preferred logistic parameterization b/c it reduces parameter correlation*
-            fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(j - fsh_slx_pars(h,0,k)) * fsh_slx_pars(h,1,k) );
+            fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp( Type(-1.0) * fsh_slx_pars(h,1,k) * (j - fsh_slx_pars(h,0,k)) ) );
             break;
           }
         }
@@ -359,7 +363,8 @@ template<class Type>
 
           case 1: // Logistic with a50 and slope, where srv_slx_pars(h,0,k) = a50 and srv_slx_pars(h,1,k) = slope.
             //  *This is the preferred logistic parameterization b/c it reduces parameter correlation*
-            srv_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(j - srv_slx_pars(h,0,k)) * srv_slx_pars(h,1,k) );
+            srv_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp( Type(-1.0) * srv_slx_pars(h,1,k) * (j - srv_slx_pars(h,0,k)) ) );
+            
             break;
           }
         }
@@ -539,8 +544,11 @@ template<class Type>
         // Total biomass at time of longline survey
         biom(i,j,k) = data_srv_waa(0,j,k) * N(i,j,k) * survival_srv(i,j,k);
 
-        // Vulnerable biomass to the fishery at the beginning of the fishery
+        // Exploitable biomass to the fishery at the beginning of the fishery
         expl_biom(i,j,k) = data_srv_waa(0,j,k) * fsh_slx(i,j,k) * N(i,j,k) * survival_fsh(i,j,k);
+
+        // Exploitable abundance to the fishery at the beginning of the fishery
+        expl_abd(i,j,k) = fsh_slx(i,j,k) * N(i,j,k) * survival_fsh(i,j,k);
 
         // Vulnerable abundance to the survey at the beginning of the survey
         vuln_abd(i,j,k) = srv_slx(i,j,k) * N(i,j,k) * survival_srv(i,j,k);
@@ -553,6 +561,7 @@ template<class Type>
     for (int j = 0; j < nage; j++) {
       biom(nyr,j,k) = data_srv_waa(0,j,k) * N(nyr,j,k) * survival_srv(nyr-1,j,k);
       expl_biom(nyr,j,k) = data_srv_waa(0,j,k) * fsh_slx(nyr-1,j,k) * N(nyr,j,k) * survival_fsh(nyr-1,j,k);
+      expl_abd(nyr,j,k) = fsh_slx(nyr-1,j,k) * N(nyr,j,k) * survival_fsh(nyr-1,j,k);
       vuln_abd(nyr,j,k) = srv_slx(nyr-1,j,k) * N(nyr,j,k) * survival_srv(nyr-1,j,k);
     }
   }
@@ -568,8 +577,11 @@ template<class Type>
         // Total biomass at time of longline survey
         tot_biom(i) += biom(i,j,k);
 
-        // Vulnerable biomass to the fishery at the beginning of the fishery
+        // Exploitable biomass to the fishery at the beginning of the fishery
         tot_expl_biom(i) += expl_biom(i,j,k);
+
+        // Exploitable abundance to the fishery at the beginning of the fishery
+        tot_expl_abd(i) += expl_abd(i,j,k);
 
         // Vulnerable abundance to the survey at the beginning of the survey
         tot_vuln_abd(i) += vuln_abd(i,j,k);
@@ -631,12 +643,12 @@ template<class Type>
   Type mr_q = exp(mr_logq);
 
   for (int i = 0; i < nyr_mr; i++) {
-    pred_mr(i) = mr_q * tot_vuln_abd(yrs_mr(i)) / Type(1e6); //  Just in years with a MR estimate
+    pred_mr(i) = mr_q * (tot_expl_abd(yrs_mr(i)) / Type(1e6)); // Just in years with a MR estimate
   }
   // std::cout << "Predicted MR \n" << pred_mr << "\n";
 
   for (int i = 0; i < nyr; i++) {
-    pred_mr_all(i) = mr_q * tot_vuln_abd(i) / Type(1e6); //  All years
+    pred_mr_all(i) = mr_q * (tot_expl_abd(i) / Type(1e6)); // All years
   }
   // std::cout << "Predicted MR for all years\n" << pred_mr_all << "\n";
 
@@ -644,7 +656,7 @@ template<class Type>
   Type fsh_q = exp(fsh_logq);
 
   for (int i = 0; i < nyr_fsh_cpue; i++) {
-    pred_fsh_cpue(i) = fsh_q * tot_expl_biom(yrs_fsh_cpue(i)); // * Type(1e3);
+    pred_fsh_cpue(i) = fsh_q * tot_expl_biom(yrs_fsh_cpue(i)); 
   }
   // std::cout << "Predicted fishery cpue\n" << pred_fsh_cpue << "\n";
 
@@ -780,12 +792,12 @@ template<class Type>
 
     // Survival equation by age
     for(int j = 1; j < nage - 1; j++) {
-      Nspr(x,j) = Nspr(x,j-1) * exp(-1.0 * Fxx(x) * spr_fsh_slx(j-1) + M(nyr-1,j-1,nsex-1));
+      Nspr(x,j) = Nspr(x,j-1) * exp(Type(-1.0) * Fxx(x) * spr_fsh_slx(j-1) + M(nyr-1,j-1,nsex-1));
     }
 
     // Plus group
-    Nspr(x,nage-1) = Nspr(x,nage-2) * exp(-1.0 * Fxx(x) * spr_fsh_slx(nage-2) + M(nyr-1,nage-2,nsex-1)) /
-      (1.0 - exp(-1.0 * Fxx(x) * spr_fsh_slx(nage-1) + M(nyr-1,nage-1,nsex-1)));
+    Nspr(x,nage-1) = Nspr(x,nage-2) * exp(Type(-1.0) * Fxx(x) * spr_fsh_slx(nage-2) + M(nyr-1,nage-2,nsex-1)) /
+      (Type(1.0) - exp(Type(-1.0) * Fxx(x) * spr_fsh_slx(nage-1) + M(nyr-1,nage-1,nsex-1)));
   }
   // std::cout << "Number of spawners\n" << Nspr << "\n";
 
@@ -839,22 +851,22 @@ template<class Type>
   // Priors
 
   // Fishery cpue catchability coefficient
-  priors(0) = square( log(fsh_q / p_fsh_q) ) / ( 2 * square(sigma_fsh_q) );
+  priors(0) = square( log(fsh_q / p_fsh_q) ) / ( Type(2.0) * square(sigma_fsh_q) );
 
   // Survey catchability coefficient
-  priors(1) = square( log(srv_q / p_srv_q) ) / ( 2 * square(sigma_srv_q) );
+  priors(1) = square( log(srv_q / p_srv_q) ) / ( Type(2.0) * square(sigma_srv_q) );
 
   // Mark-recapture abundance estimate catchability coefficient
-  priors(2) = square( log(mr_q / p_mr_q) ) / ( 2 * square(sigma_mr_q) );
+  priors(2) = square( log(mr_q / p_mr_q) ) / ( Type(2.0) * square(sigma_mr_q) );
 
    // std::cout << "priors\n" << priors << "\n";
 
-  // Catch: normal (check)
-  for (int i = 0; i < nyr; i++) {
-    catch_like += square( (data_catch(i) - pred_landed(i)) / pred_landed(i)) /
-      Type(2.0) * square(sigma_catch(i));
-  }
-
+  // Catch:  normal (check)
+  // for (int i = 0; i < nyr; i++) {
+  //   catch_like += square( (data_catch(i) - pred_landed(i)) / pred_landed(i)) /
+  //     (Type(2.0) * square(sigma_catch(i)));
+  // }
+  
   // Catch: lognormal
   // for (int i = 0; i < nyr; i++) {
   //   catch_like += square( log((data_catch(i) + c) / (pred_landed(i) + c)) )/
@@ -862,35 +874,32 @@ template<class Type>
   // }
 
   // Catch: lognormal alternative (these should be equivalent)
-  // for (int i = 0; i < nyr; i++) {
-  //   catch_like += square( log(data_catch(i) + c) - log(pred_landed(i) + c) )/
-  //     Type(2.0) * square(sigma_catch(i));
-  // }
-  // for (int i = 0; i < nyr; i++) {
-  //   catch_like += square(data_catch(i) - pred_catch(i));
-  // }
-  
-  catch_like *=  wt_catch;     // Likelihood weight
+  for (int i = 0; i < nyr; i++) {
+    catch_like += square( log(data_catch(i) + c) - log(pred_landed(i) + c) )/
+      (Type(2.0) * square(sigma_catch(i)));
+  }
+
+  catch_like *= wt_catch;     // Likelihood weight
   // std::cout << "Catch likelihood\n" << catch_like << "\n";
 
   // Fishery CPUE: lognormal
   for (int i = 0; i < nyr_fsh_cpue; i++) {
     index_like(0) += square( log((data_fsh_cpue(i) + c) / (pred_fsh_cpue(i) + c)) ) /
-      Type(2.0) * square(sigma_fsh_cpue(i));
+      (Type(2.0) * square(sigma_fsh_cpue(i)));
   }
-  index_like(0) *= 0;//wt_fsh_cpue; // Likelihood weight
+  index_like(0) *= wt_fsh_cpue; // Likelihood weight
 
   // Survey CPUE: lognormal
   for (int i = 0; i < nyr_srv_cpue; i++) {
     index_like(1) += square( log((data_srv_cpue(i) + c) / (pred_srv_cpue(i) + c)) ) /
-      Type(2.0) * square(sigma_srv_cpue(i));
+      (Type(2.0) * square(sigma_srv_cpue(i)));
   }
   index_like(1) *= wt_srv_cpue; // Likelihood weight
 
   // Mark-recapture index: lognormal
   for (int i = 0; i < nyr_mr; i++) {
     index_like(2) += square( log((data_mr(i) + c) / (pred_mr(i) + c)) ) /
-      Type(2.0) * square(sigma_mr(i));
+      (Type(2.0) * square(sigma_mr(i)));
   }
   index_like(2) *= wt_mr;        // Likelihood weight
   // std::cout << "Index likelihoods\n" << index_like << "\n";
@@ -1052,12 +1061,12 @@ template<class Type>
   // std::cout << "Penality for SPR calcs\n" << spr_pen << "\n";
 
   // Sum likelihood components
-  // obj_fun += priors(0);         // Fishery q
-  // obj_fun += priors(1);         // Survey q
-  // obj_fun += priors(2);         // Mark-recapture abndance index q
+  obj_fun += priors(0);         // Fishery q
+  obj_fun += priors(1);         // Survey q
+  obj_fun += priors(2);         // Mark-recapture abndance index q
   obj_fun += catch_like;        // Catch
-  // obj_fun += index_like(0);     // Fishery cpue
-  // obj_fun += index_like(1);     // Survey cpue
+  obj_fun += index_like(0);     // Fishery cpue
+  obj_fun += index_like(1);     // Survey cpue
   obj_fun += index_like(2);     // Mark-recapture abundance index
   obj_fun += age_like(0);       // Fishery age compositions
   obj_fun += age_like(1);       // Survey age compositions
@@ -1102,12 +1111,14 @@ template<class Type>
   REPORT(pred_rec);         // Predicted age-2 recruitment
   REPORT(tot_biom);         // Total age-2+ biomass
   REPORT(tot_expl_biom);    // Vulnerable biomass to fishery at the beginning of the fishery
+  REPORT(tot_expl_abd);     // Vulnerable abundance to fishery at the beginning of the fishery
   REPORT(tot_vuln_abd);     // Vulnerable abundance to survey at the beginning of the survey
   REPORT(tot_spawn_biom);   // Spawning biomass
 
   // Derived arrays by year, age, sex
   REPORT(biom);             // Total age-2+ biomass
   REPORT(expl_biom);        // Vulnerable biomass to fishery at the beginning of the fishery
+  REPORT(expl_abd);         // Vulnerable abundance to fishery at the beginning of the fishery
   REPORT(vuln_abd);         // Vulnerable abundance to survey at the beginning of the survey
   REPORT(spawn_biom);       // Spawning biomass
 

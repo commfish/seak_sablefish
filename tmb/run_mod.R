@@ -4,7 +4,7 @@
 # and proportions-at-age, and fishery and survey age compositions. No sex
 # structure.
 
-# Libraries and helper functions ----
+# Set up ----
 
 # Temporary debug flag, shut off estimation of mgmt ref pts
 tmp_debug <- TRUE
@@ -13,8 +13,6 @@ source("r/helper.r")
 source("r/functions.r")
 
 library(TMB) 
-
-# Data -----
 
 ts <- read_csv("data/tmb_inputs/abd_indices.csv")             # time series
 age <- read_csv("data/tmb_inputs/agecomps.csv")               # age comps
@@ -34,9 +32,10 @@ ageing_error <- read_csv("data/tmb_inputs/ageing_error.csv", col_names = FALSE)
 names(ageing_error) <- 2:42
 
 # Starting values
-finits <- read_csv("data/tmb_inputs/inits_f_devs.csv")   # log F devs
-inits_rec_dev <- read_csv("data/tmb_inputs/inits_rec_devs.csv") # log rec devs
-inits_rinit <- read_csv("data/tmb_inputs/inits_rinit.csv") # log rec devs
+# finits <- read_csv("data/tmb_inputs/inits_f_devs.csv")   # log F devs
+# inits_rec_dev <- read_csv("data/tmb_inputs/inits_rec_devs.csv") # log rec devs
+# inits_rinit <- read_csv("data/tmb_inputs/inits_rinit.csv") # log rec devs
+inits <- read_csv("data/tmb_inputs/inits_v2.csv")
 
 setwd("tmb")
 
@@ -61,6 +60,8 @@ srv_cpue <- filter(ts, !is.na(srv_cpue))
 fsh_age <- filter(age, Source == "Fishery")
 srv_age <- filter(age, Source == "Survey")
 
+# Data -----
+
 # Structure data for TMB - must use same variable names as .cpp
 data <- list(
   
@@ -74,7 +75,7 @@ data <- list(
   random_rec = 0,
   
   # Switch for selectivity type: 0 = a50, a95 logistic; 1 = a50, slope logistic
-  slx_type = 0,
+  slx_type = 1,
   
   # Swtich for age composition type (hopefully one day length comps too): 0 =
   # multinomial; 1 = Dirichlet-multinomial
@@ -114,9 +115,9 @@ data <- list(
   Fxx_levels = c(0.35, 0.40, 0.50),
   
   # Priors ("p_" denotes prior)
-  p_fsh_q = 0.001,
+  p_fsh_q = exp(-16),
   sigma_fsh_q = 1,
-  p_srv_q = 0.001,
+  p_srv_q = exp(-17), 
   sigma_srv_q = 1,
   p_mr_q = 1.0,
   sigma_mr_q = 0.01,
@@ -140,7 +141,7 @@ data <- list(
   nyr_mr = n_distinct(mr, mr),
   yrs_mr = mr %>% distinct(index) %>% pull(),
   data_mr = pull(mr, mr),
-  sigma_mr = mr %>% pull(sigma_mr),
+  sigma_mr = rep(0.05,11),#mr %>% pull(sigma_mr),
   
   # Fishery CPUE
   nyr_fsh_cpue = fsh_cpue %>% n_distinct(fsh_cpue),
@@ -221,78 +222,83 @@ parameters <- list(
   log_fsh_slx_pars = 
     # Logistic with a50 and a95, data$slx_type = 0, single sex model
     if(data$slx_type == 0 & nsex == 1) {
-      array(data = c(rep(log(4.12), length(data$blks_fsh_slx)), # Sexes combined
-                     rep(log(5.54), length(data$blks_fsh_slx))),
+      array(data = c(rep(log(4.05), length(data$blks_fsh_slx)), # Sexes combined
+                     rep(log(5.30), length(data$blks_fsh_slx))),
             dim = c(length(data$blks_fsh_slx), 2, nsex)) # 2 = npar for this slx_type 
       
     # Logistic with a50 and a95, data$slx_type = 0, sex-structured model
     } else if (data$slx_type == 0 & nsex == 2) {
-      array(data = c(rep(log(4.33), length(data$blks_fsh_slx)), # Male
-                     rep(log(5.65), length(data$blks_fsh_slx)),
+      array(data = c(rep(log(4.19), length(data$blks_fsh_slx)), # Male
+                     rep(log(5.50), length(data$blks_fsh_slx)),
                      rep(log(3.91), length(data$blks_fsh_slx)), # Female
-                     rep(log(5.43), length(data$blks_fsh_slx))),
+                     rep(log(5.20), length(data$blks_fsh_slx))),
             dim = c(length(data$blks_fsh_slx), 2, nsex)) # 2 = npar for this slx_type 
       
     # Logistic with a50 and slope, data$slx_type = 1, single sex model
     } else if (data$slx_type == 1 & nsex == 1) {
-      array(data = c(rep(log(4.04), length(data$blks_fsh_slx)),
-                     rep(log(2.61), length(data$blks_fsh_slx))),
+      array(data = c(rep(log(4.05), length(data$blks_fsh_slx)),
+                     rep(log(2.29), length(data$blks_fsh_slx))),
             dim = c(length(data$blks_fsh_slx), 2, nsex)) # 2 = npar for this slx_type 
       
     } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model
-      array(data = c(rep(log(4.22), length(data$blks_fsh_slx)), # male
-                     rep(log(2.61), length(data$blks_fsh_slx)),
-                     rep(log(3.86), length(data$blks_fsh_slx)), # female
-                     rep(log(2.61), length(data$blks_fsh_slx))),
+      array(data = c(rep(log(4.19), length(data$blks_fsh_slx)), # male
+                     rep(log(2.29), length(data$blks_fsh_slx)),
+                     rep(log(3.91), length(data$blks_fsh_slx)), # female
+                     rep(log(2.29), length(data$blks_fsh_slx))),
             dim = c(length(data$blks_fsh_slx), 2, nsex)) }, # 2 = npar for this slx_type 
   
   # Survey selectivity - starting values developed using NOAA selectivity curves
   log_srv_slx_pars = 
     # Logistic with a50 and a95, data$slx_type = 0, single sex model
     if(data$slx_type == 0 & nsex == 1) {
-      array(data = c(rep(log(3.86), length(data$blks_srv_slx)),
-                     rep(log(5.21), length(data$blks_srv_slx))),
+      array(data = c(rep(log(3.74), length(data$blks_srv_slx)),
+                     rep(log(5.20), length(data$blks_srv_slx))),
             dim = c(length(data$blks_srv_slx), 2, nsex)) # 2 = npar for this slx_type 
       
     # Logistic with a50 and a95, data$slx_type = 0, sex-structured model
     } else if (data$slx_type == 0 & nsex == 2) {
-      array(data = c(rep(log(3.68), length(data$blks_srv_slx)), # male
-                     rep(log(5.21), length(data$blks_srv_slx)),
-                     rep(log(3.68), length(data$blks_srv_slx)), # female
-                     rep(log(5.21), length(data$blks_srv_slx))),
+      array(data = c(rep(log(3.73), length(data$blks_srv_slx)), # male
+                     rep(log(5.20), length(data$blks_srv_slx)),
+                     rep(log(3.74), length(data$blks_srv_slx)), # female
+                     rep(log(5.20), length(data$blks_srv_slx))),
             dim = c(length(data$blks_srv_slx), 2, nsex)) # 2 = npar for this slx_type 
       
     # Logistic with a50 and slope, data$slx_type = 1, single sex model
     } else if (data$slx_type == 1 & nsex == 1) {
-      array(data = c(rep(log(3.68), length(data$blks_srv_slx)),
-                     rep(log(2.21), length(data$blks_srv_slx))),
+      array(data = c(rep(log(3.74), length(data$blks_srv_slx)),
+                     rep(log(1.96), length(data$blks_srv_slx))),
             dim = c(length(data$blks_srv_slx), 2, nsex)) # 2 = npar for this slx_type 
       
     # Logistic with a50 and slope, data$slx_type = 1, sex-structured model
     } else { 
-      array(data = c(rep(log(3.68), length(data$blks_srv_slx)), # male
-                     rep(log(2.21), length(data$blks_srv_slx)),
-                     rep(log(3.68), length(data$blks_srv_slx)), # female
-                     rep(log(2.21), length(data$blks_srv_slx))),
+      array(data = c(rep(log(3.73), length(data$blks_srv_slx)), # male
+                     rep(log(1.96), length(data$blks_srv_slx)),
+                     rep(log(3.74), length(data$blks_srv_slx)), # female
+                     rep(log(1.96), length(data$blks_srv_slx))),
             dim = c(length(data$blks_srv_slx), 2, nsex)) }, # 2 = npar for this slx_type
   
   # Catchability
-  fsh_logq = -3.6726,
-  srv_logq = -2.4019,
-  mr_logq = -0.00000001,
+  fsh_logq = -16.6,
+  srv_logq = -17,
+  mr_logq = log(1),
   
   # Log mean recruitment and deviations (nyr)
   log_rbar = 2.5,
-  log_rec_devs = inits_rec_dev$inits_rec_dev,
+  log_rec_devs = inits %>% filter(grepl("rec_devs", parameter)) %>% pull(estimate),
+#inits_rec_dev$inits_rec_dev,
+
   # Log mean initial numbers-at-age and deviations (nage-2)
   log_rinit = 3.5,
-  log_rinit_devs = inits_rinit$inits_rinit,
+  log_rinit_devs = inits %>% filter(grepl("init_devs", parameter)) %>% pull(estimate),
+#inits_rinit$inits_rinit,
+
   # Variability in rec_devs and rinit_devs
   log_sigma_r = log(1.2), # Federal value of 1.2 on log scale
   
   # Fishing mortality
   log_Fbar = -1.8289,
-  log_F_devs = finits$finits,
+  log_F_devs = inits %>% filter(grepl("F_devs", parameter)) %>% pull(estimate),
+#finits$finits,
   
   # SPR-based fishing mortality rates, i.e. the F at which the spawning biomass
   # per recruit is reduced to xx% of its value in an unfished stock
@@ -305,11 +311,6 @@ parameters <- list(
   log_srv_theta = log(10)
 )
 
-# Run model ----
-
-# Use map to turn off parameters, either for testing with dummy, phasing, or to
-# fix parameter values
-#
 # If you have a single sigma_r that governs the rinits and the rec_devs, in
 # MakeADFun() the random = c("rinits", "rec_devs") not random = "sigma_r". When
 # you're building the map for phases, it's sigma_r that gets muted as an "NA" if
@@ -326,64 +327,17 @@ if(data$random_rec == 0) {
   random_vars <- NULL #rep(factor(NA),2)
 }
 
-# Debug
-# map <- list(log_fsh_slx_pars = factor(array(data = c(rep(factor(NA), length(data$blks_fsh_slx)),
-#                                      rep(factor(NA), length(data$blks_fsh_slx))),
-#                             dim = c(length(data$blks_fsh_slx), 2, nsex))),
-#             log_srv_slx_pars = factor(array(data = c(rep(factor(NA), length(data$blks_srv_slx)),
-#                                                  rep(factor(NA), length(data$blks_srv_slx))),
-#                                         dim = c(length(data$blks_srv_slx), 2, nsex))),
-#             fsh_logq = factor(NA), srv_logq = factor(NA), mr_logq = factor(NA),
-#             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr),
-#             log_rinit = factor(NA), log_rinit_devs = rep(factor(NA), nage-2),
-#             log_sigma_r = factor(NA), log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
-#             log_spr_Fxx = rep(factor(NA), length(data$Fxx_levels)),
-#             log_fsh_theta = factor(NA), log_srv_theta = factor(NA))
+# Run model ----
 
-# Compile
-compile("mod.cpp")
-dyn.load(dynlib("mod"))
-
-# model <- MakeADFun(data, parameters, DLL = "mod", 
-#                    silent = TRUE, map = map,
-#                    random = random_vars)
-# 
-# fit <- nlminb(model$par, model$fn, model$gr,
-#               control=list(eval.max=100000,iter.max=1000))
-
-# Run model
-phases <- build_phases(parameters, data)
-out <- TMBphase(data, parameters, random = random_vars, phases, model_name = "mod", debug = FALSE)
+# Compile and run model
+out <- TMBphase(data, parameters, random = random_vars, model_name = "mod", debug = FALSE)
 
 obj <- out$obj # TMB model object
 opt <- out$opt # fit
 rep <- out$rep # sdreport
 print(rep)
 
-data.frame(parameter =  rep$par.fixed %>% names,
-           estimate = rep$par.fixed) %>% 
-  write_csv("../data/tmb_inputs/inits_v2.csv")
-
-best <- obj$env$last.par.best
-print(as.numeric(best))
-print(best)
-obj$report()$priors
-obj$report()$catch_like
-obj$report()$index_like
-obj$report()$age_like
-obj$report()$pred_mr
-obj$report()$obj_fun
-
-exp(as.list(rep, what = "Estimate")$fsh_logq)
-exp(as.list(rep, what = "Estimate")$srv_logq)
-exp(as.list(rep, what = "Estimate")$mr_logq)
-# as.list(rep, what = "Std")
-
-exp(as.list(rep, what = "Estimate")$log_rbar)
-# variance-covriance
-VarCo <- solve(obj$he())
-# Check for Hessian
-print(sqrt(diag(VarCo)))
+# Figures 
 
 # Fits to abundance indices, derived time series, and F
 plot_ts()
@@ -399,3 +353,62 @@ barplot_age("Fishery")
 
 # Plot selectivity
 plot_sel()
+
+data.frame(parameter =  rep$par.fixed %>% names,
+           estimate = rep$par.fixed) %>% 
+  write_csv("../data/tmb_inputs/inits_v2.csv")
+
+# Results ----
+best <- obj$env$last.par.best
+print(as.numeric(best))
+print(best)
+obj$report()$priors
+obj$report()$S[nyr,,1]
+obj$report()$S[1,,2]
+obj$report()$catch_like
+obj$report()$index_like
+obj$report()$age_like
+obj$report()$pred_mr
+obj$report()$obj_fun
+obj$report()$pred_landed ==obj$report()$pred_catch
+obj$report()$pred_wastage * 2204.62
+obj$report()$ABC * 2.20462
+
+exp(as.list(rep, what = "Estimate")$fsh_logq)
+exp(as.list(rep, what = "Estimate")$srv_logq)
+exp(as.list(rep, what = "Estimate")$mr_logq)
+# as.list(rep, what = "Std")
+
+exp(as.list(rep, what = "Estimate")$log_rbar)
+# variance-covriance
+VarCo <- solve(obj$he())
+# Check for Hessian
+print(sqrt(diag(VarCo)))
+
+# 
+# Compile
+# compile("mod.cpp")
+# dyn.load(dynlib("mod"))
+# Use map to turn off parameters, either for testing with dummy, phasing, or to
+# fix parameter values
+
+# Debug
+# map <- list(log_fsh_slx_pars = factor(array(data = c(rep(factor(NA), length(data$blks_fsh_slx)),
+#                                      rep(factor(NA), length(data$blks_fsh_slx))),
+#                             dim = c(length(data$blks_fsh_slx), 2, nsex))),
+#             log_srv_slx_pars = factor(array(data = c(rep(factor(NA), length(data$blks_srv_slx)),
+#                                                  rep(factor(NA), length(data$blks_srv_slx))),
+#                                         dim = c(length(data$blks_srv_slx), 2, nsex))),
+#             fsh_logq = factor(NA), srv_logq = factor(NA), mr_logq = factor(NA),
+#             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr),
+#             log_rinit = factor(NA), log_rinit_devs = rep(factor(NA), nage-2),
+#             log_sigma_r = factor(NA), log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
+#             log_spr_Fxx = rep(factor(NA), length(data$Fxx_levels)),
+#             log_fsh_theta = factor(NA), log_srv_theta = factor(NA))
+# model <- MakeADFun(data, parameters, DLL = "mod", 
+#                    silent = TRUE, map = map,
+#                    random = random_vars)
+# 
+# fit <- nlminb(model$par, model$fn, model$gr,
+#               control=list(eval.max=100000,iter.max=1000))
+
