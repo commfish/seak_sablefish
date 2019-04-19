@@ -82,8 +82,8 @@ data <- list(
   comp_type = 0,
   
   # Time varying parameters - each vector contains the terminal years of each time block
-  blks_fsh_slx = c(14, max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
-  blks_srv_slx = c(max(ts$index)), # no breaks survey selectivity
+  fsh_blks = c(14, max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
+  srv_blks = c(max(ts$index)), # no breaks survey selectivity
   
   # Natural mortality (fixed to 0.1 per Johnson and Quinn 1988). Can accomodate
   # variation by year, age, or sex, but currently M is fixed across all
@@ -115,8 +115,8 @@ data <- list(
   Fxx_levels = c(0.35, 0.40, 0.50),
   
   # Priors ("p_" denotes prior)
-  p_fsh_q = exp(-16),
-  sigma_fsh_q = 1,
+  p_fsh_q = c(exp(-16), exp(-16)),
+  sigma_fsh_q = c(1, 1),
   p_srv_q = exp(-17), 
   sigma_srv_q = 1,
   p_mr_q = 1.0,
@@ -218,67 +218,67 @@ parameters <- list(
   dummy = 0,   # Used for troubleshooting model               
   
   # Fishery selectivity - starting values developed using NOAA selectivity
-  # curves
+  # curves see data/NOAA_sablefish_selectivities_2017_jys.xlxs
   log_fsh_slx_pars = 
     # Logistic with a50 and a95, data$slx_type = 0, single sex model
     if(data$slx_type == 0 & nsex == 1) {
-      array(data = c(rep(log(4.05), length(data$blks_fsh_slx)), # Sexes combined
-                     rep(log(5.30), length(data$blks_fsh_slx))),
-            dim = c(length(data$blks_fsh_slx), 2, nsex)) # 2 = npar for this slx_type 
+      array(data = c(log(4.05), log(3.99), # Sexes combined
+                     log(5.30), log(5.20)),
+            dim = c(length(data$fsh_blks), 2, nsex)) # 2 = npar for this slx_type 
       
     # Logistic with a50 and a95, data$slx_type = 0, sex-structured model
     } else if (data$slx_type == 0 & nsex == 2) {
-      array(data = c(rep(log(4.19), length(data$blks_fsh_slx)), # Male
-                     rep(log(5.50), length(data$blks_fsh_slx)),
-                     rep(log(3.91), length(data$blks_fsh_slx)), # Female
-                     rep(log(5.20), length(data$blks_fsh_slx))),
-            dim = c(length(data$blks_fsh_slx), 2, nsex)) # 2 = npar for this slx_type 
+      array(data = c(log(4.19), log(5.12), # Male
+                     log(5.50), log(6.30),
+                     log(3.91), log(2.87), # Female
+                     log(5.20), log(4.15)),
+            dim = c(length(data$fsh_blks), 2, nsex)) # 2 = npar for this slx_type 
       
     # Logistic with a50 and slope, data$slx_type = 1, single sex model
     } else if (data$slx_type == 1 & nsex == 1) {
-      array(data = c(rep(log(4.05), length(data$blks_fsh_slx)),
-                     rep(log(2.29), length(data$blks_fsh_slx))),
-            dim = c(length(data$blks_fsh_slx), 2, nsex)) # 2 = npar for this slx_type 
+      array(data = c(log(4.05), log(3.99),
+                     log(2.29), log(2.43)),
+            dim = c(length(data$fsh_blks), 2, nsex)) # 2 = npar for this slx_type 
       
     } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model
-      array(data = c(rep(log(4.19), length(data$blks_fsh_slx)), # male
-                     rep(log(2.29), length(data$blks_fsh_slx)),
-                     rep(log(3.91), length(data$blks_fsh_slx)), # female
-                     rep(log(2.29), length(data$blks_fsh_slx))),
-            dim = c(length(data$blks_fsh_slx), 2, nsex)) }, # 2 = npar for this slx_type 
+      array(data = c(log(4.19), log(5.12), # male
+                     log(2.29), log(2.57),
+                     log(3.91), log(2.87), # female
+                     log(2.29), log(2.29)),
+            dim = c(length(data$fsh_blks), 2, nsex)) }, # 2 = npar for this slx_type 
   
   # Survey selectivity - starting values developed using NOAA selectivity curves
   log_srv_slx_pars = 
     # Logistic with a50 and a95, data$slx_type = 0, single sex model
     if(data$slx_type == 0 & nsex == 1) {
-      array(data = c(rep(log(3.74), length(data$blks_srv_slx)),
-                     rep(log(5.20), length(data$blks_srv_slx))),
-            dim = c(length(data$blks_srv_slx), 2, nsex)) # 2 = npar for this slx_type 
+      array(data = c(rep(log(3.74), length(data$srv_blks)),
+                     rep(log(5.20), length(data$srv_blks))),
+            dim = c(length(data$srv_blks), 2, nsex)) # 2 = npar for this slx_type 
       
     # Logistic with a50 and a95, data$slx_type = 0, sex-structured model
     } else if (data$slx_type == 0 & nsex == 2) {
-      array(data = c(rep(log(3.73), length(data$blks_srv_slx)), # male
-                     rep(log(5.20), length(data$blks_srv_slx)),
-                     rep(log(3.74), length(data$blks_srv_slx)), # female
-                     rep(log(5.20), length(data$blks_srv_slx))),
-            dim = c(length(data$blks_srv_slx), 2, nsex)) # 2 = npar for this slx_type 
+      array(data = c(rep(log(3.73), length(data$srv_blks)), # male
+                     rep(log(5.20), length(data$srv_blks)),
+                     rep(log(3.74), length(data$srv_blks)), # female
+                     rep(log(5.20), length(data$srv_blks))),
+            dim = c(length(data$srv_blks), 2, nsex)) # 2 = npar for this slx_type 
       
     # Logistic with a50 and slope, data$slx_type = 1, single sex model
     } else if (data$slx_type == 1 & nsex == 1) {
-      array(data = c(rep(log(3.74), length(data$blks_srv_slx)),
-                     rep(log(1.96), length(data$blks_srv_slx))),
-            dim = c(length(data$blks_srv_slx), 2, nsex)) # 2 = npar for this slx_type 
+      array(data = c(rep(log(3.74), length(data$srv_blks)),
+                     rep(log(1.96), length(data$srv_blks))),
+            dim = c(length(data$srv_blks), 2, nsex)) # 2 = npar for this slx_type 
       
     # Logistic with a50 and slope, data$slx_type = 1, sex-structured model
     } else { 
-      array(data = c(rep(log(3.73), length(data$blks_srv_slx)), # male
-                     rep(log(1.96), length(data$blks_srv_slx)),
-                     rep(log(3.74), length(data$blks_srv_slx)), # female
-                     rep(log(1.96), length(data$blks_srv_slx))),
-            dim = c(length(data$blks_srv_slx), 2, nsex)) }, # 2 = npar for this slx_type
+      array(data = c(rep(log(3.73), length(data$srv_blks)), # male
+                     rep(log(1.96), length(data$srv_blks)),
+                     rep(log(3.74), length(data$srv_blks)), # female
+                     rep(log(1.96), length(data$srv_blks))),
+            dim = c(length(data$srv_blks), 2, nsex)) }, # 2 = npar for this slx_type
   
   # Catchability
-  fsh_logq = -16.6,
+  fsh_logq = c(-16.6, -16),
   srv_logq = -17,
   mr_logq = log(1),
   
@@ -386,18 +386,18 @@ print(sqrt(diag(VarCo)))
 
 # 
 # Compile
-# compile("mod.cpp")
+compile("mod.cpp")
 # dyn.load(dynlib("mod"))
 # Use map to turn off parameters, either for testing with dummy, phasing, or to
 # fix parameter values
 
 # Debug
-# map <- list(log_fsh_slx_pars = factor(array(data = c(rep(factor(NA), length(data$blks_fsh_slx)),
-#                                      rep(factor(NA), length(data$blks_fsh_slx))),
-#                             dim = c(length(data$blks_fsh_slx), 2, nsex))),
-#             log_srv_slx_pars = factor(array(data = c(rep(factor(NA), length(data$blks_srv_slx)),
-#                                                  rep(factor(NA), length(data$blks_srv_slx))),
-#                                         dim = c(length(data$blks_srv_slx), 2, nsex))),
+# map <- list(log_fsh_slx_pars = factor(array(data = c(rep(factor(NA), length(data$fsh_blks)),
+#                                      rep(factor(NA), length(data$fsh_blks))),
+#                             dim = c(length(data$fsh_blks), 2, nsex))),
+#             log_srv_slx_pars = factor(array(data = c(rep(factor(NA), length(data$srv_blks)),
+#                                                  rep(factor(NA), length(data$srv_blks))),
+#                                         dim = c(length(data$srv_blks), 2, nsex))),
 #             fsh_logq = factor(NA), srv_logq = factor(NA), mr_logq = factor(NA),
 #             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr),
 #             log_rinit = factor(NA), log_rinit_devs = rep(factor(NA), nage-2),

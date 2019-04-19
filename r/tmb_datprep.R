@@ -25,9 +25,11 @@ read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"),
   # Convert lbs to mt
   mutate(catch = total_pounds * 0.000453592,
          sigma_catch = 0.05,
-         upper_catch = catch + catch * sigma_catch,
-         lower_catch = catch - catch * sigma_catch) %>% 
-  select(-total_pounds) %>% 
+         ln_catch = log(catch),
+         std = 1.96 * sqrt(log(sigma_catch + 1)),
+         upper_catch = exp(ln_catch + std),
+         lower_catch = exp(ln_catch - std)) %>% 
+  select(-total_pounds, -std) %>% 
   filter(year >= syr) -> catch
 
 # Fishery CPUE ----
@@ -68,22 +70,51 @@ data.frame(year = 1980:1996,
            fsh_cpue = hist_cpue * 0.453592,
            sigma_fsh_cpue = 0.2) %>%
   bind_rows(fsh_cpue) %>%
-  mutate(upper_fsh_cpue = fsh_cpue + fsh_cpue * sigma_fsh_cpue,
-         lower_fsh_cpue = fsh_cpue - fsh_cpue * sigma_fsh_cpue) -> fsh_cpue
+  mutate(ln_fsh_cpue = log(fsh_cpue),
+         std = 1.96 * sqrt(log(sigma_fsh_cpue + 1)),
+         upper_fsh_cpue = exp(ln_fsh_cpue + std),
+         lower_fsh_cpue = exp(ln_fsh_cpue - std)) %>% 
+  select(-std) -> fsh_cpue
 
 # Survey NPUE ----
 
+# read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) %>% 
+#   mutate(cv = sdev / annual_cpue,
+#          pred = obj$report()$pred_srv_cpue,
+#          ln_pred = log(pred)) %>% 
+#   select(year, srv_cpue = annual_cpue, sigma_srv_cpue = cv, pred_srv_cpue) %>% 
+#   mutate(upper_srv_cpue = qnorm(0.975, log(srv_cpue), sigma_srv_cpue),
+#          lower_srv_cpue = qnorm(0.025, log(srv_cpue), sigma_srv_cpue)) -> srv_cpue
+
 read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) %>% 
-  select(year, srv_cpue = annual_cpue, sigma_srv_cpue = sdev) %>% 
-  mutate(upper_srv_cpue = srv_cpue + srv_cpue * sigma_srv_cpue,
-         lower_srv_cpue = srv_cpue - srv_cpue * sigma_srv_cpue) -> srv_cpue
+  rename(srv_cpue = annual_cpue) %>% 
+  mutate(sigma_srv_cpue = sdev / srv_cpue,
+         ln_srv_cpue = log(srv_cpue),
+         std = 1.96 * sqrt(log(sigma_srv_cpue + 1)),
+         upper_srv_cpue = exp(ln_srv_cpue + std ),
+         lower_srv_cpue = exp(ln_srv_cpue - std )) %>% 
+  select(-c(sdev, CIupper, CIlower)) -> srv_cpue 
+
+# ggplot(data = srv_cpue) +
+#   geom_point(aes(year, annual_cpue), col = "darkgrey") +
+#   geom_line(aes(year, pred)) +
+#   geom_ribbon(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue),
+#               alpha = 0.2, col = "white", fill = "grey") +
+#   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, labels = axis$labels) + 
+#   # lims(y = c(0, 0.3)) +
+#   labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL) #-> srv_cpue_plot
+
 
 # Mark-recapture index ----
 
 read_csv(paste0("output/mr_index.csv")) %>% 
   select(year, mr = estimate, sigma_mr = sd) %>% 
-  mutate(upper_mr = mr + mr * sigma_mr,
-         lower_mr = mr - mr * sigma_mr) -> mr
+  mutate(sigma_mr = sigma_mr / mr,
+         ln_mr = log(mr),
+         std = 1.96 * sqrt(log(sigma_mr + 1)),
+         upper_mr = exp(ln_mr + std),
+         lower_mr = exp(ln_mr - std)) %>% 
+  select(-std) -> mr
 
 # mr_sum %>% 
 #   full_join(data.frame(year = min(mr_sum$year):lyr)) %>% 
@@ -147,7 +178,7 @@ mr %>%
   geom_line(aes(x = year, y = N, group = Abundance)) +
   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, 
                      labels = axis$labels) +
-  # ylim(c(0, 3.8)) +
+  expand_limits(y = c(0, 5)) +
   labs(x = "", y = "\n\nAbundance\n(millions)") -> mr_plot
   
 plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)', '(D)'))
@@ -158,7 +189,6 @@ ggsave(paste0("figures/tmb/abd_indices_", YEAR, ".png"),
 full_join(catch, fsh_cpue) %>% 
   full_join(srv_cpue) %>% 
   full_join(mr) %>% 
-  select(-contains("lower"), -contains("upper")) %>% 
   mutate(index = year - min(year)) -> ts
   
 write_csv(ts, "data/tmb_inputs/abd_indices.csv")
@@ -292,12 +322,14 @@ age_labs <- c("2", "", "", "", "6", "", "", "", "10", "", "", "", "14", "",
               "", "", "30", "", "", "", "34", "", "", "", "38", "",
               "", "", "42+") 
 
-ggplot(waa, aes(x = Age, y = weight, shape = Source,
+ggplot(waa %>% 
+         filter(Source != "Survey (sexes combined)") %>% 
+         droplevels(), aes(x = Age, y = weight, shape = Source,
                  colour = Source, group = Source)) +
   geom_point() +
   geom_line() + 
   scale_colour_grey() +
-  expand_limits(y = c(0, 7)) +
+  expand_limits(y = c(0, 10)) +
   labs(x = NULL, y = "\n\nMean weight\n(kg)", colour = NULL, shape = NULL) +
   scale_x_discrete(breaks = unique(waa$Age), labels = age_labs) +
   theme(legend.position = c(.2, .8)) -> waa_plot
@@ -319,8 +351,8 @@ ggplot(mat) +
   geom_segment(aes(x = 2, y = 0.50, xend = a50, yend = 0.50), 
                lty = 2, col = "grey") +
   # a_50 labels
-  geom_text(aes(10, 0.5, label = a50_txt), size = 5,
-            colour = "black", parse = TRUE) +
+  geom_text(aes(10, 0.5, label = a50_txt), 
+            colour = "black", parse = TRUE, family = "Times New Roman") +
   scale_x_continuous(limits = c(2,42), breaks = axis$breaks, 
                      labels = age_labs) +
   labs(x = NULL, y = "\n\nProportion\nmature\n") -> mat_plot
@@ -340,7 +372,7 @@ ggplot(byage, aes(x = Age)) +
 plot_grid(waa_plot, mat_plot, prop_fem, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)'))
 
 ggsave(paste0("figures/tmb/bio_dat.png"),
-       dpi=300, height=6, width=7, units="in")
+       dpi=300, height=7, width=6, units="in")
 
 # Length compositions ----
 

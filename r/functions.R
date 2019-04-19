@@ -599,8 +599,8 @@ TMBphase <- function(data, parameters, random, model_name,
       # evaluation
       if (tmp_debug == TRUE) {
         map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
-        # map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
-        # map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
+        map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
+        map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
         # map_use$mr_logq <- fill_vals(parameters$mr_logq, NA)
       }
       
@@ -666,8 +666,8 @@ reshape_ts <- function(){
   fsh_cpue$pred_fsh_cpue <- obj$report()$pred_fsh_cpue
   fsh_cpue %>% 
     mutate(fsh_cpue_resid = fsh_cpue - pred_fsh_cpue,
-           fsh_cpue_sresid = fsh_cpue_resid / sd(fsh_cpue_resid)) -> fsh_cpue
-  
+           fsh_cpue_sresid = fsh_cpue_resid / sd(fsh_cpue_resid),
+           period = ifelse(year <= 1994, "pre-EQS", "EQS")) -> fsh_cpue
   
   srv_cpue$pred_srv_cpue <- obj$report()$pred_srv_cpue
   srv_cpue %>% 
@@ -675,20 +675,21 @@ reshape_ts <- function(){
            srv_cpue_sresid = srv_cpue_resid / sd(srv_cpue_resid)) -> srv_cpue
   
   mr %>% 
-    mutate(pred_mr = obj$report()$pred_mr) %>% 
-    select(year, pred_mr) %>% 
-    right_join(ts %>%
-                 select(year, mr) %>%
-                 mutate(pred_mr_all = obj$report()$pred_mr_all)) -> mr_plot
-  mr_plot %>% 
-    mutate(mr_resid = mr - pred_mr,
-           mr_sresid = mr_resid / sd(mr_resid)) -> mr_plot
+    mutate(pred_mr = obj$report()$pred_mr,
+           mr_resid = mr - pred_mr,
+           mr_sresid = mr_resid / sd(mr_resid)) %>% 
+    select(year, mr, pred_mr, upper_mr, lower_mr, mr_sresid, mr_resid) -> mr_plot
   
+  ts %>%
+    select(year, mr) %>%
+    mutate(pred_mr_all = obj$report()$pred_mr_all) -> mr_plot_all
+
   out <- list()
   out$ts <- ts
   out$fsh_cpue <- fsh_cpue
   out$srv_cpue <- srv_cpue
   out$mr_plot <- mr_plot
+  out$mr_plot_all <- mr_plot_all
   
   return(out)
 }
@@ -701,44 +702,68 @@ plot_ts <- function(){
   out$fsh_cpue -> fsh_cpue
   out$srv_cpue -> srv_cpue
   out$mr_plot -> mr_plot
+  out$mr_plot_all -> mr_plot_all
   
   # Catch 
   axis <- tickr(ts, year, 5)
   ggplot(ts, aes(x = year)) +
-    geom_point(aes(y = catch), colour = "grey") +
+    geom_point(aes(y = catch), colour = "darkgrey") +
     geom_line(aes(y = pred_catch)) +
+    geom_ribbon(aes(year, ymin = lower_catch, ymax = upper_catch),
+                alpha = 0.2,  fill = "grey") +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     scale_y_continuous(label = scales::comma) +
     labs(x = NULL, y = "\n\nCatch\n(round mt)") -> p_catch
   
   # Fishery cpue
   ggplot(fsh_cpue, aes(x = year)) +
-    geom_point(aes(y = fsh_cpue), colour = "grey") +
-    geom_line(aes(y = pred_fsh_cpue)) +
+    geom_point(aes(y = fsh_cpue), colour = "darkgrey") +
+    geom_line(aes(y = pred_fsh_cpue, lty = period)) +
+    geom_ribbon(aes(year, ymin = lower_fsh_cpue , ymax = upper_fsh_cpue),
+                alpha = 0.2,  fill = "grey") +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-    labs(x = NULL, y = "\n\nFishery CPUE\n(round kg/hook)") -> p_fsh
+    expand_limits(y = 0) +
+    labs(x = NULL, y = "\n\nFishery CPUE\n(round kg/hook)", lty = NULL) +
+    theme(legend.position = c(0.8, 0.8)) -> p_fsh
   
   # Survey cpue
   ggplot(srv_cpue, aes(x = year)) +
-    geom_point(aes(y = srv_cpue), colour = "grey") +
+    geom_point(aes(y = srv_cpue), colour = "darkgrey") +
     geom_line(aes(y = pred_srv_cpue)) +
+    geom_ribbon(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue),
+                alpha = 0.2, col = "white", fill = "grey") +
     scale_x_continuous(limits = c(min(ts$year), max(ts$year)),
                        breaks = axis$breaks, labels = axis$labels) +
+    expand_limits(y = 0) +
     labs(x = NULL, y = "\n\nSurvey CPUE\n(fish/hook)") -> p_srv
   
   # Mark recapture 
-  ggplot(mr_plot, aes(x = year)) +
-    geom_point(aes(y = mr), colour = "grey") +
-    geom_line(aes(y = pred_mr, group = 1)) +
-    geom_line(aes(y = pred_mr_all, group = 1), lty = 2) +
+  mr_plot %>% 
+    mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
+    pad(interval = "year") %>% 
+    mutate(year = year(year),
+           Year = factor(year)) %>% 
+    gather("Abundance", "mr", mr) %>% 
+    mutate(# interpolate the CI in missing years for plotting purposes
+      lower_mr = zoo::na.approx(lower_mr, maxgap = 20, rule = 2),
+      upper_mr = zoo::na.approx(upper_mr, maxgap = 20, rule = 2)) %>%
+  ggplot() +
+    geom_ribbon(aes(x = year, ymin = lower_mr, ymax = upper_mr),
+                alpha = 0.2, colour = "white", fill = "grey") +
+    geom_point(aes(x = year, y = mr), colour = "darkgrey") +
+    geom_line(aes(x = year, y = pred_mr, group = 1)) +
+    geom_line(data = mr_plot_all, aes(x = year, y = pred_mr_all, group = 1), lty = 2) +
     scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+    expand_limits(y = 0) +
     labs(x = NULL, y = "\n\nAbundance\n(millions)") -> p_mr
   
   plot_grid(p_catch, p_fsh, p_srv, p_mr, ncol = 1, align = 'hv', 
             labels = c('(A)', '(B)', '(C)', '(D)'))
   
-  # ggsave(paste0("pred_abd_indices.png"),
+  # if(save == TRUE){
+  # ggsave(paste0("figures/pred_abd_indices.png"),
   #        dpi=300, height=7, width=6, units="in")
+  #   }
 }
 
 # Resids for time series
@@ -754,38 +779,42 @@ plot_ts_resids <- function() {
   
   ggplot(ts, aes(x = year, y = catch_sresid)) + 
     geom_hline(yintercept = 0, colour = "grey", size = 1) +
-    geom_segment(aes(x = year, xend = year, y = 0, yend = catch_resid), 
+    geom_segment(aes(x = year, xend = year, y = 0, yend = catch_sresid), 
                  size = 0.2, colour = "grey") +
     geom_point() +
     labs(x = "", y = "\n\nCatch\nresiduals") +
+    expand_limits(y = c(-3, 3)) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) -> r_catch
   
   # Fishery cpue resids
   ggplot(fsh_cpue, aes(x = year, y = fsh_cpue_sresid)) + 
     geom_hline(yintercept = 0, colour = "grey", size = 1) +
-    geom_segment(aes(x = year, xend = year, y = 0, yend = fsh_cpue_resid), 
+    geom_segment(aes(x = year, xend = year, y = 0, yend = fsh_cpue_sresid), 
                  size = 0.2, colour = "grey") +
     geom_point() +
     labs(x = "", y = "\n\nFishery CPUE\nresiduals") +
+    expand_limits(y = c(-3, 3)) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) -> r_fsh
   
   # Survey cpues resids
   ggplot(srv_cpue, aes(x = year, y = srv_cpue_sresid)) + 
     geom_hline(yintercept = 0, colour = "grey", size = 1) +
-    geom_segment(aes(x = year, xend = year, y = 0, yend = srv_cpue_resid), 
+    geom_segment(aes(x = year, xend = year, y = 0, yend = srv_cpue_sresid), 
                  size = 0.2, colour = "grey") +
     geom_point() +
     labs(x = "", y = "\n\nSurvey CPUE\nresiduals") +
+    expand_limits(y = c(-3, 3)) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     theme(legend.position = "none") -> r_srv
   
   # Mark-recapture abundance estimate resids
   ggplot(mr_plot, aes(x = year, y = mr_sresid)) + 
     geom_hline(yintercept = 0, colour = "grey", size = 1) +
-    geom_segment(aes(x = year, xend = year, y = 0, yend = mr_resid), 
+    geom_segment(aes(x = year, xend = year, y = 0, yend = mr_sresid), 
                  size = 0.2, colour = "grey") +
     geom_point() +
     labs(x = "", y = "\n\nMR abundance\nresiduals\n") +
+    expand_limits(y = c(-3, 3)) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) -> r_mr
   
   plot_grid(r_catch, r_fsh, r_srv, r_mr, ncol = 1, align = 'hv', 
@@ -1002,9 +1031,9 @@ plot_sel <- function() {
   setDT(sel)
   
   # Look up table for selectivity time blocks
-  blks_sel <- data.frame(Selectivity = c(rep("Fishery", length(data$blks_fsh_slx)),
-                                         rep("Survey", length(data$blks_srv_slx))),
-                         end = c(data$blks_fsh_slx, data$blks_srv_slx)) %>%
+  blks_sel <- data.frame(Selectivity = c(rep("Fishery", length(data$fsh_blks)),
+                                         rep("Survey", length(data$srv_blks))),
+                         end = c(data$fsh_blks, data$srv_blks)) %>%
     left_join(ts %>%
                 mutate(end = index) %>% 
                 select(year, end), by = "end") %>% 

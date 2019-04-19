@@ -29,8 +29,8 @@ template<class Type>
     
   // Time varying parameter blocks - each vector contains the terminal years of
   // each time block
-  DATA_IVECTOR(blks_fsh_slx)    // fishery selectivity 
-  DATA_IVECTOR(blks_srv_slx)    // survey selectivity 
+  DATA_IVECTOR(fsh_blks)    // fishery selectivity 
+  DATA_IVECTOR(srv_blks)    // survey selectivity 
     
   // Fixed parameters
   DATA_ARRAY(M)                 // natural mortality by year, age, and sex. assume constant M=0.1
@@ -141,7 +141,7 @@ template<class Type>
   PARAMETER_ARRAY(log_srv_slx_pars);       // Survey selectivity (slx_type controls parameterization)
 
   // Catchability
-  PARAMETER(fsh_logq);            // fishery       
+  PARAMETER_VECTOR(fsh_logq);     // fishery       
   PARAMETER(srv_logq);            // survey 
   PARAMETER(mr_logq);             // mark-recapture 
     
@@ -289,7 +289,7 @@ template<class Type>
   fsh_slx_pars.setZero();
   
   for (int k = 0; k < nsex; k++) {
-    for (int h = 0; h < blks_fsh_slx.size(); h++) {
+    for (int h = 0; h < fsh_blks.size(); h++) {
       for (int n = 0; n < npar_slx; n++) { 
         fsh_slx_pars(h,n,k) = exp(log_fsh_slx_pars(h,n,k));
       }
@@ -308,7 +308,7 @@ template<class Type>
   
   int i = 0;
   
-  for(int h = 0; h < blks_fsh_slx.size(); h++){
+  for(int h = 0; h < fsh_blks.size(); h++){
     do{
       for (int k = 0; k < nsex; k++) {
         for (int j = 0; j < nage; j++) {
@@ -328,7 +328,7 @@ template<class Type>
         }
       }
       i++;
-    } while (i <= blks_fsh_slx(h));
+    } while (i <= fsh_blks(h));
   }
   
   // std::cout << fsh_slx(1,1,1) << "\n Fishery selectivity \n";
@@ -340,7 +340,7 @@ template<class Type>
   srv_slx_pars.setZero();
   
   for (int k = 0; k < nsex; k++) {
-    for (int h = 0; h < blks_srv_slx.size(); h++) {
+    for (int h = 0; h < srv_blks.size(); h++) {
       for (int n = 0; n < npar_slx; n++) { 
         srv_slx_pars(h,n,k) = exp(log_srv_slx_pars(h,n,k));
       }
@@ -349,7 +349,7 @@ template<class Type>
 
   i = 0;     // re-set i to 0 (do not redeclare)
 
-  for(int h = 0; h < blks_srv_slx.size(); h++){
+  for(int h = 0; h < srv_blks.size(); h++){
     do{
       for (int k = 0; k < nsex; k++) {
         for (int j = 0; j < nage; j++) {
@@ -370,7 +370,7 @@ template<class Type>
         }
       }
       i++;
-    } while (i <= blks_srv_slx(h));
+    } while (i <= srv_blks(h));
   }
 
   // std::cout << srv_slx << "\n Survey selectivity \n";
@@ -652,11 +652,19 @@ template<class Type>
   }
   // std::cout << "Predicted MR for all years\n" << pred_mr_all << "\n";
 
-  // Fishery catchability and predicted cpue
-  Type fsh_q = exp(fsh_logq);
-
-  for (int i = 0; i < nyr_fsh_cpue; i++) {
-    pred_fsh_cpue(i) = fsh_q * tot_expl_biom(yrs_fsh_cpue(i)); 
+  // Fishery catchability and predicted cpue - blocks for fishery correspond to
+  // pre- and post- Equal Quota Share
+  vector<Type> fsh_q(fsh_blks.size());
+  for (int h = 0; h < fsh_blks.size(); h++){
+    fsh_q(h) = exp(fsh_logq(h));
+  }
+  
+  i = 0;
+  for(int h = 0; h < fsh_blks.size(); h++){
+    do{
+      pred_fsh_cpue(i) = fsh_q(h) * tot_expl_biom(yrs_fsh_cpue(i));
+      i++;
+    } while (i <= fsh_blks(h));
   }
   // std::cout << "Predicted fishery cpue\n" << pred_fsh_cpue << "\n";
 
@@ -837,7 +845,7 @@ template<class Type>
         Z_Fxx(x,j,k) = M(nyr-1,j,nsex-1) + sel_Fxx(x,j,k);    // Total instantaneous mortality at age
         S_Fxx(x,j,k) = exp(-Z_Fxx(x,j,k));                    // Total survival at age
 
-        // ABC calculation (landed catch under Fxx)
+        // ABC calculation (landed catch under Fxx) *FLAG* use projected 
         ABC(x) += data_srv_waa(0,j,k) * retention(0,j,k) * N(nyr-1,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
 
         // // Discarded catch assumed to die under Fxx
@@ -851,8 +859,10 @@ template<class Type>
   // Priors
 
   // Fishery cpue catchability coefficient
-  priors(0) = square( log(fsh_q / p_fsh_q) ) / ( Type(2.0) * square(sigma_fsh_q) );
-
+  for (int h = 0; h < fsh_blks.size(); h++){
+    priors(0) += square( log(fsh_q(h) / p_fsh_q(h)) ) / ( Type(2.0) * square(sigma_fsh_q(h)) );
+  }
+  
   // Survey catchability coefficient
   priors(1) = square( log(srv_q / p_srv_q) ) / ( Type(2.0) * square(sigma_srv_q) );
 
@@ -1061,8 +1071,8 @@ template<class Type>
   // std::cout << "Penality for SPR calcs\n" << spr_pen << "\n";
 
   // Sum likelihood components
-  obj_fun += priors(0);         // Fishery q
-  obj_fun += priors(1);         // Survey q
+  // obj_fun += priors(0);         // Fishery q
+  // obj_fun += priors(1);         // Survey q
   obj_fun += priors(2);         // Mark-recapture abndance index q
   obj_fun += catch_like;        // Catch
   obj_fun += index_like(0);     // Fishery cpue
