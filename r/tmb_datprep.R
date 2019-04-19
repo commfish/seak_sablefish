@@ -13,7 +13,7 @@ lyr <- YEAR <- 2018
 nyr <- length(syr:lyr)
 
 rec_age <- 2
-plus_group <- 42
+plus_group <- 31
 nage <- length(rec_age:plus_group)
 
 # Harvest ----
@@ -48,7 +48,15 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", lyr,".csv"),
 fsh_cpue %>% 
   group_by(year) %>% 
   summarise(fsh_cpue = mean(std_cpue_kg),
-            sigma_fsh_cpue = sd(std_cpue_kg)) -> fsh_cpue 
+            n = n(),
+            sd = sd(std_cpue_kg),
+            se = sd / sqrt(n),
+            # use the relative standard error as the sigma for the model
+            # (approximately equal to the sd in log space)
+            sigma_fsh_cpue = se / fsh_cpue, # this is really low...
+            # *FLAG* currently just assume cv=0.05 for new ts, 0.1 for old
+            sigma_fsh_cpue = 0.05
+            ) -> fsh_cpue 
 
 # Historical CPUE 
 
@@ -68,7 +76,7 @@ read_csv("data/fishery/legacy_fisherycpue_1980_1996.csv",
 data.frame(year = 1980:1996,
            # Convert to kg
            fsh_cpue = hist_cpue * 0.453592,
-           sigma_fsh_cpue = 0.2) %>%
+           sigma_fsh_cpue = 0.1) %>%
   bind_rows(fsh_cpue) %>%
   mutate(ln_fsh_cpue = log(fsh_cpue),
          std = 1.96 * sqrt(log(sigma_fsh_cpue + 1)),
@@ -78,6 +86,7 @@ data.frame(year = 1980:1996,
 
 # Survey NPUE ----
 
+# If I wanted to show it in log space
 # read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) %>% 
 #   mutate(cv = sdev / annual_cpue,
 #          pred = obj$report()$pred_srv_cpue,
@@ -87,13 +96,14 @@ data.frame(year = 1980:1996,
 #          lower_srv_cpue = qnorm(0.025, log(srv_cpue), sigma_srv_cpue)) -> srv_cpue
 
 read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) %>% 
-  rename(srv_cpue = annual_cpue) %>% 
-  mutate(sigma_srv_cpue = sdev / srv_cpue,
+  # assuming lognormal distribution, use relative se as model input sigma
+  mutate(sigma_srv_cpue = se / srv_cpue,
+         sigma_srv_cpue = 0.05,
          ln_srv_cpue = log(srv_cpue),
          std = 1.96 * sqrt(log(sigma_srv_cpue + 1)),
          upper_srv_cpue = exp(ln_srv_cpue + std ),
          lower_srv_cpue = exp(ln_srv_cpue - std )) %>% 
-  select(-c(sdev, CIupper, CIlower)) -> srv_cpue 
+  select(-c(n, sd, se)) -> srv_cpue 
 
 # ggplot(data = srv_cpue) +
 #   geom_point(aes(year, annual_cpue), col = "darkgrey") +
@@ -148,7 +158,7 @@ ggplot(fsh_cpue) +
   # Board implemented Equal Quota Share in 1994
   geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  # lims(y = c(0, 1.05)) +
+  expand_limits(y = 0) +
   labs(x = "", y = "\n\nFishery CPUE\n(round kg/hook)") -> fsh_cpue_plot
 
 ggplot(data = srv_cpue) +
@@ -157,7 +167,7 @@ ggplot(data = srv_cpue) +
   geom_ribbon(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue),
               alpha = 0.2, col = "white", fill = "grey") +
   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, labels = axis$labels) + 
-  # lims(y = c(0, 0.3)) +
+  expand_limits(y = 0) +
   labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL) -> srv_cpue_plot
 
 mr %>% 
@@ -170,8 +180,6 @@ mr %>%
          lower_mr = zoo::na.approx(lower_mr, maxgap = 20, rule = 2),
          upper_mr = zoo::na.approx(upper_mr, maxgap = 20, rule = 2)) %>%
   ggplot() +
-  # geom_errorbar(aes(x = year, ymin = N - 2*sd, ymax = N + 2*sd),
-  #             colour = "grey", width = 0) +
   geom_ribbon(aes(x = year, ymin = lower_mr, ymax = upper_mr),
               alpha = 0.2, colour = "white", fill = "grey") +
   geom_point(aes(x = year, y = N)) +
@@ -220,14 +228,12 @@ waa %>%
                                       "9", "10", "11", "12", "13", "14", "15",
                                       "16", "17", "18", "19", "20", "21", "22",
                                       "23", "24", "25", "26", "27", "28", "29", "30",
-                                      "31", "32", "33", "34", "35", "36", "37", "38",
-                                      "39", "40", "41", "42"),
+                                      "31"),
                       labels = c("2", "3", "4", "5", "6", "7", "8",
                                  "9", "10", "11", "12", "13", "14", "15",
                                  "16", "17", "18", "19", "20", "21", "22",
                                  "23", "24", "25", "26", "27", "28", "29", "30",
-                                 "31", "32", "33", "34", "35", "36", "37", "38",
-                                 "39", "40", "41", "42+"))) -> waa
+                                 "31+"))) -> waa
 waa <- na.omit(waa)
 write_csv(waa, "data/tmb_inputs/waa.csv")
 
@@ -243,14 +249,12 @@ mat %>%
                                       "9", "10", "11", "12", "13", "14", "15",
                                       "16", "17", "18", "19", "20", "21", "22",
                                       "23", "24", "25", "26", "27", "28", "29", "30",
-                                      "31", "32", "33", "34", "35", "36", "37", "38",
-                                      "39", "40", "41", "42"),
+                                      "31"),
                       labels = c("2", "3", "4", "5", "6", "7", "8",
                                  "9", "10", "11", "12", "13", "14", "15",
                                  "16", "17", "18", "19", "20", "21", "22",
                                  "23", "24", "25", "26", "27", "28", "29", "30",
-                                 "31", "32", "33", "34", "35", "36", "37", "38",
-                                 "39", "40", "41", "42+"))) -> mat
+                                 "31+"))) -> mat
 
 # Sex ratio ----
 
@@ -300,14 +304,12 @@ byage %>%
                                       "9", "10", "11", "12", "13", "14", "15",
                                       "16", "17", "18", "19", "20", "21", "22",
                                       "23", "24", "25", "26", "27", "28", "29", "30",
-                                      "31", "32", "33", "34", "35", "36", "37", "38",
-                                      "39", "40", "41", "42"),
+                                      "31"),
                       labels = c("2", "3", "4", "5", "6", "7", "8",
                                  "9", "10", "11", "12", "13", "14", "15",
                                  "16", "17", "18", "19", "20", "21", "22",
                                  "23", "24", "25", "26", "27", "28", "29", "30",
-                                 "31", "32", "33", "34", "35", "36", "37", "38",
-                                 "39", "40", "41", "42+"))) -> byage
+                                 "31+"))) -> byage
 full_join(byage %>% 
             select(age, prop_fem = fit),
           mat %>% 
@@ -319,8 +321,7 @@ full_join(byage %>%
 # Custom axes
 age_labs <- c("2", "", "", "", "6", "", "", "", "10", "", "", "", "14", "",
               "", "", "18", "", "", "", "22", "", "", "", "26", "",
-              "", "", "30", "", "", "", "34", "", "", "", "38", "",
-              "", "", "42+") 
+              "", "", "30", "") 
 
 ggplot(waa %>% 
          filter(Source != "Survey (sexes combined)") %>% 
@@ -386,47 +387,6 @@ lencomps <- lencomps %>%
                                   `pot_srv_len` = Source == "Pot survey")) %>% 
   filter(Source != "pot_srv_len")
 
-# Data source by year ----
-
-ts %>% 
-  gather("Source", "value", c(catch, fsh_cpue, srv_cpue, mr), na.rm = TRUE) %>% 
-  select(year, Source) %>% 
-  bind_rows(select(agecomps, year, Source)) %>% 
-  bind_rows(select(lencomps, year, Source)) %>% 
-  mutate(Source = derivedFactor(`Survey lengths` = Source == "srv_len",
-                                `Fishery lengths` = Source == "fsh_len",
-                                `Survey ages` = Source == "Survey",
-                                `Fishery ages` = Source == "Fishery",
-                                `Mark-recapture` = Source == "mr",
-                                `Survey CPUE` = Source == "srv_cpue",
-                                `Fishery CPUE` = Source == "fsh_cpue",
-                                `Catch` = Source == "catch",
-                                .ordered = TRUE)) -> df
-
-df %>% 
-  mutate(value = ifelse(year == YEAR & 
-                          Source %in% c("Mark-recapture", "Fishery ages", "Catch", "Fishery CPUE"),
-                        "1", "0")) -> df
-
-axisx <- tickr(df, year, 5)
-
-ggplot(df, aes(x = year, y = Source)) +
-  geom_point(shape = 21, colour = "black", fill = "black", size = 2) +
-  labs(x = NULL, y = NULL) +
-  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
-
-ggsave(paste0("figures/tmb/sable_data_all.png"),
-       dpi=300, height=4, width=6, units="in")
-
-ggplot(df, aes(x = year, y = Source, fill = value)) +
-  geom_point(shape = 21, colour = "black", size = 2) +
-  labs(x = NULL, y = NULL) +
-  guides(fill = FALSE) +
-  scale_fill_manual(values = c("white", "black")) +
-  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
-
-ggsave(paste0("figures/sable_data.png"),
-       dpi=300, height=3.5, width=7, units="in")
 # Age compositions ----
 
 # Fishery
@@ -497,6 +457,49 @@ agecomps %>% dcast(year + index + Source + n + effn ~ age, value.var = "proporti
 agecomps[is.na(agecomps)] <- 0
 
 write_csv(agecomps, "data/tmb_inputs/agecomps.csv")
+
+
+# Data source by year ----
+
+ts %>% 
+  gather("Source", "value", c(catch, fsh_cpue, srv_cpue, mr), na.rm = TRUE) %>% 
+  select(year, Source) %>% 
+  bind_rows(select(agecomps, year, Source)) %>% 
+  bind_rows(select(lencomps, year, Source)) %>% 
+mutate(Source = derivedFactor(`Survey lengths` = Source == "srv_len",
+                              `Fishery lengths` = Source == "fsh_len",
+                              `Survey ages` = Source == "Survey",
+                              `Fishery ages` = Source == "Fishery",
+                              `Mark-recapture` = Source == "mr",
+                              `Survey CPUE` = Source == "srv_cpue",
+                              `Fishery CPUE` = Source == "fsh_cpue",
+                              `Catch` = Source == "catch",
+                              .ordered = TRUE)) -> df
+
+df %>% 
+  mutate(value = ifelse(year == YEAR & 
+                          Source %in% c("Mark-recapture", "Fishery ages", "Catch", "Fishery CPUE"),
+                        "1", "0")) -> df
+
+axisx <- tickr(df, year, 5)
+
+ggplot(df, aes(x = year, y = Source)) +
+  geom_point(shape = 21, colour = "black", fill = "black", size = 2) +
+  labs(x = NULL, y = NULL) +
+  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
+
+ggsave(paste0("figures/tmb/sable_data_all.png"),
+       dpi=300, height=4, width=6, units="in")
+
+ggplot(df, aes(x = year, y = Source, fill = value)) +
+  geom_point(shape = 21, colour = "black", size = 2) +
+  labs(x = NULL, y = NULL) +
+  guides(fill = FALSE) +
+  scale_fill_manual(values = c("white", "black")) +
+  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
+
+ggsave(paste0("figures/sable_data.png"),
+       dpi=300, height=3.5, width=7, units="in")
 
 # Starting values ------
 

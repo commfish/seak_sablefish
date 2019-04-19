@@ -79,8 +79,8 @@ vonb_weight <- function(obs_weight, age, b, starting_vals, sex ) {
   pred <- exp(log_pred)
   resids <- obs_weight - pred # retaining residuals
   
-  # For YPR and future ASA, get predictions for ages 2:42
-  new_ages <- c(2:42)
+  # For YPR and future ASA, get predictions for ages 2:31
+  new_ages <- c(2:31)
   log_pred <- log(w_inf_opt) + b * log(1 - exp(-k_opt * (new_ages - t0_opt))) #  predicted values
   ypr_preds <- exp(log_pred)
   
@@ -845,31 +845,37 @@ plot_derived_ts <<- function() {
   
   p <- ggplot(ts, aes(x = year)) +
     scale_x_continuous( breaks = axis$breaks, labels = axis$labels)+
-    scale_y_continuous(label = scales::comma)
+    scale_y_continuous(label = scales::comma) +
+    expand_limits(y = 0)
   
   # Recruitment
   p + geom_point(aes(y = pred_rec)) +
-    geom_line(aes(y = pred_rec, group = 1)) +
+    geom_line(aes(y = pred_rec, group = 1)) +    
+    expand_limits(y = 0) +
     labs(x = "", y = "\n\nAge-2 recruits\n(millions)") -> p_rec
   
   # Total biomass
   p + geom_point(aes(y = biom)) +
     geom_line(aes(y = biom, group = 1)) +
+    expand_limits(y = 0) +
     labs(x = "", y = "\n\nTotal\nbiomass (mt)") -> p_biom
   
   # Exploitable biomass (to fishery)
   p + geom_point(aes(y = expl_biom)) +
     geom_line(aes(y = expl_biom, group = 1)) +
+    expand_limits(y = 0) +
     labs(x = "", y = "\n\nExploitatble\nbiomass (mt)") -> p_ebiom
   
   # Vulnerable abundance (to survey)
   p + geom_point(aes(y = vuln_abd)) +
     geom_line(aes(y = vuln_abd, group = 1)) +
+    expand_limits(y = 0) +
     labs(x = "", y = "\n\nVulnerable\nabundance (millions)") -> p_vabd
   
   # Spawning biomass 
   p + geom_point(aes(y = spawn_biom)) +
     geom_line(aes(y = spawn_biom, group = 1)) +
+    expand_limits(y = 0) +
     labs(x = "", y = "\n\nSpawning\nbiomass(mt)") -> p_sbiom
   
   plot_grid(p_rec, p_biom, p_ebiom, p_vabd, p_sbiom, ncol = 1, align = 'hv',
@@ -923,7 +929,7 @@ reshape_age <- function() {
     gather("age", "obs", -c("year", "index", "Source", "n", "effn")) %>% 
     left_join(
       bind_rows(pred_fsh_age, pred_srv_age) %>% 
-        gather("age", "pred", 1:41),
+        gather("age", "pred", 1:30),
       by = c("Source", "index", "age")) %>% 
     group_by(Source) %>% 
     mutate(resid = obs - pred,
@@ -939,14 +945,12 @@ reshape_age <- function() {
                                         "9", "10", "11", "12", "13", "14", "15",
                                         "16", "17", "18", "19", "20", "21", "22",
                                         "23", "24", "25", "26", "27", "28", "29", "30",
-                                        "31", "32", "33", "34", "35", "36", "37", "38",
-                                        "39", "40", "41", "42"),
+                                        "31"),
                         labels = c("2", "3", "4", "5", "6", "7", "8",
                                    "9", "10", "11", "12", "13", "14", "15",
                                    "16", "17", "18", "19", "20", "21", "22",
                                    "23", "24", "25", "26", "27", "28", "29", "30",
-                                   "31", "32", "33", "34", "35", "36", "37", "38",
-                                   "39", "40", "41", "42+")))  -> agecomps
+                                   "31+")))  -> agecomps
   
   return(agecomps)
 }
@@ -955,8 +959,7 @@ reshape_age <- function() {
 get_age_labs <- function() {
   age_labs <- c("2", "", "", "", "6", "", "", "", "10", "", "", "", "14", "",
                 "", "", "18", "", "", "", "22", "", "", "", "26", "",
-                "", "", "30", "", "", "", "34", "", "", "", "38", "",
-                "", "", "42+") 
+                "", "", "30", "") 
   return(age_labs)
 }
 # Age comp resids

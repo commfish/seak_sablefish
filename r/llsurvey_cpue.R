@@ -112,27 +112,20 @@ ggsave(paste0("figures/srvcpue_bootCI_1997_", YEAR, ".png"),
 hist(srv_cpue$std_cpue)
 srv_cpue %>% 
   group_by(year) %>% 
-  # mutate(
-  #   #mean annual cpue
-  #   annual_cpue = mean(NPUE)
-  summarise(annual_cpue = round(mean(std_cpue), 2),
-         # nn = length(std_cpue),
-         sdev = sd(std_cpue),
-         # std_error = sdev / sqrt(nn),
-         CIupper = annual_cpue + (sdev * 2),
-         CIlower = annual_cpue - (sdev * 2)
-         ) -> srv_sum
+  summarise(srv_cpue = round(mean(std_cpue), 2),
+         n = length(std_cpue),
+         sd = sd(std_cpue),
+         se = sd / sqrt(n)) -> srv_sum
 
-write_csv(srv_sum,
-          paste0("output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
+write_csv(srv_sum, paste0("output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
 
 # figures
 
 axis <- tickr(srv_sum, year, 5)
 ggplot(data = srv_sum) +
-  geom_point(aes(year, annual_cpue)) +
-  geom_line(aes(year, annual_cpue)) +
-  geom_ribbon(aes(year, ymin = annual_cpue - sdev, ymax = annual_cpue + sdev),
+  geom_point(aes(year, srv_cpue)) +
+  geom_line(aes(year, srv_cpue)) +
+  geom_ribbon(aes(year, ymin = srv_cpue - sd, ymax = srv_cpue + sd),
               alpha = 0.2, col = "white", fill = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   lims(y = c(0, 0.4)) +

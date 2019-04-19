@@ -28,9 +28,9 @@ template<class Type>
   DATA_INTEGER(comp_type)
     
   // Time varying parameter blocks - each vector contains the terminal years of
-  // each time block
-  DATA_IVECTOR(fsh_blks)    // fishery selectivity 
-  DATA_IVECTOR(srv_blks)    // survey selectivity 
+  // each time block. Used for both selectivity and catchability
+  DATA_IVECTOR(fsh_blks)        // fishery  
+  DATA_IVECTOR(srv_blks)        // survey  
     
   // Fixed parameters
   DATA_ARRAY(M)                 // natural mortality by year, age, and sex. assume constant M=0.1
@@ -41,8 +41,8 @@ template<class Type>
   DATA_VECTOR(Fxx_levels)       // e.g. F35=0.35, F40=0.40, and F50=0.50
   
   // Priors ("p_" denotes prior)
-  DATA_SCALAR(p_fsh_q)          // prior fishery catchability coefficient (on natural scale)
-  DATA_SCALAR(sigma_fsh_q)      // sigma for fishery q
+  DATA_VECTOR(p_fsh_q)          // prior fishery catchability coefficient (on natural scale)
+  DATA_VECTOR(sigma_fsh_q)      // sigma for fishery q
   DATA_SCALAR(p_srv_q)          // prior on survey catchability coefficient (on natural scale)
   DATA_SCALAR(sigma_srv_q)      // sigma for survey q
   DATA_SCALAR(p_mr_q)           // prior on mark-recapture catchability coefficient (on natural scale)
@@ -180,8 +180,14 @@ template<class Type>
   pred_wastage.setZero(); 
 
   // Predicted age compositions
-  matrix<Type> pred_fsh_age(nyr_fsh_age, nage);  // Fishery 
-  matrix<Type> pred_srv_age(nyr_srv_age, nage);  // Survey
+  matrix<Type> pred_fsh_obsage(nyr_fsh_age, nage);  // Fishery  (before ageing error)
+  matrix<Type> pred_fsh_age(nyr_fsh_age, nage);     // Fishery (with ageing error)
+  matrix<Type> pred_srv_obsage(nyr_srv_age, nage);  // Survey (before ageing error)
+  matrix<Type> pred_srv_age(nyr_srv_age, nage);     // Survey (with ageing error)
+  pred_fsh_obsage.setZero();
+  pred_fsh_age.setZero();
+  pred_srv_obsage.setZero();
+  pred_srv_age.setZero();
   
   // Predicted selectivity
   array<Type> fsh_slx(nyr, nage, nsex);           // Fishery selectivity-at-age by sex (on natural scale)
@@ -228,9 +234,9 @@ template<class Type>
   tot_spawn_biom.setZero();
 
   // Other derived and projected values
-  array<Type> survival_srv(nyr, nage, nsex);      // Annual natural survival at time of survey
-  array<Type> survival_fsh(nyr, nage, nsex);      // Annual natural survival at time of fishery
-  array<Type> survival_spawn(nyr, nage, nsex);    // Annual natural survival at time of spawning
+  array<Type> survival_srv(nyr, nage, nsex);      // Survival at time of survey
+  array<Type> survival_fsh(nyr, nage, nsex);      // Survival at time of fishery
+  array<Type> survival_spawn(nyr, nage, nsex);    // Survival at time of spawning
   Type pred_rbar;                                 // Predicted mean recruitment
   Type sigma_r = exp(log_sigma_r);                // Estimated recruitment on natural scale 
   
@@ -404,16 +410,16 @@ template<class Type>
   // std::cout << Z << "\n";
   // std::cout << S << "\n";
 
-  // Annual natural survival at time of survey, fishery, and spawning (fraction
+  // Survival at time of survey, fishery, and spawning (fraction
   // surviving from beginning of year to the time of survey and fishery). These
   // quantities have the flexibility to vary by year, age, or sex, but currently
-  // do not.
+  // do not. Includes F because this model assumes continuous F.
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
-        survival_srv(i,j,k) = exp(Type(-1.0) * srv_month * M(i,j,k));
-        survival_fsh(i,j,k) = exp(Type(-1.0) * fsh_month * M(i,j,k));
-        survival_spawn(i,j,k) = exp(Type(-1.0) * spawn_month * M(i,j,k));
+        survival_srv(i,j,k) = exp(Type(-1.0) * srv_month * (M(i,j,k) + Z(i,j,k)));
+        survival_fsh(i,j,k) = exp(Type(-1.0) * fsh_month * (M(i,j,k) + Z(i,j,k)));
+        survival_spawn(i,j,k) = exp(Type(-1.0) * spawn_month * (M(i,j,k) + Z(i,j,k)));
       }
     }
   }
@@ -428,20 +434,20 @@ template<class Type>
   // (assuming 50/50 sex ratio). Don't know what the standard practice is here.
   for (int k = 0; k < nsex; k++) {
     for (int j = 1; j < nage-1; j++) {
-      N(0,j,k) = exp(log_rinit - M(0,j,k) * Type(j) + log_rinit_devs(j-1)) * sex_ratio(k,j);
+      N(0,j,k) = exp(log_rinit - M(0,j,k) * Type(j) + log_rinit_devs(j-1)) * Type(0.5); //sex_ratio(k,j);
     }
   }
 
   // Start year: plus group *FLAG* sex ratio from survey or 50/50 or ?
   for (int k = 0; k < nsex; k++) {
-    N(0,nage-1,k) = exp(log_rinit - M(0,nage-1,k) * Type(nage-1)) / (1 - exp(-M(0,nage-1,k))) * sex_ratio(k,nage-1);
+    N(0,nage-1,k) = exp(log_rinit - M(0,nage-1,k) * Type(nage-1)) / (1 - exp(-M(0,nage-1,k))) * Type(0.5); //sex_ratio(k,nage-1);
   }
 
   // Recruitment in all years (except the projected year) *FLAG* sex ratio from
   // survey or 50/50 or ?
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
-      N(i,0,k) = exp(log_rbar + log_rec_devs(i)) * sex_ratio(k,0);
+      N(i,0,k) = exp(log_rbar + log_rec_devs(i)) * Type(0.5); //sex_ratio(k,0);
     }
   }
 
@@ -467,7 +473,7 @@ template<class Type>
   // survey or 50/50 or ?
   for (int k = 0; k < nsex; k++) {
     for (int i = nyr-16; i <= nyr-2; i++) {
-      N(nyr,0,k) += exp(log_rbar + log_rec_devs(i)) * sex_ratio(k,0);
+      N(nyr,0,k) += exp(log_rbar + log_rec_devs(i)) * Type(0.5); //sex_ratio(k,0);
     }
     N(nyr,0,k) /= Type(15.0);
   }
@@ -676,41 +682,41 @@ template<class Type>
   }
   // std::cout << "Predicted srv cpue\n" << pred_srv_cpue << "\n";
 
-  // Predicted fishery age compositions - *FLAG* check on sample sizes by year and sex
+  // Predicted fishery age compositions - for landed portion of the catch
 
   // Temporary variables for age comp calcs
-  Type sumC = 0;
-  vector<Type> sumC_age(nage);
+  Type sumL = 0;
+  vector<Type> sumL_age(nage);
   vector<Type> sumN_age(nage);
   
   for (int i = 0; i < nyr_fsh_age; i++) {
 
-    // sumC = temporary variable, catch in numbers summed over age and sex in a
-    // given year
-    sumC = 0;
+    // sumL = temporary variable, landed catch in numbers summed over age and
+    // sex in a given year
+    sumL = 0;
     for (int k = 0; k < nsex; k++) {
       for (int j = 0; j < nage; j++) {
-        sumC += C(yrs_fsh_age(i),j,k);
+        sumL += L(yrs_fsh_age(i),j,k);
       }
     }
-    // sumC_age = temporary vector of catch in numbers by age in a given year
-    // (combine sexes since we currently do not have sex-structured age comps)
-    sumC_age.setZero();
+    // sumL_age = temporary vector of landed catch in numbers by age in a given
+    // year (combine sexes since we currently do not have sex-structured age
+    // comps)
+    sumL_age.setZero();
     for (int k = 0; k < nsex; k++) {
       for (int j = 0; j < nage; j++) {
-        sumC_age(j) += C(yrs_fsh_age(i),j,k);
+        sumL_age(j) += L(yrs_fsh_age(i),j,k);
       }
     }
 
-    // Get predicted age comps (proportions-at-age) and apply ageing error
-    // matrix
+    // Get predicted age comps (proportions-at-age)
     for (int j = 0; j < nage; j++) {
-      pred_fsh_age(i,j) = sumC_age(j) / sumC;
-      // pred_fsh_age(i,j) *= ageing_error(j,j);
+      pred_fsh_obsage(i,j) = sumL_age(j) / sumL;
     }
-
     // Loop over each year i
   }
+  pred_fsh_age = pred_fsh_obsage * ageing_error; // apply ageing error matrix
+  
   // std::cout << "Predicted fishery age comps\n" << pred_fsh_age << "\n";
 
   // Test do the predicted age comps sum to 1
@@ -736,15 +742,13 @@ template<class Type>
         sumN_age(j) += vuln_abd(yrs_srv_age(i),j,k);
       }
     }
-    // Get predicted age comps (proportions-at-age) and apply ageing error
-    // matrix
+    // Get predicted age comps (proportions-at-age)
     for (int j = 0; j < nage; j++) {
-      pred_srv_age(i,j) = sumN_age(j) / tot_vuln_abd(yrs_srv_age(i));
-     // pred_srv_age(i,j) *= ageing_error(j,j);
+      pred_srv_obsage(i,j) = sumN_age(j) / tot_vuln_abd(yrs_srv_age(i));
     }
     // Loop over each year i
   }
-
+  pred_srv_age = pred_srv_obsage * ageing_error; // apply ageing error matrix
   // Test do the predicted age comps sum to 1
   // vector<Type> tst(nyr_srv_age);
   // for (int i = 0; i < nyr_srv_age; i++) {
@@ -845,14 +849,15 @@ template<class Type>
         Z_Fxx(x,j,k) = M(nyr-1,j,nsex-1) + sel_Fxx(x,j,k);    // Total instantaneous mortality at age
         S_Fxx(x,j,k) = exp(-Z_Fxx(x,j,k));                    // Total survival at age
 
-        // ABC calculation (landed catch under Fxx) *FLAG* use projected 
-        ABC(x) += data_srv_waa(0,j,k) * retention(0,j,k) * N(nyr-1,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
+        // ABC calculation (landed catch under Fxx) using projected abundance
+        ABC(x) += data_srv_waa(0,j,k) * retention(0,j,k) * N(nyr,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
 
         // // Discarded catch assumed to die under Fxx
-        wastage(x) += data_srv_waa(0,j,k) * dmr(nyr-1,j,k) * (Type(1.0) - retention(0,j,k)) * N(nyr-1,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
+        wastage(x) += data_srv_waa(0,j,k) * dmr(nyr-1,j,k) * (Type(1.0) - retention(0,j,k)) * N(nyr,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
       }
     }
   }
+
   // std::cout << "ABC\n" << ABC << "\n";
   // std::cout << "Wastage\n" << wastage << "\n";
 
@@ -1100,7 +1105,9 @@ template<class Type>
   REPORT(pred_srv_cpue);    // Survey cpue
 
   // Predicted age compositions
+  REPORT(pred_fsh_obsage);  // Fishery (before applying ageing error)
   REPORT(pred_fsh_age);     // Fishery
+  REPORT(pred_srv_obsage);  // Survey (before applying ageing error
   REPORT(pred_srv_age);     // Survey
 
   // Predicted selectivity-at-age
@@ -1141,8 +1148,9 @@ template<class Type>
   REPORT(wastage);          // Dead discarded catch at various Fxx levels
 
   // Other derived and projected values
-  REPORT(survival_srv);     // Annual natural survival at time of survey
-  REPORT(survival_fsh);     // Annual natural survival at time of fishery
+  REPORT(survival_srv);     // Survival at time of survey
+  REPORT(survival_fsh);     // Survival at time of fishery
+  REPORT(survival_spawn);   // Survival at time of spawning
   REPORT(pred_rbar);        // Predicted mean recruitment
 
   // Priors, likelihoods, offsets, and penalty functions

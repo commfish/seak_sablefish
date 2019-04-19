@@ -20,16 +20,10 @@ bio <- read_csv("data/tmb_inputs/maturity_sexratio.csv")      # proportion matur
 waa <- read_csv("data/tmb_inputs/waa.csv")                    # weight-at-age
 retention <- read_csv("data/tmb_inputs/retention_probs.csv")  # weight-at-age
 
-# Ageing error transition matrix: proportion at reader age given TRUE age -
-# ageage(1,nages,1,nages) There are no true ages in ADF&G data; only
-# RELEASE_AUTHORITATIVE for comparison of following reads for a given otolith
-# Ageing error matrix constructed from 1988 - 2013 read data from both
-# commercial longline and longline survey samples Kray Van Kirk updated and
-# improved code originally developed by Pete Hulson dated 2015-12-08. I haven't
-# reviewed the code or data, but need to use this one for now until I have time
-# in future years.
-ageing_error <- read_csv("data/tmb_inputs/ageing_error.csv", col_names = FALSE)
-names(ageing_error) <- 2:42
+# Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
+# develop one for ADFG
+ageing_error <- scan("data/tmb_inputs/ageing_error_fed.txt", sep = " ") %>% 
+  matrix(ncol = 30)
 
 # Starting values
 # finits <- read_csv("data/tmb_inputs/inits_f_devs.csv")   # log F devs
@@ -51,7 +45,6 @@ nsex <- 2                             # single sex or sex-structured
 # currently just for graphics
 nproj <- 1                            
 include_discards <- TRUE # include discard mortality, TRUE or FALSE
-
 
 # Subsets
 mr <- filter(ts, !is.na(mr))
@@ -207,7 +200,7 @@ data <- list(
   effn_srv_age = pull(srv_age, effn),  # effective sample size, currently sqrt(n_srv_age)
   
   # Ageing error matrix
-  ageing_error = as.matrix(ageing_error)
+  ageing_error = ageing_error
 )
 
 # Parameters ----
@@ -351,7 +344,6 @@ plot_age_resids() # Fits to age comps
 barplot_age("Survey")
 barplot_age("Fishery")
 
-
 data.frame(parameter =  rep$par.fixed %>% names,
            estimate = rep$par.fixed) %>% 
   write_csv("../data/tmb_inputs/inits_v2.csv")
@@ -371,7 +363,17 @@ obj$report()$obj_fun
 obj$report()$pred_landed ==obj$report()$pred_catch
 obj$report()$pred_wastage * 2204.62
 obj$report()$ABC * 2.20462
+obj$report()$wastage * 2.20462
 obj$report()$Fxx
+
+# Proportion female
+sex_ratio <- data.frame(age = rec_age:plus_group,
+                        prop_f = obj$report()$N[nyr,,2] / (obj$report()$N[nyr,,1] + obj$report()$N[nyr,,2]))
+ggplot(sex_ratio, aes(age,prop_f))+
+  geom_point() +
+  geom_line() +
+  expand_limits(y = c(0,1)) +
+  labs(y = "Porportion female\n", x = "Age")
 
 exp(as.list(rep, what = "Estimate")$fsh_logq)
 exp(as.list(rep, what = "Estimate")$srv_logq)

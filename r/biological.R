@@ -9,7 +9,7 @@ library(ggridges)
 
 YEAR <- 2018
 rec_age <- 2
-plus_group <- 42
+plus_group <- 31
 
 # data -----
 
@@ -204,19 +204,20 @@ bind_rows(vb_mle_f$results, vb_mle_m$results) %>%
               group_by(Sex) %>% 
               summarise(n = n())) -> lvb_pars
 
-laa_plot <- laa_sub %>% filter(age <= 50)
-pred_pl <- pred %>% filter(pred <= 50)
+laa_plot <- laa_sub %>% filter(age <= plus_group)
+pred_pl <- pred %>% filter(pred <= plus_group)
 axis <- tickr(laa_plot, age, 10)
 
 ggplot(laa_plot, aes(age, length)) +
   geom_jitter(aes(col = Sex, shape = Sex), alpha=.2) +
-  geom_line(data = pred, aes(y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
-  geom_line(data = pred, aes(y = pred, group = Sex), col = "black" ) + #"#00BFC4"
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  geom_line(data = pred, aes(y = pred, col = Sex, lty = Sex, group = Sex), lwd = 1) + #"#00BFC4"
+  # geom_line(data = pred, aes(y = pred, group = Sex), col = "darkgrey" ) + #"#00BFC4"
+  scale_colour_grey(start = 0, end = 0.5) +
+  scale_linetype_manual(values = c(2,1)) +
+  scale_x_continuous(limits = c(2,31),breaks = axis$breaks, labels = axis$labels) +
   xlab("\nAge (yrs)") +
   ylab("Length (cm)\n") + 
-  theme(legend.position = c(0.9, 0.2)) +
-  xlim(0, 50)
+  theme(legend.position = c(0.9, 0.2)) 
 
 ggsave(paste0("figures/length_vonb_chathamllsurvey_1997_", YEAR, ".png"), dpi=300, height=4, width=6, units="in")
 
@@ -280,6 +281,7 @@ ggplot() +
                aes(x = year, y = 0,
                    xend = year, yend = scaled_est, 
                    color = mycol), size = 2) +
+  scale_colour_grey() +
   geom_hline(yintercept = 0, lty = 2) + 
   guides(colour = FALSE) +
   labs(x = "", y = "Scaled parameter estimates\n") +
@@ -417,13 +419,13 @@ wvb_mle <- vonb_weight(obs_weight = waa_sub$weight,
                          starting_vals = start_a,
                          sex = "Combined")
 
-# Past assessments: for the plus group (42+) take the mean of all samples >=
-# 42. Now just use the predicted mean asymptotic length.
+# Past assessments: for the plus group (31+) take the mean of all samples >=
+# 31. Now just use the predicted mean asymptotic length.
 srv_f_waa <- wvb_mle_f$ypr_predictions
-# srv_f_waa[41, 2] <- mean(waa_f$weight[waa_f$age >= plus_], na.rm = TRUE)
+# srv_f_waa[31, 2] <- mean(waa_f$weight[waa_f$age >= plus_group], na.rm = TRUE)
 
 srv_m_waa <- wvb_mle_m$ypr_predictions
-# srv_m_waa[41, 2] <- mean(waa_m$weight[waa_m$age >= 42], na.rm = TRUE)
+# srv_m_waa[31, 2] <- mean(waa_m$weight[waa_m$age >= plus_group], na.rm = TRUE)
 
 srv_a_waa <- wvb_mle$ypr_predictions
 
@@ -446,13 +448,15 @@ wvb_mle_f$results %>%
               summarise(n = n()), by = 'Sex') -> wvb_pars
 
 ggplot() +
-  geom_jitter(data = waa_sub, aes(x = age, y = weight, col = Sex, shape = Sex)) +
-  geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex), lwd = 2 ) + #"#00BFC4"
-  geom_line(data = pred, aes(x = age, y = pred, group = Sex), col = "black" ) + #"#00BFC4"
-  scale_colour_grey() + 
+  geom_jitter(data = waa_sub, aes(x = age, y = weight, col = Sex, shape = Sex), alpha = 0.2) +
+  geom_line(data = pred, aes(x = age, y = pred, col = Sex, lty = Sex, group = Sex), lwd = 1) + #"#00BFC4"
+  scale_colour_grey(start = 0, end = 0.5) +
+  scale_linetype_manual(values = c(2,1)) +
+  scale_x_continuous(limits = c(2,31),breaks = axis$breaks, labels = axis$labels) +
+  ylim(c(0,10)) +
   xlab("\nAge (yrs)") +
-  ylab("Weight (kg)\n") +
-  theme(legend.position = c(0.9, 0.8))
+  ylab("Weight (kg)\n") + 
+  theme(legend.position = c(0.2, 0.8))
 
 ggsave(paste0("figures/weight_vonb_chathamllsurvey_1997_", YEAR, ".png"), 
        dpi=300, height=4, width=6, units="in")
@@ -520,14 +524,15 @@ ggplot() +
   geom_line(data = fsh_wvb_a$ypr_predictions, aes(x = age, y = weight), 
             lwd = 2, col = "red") + #"#00BFC4"
   xlab("\nAge (yrs)") +
-  ylab("Weight (kg)\n") 
+  ylab("Weight (kg)\n") +
+  lims(x = c(2,31), y = c(0,15))
 
-# Past assessments: for the plus group (42+) take the mean of all samples >=
-# 42. Now just use the predicted mean asymptotic length.
+# Past assessments: for the plus group (31+) take the mean of all samples >=
+# 31. Now just use the predicted mean asymptotic length.
 fsh_f_waa <- fsh_wvb_f$ypr_predictions
-# fsh_f_waa[41, 2] <- mean(fsh_waa_f$weight[fsh_waa_f$age >= 42], na.rm = TRUE)
+# fsh_f_waa[31, 2] <- mean(fsh_waa_f$weight[fsh_waa_f$age >= plus_group], na.rm = TRUE)
 fsh_m_waa <- fsh_wvb_m$ypr_predictions
-# fsh_m_waa[41, 2] <- mean(fsh_waa_m$weight[fsh_waa_m$age >= 42], na.rm = TRUE)
+# fsh_m_waa[41, 2] <- mean(fsh_waa_m$weight[fsh_waa_m$age >= plus_greoup], na.rm = TRUE)
 fsh_a_waa <- fsh_wvb_a$ypr_predictions
 
 rbind(fsh_f_waa, fsh_m_waa, fsh_a_waa) %>% 
@@ -668,7 +673,7 @@ ggplot() +
   facet_wrap(~ Parameter, ncol = 1)
 
 # Next convert predictions back to age via vonb
-age_pred <- seq(0, 42, by = 0.01)
+age_pred <- seq(0, plus_group, by = 0.01)
 vb_pars <- vb_mle_f$results
 age_pred <- data.frame(age = age_pred,
                        length = round(vb_pars$Estimate[1] * (1 - exp(- vb_pars$Estimate[2] * (age_pred - vb_pars$Estimate[3]))), 1))
@@ -742,8 +747,8 @@ left_join(broom::augment(x = fit_length,
 
 # Maturity at age for YPR
 simple_fit %>%  
-  filter(age %in% c(2:42)) %>%
-  right_join(data.frame(age = 2:42)) %>% 
+  filter(age %in% c(2:plus_group)) %>%
+  right_join(data.frame(age = 2:plus_group)) %>% 
   # interpolate fitted probability to fill in any missing values
   mutate(Sex = "Female",
          Source = "LL survey",
@@ -811,7 +816,7 @@ ggsave("figures/fem_maturity_at_age2.png", dpi=300,
 # proportion of females by age in survey and fishery
 
 # restrict age range
-aa <- c(2:42)
+aa <- c(2:plus_group)
 
 # see helper for f_sex_ratio() documentation - couldn't get this to run 2018-03-01.
 # f_sex_ratio(data = filter(srv_bio, age %in% aa),
@@ -1007,7 +1012,7 @@ rbind(
   ) %>% 
   filter(Sex %in% c('Female', 'Male') & !is.na(age)) %>% 
   droplevels() %>% 
-  mutate(age = ifelse(age >= 42, 42, age)) %>% 
+  mutate(age = ifelse(age >= plus_group, plus_group, age)) %>% 
   filter(age >= 2) -> all_bio  # Plus group
 
 # Age comps (sex-specific)
@@ -1042,7 +1047,7 @@ potsrv_bio %>%
 expand.grid(year = unique(agecomps$year), 
             Source = unique(agecomps$Source),
             Sex = unique(agecomps$Sex),
-            age = seq(2, 42, 1))  %>% 
+            age = seq(2, plus_group, 1))  %>% 
   data.frame()  %>% 
   full_join(agecomps) %>%
   fill_by_value(n, proportion, value = 0) %>% 
@@ -1110,7 +1115,7 @@ agecompdat <- agecomps %>%
   filter(Sex %in% c("Female", "Male") &
            Source %in% c("LL survey") &
            year >= 1997 &
-           age <= 30) %>% 
+           age <= plus_group) %>% 
   ungroup()
 
 axisx <- tickr(agecompdat, year, 5)
@@ -1133,7 +1138,7 @@ agecompdat <- agecomps %>%
   filter(Sex %in% c("Female", "Male") &
            Source %in% c("LL fishery") &
            year >= 2002 &
-           age <= 30) %>% 
+           age <= plus_group) %>% 
   ungroup()
 
 axisx <- tickr(agecompdat, year, 5)
@@ -1152,31 +1157,13 @@ ggplot(data = agecompdat,
 ggsave("figures/bubble_fishery_agecomp_byyear.png", 
        dpi=300, height=5, width=7.5, units="in")
 
-# ggridges exploration *FLAG*
-agecomps %>% 
-  filter(Sex == "Female" &
-           Source == "LL fishery") %>% 
-  droplevels() %>% 
-ggplot(aes(x = year, y = Age, group = Age,height = proportion_scaled)) + #
-  # geom_ridgeline(scale = 0.5) +
-  geom_density_ridges2(stat = "identity",
-                       rel_min_height = 0.01,
-                       scale = 2 ) + # >1 more overlap
-  # cycles through these colors (track even/odd years)
-  # scale_fill_cyclical(values = c("lightgrey", "darkgrey"),
-  #                     guide = "legend", # leave silent if you don't want legend
-  #                     labels = c("Odd years", "Even year"),
-  #                     name = "") +
-  # theme_ridges(grid = TRUE) +
-  scale_y_discrete(expand = c(0.01, 0)) #reduces the space between x and y axis labels
-  # facet_grid(Source ~ Sex) 
-
 # Length compositions ----
 
 # Pers. comm. K. Fenske 2018-01-05: NMFS uses length bins 41, 43, 45 ... 99.
 # These bins represent the center of the bin, so a 43 bin represents fish
-# 42-43.9 cm. They omit fish smaller than 40 or larger than 100 cm for the
-# length comp analysis. I've maintained these conventions for easy comparison:
+# 42-43.9 cm. They omit fish smaller than 40 and fish larger than 100 cm are
+# lumped into the 100 bin. I've maintained these conventions for easy
+# comparison:
 bind_rows(srv_bio %>% 
             filter(year >= 1997 &
                      Sex %in% c("Female", "Male") &
@@ -1194,7 +1181,7 @@ bind_rows(srv_bio %>%
                      !is.na(length)) %>% 
             select(year, Sex, length) %>% 
             mutate(Source = "Pot survey")) %>% 
-  filter(!c(length < 40 | length > 100)) %>% 
+  filter(!c(length < 40)) %>% 
   mutate(length2 = ifelse(length < 41, 41,
                           ifelse(length > 99, 99, length)),
          length_bin = cut(length2, breaks = seq(39.9, 99.9, 2),

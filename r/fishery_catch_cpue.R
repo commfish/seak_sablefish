@@ -163,17 +163,12 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
     total_trips = n_distinct(trip_no)) %>% 
   ungroup() -> fsh_cpue
 
-fsh_cpue %>% filter(year == YEAR) %>% 
-  select(total_vessels, total_trips) %>% distinct()
-  dplyr::summarise(n_trips = n_distinct(trip_no),
-                   n_vessels = n_distinct(V))
-
 axis <- tickr(fsh_cpue, year, 5)
 
 fsh_cpue %>% 
   select(year, Vessels = total_vessels, Trips = total_trips) %>% 
   gather(Variable, Count, -year) %>% 
-  distinct() %>%   View()
+  distinct() %>%
   ggplot(aes(x = year, y = Count)) +
   geom_line() +
   geom_point(size = 1) +
@@ -481,18 +476,18 @@ std_dat %>%
 
 fsh_cpue %>% 
   group_by(year) %>% 
-  summarise(annual_cpue = mean(std_cpue),
-            sdev = sd(std_cpue),
+  summarise(fsh_cpue = mean(std_cpue),
+            sd = sd(std_cpue),
             n = length(std_cpue),
-            se = sdev / (n ^ (1/2)),
+            se = sd / (n ^ (1/2)),
             var = var(std_cpue),
-            cv = sdev / annual_cpue,
-            upper = annual_cpue + (2 * se),
-            lower = annual_cpue - (2 * se)) -> fsh_sum 
+            cv = sd / fsh_cpue,
+            upper = fsh_cpue + (2 * se),
+            lower = fsh_cpue - (2 * se)) -> fsh_sum 
 
 # Compare predicted cpue from gam to nominal cpue
 fsh_sum %>%
-  select(year, cpue = annual_cpue, upper, lower) %>% 
+  select(year, cpue = fsh_cpue, upper, lower) %>% 
   mutate(CPUE = "Nominal") %>% 
   bind_rows(std_dat %>% 
               select(year, cpue = bt_cpue, upper = bt_upper, lower = bt_lower) %>% 
@@ -516,14 +511,14 @@ ggsave(paste0("figures/compare_stdcpue_llfsh_", YEAR, ".png"), dpi=300, height=4
 # Percent change in fishery nominal cpue compared to a ten year rolling average
 fsh_sum %>% 
   filter(year > YEAR - 10) %>% 
-  mutate(lt_mean = mean(annual_cpue),
-         perc_change_lt = (annual_cpue - lt_mean) / lt_mean * 100) 
+  mutate(lt_mean = mean(fsh_cpue),
+         perc_change_lt = (fsh_cpue - lt_mean) / lt_mean * 100) 
 
 # Percent change in fishery nominal cpue from last year
 fsh_sum %>% 
   filter(year >= YEAR - 1) %>%
-  select(year, annual_cpue) %>% 
-  dcast("annual_cpue" ~ year) -> perc_ch
+  select(year, fsh_cpue) %>% 
+  dcast("fsh_cpue" ~ year) -> perc_ch
 
 names(perc_ch) <- c("cpue", "last_year", "this_year") 
 perc_ch %>% mutate(perc_change_ly = (`this_year` - `last_year`) / `last_year` * 100)
@@ -545,11 +540,11 @@ read_csv("data/fishery/legacy_fisherycpue_1980_1996.csv",
 # from 1997-present to estimate the variance for legacy CPUE values, following
 # KVK.
 data.frame(year = 1980:1996,
-           cpue = hist_cpue) %>% 
-  mutate(var = (cpue * mean(fsh_sum$cv)) ^ 2) %>% 
+           fsh_cpue = hist_cpue) %>% 
+  mutate(var = (fsh_cpue * mean(fsh_sum$cv)) ^ 2) %>% 
   bind_rows(fsh_sum %>% 
-              select(year, cpue = annual_cpue, var)) %>% 
-  mutate(cpue = round(cpue, 3),
+              select(year, fsh_cpue, var)) %>% 
+  mutate(cpue = round(fsh_cpue, 3),
          var = round(var, 3)) -> cpue_ts
 
 cpue_ts_short <- cpue_ts %>% 
