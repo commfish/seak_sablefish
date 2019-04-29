@@ -461,7 +461,7 @@ build_bounds <- function(param_list = NULL, data_list){
   
   # SPR F rates
   lower_bnd$log_spr_Fxx <- replace(lower_bnd$log_spr_Fxx, values = rep(-5, length(lower_bnd$log_spr_Fxx)))
-  upper_bnd$log_spr_Fxx <- replace(upper_bnd$log_spr_Fxx, values = rep(0, length(upper_bnd$log_spr_Fxx)))
+  upper_bnd$log_spr_Fxx <- replace(upper_bnd$log_spr_Fxx, values = rep(5, length(upper_bnd$log_spr_Fxx)))
 
   # Fishery age comp Dirichlet-multinomial theta
   lower_bnd$log_fsh_theta <- replace(lower_bnd$log_fsh_theta, values = rep(-5, length(lower_bnd$log_fsh_theta)))
@@ -835,10 +835,10 @@ plot_derived_ts <<- function() {
     # divide by 1e3 to go from kg to mt
     mutate(Fmort = c(obj$report()$Fmort, rep(NA, nproj)),
            pred_rec = c(obj$report()$pred_rec, rep(NA, nproj)) / 1e6,
-           biom = obj$report()$tot_biom / 1e3,
-           expl_biom = obj$report()$tot_expl_biom / 1e3,
-           vuln_abd = obj$report()$tot_vuln_abd / 1e6,
-           spawn_biom = obj$report()$tot_spawn_biom / 1e3,
+           biom = obj$report()$tot_biom * 2.20462 / 1e6,
+           expl_biom = obj$report()$tot_expl_biom * 2.20462 / 1e6,
+           expl_abd = obj$report()$tot_expl_abd / 1e6,
+           spawn_biom = obj$report()$tot_spawn_biom * 2.20462 / 1e6,
            exploit = catch / (expl_biom / 1e3)) -> ts
   
   axis <- tickr(ts, year, 5)
@@ -846,41 +846,49 @@ plot_derived_ts <<- function() {
   p <- ggplot(ts, aes(x = year)) +
     scale_x_continuous( breaks = axis$breaks, labels = axis$labels)+
     scale_y_continuous(label = scales::comma) +
-    expand_limits(y = 0)
+    expand_limits(y = 0) +
+    theme(axis.title.y = element_text(angle=0))
   
   # Recruitment
-  p + geom_point(aes(y = pred_rec)) +
-    geom_line(aes(y = pred_rec, group = 1)) +    
-    expand_limits(y = 0) +
-    labs(x = "", y = "\n\nAge-2 recruits\n(millions)") -> p_rec
+  # p + geom_point(aes(y = pred_rec)) +
+  #   geom_line(aes(y = pred_rec, group = 1)) +    
+  #   expand_limits(y = 0) +
+  #   labs(x = "", y = "\n\nAge-2 recruits\n(millions)") -> p_rec
+  ggplot(ts, aes(year, pred_rec)) +    
+    geom_bar(stat = "identity") +
+    scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+    # theme(axis.title.y = element_text(angle=0)) +
+    labs(x = "", y = "\n\nAge-2\nrecruits\n(millions)") +
+    theme(axis.title.y = element_text(angle=0))-> p_rec
   
-  # Total biomass
-  p + geom_point(aes(y = biom)) +
-    geom_line(aes(y = biom, group = 1)) +
+  # Exploitable abundance (to survey)
+  p + geom_point(aes(y = expl_abd)) +
+    geom_line(aes(y = expl_abd, group = 1)) +
     expand_limits(y = 0) +
-    labs(x = "", y = "\n\nTotal\nbiomass (mt)") -> p_biom
+    labs(x = "", y = "\n\nExploitable\nabundance\n(millions)") -> p_eabd  
+  
+  # # Total biomass
+  # p + geom_point(aes(y = biom)) +
+  #   geom_line(aes(y = biom, group = 1)) +
+  #   expand_limits(y = 0) +
+  #   labs(x = "", y = "\n\nTotal\nbiomass (mt)") -> p_biom
   
   # Exploitable biomass (to fishery)
   p + geom_point(aes(y = expl_biom)) +
     geom_line(aes(y = expl_biom, group = 1)) +
     expand_limits(y = 0) +
-    labs(x = "", y = "\n\nExploitatble\nbiomass (mt)") -> p_ebiom
-  
-  # Vulnerable abundance (to survey)
-  p + geom_point(aes(y = vuln_abd)) +
-    geom_line(aes(y = vuln_abd, group = 1)) +
-    expand_limits(y = 0) +
-    labs(x = "", y = "\n\nVulnerable\nabundance (millions)") -> p_vabd
+    labs(x = "", y = "\n\nExploitable\nbiomass\n(million lb)") -> p_ebiom
   
   # Spawning biomass 
   p + geom_point(aes(y = spawn_biom)) +
     geom_line(aes(y = spawn_biom, group = 1)) +
     expand_limits(y = 0) +
-    labs(x = "", y = "\n\nSpawning\nbiomass(mt)") -> p_sbiom
+    labs(x = "", y = "\n\nSpawning\nbiomass\n(million lb)") -> p_sbiom
   
-  plot_grid(p_rec, p_biom, p_ebiom, p_vabd, p_sbiom, ncol = 1, align = 'hv',
-            labels = c('(A)', '(B)', '(C)', '(D)', '(E)'))
+  plot_grid(p_rec, p_sbiom, p_eabd, p_ebiom,  ncol = 1, align = 'hv')
   
+  
+  # labels = c('(A)', '(B)', '(C)', '(D)')
   # ggsave(paste0("derived_ts.png"), 
   #        dpi=300, height=7, width=6, units="in")
   
@@ -894,7 +902,9 @@ plot_F <- function() {
     full_join(data.frame(year = max(ts$year) + nproj)) %>%
     # For ts by numbers go divide by 1e6 to get values in millions, for biomass
     # divide by 1e3 to go from kg to mt
-    mutate(Fmort = c(obj$report()$Fmort, rep(NA, nproj))) -> ts
+    mutate(Fmort = c(obj$report()$Fmort, rep(NA, nproj)),
+           expl_biom = obj$report()$tot_expl_biom / 1e3,
+           exploit = catch / expl_biom ) -> ts
            
   axis <- tickr(ts, year, 5)
   
@@ -902,7 +912,15 @@ plot_F <- function() {
     geom_point(aes(y = Fmort)) +
     geom_line(aes(y = Fmort, group = 1)) +
     labs(x = "", y = "Fishing mortality\n") +
-    scale_x_continuous( breaks = axis$breaks, labels = axis$labels)
+    scale_x_continuous( breaks = axis$breaks, labels = axis$labels) -> fmort
+  
+  ggplot(ts, aes(x = year)) + 
+    geom_point(aes(y = exploit)) +
+    geom_line(aes(y = exploit, group = 1)) +
+    labs(x = "", y = "Harvest rate\n") +
+    scale_x_continuous( breaks = axis$breaks, labels = axis$labels) -> hr
+  
+  plot_grid(fmort, hr,  ncol = 1, align = 'hv')
   
   # ggsave(paste0("fishing_mort.png"), 
   #        dpi=300, height=4, width=6, units="in")
@@ -955,6 +973,54 @@ reshape_age <- function() {
   return(agecomps)
 }
 
+reshape_len <- function() {
+  
+  if(nsex == 1) {
+    pred_srv_len <- as.data.frame(obj$report()$pred_srv_len[,,1]) %>% 
+      mutate(Sex = "Sexes combined") 
+  } else {
+    pred_srv_len <- as.data.frame(obj$report()$pred_srv_len[,,1]) %>% 
+      mutate(Sex = "Male") %>% 
+      bind_rows(as.data.frame(obj$report()$pred_srv_len[,,2]) %>% 
+                  mutate(Sex = "Female"))               
+  }
+  names(pred_srv_len) <- c(as.character(data$lenbin), "Sex")
+  pred_srv_len %>% 
+    mutate(Source = "Survey",
+           index = rep(data$yrs_srv_len, nsex)) -> pred_srv_len
+  
+  # residuals and prep results for plotting
+  if(nsex == 1) {
+    len <- len %>% filter(Sex == "Sex combined") %>% droplevels()
+  } else {
+    len <- len %>% filter(Sex != "Sex combined") %>% droplevels()
+  }
+  len %>% 
+    filter(Source == "srv_len") %>% # FLAG - temporary until we incorporate fishery len comps into the model
+    rename(obs = proportion) %>% 
+    mutate(length_bin = as.character(length_bin),
+           Source = factor(Source, levels = "srv_len", label = "Survey")) %>% 
+    left_join(pred_srv_len %>% gather("length_bin", "pred", 1:data$nlenbin)) %>% 
+    group_by(Source, Sex) %>% 
+    mutate(resid = obs - pred,
+           # Get standardized residual (mean of 0, sd of 1)
+           std_resid = resid / sd(resid),
+           # Pearson's residual
+           pearson = resid / sqrt(var(pred)),
+           # positive or negative
+           `obj performance` = ifelse(std_resid >= 0, "Observed greater than estimated",
+                                      ifelse(is.na(obs), "",
+                                             "Observed less than estimated")),
+           length_bin = factor(length_bin, levels = c("41", "43", "45", "47", "49", "51", "53", "55", "57", "59", "61",
+                                                      "63", "65", "67", "69", "71", "73", "75", "77", "79", "81", "83",
+                                                      "85", "87", "89", "91", "93", "95", "97", "99"),
+                        labels = c("41", "43", "45", "47", "49", "51", "53", "55", "57", "59", "61",
+                                   "63", "65", "67", "69", "71", "73", "75", "77", "79", "81", "83",
+                                   "85", "87", "89", "91", "93", "95", "97", "99+")))  -> lencomps
+  
+  return(lencomps)
+}
+
 # Labels for ages
 get_age_labs <- function() {
   age_labs <- c("2", "", "", "", "6", "", "", "", "10", "", "", "", "14", "",
@@ -962,6 +1028,15 @@ get_age_labs <- function() {
                 "", "", "30", "") 
   return(age_labs)
 }
+
+# Labels for length bins
+get_len_labs <- function() {
+  len_labs <- c("", "", "45", "", "", "", "", "55", "", "", "",
+                "", "65", "", "", "", "", "75", "", "", "", "",
+                "85", "", "", "", "", "95", "", "") 
+  return(len_labs)
+}
+
 # Age comp resids
 plot_age_resids <- function() {
   
@@ -985,11 +1060,35 @@ plot_age_resids <- function() {
   
 }
 
+# Age comp resids
+plot_len_resids <- function() {
+  
+  len_labs <- get_len_labs()
+  
+  axis <- tickr(lencomps, year, 5)
+  
+  ggplot(lencomps, aes(x = year, y = length_bin, size = std_resid,
+                       fill = `obj performance`)) + 
+    geom_point(shape = 21, colour = "black") +
+    scale_size(range = c(0, 4)) +
+    # facet_grid(Source ~ Sex) + # FLAG - use this one when fishery len comps are added
+    facet_wrap(~ Sex) +
+    labs(x = '\nLength (cm)', y = '') +
+    guides(size = FALSE) +
+    scale_fill_manual(values = c("black", "white")) +
+    scale_y_discrete(breaks = unique(lencomps$length_bin), labels = len_labs) +
+    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    theme(legend.position = "bottom")
+  
+  # ggsave("lencomps_residplot.png", dpi = 300, height = 7, width = 8, units = "in")
+  
+}
+
 barplot_age <- function(src = "Survey") {
   
   age_labs <- get_age_labs()
   
-  ggplot(agecomps %>% filter(Source == src)) +
+  ggplot(agecomps %>% filter(Source == src & year >= 2003)) +
     geom_bar(aes(x = Age, y = obs), 
              stat = "identity", colour = "grey", fill = "lightgrey",
              width = 0.8, position = position_dodge(width = 0.5)) +
@@ -997,6 +1096,24 @@ barplot_age <- function(src = "Survey") {
     facet_wrap(~ year, dir = "v", ncol = 5) +
     scale_x_discrete(breaks = unique(agecomps$Age), labels = age_labs) +
     labs(x = '\nAge', y = 'Proportion-at-age\n') 
+  
+  # ggsave(paste0(src, "_agecomps_barplot.png"), dpi = 300, height = 6, width = 7, units = "in")
+  
+}
+
+barplot_len <- function(src = "Survey", sex = "Female") {
+  
+  len_labs <- get_len_labs()
+  
+  ggplot(lencomps %>% filter(Source == src & Sex == sex, year >= 2003)) +
+    geom_bar(aes(x = length_bin, y = obs), 
+             stat = "identity", colour = "grey", fill = "lightgrey",
+             width = 0.8, position = position_dodge(width = 0.5)) +
+    geom_line(aes(x = length_bin, y = pred, group = 1), size = 0.6) +
+    facet_wrap(~ year, dir = "v", ncol = 5) + 
+    scale_x_discrete(breaks = unique(lencomps$length_bin), labels = len_labs) +
+    labs(x = '\nAge', y = 'Proportion-at-length\n') +
+    ggtitle(sex)
   
   # ggsave(paste0(src, "_agecomps_barplot.png"), dpi = 300, height = 6, width = 7, units = "in")
   

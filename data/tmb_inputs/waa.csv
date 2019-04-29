@@ -1,4 +1,94 @@
 Source,Sex,age,weight,Age
+Fishery (females),Female,2,2.1836,2
+Fishery (females),Female,3,2.3985,3
+Fishery (females),Female,4,2.612,4
+Fishery (females),Female,5,2.8228,5
+Fishery (females),Female,6,3.03,6
+Fishery (females),Female,7,3.2329,7
+Fishery (females),Female,8,3.4307,8
+Fishery (females),Female,9,3.6229,9
+Fishery (females),Female,10,3.8091,10
+Fishery (females),Female,11,3.9889,11
+Fishery (females),Female,12,4.1621,12
+Fishery (females),Female,13,4.3287,13
+Fishery (females),Female,14,4.4884,14
+Fishery (females),Female,15,4.6413,15
+Fishery (females),Female,16,4.7875,16
+Fishery (females),Female,17,4.9269,17
+Fishery (females),Female,18,5.0598,18
+Fishery (females),Female,19,5.1862,19
+Fishery (females),Female,20,5.3062,20
+Fishery (females),Female,21,5.4202,21
+Fishery (females),Female,22,5.5283,22
+Fishery (females),Female,23,5.6307,23
+Fishery (females),Female,24,5.7275,24
+Fishery (females),Female,25,5.8191,25
+Fishery (females),Female,26,5.9057,26
+Fishery (females),Female,27,5.9874,27
+Fishery (females),Female,28,6.0645,28
+Fishery (females),Female,29,6.1372,29
+Fishery (females),Female,30,6.2057,30
+Fishery (females),Female,31,6.2702,31+
+Fishery (males),Male,2,2.0162,2
+Fishery (males),Male,3,2.1448,3
+Fishery (males),Male,4,2.2668,4
+Fishery (males),Male,5,2.3823,5
+Fishery (males),Male,6,2.491,6
+Fishery (males),Male,7,2.5931,7
+Fishery (males),Male,8,2.6888,8
+Fishery (males),Male,9,2.7781,9
+Fishery (males),Male,10,2.8614,10
+Fishery (males),Male,11,2.939,11
+Fishery (males),Male,12,3.0109,12
+Fishery (males),Male,13,3.0777,13
+Fishery (males),Male,14,3.1395,14
+Fishery (males),Male,15,3.1966,15
+Fishery (males),Male,16,3.2494,16
+Fishery (males),Male,17,3.2981,17
+Fishery (males),Male,18,3.343,18
+Fishery (males),Male,19,3.3843,19
+Fishery (males),Male,20,3.4223,20
+Fishery (males),Male,21,3.4573,21
+Fishery (males),Male,22,3.4895,22
+Fishery (males),Male,23,3.519,23
+Fishery (males),Male,24,3.5461,24
+Fishery (males),Male,25,3.571,25
+Fishery (males),Male,26,3.5938,26
+Fishery (males),Male,27,3.6147,27
+Fishery (males),Male,28,3.6339,28
+Fishery (males),Male,29,3.6514,29
+Fishery (males),Male,30,3.6675,30
+Fishery (males),Male,31,3.6822,31+
+Fishery (sexes combined),Combined,2,1.9783,2
+Fishery (sexes combined),Combined,3,2.208,3
+Fishery (sexes combined),Combined,4,2.4282,4
+Fishery (sexes combined),Combined,5,2.6375,5
+Fishery (sexes combined),Combined,6,2.8349,6
+Fishery (sexes combined),Combined,7,3.0198,7
+Fishery (sexes combined),Combined,8,3.1922,8
+Fishery (sexes combined),Combined,9,3.352,9
+Fishery (sexes combined),Combined,10,3.4995,10
+Fishery (sexes combined),Combined,11,3.6353,11
+Fishery (sexes combined),Combined,12,3.7599,12
+Fishery (sexes combined),Combined,13,3.8738,13
+Fishery (sexes combined),Combined,14,3.9777,14
+Fishery (sexes combined),Combined,15,4.0724,15
+Fishery (sexes combined),Combined,16,4.1584,16
+Fishery (sexes combined),Combined,17,4.2365,17
+Fishery (sexes combined),Combined,18,4.3072,18
+Fishery (sexes combined),Combined,19,4.3712,19
+Fishery (sexes combined),Combined,20,4.429,20
+Fishery (sexes combined),Combined,21,4.4812,21
+Fishery (sexes combined),Combined,22,4.5283,22
+Fishery (sexes combined),Combined,23,4.5708,23
+Fishery (sexes combined),Combined,24,4.609,24
+Fishery (sexes combined),Combined,25,4.6434,25
+Fishery (sexes combined),Combined,26,4.6744,26
+Fishery (sexes combined),Combined,27,4.7022,27
+Fishery (sexes combined),Combined,28,4.7273,28
+Fishery (sexes combined),Combined,29,4.7497,29
+Fishery (sexes combined),Combined,30,4.7699,30
+Fishery (sexes combined),Combined,31,4.7881,31+
 Survey (females),Female,2,1.302,2
 Survey (females),Female,3,1.5797,3
 Survey (females),Female,4,1.8626,4

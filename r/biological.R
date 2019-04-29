@@ -1381,9 +1381,10 @@ lensum %>%
   geom_point() +
   geom_line() +
   scale_colour_grey(guide = FALSE) +
-  facet_wrap(~ Sex, scales = "free") +
+  facet_wrap(~ Sex) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  labs(x = NULL, y = "Mean fork length (cm)\n") -> l
+  labs(x = NULL, y = "Mean\nfork\nlength\n(cm)") +
+  theme(axis.title.y = element_text(angle=0)) -> l
 
 #quos() uses stand eval in dplyr, eval cols with nonstand eval using !!!
 cols <- quos(Source, year, Sex, age) 
@@ -1401,18 +1402,19 @@ bind_rows(
 agesum %>% 
   mutate(age = round(mean, 0)) -> agesum1
 
-axisy <- tickr(agesum1, age, 1)
+axisy <- tickr(agesum1, age, 3)
 
 agesum %>% 
   ggplot(aes(x = year, y = mean, colour = Source)) +
   geom_point() +
   geom_line() +
   scale_colour_grey() +
-  facet_wrap(~ Sex, scales = "free") +
+  facet_wrap(~ Sex) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   scale_y_continuous(breaks = axisy$breaks, labels = axisy$labels) +
-  labs(x = NULL, y = "Mean age (yrs)\n") +
-  theme(legend.position = "bottom") -> a
+  labs(x = NULL, y = "Mean\nage\n(yrs)") +
+  theme(legend.position = "bottom",
+        axis.title.y = element_text(angle=0)) -> a
 
 cowplot::plot_grid(l, a, align = "hv", ncol = 1) -> compare_comp_sums
 

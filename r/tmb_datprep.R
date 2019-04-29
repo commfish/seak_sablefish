@@ -55,7 +55,7 @@ fsh_cpue %>%
             # (approximately equal to the sd in log space)
             sigma_fsh_cpue = se / fsh_cpue, # this is really low...
             # *FLAG* currently just assume cv=0.05 for new ts, 0.1 for old
-            sigma_fsh_cpue = 0.05
+            sigma_fsh_cpue = 0.08
             ) -> fsh_cpue 
 
 # Historical CPUE 
@@ -98,7 +98,7 @@ data.frame(year = 1980:1996,
 read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) %>% 
   # assuming lognormal distribution, use relative se as model input sigma
   mutate(sigma_srv_cpue = se / srv_cpue,
-         sigma_srv_cpue = 0.05,
+         sigma_srv_cpue = 0.08,
          ln_srv_cpue = log(srv_cpue),
          std = 1.96 * sqrt(log(sigma_srv_cpue + 1)),
          upper_srv_cpue = exp(ln_srv_cpue + std ),
@@ -141,12 +141,13 @@ catch %>%
   geom_ribbon(aes(year, ymin = lower_catch, ymax = upper_catch),
               alpha = 0.2,  fill = "grey") +
   # Board implemented Limitted Entry in 1985
-  geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
+  # geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
   # Board implemented Equal Quota Share in 1994
   geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   scale_y_continuous(labels = scales::comma) +
-  labs(x = "", y = "\n\nCatch\n(round mt)") -> catch_plot
+  labs(x = "", y = "\n\nCatch\n(round mt)") +
+  theme(axis.title.y = element_text(angle=0)) -> catch_plot
 
 ggplot(fsh_cpue) +
   geom_point(aes(year, fsh_cpue)) +
@@ -154,12 +155,13 @@ ggplot(fsh_cpue) +
   geom_ribbon(aes(year, ymin = lower_fsh_cpue , ymax = upper_fsh_cpue),
               alpha = 0.2,  fill = "grey") +
   # Board implemented Limitted Entry in 1985
-  geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
+  # geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
   # Board implemented Equal Quota Share in 1994
   geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   expand_limits(y = 0) +
-  labs(x = "", y = "\n\nFishery CPUE\n(round kg/hook)") -> fsh_cpue_plot
+  labs(x = "", y = "\n\nFishery CPUE\n(round kg/hook)")  +
+  theme(axis.title.y = element_text(angle=0)) -> fsh_cpue_plot
 
 ggplot(data = srv_cpue) +
   geom_point(aes(year, srv_cpue)) +
@@ -168,7 +170,8 @@ ggplot(data = srv_cpue) +
               alpha = 0.2, col = "white", fill = "grey") +
   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, labels = axis$labels) + 
   expand_limits(y = 0) +
-  labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL) -> srv_cpue_plot
+  labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL)  +
+  theme(axis.title.y = element_text(angle=0)) -> srv_cpue_plot
 
 mr %>% 
   mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
@@ -187,9 +190,10 @@ mr %>%
   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, 
                      labels = axis$labels) +
   expand_limits(y = c(0, 5)) +
-  labs(x = "", y = "\n\nAbundance\n(millions)") -> mr_plot
+  labs(x = "", y = "\n\nAbundance\n(millions)")  +
+  theme(axis.title.y = element_text(angle=0)) -> mr_plot
   
-plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)', '(D)'))
+plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv')#, labels = c('(A)', '(B)', '(C)', '(D)'))
 
 ggsave(paste0("figures/tmb/abd_indices_", YEAR, ".png"),
        dpi=300, height=8, width=7, units="in")
@@ -221,9 +225,12 @@ waa <- read_csv("output/pred_waa.csv")
 
 waa %>% 
   mutate(Source = derivedFactor("Survey (males)" = Source == "LL survey" & Sex == "Male",
-                             "Survey (females)" = Source == "LL survey" & Sex == "Female",
-                             "Survey (sexes combined)" = Source == "LL survey" & Sex == "Combined",
-                             .default = NA),
+                                "Survey (females)" = Source == "LL survey" & Sex == "Female",
+                                "Survey (sexes combined)" = Source == "LL survey" & Sex == "Combined",
+                                "Fishery (males)" = Source == "LL fishery" & Sex == "Male",
+                                "Fishery (females)" = Source == "LL fishery" & Sex == "Female",
+                                "Fishery (sexes combined)" = Source == "LL fishery" & Sex == "Combined",
+                                .default = NA),
          Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
                                       "9", "10", "11", "12", "13", "14", "15",
                                       "16", "17", "18", "19", "20", "21", "22",
@@ -324,9 +331,11 @@ age_labs <- c("2", "", "", "", "6", "", "", "", "10", "", "", "", "14", "",
               "", "", "30", "") 
 
 ggplot(waa %>% 
-         filter(Source != "Survey (sexes combined)") %>% 
-         droplevels(), aes(x = Age, y = weight, shape = Source,
-                 colour = Source, group = Source)) +
+         filter(! (Source %in% c("Survey (sexes combined)", "Fishery (sexes combined)",
+                                 "Fishery (males)", "Fishery (females)"))) %>% 
+         droplevels(), 
+       aes(x = Age, y = weight, shape = Source,
+           colour = Source, group = Source)) +
   geom_point() +
   geom_line() + 
   scale_colour_grey() +
@@ -354,7 +363,7 @@ ggplot(mat) +
   # a_50 labels
   geom_text(aes(10, 0.5, label = a50_txt), 
             colour = "black", parse = TRUE, family = "Times New Roman") +
-  scale_x_continuous(limits = c(2,42), breaks = axis$breaks, 
+  scale_x_continuous(limits = c(rec_age, plus_group), breaks = axis$breaks, 
                      labels = age_labs) +
   labs(x = NULL, y = "\n\nProportion\nmature\n") -> mat_plot
 
@@ -385,7 +394,14 @@ lencomps <- lencomps %>%
   mutate(Source = derivedVariable(`fsh_len` = Source == "LL fishery",
                                   `srv_len` = Source == "LL survey",
                                   `pot_srv_len` = Source == "Pot survey")) %>% 
-  filter(Source != "pot_srv_len")
+  filter(Source != "pot_srv_len") %>% 
+  group_by(Source, year) %>% 
+  mutate(n = sum(n),
+         effn = sqrt(n)) %>% 
+  left_join(data.frame(year = syr:lyr) %>% 
+              mutate(index = year - min(year)))
+
+write_csv(lencomps, "data/tmb_inputs/lencomps.csv")
 
 # Age compositions ----
 
@@ -434,7 +450,7 @@ axisx <- tickr(agecomps, year, 5)
 ggplot(agecomps, aes(x = year, y = age, size = proportion)) +
   geom_point(shape = 21, colour = "black", fill = "black") +
   scale_size(range = c(0, 4)) +
-  facet_wrap(~ Source) +
+  facet_wrap(~ desc(Source) +
   xlab('\nAge') +
   ylab('') +
   guides(size = FALSE) +
@@ -545,8 +561,9 @@ inits_rinit <- c( 0.0405374218174, 0.0442650418415, 0.0482389177436,
                   0.0631895950940, 0.0660174557708, 0.0543158576109,
                   0.0631895950940, 0.0660174557708, 0.0543158576109)
 
+n_rinit <- length((rec_age+1):(plus_group-1))
 inits_rinit <- data.frame(age = (rec_age+1):(plus_group-1),
-                          inits_rinit = inits_rinit)
+                          inits_rinit = inits_rinit[1:n_rinit])
 
 # Starting values for recruitment deviations           
 inits_rec_dev <- c(-0.0188002294100, -0.0697329463801, -0.152542991556,
