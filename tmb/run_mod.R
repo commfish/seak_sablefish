@@ -6,6 +6,11 @@
 
 # Set up ----
 
+# Directory setup
+root <- getwd() # project root
+tmb_path <- file.path(root, "tmb") # location of cpp
+tmbfigs <- file.path(root, "figures/tmb")
+
 # Temporary debug flag, shut off estimation of mgmt ref pts
 tmp_debug <- TRUE
 
@@ -42,7 +47,7 @@ inits <- read_csv("data/tmb_inputs/inits_v2.csv")
 
 # Model dimensions / user inputs
 syr <- min(ts$year)                   # model start year
-lyr <- max(ts$year)                   # end year
+lyr <- YEAR <- max(ts$year)           # end year
 nyr <- length(syr:lyr)                # number of years        
 rec_age <- min(waa$age)               # recruitment age                  
 plus_group <- max(waa$age)            # plus group age
@@ -136,7 +141,7 @@ data <- list(
   wt_srv_age = 1.0,
   wt_fsh_len = 1.0,
   wt_srv_len = 1.0,
-  wt_rec_like = 0.5,
+  wt_rec_like = 2,
   wt_fpen = 0.1,
   wt_spr = 100,
   
@@ -148,7 +153,7 @@ data <- list(
   nyr_mr = n_distinct(mr, mr),
   yrs_mr = mr %>% distinct(index) %>% pull(),
   data_mr = pull(mr, mr),
-  sigma_mr = rep(0.05,11),#mr %>% pull(sigma_mr),
+  sigma_mr = rep(0.05,11),#mr %>% pull(sigma_mr)
   
   # Fishery CPUE
   nyr_fsh_cpue = fsh_cpue %>% n_distinct(fsh_cpue),
@@ -422,7 +427,7 @@ if(data$random_rec == 0) {
 }
 
 # Run model ----
-setwd("tmb")
+setwd(tmb_path)
 
 # Compile and run model
 out <- TMBphase(data, parameters, random = random_vars, model_name = "mod", debug = FALSE)
@@ -430,8 +435,16 @@ out <- TMBphase(data, parameters, random = random_vars, model_name = "mod", debu
 obj <- out$obj # TMB model object
 opt <- out$opt # fit
 rep <- out$rep # sdreport
-print(rep)
+rep
 
+# Parameter estimates and standard errors in useable format
+tidyrep <- tidy(summary(rep))
+names(tidyrep) <- c("Parameter", "Estimate", "se")
+
+# "Key" parameters (exclude)
+key_params <- filter(tidyrep, !grepl('devs', Parameter))
+
+write_csv(key_params, paste0("../output/tmb_params.csv"))
 # Figures 
 
 # Fits to abundance indices, derived time series, and F
@@ -450,143 +463,12 @@ lencomps <- reshape_len()
 plot_len_resids()
 barplot_len("Survey", sex = "Female")
 barplot_len("Survey", sex = "Male")
+barplot_len("Fishery", sex = "Female")
+barplot_len("Fishery", sex = "Male")
 
 summary(rep, "report")
 rep$value
 rep$sd
-
-vuln_abd <- as.data.frame(obj$report()$vuln_abd[,,1]) %>% 
-  mutate(Sex = "Male") %>% 
-  bind_rows(as.data.frame(obj$report()$vuln_abd[,,2]) %>% 
-              mutate(Sex = "Female"))       
-names(vuln_abd) <- c(rec_age:plus_group, "Sex")
-vuln_abd %>% 
-  mutate(Source = "Survey",
-         index = rep(0:39, nsex)) -> vuln_abd
-
-vuln_abd %>% gather("age", "pred", 1:data$nage) %>% 
-  mutate(age = as.numeric(age)) -> vuln_abd
-
-vuln_abd %>% 
-  group_by(Sex, index) %>% 
-  mutate(tot = sum(pred)) %>% 
-  ungroup() %>% 
-  mutate(pred_age = pred/tot) %>% 
-  arrange(rev(Sex)) %>% 
-  filter(index %in% data$yrs_srv_len) -> pred
-
-a_pred <- array(data = pred$pred_age,
-                dim = c(data$nyr_srv_len, nage, nsex))
-
-fem_pred <- a_pred[,,2]
-
-prod <- fem_pred %*% agelen_key_f
-
-rowSums(prod)
-
-
-derived <- data.frame(index = names(rep$value),
-                     estimate = rep$value,
-                     se = rep$sd)
-
-ssb <- filter(derived, index == "tot_spawn_biom") %>% 
-  mutate(year = syr:(lyr+nproj),
-         estimate = estimate * 2.20462,
-         se = se * 2.20462,
-         lower = estimate - 1.96 * se,
-         upper = estimate + 1.96 * se)
-
-axis <- tickr(ssb, year, 5)
-ggplot(ssb, aes(x = year, y = estimate)) +
-  geom_point() +
-  geom_line() +
-  geom_ribbon(aes(year, ymin = lower, ymax = upper),
-              alpha = 0.2,  fill = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  scale_y_continuous(label = scales::comma) +
-  labs(y = "Spawning biomass (lb)\n", x = NULL) +
-  expand_limits(y = 0) -> p_ssb
-
-ebiom <- filter(derived, index == "tot_expl_biom") %>% 
-  mutate(year = syr:(lyr+nproj),
-         estimate = estimate * 2.20462,
-         se = se * 2.20462,
-         lower = estimate - 1.96 * se,
-         upper = estimate + 1.96 * se)
-
-axis <- tickr(ebiom, year, 5)
-ggplot(ebiom, aes(x = year, y = estimate)) +
-  geom_point() +
-  geom_line() +
-  geom_ribbon(aes(year, ymin = lower, ymax = upper),
-              alpha = 0.2,  fill = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  scale_y_continuous(label = scales::comma) +
-  labs(y = "Exploitable biomass (lb)\n", x = NULL) +
-    expand_limits(y = 0) -> p_ebiom
-
-waste <- filter(derived, index == "pred_wastage") %>% 
-  mutate(year = syr:(lyr),
-         estimate = estimate * 2204.62,
-         se = se * 2204.62,
-         lower = estimate - 1.96 * se,
-         upper = estimate + 1.96 * se)
-
-axis <- tickr(waste, year, 5)
-ggplot(waste, aes(x = year, y = estimate)) +
-  geom_point() +
-  geom_line() +
-  geom_ribbon(aes(year, ymin = lower, ymax = upper),
-              alpha = 0.2,  fill = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  scale_y_continuous(label = scales::comma) +
-  labs(y = "Wastage (lb)\n", x = NULL) +
-  expand_limits(y = 0) -> p_waste
-
-eabd <- filter(derived, index == "tot_expl_abd") %>%
-  mutate(year = syr:(lyr+nproj),
-         estimate = estimate / 1e6,
-         se = se  / 1e6,
-         lower = estimate - 1.96 * se,
-         upper = estimate + 1.96 * se) 
-
-axis <- tickr(eabd, year, 5)
-ggplot(eabd, aes(x = year, y = estimate)) +
-  geom_point() +
-  geom_line() +
-  geom_ribbon(aes(year, ymin = lower, ymax = upper),
-              alpha = 0.2,  fill = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  scale_y_continuous(label = scales::comma) +
-  labs(y = "Exploitable abundance\n(millions)\n", x = NULL) +
-  expand_limits(y = 0) -> p_eabd
-
-rec <- filter(derived, index == "pred_rec") %>%
-  mutate(year = syr:(lyr),
-         estimate = estimate / 1e6,
-         se = se  / 1e6,
-         std = 1.96 * sqrt(log(se + 1)),
-         ln_estimate = log(estimate),
-         lower = exp(ln_estimate - std),
-         upper = exp(ln_estimate + std)) 
-
-axis <- tickr(rec, year, 5)
-ggplot(rec, aes(x = year, y = estimate)) +
-  geom_point() +
-  geom_line() +
-  # geom_ribbon(aes(year, ymin = lower, ymax = upper),
-  #             alpha = 0.2,  fill = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  scale_y_continuous(label = scales::comma) +
-  labs(y = "Age-2 recruits\n(millions)\n", x = NULL) +
-  expand_limits(y = 0) -> p_rec
-
-expl_abd %>% filter(year >= 2005)
-
-
-data.frame(parameter =  rep$par.fixed %>% names,
-           estimate = rep$par.fixed) %>% 
-  write_csv("../data/tmb_inputs/inits_v2.csv")
 
 # Results ----
 best <- obj$env$last.par.best
@@ -606,6 +488,33 @@ obj$report()$ABC * 2.20462
 obj$report()$wastage * 2.20462
 obj$report()$Fxx
 
+dat_like <- sum(obj$report()$catch_like,
+                obj$report()$index_like[1], obj$report()$index_like[3],
+                obj$report()$index_like[3],
+                obj$report()$age_like[1], obj$report()$age_like[2],
+                sum(obj$report()$fsh_len_like),  sum(obj$report()$srv_len_like))
+
+like_sum <- data.frame(like = c("Catch", 
+                                "Fishery CPUE", "Survey CPUE", 
+                                "Mark-recapture abundance",
+                                "Survey ages", "Fishery ages", 
+                                "Survey lengths", "Fishery lengths",
+                                "Data likelihood",
+                                "Total likelihood"),
+                       value = c(obj$report()$catch_like,
+                                 obj$report()$index_like[1], obj$report()$index_like[3],
+                                 obj$report()$index_like[3],
+                                 obj$report()$age_like[1], obj$report()$age_like[2],
+                                 sum(obj$report()$fsh_len_like),  sum(obj$report()$srv_len_like),
+                                 dat_like,
+                                 obj$report()$obj_fun
+                       )) %>% 
+  mutate(tot = obj$report()$obj_fun,
+         perc = (value / tot) * 100) %>% 
+  select(-tot)
+
+write_csv(like_sum, paste0("../output/tmb_likelihoods.csv"))
+
 exp(as.list(rep, what = "Estimate")$fsh_logq)
 exp(as.list(rep, what = "Estimate")$srv_logq)
 exp(as.list(rep, what = "Estimate")$mr_logq)
@@ -622,6 +531,153 @@ D <- as.data.frame(D)
 names(D) <- rep$par.fixed %>% names
 
 write_csv(x = D, "Dmatrix.csv")
+
+
+# ts %>% 
+#   # Add another year to hold projected values
+#   full_join(data.frame(year = max(ts$year) + nproj)) %>%
+#   # For ts by numbers go divide by 1e6 to get values in millions, for biomass
+#   # divide by 1e3 to go from kg to mt
+#   mutate(Fmort = c(obj$report()$Fmort, rep(NA, nproj)),
+#          pred_rec = c(obj$report()$pred_rec, rep(NA, nproj)) / 1e6,
+#          biom = obj$report()$tot_biom * 2.20462 / 1e6,
+#          expl_biom = obj$report()$tot_expl_biom * 2.20462 / 1e6,
+#          expl_abd = obj$report()$tot_expl_abd / 1e6,
+#          spawn_biom = obj$report()$tot_spawn_biom * 2.20462 / 1e6,
+#          exploit = obj$report()$pred_catch / (expl_biom / 1e3)) %>% View()
+# 
+# vuln_abd <- as.data.frame(obj$report()$vuln_abd[,,1]) %>% 
+#   mutate(Sex = "Male") %>% 
+#   bind_rows(as.data.frame(obj$report()$vuln_abd[,,2]) %>% 
+#               mutate(Sex = "Female"))       
+# names(vuln_abd) <- c(rec_age:plus_group, "Sex")
+# vuln_abd %>% 
+#   mutate(Source = "Survey",
+#          index = rep(0:39, nsex)) -> vuln_abd
+# 
+# vuln_abd %>% gather("age", "pred", 1:data$nage) %>% 
+#   mutate(age = as.numeric(age)) -> vuln_abd
+# 
+# vuln_abd %>% 
+#   group_by(Sex, index) %>% 
+#   mutate(tot = sum(pred)) %>% 
+#   ungroup() %>% 
+#   mutate(pred_age = pred/tot) %>% 
+#   arrange(rev(Sex)) %>% 
+#   filter(index %in% data$yrs_srv_len) -> pred
+# 
+# a_pred <- array(data = pred$pred_age,
+#                 dim = c(data$nyr_srv_len, nage, nsex))
+# 
+# fem_pred <- a_pred[,,2]
+# 
+# prod <- fem_pred %*% agelen_key_f
+# 
+# rowSums(prod)
+# 
+# 
+# derived <- data.frame(index = names(rep$value),
+#                      estimate = rep$value,
+#                      se = rep$sd)
+# 
+# ssb <- filter(derived, index == "tot_spawn_biom") %>% 
+#   mutate(year = syr:(lyr+nproj),
+#          estimate = estimate * 2.20462,
+#          se = se * 2.20462,
+#          lower = estimate - 1.96 * se,
+#          upper = estimate + 1.96 * se)
+# 
+# axis <- tickr(ssb, year, 5)
+# ggplot(ssb, aes(x = year, y = estimate)) +
+#   geom_point() +
+#   geom_line() +
+#   geom_ribbon(aes(year, ymin = lower, ymax = upper),
+#               alpha = 0.2,  fill = "grey") +
+#   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+#   scale_y_continuous(label = scales::comma) +
+#   labs(y = "Spawning biomass (lb)\n", x = NULL) +
+#   expand_limits(y = 0) -> p_ssb
+# 
+# ebiom <- filter(derived, index == "tot_expl_biom") %>% 
+#   mutate(year = syr:(lyr+nproj),
+#          estimate = estimate * 2.20462,
+#          se = se * 2.20462,
+#          lower = estimate - 1.96 * se,
+#          upper = estimate + 1.96 * se)
+# 
+# axis <- tickr(ebiom, year, 5)
+# ggplot(ebiom, aes(x = year, y = estimate)) +
+#   geom_point() +
+#   geom_line() +
+#   geom_ribbon(aes(year, ymin = lower, ymax = upper),
+#               alpha = 0.2,  fill = "grey") +
+#   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+#   scale_y_continuous(label = scales::comma) +
+#   labs(y = "Exploitable biomass (lb)\n", x = NULL) +
+#     expand_limits(y = 0) -> p_ebiom
+# 
+# waste <- filter(derived, index == "pred_wastage") %>% 
+#   mutate(year = syr:(lyr),
+#          estimate = estimate * 2204.62,
+#          se = se * 2204.62,
+#          lower = estimate - 1.96 * se,
+#          upper = estimate + 1.96 * se)
+# 
+# axis <- tickr(waste, year, 5)
+# ggplot(waste, aes(x = year, y = estimate)) +
+#   geom_point() +
+#   geom_line() +
+#   geom_ribbon(aes(year, ymin = lower, ymax = upper),
+#               alpha = 0.2,  fill = "grey") +
+#   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+#   scale_y_continuous(label = scales::comma) +
+#   labs(y = "Wastage (lb)\n", x = NULL) +
+#   expand_limits(y = 0) -> p_waste
+# 
+# eabd <- filter(derived, index == "tot_expl_abd") %>%
+#   mutate(year = syr:(lyr+nproj),
+#          estimate = estimate / 1e6,
+#          se = se  / 1e6,
+#          lower = estimate - 1.96 * se,
+#          upper = estimate + 1.96 * se) 
+# 
+# axis <- tickr(eabd, year, 5)
+# ggplot(eabd, aes(x = year, y = estimate)) +
+#   geom_point() +
+#   geom_line() +
+#   geom_ribbon(aes(year, ymin = lower, ymax = upper),
+#               alpha = 0.2,  fill = "grey") +
+#   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+#   scale_y_continuous(label = scales::comma) +
+#   labs(y = "Exploitable abundance\n(millions)\n", x = NULL) +
+#   expand_limits(y = 0) -> p_eabd
+# 
+# rec <- filter(derived, index == "pred_rec") %>%
+#   mutate(year = syr:(lyr),
+#          estimate = estimate / 1e6,
+#          se = se  / 1e6,
+#          std = 1.96 * sqrt(log(se + 1)),
+#          ln_estimate = log(estimate),
+#          lower = exp(ln_estimate - std),
+#          upper = exp(ln_estimate + std)) 
+# 
+# axis <- tickr(rec, year, 5)
+# ggplot(rec, aes(x = year, y = estimate)) +
+#   geom_point() +
+#   geom_line() +
+#   # geom_ribbon(aes(year, ymin = lower, ymax = upper),
+#   #             alpha = 0.2,  fill = "grey") +
+#   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+#   scale_y_continuous(label = scales::comma) +
+#   labs(y = "Age-2 recruits\n(millions)\n", x = NULL) +
+#   expand_limits(y = 0) -> p_rec
+# 
+# expl_abd %>% filter(year >= 2005)
+
+# data.frame(parameter =  rep$par.fixed %>% names,
+#            estimate = rep$par.fixed) %>%
+#   write_csv("../data/tmb_inputs/inits_v2.csv")
+
 # 
 # Compile
 compile("mod.cpp")
@@ -663,9 +719,11 @@ ggplot(ageing_error, aes(x = age, y = true_age, size = obs)) +
   geom_point(shape = 21, fill = "black") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   scale_y_continuous(breaks = axis$breaks, labels = axis$labels) +
+  guides(size = FALSE) +
   labs(x = "\nObserved age", y = "True age\n", size = NULL)
 
-ggsave(paste0("figures/tmb/ageing_error.png"), dpi = 300, height = 6, width = 7, units = "in")
+rowSums(ageing_error)
+ggsave(paste0("figures/tmb/ageing_error.png"), dpi = 300, height = 6, width = 6, units = "in")
 # Caption: Ageing error matrix used in the model, showing the probability of
 # observing an age given the true age. Ref: Heifetz, J., D. Anderl, N.E.
 # Maloney, and T.L. Rutecki. 1999. Age validation and analysis of ageing error
@@ -744,3 +802,65 @@ launch_shinystan(fit)
 #   rep_values = obj$report(tmb_stan_par_post[i]) ## might not be exactly right syntactically, but hopefully you get the gist
 #   # save values that you want, rbind or other ways to store specific values of the list object rep_values 
 # }
+
+# Fixed selectivity ----
+
+# Pre-EQS
+pref50_f <-  2.87
+prefslp_f <- 2.29
+pref50_m <-  5.12
+prefslp_m <- 2.57
+
+# Post-EQS
+f50_f <-  3.86
+fslp_f <- 2.61
+f50_m <-  4.22
+fslp_m <- 2.61
+
+# Survey
+s50_f <- 3.75
+sslp_f <- 2.21
+s50_m <- 3.72
+sslp_m <- 2.21
+
+# Selectivity vectors 
+age <- 2:31
+
+
+pref_sel <- 1 / (1 + exp(-prefslp_f * (age - pref50_f)))
+prem_sel <- 1 / (1 + exp(-prefslp_m * (age - pref50_m)))
+f_sel <- 1 / (1 + exp(-fslp_f * (age - f50_f)))
+m_sel <- 1 / (1 + exp(-fslp_m * (age - f50_m)))
+sf_sel <- 1 / (1 + exp(-sslp_f * (age - s50_f)))
+sm_sel <- 1 / (1 + exp(-sslp_m * (age - s50_m)))
+
+# Plot selectivity 
+
+sel_df <- data.frame(age = rep(age, 6),
+                     Source = c(rep("Pre-EQS Fishery", 2 * length(age)),
+                                rep("EQS Fishery", 2 * length(age)),
+                                rep("Longline survey", 2 * length(age))),
+                     Sex = c(rep("Female", length(age)),
+                             rep("Male", length(age)),
+                             rep("Female", length(age)),
+                             rep("Male", length(age)),
+                             rep("Female", length(age)),
+                             rep("Male", length(age))),
+                     selectivity = c(pref_sel, prem_sel, f_sel, m_sel, sf_sel, sm_sel)) %>% 
+  filter(age <= 8) %>% 
+  mutate(Source = fct_relevel(Source, "Pre-EQS Fishery", "EQS Fishery", "Longline survey"))
+
+axis <- tickr(sel_df, age, 1)
+ggplot(sel_df, 
+       aes(x = age, y = selectivity, colour = Sex, 
+           linetype = Sex, shape = Sex)) +
+  geom_point() + 
+  geom_line() +
+  scale_colour_grey() +
+  facet_wrap(~ Source, ncol = 1) +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  theme(legend.position = c(0.8, 0.1)) +
+  labs(x = "\nAge", y = "Selectivity\n")
+
+ggsave(paste0("figures/tmb/fixed_selectivity_", YEAR, ".png"),
+       dpi=300, height=7, width=6, units="in")

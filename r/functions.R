@@ -517,7 +517,7 @@ build_phases <- function(param_list = NULL, data_list){
   phases$log_Fbar <- replace(phases$log_Fbar, values = rep(2, length(phases$log_Fbar)))
   phases$log_sigma_r <- replace(phases$log_sigma_r, values = rep(2, length(phases$log_sigma_r)))
 
-  # 3: Fishing mortality devs and catchability
+  # 2: Fishing mortality devs and catchability
   phases$log_F_devs <- replace(phases$log_F_devs, values = rep(3, length(phases$log_F_devs)))
   phases$fsh_logq <- replace(phases$fsh_logq, values = rep(3, length(phases$fsh_logq)))
   phases$srv_logq <- replace(phases$srv_logq, values = rep(3, length(phases$srv_logq)))
@@ -601,7 +601,7 @@ TMBphase <- function(data, parameters, random, model_name,
         map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
         map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
         map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
-        # map_use$mr_logq <- fill_vals(parameters$mr_logq, NA)
+        # map_use$fsh_logq <- fill_vals(parameters$fsh_logq, NA)
       }
       
       j <- 1 # change to 0 if you get rid of the dummy debugging feature
@@ -695,7 +695,7 @@ reshape_ts <- function(){
 }
 
 # Plot time series
-plot_ts <- function(){
+plot_ts <- function(save = TRUE, path = tmbfigs){
   
   out <- reshape_ts()
   out$ts -> ts
@@ -710,32 +710,35 @@ plot_ts <- function(){
     geom_point(aes(y = catch), colour = "darkgrey") +
     geom_line(aes(y = pred_catch)) +
     geom_ribbon(aes(year, ymin = lower_catch, ymax = upper_catch),
-                alpha = 0.2,  fill = "grey") +
+                alpha = 0.2,  fill = "black", colour = NA) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     scale_y_continuous(label = scales::comma) +
-    labs(x = NULL, y = "\n\nCatch\n(round mt)") -> p_catch
+    labs(x = NULL, y = "\n\nCatch\n(round mt)") +
+    theme(axis.title.y = element_text(angle=0)) -> p_catch
   
   # Fishery cpue
   ggplot(fsh_cpue, aes(x = year)) +
     geom_point(aes(y = fsh_cpue), colour = "darkgrey") +
     geom_line(aes(y = pred_fsh_cpue, lty = period)) +
     geom_ribbon(aes(year, ymin = lower_fsh_cpue , ymax = upper_fsh_cpue),
-                alpha = 0.2,  fill = "grey") +
+                alpha = 0.2, fill = "black", colour = NA) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     expand_limits(y = 0) +
     labs(x = NULL, y = "\n\nFishery CPUE\n(round kg/hook)", lty = NULL) +
-    theme(legend.position = c(0.8, 0.8)) -> p_fsh
+    theme(legend.position = c(0.8, 0.8),
+          axis.title.y = element_text(angle=0))-> p_fsh
   
   # Survey cpue
   ggplot(srv_cpue, aes(x = year)) +
     geom_point(aes(y = srv_cpue), colour = "darkgrey") +
     geom_line(aes(y = pred_srv_cpue)) +
     geom_ribbon(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue),
-                alpha = 0.2, col = "white", fill = "grey") +
+                alpha = 0.2, fill = "black", colour = NA) +
     scale_x_continuous(limits = c(min(ts$year), max(ts$year)),
                        breaks = axis$breaks, labels = axis$labels) +
     expand_limits(y = 0) +
-    labs(x = NULL, y = "\n\nSurvey CPUE\n(fish/hook)") -> p_srv
+    labs(x = NULL, y = "\n\nSurvey CPUE\n(fish/hook)") +
+    theme(axis.title.y = element_text(angle=0)) -> p_srv
   
   # Mark recapture 
   mr_plot %>% 
@@ -749,25 +752,28 @@ plot_ts <- function(){
       upper_mr = zoo::na.approx(upper_mr, maxgap = 20, rule = 2)) %>%
   ggplot() +
     geom_ribbon(aes(x = year, ymin = lower_mr, ymax = upper_mr),
-                alpha = 0.2, colour = "white", fill = "grey") +
+                alpha = 0.2, fill = "black", colour = NA) +
     geom_point(aes(x = year, y = mr), colour = "darkgrey") +
     geom_line(aes(x = year, y = pred_mr, group = 1)) +
     geom_line(data = mr_plot_all, aes(x = year, y = pred_mr_all, group = 1), lty = 2) +
     scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
     expand_limits(y = 0) +
-    labs(x = NULL, y = "\n\nAbundance\n(millions)") -> p_mr
+    labs(x = NULL, y = "\n\nAbundance\n(millions)") +
+    theme(axis.title.y = element_text(angle=0)) -> p_mr
   
   plot_grid(p_catch, p_fsh, p_srv, p_mr, ncol = 1, align = 'hv', 
-            labels = c('(A)', '(B)', '(C)', '(D)'))
+            labels = c('(A)', '(B)', '(C)', '(D)')) -> p
   
-  # if(save == TRUE){
-  # ggsave(paste0("figures/pred_abd_indices.png"),
-  #        dpi=300, height=7, width=6, units="in")
-  #   }
+  print(p)
+  
+  if(save == TRUE){ 
+    ggsave(plot = p, filename = paste0(path, "/pred_abd_indices.png"), 
+           dpi = 300, height = 7, width = 6, units = "in")
+  }
 }
 
 # Resids for time series
-plot_ts_resids <- function() {
+plot_ts_resids <- function(save = TRUE, path = tmbfigs) {
 
   out <- reshape_ts()
   out$ts -> ts
@@ -784,7 +790,8 @@ plot_ts_resids <- function() {
     geom_point() +
     labs(x = "", y = "\n\nCatch\nresiduals") +
     expand_limits(y = c(-3, 3)) +
-    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) -> r_catch
+    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    theme(axis.title.y = element_text(angle=0)) -> r_catch
   
   # Fishery cpue resids
   ggplot(fsh_cpue, aes(x = year, y = fsh_cpue_sresid)) + 
@@ -794,7 +801,8 @@ plot_ts_resids <- function() {
     geom_point() +
     labs(x = "", y = "\n\nFishery CPUE\nresiduals") +
     expand_limits(y = c(-3, 3)) +
-    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) -> r_fsh
+    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    theme(axis.title.y = element_text(angle=0)) -> r_fsh
   
   # Survey cpues resids
   ggplot(srv_cpue, aes(x = year, y = srv_cpue_sresid)) + 
@@ -805,7 +813,8 @@ plot_ts_resids <- function() {
     labs(x = "", y = "\n\nSurvey CPUE\nresiduals") +
     expand_limits(y = c(-3, 3)) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-    theme(legend.position = "none") -> r_srv
+    theme(legend.position = "none",
+          axis.title.y = element_text(angle=0)) -> r_srv
   
   # Mark-recapture abundance estimate resids
   ggplot(mr_plot, aes(x = year, y = mr_sresid)) + 
@@ -815,18 +824,23 @@ plot_ts_resids <- function() {
     geom_point() +
     labs(x = "", y = "\n\nMR abundance\nresiduals\n") +
     expand_limits(y = c(-3, 3)) +
-    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) -> r_mr
+    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    theme(axis.title.y = element_text(angle=0)) -> r_mr
   
   plot_grid(r_catch, r_fsh, r_srv, r_mr, ncol = 1, align = 'hv', 
-            labels = c('(A)', '(B)', '(C)', '(D)'))
+            labels = c('(A)', '(B)', '(C)', '(D)')) -> p
   
-  # ggsave(paste0("presid_abd_indices.png"), 
-  #        dpi=300, height=7, width=6, units="in")
+  print(p)
   
+  if(save == TRUE){ 
+    ggsave(plot = p, filename = paste0(path, "/presid_abd_indices.png"), 
+           dpi = 300, height = 7, width = 6, units = "in")
+  }
+
 }
 
 # Plot derived variables
-plot_derived_ts <<- function() {
+plot_derived_ts <<- function(save = TRUE, path = tmbfigs) {
   
   ts %>% 
     # Add another year to hold projected values
@@ -838,8 +852,7 @@ plot_derived_ts <<- function() {
            biom = obj$report()$tot_biom * 2.20462 / 1e6,
            expl_biom = obj$report()$tot_expl_biom * 2.20462 / 1e6,
            expl_abd = obj$report()$tot_expl_abd / 1e6,
-           spawn_biom = obj$report()$tot_spawn_biom * 2.20462 / 1e6,
-           exploit = catch / (expl_biom / 1e3)) -> ts
+           spawn_biom = obj$report()$tot_spawn_biom * 2.20462 / 1e6) -> ts
   
   axis <- tickr(ts, year, 5)
   
@@ -885,26 +898,27 @@ plot_derived_ts <<- function() {
     expand_limits(y = 0) +
     labs(x = "", y = "\n\nSpawning\nbiomass\n(million lb)") -> p_sbiom
   
-  plot_grid(p_rec, p_sbiom, p_eabd, p_ebiom,  ncol = 1, align = 'hv')
+  plot_grid(p_rec, p_sbiom, p_eabd, p_ebiom, ncol = 1, align = 'hv', 
+            labels = c('(A)', '(B)', '(C)', '(D)')) -> p
   
+  print(p)
   
-  # labels = c('(A)', '(B)', '(C)', '(D)')
-  # ggsave(paste0("derived_ts.png"), 
-  #        dpi=300, height=7, width=6, units="in")
+  if(save == TRUE){ 
+    ggsave(plot = p, filename = paste0(path, "/derived_ts.png"), 
+           dpi = 300, height = 7, width = 6, units = "in")
+  }
   
 }
 
 # Fishing mort
-plot_F <- function() {
+plot_F <- function(save = TRUE, path = tmbfigs) {
   
   ts %>% 
     # Add another year to hold projected values
-    full_join(data.frame(year = max(ts$year) + nproj)) %>%
-    # For ts by numbers go divide by 1e6 to get values in millions, for biomass
-    # divide by 1e3 to go from kg to mt
-    mutate(Fmort = c(obj$report()$Fmort, rep(NA, nproj)),
-           expl_biom = obj$report()$tot_expl_biom / 1e3,
-           exploit = catch / expl_biom ) -> ts
+    full_join(data.frame(year = max(ts$year))) %>%
+    mutate(Fmort = c(obj$report()$Fmort),
+           expl_biom = obj$report()$tot_expl_biom[1:nyr] / 1e3,
+           exploit = obj$report()$pred_catch / expl_biom ) -> ts
            
   axis <- tickr(ts, year, 5)
   
@@ -920,10 +934,14 @@ plot_F <- function() {
     labs(x = "", y = "Harvest rate\n") +
     scale_x_continuous( breaks = axis$breaks, labels = axis$labels) -> hr
   
-  plot_grid(fmort, hr,  ncol = 1, align = 'hv')
+  plot_grid(fmort, hr,  ncol = 1, align = 'hv') -> p
   
-  # ggsave(paste0("fishing_mort.png"), 
-  #        dpi=300, height=4, width=6, units="in")
+  print(p)
+  
+  if(save == TRUE){ 
+    ggsave(plot = p, filename = paste0(path, "/fishing_mort.png"), 
+           dpi = 300, height = 7, width = 6, units = "in")
+  }
   
 }
 
@@ -989,6 +1007,22 @@ reshape_len <- function() {
     mutate(Source = "Survey",
            index = rep(data$yrs_srv_len, nsex)) -> pred_srv_len
   
+  if(nsex == 1) {
+    pred_fsh_len <- as.data.frame(obj$report()$pred_fsh_len[,,1]) %>% 
+      mutate(Sex = "Sexes combined") 
+  } else {
+    pred_fsh_len <- as.data.frame(obj$report()$pred_fsh_len[,,1]) %>% 
+      mutate(Sex = "Male") %>% 
+      bind_rows(as.data.frame(obj$report()$pred_fsh_len[,,2]) %>% 
+                  mutate(Sex = "Female"))               
+  }
+  names(pred_fsh_len) <- c(as.character(data$lenbin), "Sex")
+  pred_fsh_len %>% 
+    mutate(Source = "Fishery",
+           index = rep(data$yrs_fsh_len, nsex)) -> pred_fsh_len
+  
+  bind_rows(pred_srv_len, pred_fsh_len) -> pred_len
+  
   # residuals and prep results for plotting
   if(nsex == 1) {
     len <- len %>% filter(Sex == "Sex combined") %>% droplevels()
@@ -996,11 +1030,12 @@ reshape_len <- function() {
     len <- len %>% filter(Sex != "Sex combined") %>% droplevels()
   }
   len %>% 
-    filter(Source == "srv_len") %>% # FLAG - temporary until we incorporate fishery len comps into the model
+    #filter(Source == "srv_len") %>% # FLAG - temporary until we incorporate fishery len comps into the model
     rename(obs = proportion) %>% 
     mutate(length_bin = as.character(length_bin),
-           Source = factor(Source, levels = "srv_len", label = "Survey")) %>% 
-    left_join(pred_srv_len %>% gather("length_bin", "pred", 1:data$nlenbin)) %>% 
+           Source = factor(Source, levels = c("srv_len", "fsh_len"),
+                           label = c("Survey", "Fishery"))) %>% 
+    left_join(pred_len %>% gather("length_bin", "pred", 1:data$nlenbin)) %>% 
     group_by(Source, Sex) %>% 
     mutate(resid = obs - pred,
            # Get standardized residual (mean of 0, sd of 1)
@@ -1038,7 +1073,7 @@ get_len_labs <- function() {
 }
 
 # Age comp resids
-plot_age_resids <- function() {
+plot_age_resids <- function(save = TRUE, path = tmbfigs) {
   
   age_labs <- get_age_labs()
   
@@ -1047,21 +1082,26 @@ plot_age_resids <- function() {
   ggplot(agecomps, aes(x = year, y = Age, size = std_resid,
                        fill = `obj performance`)) + 
     geom_point(shape = 21, colour = "black") +
-    scale_size(range = c(0, 4)) +
+    scale_size(range = c(0, 3.5)) +
     facet_wrap(~ Source) +
-    labs(x = '\nAge', y = '') +
+    labs(x = '\nYear', y = 'Age\n', fill = NULL) +
     guides(size = FALSE) +
-    scale_fill_manual(values = c("black", "white")) +
+    scale_fill_manual(values = c("white", "black")) +
     scale_y_discrete(breaks = unique(agecomps$Age), labels = age_labs) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-    theme(legend.position = "bottom")
+    theme(legend.position = "bottom",
+          strip.text.x = element_text(size = 11, colour = "black"),
+          strip.text.y = element_text(size = 11, colour = "black")) -> p
   
-  # ggsave("agecomps_residplot.png", dpi = 300, height = 7, width = 8, units = "in")
+  print(p)
   
+  if(save == TRUE){ 
+    ggsave(plot = p, filename = paste0(path, "/agecomps_residplot.png"), dpi = 300, height = 6, width = 7, units = "in")
+  }
 }
 
-# Age comp resids
-plot_len_resids <- function() {
+# Length comp resids
+plot_len_resids <- function(save = TRUE, path = tmbfigs) {
   
   len_labs <- get_len_labs()
   
@@ -1070,53 +1110,65 @@ plot_len_resids <- function() {
   ggplot(lencomps, aes(x = year, y = length_bin, size = std_resid,
                        fill = `obj performance`)) + 
     geom_point(shape = 21, colour = "black") +
-    scale_size(range = c(0, 4)) +
-    # facet_grid(Source ~ Sex) + # FLAG - use this one when fishery len comps are added
-    facet_wrap(~ Sex) +
-    labs(x = '\nLength (cm)', y = '') +
+    scale_size(range = c(0, 3)) +
+    facet_grid(Source ~ Sex) +
+    labs(x = '\nYear', y = 'Length (cm)\n', fill = NULL) +
     guides(size = FALSE) +
-    scale_fill_manual(values = c("black", "white")) +
+    scale_fill_manual(values = c("white", "black")) +
     scale_y_discrete(breaks = unique(lencomps$length_bin), labels = len_labs) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-    theme(legend.position = "bottom")
+    theme(legend.position = "bottom",
+          strip.text.x = element_text(size = 11, colour = "black"),
+          strip.text.y = element_text(size = 11, colour = "black")) -> p
   
-  # ggsave("lencomps_residplot.png", dpi = 300, height = 7, width = 8, units = "in")
+  print(p)
   
+  if(save == TRUE){ 
+    ggsave(plot = p, filename = paste0(path, "/lencomps_residplot.png"), dpi = 300, height = 6, width = 7, units = "in")
+  }
 }
 
-barplot_age <- function(src = "Survey") {
+barplot_age <- function(src = "Survey", save = TRUE, path = tmbfigs) {
   
   age_labs <- get_age_labs()
   
-  ggplot(agecomps %>% filter(Source == src & year >= 2003)) +
+  ggplot(agecomps %>% filter(Source == src )) + #& year >= 2003
     geom_bar(aes(x = Age, y = obs), 
              stat = "identity", colour = "grey", fill = "lightgrey",
              width = 0.8, position = position_dodge(width = 0.5)) +
     geom_line(aes(x = Age, y = pred, group = 1), size = 0.6) +
     facet_wrap(~ year, dir = "v", ncol = 5) +
     scale_x_discrete(breaks = unique(agecomps$Age), labels = age_labs) +
-    labs(x = '\nAge', y = 'Proportion-at-age\n') 
+    labs(x = '\nAge', y = 'Proportion-at-age\n') +
+    ggtitle(paste0(src)) -> p
   
-  # ggsave(paste0(src, "_agecomps_barplot.png"), dpi = 300, height = 6, width = 7, units = "in")
+  print(p)
+  
+  if(save == TRUE){ 
+    ggsave(plot = p, filename = paste0(path, "/", src, "_agecomps_barplot.png"), dpi = 300, height = 6, width = 7, units = "in")
+  }
   
 }
 
-barplot_len <- function(src = "Survey", sex = "Female") {
+barplot_len <- function(src = "Survey", sex = "Female", save = TRUE, path = tmbfigs) {
   
   len_labs <- get_len_labs()
   
-  ggplot(lencomps %>% filter(Source == src & Sex == sex, year >= 2003)) +
+  ggplot(lencomps %>% filter(Source == src & Sex == sex)) + #, year >= 2003
     geom_bar(aes(x = length_bin, y = obs), 
              stat = "identity", colour = "grey", fill = "lightgrey",
              width = 0.8, position = position_dodge(width = 0.5)) +
     geom_line(aes(x = length_bin, y = pred, group = 1), size = 0.6) +
     facet_wrap(~ year, dir = "v", ncol = 5) + 
     scale_x_discrete(breaks = unique(lencomps$length_bin), labels = len_labs) +
-    labs(x = '\nAge', y = 'Proportion-at-length\n') +
-    ggtitle(sex)
+    labs(x = '\nLength (cm)', y = 'Proportion-at-length\n') +
+    ggtitle(paste0(src, " (", sex, ")")) -> p
   
-  # ggsave(paste0(src, "_agecomps_barplot.png"), dpi = 300, height = 6, width = 7, units = "in")
+  print(p)
   
+  if(save == TRUE){ 
+    ggsave(plot = p, filename = paste0(path, "/", src, "_", sex, "_lencomps_barplot.png"), dpi = 300, height = 6, width = 7, units = "in")
+  }
 }
 
 plot_sel <- function() {

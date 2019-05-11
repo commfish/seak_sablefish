@@ -457,9 +457,9 @@ template<class Type>
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
-        survival_srv(i,j,k) = exp(Type(-1.0) * srv_month * (M(i,j,k) + Z(i,j,k)));
-        survival_fsh(i,j,k) = exp(Type(-1.0) * fsh_month * (M(i,j,k) + Z(i,j,k)));
-        survival_spawn(i,j,k) = exp(Type(-1.0) * spawn_month * (M(i,j,k) + Z(i,j,k)));
+        survival_srv(i,j,k) = exp(Type(-1.0) * srv_month * (M(i,j,k) + F(i,j,k)));
+        survival_fsh(i,j,k) = exp(Type(-1.0) * fsh_month * (M(i,j,k) + F(i,j,k)));
+        survival_spawn(i,j,k) = exp(Type(-1.0) * spawn_month * (M(i,j,k) + F(i,j,k)));
       }
     }
   }
@@ -815,7 +815,71 @@ template<class Type>
   //   }
   // }
   
-  // Predicted length compositions - *FLAG* would like to streamline this
+  // Predicted fishery length compositions (for landed portion of catch)- *FLAG*
+  // early in development, would like to streamline
+  
+  matrix<Type> sumL_jk(nage,nsex); 
+  vector<Type> sumL_k(nsex);
+  
+  for (int i = 0; i < nyr_fsh_len; i++) {
+    
+    sumL_k.setZero();   // tmp variable for each year
+    sumL_jk.setZero();  
+    
+    for (int k = 0; k < nsex; k++) {
+      for (int j = 0; j < nage; j++) {
+        sumL_k(k) += L(yrs_fsh_len(i),j,k);          // numbers by sex
+        sumL_jk(j,k) += L(yrs_fsh_len(i),j,k);       // numbers by sex and age
+      }
+    }
+    
+    for (int k = 0; k < nsex; k++) {
+      for (int j = 0; j < nage; j++) {
+        pred_fsh_obsage(i,j,k) = sumL_jk(j,k) / sumL_k(k);  // Get predicted age comps (proportions-at-age)
+      }
+    }
+  }
+  
+  matrix<Type> tmp_pred_fsh_obsage(nyr_fsh_len,nage);
+  matrix<Type> tmp_fsh_agelen(nage,nlenbin);
+  matrix<Type> tmp_pred_fsh_len(nyr_srv_len,nlenbin);
+  
+  for (int k = 0; k < nsex; k++) {
+    
+    tmp_pred_fsh_obsage.setZero();
+    for (int i = 0; i < nyr_fsh_len; i++) {
+      for (int j = 0; j < nage; j++) {
+        tmp_pred_fsh_obsage(i,j) = pred_fsh_obsage(i,j,k);    // Extract nyr x nage matrix
+      }
+    }
+    
+    tmp_fsh_agelen.setZero();
+    for (int j = 0; j < nage; j++) {
+      for (int l = 0; l < nlenbin; l++) {
+        tmp_fsh_agelen(j,l) = agelen_key_fsh(j,l,k);          // Extract age-length key
+      }
+    }
+    
+    tmp_pred_fsh_len.setZero();
+    tmp_pred_fsh_len = tmp_pred_fsh_obsage * tmp_fsh_agelen;  // Apply age-length key
+    
+    for (int i = 0; i < nyr_fsh_len; i++) {
+      for (int l = 0; l < nlenbin; l++) {
+        pred_fsh_len(i,l,k) = tmp_pred_fsh_len(i,l);          // Put everything back in the arry
+      }
+    }
+  }
+  
+  // Test do the initial observed age comps sum to 1
+  // vector<Type> tst2(nyr_fsh_len);
+  // for (int i = 0; i < nyr_fsh_len; i++) {
+  //   for (int l = 0; l < nlenbin; l++) {
+  //     tst2(i) += pred_fsh_len(i,l,0);
+  //   }
+  // }
+  // std::cout << "Do the length comps sum to 1?\n" << tst2 << "\n";
+  
+  // Predicted survey length compositions - *FLAG* would like to streamline this
   
   matrix<Type> sumN_jk(nage,nsex); 
   vector<Type> sumN_k(nsex);
@@ -828,7 +892,7 @@ template<class Type>
     for (int k = 0; k < nsex; k++) {
       for (int j = 0; j < nage; j++) {
         sumN_k(k) += vuln_abd(yrs_srv_len(i),j,k);          // numbers by sex
-        sumN_jk(j,k) += vuln_abd(yrs_srv_len(i),j,k);        // numbers by sex and age
+        sumN_jk(j,k) += vuln_abd(yrs_srv_len(i),j,k);       // numbers by sex and age
       }
     }
     
@@ -870,13 +934,13 @@ template<class Type>
   }
   
   // Test do the initial observed age comps sum to 1
-  // vector<Type> tst2(nyr_srv_len);
+  // vector<Type> tst3(nyr_srv_len);
   // for (int i = 0; i < nyr_srv_len; i++) {
   //   for (int l = 0; l < nlenbin; l++) {
-  //     tst2(i) += pred_srv_len(i,l,0);
+  //     tst3(i) += pred_srv_len(i,l,0);
   //   }
   // }
-  // std::cout << "Do the length comps sum to 1?\n" << tst2 << "\n";
+  // std::cout << "Do the length comps sum to 1?\n" << tst3 << "\n";
   
   // Compute SPR rates and spawning biomass under different Fxx levels. Note
   // that biological reference points are only for the female component of the
@@ -1035,27 +1099,28 @@ template<class Type>
   vector<Type> sum1_fsh(nyr_fsh_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
   vector<Type> sum2_fsh(nyr_fsh_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
 
-  for (int i = 0; i < nyr_fsh_age; i++) {
+  // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
+  switch (comp_type) {
+  case 0: // Multinomial
 
-    // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
-    switch (comp_type) {
-
-    case 0: // Multinomial
-
+    for (int i = 0; i < nyr_fsh_age; i++) {
       for (int j = 0; j < nage; j++) {
+        
         // Offset
         offset(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(data_fsh_age(i,j) + c);
         // Likelihood
         age_like(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(pred_fsh_age(i,j) + c);
       }
+    }
+    
+    age_like(0) -= offset(0);     // subtract offset
+    age_like(0) *= wt_fsh_age;    // likelihood weight
+    
+    break;
+    
+  case 1: // Dirichlet-multinomial (D-M)
 
-      age_like(0) -= offset(0);     // subtract offset
-      age_like(0) *= wt_fsh_age;    // likelihood weight
-
-      break;
-
-    case 1: // Dirichlet-multinomial (D-M)
-
+    for (int i = 0; i < nyr_fsh_age; i++) {
       // Preliminary calcs
       for (int j = 0; j < nage; j++) {
         // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
@@ -1067,40 +1132,40 @@ template<class Type>
       // Full nll for D-M, Eqn 10, Thorson et al. 2017
       age_like(0) -= lgamma(n_fsh_age(i) + Type(1.0)) - sum1_fsh(i) + lgamma(fsh_theta * n_fsh_age(i)) -
         lgamma(n_fsh_age(i) + fsh_theta * n_fsh_age(i)) + sum2_fsh(i);
-
+    }
     break;
 
     // case 2: // Multivariate logistic (MVL) - future development
 
     }
-  }
 
   // Likelihood for survey age compositions
   Type srv_theta = exp(log_srv_theta);      // Dirichlet-multinomial parameter
   vector<Type> sum1_srv(nyr_srv_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
   vector<Type> sum2_srv(nyr_srv_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
 
-  for (int i = 0; i < nyr_srv_age; i++) {
+  
+  // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
+  switch (comp_type) {
+  
+  case 0: // Multinomial
 
-    // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
-    switch (comp_type) {
-
-    case 0: // Multinomial
-
+    for (int i = 0; i < nyr_srv_age; i++) {
       for (int j = 0; j < nage; j++) {
         // Offset
         offset(1) -= effn_srv_age(i) * (data_srv_age(i,j) + c) * log(data_srv_age(i,j) + c);
         // Likelihood
-        age_like(0) -= effn_srv_age(i) * (data_srv_age(i,j) + c) * log(pred_srv_age(i,j) + c);
+        age_like(1) -= effn_srv_age(i) * (data_srv_age(i,j) + c) * log(pred_srv_age(i,j) + c);
       }
-
-      age_like(1) -= offset(0);     // subtract offset
-      age_like(1) *= wt_srv_age;    // likelihood weight
-
-      break;
-
-    case 1: // Dirichlet-multinomial (D-M)
-
+    }
+    age_like(1) -= offset(1);     // subtract offset
+    age_like(1) *= wt_srv_age;    // likelihood weight
+    
+    break;
+    
+  case 1: // Dirichlet-multinomial (D-M)
+    
+    for (int i = 0; i < nyr_srv_age; i++) {
       // Preliminary calcs
       for (int j = 0; j < nage; j++) {
         // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
@@ -1112,19 +1177,33 @@ template<class Type>
       // Full nll for D-M, Eqn 10, Thorson et al. 2017
       age_like(1) -= lgamma(n_srv_age(i) + Type(1.0)) - sum1_srv(i) + lgamma(srv_theta * n_srv_age(i)) -
         lgamma(n_srv_age(i) + srv_theta * n_srv_age(i)) + sum2_srv(i);
-
-      break;
-
-      // case 2: // Multivariate logistic - future development
-
     }
+    break;
+    
+    // case 2: // Multivariate logistic - future development
+    
   }
+  
 
   // std::cout << "Age comp offset\n" << offset << "\n";
   // std::cout << "Age comp likelihoods\n" << age_like << "\n";
-  Type tmp_effn = 0;
-  matrix<Type> tmp_len(1,nlenbin);
-  matrix<Type> tmp_log_len(1,nlenbin);
+
+  // Multinomial likelihood for fishery length comps.
+  for (int k = 0; k < nsex; k++) {
+    
+    for (int i = 0; i < nyr_fsh_len; i++) {
+      for (int l = 0; l < nlenbin; l++) {  
+        // Offset
+        offset_fsh_len(k) -= effn_fsh_len(i,0,k) * (data_fsh_len(i,l,k) + c) * log(data_fsh_len(i,l,k) + c);
+        // Likelihood
+        fsh_len_like(k) -= effn_fsh_len(i,0,k) * (data_fsh_len(i,l,k) + c) * log(pred_fsh_len(i,l,k) + c);
+      }
+    }
+    
+    fsh_len_like(k) -= offset_fsh_len(k);     // subtract offset
+    fsh_len_like(k) *= wt_fsh_len;            // likelihood weight 
+    
+  }
   
   // Multinomial likelihood for survey length comps.
   for (int k = 0; k < nsex; k++) {
@@ -1205,8 +1284,8 @@ template<class Type>
   // std::cout << "Penality for SPR calcs\n" << spr_pen << "\n";
 
   // Sum likelihood components
-  // obj_fun += priors(0);         // Fishery q
-  // obj_fun += priors(1);         // Survey q
+  obj_fun += priors(0);         // Fishery q
+  obj_fun += priors(1);         // Survey q
   obj_fun += priors(2);         // Mark-recapture abndance index q
   obj_fun += catch_like;        // Catch
   obj_fun += index_like(0);     // Fishery cpue
@@ -1215,7 +1294,7 @@ template<class Type>
   obj_fun += age_like(0);       // Fishery age compositions
   obj_fun += age_like(1);       // Survey age compositions
   for (int k = 0; k < nsex; k++) {
-    obj_fun += fsh_len_like(k); // Fishery length comps  
+    obj_fun += fsh_len_like(k); // Fishery length comps
     obj_fun += srv_len_like(k); // Survey length comps
   }
   obj_fun += rec_like;          // Recruitment deviations
@@ -1240,7 +1319,7 @@ template<class Type>
   // Predicted compositions
   REPORT(pred_fsh_age);     // Fishery
   REPORT(pred_srv_age);     // Survey
-  // REPORT(pred_fsh_len);     // Fishery
+  REPORT(pred_fsh_len);     // Fishery
   REPORT(pred_srv_len);     // Survey
 
   // Predicted selectivity-at-age
@@ -1292,11 +1371,13 @@ template<class Type>
   REPORT(index_like);       // Abundance indices
   REPORT(age_like);         // Age compositions
   REPORT(srv_len_like);     // Survey length composition likelihoods
+  REPORT(fsh_len_like);     // Fishery length composition likelihoods
   REPORT(rec_like);         // Recruitment deviations
   REPORT(fpen);             // Fishing mortality deviations
   REPORT(obj_fun);          // Total objective function
   REPORT(offset);           // Offsets for age comp multinomial
   REPORT(offset_srv_len);   // Offsets for survey length comp multinomial
+  REPORT(offset_fsh_len);   // Offsets for fishery length comp multinomial
 
   return(obj_fun);          
   

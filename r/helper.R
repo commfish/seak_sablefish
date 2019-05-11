@@ -60,6 +60,7 @@ theme_set(theme_sleek())
 #   half_line <- base_size/2
 #   theme_light(base_size = 16) +
 #     theme(
+#       axis.title.y = element_text(angle=0),
 #       panel.grid.major = element_blank(),
 #       panel.grid.minor = element_blank(),
 #       axis.ticks.length = unit(half_line / 2.2, "pt"),
@@ -70,7 +71,7 @@ theme_set(theme_sleek())
 #       legend.key.size = unit(0.9, "lines"),
 #       legend.key = element_rect(colour = NA, fill = NA),
 #       legend.background = element_rect(colour = NA, fill = NA)#,
-# 
+#       
 #     )
 # }
 # 

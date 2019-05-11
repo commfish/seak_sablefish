@@ -29,7 +29,7 @@ read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"),
          std = 1.96 * sqrt(log(sigma_catch + 1)),
          upper_catch = exp(ln_catch + std),
          lower_catch = exp(ln_catch - std)) %>% 
-  select(-total_pounds, -std) %>% 
+  select(-c(total_pounds, std, ln_catch)) %>% 
   filter(year >= syr) -> catch
 
 # Fishery CPUE ----
@@ -51,11 +51,10 @@ fsh_cpue %>%
             n = n(),
             sd = sd(std_cpue_kg),
             se = sd / sqrt(n),
-            # use the relative standard error as the sigma for the model
-            # (approximately equal to the sd in log space)
-            sigma_fsh_cpue = se / fsh_cpue, # this is really low...
+            # sigma_fsh_cpue = se / fsh_cpue, # relative standard error too low
+            # sigma_fsh_cpue = sd / fsh_cpue#, # CV too high
             # *FLAG* currently just assume cv=0.05 for new ts, 0.1 for old
-            sigma_fsh_cpue = 0.08
+            sigma_fsh_cpue = 0.08 
             ) -> fsh_cpue 
 
 # Historical CPUE 
@@ -82,7 +81,7 @@ data.frame(year = 1980:1996,
          std = 1.96 * sqrt(log(sigma_fsh_cpue + 1)),
          upper_fsh_cpue = exp(ln_fsh_cpue + std),
          lower_fsh_cpue = exp(ln_fsh_cpue - std)) %>% 
-  select(-std) -> fsh_cpue
+  select(-c(n, sd, se, ln_fsh_cpue, std)) -> fsh_cpue
 
 # Survey NPUE ----
 
@@ -97,13 +96,14 @@ data.frame(year = 1980:1996,
 
 read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) %>% 
   # assuming lognormal distribution, use relative se as model input sigma
-  mutate(sigma_srv_cpue = se / srv_cpue,
+  mutate(#sigma_srv_cpue = se / srv_cpue, # relative standard error too low! 
+         #sigma_srv_cpue = sd / srv_cpue, # cv too high!
          sigma_srv_cpue = 0.08,
          ln_srv_cpue = log(srv_cpue),
          std = 1.96 * sqrt(log(sigma_srv_cpue + 1)),
          upper_srv_cpue = exp(ln_srv_cpue + std ),
          lower_srv_cpue = exp(ln_srv_cpue - std )) %>% 
-  select(-c(n, sd, se)) -> srv_cpue 
+  select(-c(n, sd, se, ln_srv_cpue, std)) -> srv_cpue 
 
 # ggplot(data = srv_cpue) +
 #   geom_point(aes(year, annual_cpue), col = "darkgrey") +
@@ -124,7 +124,7 @@ read_csv(paste0("output/mr_index.csv")) %>%
          std = 1.96 * sqrt(log(sigma_mr + 1)),
          upper_mr = exp(ln_mr + std),
          lower_mr = exp(ln_mr - std)) %>% 
-  select(-std) -> mr
+  select(-c(std, ln_mr)) -> mr
 
 # mr_sum %>% 
 #   full_join(data.frame(year = min(mr_sum$year):lyr)) %>% 
@@ -139,13 +139,13 @@ catch %>%
   geom_point(aes(year, catch)) +
   geom_line(aes(year, catch)) +
   geom_ribbon(aes(year, ymin = lower_catch, ymax = upper_catch),
-              alpha = 0.2,  fill = "grey") +
-  # Board implemented Limitted Entry in 1985
+              alpha = 0.2, fill = "black", colour = NA) +
+  # Board implemented Limited Entry in 1985
   # geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
   # Board implemented Equal Quota Share in 1994
   geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  scale_y_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::comma) + 
   labs(x = "", y = "\n\nCatch\n(round mt)") +
   theme(axis.title.y = element_text(angle=0)) -> catch_plot
 
@@ -153,24 +153,24 @@ ggplot(fsh_cpue) +
   geom_point(aes(year, fsh_cpue)) +
   geom_line(aes(year, fsh_cpue)) +
   geom_ribbon(aes(year, ymin = lower_fsh_cpue , ymax = upper_fsh_cpue),
-              alpha = 0.2,  fill = "grey") +
+              alpha = 0.2, fill = "black", colour = NA) +
   # Board implemented Limitted Entry in 1985
   # geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
   # Board implemented Equal Quota Share in 1994
   geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   expand_limits(y = 0) +
-  labs(x = "", y = "\n\nFishery CPUE\n(round kg/hook)")  +
+  labs(x = "", y = "\n\nFishery CPUE\n(round kg/hook)") +
   theme(axis.title.y = element_text(angle=0)) -> fsh_cpue_plot
 
 ggplot(data = srv_cpue) +
   geom_point(aes(year, srv_cpue)) +
   geom_line(aes(year, srv_cpue)) +
   geom_ribbon(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue),
-              alpha = 0.2, col = "white", fill = "grey") +
+              alpha = 0.2, fill = "black", colour = NA) +
   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, labels = axis$labels) + 
   expand_limits(y = 0) +
-  labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL)  +
+  labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL) +
   theme(axis.title.y = element_text(angle=0)) -> srv_cpue_plot
 
 mr %>% 
@@ -184,16 +184,16 @@ mr %>%
          upper_mr = zoo::na.approx(upper_mr, maxgap = 20, rule = 2)) %>%
   ggplot() +
   geom_ribbon(aes(x = year, ymin = lower_mr, ymax = upper_mr),
-              alpha = 0.2, colour = "white", fill = "grey") +
+              alpha = 0.2, fill = "black", colour = NA) +
   geom_point(aes(x = year, y = N)) +
   geom_line(aes(x = year, y = N, group = Abundance)) +
   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, 
                      labels = axis$labels) +
   expand_limits(y = c(0, 5)) +
-  labs(x = "", y = "\n\nAbundance\n(millions)")  +
+  labs(x = "", y = "\n\nAbundance\n(millions)") +
   theme(axis.title.y = element_text(angle=0)) -> mr_plot
   
-plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv')#, labels = c('(A)', '(B)', '(C)', '(D)'))
+plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)', '(D)'))
 
 ggsave(paste0("figures/tmb/abd_indices_", YEAR, ".png"),
        dpi=300, height=8, width=7, units="in")
@@ -224,14 +224,7 @@ read_csv(paste0("data/survey/llsrv_bio_1985_", lyr,".csv"),
 waa <- read_csv("output/pred_waa.csv")
 
 waa %>% 
-  mutate(Source = derivedFactor("Survey (males)" = Source == "LL survey" & Sex == "Male",
-                                "Survey (females)" = Source == "LL survey" & Sex == "Female",
-                                "Survey (sexes combined)" = Source == "LL survey" & Sex == "Combined",
-                                "Fishery (males)" = Source == "LL fishery" & Sex == "Male",
-                                "Fishery (females)" = Source == "LL fishery" & Sex == "Female",
-                                "Fishery (sexes combined)" = Source == "LL fishery" & Sex == "Combined",
-                                .default = NA),
-         Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
+  mutate(Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
                                       "9", "10", "11", "12", "13", "14", "15",
                                       "16", "17", "18", "19", "20", "21", "22",
                                       "23", "24", "25", "26", "27", "28", "29", "30",
@@ -241,8 +234,16 @@ waa %>%
                                  "16", "17", "18", "19", "20", "21", "22",
                                  "23", "24", "25", "26", "27", "28", "29", "30",
                                  "31+"))) -> waa
-waa <- na.omit(waa)
-write_csv(waa, "data/tmb_inputs/waa.csv")
+waa %>% 
+  mutate(Source = derivedFactor("Survey (males)" = Source == "LL survey" & Sex == "Male",
+                                "Survey (females)" = Source == "LL survey" & Sex == "Female",
+                                "Survey (sexes combined)" = Source == "LL survey" & Sex == "Combined",
+                                "Fishery (males)" = Source == "LL fishery" & Sex == "Male",
+                                "Fishery (females)" = Source == "LL fishery" & Sex == "Female",
+                                "Fishery (sexes combined)" = Source == "LL fishery" & Sex == "Combined",
+                                .default = NA)) -> waa2
+waa2 <- na.omit(waa2)
+write_csv(waa2, "data/tmb_inputs/waa.csv")
 
 # Proportion mature -----
 
@@ -331,18 +332,19 @@ age_labs <- c("2", "", "", "", "6", "", "", "", "10", "", "", "", "14", "",
               "", "", "30", "") 
 
 ggplot(waa %>% 
-         filter(! (Source %in% c("Survey (sexes combined)", "Fishery (sexes combined)",
-                                 "Fishery (males)", "Fishery (females)"))) %>% 
-         droplevels(), 
-       aes(x = Age, y = weight, shape = Source,
-           colour = Source, group = Source)) +
+         filter(! (Sex %in% c("Combined"))) %>% 
+         droplevels() %>% 
+         mutate(group = paste(Sex, Source)), 
+       aes(x = Age, y = weight, shape = Sex, 
+           linetype = Sex, colour = Source, group = group)) +
   geom_point() +
   geom_line() + 
   scale_colour_grey() +
   expand_limits(y = c(0, 10)) +
-  labs(x = NULL, y = "\n\nMean weight\n(kg)", colour = NULL, shape = NULL) +
+  labs(x ="Age", y = "\n\nMean weight (kg)", colour = NULL, shape = NULL, linetype = NULL) +
   scale_x_discrete(breaks = unique(waa$Age), labels = age_labs) +
-  theme(legend.position = c(.2, .8)) -> waa_plot
+  theme(legend.position = c(.15, .8),
+        legend.spacing.y = unit(0, "cm")) -> waa_plot
 
 # Equation text for plotting values of a_50
 a50 <- 6.4
@@ -351,38 +353,43 @@ a50_txt <- as.character(
     paste(italic(a[50]), " = ", xx),
     list(xx = formatC(a50, format = "f", digits = 1)))))
 
-axis <- tickr(byage, age, 1)
+mat_plot <- mat %>% filter(age <= 20)
+axis <- tickr(mat_plot, age, 1)
 
-ggplot(mat) +
-  geom_point(aes(x = age, y = prop_mature), colour = "black", shape = 15) +
+age_labs2 <- c("2", "", "", "", "6", "", "", "", "10", "", "", "", "14", "",
+              "", "", "18", "", "") 
+
+ggplot(mat_plot %>% filter(age <= 20)) +
+  geom_point(aes(x = age, y = prop_mature), colour = "black") +
   geom_line(aes(x = age, y = prop_mature, group = 1), colour = "black") +
   geom_segment(aes(x = a50, y = 0, xend = a50, yend = 0.50), 
                lty = 2, col = "grey") +
   geom_segment(aes(x = 2, y = 0.50, xend = a50, yend = 0.50), 
                lty = 2, col = "grey") +
   # a_50 labels
-  geom_text(aes(10, 0.5, label = a50_txt), 
+  geom_text(aes(12, 0.5, label = a50_txt), 
             colour = "black", parse = TRUE, family = "Times New Roman") +
-  scale_x_continuous(limits = c(rec_age, plus_group), breaks = axis$breaks, 
-                     labels = age_labs) +
-  labs(x = NULL, y = "\n\nProportion\nmature\n") -> mat_plot
+  scale_x_continuous(limits = c(rec_age, 20), breaks = axis$breaks, 
+                     labels = age_labs2) +
+  labs(x = "Age", y = "\n\nProportion mature") -> mat_plot
 
+axis <- tickr(byage, age, 1)
 
 ggplot(byage, aes(x = Age)) +
   geom_line(aes(y = fit, group = 1), colour = "black") +
   geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, group = 1), 
-              alpha = 0.2, fill = "black", colour = "white") +
+              alpha = 0.2, fill = "black", colour = NA) +
   geom_point(aes(y = prop_fem), colour = "black") +  
   expand_limits(y = c(0.3, 0.6)) +
   scale_x_discrete(breaks = unique(waa$Age), labels = age_labs) +
-  xlab("\nAge") +
-  ylab("\n\nProportion\nfemale\n") +
+  labs(x = "Age", y = "\n\nProportion female") +
   geom_hline(yintercept = 0.5, lty = 2, col = "grey") -> prop_fem
 
-plot_grid(waa_plot, mat_plot, prop_fem, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)'))
+bottom_plot <- plot_grid(mat_plot, prop_fem, ncol = 2, align = 'hv', labels = c('(B)', '(C)'))
 
-ggsave(paste0("figures/tmb/bio_dat.png"),
-       dpi=300, height=7, width=6, units="in")
+plot_grid(waa_plot, bottom_plot, nrow = 2, rel_widths = c(1, 1), labels = c('(A)', ''))
+
+ggsave(paste0("figures/tmb/bio_dat.png"), dpi=300, height=7, width=7, units="in")
 
 # Length compositions ----
 
@@ -450,14 +457,13 @@ axisx <- tickr(agecomps, year, 5)
 ggplot(agecomps, aes(x = year, y = age, size = proportion)) +
   geom_point(shape = 21, colour = "black", fill = "black") +
   scale_size(range = c(0, 4)) +
-  facet_wrap(~ desc(Source) +
-  xlab('\nAge') +
-  ylab('') +
+  facet_wrap(~ Source) +
+  labs(x = '\nYear', y = 'Observed age\n') +
   guides(size = FALSE) +
   scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
   scale_y_continuous(breaks = unique(agecomps$age), labels = age_labs) 
 
-ggsave("figures/tmb/agecomps.png", dpi = 300, height = 7, width = 9, units = "in")
+ggsave(paste0("figures/tmb/agecomps_", YEAR, ".png"), dpi = 300, height = 7, width = 9, units = "in")
 
 agecomps %>% 
   left_join(data.frame(year = syr:lyr) %>% 
@@ -516,6 +522,80 @@ ggplot(df, aes(x = year, y = Source, fill = value)) +
 
 ggsave(paste0("figures/sable_data.png"),
        dpi=300, height=3.5, width=7, units="in")
+
+# Retention probabilities ---
+
+# Started this analysis May 2019 after a conversation in April 2019 with Steven
+# Rhoades about alternative ways of developing these curves. This approach
+# assumes that anything below a 7+ has some probability of being released
+# because the risk of releasing a smaller fish comes with the potential reward
+# of catching a larger fish. I use the same Eastern cut processor grade/price
+# data from M. Vaughn used in the earlier analysis.
+
+data.frame(dressed_lb = seq(0.1, 7, 0.1)) %>% 
+  mutate(grade = derivedFactor('no_grade' = dressed_lb < 1,
+                               '1/2' = dressed_lb >= 1 & dressed_lb < 2,
+                               '2/3' = dressed_lb >= 2 & dressed_lb < 3,
+                               '3/4' = dressed_lb >= 3 & dressed_lb < 4,
+                               '4/5' = dressed_lb >= 4 & dressed_lb < 5,
+                               '5/7' = dressed_lb >= 5 & dressed_lb < 7,
+                               '7+' = dressed_lb >= 7,
+                               .method = "unique",
+                               .ordered = TRUE),
+         Price = derivedFactor('$0' = grade == 'no_grade',
+                               '$1.00' = grade == '1/2',
+                               '$2.20' = grade == '2/3',
+                               '$3.25' = grade == '3/4',
+                               '$4.75' = grade == '4/5',
+                               '$7.55' = grade == '5/7',
+                               '$8.05' = grade == '7+',
+                               .method = "unique",
+                               .ordered = TRUE),
+         price = readr::parse_number(Price),
+         value = dressed_lb * price,
+         p_retain = value / max(value),
+         whole_lb = dressed_lb/0.63) %>% # E/C to whole conversion
+  ggplot(aes(x = whole_lb, y = p_retain)) +
+  geom_point() +
+  geom_line()
+
+
+# processor will be used to define the probability of retaining a fish
+grades <- data.frame(
+  kg = c(0.5, 0.6, 0.7, 1.4, 2.2, 2.9, 3.6, 5.0),
+  # Based off conversation with A. Alson 2018-06-04, set grade 3/4 as 50%
+  # probability of retention (p), and very low for grades below.
+  p = c(0.0, 0.0, 0.0, 0.1, 0.5, 1.0, 1, 1.0)) %>%  
+  right_join(data.frame(kg = seq(0.5, 8.5, by = 0.1)) %>% 
+               mutate(grade = derivedFactor('no_grade' = kg < 0.7,
+                                            '1/2' = kg >= 0.7 & kg < 1.4,
+                                            '2/3' = kg >= 1.4 & kg < 2.2,
+                                            '3/4' = kg >= 2.2 & kg < 2.9,
+                                            '4/5' = kg >= 2.9 & kg < 3.6,
+                                            '5/7' = kg >= 3.6 & kg < 5,
+                                            '7+' = kg >= 5,
+                                            .method = "unique",
+                                            .ordered = TRUE),
+                      price = derivedFactor('$0' = grade == 'no_grade',
+                                            '$1.00' = grade == '1/2',
+                                            '$2.20' = grade == '2/3',
+                                            '$3.25' = grade == '3/4',
+                                            '$4.75' = grade == '4/5',
+                                            '$7.55' = grade == '5/7',
+                                            '$8.05' = grade == '7+',
+                                            .method = "unique",
+                                            .ordered = TRUE),
+                      # For plotting purposes (alternating grey and white panels)
+                      plot_cde = ifelse(grade %in% c('no_grade', '2/3', '4/5', '7+'), "0", "1")), by = "kg") %>% # 
+  # set p = 1 for all large fish, interpolate p's using a cubic spline across
+  # smaller sizes
+  mutate(p = ifelse(kg > 3.6, 1, zoo::na.spline(p)),
+         lbs = 2.20462 * kg, # convert to lbs for visualization in memo
+         kg = round(kg, 1),
+         lbs_whole = round(lbs, 0),
+         y = 1 - p)
+# Smallest dressed weight assumed full retention = min dressed lb of a 7+
+full_retention <- grade %>% summarize(max(min_dressed_lb)) %>% pull(min_dressed_lb)
 
 # Starting values ------
 

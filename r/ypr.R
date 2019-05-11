@@ -48,7 +48,7 @@ s50_m <- 3.72
 sslp_m <- 2.21
 
 # Selectivity vectors 
-age <- 2:42
+age <- 2:31
 
 f_sel <- 1 / (1 + exp(-fslp_f * (age - f50_f)))
 m_sel <- 1 / (1 + exp(-fslp_m * (age - f50_m)))
@@ -69,13 +69,14 @@ sel_df <- data.frame(age = rep(age, 4),
 
 axis <- tickr(sel_df, age, 1)
 ggplot(sel_df %>% filter(Source == "Fishery"), 
-       aes(x = age, y = selectivity, linetype = Sex, shape = Sex)) +
+       aes(x = age, y = selectivity, #colour = Source, 
+           linetype = Sex, shape = Sex)) +
   geom_point() + 
   geom_line() +
   scale_colour_grey() +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   theme(legend.position = c(0.8, 0.2)) +
-  labs(x = "\nAge", y = "Fishery selectivity\n")
+  labs(x = "\nAge", y = "Selectivity\n")
 
 ggsave(paste0("figures/fixed_selectivity_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
