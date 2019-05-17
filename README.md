@@ -22,7 +22,7 @@ Several factors motivated the development of a new statistical catch-at-age mode
 
 ## Data
 
-Fisheries-independent data and inputs to the `TMB` model are made available under [`data/`](.../tree/master/data) of this repository. These include biological data and indices of effort. Fisheries-dependent data are not made public to protect fishermen and processor confidentiality, but may be obtained through a formal data request to ADF&G. All `SQL` queries used to obtain data are found in [`r/0_querynclean_data.r`](.../blob/master/r/0_querynclean_data.R).
+Fisheries-independent data and inputs to the `TMB` model are made available under [`data/`](https://github.com/commfish/seak_sablefish/tree/master/data) of this repository. These include biological data and indices of effort. Fisheries-dependent data are not made public to protect fishermen and processor confidentiality, but may be obtained through a formal data request to ADF&G. All `SQL` queries used to obtain data are found in [`r/0_querynclean_data.r`](https://github.com/commfish/seak_sablefish/blob/master/r/0_querynclean_data.R).
 
 The following product recovery rates for sablefish were used:
 
