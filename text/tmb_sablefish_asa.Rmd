@@ -451,7 +451,7 @@ Future work on this model should include the development of priors for fishery a
 A summary of parameter estimates and standard errors are reported in Table \@ref(tab:keyparams). 
 In particular, mean recruitment and deviations were difficult to estimate. 
 Initially, the weight on this likelihood component was assumed to be low ($\lambda_{\tau}=0.1$), but this yielded an unrealistically large spike (>40 times the mean value) in age-2 recruitment in 2016 corresponding to the 2014 year class. 
-Increasing the $\lambda_{\phi}$ to 2.0 resulted in more reasonable parameter estimates and decreased the age-2 recruitment to ~8 times mean recruitment. 
+Increasing the $\lambda_{\tau}$ to 2.0 resulted in more reasonable parameter estimates and decreased the age-2 recruitment to ~8 times mean recruitment. 
 The objective function value (negative log likelihood) was 1,007.1. 
 The maximum gradient component was 0.00086, barely passing the minimum convergence criteria of 0.001.
 A summary of the contributions of each likelihood component to the total objective function can be found in Table \@ref(tab:likesum). 
