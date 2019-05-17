@@ -22,7 +22,7 @@ Several factors motivated the development of a new statistical catch-at-age mode
 
 ## Data
 
-Fisheries-independent data and inputs to the `TMB` model are made available under [`data/`](https://github.com/commfish/seak_sablefish/tree/master/data) of this repository. These include biological data and indices of effort. Fisheries-dependent data are not made public to protect fishermen and processor confidentiality, but may be obtained through a formal data request to ADF&G. All `SQL` queries used to obtain data are found in [`r/0_querynclean_data.r`](https://github.com/commfish/seak_sablefish/blob/master/r/0_querynclean_data.R).
+Fisheries-independent data and inputs to the `TMB` model are made available under [`data/`](https://github.com/commfish/seak_sablefish/tree/master/data) of this repository. These include biological data and indices of effort. Fisheries-dependent data are not made public to protect fishermen and processor confidentiality, but may be obtained through a formal data request to ADF&G. All descriptions of the data, `SQL` queries, and subsequent manipulations to the data are found in [`r/0_querynclean_data.r`](https://github.com/commfish/seak_sablefish/blob/master/r/0_querynclean_data.R).
 
 The following product recovery rates for sablefish were used:
 
@@ -35,3 +35,18 @@ Ice and slime assumed to be 2% of total weight.
 | 7             | Headed and gutted, Western cut | 0.68 |
 | 9 (08 in IFDB)| Headed and gutted, Eastern cut | 0.63 |
 
+## Code
+
+The analyses underpinning the current stock assessment are found in [`r/`](https://github.com/commfish/seak_sablefish/tree/master/r) of this repository. In order to reproduce the assessment results, the scripts should be run in the following order:
+
+1.  [`fishery_catch_cpue.r`](https://github.com/commfish/seak_sablefish/blob/master/r/fishery_catch_cpue.R): summarize harvest and fishery CPUE and a preliminary CPUE standardization anaylsis using a generalized additive model;
+2.  [`llsurvey_cpue.r`](https://github.com/commfish/seak_sablefish/blob/master/r/llsurvey_cpue.R): standardization and summary of ADF&G longline survey in NSEI;
+3.  [`biological.r`](https://github.com/commfish/seak_sablefish/blob/master/r/biological.R): analysis of fishery, longline, and pot survey data, including growth and maturity modeling, age and length compositions, and preliminary code for age-length keys;
+4.  [`mark_recapture.r`](https://github.com/commfish/seak_sablefish/blob/master/r/mark_recapture.R): summary of tag data and model selection for the mark-recapture analysis, which was conducted using the Bayesian software `JAGS`;
+5.  [`ypr.r`](https://github.com/commfish/seak_sablefish/blob/master/r/ypr.R): yield-per-recruit analysis and ABC calculation.
+
+Data preparation and visualization of model inputs to the preliminary `TMB` statistical catch-at-age model are found in [`tmb_dataprep.r`](https://github.com/commfish/seak_sablefish/blob/master/r/tmb_datprep.R).  The [`.cpp file`](https://github.com/commfish/seak_sablefish/blob/master/tmb/mod.cpp) and [`R` script](https://github.com/commfish/seak_sablefish/blob/master/tmb/run_mod.R) to run the model are found in the `tmb/` folder.
+
+## Reports
+
+The 2018 and 2019 NSEI stock assessments and preliminary statistical catch-at-age model were developed as reproducible research projects in `RMarkdown` and found under `text/`(https://github.com/commfish/seak_sablefish/tree/master/text).
