@@ -576,6 +576,11 @@ bind_rows(allom_pars, lvb_pars, wvb_pars) %>%
 # Maturity ----
 # 0 = immature, 1 = mature
 
+# what years do we have maturity data for?
+laa_f %>% filter(!is.na(Mature)) %>%
+  group_by(year) %>% 
+  summarise(n = n())
+
 # base models
 fit_length <- glm(Mature ~ length, data = laa_f, family = binomial)
 fit_age <- glm(Mature ~ age, data = laa_f, family = binomial)

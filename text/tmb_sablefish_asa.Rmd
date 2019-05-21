@@ -1,6 +1,5 @@
 ---
-title: Preliminary results for a statistical catch-at-age model for sablefish (*Anoplopoma
-  fimbria*) in the Northern Southeast Inside management area
+title: Appendix.  Preliminary results for a statistical catch-at-age model for sablefish (*Anoplopoma fimbria*) in the Northern Southeast Inside management area
 author: |
   | Jane Sullivan$^1$, Ben Williams$^1$, Andrew Olson$^2$
   | $^1$Alaska Department of Fish and Game, Commercial Fisheries Division, Juneau, Alaska
@@ -49,31 +48,31 @@ nage <- length(2:31)
 
 # Introduction
 
-Sablefish have been commercially fished in Southeast Alaska inside waters since at least the early 1900s (Carlile et al. 2002). 
-There is a long history of sablefish management in the Northern Southeast Inside (NSEI) management area, with seasonal closures beginning in 1945 and tagging experiments occurring as early as 1951 (Figure 1; Carlile et al. 2002).
-Attempts to develop a statistical catch-at-age model for NSEI sablefish date back to 1995 (Carlile et al. 2002, Dressel 2009, Mueter 2010, Williams and Kirk 2017).
+Sablefish have been commercially fished in Southeast Alaska inside waters since at least the early 1900s, with active management in the Northern Southeast Inside (NSEI) management area beginning in 1945 (Figure 2 in Carlile et al. 2002).
+Early attempts to track fishery performance and estimate abundance of sablefish in NSEI included a vessel logbook program that began in 1932 and a tagging experiment in 1951 (Carlile et al. 2002).
+A number of statistical catch-at-age models for NSEI sablefish have been developed; however, none of these models have been used to set annual harvest quotas (Carlile et al. 2002, Dressel 2009, Mueter 2010, Williams and Van Kirk 2017).
 
-Currently the Alaska Department of Fish and Game (ADF&G) conducts an annual mark-recapture pot survey in May that serves as the basis for stock assessment and managment (Stahl and Holum 2010). 
-Tags are recaptured in the ADF&G longline survey in July and the longline fishery in August (Beder and Stahl 2016). 
-A time-stratified Chapmanized Petersen model is used to estimate abundance in the Bayesian open source software `JAGS 4.3.0` (Chapman 1951, Sullivan and Williams 2018, Depaoli 2016). The abundance estimate is then partitioned into age classes and biomass estimates using age composition and weight-at-age data collected during the longline survey and fishery. 
-A yield-per-recruit model is used to estimate $F_{50\%}$ using the `optim()` function in the statistical software `R` (R Core Team 2018). 
+Currently the Alaska Department of Fish and Game (ADF&G) conducts an annual mark-recapture survey that serves as the basis for stock assessment and managment (Stahl and Holum 2010). 
+Fish are tagged during a pot survey in May, with recaptures occurring in the ADF&G longline survey in July and the longline fishery in August (Beder and Stahl 2016). 
+A time-stratified Chapmanized Petersen model is used to estimate abundance in a Bayesian framework using `JAGS 4.3.0` (Chapman 1951, Sullivan and Williams 2018, Depaoli 2016). 
+Abundance estimates are partitioned into age classes in order to estimate biomass at age using age composition and weight-at-age data collected during the longline survey and fishery. 
 ADF&G has defined Acceptable Biological Catch (ABC) as $F_{ABC}$=$F_{50\%}$ for the NSEI sablefish stock (Dressel 2009). 
+A yield-per-recruit model is used to estimate $F_{50\%}$ using the `optim()` function in the statistical software `R` (R Core Team 2018). 
 
-Several factors motivated the development of a new statistical catch-at-age model. 
+Several factors motivated the development of a statistical catch-at-age model. 
 The current ADF&G framework relies heavily on the mark-recapture experiment, which may be vulnerable to future budget cuts. 
-Further the mark-recapture estimate provides a single snapshot in time and therefore results in high inter-annual variability in abundance and biomass estimates.
-Consequently, we are unable to fully integrate the available data sources, explore historical trends, or adequately assess stock status or harvest strategies. 
+Further the mark-recapture estimate provides a single snapshot in time and is susceptible to high inter-annual variability in abundance and biomass estimates.
+Consequently, it is difficult to fully integrate all available data sources, explore historical trends, or fully assess stock status or harvest strategies. 
 ADF&G collects a significant amount of data in the NSEI through multiple surveys, logbooks, and port sampling (Figure \@ref(fig:datsrc)). 
 Moving to a new modeling framework will allow us to better utilize these data and will make management more resilient to potential budget cuts. 
-In addition, the current assessment relies on Federal estimates of selectivity and does not estimate recruitment for the stock. 
-If there are differences in availability, gear selectivity, or stock dynamics in NSEI, we are unable to detect them.
-Finally, strong recruitment from the 2014 and possibly 2013 and 2015 year classes were reported in the Federal assessment, prompting questions about how to treat the uncertainty in recruitment for State management (Hanselman et al. 2017, Sullivan and Williams 2018). 
-A statistical catch-at-age model coded in Template Model Builder (`TMB`) will allow more flexibility in exploring recruitment using random effects (Kasper et al. 2016).
+Additionally, the current assessment relies on Federal estimates of selectivity and does not estimate recruitment for the stock. 
+If there are differences in availability, gear selectivity, or stock dynamics between Federal waters and NSEI, we are unable to detect them.
+Finally, strong recruitment from the 2014 and possibly 2013 and 2015 year classes were reported in the Federal assessment, prompting questions about how to treat uncertainty in recruitment for State management (Hanselman et al. 2017, Sullivan and Williams 2018). 
+A statistical catch-at-age model coded in Template Model Builder (`TMB`) will allow more flexibility in exploring recruitment using random effects (Kristensen et al. 2016).
 
 # Modeling approach	
 
-The statistical catch-at-age model presented here was coded in `TMB`, an `R` library that leverages `C/C++` functionality to calculate first and second order derivatives and was inspired by a similar `C/C++` templating software `ADMB` (Kasper et al. 2016, Fournier et al. 2012). 
-`TMB` is preferred to `ADMB` for it's easy implementation of random effects (Kasper et al. 2016).
+The statistical catch-at-age model presented here was coded in `TMB`, an `R` library that leverages `C/C++` functionality to calculate first and second order derivatives and was inspired by a similar `C/C++` templating software `ADMB` (Kristensen et al. 2016, Fournier et al. 2012). 
 The `TMB` code replicates or makes refinements to methods used in a previous attempt at modeling the NSEI sablefish stock (Mueter 2010); this model was based on `ADMB` code from an older Federal assessment of sablefish that has also been adapted for Alaska rockfish stocks (Kimura 1990, Sigler 1999). 
 The model can be run as either a single-sex or sex-structured model; however, data inputs are only shown for the sex-structured option. 
 Variable definitions for all equations used in the statistical catch-at-age model can be found in Table \@ref(tab:vardefns).
@@ -96,12 +95,12 @@ We fit sex-specific three-parameter weight-based Ludwig von Bertalanffy growth m
 where $w_a$ is weight at a given age (kg), $W_{\infty}$ is the mean asymptotic weight (kg), $\beta$ is the power in the allometric equation and relates to the rate at which $W_{\infty}$ is reached, and $t_0$ is the theoretical age at weight zero (years). 
 
 The Federal assessment uses survey weight-at-age exclusively to fit to catch and effort indices (Hanselman et al. 2018). 
-However, because discarding is allowed in the State fishery, there are large differences in survey and fishery weight-at-age, especially at younger ages (Figure \@ref(fig:bioinputs)A). 
-Consequently fishery weight-at-age was used to fit to landed catch biomass. Survey weight-at-age was used to estimate derived time series of exploitable biomass, spawning biomass, and other quantities of interest in the model (Figure \@ref(fig:bioinputs)A). 
+However, because discarding is permitted in the State fishery, there are large differences in survey and fishery weight-at-age, especially at younger ages (Figure \@ref(fig:bioinputs)A). 
+Consequently fishery weight-at-age was fit to landed catch biomass, while survey weight-at-age was used to estimate exploitable biomass, spawning biomass, and other quantities of interest in the model (Figure \@ref(fig:bioinputs)A). 
 
 ## Maturity-at-age
 
-Data from the 2007-`r YEAR` ADF&G longline surveys were used to fit a maturity curve for females and used to estimate spawning stock biomass within the model (Figure \@ref(fig:bioinputs)B). 
+Data from the 1997-`r YEAR` ADF&G longline surveys were used to fit a maturity curve for females and estimate spawning stock biomass within the model (Figure \@ref(fig:bioinputs)B). 
 Alternative length, age, and year-specific models were evaluated using Akaike Information Criterion (AIC) (Akaike 1974). 
 The length-based maturity curve fit to all years was the best-fitting model. 
 We used a logistic regression approach in `R`, such that the probability $p$ of being mature at a given length on the logit scale is a linear function of length ($l$):
@@ -111,13 +110,13 @@ We used a logistic regression approach in `R`, such that the probability $p$ of 
 (\#eq:maturity)
 \end{equation}
 
-Predicted maturity at length was transformed to age using the fitted values from a length-based von Bertalanffy growth curve (Figure \@ref(fig:bioinputs)B). 
+Predicted maturity-at-length was transformed to maturity-at-age using fitted values from a length-based von Bertalanffy growth curve. 
 The length at 50% maturity is 61 cm and the age at 50% maturity is 6.4 years. 
-Predicted proportions mature-at-age were used as inputs to the assessment model and in the calculation of spawning stock biomass.
+Predicted proportions mature-at-age were used as inputs to the assessment model and in the calculation of spawning stock biomass (Figure \@ref(fig:bioinputs)B).
 
 ## Sex ratios
 
-Using sex ratio data from the 1997-`r YEAR` ADF&G longline surveys, we fit a generalized additive model (GAM) using the `gam()` function in the `mgcv` R package (Wood 2011). 
+A generalized additive model (GAM) was fit to sex ratio information from the 1997-`r YEAR` ADF&G longline surveys using the `gam()` function in the `mgcv` R package (Wood 2011). 
 The probability of being female-at-age $r_a$ is modeled as a smooth function of age $a$
 
 \begin{equation}
@@ -131,21 +130,23 @@ These data are not used in the sex-structured model.
 
 ## Catch
 
-Catch data from 1980-`r YEAR` included harvest in the directed sablefish longline fishery, ADF&G longline survey removals, and sablefish retained in other fisheries like the IFQ halibut longline fishery (Figure \@ref(fig:abdind)A). 
+Catch data from 1980-`r YEAR` include harvest in the directed sablefish longline fishery, ADF&G longline survey removals, and sablefish retained in other fisheries like the IFQ halibut longline fishery (Figure \@ref(fig:abdind)A). 
 Catch was assumed to be lognormally distributed, with a fixed log standard deviation of 0.05. 
  
 Changes in the management structure during this period included a move to Limited Entry in 1985 and the Equal Quota Share (EQS) Program in 1994.
-Additional sources of mortality that are not currently included in this model include sport, subsistence and personal use harvest, estimated bycatch mortality in the halibut fishery, and estimated deadloss, which includes mortality from sand fleas, sharks, and whales.
+Additional sources of mortality that are not currently included in this model include sport, subsistence and personal use harvest, estimated bycatch mortality in the halibut fishery, and estimated deadloss, which includes mortality from sand fleas, sharks, and whales. 
+Currently these additional sources of mortality are accounted for in the decrements process used to calculate the Annual Harvest Objective. 
+Methods should be developed to incorporate these data into the model in the future.  
 
 ## Fishery CPUE
 
-Fishery catch-per-unit-effort (CPUE) in kg per hook was used as an index of abundance in the model from  1980-`r YEAR` (Figure \@ref(fig:abdind)B). 
+Fishery catch-per-unit-effort (CPUE) in kg per hook was used as an index of abundance from  1980-`r YEAR` (Figure \@ref(fig:abdind)B). 
 This index was assumed to be lognormally distributed, with a fixed log standard deviation of 0.1 for the historical data (1980-1996) and 0.08 for the contemporary data (1997 to present). 
 Separate catchabilities and selectivity curves were assumed for pre-EQS and EQS time periods (Table \@ref(tab:fedsel)).
 
 ## Survey CPUE
 
-Longline survey CPUE in numbers per hook was used as an index of abundance in the model from 1997-`r YEAR` (Figure \@ref(fig:abdind)C). 
+Longline survey CPUE in numbers per hook was used as an index of abundance from 1997-`r YEAR` (Figure \@ref(fig:abdind)C). 
 This index was assumed to be lognormally distributed, with a fixed log standard deviation of 0.1. 
 An earlier ADF&G longline survey in 1988-1996 used a shorter soak time of 1-hr instead of the current 3-11 hr (Carlile et al. 2002). 
 These data were omitted because the 1-hr soak time was likely too short to provide an accurate measure of relative abundance (Sigler 1993).
@@ -153,7 +154,7 @@ These data were omitted because the 1-hr soak time was likely too short to provi
 ## Mark-recapture abundance
 
 The mark-recapture abundance index was included for 2003-2010, 2012, 2013, 2015, 2017, and `r YEAR` (Figure \@ref(fig:abdind)D). 
-These estimates of abundance come from a time-stratified modified Petersen mark-recapture model that was implemented in `JAGS 4.3.0` (Sullivan and Williams 2018, Depaoli 2016). 
+A time-stratified Petersen mark-recapture model implemented in `JAGS 4.3.0` was used to estimate abundance (Sullivan and Williams 2018, Depaoli 2016). 
 Further information about how these indices were derived can be found in Sullivan and Williams (2018). 
 This index was assumed to be lognormally distributed, and the log standard deviation was approximated as the coefficient of variation from the posterior distribution of the mark-recapture abundance estimates. 
 
@@ -177,13 +178,11 @@ Fish less than 41 cm ($l_0$) were omitted from the analysis, and fish greater th
 Sample sizes were adequate to separate length compositions by sex.
 
 Length distributions in fishery (Figure \@ref(fig:fshlen)) show dramatically different patterns than the survey (Figure \@ref(fig:srvlen)), with the fishery length distribution truncated at approximately 60 cm. 
-Unlike the Federal sablefish fishery, releasing of fish is allowed in the State fishery. 
-Because smaller sablefish are worth significantly less per pound than larger individuals, the pattern of consistently large fish in the fishery length compositions is attributed to this discarding behavior. 
-The State fishery has no observer coverage, so fitting to fishery age and length compositions and estimating fishery selectivity is a technical challenge. 
+Full retention is not a requirement in State waters and the length differences between the survey and fishery are attributed to discarding of small fish in the fishery. 
 Because of the bias introduced by allowing fish to be released in the fishery, there is a question of whether fishery age and length compositions should be included in model. 
 
 Finally, the selective harvest of larger-bodied individuals results in large differences between survey and fishery size-at-age. 
-Until separate age-length keys can be developed using NSEI data, the Federal age-length keys ($\Lambda_{a,l,k}$) were used to fit both survey and fishery length compositions (D. Hanselman, Fisheries Research Biologist, NOAA, Juneau, personal communication April 2019; Hanselman et al. 2018; Echave et al. 2012; Figure \@ref(fig:agelenkey)). Ultimately, separate age-length keys should be developed for each data source.
+Until an age-length key is developed for NSEI, the Federal age-length keys ($\Lambda_{a,l,k}$) will be used to fit both survey and fishery length compositions (D. Hanselman, Fisheries Research Biologist, NOAA, Juneau, personal communication April 2019; Hanselman et al. 2018; Echave et al. 2012; Figure \@ref(fig:agelenkey)). Ultimately, separate age-length keys should be developed for each data source to account for the differences in survey and fishery size-at-age.
 
 ## Retention probability 
 
@@ -195,14 +194,14 @@ Remaining retention probabilities were interpolated between these fixed values. 
 
 ## Natural mortality
 
-Natural mortality $M$ was assumed constant over time and age and is fixed at 0.10, which is consistent with past State and Federal assessments (Johnson and Quinn 1988, Hanselman et al. 2018). 
+Natural mortality $M$ was assumed constant over time and age and fixed at 0.10, which is consistent with past State and Federal assessments (Johnson and Quinn 1988, Hanselman et al. 2018). 
 
 ## Discard mortality
 
 Stachura et al. (2012) estimated discard mortality $D$ of sablefish to be 11.7% using release-recapture data from a longline survey in Southeast Alaska. 
 It is likely that discard mortality in a fishery is higher due to careful fish handling on survey vessels during tagging experiments. 
-We therefore used $D$=16%, the discard mortality rate from the Pacific halibut fishery (Gilroy and Stewart 2013). 
-The halibut fishery is assumed a good proxy for sablefish, because the fisheries utilize similar gear and frequently the same vessels and crew participate in both fisheries.
+Therefore the discard mortality rate from the Pacific halibut fishery, $D$=16%, was used (Gilroy and Stewart 2013). 
+The halibut fishery is assumed a reasonable proxy for sablefish, because the fisheries utilize similar gear and frequently the same vessels and crew participate in both fisheries.
 Moreover, both species are considered hardy, do not experience barotrauma, and are known to survive well in laboratory experiments.
 
 ## Selectivity
@@ -229,7 +228,7 @@ s_a=\frac{1}{1+\mbox{exp}(-k(a-s_{50}))}.
 Selectivity is fit separately for the longline fishery ($fsh$) and survey ($srv$). 
 There is flexibility to define discrete time blocks for both fishery and survey selectivity. 
 
-Currently fishery and survey selectivity are fixed in the model using Federal selectivity values for the derby (pre-EQS), modern fishery (EQS), longline survey (Hanselman et al. 2018, Figure \@ref(fig:fixedsel), Table \@ref(tab:fedsel)). 
+Currently fishery and survey selectivity are fixed in the model using Federal selectivity values for the derby (pre-EQS), contemporary fishery (EQS), and longline survey (Hanselman et al. 2018, Figure \@ref(fig:fixedsel), Table \@ref(tab:fedsel)). 
 
 Estimating selectivity will be challenging when accounting for fishery discards because no age or length data are available on the discarded population. 
 One potential solution is to estimate a single selectivity for the longline survey and then apply that selectivity curve to the fishery.
@@ -448,25 +447,28 @@ Future work on this model should include the development of priors for fishery a
 
 # Preliminary results and discussion
 
-A summary of parameter estimates and standard errors are reported in Table \@ref(tab:keyparams). 
-In particular, mean recruitment and deviations were difficult to estimate. 
-Initially, the weight on this likelihood component was assumed to be low ($\lambda_{\tau}=0.1$), but this yielded an unrealistically large spike (>40 times the mean value) in age-2 recruitment in 2016 corresponding to the 2014 year class. 
-Increasing the $\lambda_{\tau}$ to 2.0 resulted in more reasonable parameter estimates and decreased the age-2 recruitment to ~8 times mean recruitment. 
-The objective function value (negative log likelihood) was 1,007.1. 
+A summary of parameter estimates and standard errors are reported in Table \@ref(tab:keyparams). The objective function value (negative log likelihood) was 1,007.1. 
 The maximum gradient component was 0.00086, barely passing the minimum convergence criteria of 0.001.
 A summary of the contributions of each likelihood component to the total objective function can be found in Table \@ref(tab:likesum). 
 
+In particular, mean recruitment and deviations were difficult to estimate (Table \@ref(tab:keyparams)).  
+Initially, the weight on this likelihood component was assumed to be low ($\lambda_{\tau}=0.1$), but this yielded an improbably large spike (>40 times the mean value) in age-2 recruitment in 2016 corresponding to the 2014 year class. 
+Increasing the $\lambda_{\tau}$ to 2.0 resulted in more reasonable parameter estimates and decreased the age-2 recruitment to ~8 times mean recruitment. 
+Alternatively, it may be that the parameter governing variability in recruitment $\sigma_R$ should be reduced or estimated using random effects. 
+Currently $\sigma_R$ is fixed to 1.2; however, it is possible $\sigma_R$ is too high for a low productivity species like sablefish (Sigler et al. 2002, Hanselman et al. 2018). 
+Future work should include an analysis to evaluate assumptions about $\sigma_R$. 
+
 Preliminary fits to catch and indices of abundance are shown in Figure \@ref(fig:predabdind). 
 Results suggest that the model fits catch, pre-EQS fishery CPUE, and mark-recapture abundance reasonably well in most years. 
-Modern fishery CPUE (EQS) does not fit well, with long runs of positive or negative residuals (Figure \@ref(fig:residabdind)). 
+Contemporary fishery CPUE (EQS) does not fit well, with long runs of positive or negative residuals (Figure \@ref(fig:residabdind)). 
 The model performs poorly during the period directly following the implementation of EQS in 1994 for all indices, including catch (Figure \@ref(fig:residabdind)). 
-Prior to implementing this model for management, further consideration should be given to which abundance indices that should be used in the model. 
+Prior to implementing this model for management, further consideration should be given to which abundance indices should be used in the model. 
 For example, because discarding is legal in NSEI and past logbook data have not required released fish to be recorded, fishery CPUE may not be a suitable index of abundance. 
 Starting in 2019, fishermen will be required to provide an estimate of number of released sablefish by set; however, there will still be no record of length or weight of these discards.
 Finally, variability in catch, survey, and fishery CPUE indices was assumed (Figure \@ref(fig:abdind)). 
 Future enhancements could include estimating this variability using available data.
 
-Fits to fishery and age compositions are shown in Figures \@ref(fig:fshage) and \@ref(fig:srvage), respectively. 
+Preliminary fits to fishery and age compositions are shown in Figures \@ref(fig:fshage) and \@ref(fig:srvage), respectively. 
 Although the model fits the general shape of the age compositions in most years, there are poor residual patterns (Figure \@ref(fig:residage)). 
 Fits to male and female fishery length compositions are shown in Figures \@ref(fig:malefshlen) and \@ref(fig:femalefshlen), respectively. Fits to male and female survey length compositions are shown in Figures \@ref(fig:malesrvlen) and \@ref(fig:femalesrvlen), respectively. 
 Similar to the age compositions, the model predicts the general shape of the length compositions in for both the survey and fishery in most years.
@@ -479,7 +481,8 @@ Second, results presented here assume fixed selectivity equal to the Federal fis
 Because no data on discards exist, it may not be possible to estimate fishery selectivity while fitting to the composition data. 
 Stock assessments that account for discarded catch frequently have observer data and will overcome this challenge through the estimation of a separate selectivity for discarded catch.
 An alternative approach is to estimate survey selectivity and then assume fishery and survey selectivity are equal.
-Finally, fishery size-at-age is larger than survey weight-at-age, especially at younger ages. Consequently, fits to fishery length compositions may benefit from the development of separate age-length keys for the NSEI survey and fishery.
+Finally, fishery size-at-age is larger than survey size-at-age, especially at younger ages. 
+Consequently, fits to fishery length compositions may benefit from the development of separate age-length keys for the NSEI survey and fishery.
 
 Derived indices of age-2 recruitment, female spawning stock biomass, and exploitable abundance and biomass (i.e. available to the fishery) suggest that this stock has been in a period of low productivity since the mid-1990s (Figure \@ref(fig:derivedts)).
 Recruitment trends are comparable with Federal values, and estimates of spawning stock biomass, exploitable biomass, and exploitable abundance are in par with past and current ADF&G estimates (Hanselman et al 2018, Sullivan and Williams 2018).
@@ -502,6 +505,7 @@ The following tasks must be completed in order for this model to be considered f
 These tasks should be completed within 1-2 years of implementation. They are critical components of a well-developed statistical catch-at-age model. 
 
 - Implement Bayesian analysis to evaluate posterior densities of estimated and derived quantities of interest.
+- Evaluate estimation and assumptions about recruitment variability.
 - Conduct retrospective analysis to determine model performance over time.
 - Develop framework to conduct projections to evaluate stock status and assess risk.
 
@@ -515,6 +519,7 @@ These tasks should be completed within 2-4 years of implementation. While they a
 - Improve methods for accounting for fishery discards, including conducting research to better understand discarding behavior and how it has changed over time. 
 - Develop priors for catchability and other relevant parameters. 
 - Assess alternative sources of data, especially historical biological and catch data (Carlile et al. 2002).
+- Develop methods to account for additional sources of mortality, including sport, subsistence and personal use harvest, estimated bycatch mortality in the halibut fishery, and estimated deadloss, which includes mortality from sand fleas, sharks, and whales.
 
 # Acknowledgements
 
@@ -564,12 +569,16 @@ Sigler, M. F., 1999. Estimation of sablefish, Anoplopoma fimbria, abundance off 
 
 Sigler, M. F., C. R. Lunsford, J. T. Fujioka, and S. A. Lowe. 2002. Alaska sablefish assessment for 2003. In Stock assessment and fishery evaluation report for the groundfish fisheries of the Bering Sea and Aleutian Islands. pp. 449-514. North Pacific Fishery Management Council, 605 W 4th Avenue, Suite 306, Anchorage, AK 99510.
 
+Sullivan, J., B. Williams, and A. Olson. 2018. 2018 NSEI Sablefish Assessment. State of Alaska, Department of Fish and Game, Division of Commercial Fisheries Memorandum. June 20, 2018.
+
 Thorson, J. T., Johnson, K. F., Methot, R. D., & Taylor, I. G. 2017. Model-based estimates of effective sample size in stock assessment models using the Dirichlet-multinomial distribution. Fisheries Research, 192, 84-93.
 
-Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelihood estimation of semiparametric generalized linear models. Journal of the Royal Statistical Society (B) 73(1):3-36.
+Williams, B., and K. Van Kirk. 2017. 2017 NSEI Sablefish Assessment. State of Alaska, Department of Fish and Game, Division of Commercial Fisheries Memorandum. March 16, 2017.
 
+Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelihood estimation of semiparametric generalized linear models. Journal of the Royal Statistical Society (B) 73(1):3-36. 
+
+\newpage
 # Tables
-
 
 ```{r vardefns, echo=FALSE}
 
@@ -637,7 +646,7 @@ var <- data.frame(
 
 defn_tbl <- rbind(index, par, var)
 
-kable(defn_tbl, booktabs = TRUE, format = "latex", escape = FALSE,
+kable(defn_tbl, booktabs = TRUE, longtable = TRUE, format = "latex", escape = FALSE,
       caption = "Variable definitions for the statistical catch-at-age model.") %>%
   group_rows("$\\\\textit{Indexing and model dimensions}$", 1, length(index$Variable), escape = FALSE) %>%
   group_rows("$\\\\textit{Parameters}$", length(index$Variable) + 1,
@@ -648,8 +657,7 @@ kable(defn_tbl, booktabs = TRUE, format = "latex", escape = FALSE,
              escape = FALSE) 
   
 ```
-
-
+\newpage
 ```{r fedsel, echo=FALSE}
 
 sel_tbl <- data.frame(
@@ -660,12 +668,12 @@ sel_tbl <- data.frame(
   f_slp = c("2.29", "2.61", "2.21")
 )
 
-kable(sel_tbl, booktabs = TRUE, format = "latex", escape = FALSE,
+kable(sel_tbl, booktabs = TRUE, longtable = TRUE, format = "latex", escape = FALSE,
       col.names = c("", "$s_{50}$", "$\\delta_{50}$", "$s_{50}$", "$\\delta_{50}$"),
       caption = "Assumed selectivity parameters for the fishery before the Equal Quota Share program started in 1994 (pre-EQS), the fishery since the implementation of EQS, and the ADF\\&G longline survey for females (black points) and males (grey triangles). These parameters estimates were borrowed from the Federal stock assessment, where the Federal derby fishery, IFQ fishery, and NMFS Cooperative Longline Survey were assumed to represent pre-EQS, EQS, and the ADF\\&G longline survey (Hanselman et al. 2018).") %>%
   add_header_above(c(" ", "Male" = 2, "Female" = 2)) 
 ```
-
+\newpage
 ```{r keyparams, echo=FALSE}
 
 keyparams %>% 
@@ -680,11 +688,11 @@ keyparams %>%
          `Standard error` = formatC(se, format = "f", digits = 3)) %>% 
   select(-se) -> keyparams
 
-kable(keyparams, booktabs = TRUE, format = "latex", escape = FALSE,
+kable(keyparams, booktabs = TRUE, longtable = TRUE, format = "latex", escape = FALSE,
       caption = "Parameter estimates from the statistical catch-at-age model. Estimates of recruitment, initial numbers-at-age, and fishing mortality deviations were excluded for brevity.") 
 
 ```
-
+\newpage
 ```{r likesum, echo=FALSE}
 
 like %>% 
@@ -692,21 +700,18 @@ like %>%
          perc = formatC(perc, format = "f", digits = 1)) %>% 
   select("Likelihood component" = like, "$NLL$" = value, "\\% of $NLL$" = perc) -> like
 
-kable(like, booktabs = TRUE, format = "latex", escape = FALSE,
-      caption = "Negative likelihood values and percent of each component to the total likelihood.") 
+kable(like, booktabs = TRUE, longtable = TRUE, format = "latex", escape = FALSE,
+      caption = "Negative likelihood values and percent of each component to the total likelihood. The data likelihood is the sum of all likelihood contributions from data. The difference between the total likelihood and the data likelihood is the contribution of penalized likelihoods, including recruitment and fishing mortality.") 
 
 ```
-
-
-\pagebreak
-
+\newpage
 # Figures
 ```{r datsrc, fig.cap="A summary of the available data sources in NSEI by year."}
 
 knitr::include_graphics("../figures/tmb/sable_data_all.png")
 ```
 
-```{r bioinputs, fig.cap="Biological inputs to the statistical catch-at-age model, including: (A) weight-at-age (kg) by sex from the longline fishery (black) and ADF&G longline survey (grey); (B) proportion mature for females estimated from the longline survey with the age at 50% maturity ($a_{50}$=6.4 yr); and (C) proportion female in the longline survey, where the curve is the fitted line from a generalized additive model +/- 2 standard error."}
+```{r bioinputs, fig.cap="Biological inputs to the statistical catch-at-age model, including: (A) von Bertalanffy growth model predictions of weight-at-age (kg) by sex from the longline fishery (black) and ADF&G longline survey (grey); (B) proportion mature at age for females estimated from the longline survey with the age at 50% maturity ($a_{50}$=6.4 yr); and (C) proportion female in the longline survey, where the curve is the fitted line from a generalized additive model +/- 2 standard error."}
 
 knitr::include_graphics("../figures/tmb/bio_dat.png")
 ```
@@ -738,7 +743,7 @@ knitr::include_graphics(paste0("../figures/tmb/lencomp_fsh_",YEAR,".png"))
 knitr::include_graphics(paste0("../figures/tmb/lencomp_srv_",YEAR,".png"))
 ```
 
-```{r agelenkey, fig.cap= paste0("Age-length key used in the model, showing the probability that a fish of a given age falls within a certain length bin (Echave et al. 2012).")}
+```{r agelenkey, fig.cap= paste0("Age-length key used in the model, with the relative size of the bubbles reflecting the probability that a fish of a given age falls within a certain length bin (Echave et al. 2012). The probabilities sum to 1 across each age.")}
 
 knitr::include_graphics(paste0("../figures/tmb/age_length_key.png"))
 ```

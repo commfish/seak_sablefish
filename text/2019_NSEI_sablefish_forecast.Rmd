@@ -129,17 +129,17 @@ read_csv(paste0("output/harvest_1985_", YEAR, ".csv")) -> catch
 # Percent change in compared to a ten year rolling average
 srv_sum %>% 
   filter(year > YEAR - 10 & year <= YEAR) %>% 
-  mutate(lt_mean = mean(annual_cpue),
-         perc_change_lt = (annual_cpue - lt_mean) / lt_mean * 100,
+  mutate(lt_mean = mean(srv_cpue),
+         perc_change_lt = (srv_cpue - lt_mean) / lt_mean * 100,
          eval_lt = ifelse(perc_change_lt < 0, "decrease", "increase")) %>% 
   filter(year == YEAR) -> srv_lt
 
 # Percent change from last year
 srv_sum %>% 
   filter(year >= YEAR - 1 & year <= YEAR) %>%
-  select(year, annual_cpue) %>% 
+  select(year, srv_cpue) %>% 
   mutate(year2 = ifelse(year == YEAR, "thisyr", "lastyr")) %>% 
-  dcast("annual_cpue" ~ year2, value.var = "annual_cpue") %>% 
+  dcast("srv_cpue" ~ year2, value.var = "srv_cpue") %>% 
   mutate(perc_change_ly = (thisyr - lastyr) / lastyr * 100,
          eval_ly = ifelse(perc_change_ly < 0, "decreased", "increased")) -> srv_ly
 
@@ -174,7 +174,7 @@ fsh_sum %>%
 
 # Section I: Changes to the NSEI sablefish assessment for `r YEAR+1` relative to `r YEAR`
 
-1.  Fishermen in State waters are allowed to discard small, unmarketable fish as long as they are healthy (i.e not dead, sand flea bitten, etc.). Due to the high volume of small fish encountered in the `r YEAR-1` and `r YEAR` fisheries, discard mortality was incorporated directly into last year's population dynamics model (Sullivan et al. 2018). These methods were refined in `r YEAR+1` using equations commonly applied in size-structured models to king and tanner crab stocks in Alaska (e.g. Zheng and Siddeek 2018). Because data on discards is not collected, the probability of a fish being retained was informed by processor grade definitions and prices and modeled as a function of weight, sex, and age (`r fig('discard_mort', display = "cite")`). This method of accounting for discards shifts fishing mortality toward older ages, especially for males that are slower growing than females (`r fig('F_discards', display = "cite")`). Stachura et al. (2012) estimated discard mortality of sablefish to be 11.7% using release-recapture data from a longline survey in Southeast Alaska. However, it is likely that discard mortality in a fishery is higher due to careful fish handling on survey vessels during tagging experiments. We therefore used 16%, the discard mortality rate from the Pacific halibut fishery (Gilroy and Stewart 2013). The halibut fishery is assumed a good proxy for sablefish, because the fisheries utilize similar gear and frequently the same vessels and crew participate in both fisheries. Moreover, both species are considered hardy, do not experience barotrauma, and are known to survive well in laboratory experiments.
+1.  Fishermen in State waters are allowed to discard small, unmarketable fish as long as they are healthy (i.e not dead, sand flea bitten, etc.). Due to the high volume of small fish encountered in the `r YEAR-1` and `r YEAR` fisheries, discard mortality was incorporated directly into last year's population dynamics model (Sullivan et al. 2018). These methods were refined in `r YEAR+1` using equations commonly applied in size-structured models to king and tanner crab stocks in Alaska (e.g. Zheng and Siddeek 2018). Because data on discards is not collected, the probability of a fish being retained was informed by processor grade definitions and prices and modeled as a function of weight, sex, and age (`r fig('discard_mort', display = "cite")`). Based on conversations with ADF&G port sampling staff and fishermen, the lower bound of the Grade 2/3 (1.4 kg) was assigned a 10% retention probability, the lower bound of the Grade 3/4 (2.2 kg) was assigned a 50% retention probability, and everything greater than 6.4 kg was assigned a 100% retention probability (`r fig('discard_mort', display = "cite")`, A. Olson, Groundfish Project Leader, ADF&G July 2018). Remaining retention probabilities were interpolated between these fixed values. This method of accounting for discards shifts fishing mortality toward older ages, especially for males that are slower growing than females (`r fig('F_discards', display = "cite")`). Stachura et al. (2012) estimated discard mortality of sablefish to be 11.7% using release-recapture data from a longline survey in Southeast Alaska. However, it is likely that discard mortality in a fishery is higher due to careful fish handling on survey vessels during tagging experiments. We therefore used 16%, the discard mortality rate from the Pacific halibut fishery (Gilroy and Stewart 2013). The halibut fishery is assumed a good proxy for sablefish, because the fisheries utilize similar gear and frequently the same vessels and crew participate in both fisheries. Moreover, both species are considered hardy, do not experience barotrauma, and are known to survive well in laboratory experiments.
 
 2.  In `r YEAR` the abundance estimate of exploited abundance used to determine the $ABC$ was adjusted to account for uncertainty in recent recruitment events. Estimates of a single recruitment event can decrease significantly as the year class is observed over multiple years of age compositions, and the 2014 year class is now estimated to be 30% less than it was last year (Hanselman et al. 2017, Figure 3.57, Hanselman et al. 2018). In `r YEAR`, the adjustment was made by using the 15th percentile from the posterior distribution of the mark-recapture abundance estimate instead of the mean as the input to the forecast model (Sullivan et al. 2018). This adjustment was a subjective, precautionary measure aimed at stabilizing the fishery by slowing the rate of increase in harvest and reducing the risk of overfishing if the 2013 and 2014 year classes are estimated to be smaller as subsequent years of data are added (i.e. negative retrospective bias). 
 
@@ -282,7 +282,7 @@ There are four primary assumptions integral to the Chapman estimator, which have
 
 5.  To further address a potential change in capture probability through time, two of the alternative models incorporate fishery CPUE data to account for seasonal changes in catch rates or fish abundance (see Models 3 and 4, `r tbl('mods', display = "cite")`).
 
-The mark-recapture models used in this analysis are based on analyses by Mueter (2010). Population estimates from a simple Chapman estimator (Model 0) are compared with estimates from several extensions of a stratified Peterson estimator that account for changes in capture probability through time, natural and fishing mortality, migration, and seasonal trends in catch rates. These alternative model structures (Models 1-4) are implemented in the Bayesian open source software JAGS 4.3.0 (Depaoli 2016). The Bayesian approach is preferred, because it allows the incorporation of prior information and additional parameter uncertainty into the model. Previous methods used arbitrary break points (e.g. 5 or 10 days) to define temporal strata throughout the fishing season (Mueter 2010, Van Kirk et al. 2016). Here cumulative catch over time is used to define temporal strata. A combination of convergence criteria, deviance information criterion (DIC; Spiegelhalter et al. 2002), and an examination of seasonal trends in abundance was used in model selection. 
+The mark-recapture models used in this analysis are based on analyses by Mueter (2010). Population estimates from a simple Chapman estimator (Model 0) are compared with estimates from several extensions of a stratified Peterson estimator that account for changes in capture probability through time, natural and fishing mortality, migration, and seasonal trends in catch rates. These alternative model structures (Models 1-4) are implemented in the Bayesian open source software JAGS 4.3.0 (Depaoli 2016). The Bayesian approach is preferred, because it allows the incorporation of prior information and additional parameter uncertainty into the model. Previous methods used arbitrary break points (e.g. 5 or 10 days) to define temporal strata throughout the fishing season (Mueter 2010, Van Kirk 2016). Here cumulative catch over time is used to define temporal strata. A combination of convergence criteria, deviance information criterion (DIC; Spiegelhalter et al. 2002), and an examination of seasonal trends in abundance was used in model selection. 
 
 ## Model 1: Time-stratified Petersen estimator
 
@@ -416,7 +416,9 @@ Stachura, M. M., Lunsford, C. R., Rodgveller, C.J. and Heifetz, J., 2012. Estima
 
 Sullivan, J., B. Williams, and A. Olson. 2018. 2018 NSEI Sablefish Assessment. State of Alaska, Department of Fish and Game, Division of Commercial Fisheries Memorandum. June 20, 2018.
 
-Williams, B, and K. Van Kirk. 2017. 2017 NSEI Sablefish Assessment. State of Alaska, Department of Fish and Game, Division of Commercial Fisheries Memorandum. March 16, 2017.
+Van Kirk, K.. 2016. 2016 NSEI Sablefish Assessment. State of Alaska, Department of Fish and Game, Division of Commercial Fisheries Memorandum. April 16, 2016.
+
+Williams, B., and K. Van Kirk. 2017. 2017 NSEI Sablefish Assessment. State of Alaska, Department of Fish and Game, Division of Commercial Fisheries Memorandum. March 16, 2017.
 
 Zheng, J. and M. S. M. Siddeek. 2018. Bristol Bay Red King Crab stock assessment in Fall 2018. *In* Stock assessment and fishery evaluation report for the King and Tanner crab fisheries of the Bering Sea and Aleutian Islands Regions. North Pacific Fishery Management Council, 605 W 4th Ave, Suite 306 Anchorage, AK 99501.
 
