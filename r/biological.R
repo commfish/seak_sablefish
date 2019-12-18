@@ -9,7 +9,7 @@ library(ggridges)
 
 YEAR <- 2018
 rec_age <- 2
-plus_group <- 31
+plus_group <- 42
 
 # data -----
 
@@ -343,7 +343,7 @@ ggplot(allom_sub, aes(length, weight, col = Sex, shape = Sex)) +
   stat_function(fun = lw_allometry, 
                 args = as.list(tidy(male_fit)$estimate),
                 col = "grey", lty = 2) + 
-  labs(x = "\nLength (cm)", y = "Weight (kg)\n", alpha = NULL) +
+  labs(x = "\nFork length (cm)", y = "Round weight (kg)\n", alpha = NULL) +
   scale_colour_grey() +
   theme(legend.position = c(0.9, 0.2))
 
@@ -452,7 +452,7 @@ ggplot() +
   geom_line(data = pred, aes(x = age, y = pred, col = Sex, lty = Sex, group = Sex), lwd = 1) + #"#00BFC4"
   scale_colour_grey(start = 0, end = 0.5) +
   scale_linetype_manual(values = c(2,1)) +
-  scale_x_continuous(limits = c(2,31),breaks = axis$breaks, labels = axis$labels) +
+  scale_x_continuous(limits = c(2,plus_group),breaks = axis$breaks, labels = axis$labels) +
   ylim(c(0,10)) +
   xlab("\nAge (yrs)") +
   ylab("Weight (kg)\n") + 
@@ -525,7 +525,7 @@ ggplot() +
             lwd = 2, col = "red") + #"#00BFC4"
   xlab("\nAge (yrs)") +
   ylab("Weight (kg)\n") +
-  lims(x = c(2,31), y = c(0,15))
+  lims(x = c(2,plus_group), y = c(0,15))
 
 # Past assessments: for the plus group (31+) take the mean of all samples >=
 # 31. Now just use the predicted mean asymptotic length.
@@ -1261,7 +1261,7 @@ lendat %>%
   ggplot(aes(length, year, group = year, fill = year)) + 
   geom_density_ridges(aes(point_fill = year, point_color = year),
                       alpha = 0.3) +
-  geom_vline(xintercept = 61, linetype = 4) +
+  #geom_vline(xintercept = 61, linetype = 4) +
   xlim(40, 90) + 
   xlab("\nLength (cm)") + 
   ylab(NULL) +
@@ -1279,7 +1279,7 @@ lendat %>%
   mutate(Source = derivedFactor("Survey" = Source == "LL survey")) %>% 
   ggplot(aes(length, year, group = year, fill = year)) + 
   geom_density_ridges(aes(point_fill = year, point_color = year), alpha = 0.3) +
-  geom_vline(xintercept = 61, linetype = 4) + # L50
+  #geom_vline(xintercept = 61, linetype = 4) + # L50
   xlim(40, 90) + 
   labs(x = "\nLength (cm)", y = "Year\n") +
   scale_y_reverse() +
@@ -1296,7 +1296,7 @@ lendat %>%
   mutate(Source = derivedFactor("Fishery" = Source == "LL fishery")) %>% 
   ggplot(aes(length, year, group = year, fill = year)) + 
   geom_density_ridges(aes(point_fill = year, point_color = year), alpha = 0.3) +
-  geom_vline(xintercept = 61, linetype = 4) + # L50
+  # geom_vline(xintercept = 61, linetype = 4) + # L50
   xlim(40, 90) + 
   labs(x = "\nLength (cm)", y = "Year\n") +
   scale_y_reverse() +
