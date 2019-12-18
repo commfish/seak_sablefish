@@ -6,15 +6,15 @@ author: |
   | $^2$Alaska Department of Fish and Game, Commercial Fisheries Division, Douglas, Alaska
 
 output:
-  bookdown::pdf_document2:
+  bookdown::word_document2:
     fig_caption: yes
-    toc: yes
-    number_sections: false
+    toc: false
+    # number_sections: false
 
 header-includes: 
  \usepackage{float}
  \floatplacement{figure}{H}
-# always_allow_html: yes
+always_allow_html: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -87,10 +87,8 @@ A summary of the available data by year can be found in Figure \@ref(fig:datsrc)
 Data from the 2002-`r YEAR` longline fishery and 1997-`r YEAR` ADF&G longline surveys were used to obtain weight-at-age. 
 We fit sex-specific three-parameter weight-based Ludwig von Bertalanffy growth models to weight-at-age data:
 
-\begin{equation}
-\ln(w_a)=\ln W_{\infty}+\beta \cdot \ln (1-\exp (a-t_0)) ,
-(\#eq:weightvonb)
-\end{equation}
+$$\ln(w_a)=\ln W_{\infty}+\beta \cdot \ln (1-\exp (a-t_0)) ,$$
+
 
 where $w_a$ is weight at a given age (kg), $W_{\infty}$ is the mean asymptotic weight (kg), $\beta$ is the power in the allometric equation and relates to the rate at which $W_{\infty}$ is reached, and $t_0$ is the theoretical age at weight zero (years). 
 
@@ -105,10 +103,7 @@ Alternative length, age, and year-specific models were evaluated using Akaike In
 The length-based maturity curve fit to all years was the best-fitting model. 
 We used a logistic regression approach in `R`, such that the probability $p$ of being mature at a given length on the logit scale is a linear function of length ($l$):
 
-\begin{equation}
-\ln(\frac{p_l}{1-p_l})=\beta_0+\beta_1 \cdot l.
-(\#eq:maturity)
-\end{equation}
+$$\ln(\frac{p_l}{1-p_l})=\beta_0+\beta_1 \cdot l.$$
 
 Predicted maturity-at-length was transformed to maturity-at-age using fitted values from a length-based von Bertalanffy growth curve. 
 The length at 50% maturity is 61 cm and the age at 50% maturity is 6.4 years. 
@@ -119,10 +114,7 @@ Predicted proportions mature-at-age were used as inputs to the assessment model 
 A generalized additive model (GAM) was fit to sex ratio information from the 1997-`r YEAR` ADF&G longline surveys using the `gam()` function in the `mgcv` R package (Wood 2011). 
 The probability of being female-at-age $r_a$ is modeled as a smooth function of age $a$
 
-\begin{equation}
-\ln(\frac{r_a}{1-r_a})=s(a).
-(\#eq:sexratio)
-\end{equation}
+$$\ln(\frac{r_a}{1-r_a})=s(a).$$
 
 Fits to the data suggest that female sablefish make up the majority of catch-at-age in the survey until roughly age-18 and then decline to <40% by age-30 (Figure \@ref(fig:bioinputs)C). 
 Predicted values of proportion female-at-age were used to estimate spawning stock biomass in the single sex model. 
@@ -212,18 +204,12 @@ Currently two parameterizations of logistic selectivity are available in the `TM
 The first parameterization uses $s_{50}$ and $s_{95}$, which represent the ages at which 50% and 95% of individuals are selected by the gear.
 Selectivity-at-age ($s_a$) for this parameterization is defined as
 
-\begin{equation}
-s_a=\frac{1}{1+\mbox{exp}\frac{-\mbox{ln}(19)(a-s_{50})}{s_{95}-s_{50}}}.
-(\#eq:sel1)
-\end{equation}
+$$s_a=\frac{1}{1+\mbox{exp}\frac{-\mbox{ln}(19)(a-s_{50})}{s_{95}-s_{50}}}.$$
 
 The second parameterization uses $s_{50}$ and $\delta$, which represent the ages at which 50% of individuals are selected by the gear and the shape or slope of the logistic curve, respectively. 
 Selectivity-at-age ($s_a$) for this parameterization is defined as
 
-\begin{equation}
-s_a=\frac{1}{1+\mbox{exp}(-k(a-s_{50}))}.
-(\#eq:sel2)
-\end{equation}
+$$s_a=\frac{1}{1+\mbox{exp}(-k(a-s_{50}))}.$$
 
 Selectivity is fit separately for the longline fishery ($fsh$) and survey ($srv$). 
 There is flexibility to define discrete time blocks for both fishery and survey selectivity. 
@@ -253,191 +239,135 @@ There is one parameter estimated for mean log-fishing mortality, $\mu_F$, and `r
 
 The population dynamics of this model are governed by the following state dynamics equations, where the number of sablefish $N$ in year $t=1$, age $a$, and sex $k$ are defined as
 
-\begin{equation}
-N_{1,a,k} = \left\{ \begin{array}{ll}
+$$N_{1,a,k} = \left\{ \begin{array}{ll}
 0.5\cdot\mbox{exp}(\mu_R-M(a-a_0)+\psi_a) &a_{0}<a<a_{+}\\
 0.5\cdot\mbox{exp}(\mu_R-M(a_{+}-1))/(1-\mbox{exp}(-M)) &a=a_{+}
-\end{array}\right.
-(\#eq:Nmat1)
-\end{equation}
-
+\end{array}\right.$$
 Recruitment to age-2 in all years and the remaining projected $N$ matrix is defined as
 
-\begin{equation}
-N_{t,a,k} = \left\{ \begin{array}{ll}
+$$N_{t,a,k} = \left\{ \begin{array}{ll}
 0.5\cdot\mbox{exp}(\mu_R+\tau_t) &a=a_0\\
 0.5\cdot N_{t-1,a-1,k}\mbox{exp}(Z_{t-1,a-1,k}) &a_{0}<a<a_{+}\\
 0.5\cdot N_{t-1,a-1,k}\mbox{exp}(Z_{t-1,a-1,k})+N_{t-1,a,k}\mbox{exp}(Z_{t-1,a,k}) &a=a_{+}
-\end{array}\right.
-(\#eq:Nmat2)
-\end{equation}
+\end{array}\right.$$
 
 where the total instantaneous mortality, $Z_{t,a,k}$, is the sum of natural mortality $M$ and fishing mortality $F_{t,a,k}$. 
 
 Total annual fishing mortality $F_t$ is defined as
-\begin{equation}
-F_t=\mbox{exp}(\mu_F+\phi_t).
-(\#eq:fmort1)
-\end{equation}
+
+$$F_t=\mbox{exp}(\mu_F+\phi_t).$$
 
 Fishing mortality is modeled as a function of fishery selectivity $s_{t,a,k}$, retention probability $R_{a,k}$ (the age-specific probability of being landed given being caught, Figure \@ref(fig:retention)), and discard mortality $D$:
 
-\begin{equation}
-F_{t,a,k}=s_{t,a,k}^{fsh}(R_{a,k}+D(1-R_{a,k}))F_t.
-(\#eq:fmort2)
-\end{equation}
+$$F_{t,a,k}=s_{t,a,k}^{fsh}(R_{a,k}+D(1-R_{a,k}))F_t.$$
 
 # Predicted values
 
 Predicted fishery CPUE (kg per hook) in year $t$ $\hat{I_t}^{fsh}$ was defined as a function of fishery catchability $q_{fsh}$ and biomass available to the fishery:
 
-\begin{equation}
-\hat{I_t}^{fsh}=q_{fsh}\sum_{k=1}^{2}\sum_{a=a_0}^{a+}w_{a,k}^{srv} \cdot s_{t,a,k}^{fsh} \cdot N_{t,a,k} \cdot S^{fsh},
-(\#eq:predfshcpue)
-\end{equation}
+$$\hat{I_t}^{fsh}=q_{fsh}\sum_{k=1}^{2}\sum_{a=a_0}^{a+}w_{a,k}^{srv} \cdot s_{t,a,k}^{fsh} \cdot N_{t,a,k} \cdot S^{fsh},$$
 
 where $w_{a,k}^{srv}$ is mean weight-at-age by sex in the longline survey and $S^{srv}$ is the fraction of individuals in year $t$ surviving to the beginning of the fishery in August. 
 Survival equations include natural and fishing mortality because the model assumes continuous fishing mortality.
 
 Predicted longline survey CPUE (numbers per hook) in year $t$ ($\hat{I_t}^{srv}$) was defined as a function survey catchability $q^{srv}$, abundance available to the survey, and survival to the beginning of the survey in July ($S^{srv}$):
 
-\begin{equation}
-\hat{I_t}^{srv}=q_{srv}\sum_{k=1}^{2}\sum_{a=a_0}^{a+}s_{t,a,k}^{srv} \cdot N_{t,a,k} \cdot S^{srv}.
-(\#eq:predsrvcpue)
-\end{equation}
+$$\hat{I_t}^{srv}=q_{srv}\sum_{k=1}^{2}\sum_{a=a_0}^{a+}s_{t,a,k}^{srv} \cdot N_{t,a,k} \cdot S^{srv}.$$
 
 Predicted mark-recapture abundance in year $t$ ($\hat{I_t}^{MR}$) was defined as a function of mark-recapture catchability $q^{MR}$, abundance available to the fishery, and survival to the beginning of the NSEI fishery in August ($S^{fsh}$):
 
-\begin{equation}
-\hat{I_t}^{MR}=q_{MR}\sum_{k=1}^{2}\sum_{a=a_0}^{a+}s_{t,a,k}^{fsh} \cdot N_{t,a,k} \cdot S^{fsh}.
-(\#eq:predmr)
-\end{equation}
+$$\hat{I_t}^{MR}=q_{MR}\sum_{k=1}^{2}\sum_{a=a_0}^{a+}s_{t,a,k}^{fsh} \cdot N_{t,a,k} \cdot S^{fsh}.$$
 
 Spawning biomass $SSB$ was calculated as
 
-\begin{equation}
-SSB=\sum_{a=a_0}^{a+} w_{a,f}^{srv} \cdot N_{t,a,f} \cdot S^{spawn} \cdot p_a,
-(\#eq:ssb)
-\end{equation}
+$$SSB=\sum_{a=a_0}^{a+} w_{a,f}^{srv} \cdot N_{t,a,f} \cdot S^{spawn} \cdot p_a,$$
 
 where $w_{a,f}^{srv}$ is mean weight-at-age of females in the longline survey, $S^{spawn}$ is the fraction of individuals surviving to spawn in February, and $p_a$ is the proportion of females mature in the survey at age. 
 In the single sex model, proportion of females at age in the survey $r_a$ is used to get the female portion of the $N$ matrix. 
 
 Predicted survey age compositions (sexes combined) were computed as
 
-\begin{equation}
-\hat{P}_{t,a}^{srv}=\Omega_{a',a}\frac{\sum_{k=1}^{2}N_{t,a,k} \cdot s_{a,k}^{srv}}{\sum_{k=1}^{2}\sum_{a=a_0}^{a+} N_{t,a,k} \cdot s_{a,k}^{srv}},
-(\#eq:predsrvage)
-\end{equation}
+$$\hat{P}_{t,a}^{srv}=\Omega_{a',a}\frac{\sum_{k=1}^{2}N_{t,a,k} \cdot s_{a,k}^{srv}}{\sum_{k=1}^{2}\sum_{a=a_0}^{a+} N_{t,a,k} \cdot s_{a,k}^{srv}},$$
 
 where $\Omega_{a',a}$ is the ageing error matrix. 
 Predicted fishery age compositions (sexes combined) were computed as
 
-\begin{equation}
-\hat{P}_{t,a}^{fsh}=\Omega_{a',a}\frac{\sum_{k=1}^{2}C_{t,a,k}}{\sum_{k=1}^{2}\sum_{a=a_0}^{a+} C_{t,a,k}},
-(\#eq:predfshage)
-\end{equation}
+$$\hat{P}_{t,a}^{fsh}=\Omega_{a',a}\frac{\sum_{k=1}^{2}C_{t,a,k}}{\sum_{k=1}^{2}\sum_{a=a_0}^{a+} C_{t,a,k}},$$
 
 where $C_{t,a,k}$ is the landed catch in numbers-at-age by sex derived from a modified Baranov catch equation:
 
-\begin{equation}
-C_{t,a,k}=N_{t,a,k}\frac{R_{a,k}F_{t,a,k}}{Z_{t,a,k}}(1-\mbox{exp}(-Z_{t,a,k})),
-(\#eq:landed)
-\end{equation}
+$$C_{t,a,k}=N_{t,a,k}\frac{R_{a,k}F_{t,a,k}}{Z_{t,a,k}}(1-\mbox{exp}(-Z_{t,a,k})),$$
 
 where $R_{a,k}$ is the assumed probability of retention by age and sex (Figure \@ref(fig:retention)).
 
 Predicted landed catch in biomass $\hat{Y}$ was calculated as the product of fishery weight-at-age $w_{a,k}^{fsh}$ and landed catch in numbers-at-age:
 
-\begin{equation}
-\hat{Y}_t=\sum_{k=1}^{2}\sum_{a=a_0}^{a+} w_{a,k}^{fsh} \cdot C_{t,a,k}.
-(\#eq:yield)
-\end{equation}
+$$\hat{Y}_t=\sum_{k=1}^{2}\sum_{a=a_0}^{a+} w_{a,k}^{fsh} \cdot C_{t,a,k}.$$
 
 The biomass of discarded sablefish estimated to die ($W_t$) with an assumed discard mortality ($D$) of 0.16 is
 
-\begin{equation}
-W_t= \sum_{k=1}^{2}\sum_{a=a_0}^{a+}w_{a,k}^{srv}N_{t,a,k}\frac{D (1-R_{a,k})F_{t,a,k}}{Z_{t,a,k}}(1-\mbox{exp}(-Z_{t,a,k})).
-(\#eq:wastage)
-\end{equation}
+$$W_t= \sum_{k=1}^{2}\sum_{a=a_0}^{a+}w_{a,k}^{srv}N_{t,a,k}\frac{D (1-R_{a,k})F_{t,a,k}}{Z_{t,a,k}}(1-\mbox{exp}(-Z_{t,a,k})).$$
 
 Predicted survey length compositions were calculated using the sex-specific age-length keys ($\Lambda_{a,l,k}$), such that
 
-\begin{equation}
-\hat{P}_{t,l,k}^{srv}=\Lambda_{a,l,k}\frac{N_{t,a,k} \cdot s_{a,k}^{srv}}{\sum_{a=a_0}^{a+} N_{t,a,k} \cdot s_{a,k}^{srv}}.
-(\#eq:predsrvlen)
-\end{equation}
+$$\hat{P}_{t,l,k}^{srv}=\Lambda_{a,l,k}\frac{N_{t,a,k} \cdot s_{a,k}^{srv}}{\sum_{a=a_0}^{a+} N_{t,a,k} \cdot s_{a,k}^{srv}}.$$
 
 Fishery length compositions were calculated as 
 
-\begin{equation}
-\hat{P}_{t,l,k}^{fsh}=\Lambda{a,l,k}\frac{C_{t,a,k}}{\sum_{a=a_0}^{a+} C_{t,a,k}}.
-(\#eq:predfshlen)
-\end{equation}
+$$\hat{P}_{t,l,k}^{fsh}=\Lambda{a,l,k}\frac{C_{t,a,k}}{\sum_{a=a_0}^{a+} C_{t,a,k}}.$$
 
 # Likelihood components
 
 The objective function, or the total negative log-likelihood to be minimized, included the sum of the following likelihood components $L$, which received individual weights $\lambda$:
 
 1.  Landed catch biomass ($Y$) was modeled using a lognormal likelihood where $\sigma_Y$ was assumed to be 0.05: 
-\begin{equation}
--\mbox{ln}L(Y)=\lambda_Y\frac{1}{2\sigma_Y^2}\sum_{t=1}^{T}\Big(\mbox{ln}(Y_t+c)-\mbox{ln}(\hat{Y}_t+c)\Big)^2 ,
-(\#eq:catchlike)
-\end{equation} 
+
+$$\mbox{ln}L(Y)=\lambda_Y\frac{1}{2\sigma_Y^2}\sum_{t=1}^{T}\Big(\mbox{ln}(Y_t+c)-\mbox{ln}(\hat{Y}_t+c)\Big)^2 ,$$
 where $\lambda_Y$ = 1.0 and $c$ is a small constant set at 0.0001 to allow approximately zero catches in log-space.  
 
 2.  Fishery CPUE, survey CPUE, and the mark-recapture abundance index were modeled using lognormal likelihoods, where $\sigma_I$ was assumed to be 0.08 for the fishery and survey CPUEs and annual posterior standard deviations were used for the mark-recapture abundance index: 
-\begin{equation}
--\mbox{ln}L(I)=\lambda_I\frac{1}{2\sigma_I^2}\sum_{t=1}^{T_I}\Big(\mbox{ln}(I_t+c)-\mbox{ln}(\hat{I}_t+c)\Big)^2 ,
-(\#eq:indexlike)
-\end{equation} 
+
+$$\mbox{ln}L(I)=\lambda_I\frac{1}{2\sigma_I^2}\sum_{t=1}^{T_I}\Big(\mbox{ln}(I_t+c)-\mbox{ln}(\hat{I}_t+c)\Big)^2 ,$$
+
 where $T_I$ is the number of years of data for each index and $\lambda_I$ is set to 1.0.
 
-3. Fishery and survey age compositions were modeled using the multinomial likelihood ($P^{age}$), where effective sample size $\omega_t$ was calculated as the square root of the total sample size in year $t$: 
-\begin{equation}
--\mbox{ln}L(P^{age})=\lambda_{P^{age}}\sum_{t=1}^{T_P^{age}} - \omega_t \sum_{a=a_0}^{a+} (P_{t,a}+c)\cdot\mbox{ln}(\hat{P}_{t,a}+c),
-(\#eq:agemult)
-\end{equation} 
+3.  Fishery and survey age compositions were modeled using the multinomial likelihood ($P^{age}$), where effective sample size $\omega_t$ was calculated as the square root of the total sample size in year $t$: 
+
+$$\mbox{ln}L(P^{age})=\lambda_{P^{age}}\sum_{t=1}^{T_P^{age}} - \omega_t \sum_{a=a_0}^{a+} (P_{t,a}+c)\cdot\mbox{ln}(\hat{P}_{t,a}+c),$$
+
 where $T_P^{age}$ is the number of years of data for each age composition, $\lambda_{P^{age}}$ is set to 1.0, and $c$ prevents the composition from being 0 in the likelihood calculation. 
 Standard methods of tuning the effective sample size or iterative re-weighting have not yet been applied to this assessment model (McAllister and Ianelli 1997, Francis 2011). 
 Alternatively, effective sample size can be calculated through the estimation of an additional parameter $\theta$ using the Dirichlet-multinomial likelihood (Thorson et al. 2017): 
-\begin{equation}
--\mbox{ln}L(P^{age})=\sum_{t=1}^{T_P^{age}} -\Gamma(n_t+1)-\sum_{a=a_0}^{a+}\Gamma(n_t P_{t,a}+1)+\Gamma(n_t\theta)-\Gamma(n_t+\theta n_t)+\sum_{a=a_0}^{a+}\Big[\Gamma(n_tP_{t,a}+\theta n_t \hat{P}_{t,a})-\Gamma(\theta n_t \hat{P}_{t,a})\Big],
-(\#eq:agedirich)
-\end{equation} 
+$$\mbox{ln}L(P^{age})=\sum_{t=1}^{T_P^{age}} -\Gamma(n_t+1)-\sum_{a=a_0}^{a+}\Gamma(n_t P_{t,a}+1)+\Gamma(n_t\theta)-\Gamma(n_t+\theta n_t)+\sum_{a=a_0}^{a+}\Big[\Gamma(n_tP_{t,a}+\theta n_t \hat{P}_{t,a})-\Gamma(\theta n_t \hat{P}_{t,a})\Big]$$,
+
+
 where $n$ is the input sample size. The relationship between $n$, $\theta$, and $\omega$ is 
-\begin{equation}
-\omega_t = \frac{1+\theta n_t}{1+\theta}.
-(\#eq:effn)
-\end{equation} 
+
+$$\omega_t = \frac{1+\theta n_t}{1+\theta}.$$
+
 Because the implementation of the alternative Dirichlet-multinomial likelihood is currently under development, only results for the multinomial likelihood are presented here.
 
-4. Fishery and survey length compositions by sex were modeled using the multinomial likelihood ($P^{len}$), where effective sample size $\omega_t$ was calculated as the square root of the total sample size in year $t$: 
-\begin{equation}
--\mbox{ln}L(P^{len})=\lambda_{P^{len}}\sum_{k=1}^{2}\sum_{t=1}^{T_P^{len}} - \omega_t \sum_{l=l_0}^{l+} (P_{t,l}+c)\cdot\mbox{ln}(\hat{P}_{t,l}+c).
-(\#eq:lenmult)
-\end{equation} 
+4.  Fishery and survey length compositions by sex were modeled using the multinomial likelihood ($P^{len}$), where effective sample size $\omega_t$ was calculated as the square root of the total sample size in year $t$: 
+
+$$\mbox{ln}L(P^{len})=\lambda_{P^{len}}\sum_{k=1}^{2}\sum_{t=1}^{T_P^{len}} - \omega_t \sum_{l=l_0}^{l+} (P_{t,l}+c)\cdot\mbox{ln}(\hat{P}_{t,l}+c).$$
+
 $T_P^{len}$ is the number of years of data for each length composition and $\lambda_{Plen}$ is set to 1.0.
 
 5.  Annual log-fishing mortality deviations ($\phi_t$) are included with a penalized lognormal likelihood, where 
-\begin{equation}
--\mbox{ln}L(\phi)=\lambda_{\phi}\sum_{t=1}^{T}\phi_t^2,
-(\#eq:fmortlike)
-\end{equation} 
+
+$$\mbox{ln}L(\phi)=\lambda_{\phi}\sum_{t=1}^{T}\phi_t^2,$$
 where $\lambda_{\phi}$=0.1.
 
 6.  Recruitment deviations ($\tau_t$) can be included using a penalized lognormal likelihood 
-\begin{equation}
--\mbox{ln}L(\tau)=\lambda_{\tau}\sum_{i=1}^{T+A-2}(\tau_i-0.5\sigma_R^2)^2,
-(\#eq:reclike)
-\end{equation} 
+
+$$\mbox{ln}L(\tau)=\lambda_{\tau}\sum_{i=1}^{T+A-2}(\tau_i-0.5\sigma_R^2)^2,$$
+
 where $-0.5\sigma^2$ is a bias correction needed to obtain the expected value (mean) instead of the median. 
 The $\lambda_{\phi}$=2.0 and $\sigma_R$ is fixed at 1.2 as in the Federal assessment (Hanselman et al. 2018). 
 Alternatively, recruitment deviations can be estimated as a random effect, where 
-\begin{equation}
--\mbox{ln}L(\tau)=\sum_{i=1}^{T+A-2}\mbox{ln}(\sigma_R)+\frac{(\tau_i-0.5\sigma_R^2)^2}{2\sigma_R}.
-(\#eq:randomrec)
-\end{equation} 
+
+$$\mbox{ln}L(\tau)=\sum_{i=1}^{T+A-2}\mbox{ln}(\sigma_R)+\frac{(\tau_i-0.5\sigma_R^2)^2}{2\sigma_R}.$$
+
 Initial numbers-at-age deviations $\psi_a$ are implemented in the same way as recruitment deviations and are governed by the same $\sigma_R$. 
 Only results for the penalized likelihood approach are shown.
 
@@ -489,8 +419,8 @@ Recruitment trends are comparable with Federal values, and estimates of spawning
 A time series of fishing mortality and harvest rate (defined as the ratio of predicted total catch to exploitable biomass) shows that peak exploitation occurred in the decade following the transition to EQS, 1995-2005 (Figure \@ref(fig:fishmort)). 
 The model suggests that harvest rates were more than four times what they are today during this time period.
 
-Although not currently ready to be considered for management, the statistical catch-at-age model outlined in this paper is planned to be presented as a management alternative in 2020. 
-Here we provide a summary of future developments to this model by priority level. 
+Although not currently ready to be considered for management, the statistical catch-at-age model outlined here is planned to be presented as a management alternative in 2020. 
+Planned future developments to this model are summarized by priority level in the following sections. 
 
 ## High priority
 
@@ -509,7 +439,7 @@ These tasks should be completed within 1-2 years of implementation. They are cri
 - Conduct retrospective analysis to determine model performance over time.
 - Develop framework to conduct projections to evaluate stock status and assess risk.
 
-## Long-term:
+## Long-term
 
 These tasks should be completed within 2-4 years of implementation. While they are not critical to the implementation of the model, they will improve model-based inference, understanding of stock dynamics, and data quality.
 
@@ -577,7 +507,6 @@ Williams, B., and K. Van Kirk. 2017. 2017 NSEI Sablefish Assessment. State of Al
 
 Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelihood estimation of semiparametric generalized linear models. Journal of the Royal Statistical Society (B) 73(1):3-36. 
 
-\newpage
 # Tables
 
 ```{r vardefns, echo=FALSE}
@@ -646,15 +575,21 @@ var <- data.frame(
 
 defn_tbl <- rbind(index, par, var)
 
-kable(defn_tbl, booktabs = TRUE, longtable = TRUE, format = "latex", escape = FALSE,
-      caption = "Variable definitions for the statistical catch-at-age model.") %>%
-  group_rows("$\\\\textit{Indexing and model dimensions}$", 1, length(index$Variable), escape = FALSE) %>%
-  group_rows("$\\\\textit{Parameters}$", length(index$Variable) + 1,
-             length(index$Variable) + length(par$Variable), escape = FALSE) %>%
-  group_rows("$\\\\textit{Data and predicted variables}$",
-             length(index$Variable) + length(par$Variable) + 1,
-             length(index$Variable) + length(par$Variable) + length(var$Variable), 
-             escape = FALSE) 
+kable(index)
+
+kable(par)
+
+kable(var)
+# 
+# kable(defn_tbl, booktabs = TRUE, longtable = TRUE, escape = FALSE,
+#       caption = "Variable definitions for the statistical catch-at-age model.") %>%
+#   group_rows("$\\\\textit{Indexing and model dimensions}$", 1, length(index$Variable), escape = FALSE) %>%
+#   group_rows("$\\\\textit{Parameters}$", length(index$Variable) + 1,
+#              length(index$Variable) + length(par$Variable), escape = FALSE) %>%
+#   group_rows("$\\\\textit{Data and predicted variables}$",
+#              length(index$Variable) + length(par$Variable) + 1,
+#              length(index$Variable) + length(par$Variable) + length(var$Variable), 
+#              escape = FALSE) 
   
 ```
 \newpage
@@ -668,13 +603,30 @@ sel_tbl <- data.frame(
   f_slp = c("2.29", "2.61", "2.21")
 )
 
-kable(sel_tbl, booktabs = TRUE, longtable = TRUE, format = "latex", escape = FALSE,
+kable(sel_tbl, booktabs = TRUE, longtable = TRUE, escape = FALSE,
       col.names = c("", "$s_{50}$", "$\\delta_{50}$", "$s_{50}$", "$\\delta_{50}$"),
       caption = "Assumed selectivity parameters for the fishery before the Equal Quota Share program started in 1994 (pre-EQS), the fishery since the implementation of EQS, and the ADF\\&G longline survey for females (black points) and males (grey triangles). These parameters estimates were borrowed from the Federal stock assessment, where the Federal derby fishery, IFQ fishery, and NMFS Cooperative Longline Survey were assumed to represent pre-EQS, EQS, and the ADF\\&G longline survey (Hanselman et al. 2018).") %>%
   add_header_above(c(" ", "Male" = 2, "Female" = 2)) 
 ```
 \newpage
+```{r keyparams, echo=FALSE}
 
+keyparams %>% 
+  mutate(Parameter = c("Pre-EQS catchability, $\\mbox{ln}(q_{fsh,pre-EQS})$",
+                       "EQS catchability, $\\mbox{ln}(q_{fsh,EQS})$",
+                       "Survey catchability, $\\mbox{ln}(q_{srv})$",
+                       "Mark-recapture catchability, $\\mbox{ln}(q_{MR})$",
+                       "Mean log recruitment, $\\mu_R$",
+                       "Mean log initial numbers-at-age, $\\mu_N$",
+                       "Mean log fishing mortality, $\\mu_F$"),
+         Estimate = formatC(Estimate, format = "f", digits = 3),
+         `Standard error` = formatC(se, format = "f", digits = 3)) %>% 
+  select(-se) -> keyparams
+
+kable(keyparams, booktabs = TRUE,  escape = FALSE,
+      caption = "Parameter estimates from the statistical catch-at-age model. Estimates of recruitment, initial numbers-at-age, and fishing mortality deviations were excluded for brevity.") 
+
+```
 \newpage
 ```{r likesum, echo=FALSE}
 
@@ -683,11 +635,12 @@ like %>%
          perc = formatC(perc, format = "f", digits = 1)) %>% 
   select("Likelihood component" = like, "$NLL$" = value, "\\% of $NLL$" = perc) -> like
 
-kable(like, booktabs = TRUE, longtable = TRUE, format = "latex", escape = FALSE,
+kable(like, booktabs = TRUE, longtable = TRUE, escape = FALSE,
       caption = "Negative likelihood values and percent of each component to the total likelihood. The data likelihood is the sum of all likelihood contributions from data. The difference between the total likelihood and the data likelihood is the contribution of penalized likelihoods, including recruitment and fishing mortality.") 
 
 ```
 \newpage
+
 # Figures
 ```{r datsrc, fig.cap="A summary of the available data sources in NSEI by year."}
 
