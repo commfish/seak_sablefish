@@ -1,7 +1,7 @@
 # Query and clean data - processing script for all incoming data
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2018-03-06
+# Last edited: 2018-08-01
 
 # All final columns formatted as follows unless otherwise specified:
 # length: fork length, cm
@@ -63,27 +63,30 @@ ora <- read_csv("database.csv")
 
 # IFDB aka ALEX. Region I database, ultimately will be replaced by Zander
 ifdb <- "(DESCRIPTION =
-     (ADDRESS = (PROTOCOL = TCP)(HOST = db-ifdb.dfg.alaska.local)(PORT = 1521))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = 10.209.0.83)(PORT = 1521))
    (CONNECT_DATA = (SERVER = DEDICATED)
-     (SERVICE_NAME = ifdb.dfg.alaska.local)))"
+     (SERVICE_NAME = DFGCFR1P.500040564.us1.internal)))"
 
 ifdb_channel <- dbConnect(drv = dbDriver('Oracle'), 
                           username = ora$ifdb_user, 
                           password = ora$ifdb_pw, 
                           dbname = ifdb)
 
-# Zander. Region I database
+# Zander. Region I database. Zander and IFDB are now merged into one db but are
+# stored in separate schemas (they use the same username and password)
 zprod <- "(DESCRIPTION =
-    (ADDRESS = (PROTOCOL = TCP)(HOST = db-zprod.dfg.alaska.local)(PORT = 1521))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = 10.209.0.83)(PORT = 1521))
     (CONNECT_DATA = (SERVER = DEDICATED)
-      (SERVICE_NAME = zprod.dfg.alaska.local)))"
+      (SERVICE_NAME = DFGCFR1P.500040564.us1.internal)))"
 
 zprod_channel <- dbConnect(drv = dbDriver('Oracle'), 
                           username = ora$zprod_user, 
                           password = ora$zprod_pw, 
                           dbname = zprod)
 
-# Fish tickets
+
+
+# Fish tickets FLAG WILL NEED UPDATING IN 2020, see T:/Toolbox/TNS/tnsnames.ora
 adfgcf <- "(DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = db-padfgcf.dfg.alaska.local)(PORT = 1521))
 (CONNECT_DATA = (SID = PADFGCF)))"
@@ -93,7 +96,8 @@ adfgcf_channel <- dbConnect(drv = dbDriver('Oracle'),
                           password = ora$adfgcf_pw, 
                           dbname = adfgcf)
 
-# Data warehouse. eLandings, fish tickets, maybe tag lab data too?
+# Data warehouse. eLandings, fish tickets, maybe tag lab data too? FLAG WILL
+# NEED UPDATING IN 2020, see T:/Toolbox/TNS/tnsnames.ora
 dwprod <- "(DESCRIPTION =
 (ADDRESS = (PROTOCOL = TCP)(HOST = db-dwprod.dfg.alaska.local)(PORT = 1521))
     (CONNECT_DATA = (SERVER = DEDICATED)
@@ -181,7 +185,8 @@ stat_areas %>% rename(STAT = STAT_AREA) -> stat_areas
 # write_csv(gef, paste0("data/fishery/nseiharvest_gef_",
 #                       min(gef$year), "_", max(gef$year), ".csv"))
 
-# Harvest from IFDB - what managers are using
+# Harvest from IFDB - what managers are using. This only includes directed NSEI
+# harvest (harvest_code = 43 is test fish)
 query <-
   paste0(" select  year, adfg_no, trip_no, vessel_name, port_code, gear,
           catch_date, sell_date, harvest_code, harvest, g_stat_area,
@@ -191,9 +196,15 @@ query <-
   from    out_g_cat_ticket
 
   where   species_code = '710' and
-          g_management_area_code = 'NSEI' and year = ", YEAR)
+          harvest_code NOT IN ('43', '42') and
+          g_cfec_fishery = 'C61A' and
+          g_management_area_code = 'NSEI' ")
+# g_management_area_code = 'NSEI' and year = ", YEAR)
 
 dbGetQuery(ifdb_channel, query) -> ifdb_catch
+
+# ifdb_catch %>% group_by(YEAR) %>% summarize(sum(ROUND_POUNDS)) %>% View()
+# unique(ifdb_catch$HARVEST_CODE)
 
 write_csv(ifdb_catch, paste0("data/fishery/raw_data/nseiharvest_ifdb_",
                       max(ifdb_catch$YEAR), ".csv"))
@@ -220,10 +231,10 @@ read_csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
 
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
-read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"), 
-         guess_max = 50000) -> past_catch
-
-bind_rows(past_catch, ifdb_catch) -> ifdb_catch
+# read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"), 
+#          guess_max = 50000) -> past_catch
+# 
+# bind_rows(past_catch, ifdb_catch) -> ifdb_catch
 
 write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
                              min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))

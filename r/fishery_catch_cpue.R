@@ -28,7 +28,7 @@ catch_gef <- read_csv(paste0("data/fishery/nseiharvest_gef_1975_", YEAR-1,".csv"
   mutate(src = "gef") %>% 
   select(!!!cols)
 
-catch_ifdb <- read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR,".csv"), 
+catch_ifdb <- read_csv(paste0("data/fishery/nseiharvest_ifdb_1985_", YEAR,".csv"), 
                        guess_max = 50000) #%>% 
 # mutate(src = "ifdb") #%>% 
 #select(!!!cols)
@@ -58,10 +58,10 @@ ggplot(sum_catch %>%
   geom_line(group=1) +
   geom_point() +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  scale_y_continuous(breaks = seq(0, 6, 1), limits = c(0, 6), labels = seq(0, 6, 1)) +
   # add a line for EQS starting in 1994 (1997 in the SSEI).
   geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
-  labs(x = NULL, y = "Fishery harvest (millions lb)\n") +
-  ylim(0, 6) -> catch
+  labs(x = NULL, y = "Catch (million round lb)\n") -> catch
 
 write_csv(sum_catch, paste0("output/harvest_1985_", YEAR, ".csv"))
 
@@ -117,7 +117,7 @@ View(port_catch)
 
 # Read in data, standardize cpue, etc.
 read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
-         guess_max = 50000) %>% 
+         guess_max = 50000) %>% View()
   filter(!is.na(date) & !is.na(hook_space) & !is.na(sable_lbs_set) &
            !is.na(start_lon) & !is.na(start_lon) & !is.na(soak) & !is.na(depth) &
            !is.na(Hook_size) & Hook_size != "MIX" &
