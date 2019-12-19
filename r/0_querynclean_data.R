@@ -49,7 +49,7 @@
 # --- = 91 = Pot
 
 # most recent year of data
-YEAR <- 2018
+YEAR <- 2019
 
 # Load ----
 source("r/helper.R")
@@ -59,7 +59,7 @@ source("r/helper.R")
 # Database usernames and passwords (user-specific, ignored)
 ora <- read_csv("database.csv") 
 
-# Connection strings in T:/Toolbox/TNS/tnsnames.ora
+# *** Connection strings in T:/Toolbox/TNS/tnsnames.ora ***
 
 # IFDB aka ALEX. Region I database, ultimately will be replaced by Zander
 ifdb <- "(DESCRIPTION =
@@ -86,22 +86,24 @@ zprod_channel <- dbConnect(drv = dbDriver('Oracle'),
 
 
 
-# Fish tickets FLAG WILL NEED UPDATING IN 2020, see T:/Toolbox/TNS/tnsnames.ora
+# Fish tickets
 adfgcf <- "(DESCRIPTION =
-    (ADDRESS = (PROTOCOL = TCP)(HOST = db-padfgcf.dfg.alaska.local)(PORT = 1521))
-(CONNECT_DATA = (SID = PADFGCF)))"
+    (ADDRESS = (PROTOCOL = TCP)(HOST = 10.209.2.34)(PORT = 1521))
+    (CONNECT_DATA = (SERVER = DEDICATED)
+      (SERVICE_NAME = DFGFTDBP.us1.ocm.s7134325.oraclecloudatcustomer.com)))"
 
 adfgcf_channel <- dbConnect(drv = dbDriver('Oracle'), 
-                          username = ora$adfgcf_user, 
-                          password = ora$adfgcf_pw, 
+                          username = ora$adfgcf_user,
+                          password = ora$adfgcf_pw,
+                          # username = ora$dwprod_user, 
+                          # password = ora$dwprod_pw, 
                           dbname = adfgcf)
 
-# Data warehouse. eLandings, fish tickets, maybe tag lab data too? FLAG WILL
-# NEED UPDATING IN 2020, see T:/Toolbox/TNS/tnsnames.ora
+# Data warehouse. eLandings, fish tickets, maybe tag lab data too
 dwprod <- "(DESCRIPTION =
-(ADDRESS = (PROTOCOL = TCP)(HOST = db-dwprod.dfg.alaska.local)(PORT = 1521))
+(ADDRESS = (PROTOCOL = TCP)(HOST = 10.209.2.34)(PORT = 1521))
     (CONNECT_DATA = (SERVER = DEDICATED)
-      (SERVICE_NAME = dwprod.dfg.alaska.local)))"
+      (SERVICE_NAME = DFGDWP.us1.ocm.s7134325.oraclecloudatcustomer.com)))"
 
 dwprod_channel <- dbConnect(drv = dbDriver('Oracle'), 
                           username = ora$dwprod_user, 
@@ -121,6 +123,7 @@ query <-
 dbGetQuery(dwprod_channel, query) -> stat_areas 
 
 stat_areas %>% rename(STAT = STAT_AREA) -> stat_areas
+
 # Fishery removals ----
 
 # gef = gross earnings file. This was pitched to me by J. Shriver as the
@@ -449,12 +452,13 @@ bind_rows(past_srv_eff, srv_eff) -> srv_eff
 
 write_csv(srv_eff, paste0("data/survey/llsrv_cpue_", min(srv_eff$year), "_", max(srv_eff$year), ".csv"))
 
-# Longline survey countbacks ----
+# Longline survey catch ----
 
-# Per Mike Vaughn & Aaron Baldwin only discard status "01" for retained fish are
-# checked for marks on the longline survey. Because of this, we need to use a
-# separate view out_g_sur_longline_catch_bi because the view used for CPUE
-# doesn't include a discard condition code.
+# There is no countback for each fish on the longline survey to check for marks.
+# Only tags are pulled. However, prior to 2019, it was assumed that all fish
+# were checked (only discard status "01" for retained fish) and this is the view
+# that was used. Jane found out about this false assumption during the 2019 longline
+# survey.
 
 query <- 
   " select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
@@ -761,15 +765,9 @@ tag_recoveries %>%
 # I've impressed on A. Olson the importance that these data be entered and
 # stored in a safer way.
 
-# Original in 2017:
-# list.files(path = "data/fishery/raw_data/", pattern = "nsei_daily_tag_accounting", full.names = TRUE) %>% 
-#   map_df(~read.csv(.)) %>% 
-#   mutate(date = ymd(as.Date(date, "%m/%d/%Y")),
-#          year = year(date),
-#          julian_day = yday(date),
-#          total_obs = unmarked + marked,
-#          whole_kg = round_lbs * 0.453592) %>% 
-#   write_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
+# Follow up Dec 2019 with Rhea Ehresmann (new GFP leader): Goal to move these to
+# Zander in 2020. M. Vaughn also indicated there are countback data going back
+# to 1997.
 
 # Now that these data are finalized, add on each year:
 read_csv(paste0("data/fishery/raw_data/nsei_daily_tag_accounting_", YEAR, ".csv"),

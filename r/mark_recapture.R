@@ -1,7 +1,7 @@
 # Mark-recapture analysis
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: Feb 2018
+# Last edited: Dec 2019
 
 source("r/helper.r")
 source("r/functions.r")
