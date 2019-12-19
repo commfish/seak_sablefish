@@ -50,3 +50,5 @@ Data preparation and visualization of model inputs to the preliminary `TMB` stat
 ## Reports
 
 The 2018 and 2019 NSEI stock assessments and preliminary statistical catch-at-age model were developed as reproducible research projects in `RMarkdown` and found under `text/`(https://github.com/commfish/seak_sablefish/tree/master/text).
+
+The 2019 assessment is also available as a Regional Information Report (http://www.adfg.alaska.gov/FedAidPDFs/RIR.5J.2019.03.pdf)
