@@ -777,7 +777,19 @@ read_csv(paste0("data/fishery/raw_data/nsei_daily_tag_accounting_", YEAR, ".csv"
            julian_day = yday(date),
            total_obs = unmarked + marked,
            whole_kg = round_lbs * 0.453592) -> counts
-  
+
+# 2019 - a couple trips were split into A and B due to tendering... rename these
+# in a numbered sequence to make them compatible with other data. The N/A is a
+# subsistence trip, recode as 0.
+counts %>% 
+  mutate(trip_no = ifelse(trip_no == "113 A", "113",
+                          ifelse(trip_no == "113 B", "114",
+                                 ifelse(trip_no == "144 A", "144",
+                                        ifelse(trip_no == "144 B", "145",
+                                               ifelse(trip_no == "N/A", "0",
+                                                      trip_no)))))) %>% 
+  mutate(trip_no = as.numeric(trip_no)) -> counts
+
 read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR-1, ".csv"),
          guess_max = 50000) -> past_counts
 
