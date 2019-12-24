@@ -35,6 +35,40 @@ Ice and slime assumed to be 2% of total weight.
 | 7             | Headed and gutted, Western cut | 0.68 |
 | 9 (08 in IFDB)| Headed and gutted, Eastern cut | 0.63 |
 
+Here is a summary of project codes in the data:
+
+| New (Zander) | Old (IFDB) | Description                    |
+|--------------|------------|-------------------------------:|
+| 601          | 01         | Clarence Sablefish LL Survey   |
+| 602          | 02         | Commercial Longline Trip       |
+| 603          | 03         | Chatham Sablefish LL Survey    |
+| 604          | 04         | Commercial Jig Trip            |
+| 605          | 05         | Longline Survey **NMFS survey  |
+| 606          | 06         | Jig Survey                     |
+| 607          | 07         | Atypical Sample (unknown gear) |
+| 608          | 08         | Atypical Longline Sample       |
+| 609          | 09         | Atypical Jig Sample            |
+| 610          | 10         | Clarence Sablefish Pot Survey  |
+| 611          | 11         | Chatham Sablefish Pot Survey   |
+| 612          | 12         | Sitka Harbor Sablefish Survey  |
+| 613          | 13         | Kodiak Trawl Sablefish Survey  |
+| 614          | 14         | 1979 NSEI Crab Survey          |
+| 615          | 15         | IPHC Annual Survey             |
+| 616          | 16         | NMFS Coop Tagging Survey       |
+| 617          | 17         | Commercial Pot Trip            |
+| 618          | 18         | Lingcod Stock Assessment       |
+| 619          | 19         | Black Rockfish Stock Assessment|
+| 620          | 20         | Commercial Troll               |
+| 621          | 21         | Commercial Halibut Longline    |
+| 622          | 22         | Atypical Trawl Sample          |
+| 623          | 23         | Canadian Commercial Longline   |
+| 624          | 24         | Canadian Commercial Pot        |
+| 625          | 25         | Canadian Commercial Trawl      |
+| 626          | 26         | Canadian Scientific Survey     |
+| 627          | 27         | Subsistence/Personal Use       |
+| 628          | 28         | Sport-caught Sample            |
+
+
 ## Code
 
 The analyses underpinning the current stock assessment are found in [`r/`](https://github.com/commfish/seak_sablefish/tree/master/r) of this repository. In order to reproduce the assessment results, the scripts should be run in the following order:
