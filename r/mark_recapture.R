@@ -637,20 +637,18 @@ daily_marks %>%
 # Trends ----
 
 # Cumulation curves of marks collected and catch over the season
-# 
-# ggplot(daily_marks, aes(x = julian_day)) +
-#   geom_line(aes(y = cum_marks)) +
-#   facet_wrap(~ year, scales = "free") +
-#   labs(x = "Julian Day", y = "Cumulative Marks Collected")
-# 
-# ggplot(daily_marks, aes(x = julian_day)) +
-#   geom_line(aes(y = cum_whole_kg)) +
-#   facet_wrap(~ year, scales = "free") +
-#   labs(x = "Julian Day", y = "Cumulative Catch (kg)")
-# 
-# # Trends in mean weight and NPUE over the season - trends provide
-# # justification to doing a time-stratified estimator
-# 
+ggplot(daily_marks, aes(x = julian_day)) +
+  geom_line(aes(y = cum_marks)) +
+  facet_wrap(~ year, scales = "free") +
+  labs(x = "Julian Day", y = "Cumulative Marks Collected")
+
+ggplot(daily_marks, aes(x = julian_day)) +
+  geom_line(aes(y = cum_whole_kg)) +
+  facet_wrap(~ year, scales = "free") +
+  labs(x = "Julian Day", y = "Cumulative Catch (kg)")
+
+# Trends in mean weight and NPUE over the season - trends provide
+# justification to doing a time-stratified estimator
 ggplot(daily_marks,
        aes(x = julian_day, y = mean_weight)) +
   geom_point() +
@@ -680,7 +678,8 @@ dic_ls <- list()
 converge_ls <- list()
 
 data_ls <- list() # store all 'versions' of model input data for comparison
-data_df <- list() #
+data_df <- list() 
+
 # Number of models - currently 4 competing models to the simple Chapman: 
 # 1) model 1 -  Peterson with time strata, accounts for natural mortality and catch
 # 2) model 1 + migration parameter
@@ -695,10 +694,10 @@ pb <- txtProgressBar(min = 0, max = strats, style = 3)
 
 for(j in 1:strats) {
   
-# *FLAG* For now base strata on percentiles of cumulative catch. Could also use
-# number of marks observed or some other variable. STRATA_NUM is the dynamic
-# variable specifying the number of time strata to split the fishery into and it
-# currently accomodates 8 or fewer strata.
+# Base strata on percentiles of cumulative catch. Could also use number of marks
+# observed or some other variable. STRATA_NUM is the dynamic variable specifying
+# the number of time strata to split the fishery into and it currently
+# accomodates 8 or fewer strata.
 STRATA_NUM <- j
 
 daily_marks %>% 
@@ -740,10 +739,7 @@ dcast(setDT(strata_sum), year ~ catch_strata,
       value.var = c("D", "C", "n", "t", "k", "NPUE"), sep = ".") %>% 
   left_join(tag_summary, by = "year") %>% 
   # order the columns alphanumerically - very convenient
-  select(year, order(colnames(.))) %>% 
-  # Remove NPUE from survey from the data, because it's calculated a little
-  # differently than the fishery and shouldn't be used to estimate catchability
-  select(- NPUE.1) -> jags_dat
+  select(year, order(colnames(.))) -> jags_dat
 
 jags_dat %>%
   select(year, K.0, contains("D."), contains("C."), starts_with("n."), 
@@ -792,7 +788,7 @@ for(i in 1:length(model_years)){
 
 # Initial values ----
 
-# Franz had initial values, but you don't need them (JAGS initialized chains
+# Franz had initial values, but you don't need them (JAGS initializes chains
 # from a central value from the population, the mean of which is defined from
 # past assessments)
 
@@ -1722,7 +1718,25 @@ results %>%
             sd = sd(N.avg) / 1e6,
             q025 = quantile(N.avg, 0.025) / 1e6,
             q975 = quantile(N.avg, 0.975) / 1e6) %>% 
-  write_csv("output/mr_index.csv")
+  write_csv("output/mr_index_newsrvcountbackassumptions.csv")
+
+# Compare new and old results for survey countback assumptions 
+assumptions <- read_csv("output/mr_index_newsrvcountbackassumptions.csv") %>% 
+  mutate(`Assumptions for survey countbacks` = "New (fish only checked for marks in 2008 and 2010)") %>% 
+  bind_rows(read_csv("output/mr_index.csv") %>% 
+  mutate(`Assumptions for survey countbacks` = "Old (all fish checked for marks)"))
+
+ggplot(assumptions, aes(x = factor(year), y = estimate, fill = `Assumptions for survey countbacks`)) +
+  scale_fill_manual(values = c("grey90", "darkgrey")) +
+  geom_bar(position = position_dodge(), stat = "identity", col = "black") +
+  geom_errorbar(aes(ymin = q025, ymax = q975), width = 0.2, position = position_dodge(.9)) +
+  labs(x = NULL, y = "Number of sablefish in millions") +
+  theme(legend.position = "top") +
+  guides(fill = guide_legend(nrow = 2, byrow=TRUE))
+
+ggsave(paste0("figures/llsrv_countback_assumptions_",
+              FIRST_YEAR, "_", YEAR, ".png"),
+       dpi=300, height=4, width=6, units="in")
 
 # results %>%
 #   gather("time_period", "p", contains("p[")) %>%
