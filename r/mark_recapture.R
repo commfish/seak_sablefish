@@ -522,54 +522,22 @@ recoveries %>%
 # Remove these matched tags from the releases df so they don't get double-counted by accident. 
 recoveries %>% filter(!c(year_trip %in% marks$year_trip & Project_cde == "02")) -> recoveries
 
-# Data discrepancy FLAG - Some year_trip fishery combos in recoveries df are not
-# in marks df (exclude trip_no's 1, 2, and 3, which are the pot and longline
-# surveys)
+# See Issue 41 - fishery recovered tag discrepancies:
+# https://github.com/commfish/seak_sablefish/issues/41. Some year_trip fishery
+# combos in recoveries df are not in marks df. These will be tallied with other
+# tags recovered during the fishery (part 2 of Daily summary).
 anti_join(recoveries %>% 
-            filter(!trip_no %in% c(1, 2, 3) & 
+            filter(!trip_no %in% c(1, 2, 3) &  # pot and longline surveys
                      !is.na(trip_no) & 
                      Project_cde == "02"), 
           marks, by = "year_trip") %>% 
-  group_by(year_trip, Mgmt_area) %>% 
+  group_by(year_trip, Mgmt_area, date) %>% 
   summarize(tags_from_fishery = n_distinct(tag_no)) -> no_match # 7 trips from 2008, all in the NSEI
-
-*FLAG* don't add these landings back in right now, otherwise the population
-assessment in 2008 is way off. These 7 trips from 2008 are in the IFDB and
-look like they were missed. Should they be added to the marks df? They are
-from the NSEI state managed fishery and appear not to have been accounted for
-in the countbacks spreadsheets. fsh_tx %>% filter(year_trip %in%
-no_match$year_trip) %>% group_by(year, trip_no, year_trip, sell_date,
-julian_day) %>% summarise(whole_kg = sum(whole_kg)) %>% rename(date =
-sell_date) %>% left_join(no_match, by = "year_trip") %>% select(-Mgmt_area)
-%>% full_join(marks, by = c("year", "trip_no", "year_trip", "date",
-"julian_day", "whole_kg", "tags_from_fishery")) %>% arrange(date)  %>%
-fill_by_value(unmarked, marked, bio_samples, total_obs, value = 0) %>%
-fill_by_value(observed_flag, all_observed, value = "No") -> marks
-#
-# These tags were entered 20190328 by M. Vaughn (see issue #29). Trips in the
-# 9000 series are assigned to bio samples that do not have logbooks or samples
-# from a tendered trip where the fish are mixed.
-no_match %>% filter(!year_trip %in% c("2018_9001", "2018_9003", "2018_9004")) -> no_match
-
-# Remove these matched tags from the releases df so they don't get double-counted by accident. 
-recoveries %>% filter(!c(year_trip %in% no_match$year_trip & Project_cde == "02") ) -> recoveries
-
-recoveries %>% 
-  filter(year_trip %in% no_match$year_trip) %>% View()
-# Pothole - check that all fish ticket trips have been accounted for in the NSEI in other
-# years in the daily accounting form... or not. How about next year. This is a mess.
-# full_join(fsh_tx %>%             
-#             filter(year >= FIRST_YEAR) %>% 
-#             distinct(year_trip, whole_kg) %>% 
-#             arrange(year_trip) %>% 
-#             select(year_trip, whole_kg1 = whole_kg),
-#           marks %>% 
-#             distinct(year_trip, whole_kg) %>% 
-#             arrange(year_trip)) %>% View()
 
 # Daily summary ----
 
-# Get a daily summary of observed, marks, and tag loss during the directed NSEI season.
+# 1. Summary of observed (n), marks (k), and recovered tags by day during the
+# directed NSEI season.
 
 marks %>% 
   # padr::pad fills in missing dates with NAs, grouping by years.
@@ -593,6 +561,8 @@ marks %>%
          cum_marks = cumsum(total_marked),
          julian_day = yday(date)) -> daily_marks
 
+# 2. Other recovered tags from the fishery (D)
+
 # Join remaining recovered tags that have a matching data with the daily marks 
 # df. These could be from other fisheries in or outside the NSEI or from Canada.
 # Get fishery_D, the final count of tags to be decremented for the next time
@@ -604,6 +574,10 @@ recoveries %>%
   right_join(daily_marks, by = "date") %>% 
   # padr::fill_ replaces NAs with 0 for specified cols
   fill_by_value(other_tags, value = 0) %>% 
+  # If tags observed in countback > marks, the D for the day is the difference
+  # between tags and marks plus other tags from the recoveries df that haven't
+  # been accounted for yet. This assumes any tags recovered at time of countback
+  # are potentially linked with a marked fish.
   mutate(fishery_D = ifelse(tags_from_fishery - total_marked > 0, 
                             tags_from_fishery - total_marked + other_tags, 
                             other_tags)) -> daily_marks
