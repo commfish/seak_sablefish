@@ -543,7 +543,7 @@ TMBphase <- function(data, parameters, random, model_name,
   
   # Debug function
   # random <-  random_vars <- NULL
-  # phases <- build_phases(parameters, data)
+  # # phases <- build_phases(parameters, data)
   # model_name <- "mod"
   # debug <- FALSE
 
@@ -598,7 +598,7 @@ TMBphase <- function(data, parameters, random, model_name,
       # Temporary debug trying to figure out why I'm getting NA/NaN function
       # evaluation
       if (tmp_debug == TRUE) {
-        map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
+        # map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
         map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
         map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
         # map_use$fsh_logq <- fill_vals(parameters$fsh_logq, NA)

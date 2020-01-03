@@ -30,7 +30,7 @@ retention <- read_csv("data/tmb_inputs/retention_probs.csv")  # weight-at-age
 # develop one for ADFG. Row = true age, Column = observed age. Proportion
 # observed at age given true age.
 ageing_error <- scan("data/tmb_inputs/ageing_error_fed.txt", sep = " ") %>% matrix(ncol = 30) %>% t()
-rowSums(ageing_error)
+rowSums(ageing_error) # should be 1
 
 # Age-length key from D. Hanselman 2019-04-18. On To DO list to develop one for
 # ADFG (will need separate onces for fishery and survey).  Proportion at length
@@ -122,8 +122,8 @@ data <- list(
     },
   
   # Fxx levels that correspond with log_spr_Fxx in Parameter section
-  Fxx_levels = c(0.35, 0.40, 0.50),
-  
+  Fxx_levels = c(0.35, 0.40, 0.50, 0.60, 0.70),
+
   # Priors ("p_" denotes prior)
   p_fsh_q = c(exp(-16), exp(-16)),
   sigma_fsh_q = c(1, 1),
@@ -401,8 +401,8 @@ parameters <- list(
   
   # SPR-based fishing mortality rates, i.e. the F at which the spawning biomass
   # per recruit is reduced to xx% of its value in an unfished stock
-  log_spr_Fxx = c(log(0.128), log(0.105), log(0.071)),       # F35, F40, F50
-  
+  log_spr_Fxx = c(log(0.128), log(0.105), log(0.071), log(0.066), log(0.058)), # F35, F40, F50, F60, F70
+
   # Parameter related to effective sample size for Dirichlet-multinomial
   # likelihood used for composition data. Default of 10 taken from LIME model by
   # M. Rudd. Estimated in log-space b/c it can only be positive.
@@ -445,6 +445,7 @@ names(tidyrep) <- c("Parameter", "Estimate", "se")
 key_params <- filter(tidyrep, !grepl('devs', Parameter))
 
 write_csv(key_params, paste0("../output/tmb_params.csv"))
+
 # Figures 
 
 # Fits to abundance indices, derived time series, and F
@@ -475,6 +476,7 @@ best <- obj$env$last.par.best
 print(as.numeric(best))
 print(best)
 obj$report()$priors
+obj$report()$pred_rec
 obj$report()$S[nyr,,1]
 obj$report()$S[1,,2]
 obj$report()$catch_like
@@ -681,27 +683,27 @@ write_csv(x = D, "Dmatrix.csv")
 # 
 # Compile
 compile("mod.cpp")
-# dyn.load(dynlib("mod"))
+dyn.load(dynlib("mod"))
 # Use map to turn off parameters, either for testing with dummy, phasing, or to
 # fix parameter values
 
 # Debug
-# map <- list(log_fsh_slx_pars = factor(array(data = c(rep(factor(NA), length(data$fsh_blks)),
-#                                      rep(factor(NA), length(data$fsh_blks))),
-#                             dim = c(length(data$fsh_blks), 2, nsex))),
-#             log_srv_slx_pars = factor(array(data = c(rep(factor(NA), length(data$srv_blks)),
-#                                                  rep(factor(NA), length(data$srv_blks))),
-#                                         dim = c(length(data$srv_blks), 2, nsex))),
-#             fsh_logq = factor(NA), srv_logq = factor(NA), mr_logq = factor(NA),
-#             log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr),
-#             log_rinit = factor(NA), log_rinit_devs = rep(factor(NA), nage-2),
-#             log_sigma_r = factor(NA), log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
-#             log_spr_Fxx = rep(factor(NA), length(data$Fxx_levels)),
-#             log_fsh_theta = factor(NA), log_srv_theta = factor(NA))
-# model <- MakeADFun(data, parameters, DLL = "mod", 
-#                    silent = TRUE, map = map,
-#                    random = random_vars)
-# 
+map <- list(log_fsh_slx_pars = factor(array(data = c(rep(factor(NA), length(data$fsh_blks)),
+                                     rep(factor(NA), length(data$fsh_blks))),
+                            dim = c(length(data$fsh_blks), 2, nsex))),
+            log_srv_slx_pars = factor(array(data = c(rep(factor(NA), length(data$srv_blks)),
+                                                 rep(factor(NA), length(data$srv_blks))),
+                                        dim = c(length(data$srv_blks), 2, nsex))),
+            fsh_logq = factor(NA), srv_logq = factor(NA), mr_logq = factor(NA),
+            log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr),
+            log_rinit = factor(NA), log_rinit_devs = rep(factor(NA), nage-2),
+            log_sigma_r = factor(NA), log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
+            log_spr_Fxx = rep(factor(NA), length(data$Fxx_levels)),
+            log_fsh_theta = factor(NA), log_srv_theta = factor(NA))
+model <- MakeADFun(data, parameters, DLL = "mod",
+                   silent = TRUE, map = map,
+                   random = random_vars)
+
 # fit <- nlminb(model$par, model$fn, model$gr,
 #               control=list(eval.max=100000,iter.max=1000))
 

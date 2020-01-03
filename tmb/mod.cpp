@@ -979,33 +979,44 @@ template<class Type>
 
     // Survival equation by age
     for(int j = 1; j < nage - 1; j++) {
-      Nspr(x,j) = Nspr(x,j-1) * exp(Type(-1.0) * spr_Fxx(x) * spr_fsh_slx(j-1) + M(nyr-1,j-1,nsex-1));
+      Nspr(x,j) = Nspr(x,j-1) * exp(Type(-1.0) * (spr_Fxx(x) * spr_fsh_slx(j-1) + M(nyr-1,j-1,nsex-1)));
     }
 
     // Plus group
-    Nspr(x,nage-1) = Nspr(x,nage-2) * exp(Type(-1.0) * spr_Fxx(x) * spr_fsh_slx(nage-2) + M(nyr-1,nage-2,nsex-1)) /
-      (Type(1.0) - exp(Type(-1.0) * spr_Fxx(x) * spr_fsh_slx(nage-1) + M(nyr-1,nage-1,nsex-1)));
+    Nspr(x,nage-1) = Nspr(x,nage-2) * exp(Type(-1.0) * (spr_Fxx(x) * spr_fsh_slx(nage-2) + M(nyr-1,nage-2,nsex-1))) /
+      (Type(1.0) - exp(Type(-1.0) * (spr_Fxx(x) * spr_fsh_slx(nage-1) + M(nyr-1,nage-1,nsex-1))));
   }
   // std::cout << "Number of spawners\n" << Nspr << "\n";
 
-  // Spawning biomass per recruit matrix
-  for(int x = 0; x <= n_Fxx; x++) {
-    for(int j = 0; j < nage; j++) {
+  // Unfished spawning biomass per recruit
+  for(int j = 0; j < nage; j++) {
+      SBPR(0) +=  Type(0.5) * Nspr(0,j) * prop_mature(j) * data_srv_waa(0,j,0) * survival_spawn(nyr-1,j,nsex-1);
+  }
 
+  // Remaining spawning biomass per recruit matrix
+  for(int x = 1; x <= n_Fxx; x++) {
+    for(int j = 0; j < nage; j++) {
+      
       if (nsex == 1) { // single sex model uses prop_fem vector
-        SBPR(x) +=  Nspr(x,j) * prop_fem(j) * prop_mature(j) * data_srv_waa(0,j,0) * survival_spawn(nyr-1,j,nsex-1);
+        SBPR(x) +=  Nspr(x,j) * prop_fem(j) * prop_mature(j) * data_srv_waa(0,j,0) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + spr_Fxx(x) * spr_fsh_slx(j)));
+        
       }
       if (nsex == 2) { // sex-structured model uses sex_ratio matrix
-        SBPR(x) +=  Nspr(x,j) * sex_ratio(nsex-1,j) * prop_mature(0,j) * data_srv_waa(0,j,0) * survival_spawn(nyr-1,j,nsex-1);
+        SBPR(x) +=  Nspr(x,j) * sex_ratio(nsex-1,j) * prop_mature(0,j) * data_srv_waa(0,j,0) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + spr_Fxx(x) * spr_fsh_slx(j)));
       }
     }
   }
   // std::cout << "Spawning biomass per recruit\n" << SBPR << "\n";
 
-  // Virgin spawning biomass (no fishing), assuming average recruitment
-  SB(0) = SBPR(0) * exp(log_rbar); // *FLAG* proportion female or multiply by 0.5?
+  // Virgin female spawning biomass (no fishing), assuming average recruitment and 50:50 sex ratio
+  Type mean_rec = 0;
+  for (int i = 0; i < nyr; i++) {
+    mean_rec += pred_rec(i);
+  }
+  mean_rec /= nyr;
+  SB(0) = SBPR(0) * (mean_rec * 0.5); 
 
-  // Spawning biomass as a fraction of virgin spawning biomass
+  // Spawning biomass as a fraction of virgin spawning biomass - FLAG check this
   for(int x = 1; x <= n_Fxx; x++) {
     SB(x) = Fxx_levels(x-1) * SB(0);
   }
@@ -1014,7 +1025,7 @@ template<class Type>
   // Get Allowable Biological Catch for different Fxx levels: *FLAG* all of
   // these should be sex-structured, then final ABC will be summed across sexes
   for(int x = 0; x < n_Fxx; x++) {
-    for (int k = 0; k < nsex; k++) {
+    for(int k = 0; k < nsex; k++) {
       for(int j = 0; j < nage; j++) {
 
         // Fully selected fishing mortality by age and sex. If discard mortality
@@ -1199,10 +1210,8 @@ template<class Type>
         fsh_len_like(k) -= effn_fsh_len(i,0,k) * (data_fsh_len(i,l,k) + c) * log(pred_fsh_len(i,l,k) + c);
       }
     }
-    
     fsh_len_like(k) -= offset_fsh_len(k);     // subtract offset
     fsh_len_like(k) *= wt_fsh_len;            // likelihood weight 
-    
   }
   
   // Multinomial likelihood for survey length comps.
@@ -1276,9 +1285,8 @@ template<class Type>
 
   // Large penalty on SPR calculations
   for(int x = 1; x <= n_Fxx; x++) {
-    spr_pen += square( (SB(x) / SB(0)) - Fxx_levels(x-1));
+    spr_pen += wt_spr * square(SBPR(x) / SBPR(0) - Fxx_levels(x-1));
   }
-  spr_pen *=  wt_spr;
   // std::cout << "Log fishing mortality deviations\n" << log_F_devs << "\n";
   // std::cout << "Penality for fishing mortality\n" << fpen << "\n";
   // std::cout << "Penality for SPR calcs\n" << spr_pen << "\n";
