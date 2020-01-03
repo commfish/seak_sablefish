@@ -583,6 +583,11 @@ laa_f %>% filter(!is.na(Mature)) %>%
 
 # base models
 fit_length <- glm(Mature ~ length, data = laa_f, family = binomial)
+len <- seq(0, 120, 0.05)
+(L50 <- round(- coef(fit_length)[1]/coef(fit_length)[2],1))
+(kmat <- round(((coef(fit_length)[1] + coef(fit_length)[2]*len) / (len - L50))[1], 2))
+
+
 fit_age <- glm(Mature ~ age, data = laa_f, family = binomial)
 
 # by year
@@ -591,6 +596,7 @@ fit_age_year <- glm(Mature ~ age * Year, data = laa_f, family = binomial)
 # Warning message:
 #   glm.fit: fitted probabilities numerically 0 or 1 occurred 
 
+# FLAG! Not appropriate to use AIC to compare models with different data (2019-12-20)
 AIC(fit_length, fit_age, fit_length_year, fit_age_year)
 
 ## select the "best model" (fit_length_year) and run the model on the new full
@@ -770,6 +776,12 @@ b1 <- fit_age$coefficients[2]
 a50 <- -b0/b1
 age <- min(laa_f$age):max(laa_f$age)
 kmat <- ((b0 + b1*age) / (age - a50))[1]
+
+
+b0 <- fit_length$coefficients[1]
+b1 <- fit_length$coefficients[2]
+L50 <- -b0/b1
+L50
 
 # proportion mature at age
 laa_f %>% ungroup() %>%
