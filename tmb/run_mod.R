@@ -486,8 +486,37 @@ obj$report()$pred_mr
 obj$report()$obj_fun
 obj$report()$pred_landed ==obj$report()$pred_catch
 obj$report()$pred_wastage * 2204.62
-obj$report()$ABC * 2.20462
-obj$report()$wastage * 2.20462
+obj$report()$F
+
+ABC <- as.data.frame(obj$report()$ABC * 2.20462)
+names(ABC) <- data$Fxx_levels
+ABC <- ABC %>% 
+  mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
+  data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC")
+
+wastage <- as.data.frame(obj$report()$wastage * 2.20462)
+names(wastage) <- data$Fxx_levels
+wastage <- wastage %>% 
+  mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
+  data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "wastage")
+  
+retro_mgt <- ABC %>% 
+  left_join(wastage) %>% 
+  melt(id.vars = c("year", "Fxx")) %>% 
+  mutate(variable = factor(variable, 
+                           levels = c("wastage", "ABC"),
+                           labels = c("Wastage", "ABC"),
+                           ordered = TRUE))
+
+ggplot() +
+  geom_area(data = retro_mgt %>% 
+              filter(Fxx == "0.4"), aes(x = year, y = value, fill = variable), 
+            position = "stack") +
+  geom_line(data = ts %>% 
+              select(year, catch) %>% 
+              mutate(catch = catch * 2204.62),
+            aes(x = year, y = catch)) 
+
 obj$report()$Fxx
 
 dat_like <- sum(obj$report()$catch_like,

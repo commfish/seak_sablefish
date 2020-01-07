@@ -270,7 +270,7 @@ template<class Type>
   Type pred_rbar;                                 // Predicted mean recruitment
   Type sigma_r = exp(log_sigma_r);                // Estimated recruitment on natural scale 
   
-  // SPR-based reference points
+  // SPR-based equilibrium reference points
   int n_Fxx = Fxx_levels.size();                  // Number of Fs estimated
   vector<Type> Fxx(n_Fxx + 1);                    // Separate Fxx vector that is scaled to fully selected values (+1 includes F=0)
   matrix<Type> Nspr(n_Fxx + 1, nage);             // Matrix of spawning numbers-at-age *FLAG* number of rows = number of estimated F_xx% (e.g. 3 = F35,F40,F50)
@@ -284,8 +284,8 @@ template<class Type>
   array<Type> sel_Fxx(n_Fxx, nage, nsex);       // Age-specific fully-selected fishing mortality at each Fxx%
   array<Type> Z_Fxx(n_Fxx, nage, nsex);         // Total mortality at each Fxx%
   array<Type> S_Fxx(n_Fxx, nage, nsex);         // Total survivorship at each Fxx%
-  vector<Type> ABC(n_Fxx);                      // ABCs at each F_xx%
-  vector<Type> wastage(n_Fxx);                  // Discarded catch assumed to die under each F_xx%
+  matrix<Type> ABC(nyr+1, n_Fxx);               // ABCs at each F_xx%, retrospectively estimated for past years
+  matrix<Type> wastage(nyr+1, n_Fxx);           // Discarded catch assumed to die under each F_xx%, retrospectively estimated for past years
   ABC.setZero();
   wastage.setZero();
   
@@ -1022,7 +1022,7 @@ template<class Type>
   }
   // std::cout << "Spawning biomass\n" << SB << "\n";
 
-  // Get Allowable Biological Catch for different Fxx levels: *FLAG* all of
+  // Get Allowable Biological Catch and wastage estimates for different Fxx levels: all of
   // these should be sex-structured, then final ABC will be summed across sexes
   for(int x = 0; x < n_Fxx; x++) {
     for(int k = 0; k < nsex; k++) {
@@ -1034,16 +1034,25 @@ template<class Type>
         sel_Fxx(x,j,k) = Fxx(x+1) * fsh_slx(nyr-1,j,k) * (retention(0,j,k) + dmr(nyr-1,j,k) * (Type(1.0) - retention(0,j,k)));
         Z_Fxx(x,j,k) = M(nyr-1,j,nsex-1) + sel_Fxx(x,j,k);    // Total instantaneous mortality at age
         S_Fxx(x,j,k) = exp(-Z_Fxx(x,j,k));                    // Total survival at age
-
-        // ABC calculation (landed catch under Fxx) using projected abundance
-        ABC(x) += data_srv_waa(0,j,k) * retention(0,j,k) * N(nyr,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
-
-        // // Discarded catch assumed to die under Fxx
-        wastage(x) += data_srv_waa(0,j,k) * dmr(nyr-1,j,k) * (Type(1.0) - retention(0,j,k)) * N(nyr,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
       }
     }
   }
-
+  
+  for(int i = 0; i <= nyr; i++) { // include forecast year
+    for(int x = 0; x < n_Fxx; x++) {
+      for(int k = 0; k < nsex; k++) {
+        for(int j = 0; j < nage; j++) {
+          
+          // ABC calculation (landed catch under Fxx) using projected abundance
+          ABC(i,x) += data_srv_waa(0,j,k) * retention(0,j,k) * N(i,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
+          
+          // Discarded catch assumed to die under Fxx
+          wastage(i,x) += data_srv_waa(0,j,k) * dmr(nyr-1,j,k) * (Type(1.0) - retention(0,j,k)) * N(i,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
+        }
+      }
+    }
+  }
+  
   // std::cout << "ABC\n" << ABC << "\n";
   // std::cout << "Wastage\n" << wastage << "\n";
 
