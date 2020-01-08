@@ -29,6 +29,11 @@ template<class Type>
   // Swtich for age composition type (hopefully one day length too): 0 = multinomial; 1 = Dirichlet-multinomial
   DATA_INTEGER(comp_type)
     
+  // Switch for assumption on SPR equilibrium recruitment. 0 = arithmetic mean
+  // (same as Federal assessment), 1 = geometric mean, 2 = median (2 not coded
+  // yet)
+  DATA_INTEGER(spr_rec_type)
+    
   // Time varying parameter blocks (indexed as h) - each vector contains the terminal years of
   // each time block. Used for both selectivity and catchability
   DATA_IVECTOR(fsh_blks)        // fishery  
@@ -1008,12 +1013,35 @@ template<class Type>
   }
   // std::cout << "Spawning biomass per recruit\n" << SBPR << "\n";
 
-  // Virgin female spawning biomass (no fishing), assuming average recruitment and 50:50 sex ratio
-  Type mean_rec = 0;
-  for (int i = 0; i < nyr; i++) {
-    mean_rec += pred_rec(i);
+  // Mean recruitment, where spr_rec_type is a switch for different assumptions
+  // of what the "mean" should be
+  Type mean_rec;
+  
+  switch (spr_rec_type) {
+  
+  case 0: // Arithmentic mean
+    
+    mean_rec = 0;
+    for (int i = 0; i < nyr; i++) {
+      mean_rec += pred_rec(i);
+    }
+    mean_rec /= nyr;
+    break;
+    
+  case 1: // Geometric mean
+    
+    mean_rec = 1;
+    for (int i = 0; i < nyr; i++) {
+      mean_rec *= pred_rec(i);
+    }
+    mean_rec = pow(mean_rec, Type(1)/nyr);
+    break;
+    
+    // case 2: // Median *FLAG* future development
   }
-  mean_rec /= nyr;
+  
+  // Virgin female spawning biomass (no fishing), assuming 50:50 sex ratio for
+  // recruitment
   SB(0) = SBPR(0) * (mean_rec * 0.5); 
 
   // Spawning biomass as a fraction of virgin spawning biomass - FLAG check this
@@ -1372,6 +1400,7 @@ template<class Type>
   REPORT(Fxx);              // Vector of Fs scaled to fully selected values
   REPORT(sel_Fxx);          // Fishery selectivity used in ABC calcs
   REPORT(SBPR);             // Vector of spawning biomass per recruit at various Fxx levels
+  REPORT(mean_rec);         // Mean recruitment assumed to be equilibrium recruitment
   REPORT(SB);               // Vector of spawning biomass at various Fxx levels
   REPORT(ABC);              // ABC at various Fxx levels
   REPORT(wastage);          // Dead discarded catch at various Fxx levels

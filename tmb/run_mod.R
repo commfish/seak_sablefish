@@ -91,6 +91,11 @@ data <- list(
   # multinomial; 1 = Dirichlet-multinomial
   comp_type = 0,
   
+  # Switch for assumption on SPR equilibrium recruitment. 0 = arithmetic mean
+  # (same as Federal assessment), 1 = geometric mean, 2 = median (2 not coded
+  # yet)
+  spr_rec_type = 1,
+  
   # Time varying parameters - each vector contains the terminal years of each time block
   fsh_blks = c(14, max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
   srv_blks = c(max(ts$index)), # no breaks survey selectivity
@@ -430,7 +435,7 @@ if(data$random_rec == 0) {
 setwd(tmb_path)
 
 # Compile and run model
-out <- TMBphase(data, parameters, random = random_vars, model_name = "mod", debug = FALSE)
+out <- TMBphase(data, parameters, random = random_vars, model_name = "mod", phase = FALSE, debug = FALSE)
 
 obj <- out$obj # TMB model object
 opt <- out$opt # fit
@@ -488,11 +493,17 @@ obj$report()$pred_landed ==obj$report()$pred_catch
 obj$report()$pred_wastage * 2204.62
 obj$report()$F
 
-ABC <- as.data.frame(obj$report()$ABC * 2.20462)
+ABC <- as.data.frame(obj$report(obj$env$last.par.best)$ABC * 2.20462)
 names(ABC) <- data$Fxx_levels
 ABC <- ABC %>% 
   mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
   data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC")
+
+ABC %>% filter(Fxx == "0.5" & year == 2019)
+obj$report()$SB
+
+obj$report()$mean_rec #obj$env$last.par.best
+obj$report(obj$env$last.par.best)$pred_rec
 
 wastage <- as.data.frame(obj$report()$wastage * 2.20462)
 names(wastage) <- data$Fxx_levels

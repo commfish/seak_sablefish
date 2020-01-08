@@ -538,7 +538,7 @@ build_phases <- function(param_list = NULL, data_list){
 }
 
 # Original code by Gavin Fay, adaped for use in the sablefish model
-TMBphase <- function(data, parameters, random, model_name,
+TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
                      optimizer = "nlminb", debug = FALSE) {
   
   # Debug function
@@ -546,8 +546,6 @@ TMBphase <- function(data, parameters, random, model_name,
   # # phases <- build_phases(parameters, data)
   # model_name <- "mod"
   # debug <- FALSE
-
-  phases <- build_phases(parameters, data)
   
   # function to fill list component with a factor
   fill_vals <- function(x,vals){rep(as.factor(vals), length(x))}
@@ -558,66 +556,33 @@ TMBphase <- function(data, parameters, random, model_name,
   DLL_use <- model_name  
   out <- list() 
   
-  #loop over phases
-  for (phase_cur in 1:max(unlist(phases))) {
+  if (phase == FALSE) {
     
-    # phase_cur <- 1 # Debug function
+    # work out the map for this phase if phases for parameters is less than the
+    # current phase then map will contain a factor filled with NAs
+    map_use <- list()
+    map_use$dummy <- fill_vals(parameters$dummy, NA)
     
-    # If debugging build the map to have all parameters as factored NAs
-    if (debug == TRUE) {
-      map_use <- parameters
-      
-      for(i in 1:length(map_use)){
-        map_use[[i]] <- replace(map_use[[i]], values = rep(NA, length(map_use[[i]])))
-      }
-      map_use <- map_use[!names(map_use) %in% "dummy"]
-      
-      for(i in 1:length(map_use)){
-        map_use[[i]] <- factor(map_use[[i]])
-      }
-      
-    } else {
-      
-      # work out the map for this phase if phases for parameters is less than the
-      # current phase then map will contain a factor filled with NAs
-      map_use <- list()
-      map_use$dummy <- fill_vals(parameters$dummy, NA)
-      
-      # if not using random effects, assign log_sigma_r an NA in the map so it's not estimated
-      if (data$random_rec == FALSE) {
-        map_use$log_sigma_r <- fill_vals(parameters$log_sigma_r, NA)
-      }
-      
-      # if not using the Dirichlet-multinonial, assign log_fsh_theta and
-      # log_srv_theta NAs in the map so they're not estimated
-      if (data$comp_type != 1) {
-        map_use$log_fsh_theta <- fill_vals(parameters$log_fsh_theta, NA)
-        map_use$log_srv_theta <- fill_vals(parameters$log_srv_theta, NA)
-      }
-      
-      # Temporary debug trying to figure out why I'm getting NA/NaN function
-      # evaluation
-      if (tmp_debug == TRUE) {
-        # map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
-        map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
-        map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
-        # map_use$fsh_logq <- fill_vals(parameters$fsh_logq, NA)
-      }
-      
-      j <- 1 # change to 0 if you get rid of the dummy debugging feature
-      
-      for (i in 1:length(parameters)) {
-        if (phases[[i]]>phase_cur) {
-          j <- j+1
-          map_use[[j]] <- fill_vals(parameters[[i]], NA)
-          names(map_use)[j] <- names(parameters)[i]               
-        }
-      }
-      map_use
+    # if not using random effects, assign log_sigma_r an NA in the map so it's not estimated
+    if (data$random_rec == FALSE) {
+      map_use$log_sigma_r <- fill_vals(parameters$log_sigma_r, NA)
     }
     
-    # remove the random effects if they are not estimated *FLAG* redundant?
-    # random_use <- random[!random%in%names(map_use)]
+    # if not using the Dirichlet-multinonial, assign log_fsh_theta and
+    # log_srv_theta NAs in the map so they're not estimated
+    if (data$comp_type != 1) {
+      map_use$log_fsh_theta <- fill_vals(parameters$log_fsh_theta, NA)
+      map_use$log_srv_theta <- fill_vals(parameters$log_srv_theta, NA)
+    }
+    
+    # Temporary debug trying to figure out why I'm getting NA/NaN function
+    # evaluation
+    if (tmp_debug == TRUE) {
+      # map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
+      map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
+      map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
+      # map_use$fsh_logq <- fill_vals(parameters$fsh_logq, NA)
+    }
     
     # Build upper and lower parameter bounds and remove any that are not
     # estimated (should be the inverse of the map_use)
@@ -634,9 +599,9 @@ TMBphase <- function(data, parameters, random, model_name,
       lower <- lower[!names(lower) %in% "log_sigma_r"]
       upper <- upper[!names(lower) %in% "log_sigma_r"]
     }
+    
     # initialize the parameters at values in previous phase
     params_use <- parameters
-    if (phase_cur>1) params_use <- obj$env$parList(opt$par)
     
     # Fit the model
     obj <- TMB::MakeADFun(data,params_use,random=NULL,DLL=DLL_use,map=map_use)  
@@ -648,6 +613,97 @@ TMBphase <- function(data, parameters, random, model_name,
     rep <- TMB::sdreport(obj)
   }
   
+  if (phase == TRUE) {
+    
+    phases <- build_phases(parameters, data)
+    
+    #loop over phases
+    for (phase_cur in 1:max(unlist(phases))) {
+      
+      # phase_cur <- 1 # Debug function
+      
+      # If debugging build the map to have all parameters as factored NAs
+      if (debug == TRUE) {
+        map_use <- parameters
+        
+        for(i in 1:length(map_use)){
+          map_use[[i]] <- replace(map_use[[i]], values = rep(NA, length(map_use[[i]])))
+        }
+        map_use <- map_use[!names(map_use) %in% "dummy"]
+        
+        for(i in 1:length(map_use)){
+          map_use[[i]] <- factor(map_use[[i]])
+        }
+        
+      } else {
+        
+        # work out the map for this phase if phases for parameters is less than the
+        # current phase then map will contain a factor filled with NAs
+        map_use <- list()
+        map_use$dummy <- fill_vals(parameters$dummy, NA)
+        
+        # if not using random effects, assign log_sigma_r an NA in the map so it's not estimated
+        if (data$random_rec == FALSE) {
+          map_use$log_sigma_r <- fill_vals(parameters$log_sigma_r, NA)
+        }
+        
+        # if not using the Dirichlet-multinonial, assign log_fsh_theta and
+        # log_srv_theta NAs in the map so they're not estimated
+        if (data$comp_type != 1) {
+          map_use$log_fsh_theta <- fill_vals(parameters$log_fsh_theta, NA)
+          map_use$log_srv_theta <- fill_vals(parameters$log_srv_theta, NA)
+        }
+        
+        # Temporary debug trying to figure out why I'm getting NA/NaN function
+        # evaluation
+        if (tmp_debug == TRUE) {
+          # map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
+          map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
+          map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
+          # map_use$fsh_logq <- fill_vals(parameters$fsh_logq, NA)
+        }
+        
+        j <- 1 # change to 0 if you get rid of the dummy debugging feature
+        
+        for (i in 1:length(parameters)) {
+          if (phases[[i]]>phase_cur) {
+            j <- j+1
+            map_use[[j]] <- fill_vals(parameters[[i]], NA)
+            names(map_use)[j] <- names(parameters)[i]               
+          }
+        }
+        map_use
+      }
+      
+      # Build upper and lower parameter bounds and remove any that are not
+      # estimated (should be the inverse of the map_use)
+      bounds <- build_bounds(param_list = parameters)
+      bounds$upper <- bounds$upper[!names(bounds$upper) %in% names(map_use)]
+      bounds$lower <- bounds$lower[!names(bounds$lower) %in% names(map_use)]
+      
+      # Remove inactive parameters from bounds and vectorize
+      lower <- unlist(bounds$lower)
+      upper <- unlist(bounds$upper)
+      
+      # Remove random effects from bounds
+      if (data$random_rec == FALSE) {
+        lower <- lower[!names(lower) %in% "log_sigma_r"]
+        upper <- upper[!names(lower) %in% "log_sigma_r"]
+      }
+      # initialize the parameters at values in previous phase
+      params_use <- parameters
+      if (phase_cur>1) params_use <- obj$env$parList(obj$env$last.par.best)
+      
+      # Fit the model
+      obj <- TMB::MakeADFun(data,params_use,random=NULL,DLL=DLL_use,map=map_use)  
+      
+      TMB::newtonOption(obj,smartsearch=FALSE)
+      opt <- nlminb(start = obj$env$last.par.best, objective = obj$fn, hessian = obj$gr,
+                    control=list(eval.max=100000,iter.max=1000, trace=TRUE),
+                    lower = lower, upper = upper)
+      rep <- TMB::sdreport(obj)
+    }
+  }
   out$obj <- obj
   out$opt <- opt 
   out$rep <- rep
