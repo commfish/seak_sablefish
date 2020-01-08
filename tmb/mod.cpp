@@ -977,37 +977,41 @@ template<class Type>
   }
   // std::cout << "Fxx\n" << Fxx << "\n";
 
-  // Populate numbers of potential spawners at age matrix
+  // Populate numbers of potential spawners at age matrix - Note: for the Nspr
+  // and SBPR calculations, the Federal assessment uses the equivalent of
+  // spr_Fxx instead of the scales Fxx. Not sure why.
   for(int x = 0; x <= n_Fxx; x++) {
 
     Nspr(x,0) = Type(1.0);    // Initialize SPR with 1
 
     // Survival equation by age
     for(int j = 1; j < nage - 1; j++) {
-      Nspr(x,j) = Nspr(x,j-1) * exp(Type(-1.0) * (spr_Fxx(x) * spr_fsh_slx(j-1) + M(nyr-1,j-1,nsex-1)));
+      Nspr(x,j) = Nspr(x,j-1) * exp(Type(-1.0) * (Fxx(x) * spr_fsh_slx(j-1) + M(nyr-1,j-1,nsex-1)));
     }
 
     // Plus group
-    Nspr(x,nage-1) = Nspr(x,nage-2) * exp(Type(-1.0) * (spr_Fxx(x) * spr_fsh_slx(nage-2) + M(nyr-1,nage-2,nsex-1))) /
-      (Type(1.0) - exp(Type(-1.0) * (spr_Fxx(x) * spr_fsh_slx(nage-1) + M(nyr-1,nage-1,nsex-1))));
+    Nspr(x,nage-1) = Nspr(x,nage-2) * exp(Type(-1.0) * (Fxx(x) * spr_fsh_slx(nage-2) + M(nyr-1,nage-2,nsex-1))) /
+      (Type(1.0) - exp(Type(-1.0) * (Fxx(x) * spr_fsh_slx(nage-1) + M(nyr-1,nage-1,nsex-1))));
   }
   // std::cout << "Number of spawners\n" << Nspr << "\n";
 
   // Unfished spawning biomass per recruit
   for(int j = 0; j < nage; j++) {
-      SBPR(0) +=  Type(0.5) * Nspr(0,j) * prop_mature(j) * data_srv_waa(0,j,0) * survival_spawn(nyr-1,j,nsex-1);
+      SBPR(0) += Type(0.5) * Nspr(0,j) * prop_mature(j) * data_srv_waa(0,j,1) * survival_spawn(nyr-1,j,nsex-1);
   }
 
-  // Remaining spawning biomass per recruit matrix
+  // Remaining spawning biomass per recruit matrix - Note: the Federal
+  // assessment assumes a 50:50 sex ratio, whereas we are using the survey sex
+  // ratio.
   for(int x = 1; x <= n_Fxx; x++) {
     for(int j = 0; j < nage; j++) {
       
       if (nsex == 1) { // single sex model uses prop_fem vector
-        SBPR(x) +=  Nspr(x,j) * prop_fem(j) * prop_mature(j) * data_srv_waa(0,j,0) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + spr_Fxx(x) * spr_fsh_slx(j)));
+        SBPR(x) +=  Nspr(x,j) * prop_fem(j) * prop_mature(j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + Fxx(x) * spr_fsh_slx(j)));
         
       }
       if (nsex == 2) { // sex-structured model uses sex_ratio matrix
-        SBPR(x) +=  Nspr(x,j) * sex_ratio(nsex-1,j) * prop_mature(0,j) * data_srv_waa(0,j,0) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + spr_Fxx(x) * spr_fsh_slx(j)));
+        SBPR(x) +=  Nspr(x,j) * sex_ratio(nsex-1,j) * prop_mature(0,j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + Fxx(x) * spr_fsh_slx(j)));
       }
     }
   }
@@ -1041,7 +1045,7 @@ template<class Type>
   }
   
   // Virgin female spawning biomass (no fishing), assuming 50:50 sex ratio for
-  // recruitment
+  // recruitment (equivalent to B_100)
   SB(0) = SBPR(0) * (mean_rec * 0.5); 
 
   // Spawning biomass as a fraction of virgin spawning biomass - FLAG check this
