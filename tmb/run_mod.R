@@ -481,7 +481,10 @@ best <- obj$env$last.par.best
 print(as.numeric(best))
 print(best)
 obj$report()$priors
-obj$report()$pred_rec
+pred_rec <- obj$report()$pred_rec
+mean(pred_rec)
+
+
 obj$report()$S[nyr,,1]
 obj$report()$S[1,,2]
 obj$report()$catch_like
@@ -501,6 +504,7 @@ ABC <- ABC %>%
 
 ABC %>% filter(Fxx == "0.5" & year == 2019)
 obj$report()$SB
+obj$report()$SBPR
 
 obj$report()$mean_rec #obj$env$last.par.best
 obj$report(obj$env$last.par.best)$pred_rec

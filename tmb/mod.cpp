@@ -997,21 +997,19 @@ template<class Type>
 
   // Unfished spawning biomass per recruit
   for(int j = 0; j < nage; j++) {
-      SBPR(0) += Type(0.5) * Nspr(0,j) * prop_mature(j) * data_srv_waa(0,j,1) * survival_spawn(nyr-1,j,nsex-1);
+      SBPR(0) +=  Nspr(0,j) * prop_mature(j) * data_srv_waa(0,j,1) * survival_spawn(nyr-1,j,nsex-1); //Type(0.5) *
   }
 
-  // Remaining spawning biomass per recruit matrix - Note: the Federal
-  // assessment assumes a 50:50 sex ratio, whereas we are using the survey sex
-  // ratio.
+  // Remaining spawning biomass per recruit matrix 
   for(int x = 1; x <= n_Fxx; x++) {
     for(int j = 0; j < nage; j++) {
       
       if (nsex == 1) { // single sex model uses prop_fem vector
-        SBPR(x) +=  Nspr(x,j) * prop_fem(j) * prop_mature(j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + Fxx(x) * spr_fsh_slx(j)));
+        SBPR(x) +=  Nspr(x,j) * prop_mature(j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + Fxx(x) * spr_fsh_slx(j))); //prop_fem(j) *
         
       }
       if (nsex == 2) { // sex-structured model uses sex_ratio matrix
-        SBPR(x) +=  Nspr(x,j) * sex_ratio(nsex-1,j) * prop_mature(0,j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + Fxx(x) * spr_fsh_slx(j)));
+        SBPR(x) += Nspr(x,j) * prop_mature(0,j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + Fxx(x) * spr_fsh_slx(j))); //sex_ratio(nsex-1,j) * 
       }
     }
   }
@@ -1046,12 +1044,18 @@ template<class Type>
   
   // Virgin female spawning biomass (no fishing), assuming 50:50 sex ratio for
   // recruitment (equivalent to B_100)
-  SB(0) = SBPR(0) * (mean_rec * 0.5); 
+  // SB(0) = SBPR(0) * mean_rec; 
 
   // Spawning biomass as a fraction of virgin spawning biomass - FLAG check this
-  for(int x = 1; x <= n_Fxx; x++) {
-    SB(x) = Fxx_levels(x-1) * SB(0);
+  // for(int x = 1; x <= n_Fxx; x++) {
+  //   SB(x) = Fxx_levels(x-1) * SB(0);
+  // }
+  
+  for(int x = 0; x <= n_Fxx; x++) {
+    SB(x) = Type(0.5) * SBPR(x) * mean_rec; //
   }
+  
+  
   // std::cout << "Spawning biomass\n" << SB << "\n";
 
   // Get Allowable Biological Catch and wastage estimates for different Fxx levels: all of
@@ -1312,7 +1316,6 @@ template<class Type>
     }
 
     rec_like *= wt_rec_like;      // weight
-
   }
   // std::cout << "Log recruitment deviations\n" << log_rec_devs << "\n";
   // std::cout << "Log deviations for initial numbers-at-age\n" << log_rinit_devs << "\n";
