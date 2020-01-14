@@ -310,6 +310,14 @@ query <-
 
     where   g_management_area_code = 'NSEI' and year = ", YEAR)
 
+# FYI, the final view is produced by the following query:
+# query <- 
+#   paste0(" select   s.*, e.time_set, e.time_hauled, e.start_latitude_decimal_degrees, e.start_longitude_decimal_degree
+#            from     scottj.out_g_log_longline_prop_54 s, ifdb.g_log_longline_effort e   
+#            where    s.year = 2019 and s.set_target = '710' and s.year = e.year
+#                     and s.project_code = e.project_code and s.trip_no = e.trip_no and s.effort_no = e.effort_no")
+
+
 dbGetQuery(ifdb_channel, query) -> fsh_eff
 
 write_csv(fsh_eff, paste0("data/fishery/raw_data/fishery_cpue_",
@@ -324,7 +332,7 @@ read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
          julian_day = yday(date),
          soak = difftime(TIME_HAULED, TIME_SET, units = "hours"),
          Gear = factor(LONGLINE_SYSTEM_CODE),
-         Hook_size = HOOK_SIZE, 
+         Hook_size = as.character(HOOK_SIZE), 
          hook_space = HOOK_SPACING, #*FLAG* - check that hook_space is in inches
          Size = factor(as.numeric(gsub("[^0-9]", "", Hook_size))),
          no_hooks = NUMBER_OF_HOOKS,

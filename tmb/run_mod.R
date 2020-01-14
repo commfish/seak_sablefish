@@ -451,7 +451,7 @@ key_params <- filter(tidyrep, !grepl('devs', Parameter))
 
 write_csv(key_params, paste0("../output/tmb_params.csv"))
 
-# Figures 
+# Figures ----
 
 # Fits to abundance indices, derived time series, and F
 plot_ts()
@@ -503,6 +503,7 @@ ABC <- ABC %>%
   data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC")
 
 ABC %>% filter(Fxx == "0.5" & year == 2019)
+ABC %>% filter(Fxx == "0.5")
 obj$report()$SB
 obj$report()$SBPR
 
@@ -525,7 +526,7 @@ retro_mgt <- ABC %>%
 
 ggplot() +
   geom_area(data = retro_mgt %>% 
-              filter(Fxx == "0.4"), aes(x = year, y = value, fill = variable), 
+              filter(Fxx == "0.5"), aes(x = year, y = value, fill = variable), 
             position = "stack") +
   geom_line(data = ts %>% 
               select(year, catch) %>% 
