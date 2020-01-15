@@ -707,11 +707,54 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
   out$obj <- obj
   out$opt <- opt 
   out$rep <- rep
+  out$map <- map_use
+  out$upper <- upper
+  out$lower <- lower
   return(out)  
+}
+
+# Function to jitter or generate random starting values when running MCMC on tmb model.
+init_fn <- function(){list(
+  fsh_logq = sort(runif(2, -18, -16)),
+  srv_logq = runif(1, -18, -16),
+  mr_logq = runif(1, -1, 1),
+  log_rbar = runif(1, 1, 15),
+  log_rec_devs = runif(length(parameters$log_rec_devs), -10, 10),
+  log_rinit = runif(1, 1, 15),
+  log_rinit_devs = runif(length(parameters$log_rinit_devs), -10, 10),
+  log_Fbar = runif(1, -5, 5),
+  log_F_devs = runif(length(parameters$log_rec_devs), -5, 5),
+  log_spr_Fxx = sort(runif(length(data$Fxx_levels), -4, -1), decreasing = TRUE)
+)
 }
 
 # TMB figure functions ----
 
+# Functions to summarize posterior samples by year or without a 'by' statement
+post_byyear <- function(df, by = year) {
+  
+  names(df) <- c("var", "iter", "year")
+  df <- df %>% 
+    group_by({{ by }}) %>% 
+    summarise(mean = mean(var),
+              median = median(var),
+              q025 = quantile(var, 0.025),
+              q975 = quantile(var, 0.975))
+  return(df)
+}
+
+postsum <- function(df) {
+  
+  names(df) <- c("var", "iter")
+  df <- df %>% 
+    summarise(mean = mean(var),
+              median = median(var),
+              q025 = quantile(var, 0.025),
+              q975 = quantile(var, 0.975))
+  return(df)
+}
+
+# Reshape ts (index) data and get resids
 reshape_ts <- function(){
   
   ts$pred_catch <- obj$report()$pred_landed
@@ -896,19 +939,35 @@ plot_ts_resids <- function(save = TRUE, path = tmbfigs) {
 }
 
 # Plot derived variables
-plot_derived_ts <<- function(save = TRUE, path = tmbfigs) {
+plot_derived_ts <<- function(save = TRUE, path = tmbfigs, units = c("lb", "mt")) {
   
-  ts %>% 
-    # Add another year to hold projected values
-    full_join(data.frame(year = max(ts$year) + nproj)) %>%
-    # For ts by numbers go divide by 1e6 to get values in millions, for biomass
-    # divide by 1e3 to go from kg to mt
-    mutate(Fmort = c(obj$report()$Fmort, rep(NA, nproj)),
-           pred_rec = c(obj$report()$pred_rec, rep(NA, nproj)) / 1e6,
-           biom = obj$report()$tot_biom * 2.20462 / 1e6,
-           expl_biom = obj$report()$tot_expl_biom * 2.20462 / 1e6,
-           expl_abd = obj$report()$tot_expl_abd / 1e6,
-           spawn_biom = obj$report()$tot_spawn_biom * 2.20462 / 1e6) -> ts
+  if(units == "mt") {
+    ts %>% 
+      # Add another year to hold projected values
+      full_join(data.frame(year = (max(ts$year) + 1):(max(ts$year) + nproj))) %>%
+      # For ts by numbers go divide by 1e6 to get values in millions, for biomass
+      # divide by 1e3 to go from kg to mt
+      mutate(Fmort = c(obj$report()$Fmort, rep(NA, nproj)),
+             pred_rec = c(obj$report()$pred_rec, rep(NA, nproj)) / 1e6,
+             biom = obj$report()$tot_biom / 1e3, 
+             expl_biom = obj$report()$tot_expl_biom / 1e3,
+             expl_abd = obj$report()$tot_expl_abd / 1e6, 
+             spawn_biom = obj$report()$tot_spawn_biom / 1e3) -> ts
+  }
+  
+  if(units == "lb") { # ends up reported as million lb
+    ts %>% 
+      # Add another year to hold projected values
+      full_join(data.frame(year = (max(ts$year) + 1):(max(ts$year) + nproj))) %>%
+      # For ts by numbers go divide by 1e6 to get values in millions, for biomass
+      # divide report in million lb
+      mutate(Fmort = c(obj$report()$Fmort, rep(NA, nproj)),
+             pred_rec = c(obj$report()$pred_rec, rep(NA, nproj)) / 1e6,
+             biom = obj$report()$tot_biom * 2.20462 / 1e6, 
+             expl_biom = obj$report()$tot_expl_biom * 2.20462 / 1e6,
+             expl_abd = obj$report()$tot_expl_abd / 1e6, 
+             spawn_biom = obj$report()$tot_spawn_biom * 2.20462 / 1e6 ) -> ts
+  }
   
   axis <- tickr(ts, year, 5)
   
@@ -930,7 +989,7 @@ plot_derived_ts <<- function(save = TRUE, path = tmbfigs) {
     labs(x = "", y = "\n\nAge-2\nrecruits\n(millions)") +
     theme(axis.title.y = element_text(angle=0))-> p_rec
   
-  # Exploitable abundance (to survey)
+  # Exploitable abundance (to fishery)
   p + geom_point(aes(y = expl_abd)) +
     geom_line(aes(y = expl_abd, group = 1)) +
     expand_limits(y = 0) +
@@ -946,13 +1005,15 @@ plot_derived_ts <<- function(save = TRUE, path = tmbfigs) {
   p + geom_point(aes(y = expl_biom)) +
     geom_line(aes(y = expl_biom, group = 1)) +
     expand_limits(y = 0) +
-    labs(x = "", y = "\n\nExploitable\nbiomass\n(million lb)") -> p_ebiom
+    labs(x = "", y = ifelse(units == "lb", "\n\nExploitable\nbiomass\n(million lb)", 
+                            "\n\nExploitable\nbiomass\n(mt)")) -> p_ebiom
   
   # Spawning biomass 
   p + geom_point(aes(y = spawn_biom)) +
     geom_line(aes(y = spawn_biom, group = 1)) +
     expand_limits(y = 0) +
-    labs(x = "", y = "\n\nSpawning\nbiomass\n(million lb)") -> p_sbiom
+    labs(x = "", y = ifelse(units == "lb", "\n\nSpawning\nbiomass\n(million lb)",
+                            "\n\nSpawning\nbiomass\n(mt)")) -> p_sbiom
   
   plot_grid(p_rec, p_sbiom, p_eabd, p_ebiom, ncol = 1, align = 'hv', 
             labels = c('(A)', '(B)', '(C)', '(D)')) -> p
@@ -960,7 +1021,7 @@ plot_derived_ts <<- function(save = TRUE, path = tmbfigs) {
   print(p)
   
   if(save == TRUE){ 
-    ggsave(plot = p, filename = paste0(path, "/derived_ts.png"), 
+    ggsave(plot = p, filename = paste0(path, "/derived_ts_", units, "_", YEAR, ".png"), 
            dpi = 300, height = 7, width = 6, units = "in")
   }
   

@@ -10,6 +10,7 @@
 root <- getwd() # project root
 tmb_path <- file.path(root, "tmb") # location of cpp
 tmbfigs <- file.path(root, "figures/tmb")
+tmbout <- file.path(root, "output/tmb")
 
 # Temporary debug flag, shut off estimation of mgmt ref pts
 tmp_debug <- TRUE
@@ -18,6 +19,8 @@ source("r/helper.r")
 source("r/functions.r")
 
 library(TMB) 
+library(tmbstan)
+library(shinystan)
 
 ts <- read_csv("data/tmb_inputs/abd_indices.csv")             # time series
 age <- read_csv("data/tmb_inputs/agecomps.csv")               # age comps
@@ -432,49 +435,153 @@ if(data$random_rec == 0) {
 }
 
 # Run model ----
+
 setwd(tmb_path)
 
-# Compile and run model
+# Three ways to run model:
+# 1) In phases, defined by build_phases() in functions.R. Use TMBphase(phase = TRUE)
+# 2) MLE without phased optimation (phase = FALSE)
+# 3) Bayesian using tmbstan and the no-U-turn sampler (NUTS): Run step 2 first
+# to build TMB object, map, and bounds
+
+# MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, model_name = "mod", phase = FALSE, debug = FALSE)
 
 obj <- out$obj # TMB model object
 opt <- out$opt # fit
 rep <- out$rep # sdreport
-rep
+lower <- out$lower 
+upper <- out$upper
 
-# Parameter estimates and standard errors in useable format
-tidyrep <- tidy(summary(rep))
-names(tidyrep) <- c("Parameter", "Estimate", "se")
+# MCMC
 
-# "Key" parameters (exclude)
-key_params <- filter(tidyrep, !grepl('devs', Parameter))
+# Run in parallel with a init function
+cores <- parallel::detectCores()-1
+options(mc.cores = cores)
 
-write_csv(key_params, paste0("../output/tmb_params.csv"))
+fit <- tmbstan(obj, chains = cores, open_progress = FALSE, init = init_fn, lower = lower, upper = upper)
+summary(fit)
+mon <- monitor(fit)
+write_csv(mon, "../output/convergence.csv")
+max(mon$Rhat)
+min(mon$Bulk_ESS)
+min(mon$Tail_ESS)
 
-# Figures ----
 
-# Fits to abundance indices, derived time series, and F
-plot_ts()
-plot_ts_resids()
-plot_derived_ts()
-plot_F()
+post <- as.matrix(fit)
+write_csv(as.data.frame(post), "../output/tmb_posterior_samples.csv")
 
-agecomps <- reshape_age()
-plot_sel() # Selectivity
-plot_age_resids() # Fits to age comps
-barplot_age("Survey")
-barplot_age("Fishery")
+# Summary of parameter estimates 
+pars_sum <- summary(fit)$summary
+write_csv(as.data.frame(pars_sum), "../output/param_summary.csv")
 
-lencomps <- reshape_len()
-plot_len_resids()
-barplot_len("Survey", sex = "Female")
-barplot_len("Survey", sex = "Male")
-barplot_len("Fishery", sex = "Female")
-barplot_len("Fishery", sex = "Male")
+# Posterior for derived quantities 
+post_catch <- list()
+post_fsh_cpue <- list()
+post_srv_cpue <- list()
+post_mr <- list()
+post_rec <- list()
+post_biom <- list()
+post_expl_biom <- list()
+post_expl_abd <- list()
+post_spawn_biom <- list()
+post_ABC <- list()
+post_wastage <- list()
+post_SB100 <- list()
+post_SB50 <- list()
+post_F50 <- list()
 
-summary(rep, "report")
-rep$value
-rep$sd
+for(i in 1:nrow(post)){
+  
+  # Last column is log-posterior density (lp__) and needs to be dropped
+  r <- obj$report(post[i,-ncol(post)]) 
+  
+  # Data time series
+  post_catch[[i]] <- cbind(r$pred_landed, rep(i, length(r$pred_landed)), ts$year)
+  post_fsh_cpue[[i]] <- cbind(r$pred_fsh_cpue, rep(i, length(r$pred_fsh_cpue)), ts$year)
+  post_srv_cpue[[i]] <- cbind(r$pred_srv_cpue, rep(i, length(r$pred_srv_cpue)), srv_cpue$year)
+  post_mr[[i]] <- cbind(r$pred_mr_all, rep(i, length(r$pred_mr_all)), ts$year)
+  
+  # Derived indices (includes projection years)
+  post_rec[[i]] <- cbind(r$pred_rec, rep(i, length(r$pred_rec)), ts$year)
+  post_biom[[i]] <- cbind(r$tot_biom, rep(i, length(r$tot_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+  post_expl_biom[[i]] <- cbind(r$tot_expl_biom, rep(i, length(r$tot_expl_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+  post_expl_abd[[i]] <- cbind(r$tot_expl_abd, rep(i, length(r$tot_expl_abd)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+  post_spawn_biom[[i]] <- cbind(r$tot_spawn_biom, rep(i, length(r$tot_spawn_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+
+  # Reference points and ABC calculations
+  post_ABC[[i]] <- cbind(r$ABC[data$nyr + 1, which(data$Fxx_levels == 0.5)], i) # ABC is a matrix with row = nyr+1 and col = data$Fxx_levels
+  post_wastage[[i]] <- cbind(r$wastage[data$nyr + 1, which(data$Fxx_levels == 0.5)], i) # same dimensions as ABC 
+  post_SB100[[i]] <- cbind(r$SB[1], i) # SB is a vector with unfished SB followed by SB at data$Fxx_levels
+  post_SB50[[i]] <- cbind(r$SB[which(data$Fxx_levels == 0.5) + 1], i) # data$Fxx_levels shifted by 1 to account for unfished SB
+  post_F50[[i]] <- cbind(r$Fxx[which(data$Fxx_levels == 0.5) + 1], i) # same as SB50
+  
+  # To Do - age and length comps
+}
+
+post_catch <- as.data.frame(do.call(rbind, post_catch))
+post_fsh_cpue <- as.data.frame(do.call(rbind, post_fsh_cpue))
+post_srv_cpue <- as.data.frame(do.call(rbind, post_srv_cpue))
+post_mr <- as.data.frame(do.call(rbind, post_mr))
+post_rec <- as.data.frame(do.call(rbind, post_rec))
+post_biom <- as.data.frame(do.call(rbind, post_biom))
+post_expl_biom <- as.data.frame(do.call(rbind, post_expl_biom))
+post_expl_abd <- as.data.frame(do.call(rbind, post_expl_abd))
+post_spawn_biom <- as.data.frame(do.call(rbind, post_spawn_biom))
+post_ABC <- as.data.frame(do.call(rbind, post_ABC))
+post_wastage <- as.data.frame(do.call(rbind, post_wastage))
+post_SB100 <- as.data.frame(do.call(rbind, post_SB100))
+post_SB50 <- as.data.frame(do.call(rbind, post_SB50))
+post_F50 <- as.data.frame(do.call(rbind, post_F50))
+
+# Summarize posterior samples (see function defns in functions.r)
+post_catch <- post_byyear(post_catch, year)
+post_fsh_cpue <- post_byyear(post_fsh_cpue, year)
+post_srv_cpue <- post_byyear(post_srv_cpue, year)
+post_mr <- post_byyear(post_mr, year)
+post_rec <- post_byyear(post_rec, year)
+post_biom <- post_byyear(post_biom, year)
+post_expl_biom <- post_byyear(post_expl_biom, year)
+post_expl_abd <-  post_byyear(post_expl_abd, year)
+post_spawn_biom <-  post_byyear(post_spawn_biom, year)
+post_ABC <- postsum(post_ABC)
+post_wastage <- postsum(post_wastage)
+post_SB100 <- postsum(post_SB100)
+post_SB50 <- postsum(post_SB50)
+post_F50 <- postsum(post_F50)
+
+# Save output
+write_csv(post_catch, paste0(tmbout, "/post_catch_", YEAR, ".csv"))
+write_csv(post_fsh_cpue, paste0(tmbout, "/post_fsh_cpue_", YEAR, ".csv"))
+write_csv(post_srv_cpue, paste0(tmbout, "/post_srv_cpue_", YEAR, ".csv"))
+write_csv(post_mr, paste0(tmbout, "/post_mr_", YEAR, ".csv"))
+write_csv(post_rec, paste0(tmbout, "/post_rec_", YEAR, ".csv"))
+write_csv(post_biom, paste0(tmbout, "/post_biom_", YEAR, ".csv"))
+write_csv(post_expl_biom, paste0(tmbout, "/post_expl_biom_", YEAR, ".csv"))
+write_csv(post_expl_abd, paste0(tmbout, "/post_expl_abd_", YEAR, ".csv"))
+write_csv(post_spawn_biom, paste0(tmbout, "/post_spawn_biom_", YEAR, ".csv"))
+write_csv(post_ABC, paste0(tmbout, "/post_ABC_", YEAR, ".csv"))
+write_csv(post_wastage, paste0(tmbout, "/post_wastage_", YEAR, ".csv"))
+write_csv(post_SB100, paste0(tmbout, "/post_SB100_", YEAR, ".csv"))
+write_csv(post_SB50, paste0(tmbout, "/post_SB50_", YEAR, ".csv"))
+write_csv(post_F50, paste0(tmbout, "/post_F50_", YEAR, ".csv"))
+
+out <- list()
+out$post_catch <- post_catch
+out$post_fsh_cpue <- post_fsh_cpue
+out$post_srv_cpue <- post_srv_cpue
+out$post_mr <- post_mr
+out$post_rec <- post_rec
+out$post_biom <- post_biom
+out$post_expl_biom <- post_expl_biom
+out$post_expl_abd <- post_expl_abd
+out$post_spawn_biom <- post_spawn_biom
+out$post_ABC <- post_ABC
+out$post_wastage <- post_wastage
+out$post_SB100 <- post_SB100
+out$post_SB50 <- post_SB50
+out$post_F50 <- post_F50
+
 
 # Results ----
 best <- obj$env$last.par.best
@@ -515,7 +622,7 @@ names(wastage) <- data$Fxx_levels
 wastage <- wastage %>% 
   mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
   data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "wastage")
-  
+
 retro_mgt <- ABC %>% 
   left_join(wastage) %>% 
   melt(id.vars = c("year", "Fxx")) %>% 
@@ -523,6 +630,40 @@ retro_mgt <- ABC %>%
                            levels = c("wastage", "ABC"),
                            labels = c("Wastage", "ABC"),
                            ordered = TRUE))
+
+# Parameter estimates and standard errors in useable format
+tidyrep <- tidy(summary(rep))
+names(tidyrep) <- c("Parameter", "Estimate", "se")
+
+# "Key" parameters (exclude)
+key_params <- filter(tidyrep, !grepl('devs', Parameter))
+
+write_csv(key_params, paste0("../output/tmb_params.csv"))
+
+# Figures ----
+
+# Fits to abundance indices, derived time series, and F
+plot_ts()
+plot_ts_resids()
+plot_derived_ts()
+plot_F()
+
+agecomps <- reshape_age()
+plot_sel() # Selectivity
+plot_age_resids() # Fits to age comps
+barplot_age("Survey")
+barplot_age("Fishery")
+
+lencomps <- reshape_len()
+plot_len_resids()
+barplot_len("Survey", sex = "Female")
+barplot_len("Survey", sex = "Male")
+barplot_len("Fishery", sex = "Female")
+barplot_len("Fishery", sex = "Male")
+
+summary(rep, "report")
+rep$value
+rep$sd
 
 ggplot() +
   geom_area(data = retro_mgt %>% 
@@ -804,51 +945,6 @@ ggplot(al_key, aes(x = age, y = length, size = obs)) +
   labs(x = "\nObserved age", y = "Length (cm)\n", size = NULL)
 
 ggsave(paste0("figures/tmb/age_length_key.png"), dpi = 300, height = 7, width = 9, units = "in")
-
-# MCMC ----
-
-install.packages("shinystan")
-library(tmbstan)
-library(rstan)
-library(shinystan)
-
-map <- list(dummy = factor(NA),
-            log_fsh_slx_pars = factor(array(data = c(rep(factor(NA), length(data$fsh_blks)),
-                                                     rep(factor(NA), length(data$fsh_blks))),
-                                            dim = c(length(data$fsh_blks), 2, nsex))),
-            log_srv_slx_pars = factor(array(data = c(rep(factor(NA), length(data$srv_blks)),
-                                                     rep(factor(NA), length(data$srv_blks))),
-                                            dim = c(length(data$srv_blks), 2, nsex))),
-            log_sigma_r = factor(NA), log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
-            log_spr_Fxx = rep(factor(NA), length(data$Fxx_levels)),
-            log_fsh_theta = factor(NA), log_srv_theta = factor(NA))
-
-# Compile
-compile("mod.cpp")
-dyn.load(dynlib("mod"))
-
-obj <- MakeADFun(data, parameters, DLL = "mod",
-                 silent = TRUE, map = map,
-                 random = random_vars)
-# obj <- MakeADFun(data = data, parameters = parameters, random = random)
-
-options(mc.cores = 3)
-
-fit <- tmbstan(obj = obj, chains = 3, init = rep$par.fixed) # used MLE estimates for initial values
-
-launch_shinystan(fit)
-
-# Can you get all these values by iterating over the posterior samples that is
-# output from tmbstan into the obj$report(). I have attached some pseudo code to
-# hopefully help, probably not the must efficient but I think it should work.
-# 
-# obj = MakeADFun(...)
-# tmb_stan_par_post = tmbstan(obj = obj, chains = 1,...); # one chain for simplicity, you will have to append multiple chains
-# ## assuming we satisfy Bayesian checks convergence to an equilibrium posterior
-# for (i in 1:nrow(tmb_stan_par_post)) {
-#   rep_values = obj$report(tmb_stan_par_post[i]) ## might not be exactly right syntactically, but hopefully you get the gist
-#   # save values that you want, rbind or other ways to store specific values of the list object rep_values 
-# }
 
 # Fixed selectivity ----
 
