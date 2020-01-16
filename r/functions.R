@@ -754,34 +754,148 @@ postsum <- function(df) {
   return(df)
 }
 
+# Summarize mcmc posterior samples for all derived variables
+summarize_mcmc <- function(post) {
+  
+  # Posterior for derived quantities 
+  post_catch <- list()
+  post_fsh_cpue <- list()
+  post_srv_cpue <- list()
+  post_mr <- list()
+  post_rec <- list()
+  post_biom <- list()
+  post_expl_biom <- list()
+  post_expl_abd <- list()
+  post_spawn_biom <- list()
+  post_ABC <- list()
+  post_wastage <- list()
+  post_SB100 <- list()
+  post_SB50 <- list()
+  post_F50 <- list()
+  
+  for(i in 1:nrow(post)){
+    
+    # Last column is log-posterior density (lp__) and needs to be dropped
+    r <- obj$report(post[i,-ncol(post)]) 
+    
+    # Data time series
+    post_catch[[i]] <- cbind(r$pred_landed, rep(i, length(r$pred_landed)), ts$year)
+    post_fsh_cpue[[i]] <- cbind(r$pred_fsh_cpue, rep(i, length(r$pred_fsh_cpue)), ts$year)
+    post_srv_cpue[[i]] <- cbind(r$pred_srv_cpue, rep(i, length(r$pred_srv_cpue)), srv_cpue$year)
+    post_mr[[i]] <- cbind(r$pred_mr_all, rep(i, length(r$pred_mr_all)), ts$year)
+    
+    # Derived indices (includes projection years)
+    post_rec[[i]] <- cbind(r$pred_rec, rep(i, length(r$pred_rec)), ts$year)
+    post_biom[[i]] <- cbind(r$tot_biom, rep(i, length(r$tot_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+    post_expl_biom[[i]] <- cbind(r$tot_expl_biom, rep(i, length(r$tot_expl_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+    post_expl_abd[[i]] <- cbind(r$tot_expl_abd, rep(i, length(r$tot_expl_abd)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+    post_spawn_biom[[i]] <- cbind(r$tot_spawn_biom, rep(i, length(r$tot_spawn_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+    
+    # Reference points and ABC calculations
+    post_ABC[[i]] <- cbind(r$ABC[data$nyr + 1, which(data$Fxx_levels == 0.5)], i) # ABC is a matrix with row = nyr+1 and col = data$Fxx_levels
+    post_wastage[[i]] <- cbind(r$wastage[data$nyr + 1, which(data$Fxx_levels == 0.5)], i) # same dimensions as ABC 
+    post_SB100[[i]] <- cbind(r$SB[1], i) # SB is a vector with unfished SB followed by SB at data$Fxx_levels
+    post_SB50[[i]] <- cbind(r$SB[which(data$Fxx_levels == 0.5) + 1], i) # data$Fxx_levels shifted by 1 to account for unfished SB
+    post_F50[[i]] <- cbind(r$Fxx[which(data$Fxx_levels == 0.5) + 1], i) # same as SB50
+    
+    # To Do - age and length comps
+  }
+  
+  post_catch <- as.data.frame(do.call(rbind, post_catch))
+  post_fsh_cpue <- as.data.frame(do.call(rbind, post_fsh_cpue))
+  post_srv_cpue <- as.data.frame(do.call(rbind, post_srv_cpue))
+  post_mr <- as.data.frame(do.call(rbind, post_mr))
+  post_rec <- as.data.frame(do.call(rbind, post_rec))
+  post_biom <- as.data.frame(do.call(rbind, post_biom))
+  post_expl_biom <- as.data.frame(do.call(rbind, post_expl_biom))
+  post_expl_abd <- as.data.frame(do.call(rbind, post_expl_abd))
+  post_spawn_biom <- as.data.frame(do.call(rbind, post_spawn_biom))
+  post_ABC <- as.data.frame(do.call(rbind, post_ABC))
+  post_wastage <- as.data.frame(do.call(rbind, post_wastage))
+  post_SB100 <- as.data.frame(do.call(rbind, post_SB100))
+  post_SB50 <- as.data.frame(do.call(rbind, post_SB50))
+  post_F50 <- as.data.frame(do.call(rbind, post_F50))
+  
+  # Summarize posterior samples (see function defns in functions.r)
+  post_catch <- post_byyear(post_catch, year)
+  post_fsh_cpue <- post_byyear(post_fsh_cpue, year)
+  post_srv_cpue <- post_byyear(post_srv_cpue, year)
+  post_mr <- post_byyear(post_mr, year)
+  post_rec <- post_byyear(post_rec, year)
+  post_biom <- post_byyear(post_biom, year)
+  post_expl_biom <- post_byyear(post_expl_biom, year)
+  post_expl_abd <-  post_byyear(post_expl_abd, year)
+  post_spawn_biom <-  post_byyear(post_spawn_biom, year)
+  post_ABC <- postsum(post_ABC)
+  post_wastage <- postsum(post_wastage)
+  post_SB100 <- postsum(post_SB100)
+  post_SB50 <- postsum(post_SB50)
+  post_F50 <- postsum(post_F50)
+  
+  # Save output
+  write_csv(post_catch, paste0(tmbout, "/post_catch_kg_", YEAR, ".csv"))
+  write_csv(post_fsh_cpue, paste0(tmbout, "/post_fsh_cpue_kgperhook_", YEAR, ".csv"))
+  write_csv(post_srv_cpue, paste0(tmbout, "/post_srv_cpue_nperhook_", YEAR, ".csv"))
+  write_csv(post_mr, paste0(tmbout, "/post_mr_millions_", YEAR, ".csv"))
+  write_csv(post_rec, paste0(tmbout, "/post_rec_age2_numbers_", YEAR, ".csv"))
+  write_csv(post_biom, paste0(tmbout, "/post_biom_kg_", YEAR, ".csv"))
+  write_csv(post_expl_biom, paste0(tmbout, "/post_expl_biom_kg_", YEAR, ".csv"))
+  write_csv(post_expl_abd, paste0(tmbout, "/post_expl_abd_numbers", YEAR, ".csv"))
+  write_csv(post_spawn_biom, paste0(tmbout, "/post_spawn_biom_kg_", YEAR, ".csv"))
+  write_csv(post_ABC, paste0(tmbout, "/post_ABC_kg_", YEAR, ".csv"))
+  write_csv(post_wastage, paste0(tmbout, "/post_wastage_kg_", YEAR, ".csv"))
+  write_csv(post_SB100, paste0(tmbout, "/post_SB100_kg_", YEAR, ".csv"))
+  write_csv(post_SB50, paste0(tmbout, "/post_SB50_kg_", YEAR, ".csv"))
+  write_csv(post_F50, paste0(tmbout, "/post_F50_", YEAR, ".csv"))
+  
+  out <- list()
+  out$post_catch <- post_catch
+  out$post_fsh_cpue <- post_fsh_cpue
+  out$post_srv_cpue <- post_srv_cpue
+  out$post_mr <- post_mr
+  out$post_rec <- post_rec
+  out$post_biom <- post_biom
+  out$post_expl_biom <- post_expl_biom
+  out$post_expl_abd <- post_expl_abd
+  out$post_spawn_biom <- post_spawn_biom
+  out$post_ABC <- post_ABC
+  out$post_wastage <- post_wastage
+  out$post_SB100 <- post_SB100
+  out$post_SB50 <- post_SB50
+  out$post_F50 <- post_F50
+  
+  return(out)
+  
+}
+
 # Reshape ts (index) data and get resids
 reshape_ts <- function(){
   
-  ts$pred_catch <- obj$report()$pred_landed
+  ts$pred_catch <- obj$report(best)$pred_landed
   ts %>% 
     mutate(catch_resid = catch - pred_catch,
            catch_sresid = catch_resid / sd(catch_resid)) -> ts
   
-  fsh_cpue$pred_fsh_cpue <- obj$report()$pred_fsh_cpue
+  fsh_cpue$pred_fsh_cpue <- obj$report(best)$pred_fsh_cpue
   fsh_cpue %>% 
     mutate(fsh_cpue_resid = fsh_cpue - pred_fsh_cpue,
            fsh_cpue_sresid = fsh_cpue_resid / sd(fsh_cpue_resid),
            period = ifelse(year <= 1994, "pre-EQS", "EQS")) -> fsh_cpue
   
-  srv_cpue$pred_srv_cpue <- obj$report()$pred_srv_cpue
+  srv_cpue$pred_srv_cpue <- obj$report(best)$pred_srv_cpue
   srv_cpue %>% 
     mutate(srv_cpue_resid = srv_cpue - pred_srv_cpue,
            srv_cpue_sresid = srv_cpue_resid / sd(srv_cpue_resid)) -> srv_cpue
   
   mr %>% 
-    mutate(pred_mr = obj$report()$pred_mr,
+    mutate(pred_mr = obj$report(best)$pred_mr,
            mr_resid = mr - pred_mr,
            mr_sresid = mr_resid / sd(mr_resid)) %>% 
     select(year, mr, pred_mr, upper_mr, lower_mr, mr_sresid, mr_resid) -> mr_plot
   
   ts %>%
     select(year, mr) %>%
-    mutate(pred_mr_all = obj$report()$pred_mr_all) -> mr_plot_all
+    mutate(pred_mr_all = obj$report(best)$pred_mr_all) -> mr_plot_all
 
   out <- list()
   out$ts <- ts
@@ -939,89 +1053,164 @@ plot_ts_resids <- function(save = TRUE, path = tmbfigs) {
 }
 
 # Plot derived variables
-plot_derived_ts <<- function(save = TRUE, path = tmbfigs, units = c("lb", "mt")) {
+plot_derived_ts <- function(save = TRUE, 
+                            path = tmbfigs, 
+                            units = c("lb", "kt"), 
+                            plot_variance = FALSE) {
   
-  if(units == "mt") {
-    ts %>% 
-      # Add another year to hold projected values
-      full_join(data.frame(year = (max(ts$year) + 1):(max(ts$year) + nproj))) %>%
-      # For ts by numbers go divide by 1e6 to get values in millions, for biomass
-      # divide by 1e3 to go from kg to mt
-      mutate(Fmort = c(obj$report()$Fmort, rep(NA, nproj)),
-             pred_rec = c(obj$report()$pred_rec, rep(NA, nproj)) / 1e6,
-             biom = obj$report()$tot_biom / 1e3, 
-             expl_biom = obj$report()$tot_expl_biom / 1e3,
-             expl_abd = obj$report()$tot_expl_abd / 1e6, 
-             spawn_biom = obj$report()$tot_spawn_biom / 1e3) -> ts
+  divide_by <- function(x, divisor) (x / divisor)
+  convert2mlb <- function(x) x * 2.20462 / 1e6
+  
+  if(plot_variance == TRUE) {
+    
+    post_rec <- sum_mcmc$post_rec
+    post_expl_abd <- sum_mcmc$post_expl_abd
+    post_expl_biom <- sum_mcmc$post_expl_biom
+    post_spawn_biom <- sum_mcmc$post_spawn_biom
+    
+    # Scale numbers to millions
+    post_rec <- post_rec %>% mutate_at(c("mean", "median", "q025", "q975"), divide_by, divisor = 1e6)
+    post_expl_abd <- post_expl_abd %>% mutate_at(c("mean", "median", "q025", "q975"), divide_by, divisor = 1e6)
+    
+    if(units == "kt") { # Scale biomass to kt
+      post_expl_biom <- post_expl_biom %>% mutate_at(c("mean", "median", "q025", "q975"), divide_by, divisor = 1e6)
+      post_spawn_biom <- post_spawn_biom %>% mutate_at(c("mean", "median", "q025", "q975"), divide_by, divisor = 1e6)
+    }
+    
+    if(units == "lb") { # Scale biomass to million lb
+      post_expl_biom <- post_expl_biom %>% mutate_at(c("mean", "median", "q025", "q975"), convert2mlb)
+      post_spawn_biom <- post_spawn_biom %>% mutate_at(c("mean", "median", "q025", "q975"), convert2mlb)
+    }  
+    
+    axis <- tickr(post_expl_abd, year, 5)
+
+    # Recruitment
+    ggplot(post_rec, aes(x = year)) +    
+      geom_bar(aes(y = median), stat = "identity", fill = "grey") +
+      geom_errorbar(aes(ymin = q025, ymax = q975), width = 0.3) +
+      labs(x = "", y = "\n\nAge-2\nrecruits\n(millions)") +
+      scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+      scale_y_continuous(label = scales::comma) +
+      expand_limits(y = 0) +
+      theme(axis.title.y = element_text(angle = 0)) -> p_rec
+    
+    # Exploitable abundance (to fishery)
+    ggplot(post_expl_abd, aes(x = year)) +
+      geom_point(aes(y = median)) +
+      geom_line(aes(y = median, group = 1)) +
+      geom_ribbon(aes(ymin = q025 , ymax = q975),
+                  alpha = 0.2, fill = "black", colour = NA) +
+      labs(x = "", y = "\n\nExploitable\nabundance\n(millions)") +
+      scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+      scale_y_continuous(label = scales::comma) +
+      expand_limits(y = 0) +
+      theme(axis.title.y = element_text(angle = 0)) -> p_eabd  
+    
+    # Exploitable biomass (to fishery)
+    ggplot(post_expl_biom, aes(x = year)) +
+      geom_point(aes(y = median)) +
+      geom_line(aes(y = median, group = 1)) +
+      geom_ribbon(aes(ymin = q025 , ymax = q975),
+                  alpha = 0.2, fill = "black", colour = NA) +
+      labs(x = "", y = ifelse(units == "lb", "\n\nExploitable\nbiomass\n(million lb)", 
+                              "\n\nExploitable\nbiomass\n(kt)")) +
+      scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+      scale_y_continuous(label = scales::comma) +
+      expand_limits(y = 0) +
+      theme(axis.title.y = element_text(angle = 0)) -> p_ebiom
+    
+    # Spawning biomass 
+    ggplot(post_spawn_biom, aes(x = year)) +
+      geom_point(aes(y = median)) +
+      geom_line(aes(y = median, group = 1)) +
+      geom_ribbon(aes(ymin = q025 , ymax = q975),
+                  alpha = 0.2, fill = "black", colour = NA) +
+      labs(x = "", y = ifelse(units == "lb", "\n\nSpawning\nbiomass\n(million lb)",
+                              "\n\nSpawning\nbiomass\n(kt)")) +
+      scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+      scale_y_continuous(label = scales::comma) +
+      expand_limits(y = 0) +
+      theme(axis.title.y = element_text(angle = 0)) -> p_sbiom
+    
   }
   
-  if(units == "lb") { # ends up reported as million lb
-    ts %>% 
-      # Add another year to hold projected values
-      full_join(data.frame(year = (max(ts$year) + 1):(max(ts$year) + nproj))) %>%
-      # For ts by numbers go divide by 1e6 to get values in millions, for biomass
-      # divide report in million lb
-      mutate(Fmort = c(obj$report()$Fmort, rep(NA, nproj)),
-             pred_rec = c(obj$report()$pred_rec, rep(NA, nproj)) / 1e6,
-             biom = obj$report()$tot_biom * 2.20462 / 1e6, 
-             expl_biom = obj$report()$tot_expl_biom * 2.20462 / 1e6,
-             expl_abd = obj$report()$tot_expl_abd / 1e6, 
-             spawn_biom = obj$report()$tot_spawn_biom * 2.20462 / 1e6 ) -> ts
+  
+  if(plot_variance == FALSE) {
+    
+    if(units == "kt") {
+      ts %>% 
+        # Add another year to hold projected values
+        full_join(data.frame(year = (max(ts$year) + 1):(max(ts$year) + nproj))) %>%
+        # For ts by numbers go divide by 1e6 to get values in millions, for biomass
+        # divide by 1e3 to go from kg to mt
+        mutate(Fmort = c(obj$report(best)$Fmort, rep(NA, nproj)),
+               pred_rec = c(obj$report(best)$pred_rec, rep(NA, nproj)) / 1e6,
+               biom = obj$report(best)$tot_biom / 1e6, 
+               expl_biom = obj$report(best)$tot_expl_biom / 1e6,
+               expl_abd = obj$report(best)$tot_expl_abd / 1e6, 
+               spawn_biom = obj$report(best)$tot_spawn_biom / 1e6) -> ts
+    }
+    
+    if(units == "lb") { # ends up reported as million lb
+      ts %>% 
+        # Add another year to hold projected values
+        full_join(data.frame(year = (max(ts$year) + 1):(max(ts$year) + nproj))) %>%
+        # For ts by numbers go divide by 1e6 to get values in millions, for biomass
+        # divide report in million lb
+        mutate(Fmort = c(obj$report(best)$Fmort, rep(NA, nproj)),
+               pred_rec = c(obj$report(best)$pred_rec, rep(NA, nproj)) / 1e6,
+               biom = obj$report(best)$tot_biom * 2.20462 / 1e6, 
+               expl_biom = obj$report(best)$tot_expl_biom * 2.20462 / 1e6,
+               expl_abd = obj$report(best)$tot_expl_abd / 1e6, 
+               spawn_biom = obj$report(best)$tot_spawn_biom * 2.20462 / 1e6 ) -> ts
+    }
+    
+    axis <- tickr(ts, year, 5)
+    
+    p <- ggplot(ts, aes(x = year)) +
+      scale_x_continuous( breaks = axis$breaks, labels = axis$labels)+
+      scale_y_continuous(label = scales::comma) +
+      expand_limits(y = 0) +
+      theme(axis.title.y = element_text(angle=0))
+    
+    # Recruitment
+    ggplot(ts, aes(year, pred_rec)) +    
+      geom_bar(stat = "identity") +
+      scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+      # theme(axis.title.y = element_text(angle=0)) +
+      labs(x = "", y = "\n\nAge-2\nrecruits\n(millions)") +
+      theme(axis.title.y = element_text(angle=0))-> p_rec
+    
+    # Exploitable abundance (to fishery)
+    p + geom_point(aes(y = expl_abd)) +
+      geom_line(aes(y = expl_abd, group = 1)) +
+      expand_limits(y = 0) +
+      labs(x = "", y = "\n\nExploitable\nabundance\n(millions)") -> p_eabd  
+    
+    # Exploitable biomass (to fishery)
+    p + geom_point(aes(y = expl_biom)) +
+      geom_line(aes(y = expl_biom, group = 1)) +
+      expand_limits(y = 0) +
+      labs(x = "", y = ifelse(units == "lb", "\n\nExploitable\nbiomass\n(million lb)", 
+                              "\n\nExploitable\nbiomass\n(kt)")) -> p_ebiom
+    
+    # Spawning biomass 
+    p + geom_point(aes(y = spawn_biom)) +
+      geom_line(aes(y = spawn_biom, group = 1)) +
+      expand_limits(y = 0) +
+      labs(x = "", y = ifelse(units == "lb", "\n\nSpawning\nbiomass\n(million lb)",
+                              "\n\nSpawning\nbiomass\n(kt)")) -> p_sbiom
   }
-  
-  axis <- tickr(ts, year, 5)
-  
-  p <- ggplot(ts, aes(x = year)) +
-    scale_x_continuous( breaks = axis$breaks, labels = axis$labels)+
-    scale_y_continuous(label = scales::comma) +
-    expand_limits(y = 0) +
-    theme(axis.title.y = element_text(angle=0))
-  
-  # Recruitment
-  # p + geom_point(aes(y = pred_rec)) +
-  #   geom_line(aes(y = pred_rec, group = 1)) +    
-  #   expand_limits(y = 0) +
-  #   labs(x = "", y = "\n\nAge-2 recruits\n(millions)") -> p_rec
-  ggplot(ts, aes(year, pred_rec)) +    
-    geom_bar(stat = "identity") +
-    scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
-    # theme(axis.title.y = element_text(angle=0)) +
-    labs(x = "", y = "\n\nAge-2\nrecruits\n(millions)") +
-    theme(axis.title.y = element_text(angle=0))-> p_rec
-  
-  # Exploitable abundance (to fishery)
-  p + geom_point(aes(y = expl_abd)) +
-    geom_line(aes(y = expl_abd, group = 1)) +
-    expand_limits(y = 0) +
-    labs(x = "", y = "\n\nExploitable\nabundance\n(millions)") -> p_eabd  
-  
-  # # Total biomass
-  # p + geom_point(aes(y = biom)) +
-  #   geom_line(aes(y = biom, group = 1)) +
-  #   expand_limits(y = 0) +
-  #   labs(x = "", y = "\n\nTotal\nbiomass (mt)") -> p_biom
-  
-  # Exploitable biomass (to fishery)
-  p + geom_point(aes(y = expl_biom)) +
-    geom_line(aes(y = expl_biom, group = 1)) +
-    expand_limits(y = 0) +
-    labs(x = "", y = ifelse(units == "lb", "\n\nExploitable\nbiomass\n(million lb)", 
-                            "\n\nExploitable\nbiomass\n(mt)")) -> p_ebiom
-  
-  # Spawning biomass 
-  p + geom_point(aes(y = spawn_biom)) +
-    geom_line(aes(y = spawn_biom, group = 1)) +
-    expand_limits(y = 0) +
-    labs(x = "", y = ifelse(units == "lb", "\n\nSpawning\nbiomass\n(million lb)",
-                            "\n\nSpawning\nbiomass\n(mt)")) -> p_sbiom
   
   plot_grid(p_rec, p_sbiom, p_eabd, p_ebiom, ncol = 1, align = 'hv', 
             labels = c('(A)', '(B)', '(C)', '(D)')) -> p
   
   print(p)
   
+  mcmc_flag <- ifelse(plot_variance == TRUE, "_mcmc", "")
+  
   if(save == TRUE){ 
-    ggsave(plot = p, filename = paste0(path, "/derived_ts_", units, "_", YEAR, ".png"), 
+    ggsave(plot = p, filename = paste0(path, "/derived_ts_", units, "_", YEAR, mcmc_flag, ".png"), 
            dpi = 300, height = 7, width = 6, units = "in")
   }
   
@@ -1033,9 +1222,9 @@ plot_F <- function(save = TRUE, path = tmbfigs) {
   ts %>% 
     # Add another year to hold projected values
     full_join(data.frame(year = max(ts$year))) %>%
-    mutate(Fmort = c(obj$report()$Fmort),
-           expl_biom = obj$report()$tot_expl_biom[1:nyr] / 1e3,
-           exploit = obj$report()$pred_catch / expl_biom ) -> ts
+    mutate(Fmort = c(obj$report(best)$Fmort),
+           expl_biom = obj$report(best)$tot_expl_biom[1:nyr] / 1e3,
+           exploit = obj$report(best)$pred_catch / expl_biom ) -> ts
            
   axis <- tickr(ts, year, 5)
   
@@ -1064,13 +1253,13 @@ plot_F <- function(save = TRUE, path = tmbfigs) {
 
 reshape_age <- function() {
   
-  pred_fsh_age <- as.data.frame(obj$report()$pred_fsh_age)
+  pred_fsh_age <- as.data.frame(obj$report(best)$pred_fsh_age)
   names(pred_fsh_age) <- as.character(rec_age:plus_group)
   pred_fsh_age %>% 
     mutate(Source = "Fishery",
            index = data$yrs_fsh_age) -> pred_fsh_age
   
-  pred_srv_age <- as.data.frame(obj$report()$pred_srv_age)
+  pred_srv_age <- as.data.frame(obj$report(best)$pred_srv_age)
   names(pred_srv_age) <- as.character(rec_age:plus_group)
   pred_srv_age %>% 
     mutate(Source = "Survey",
@@ -1111,12 +1300,12 @@ reshape_age <- function() {
 reshape_len <- function() {
   
   if(nsex == 1) {
-    pred_srv_len <- as.data.frame(obj$report()$pred_srv_len[,,1]) %>% 
+    pred_srv_len <- as.data.frame(obj$report(best)$pred_srv_len[,,1]) %>% 
       mutate(Sex = "Sexes combined") 
   } else {
-    pred_srv_len <- as.data.frame(obj$report()$pred_srv_len[,,1]) %>% 
+    pred_srv_len <- as.data.frame(obj$report(best)$pred_srv_len[,,1]) %>% 
       mutate(Sex = "Male") %>% 
-      bind_rows(as.data.frame(obj$report()$pred_srv_len[,,2]) %>% 
+      bind_rows(as.data.frame(obj$report(best)$pred_srv_len[,,2]) %>% 
                   mutate(Sex = "Female"))               
   }
   names(pred_srv_len) <- c(as.character(data$lenbin), "Sex")
@@ -1125,12 +1314,12 @@ reshape_len <- function() {
            index = rep(data$yrs_srv_len, nsex)) -> pred_srv_len
   
   if(nsex == 1) {
-    pred_fsh_len <- as.data.frame(obj$report()$pred_fsh_len[,,1]) %>% 
+    pred_fsh_len <- as.data.frame(obj$report(best)$pred_fsh_len[,,1]) %>% 
       mutate(Sex = "Sexes combined") 
   } else {
-    pred_fsh_len <- as.data.frame(obj$report()$pred_fsh_len[,,1]) %>% 
+    pred_fsh_len <- as.data.frame(obj$report(best)$pred_fsh_len[,,1]) %>% 
       mutate(Sex = "Male") %>% 
-      bind_rows(as.data.frame(obj$report()$pred_fsh_len[,,2]) %>% 
+      bind_rows(as.data.frame(obj$report(best)$pred_fsh_len[,,2]) %>% 
                   mutate(Sex = "Female"))               
   }
   names(pred_fsh_len) <- c(as.character(data$lenbin), "Sex")
@@ -1296,18 +1485,18 @@ plot_sel <- function() {
   # as a dummy var (must supply an interval to foverlaps). Set as data.table
   # object so it is searchable
   if(nsex == 1) {
-    sel <- obj$report()$fsh_slx[,,1] %>% as.data.frame() %>% 
+    sel <- obj$report(best)$fsh_slx[,,1] %>% as.data.frame() %>% 
       mutate(Selectivity = "Fishery", Sex = "Sexes combined") %>% 
-      bind_rows(obj$report()$srv_slx[,,1] %>% as.data.frame() %>% 
+      bind_rows(obj$report(best)$srv_slx[,,1] %>% as.data.frame() %>% 
                   mutate(Selectivity = "Survey", Sex = "Sexes combined"))
   } else { # Sex-structured
-    sel <- obj$report()$fsh_slx[,,1] %>% as.data.frame() %>% 
+    sel <- obj$report(best)$fsh_slx[,,1] %>% as.data.frame() %>% 
       mutate(Selectivity = "Fishery", Sex = "Male") %>% 
-      bind_rows(obj$report()$fsh_slx[,,2] %>% as.data.frame() %>% 
+      bind_rows(obj$report(best)$fsh_slx[,,2] %>% as.data.frame() %>% 
                   mutate(Selectivity = "Fishery", Sex = "Female")) %>% 
-      bind_rows(obj$report()$srv_slx[,,1] %>% as.data.frame() %>% 
+      bind_rows(obj$report(best)$srv_slx[,,1] %>% as.data.frame() %>% 
                   mutate(Selectivity = "Survey", Sex = "Male")) %>% 
-      bind_rows(obj$report()$srv_slx[,,2] %>% as.data.frame() %>% 
+      bind_rows(obj$report(best)$srv_slx[,,2] %>% as.data.frame() %>% 
                   mutate(Selectivity = "Survey", Sex = "Female"))}
   
   names(sel) <- c(unique(agecomps$age), "Selectivity", "Sex")

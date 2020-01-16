@@ -9,7 +9,7 @@ source("r/functions.r")
 library("rms")   #install.packages("rms") # simple bootstrap confidence intervals
 
 # Most recent year of data
-YEAR <- 2018
+YEAR <- 2019
 
 # Harvest ----
 
@@ -117,7 +117,7 @@ View(port_catch)
 
 # Read in data, standardize cpue, etc.
 read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
-         guess_max = 50000) %>% View()
+         guess_max = 50000) %>% 
   filter(!is.na(date) & !is.na(hook_space) & !is.na(sable_lbs_set) &
            !is.na(start_lon) & !is.na(start_lon) & !is.na(soak) & !is.na(depth) &
            !is.na(Hook_size) & Hook_size != "MIX" &

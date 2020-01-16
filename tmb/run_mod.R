@@ -439,171 +439,153 @@ if(data$random_rec == 0) {
 setwd(tmb_path)
 
 # Three ways to run model:
-# 1) In phases, defined by build_phases() in functions.R. Use TMBphase(phase = TRUE)
-# 2) MLE without phased optimation (phase = FALSE)
-# 3) Bayesian using tmbstan and the no-U-turn sampler (NUTS): Run step 2 first
+# (1) MLE in phases (like ADMB). Code defined by build_phases() in functions.R.
+# Use TMBphase(phase = TRUE)
+# (2) MLE without phased optimation (phase = FALSE)
+# (3) Bayesian using tmbstan and the no-U-turn sampler (NUTS): Run step 2 first
 # to build TMB object, map, and bounds
 
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
-out <- TMBphase(data, parameters, random = random_vars, model_name = "mod", phase = FALSE, debug = FALSE)
+out <- TMBphase(data, parameters, random = random_vars, 
+                model_name = "mod", phase = FALSE, 
+                debug = FALSE)
 
 obj <- out$obj # TMB model object
 opt <- out$opt # fit
 rep <- out$rep # sdreport
-lower <- out$lower 
+lower <- out$lower # bounds
 upper <- out$upper
 
-# MCMC
+# Quick look at MLE results
+rep
+
+# Bayesian model - run MCMC
 
 # Run in parallel with a init function
 cores <- parallel::detectCores()-1
 options(mc.cores = cores)
 
-fit <- tmbstan(obj, chains = cores, open_progress = FALSE, init = init_fn, lower = lower, upper = upper)
+fit <- tmbstan(obj, chains = cores, open_progress = FALSE, 
+               init = init_fn, lower = lower, upper = upper)
+
+# Save b/c this can take awhile to run
+save(list = c("fit"), file = paste0(tmbout,"/tmbstan_fit_", YEAR, ".Rdata"))
+load(paste0(tmbout,"/tmbstan_fit_", YEAR, ".Rdata"))
+
+# MLE results ----
+
+# MLE parameter estimates and standard errors in useable format
+tidyrep <- tidy(summary(rep))
+names(tidyrep) <- c("Parameter", "Estimate", "se")
+key_params <- filter(tidyrep, !grepl('devs', Parameter)) # "Key" parameters (exclude devs)
+write_csv(key_params, paste0(tmbout, "/tmb_params_mle_", YEAR, ".csv"))
+
+best <- obj$env$last.par.best 
+print(as.numeric(best))
+print(best)
+obj$report(best)$pred_rec
+
+obj$report(best)$pred_landed * 2204.62
+obj$report(best)$pred_catch * 2204.62
+obj$report(best)$pred_wastage * 2204.62
+obj$report(best)$ABC * 2204.62 
+obj$report(best)$SB * 2204.62 
+obj$report(best)$Fxx
+
+exp(as.list(rep, what = "Estimate")$fsh_logq)
+exp(as.list(rep, what = "Estimate")$srv_logq)
+exp(as.list(rep, what = "Estimate")$mr_logq)
+exp(as.list(rep, what = "Estimate")$log_rbar)
+exp(as.list(rep, what = "Estimate")$log_rinit)
+exp(as.list(rep, what = "Estimate")$log_Fbar)
+
+# variance-covriance
+VarCo <- solve(obj$he())
+# Check  Hessian is pos def
+print(sqrt(diag(VarCo)))
+
+# Not totally clear on this...
+# D <- obj$he()
+# D <- as.data.frame(D)
+# names(D) <- rep$par.fixed %>% names
+# write_csv(D, paste0(tmbout, "/Dmatrix_", YEAR, ".csv"))
+
+# MLE likelihood components
+obj$report(best)$priors
+
+dat_like <- sum(obj$report(best)$catch_like,
+                obj$report(best)$index_like[1], obj$report(best)$index_like[3],
+                obj$report(best)$index_like[3],
+                obj$report(best)$age_like[1], obj$report(best)$age_like[2],
+                sum(obj$report(best)$fsh_len_like),  sum(obj$report(best)$srv_len_like))
+
+like_sum <- data.frame(like = c("Catch", 
+                                "Fishery CPUE", "Survey CPUE", 
+                                "Mark-recapture abundance",
+                                "Survey ages", "Fishery ages", 
+                                "Survey lengths", "Fishery lengths",
+                                "Data likelihood",
+                                "Total likelihood"),
+                       value = c(obj$report(best)$catch_like,
+                                 obj$report(best)$index_like[1], obj$report(best)$index_like[3],
+                                 obj$report(best)$index_like[3],
+                                 obj$report(best)$age_like[1], obj$report(best)$age_like[2],
+                                 sum(obj$report(best)$fsh_len_like),  sum(obj$report(best)$srv_len_like),
+                                 dat_like,
+                                 obj$report(best)$obj_fun
+                       )) %>% 
+  mutate(tot = obj$report()$obj_fun,
+         perc = (value / tot) * 100) %>% 
+  select(-tot)
+
+write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR, ".csv"))
+
+# MLE figs ----
+
+# Fits to abundance indices, derived time series, and F. Use units = "lb" or
+# "kt" to switch between standard and metric. Must run 
+plot_ts(save = TRUE, path = tmbfigs)
+plot_ts_resids(save = TRUE, path = tmbfigs)
+plot_derived_ts(save = TRUE, path = tmbfigs, units = "kt", plot_variance = FALSE)
+plot_F()
+
+agecomps <- reshape_age()
+plot_sel() # Selectivity
+plot_age_resids() # Fits to age comps
+barplot_age("Survey")
+barplot_age("Fishery")
+
+lencomps <- reshape_len()
+plot_len_resids()
+barplot_len("Survey", sex = "Female")
+barplot_len("Survey", sex = "Male")
+barplot_len("Fishery", sex = "Female")
+barplot_len("Fishery", sex = "Male")
+
+
+# Bayesian results ----
+
 summary(fit)
 mon <- monitor(fit)
-write_csv(mon, "../output/convergence.csv")
+write_csv(mon, paste0(tmbout, "/tmb_mcmc_convergence_", YEAR, ".csv"))
 max(mon$Rhat)
 min(mon$Bulk_ESS)
 min(mon$Tail_ESS)
 
-
-post <- as.matrix(fit)
-write_csv(as.data.frame(post), "../output/tmb_posterior_samples.csv")
-
 # Summary of parameter estimates 
 pars_sum <- summary(fit)$summary
-write_csv(as.data.frame(pars_sum), "../output/param_summary.csv")
+write_csv(as.data.frame(pars_sum), paste0(tmbout, "/tmb_parameter_sum_", YEAR, ".csv"))
 
-# Posterior for derived quantities 
-post_catch <- list()
-post_fsh_cpue <- list()
-post_srv_cpue <- list()
-post_mr <- list()
-post_rec <- list()
-post_biom <- list()
-post_expl_biom <- list()
-post_expl_abd <- list()
-post_spawn_biom <- list()
-post_ABC <- list()
-post_wastage <- list()
-post_SB100 <- list()
-post_SB50 <- list()
-post_F50 <- list()
+# Summarize mcmc posterior samples for all derived variables (see functions.r
+# for documentation)
+post <- as.matrix(fit) # Posterior samples
+sum_mcmc <- summarize_mcmc(post) # slow...~3 min (To Do - make more efficient)
 
-for(i in 1:nrow(post)){
-  
-  # Last column is log-posterior density (lp__) and needs to be dropped
-  r <- obj$report(post[i,-ncol(post)]) 
-  
-  # Data time series
-  post_catch[[i]] <- cbind(r$pred_landed, rep(i, length(r$pred_landed)), ts$year)
-  post_fsh_cpue[[i]] <- cbind(r$pred_fsh_cpue, rep(i, length(r$pred_fsh_cpue)), ts$year)
-  post_srv_cpue[[i]] <- cbind(r$pred_srv_cpue, rep(i, length(r$pred_srv_cpue)), srv_cpue$year)
-  post_mr[[i]] <- cbind(r$pred_mr_all, rep(i, length(r$pred_mr_all)), ts$year)
-  
-  # Derived indices (includes projection years)
-  post_rec[[i]] <- cbind(r$pred_rec, rep(i, length(r$pred_rec)), ts$year)
-  post_biom[[i]] <- cbind(r$tot_biom, rep(i, length(r$tot_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
-  post_expl_biom[[i]] <- cbind(r$tot_expl_biom, rep(i, length(r$tot_expl_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
-  post_expl_abd[[i]] <- cbind(r$tot_expl_abd, rep(i, length(r$tot_expl_abd)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
-  post_spawn_biom[[i]] <- cbind(r$tot_spawn_biom, rep(i, length(r$tot_spawn_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+plot_derived_ts(save = TRUE, path = tmbfigs, units = "kt", plot_variance = TRUE)
 
-  # Reference points and ABC calculations
-  post_ABC[[i]] <- cbind(r$ABC[data$nyr + 1, which(data$Fxx_levels == 0.5)], i) # ABC is a matrix with row = nyr+1 and col = data$Fxx_levels
-  post_wastage[[i]] <- cbind(r$wastage[data$nyr + 1, which(data$Fxx_levels == 0.5)], i) # same dimensions as ABC 
-  post_SB100[[i]] <- cbind(r$SB[1], i) # SB is a vector with unfished SB followed by SB at data$Fxx_levels
-  post_SB50[[i]] <- cbind(r$SB[which(data$Fxx_levels == 0.5) + 1], i) # data$Fxx_levels shifted by 1 to account for unfished SB
-  post_F50[[i]] <- cbind(r$Fxx[which(data$Fxx_levels == 0.5) + 1], i) # same as SB50
-  
-  # To Do - age and length comps
-}
+# Compare current ABC with past harvest ----
 
-post_catch <- as.data.frame(do.call(rbind, post_catch))
-post_fsh_cpue <- as.data.frame(do.call(rbind, post_fsh_cpue))
-post_srv_cpue <- as.data.frame(do.call(rbind, post_srv_cpue))
-post_mr <- as.data.frame(do.call(rbind, post_mr))
-post_rec <- as.data.frame(do.call(rbind, post_rec))
-post_biom <- as.data.frame(do.call(rbind, post_biom))
-post_expl_biom <- as.data.frame(do.call(rbind, post_expl_biom))
-post_expl_abd <- as.data.frame(do.call(rbind, post_expl_abd))
-post_spawn_biom <- as.data.frame(do.call(rbind, post_spawn_biom))
-post_ABC <- as.data.frame(do.call(rbind, post_ABC))
-post_wastage <- as.data.frame(do.call(rbind, post_wastage))
-post_SB100 <- as.data.frame(do.call(rbind, post_SB100))
-post_SB50 <- as.data.frame(do.call(rbind, post_SB50))
-post_F50 <- as.data.frame(do.call(rbind, post_F50))
-
-# Summarize posterior samples (see function defns in functions.r)
-post_catch <- post_byyear(post_catch, year)
-post_fsh_cpue <- post_byyear(post_fsh_cpue, year)
-post_srv_cpue <- post_byyear(post_srv_cpue, year)
-post_mr <- post_byyear(post_mr, year)
-post_rec <- post_byyear(post_rec, year)
-post_biom <- post_byyear(post_biom, year)
-post_expl_biom <- post_byyear(post_expl_biom, year)
-post_expl_abd <-  post_byyear(post_expl_abd, year)
-post_spawn_biom <-  post_byyear(post_spawn_biom, year)
-post_ABC <- postsum(post_ABC)
-post_wastage <- postsum(post_wastage)
-post_SB100 <- postsum(post_SB100)
-post_SB50 <- postsum(post_SB50)
-post_F50 <- postsum(post_F50)
-
-# Save output
-write_csv(post_catch, paste0(tmbout, "/post_catch_", YEAR, ".csv"))
-write_csv(post_fsh_cpue, paste0(tmbout, "/post_fsh_cpue_", YEAR, ".csv"))
-write_csv(post_srv_cpue, paste0(tmbout, "/post_srv_cpue_", YEAR, ".csv"))
-write_csv(post_mr, paste0(tmbout, "/post_mr_", YEAR, ".csv"))
-write_csv(post_rec, paste0(tmbout, "/post_rec_", YEAR, ".csv"))
-write_csv(post_biom, paste0(tmbout, "/post_biom_", YEAR, ".csv"))
-write_csv(post_expl_biom, paste0(tmbout, "/post_expl_biom_", YEAR, ".csv"))
-write_csv(post_expl_abd, paste0(tmbout, "/post_expl_abd_", YEAR, ".csv"))
-write_csv(post_spawn_biom, paste0(tmbout, "/post_spawn_biom_", YEAR, ".csv"))
-write_csv(post_ABC, paste0(tmbout, "/post_ABC_", YEAR, ".csv"))
-write_csv(post_wastage, paste0(tmbout, "/post_wastage_", YEAR, ".csv"))
-write_csv(post_SB100, paste0(tmbout, "/post_SB100_", YEAR, ".csv"))
-write_csv(post_SB50, paste0(tmbout, "/post_SB50_", YEAR, ".csv"))
-write_csv(post_F50, paste0(tmbout, "/post_F50_", YEAR, ".csv"))
-
-out <- list()
-out$post_catch <- post_catch
-out$post_fsh_cpue <- post_fsh_cpue
-out$post_srv_cpue <- post_srv_cpue
-out$post_mr <- post_mr
-out$post_rec <- post_rec
-out$post_biom <- post_biom
-out$post_expl_biom <- post_expl_biom
-out$post_expl_abd <- post_expl_abd
-out$post_spawn_biom <- post_spawn_biom
-out$post_ABC <- post_ABC
-out$post_wastage <- post_wastage
-out$post_SB100 <- post_SB100
-out$post_SB50 <- post_SB50
-out$post_F50 <- post_F50
-
-
-# Results ----
-best <- obj$env$last.par.best
-print(as.numeric(best))
-print(best)
-obj$report()$priors
-pred_rec <- obj$report()$pred_rec
-mean(pred_rec)
-
-
-obj$report()$S[nyr,,1]
-obj$report()$S[1,,2]
-obj$report()$catch_like
-obj$report()$index_like
-obj$report()$age_like
-obj$report()$pred_mr
-obj$report()$obj_fun
-obj$report()$pred_landed ==obj$report()$pred_catch
-obj$report()$pred_wastage * 2204.62
-obj$report()$F
-
-ABC <- as.data.frame(obj$report(obj$env$last.par.best)$ABC * 2.20462)
+ABC <- as.data.frame(obj$report(best)$ABC * 2.20462)
 names(ABC) <- data$Fxx_levels
 ABC <- ABC %>% 
   mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
@@ -631,40 +613,6 @@ retro_mgt <- ABC %>%
                            labels = c("Wastage", "ABC"),
                            ordered = TRUE))
 
-# Parameter estimates and standard errors in useable format
-tidyrep <- tidy(summary(rep))
-names(tidyrep) <- c("Parameter", "Estimate", "se")
-
-# "Key" parameters (exclude)
-key_params <- filter(tidyrep, !grepl('devs', Parameter))
-
-write_csv(key_params, paste0("../output/tmb_params.csv"))
-
-# Figures ----
-
-# Fits to abundance indices, derived time series, and F
-plot_ts()
-plot_ts_resids()
-plot_derived_ts()
-plot_F()
-
-agecomps <- reshape_age()
-plot_sel() # Selectivity
-plot_age_resids() # Fits to age comps
-barplot_age("Survey")
-barplot_age("Fishery")
-
-lencomps <- reshape_len()
-plot_len_resids()
-barplot_len("Survey", sex = "Female")
-barplot_len("Survey", sex = "Male")
-barplot_len("Fishery", sex = "Female")
-barplot_len("Fishery", sex = "Male")
-
-summary(rep, "report")
-rep$value
-rep$sd
-
 ggplot() +
   geom_area(data = retro_mgt %>% 
               filter(Fxx == "0.5"), aes(x = year, y = value, fill = variable), 
@@ -674,51 +622,10 @@ ggplot() +
               mutate(catch = catch * 2204.62),
             aes(x = year, y = catch)) 
 
-obj$report()$Fxx
+# Figures ----
 
-dat_like <- sum(obj$report()$catch_like,
-                obj$report()$index_like[1], obj$report()$index_like[3],
-                obj$report()$index_like[3],
-                obj$report()$age_like[1], obj$report()$age_like[2],
-                sum(obj$report()$fsh_len_like),  sum(obj$report()$srv_len_like))
 
-like_sum <- data.frame(like = c("Catch", 
-                                "Fishery CPUE", "Survey CPUE", 
-                                "Mark-recapture abundance",
-                                "Survey ages", "Fishery ages", 
-                                "Survey lengths", "Fishery lengths",
-                                "Data likelihood",
-                                "Total likelihood"),
-                       value = c(obj$report()$catch_like,
-                                 obj$report()$index_like[1], obj$report()$index_like[3],
-                                 obj$report()$index_like[3],
-                                 obj$report()$age_like[1], obj$report()$age_like[2],
-                                 sum(obj$report()$fsh_len_like),  sum(obj$report()$srv_len_like),
-                                 dat_like,
-                                 obj$report()$obj_fun
-                       )) %>% 
-  mutate(tot = obj$report()$obj_fun,
-         perc = (value / tot) * 100) %>% 
-  select(-tot)
 
-write_csv(like_sum, paste0("../output/tmb_likelihoods.csv"))
-
-exp(as.list(rep, what = "Estimate")$fsh_logq)
-exp(as.list(rep, what = "Estimate")$srv_logq)
-exp(as.list(rep, what = "Estimate")$mr_logq)
-# as.list(rep, what = "Std")
-
-exp(as.list(rep, what = "Estimate")$log_rbar)
-# variance-covriance
-VarCo <- solve(obj$he())
-# Check for Hessian
-print(sqrt(diag(VarCo)))
-
-D <- obj$he()
-D <- as.data.frame(D)
-names(D) <- rep$par.fixed %>% names
-
-write_csv(x = D, "Dmatrix.csv")
 
 
 # ts %>% 
