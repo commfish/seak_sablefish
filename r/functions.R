@@ -736,10 +736,10 @@ post_byyear <- function(df, by = year) {
   names(df) <- c("var", "iter", "year")
   df <- df %>% 
     group_by({{ by }}) %>% 
-    summarise(mean = mean(var),
-              median = median(var),
-              q025 = quantile(var, 0.025),
-              q975 = quantile(var, 0.975))
+    summarise(mean = mean(var, na.rm = TRUE),
+              median = median(var, na.rm = TRUE),
+              q025 = quantile(var, 0.025, na.rm = TRUE),
+              q975 = quantile(var, 0.975, na.rm = TRUE))
   return(df)
 }
 
@@ -747,15 +747,18 @@ postsum <- function(df) {
   
   names(df) <- c("var", "iter")
   df <- df %>% 
-    summarise(mean = mean(var),
-              median = median(var),
-              q025 = quantile(var, 0.025),
-              q975 = quantile(var, 0.975))
+    summarise(mean = mean(var, na.rm = TRUE),
+              median = median(var, na.rm = TRUE),
+              q025 = quantile(var, 0.025, na.rm = TRUE),
+              q975 = quantile(var, 0.975, na.rm = TRUE))
   return(df)
 }
 
 # Summarize mcmc posterior samples for all derived variables
 summarize_mcmc <- function(post) {
+  
+  # Create a test for posterior samples that enter an invalid space
+  tst <- list()
   
   # Posterior for derived quantities 
   post_catch <- list()
@@ -778,28 +781,45 @@ summarize_mcmc <- function(post) {
     # Last column is log-posterior density (lp__) and needs to be dropped
     r <- obj$report(post[i,-ncol(post)]) 
     
-    # Data time series
-    post_catch[[i]] <- cbind(r$pred_landed, rep(i, length(r$pred_landed)), ts$year)
-    post_fsh_cpue[[i]] <- cbind(r$pred_fsh_cpue, rep(i, length(r$pred_fsh_cpue)), ts$year)
-    post_srv_cpue[[i]] <- cbind(r$pred_srv_cpue, rep(i, length(r$pred_srv_cpue)), srv_cpue$year)
-    post_mr[[i]] <- cbind(r$pred_mr_all, rep(i, length(r$pred_mr_all)), ts$year)
+    # Test for NAs for Inf values and skip this iteration if results are invalid.
+    tmp_tst <- lapply(r, function(x) sum(which(is.na(x) | is.infinite(x))))
     
-    # Derived indices (includes projection years)
-    post_rec[[i]] <- cbind(r$pred_rec, rep(i, length(r$pred_rec)), ts$year)
-    post_biom[[i]] <- cbind(r$tot_biom, rep(i, length(r$tot_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
-    post_expl_biom[[i]] <- cbind(r$tot_expl_biom, rep(i, length(r$tot_expl_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
-    post_expl_abd[[i]] <- cbind(r$tot_expl_abd, rep(i, length(r$tot_expl_abd)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
-    post_spawn_biom[[i]] <- cbind(r$tot_spawn_biom, rep(i, length(r$tot_spawn_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+    tmp_tst <- colSums(do.call(rbind, tmp_tst))
     
-    # Reference points and ABC calculations
-    post_ABC[[i]] <- cbind(r$ABC[data$nyr + 1, which(data$Fxx_levels == 0.5)], i) # ABC is a matrix with row = nyr+1 and col = data$Fxx_levels
-    post_wastage[[i]] <- cbind(r$wastage[data$nyr + 1, which(data$Fxx_levels == 0.5)], i) # same dimensions as ABC 
-    post_SB100[[i]] <- cbind(r$SB[1], i) # SB is a vector with unfished SB followed by SB at data$Fxx_levels
-    post_SB50[[i]] <- cbind(r$SB[which(data$Fxx_levels == 0.5) + 1], i) # data$Fxx_levels shifted by 1 to account for unfished SB
-    post_F50[[i]] <- cbind(r$Fxx[which(data$Fxx_levels == 0.5) + 1], i) # same as SB50
+    if(tmp_tst > 0) {
+      
+      tst[[i]] <- 0 
+      
+    } else {
+      
+      tst[[i]] <- 1
+      
+      # Data time series
+      post_catch[[i]] <- cbind(r$pred_landed, rep(i, length(r$pred_landed)), ts$year)
+      post_fsh_cpue[[i]] <- cbind(r$pred_fsh_cpue, rep(i, length(r$pred_fsh_cpue)), ts$year)
+      post_srv_cpue[[i]] <- cbind(r$pred_srv_cpue, rep(i, length(r$pred_srv_cpue)), srv_cpue$year)
+      post_mr[[i]] <- cbind(r$pred_mr_all, rep(i, length(r$pred_mr_all)), ts$year)
+      
+      # Derived indices (includes projection years)
+      post_rec[[i]] <- cbind(r$pred_rec, rep(i, length(r$pred_rec)), ts$year)
+      post_biom[[i]] <- cbind(r$tot_biom, rep(i, length(r$tot_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+      post_expl_biom[[i]] <- cbind(r$tot_expl_biom, rep(i, length(r$tot_expl_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+      post_expl_abd[[i]] <- cbind(r$tot_expl_abd, rep(i, length(r$tot_expl_abd)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+      post_spawn_biom[[i]] <- cbind(r$tot_spawn_biom, rep(i, length(r$tot_spawn_biom)), c(ts$year,  (max(ts$year) + 1):(max(ts$year) + nproj)))
+      
+      # Reference points and ABC calculations
+      post_ABC[[i]] <- cbind(r$ABC[data$nyr + 1, which(data$Fxx_levels == 0.5)], i) # ABC is a matrix with row = nyr+1 and col = data$Fxx_levels
+      post_wastage[[i]] <- cbind(r$wastage[data$nyr + 1, which(data$Fxx_levels == 0.5)], i) # same dimensions as ABC 
+      post_SB100[[i]] <- cbind(r$SB[1], i) # SB is a vector with unfished SB followed by SB at data$Fxx_levels
+      post_SB50[[i]] <- cbind(r$SB[which(data$Fxx_levels == 0.5) + 1], i) # data$Fxx_levels shifted by 1 to account for unfished SB
+      post_F50[[i]] <- cbind(r$Fxx[which(data$Fxx_levels == 0.5) + 1], i) # same as SB50
+      
+      # To Do - age and length comps
+    }
     
-    # To Do - age and length comps
   }
+  
+  tst <- as.data.frame(do.call(rbind, tst))
   
   post_catch <- as.data.frame(do.call(rbind, post_catch))
   post_fsh_cpue <- as.data.frame(do.call(rbind, post_fsh_cpue))
@@ -849,6 +869,7 @@ summarize_mcmc <- function(post) {
   write_csv(post_F50, paste0(tmbout, "/post_F50_", YEAR, ".csv"))
   
   out <- list()
+  out$tst <- tst
   out$post_catch <- post_catch
   out$post_fsh_cpue <- post_fsh_cpue
   out$post_srv_cpue <- post_srv_cpue

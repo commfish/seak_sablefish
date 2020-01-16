@@ -1,8 +1,11 @@
 
-# ASA that includes catch, fishery and survey CPUE, mark-recapture abundance
-# estimates, fishery and survey weight-at-age, survey data about maturity-at-age
-# and proportions-at-age, and fishery and survey age compositions. No sex
-# structure.
+# Sex-structured statistical catch-at-age model that includes catch, fishery and
+# survey CPUE, mark-recapture abundance estimates, fishery and survey
+# weight-at-age, survey data about maturity-at-age and proportions-at-age, and
+# fishery and survey age and length compositions.
+
+# Contact: jane.sullivan1@alaska.gov
+# Last updated Jan 2020
 
 # Set up ----
 
@@ -459,19 +462,6 @@ upper <- out$upper
 # Quick look at MLE results
 rep
 
-# Bayesian model - run MCMC
-
-# Run in parallel with a init function
-cores <- parallel::detectCores()-1
-options(mc.cores = cores)
-
-fit <- tmbstan(obj, chains = cores, open_progress = FALSE, 
-               init = init_fn, lower = lower, upper = upper)
-
-# Save b/c this can take awhile to run
-save(list = c("fit"), file = paste0(tmbout,"/tmbstan_fit_", YEAR, ".Rdata"))
-load(paste0(tmbout,"/tmbstan_fit_", YEAR, ".Rdata"))
-
 # MLE results ----
 
 # MLE parameter estimates and standard errors in useable format
@@ -562,15 +552,38 @@ barplot_len("Survey", sex = "Male")
 barplot_len("Fishery", sex = "Female")
 barplot_len("Fishery", sex = "Male")
 
+# Bayesian model -----
+
+# Run in parallel with a init function
+cores <- parallel::detectCores()-1
+options(mc.cores = cores)
+
+fit <- tmbstan(obj, chains = cores, open_progress = FALSE, 
+               init = init_fn, lower = lower, upper = upper)
+
+# Save b/c this can take awhile to run
+save(list = c("fit"), file = paste0(tmbout,"/tmbstan_fit_", YEAR, ".Rdata"))
+load(paste0(tmbout,"/tmbstan_fit_", YEAR, ".Rdata"))
+
 
 # Bayesian results ----
-
 summary(fit)
 mon <- monitor(fit)
 write_csv(mon, paste0(tmbout, "/tmb_mcmc_convergence_", YEAR, ".csv"))
 max(mon$Rhat)
 min(mon$Bulk_ESS)
 min(mon$Tail_ESS)
+
+# Trace plots 
+# Key params
+trace <- traceplot(fit, pars = key_params$Parameter, inc_warmup = FALSE, ncol = 3)
+trace + scale_color_grey() + theme(legend.position = "bottom", legend.direction = "horizontal")
+ggsave(filename = paste0(tmbfigs, "/trace_keypars_", YEAR, ".png"), width = 8, height = 10, units = "in")
+
+# Rec devs
+trace <- traceplot(fit, pars = names(obj$par)[which(grepl("rec_devs", names(obj$par)))], inc_warmup = FALSE, ncol = 3)
+trace + scale_color_grey() + theme(legend.position = , legend.direction = "horizontal")
+ggsave(filename = paste0(tmbfigs, "/trace_logrecdevs_", YEAR, ".png"), width = 8, height = 30, units = "in")
 
 # Summary of parameter estimates 
 pars_sum <- summary(fit)$summary
@@ -580,7 +593,7 @@ write_csv(as.data.frame(pars_sum), paste0(tmbout, "/tmb_parameter_sum_", YEAR, "
 # for documentation)
 post <- as.matrix(fit) # Posterior samples
 sum_mcmc <- summarize_mcmc(post) # slow...~3 min (To Do - make more efficient)
-
+sum(length(which(sum_mcmc$tst==0))) # iterations that led to non-sensical results (either NAs or Inf)
 plot_derived_ts(save = TRUE, path = tmbfigs, units = "kt", plot_variance = TRUE)
 
 # Compare current ABC with past harvest ----
