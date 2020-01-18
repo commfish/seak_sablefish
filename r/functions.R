@@ -730,6 +730,13 @@ init_fn <- function(){list(
 
 # TMB figure functions ----
 
+# Unit translations
+
+kg2lb <- function(x) 2.20462 * x 
+mt2mlb <- function(x) 2204.62 * x / 1e6
+n2millions <- function(x) x / 1e6
+kg2mlb <- function(x) x * 2.20462 / 1e6
+
 # Functions to summarize posterior samples by year or without a 'by' statement
 post_byyear <- function(df, by = year) {
   
@@ -929,25 +936,106 @@ reshape_ts <- function(){
 }
 
 # Plot time series
-plot_ts <- function(save = TRUE, path = tmbfigs){
+plot_ts <- function(save = TRUE, path = tmbfigs, 
+                    units = c('metric', 'imperial'), plot_variance = TRUE){
   
+
   out <- reshape_ts()
-  out$ts -> ts
-  out$fsh_cpue -> fsh_cpue
+  out$ts -> catch # catch in kg
+  out$fsh_cpue -> fsh_cpue # kg/hk
   out$srv_cpue -> srv_cpue
   out$mr_plot -> mr_plot
   out$mr_plot_all -> mr_plot_all
   
+  if(units == "imperial") { # Convert catch from mt to million lb and fsh_cpue from kg to lb
+    
+    catch <- catch %>% mutate_at(c("catch", "pred_catch", "upper_catch", "lower_catch"), mt2mlb) 
+    fsh_cpue <- fsh_cpue %>% mutate_at(c("fsh_cpue", "pred_fsh_cpue", "upper_fsh_cpue", "lower_fsh_cpue"), kg2lb)
+  }
+  
+  if(plot_variance == TRUE) {
+    
+    post_catch <- sum_mcmc$post_catch
+    post_fsh_cpue <- sum_mcmc$post_fsh_cpue
+    post_fsh_cpue <- post_fsh_cpue %>% mutate(period = ifelse(year <= 1994, "pre-EQS", "EQS"))
+    post_srv_cpue <- sum_mcmc$post_srv_cpue
+    post_mr <- sum_mcmc$post_mr
+    
+    if(units == "imperial") {
+      post_catch <- post_catch %>% mutate_at(c("mean", "median", "q025", "q975"), mt2mlb)
+      post_fsh_cpue <- post_fsh_cpue %>% mutate_at(c("mean", "median", "q025", "q975"), kg2lb)
+    }
+    
+    axis <- tickr(catch, year, 5)
+    
+    # Catch
+    ggplot(data = catch, aes(x = year)) +
+      geom_point(aes(y = catch), colour = "black") +
+      geom_line(data = post_catch, aes(y = median)) +
+      # model credible intervals 
+      geom_ribbon(data = post_catch, aes(year, ymin = q025, ymax = q975),
+                  alpha = 0.2,  fill = "black", colour = NA) +
+      # assumed error for data
+      geom_errorbar(aes(year, ymin = lower_catch, ymax = upper_catch), width = 0.2) +
+      scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+      scale_y_continuous(label = scales::comma) +
+      labs(x = NULL, y = ifelse(units == "metric", "\n\nCatch\n(round mt)",
+                                "\n\nCatch\n(million round lb)")) +
+      theme(axis.title.y = element_text(angle=0)) -> p_catch
+    
+    # Fishery cpue
+    ggplot(fsh_cpue, aes(x = year)) +
+      geom_point(aes(y = fsh_cpue), colour = "black") +
+      geom_line(data = post_fsh_cpue, aes(y = median, lty = period)) +
+      geom_ribbon(data = post_fsh_cpue, aes(year, ymin = q025 , ymax = q975, group = period),
+                  alpha = 0.2, fill = "black", colour = NA) +
+      geom_errorbar(aes(year, ymin = lower_fsh_cpue , ymax = upper_fsh_cpue), width = 0.2) +
+      scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+      expand_limits(y = 0) +
+      labs(x = NULL, y = ifelse(units == "metric", "\n\nFishery CPUE\n(round kg/hook)",
+                                "\n\nFishery CPUE\n(round lb/hook)"), lty = NULL) +
+      theme(legend.position = c(0.8, 0.8),
+            axis.title.y = element_text(angle=0)) -> p_fsh
+    
+    # Survey cpue
+    ggplot(srv_cpue, aes(x = year)) +
+      geom_point(aes(y = srv_cpue), colour = "black") +
+      geom_line(data = post_srv_cpue, aes(y = median)) +
+      geom_ribbon(data = post_srv_cpue, aes(year, ymin = q025, ymax = q975),
+                  alpha = 0.2, fill = "black", colour = NA) +
+      geom_errorbar(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue), width = 0.2) +
+      scale_x_continuous(limits = c(min(ts$year), max(ts$year)),
+                         breaks = axis$breaks, labels = axis$labels) +
+      expand_limits(y = 0) +
+      labs(x = NULL, y = "\n\nSurvey CPUE\n(fish/hook)") +
+      theme(axis.title.y = element_text(angle=0)) -> p_srv
+    
+    # Mark recapture 
+    ggplot(post_mr, aes(x = year)) +
+      geom_point(data = mr_plot, aes(y = mr), colour = "black") +
+      geom_line(aes(y = median)) +
+      geom_ribbon(aes(x = year, ymin = q025, ymax = q975),
+                  alpha = 0.2, fill = "black", colour = NA) +
+      geom_errorbar(data = mr_plot, aes(x = year, ymin = lower_mr, ymax = upper_mr), width = 0.2) +
+      scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+      expand_limits(y = 0) +
+      labs(x = NULL, y = "\n\nAbundance\n(millions)") +
+      theme(axis.title.y = element_text(angle=0)) -> p_mr
+  }
+  
+  if(plot_variance == FALSE) {
+    
   # Catch 
-  axis <- tickr(ts, year, 5)
-  ggplot(ts, aes(x = year)) +
+  axis <- tickr(catch, year, 5)
+  ggplot(catch, aes(x = year)) +
     geom_point(aes(y = catch), colour = "darkgrey") +
     geom_line(aes(y = pred_catch)) +
     geom_ribbon(aes(year, ymin = lower_catch, ymax = upper_catch),
                 alpha = 0.2,  fill = "black", colour = NA) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     scale_y_continuous(label = scales::comma) +
-    labs(x = NULL, y = "\n\nCatch\n(round mt)") +
+    labs(x = NULL, y = ifelse(units == "metric", "\n\nCatch\n(round mt)",
+                              "\n\nCatch\n(million round lb)")) +
     theme(axis.title.y = element_text(angle=0)) -> p_catch
   
   # Fishery cpue
@@ -958,7 +1046,8 @@ plot_ts <- function(save = TRUE, path = tmbfigs){
                 alpha = 0.2, fill = "black", colour = NA) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     expand_limits(y = 0) +
-    labs(x = NULL, y = "\n\nFishery CPUE\n(round kg/hook)", lty = NULL) +
+    labs(x = NULL, y = ifelse(units == "metric", "\n\nFishery CPUE\n(round kg/hook)",
+                              "\n\nFishery CPUE\n(round lb/hook)"), lty = NULL) +
     theme(legend.position = c(0.8, 0.8),
           axis.title.y = element_text(angle=0))-> p_fsh
   
@@ -994,14 +1083,17 @@ plot_ts <- function(save = TRUE, path = tmbfigs){
     expand_limits(y = 0) +
     labs(x = NULL, y = "\n\nAbundance\n(millions)") +
     theme(axis.title.y = element_text(angle=0)) -> p_mr
+  }
   
   plot_grid(p_catch, p_fsh, p_srv, p_mr, ncol = 1, align = 'hv', 
             labels = c('(A)', '(B)', '(C)', '(D)')) -> p
   
   print(p)
   
+  mcmc_flag <- ifelse(plot_variance == TRUE, "_mcmc", "")
+
   if(save == TRUE){ 
-    ggsave(plot = p, filename = paste0(path, "/pred_abd_indices.png"), 
+    ggsave(plot = p, filename = paste0(path, "/pred_abd_indices_", units, "_", YEAR, mcmc_flag, ".png"), 
            dpi = 300, height = 7, width = 6, units = "in")
   }
 }
@@ -1076,11 +1168,8 @@ plot_ts_resids <- function(save = TRUE, path = tmbfigs) {
 # Plot derived variables
 plot_derived_ts <- function(save = TRUE, 
                             path = tmbfigs, 
-                            units = c("lb", "kt"), 
+                            units = c("imperial", "metric"), 
                             plot_variance = FALSE) {
-  
-  divide_by <- function(x, divisor) (x / divisor)
-  convert2mlb <- function(x) x * 2.20462 / 1e6
   
   if(plot_variance == TRUE) {
     
@@ -1090,17 +1179,17 @@ plot_derived_ts <- function(save = TRUE,
     post_spawn_biom <- sum_mcmc$post_spawn_biom
     
     # Scale numbers to millions
-    post_rec <- post_rec %>% mutate_at(c("mean", "median", "q025", "q975"), divide_by, divisor = 1e6)
-    post_expl_abd <- post_expl_abd %>% mutate_at(c("mean", "median", "q025", "q975"), divide_by, divisor = 1e6)
+    post_rec <- post_rec %>% mutate_at(c("mean", "median", "q025", "q975"), n2millions)
+    post_expl_abd <- post_expl_abd %>% mutate_at(c("mean", "median", "q025", "q975"), n2millions)
     
-    if(units == "kt") { # Scale biomass to kt
-      post_expl_biom <- post_expl_biom %>% mutate_at(c("mean", "median", "q025", "q975"), divide_by, divisor = 1e6)
-      post_spawn_biom <- post_spawn_biom %>% mutate_at(c("mean", "median", "q025", "q975"), divide_by, divisor = 1e6)
+    if(units == "metric") { # Scale biomass to kt
+      post_expl_biom <- post_expl_biom %>% mutate_at(c("mean", "median", "q025", "q975"), n2millions)
+      post_spawn_biom <- post_spawn_biom %>% mutate_at(c("mean", "median", "q025", "q975"), n2millions)
     }
     
-    if(units == "lb") { # Scale biomass to million lb
-      post_expl_biom <- post_expl_biom %>% mutate_at(c("mean", "median", "q025", "q975"), convert2mlb)
-      post_spawn_biom <- post_spawn_biom %>% mutate_at(c("mean", "median", "q025", "q975"), convert2mlb)
+    if(units == "imperial") { # Scale biomass to million lb
+      post_expl_biom <- post_expl_biom %>% mutate_at(c("mean", "median", "q025", "q975"), kg2mlb)
+      post_spawn_biom <- post_spawn_biom %>% mutate_at(c("mean", "median", "q025", "q975"), kg2mlb)
     }  
     
     axis <- tickr(post_expl_abd, year, 5)
@@ -1108,7 +1197,7 @@ plot_derived_ts <- function(save = TRUE,
     # Recruitment
     ggplot(post_rec, aes(x = year)) +    
       geom_bar(aes(y = median), stat = "identity", fill = "grey") +
-      geom_errorbar(aes(ymin = q025, ymax = q975), width = 0.3) +
+      geom_errorbar(aes(ymin = q025, ymax = q975), width = 0.2) +
       labs(x = "", y = "\n\nAge-2\nrecruits\n(millions)") +
       scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
       scale_y_continuous(label = scales::comma) +
@@ -1133,7 +1222,7 @@ plot_derived_ts <- function(save = TRUE,
       geom_line(aes(y = median, group = 1)) +
       geom_ribbon(aes(ymin = q025 , ymax = q975),
                   alpha = 0.2, fill = "black", colour = NA) +
-      labs(x = "", y = ifelse(units == "lb", "\n\nExploitable\nbiomass\n(million lb)", 
+      labs(x = "", y = ifelse(units == "imperial", "\n\nExploitable\nbiomass\n(million lb)", 
                               "\n\nExploitable\nbiomass\n(kt)")) +
       scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
       scale_y_continuous(label = scales::comma) +
@@ -1146,7 +1235,7 @@ plot_derived_ts <- function(save = TRUE,
       geom_line(aes(y = median, group = 1)) +
       geom_ribbon(aes(ymin = q025 , ymax = q975),
                   alpha = 0.2, fill = "black", colour = NA) +
-      labs(x = "", y = ifelse(units == "lb", "\n\nSpawning\nbiomass\n(million lb)",
+      labs(x = "", y = ifelse(units == "imperial", "\n\nSpawning\nbiomass\n(million lb)",
                               "\n\nSpawning\nbiomass\n(kt)")) +
       scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
       scale_y_continuous(label = scales::comma) +
@@ -1158,7 +1247,7 @@ plot_derived_ts <- function(save = TRUE,
   
   if(plot_variance == FALSE) {
     
-    if(units == "kt") {
+    if(units == "metric") {
       ts %>% 
         # Add another year to hold projected values
         full_join(data.frame(year = (max(ts$year) + 1):(max(ts$year) + nproj))) %>%
@@ -1172,7 +1261,7 @@ plot_derived_ts <- function(save = TRUE,
                spawn_biom = obj$report(best)$tot_spawn_biom / 1e6) -> ts
     }
     
-    if(units == "lb") { # ends up reported as million lb
+    if(units == "imperial") { # ends up reported as million lb
       ts %>% 
         # Add another year to hold projected values
         full_join(data.frame(year = (max(ts$year) + 1):(max(ts$year) + nproj))) %>%
@@ -1212,14 +1301,14 @@ plot_derived_ts <- function(save = TRUE,
     p + geom_point(aes(y = expl_biom)) +
       geom_line(aes(y = expl_biom, group = 1)) +
       expand_limits(y = 0) +
-      labs(x = "", y = ifelse(units == "lb", "\n\nExploitable\nbiomass\n(million lb)", 
+      labs(x = "", y = ifelse(units == "imperial", "\n\nExploitable\nbiomass\n(million lb)", 
                               "\n\nExploitable\nbiomass\n(kt)")) -> p_ebiom
     
     # Spawning biomass 
     p + geom_point(aes(y = spawn_biom)) +
       geom_line(aes(y = spawn_biom, group = 1)) +
       expand_limits(y = 0) +
-      labs(x = "", y = ifelse(units == "lb", "\n\nSpawning\nbiomass\n(million lb)",
+      labs(x = "", y = ifelse(units == "imperial", "\n\nSpawning\nbiomass\n(million lb)",
                               "\n\nSpawning\nbiomass\n(kt)")) -> p_sbiom
   }
   

@@ -532,11 +532,11 @@ write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR, ".csv"))
 
 # MLE figs ----
 
-# Fits to abundance indices, derived time series, and F. Use units = "lb" or
-# "kt" to switch between standard and metric. Must run 
+# Fits to abundance indices, derived time series, and F. Use units = "imperial" or
+# "metric" to switch between units. 
 plot_ts(save = TRUE, path = tmbfigs)
 plot_ts_resids(save = TRUE, path = tmbfigs)
-plot_derived_ts(save = TRUE, path = tmbfigs, units = "kt", plot_variance = FALSE)
+plot_derived_ts(save = TRUE, path = tmbfigs, units = "metric", plot_variance = FALSE)
 plot_F()
 
 agecomps <- reshape_age()
@@ -568,6 +568,22 @@ load(paste0(tmbout,"/tmbstan_fit_", YEAR, ".Rdata"))
 
 # Bayesian results ----
 summary(fit)
+
+# Summary of parameter estimates 
+pars_sum <- summary(fit)$summary
+write_csv(as.data.frame(pars_sum), paste0(tmbout, "/tmb_parameter_sum_", YEAR, ".csv"))
+
+# Summarize mcmc posterior samples for all derived variables (see functions.r
+# for documentation)
+post <- as.matrix(fit) # Posterior samples
+sum_mcmc <- summarize_mcmc(post) # slow...~3 min (To Do - make more efficient)
+sum(length(which(sum_mcmc$tst==0))) # iterations that led to non-sensical results (either NAs or Inf)
+
+plot_derived_ts(save = TRUE, path = tmbfigs, units = "metric", plot_variance = TRUE)
+plot_ts(save = TRUE, path = tmbfigs, units = "metric", plot_variance = TRUE)
+plot_ts(save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
+
+# Diagnostics
 mon <- monitor(fit)
 write_csv(mon, paste0(tmbout, "/tmb_mcmc_convergence_", YEAR, ".csv"))
 max(mon$Rhat)
@@ -585,16 +601,6 @@ trace <- traceplot(fit, pars = names(obj$par)[which(grepl("rec_devs", names(obj$
 trace + scale_color_grey() + theme(legend.position = , legend.direction = "horizontal")
 ggsave(filename = paste0(tmbfigs, "/trace_logrecdevs_", YEAR, ".png"), width = 8, height = 30, units = "in")
 
-# Summary of parameter estimates 
-pars_sum <- summary(fit)$summary
-write_csv(as.data.frame(pars_sum), paste0(tmbout, "/tmb_parameter_sum_", YEAR, ".csv"))
-
-# Summarize mcmc posterior samples for all derived variables (see functions.r
-# for documentation)
-post <- as.matrix(fit) # Posterior samples
-sum_mcmc <- summarize_mcmc(post) # slow...~3 min (To Do - make more efficient)
-sum(length(which(sum_mcmc$tst==0))) # iterations that led to non-sensical results (either NAs or Inf)
-plot_derived_ts(save = TRUE, path = tmbfigs, units = "kt", plot_variance = TRUE)
 
 # Compare current ABC with past harvest ----
 
