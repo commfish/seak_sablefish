@@ -393,18 +393,15 @@ ggsave(paste0("figures/tmb/bio_dat.png"), dpi=300, height=7, width=7, units="in"
 
 # Length compositions ----
 
-# Not used yet in ASA model - FLAG where are all the pot survey lengths? We
-# should have more years than we do. Filter out for now and come back to this
-# later.
+# FLAG where are all the pot survey lengths? We should have more years than we
+# do. Filter out for now and come back to this later.
 lencomps <- read_csv("output/lengthcomps.csv", guess_max = 500000)
-lencomps <- lencomps %>% 
+lencomps <- lencomps %>%   
+  filter(Source != "Pot survey") %>% 
   mutate(Source = derivedVariable(`fsh_len` = Source == "LL fishery",
-                                  `srv_len` = Source == "LL survey",
-                                  `pot_srv_len` = Source == "Pot survey")) %>% 
-  filter(Source != "pot_srv_len") %>% 
-  group_by(Source, year) %>% 
-  mutate(n = sum(n),
-         effn = sqrt(n)) %>% 
+                                  `srv_len` = Source == "LL survey")) %>% 
+  group_by(Source, Sex, year) %>% 
+  mutate(n = sum(n)) %>% 
   left_join(data.frame(year = syr:lyr) %>% 
               mutate(index = year - min(year)))
 

@@ -36,7 +36,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,41,2,0.007
 1998,LL survey,Female,41,0,0
 1999,LL survey,Female,41,0,0
-2e3,LL survey,Female,41,0,0
+2000,LL survey,Female,41,0,0
 2001,LL survey,Female,41,0,0
 2002,Pot survey,Female,41,0,0
 2006,Pot survey,Female,41,0,0
@@ -80,7 +80,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,41,0,0
 1998,LL survey,Male,41,0,0
 1999,LL survey,Male,41,0,0
-2e3,LL survey,Male,41,0,0
+2000,LL survey,Male,41,0,0
 2001,LL survey,Male,41,0,0
 2002,Pot survey,Male,41,0,0
 2006,Pot survey,Male,41,0,0
@@ -124,7 +124,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,41,2,0.0034
 1998,LL survey,Sex combined,41,0,0
 1999,LL survey,Sex combined,41,0,0
-2e3,LL survey,Sex combined,41,0,0
+2000,LL survey,Sex combined,41,0,0
 2001,LL survey,Sex combined,41,0,0
 2002,Pot survey,Sex combined,41,0,0
 2006,Pot survey,Sex combined,41,0,0
@@ -168,7 +168,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,43,0,0
 1998,LL survey,Female,43,1,0.0049
 1999,LL survey,Female,43,0,0
-2e3,LL survey,Female,43,0,0
+2000,LL survey,Female,43,0,0
 2001,LL survey,Female,43,0,0
 2002,Pot survey,Female,43,1,0.0035
 2006,Pot survey,Female,43,0,0
@@ -212,7 +212,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,43,1,0.0034
 1998,LL survey,Male,43,0,0
 1999,LL survey,Male,43,0,0
-2e3,LL survey,Male,43,0,0
+2000,LL survey,Male,43,0,0
 2001,LL survey,Male,43,0,0
 2002,Pot survey,Male,43,0,0
 2006,Pot survey,Male,43,0,0
@@ -256,7 +256,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,43,1,0.0017
 1998,LL survey,Sex combined,43,1,0.0027
 1999,LL survey,Sex combined,43,0,0
-2e3,LL survey,Sex combined,43,0,0
+2000,LL survey,Sex combined,43,0,0
 2001,LL survey,Sex combined,43,0,0
 2002,Pot survey,Sex combined,43,1,0.0019
 2006,Pot survey,Sex combined,43,0,0
@@ -300,7 +300,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,45,0,0
 1998,LL survey,Female,45,0,0
 1999,LL survey,Female,45,1,0.0064
-2e3,LL survey,Female,45,1,0.0044
+2000,LL survey,Female,45,1,0.0044
 2001,LL survey,Female,45,0,0
 2002,Pot survey,Female,45,3,0.0105
 2006,Pot survey,Female,45,0,0
@@ -344,7 +344,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,45,1,0.0034
 1998,LL survey,Male,45,0,0
 1999,LL survey,Male,45,1,0.0053
-2e3,LL survey,Male,45,2,0.0101
+2000,LL survey,Male,45,2,0.0101
 2001,LL survey,Male,45,2,0.005
 2002,Pot survey,Male,45,1,0.0043
 2006,Pot survey,Male,45,0,0
@@ -388,7 +388,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,45,1,0.0017
 1998,LL survey,Sex combined,45,0,0
 1999,LL survey,Sex combined,45,2,0.0058
-2e3,LL survey,Sex combined,45,3,0.0071
+2000,LL survey,Sex combined,45,3,0.0071
 2001,LL survey,Sex combined,45,2,0.0027
 2002,Pot survey,Sex combined,45,4,0.0077
 2006,Pot survey,Sex combined,45,0,0
@@ -432,7 +432,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,47,1,0.0035
 1998,LL survey,Female,47,0,0
 1999,LL survey,Female,47,4,0.0256
-2e3,LL survey,Female,47,3,0.0133
+2000,LL survey,Female,47,3,0.0133
 2001,LL survey,Female,47,3,0.0086
 2002,Pot survey,Female,47,5,0.0175
 2006,Pot survey,Female,47,1,0.0036
@@ -476,7 +476,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,47,0,0
 1998,LL survey,Male,47,2,0.0122
 1999,LL survey,Male,47,8,0.0428
-2e3,LL survey,Male,47,5,0.0253
+2000,LL survey,Male,47,5,0.0253
 2001,LL survey,Male,47,1,0.0025
 2002,Pot survey,Male,47,3,0.0128
 2006,Pot survey,Male,47,1,0.0041
@@ -520,7 +520,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,47,1,0.0017
 1998,LL survey,Sex combined,47,2,0.0054
 1999,LL survey,Sex combined,47,12,0.035
-2e3,LL survey,Sex combined,47,8,0.0189
+2000,LL survey,Sex combined,47,8,0.0189
 2001,LL survey,Sex combined,47,4,0.0054
 2002,Pot survey,Sex combined,47,8,0.0154
 2006,Pot survey,Sex combined,47,2,0.0038
@@ -564,7 +564,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,49,1,0.0035
 1998,LL survey,Female,49,0,0
 1999,LL survey,Female,49,6,0.0385
-2e3,LL survey,Female,49,5,0.0221
+2000,LL survey,Female,49,5,0.0221
 2001,LL survey,Female,49,7,0.0201
 2002,Pot survey,Female,49,11,0.0386
 2006,Pot survey,Female,49,6,0.0214
@@ -608,7 +608,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,49,2,0.0067
 1998,LL survey,Male,49,4,0.0244
 1999,LL survey,Male,49,7,0.0374
-2e3,LL survey,Male,49,10,0.0505
+2000,LL survey,Male,49,10,0.0505
 2001,LL survey,Male,49,11,0.0277
 2002,Pot survey,Male,49,8,0.0342
 2006,Pot survey,Male,49,3,0.0124
@@ -652,7 +652,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,49,3,0.0052
 1998,LL survey,Sex combined,49,4,0.0109
 1999,LL survey,Sex combined,49,13,0.0379
-2e3,LL survey,Sex combined,49,15,0.0354
+2000,LL survey,Sex combined,49,15,0.0354
 2001,LL survey,Sex combined,49,18,0.0242
 2002,Pot survey,Sex combined,49,19,0.0366
 2006,Pot survey,Sex combined,49,9,0.0172
@@ -696,7 +696,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,51,0,0
 1998,LL survey,Female,51,4,0.0197
 1999,LL survey,Female,51,4,0.0256
-2e3,LL survey,Female,51,14,0.0619
+2000,LL survey,Female,51,14,0.0619
 2001,LL survey,Female,51,18,0.0517
 2002,Pot survey,Female,51,14,0.0491
 2006,Pot survey,Female,51,5,0.0178
@@ -740,7 +740,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,51,1,0.0034
 1998,LL survey,Male,51,3,0.0183
 1999,LL survey,Male,51,2,0.0107
-2e3,LL survey,Male,51,8,0.0404
+2000,LL survey,Male,51,8,0.0404
 2001,LL survey,Male,51,26,0.0655
 2002,Pot survey,Male,51,22,0.094
 2006,Pot survey,Male,51,7,0.0289
@@ -784,7 +784,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,51,1,0.0017
 1998,LL survey,Sex combined,51,7,0.0191
 1999,LL survey,Sex combined,51,6,0.0175
-2e3,LL survey,Sex combined,51,22,0.0519
+2000,LL survey,Sex combined,51,22,0.0519
 2001,LL survey,Sex combined,51,44,0.0591
 2002,Pot survey,Sex combined,51,36,0.0694
 2006,Pot survey,Sex combined,51,12,0.0229
@@ -828,7 +828,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,53,3,0.0106
 1998,LL survey,Female,53,5,0.0246
 1999,LL survey,Female,53,4,0.0256
-2e3,LL survey,Female,53,10,0.0442
+2000,LL survey,Female,53,10,0.0442
 2001,LL survey,Female,53,27,0.0776
 2002,Pot survey,Female,53,28,0.0982
 2006,Pot survey,Female,53,9,0.032
@@ -872,7 +872,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,53,3,0.0101
 1998,LL survey,Male,53,5,0.0305
 1999,LL survey,Male,53,14,0.0749
-2e3,LL survey,Male,53,5,0.0253
+2000,LL survey,Male,53,5,0.0253
 2001,LL survey,Male,53,20,0.0504
 2002,Pot survey,Male,53,22,0.094
 2006,Pot survey,Male,53,9,0.0372
@@ -916,7 +916,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,53,6,0.0103
 1998,LL survey,Sex combined,53,10,0.0272
 1999,LL survey,Sex combined,53,18,0.0525
-2e3,LL survey,Sex combined,53,15,0.0354
+2000,LL survey,Sex combined,53,15,0.0354
 2001,LL survey,Sex combined,53,47,0.0631
 2002,Pot survey,Sex combined,53,50,0.0963
 2006,Pot survey,Sex combined,53,18,0.0344
@@ -960,7 +960,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,55,9,0.0317
 1998,LL survey,Female,55,7,0.0345
 1999,LL survey,Female,55,14,0.0897
-2e3,LL survey,Female,55,10,0.0442
+2000,LL survey,Female,55,10,0.0442
 2001,LL survey,Female,55,24,0.069
 2002,Pot survey,Female,55,33,0.1158
 2006,Pot survey,Female,55,17,0.0605
@@ -1004,7 +1004,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,55,2,0.0067
 1998,LL survey,Male,55,4,0.0244
 1999,LL survey,Male,55,9,0.0481
-2e3,LL survey,Male,55,8,0.0404
+2000,LL survey,Male,55,8,0.0404
 2001,LL survey,Male,55,18,0.0453
 2002,Pot survey,Male,55,34,0.1453
 2006,Pot survey,Male,55,15,0.062
@@ -1048,7 +1048,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,55,11,0.0189
 1998,LL survey,Sex combined,55,11,0.03
 1999,LL survey,Sex combined,55,23,0.0671
-2e3,LL survey,Sex combined,55,18,0.0425
+2000,LL survey,Sex combined,55,18,0.0425
 2001,LL survey,Sex combined,55,42,0.0564
 2002,Pot survey,Sex combined,55,67,0.1291
 2006,Pot survey,Sex combined,55,32,0.0612
@@ -1092,7 +1092,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,57,8,0.0282
 1998,LL survey,Female,57,5,0.0246
 1999,LL survey,Female,57,8,0.0513
-2e3,LL survey,Female,57,8,0.0354
+2000,LL survey,Female,57,8,0.0354
 2001,LL survey,Female,57,24,0.069
 2002,Pot survey,Female,57,42,0.1474
 2006,Pot survey,Female,57,9,0.032
@@ -1136,7 +1136,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,57,7,0.0236
 1998,LL survey,Male,57,2,0.0122
 1999,LL survey,Male,57,10,0.0535
-2e3,LL survey,Male,57,18,0.0909
+2000,LL survey,Male,57,18,0.0909
 2001,LL survey,Male,57,25,0.063
 2002,Pot survey,Male,57,17,0.0726
 2006,Pot survey,Male,57,21,0.0868
@@ -1180,7 +1180,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,57,15,0.0258
 1998,LL survey,Sex combined,57,7,0.0191
 1999,LL survey,Sex combined,57,18,0.0525
-2e3,LL survey,Sex combined,57,26,0.0613
+2000,LL survey,Sex combined,57,26,0.0613
 2001,LL survey,Sex combined,57,49,0.0658
 2002,Pot survey,Sex combined,57,59,0.1137
 2006,Pot survey,Sex combined,57,30,0.0574
@@ -1224,7 +1224,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,59,4,0.0141
 1998,LL survey,Female,59,4,0.0197
 1999,LL survey,Female,59,12,0.0769
-2e3,LL survey,Female,59,14,0.0619
+2000,LL survey,Female,59,14,0.0619
 2001,LL survey,Female,59,9,0.0259
 2002,Pot survey,Female,59,32,0.1123
 2006,Pot survey,Female,59,11,0.0391
@@ -1268,7 +1268,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,59,13,0.0438
 1998,LL survey,Male,59,3,0.0183
 1999,LL survey,Male,59,10,0.0535
-2e3,LL survey,Male,59,11,0.0556
+2000,LL survey,Male,59,11,0.0556
 2001,LL survey,Male,59,32,0.0806
 2002,Pot survey,Male,59,26,0.1111
 2006,Pot survey,Male,59,28,0.1157
@@ -1312,7 +1312,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,59,17,0.0293
 1998,LL survey,Sex combined,59,7,0.0191
 1999,LL survey,Sex combined,59,22,0.0641
-2e3,LL survey,Sex combined,59,25,0.059
+2000,LL survey,Sex combined,59,25,0.059
 2001,LL survey,Sex combined,59,41,0.055
 2002,Pot survey,Sex combined,59,58,0.1118
 2006,Pot survey,Sex combined,59,39,0.0746
@@ -1356,7 +1356,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,61,7,0.0246
 1998,LL survey,Female,61,6,0.0296
 1999,LL survey,Female,61,12,0.0769
-2e3,LL survey,Female,61,5,0.0221
+2000,LL survey,Female,61,5,0.0221
 2001,LL survey,Female,61,15,0.0431
 2002,Pot survey,Female,61,19,0.0667
 2006,Pot survey,Female,61,12,0.0427
@@ -1400,7 +1400,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,61,20,0.0673
 1998,LL survey,Male,61,13,0.0793
 1999,LL survey,Male,61,18,0.0963
-2e3,LL survey,Male,61,21,0.1061
+2000,LL survey,Male,61,21,0.1061
 2001,LL survey,Male,61,31,0.0781
 2002,Pot survey,Male,61,32,0.1368
 2006,Pot survey,Male,61,40,0.1653
@@ -1444,7 +1444,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,61,27,0.0465
 1998,LL survey,Sex combined,61,19,0.0518
 1999,LL survey,Sex combined,61,30,0.0875
-2e3,LL survey,Sex combined,61,26,0.0613
+2000,LL survey,Sex combined,61,26,0.0613
 2001,LL survey,Sex combined,61,46,0.0617
 2002,Pot survey,Sex combined,61,51,0.0983
 2006,Pot survey,Sex combined,61,52,0.0994
@@ -1488,7 +1488,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,63,6,0.0211
 1998,LL survey,Female,63,4,0.0197
 1999,LL survey,Female,63,8,0.0513
-2e3,LL survey,Female,63,10,0.0442
+2000,LL survey,Female,63,10,0.0442
 2001,LL survey,Female,63,14,0.0402
 2002,Pot survey,Female,63,15,0.0526
 2006,Pot survey,Female,63,21,0.0747
@@ -1532,7 +1532,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,63,37,0.1246
 1998,LL survey,Male,63,22,0.1341
 1999,LL survey,Male,63,19,0.1016
-2e3,LL survey,Male,63,20,0.101
+2000,LL survey,Male,63,20,0.101
 2001,LL survey,Male,63,39,0.0982
 2002,Pot survey,Male,63,18,0.0769
 2006,Pot survey,Male,63,36,0.1488
@@ -1576,7 +1576,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,63,43,0.074
 1998,LL survey,Sex combined,63,26,0.0708
 1999,LL survey,Sex combined,63,27,0.0787
-2e3,LL survey,Sex combined,63,30,0.0708
+2000,LL survey,Sex combined,63,30,0.0708
 2001,LL survey,Sex combined,63,53,0.0711
 2002,Pot survey,Sex combined,63,33,0.0636
 2006,Pot survey,Sex combined,63,57,0.109
@@ -1620,7 +1620,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,65,5,0.0176
 1998,LL survey,Female,65,5,0.0246
 1999,LL survey,Female,65,5,0.0321
-2e3,LL survey,Female,65,17,0.0752
+2000,LL survey,Female,65,17,0.0752
 2001,LL survey,Female,65,26,0.0747
 2002,Pot survey,Female,65,17,0.0596
 2006,Pot survey,Female,65,36,0.1281
@@ -1664,7 +1664,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,65,44,0.1481
 1998,LL survey,Male,65,31,0.189
 1999,LL survey,Male,65,28,0.1497
-2e3,LL survey,Male,65,13,0.0657
+2000,LL survey,Male,65,13,0.0657
 2001,LL survey,Male,65,41,0.1033
 2002,Pot survey,Male,65,14,0.0598
 2006,Pot survey,Male,65,33,0.1364
@@ -1708,7 +1708,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,65,49,0.0843
 1998,LL survey,Sex combined,65,36,0.0981
 1999,LL survey,Sex combined,65,33,0.0962
-2e3,LL survey,Sex combined,65,30,0.0708
+2000,LL survey,Sex combined,65,30,0.0708
 2001,LL survey,Sex combined,65,67,0.0899
 2002,Pot survey,Sex combined,65,31,0.0597
 2006,Pot survey,Sex combined,65,69,0.1319
@@ -1752,7 +1752,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,67,21,0.0739
 1998,LL survey,Female,67,8,0.0394
 1999,LL survey,Female,67,5,0.0321
-2e3,LL survey,Female,67,17,0.0752
+2000,LL survey,Female,67,17,0.0752
 2001,LL survey,Female,67,25,0.0718
 2002,Pot survey,Female,67,12,0.0421
 2006,Pot survey,Female,67,30,0.1068
@@ -1796,7 +1796,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,67,56,0.1886
 1998,LL survey,Male,67,18,0.1098
 1999,LL survey,Male,67,19,0.1016
-2e3,LL survey,Male,67,23,0.1162
+2000,LL survey,Male,67,23,0.1162
 2001,LL survey,Male,67,44,0.1108
 2002,Pot survey,Male,67,16,0.0684
 2006,Pot survey,Male,67,15,0.062
@@ -1840,7 +1840,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,67,77,0.1325
 1998,LL survey,Sex combined,67,26,0.0708
 1999,LL survey,Sex combined,67,24,0.07
-2e3,LL survey,Sex combined,67,40,0.0943
+2000,LL survey,Sex combined,67,40,0.0943
 2001,LL survey,Sex combined,67,69,0.0926
 2002,Pot survey,Sex combined,67,28,0.053900000000000003
 2006,Pot survey,Sex combined,67,45,0.086
@@ -1884,7 +1884,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,69,21,0.0739
 1998,LL survey,Female,69,19,0.0936
 1999,LL survey,Female,69,7,0.0449
-2e3,LL survey,Female,69,18,0.0796
+2000,LL survey,Female,69,18,0.0796
 2001,LL survey,Female,69,20,0.0575
 2002,Pot survey,Female,69,11,0.0386
 2006,Pot survey,Female,69,37,0.1317
@@ -1928,7 +1928,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,69,44,0.1481
 1998,LL survey,Male,69,28,0.1707
 1999,LL survey,Male,69,19,0.1016
-2e3,LL survey,Male,69,25,0.1263
+2000,LL survey,Male,69,25,0.1263
 2001,LL survey,Male,69,43,0.1083
 2002,Pot survey,Male,69,10,0.0427
 2006,Pot survey,Male,69,15,0.062
@@ -1972,7 +1972,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,69,65,0.1119
 1998,LL survey,Sex combined,69,47,0.1281
 1999,LL survey,Sex combined,69,26,0.0758
-2e3,LL survey,Sex combined,69,43,0.1014
+2000,LL survey,Sex combined,69,43,0.1014
 2001,LL survey,Sex combined,69,63,0.0846
 2002,Pot survey,Sex combined,69,21,0.0405
 2006,Pot survey,Sex combined,69,52,0.0994
@@ -2016,7 +2016,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,71,23,0.081
 1998,LL survey,Female,71,21,0.1034
 1999,LL survey,Female,71,8,0.0513
-2e3,LL survey,Female,71,14,0.0619
+2000,LL survey,Female,71,14,0.0619
 2001,LL survey,Female,71,17,0.0489
 2002,Pot survey,Female,71,7,0.0246
 2006,Pot survey,Female,71,33,0.1174
@@ -2060,7 +2060,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,71,23,0.0774
 1998,LL survey,Male,71,11,0.0671
 1999,LL survey,Male,71,11,0.0588
-2e3,LL survey,Male,71,14,0.0707
+2000,LL survey,Male,71,14,0.0707
 2001,LL survey,Male,71,24,0.0605
 2002,Pot survey,Male,71,7,0.0299
 2006,Pot survey,Male,71,7,0.0289
@@ -2104,7 +2104,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,71,46,0.0792
 1998,LL survey,Sex combined,71,32,0.0872
 1999,LL survey,Sex combined,71,19,0.0554
-2e3,LL survey,Sex combined,71,28,0.066
+2000,LL survey,Sex combined,71,28,0.066
 2001,LL survey,Sex combined,71,41,0.055
 2002,Pot survey,Sex combined,71,14,0.027
 2006,Pot survey,Sex combined,71,40,0.0765
@@ -2148,7 +2148,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,73,37,0.1303
 1998,LL survey,Female,73,17,0.0837
 1999,LL survey,Female,73,7,0.0449
-2e3,LL survey,Female,73,13,0.0575
+2000,LL survey,Female,73,13,0.0575
 2001,LL survey,Female,73,17,0.0489
 2002,Pot survey,Female,73,9,0.0316
 2006,Pot survey,Female,73,17,0.0605
@@ -2192,7 +2192,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,73,18,0.0606
 1998,LL survey,Male,73,10,0.061
 1999,LL survey,Male,73,5,0.0267
-2e3,LL survey,Male,73,7,0.0354
+2000,LL survey,Male,73,7,0.0354
 2001,LL survey,Male,73,19,0.0479
 2002,Pot survey,Male,73,1,0.0043
 2006,Pot survey,Male,73,2,0.0083
@@ -2236,7 +2236,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,73,55,0.0947
 1998,LL survey,Sex combined,73,27,0.0736
 1999,LL survey,Sex combined,73,12,0.035
-2e3,LL survey,Sex combined,73,20,0.0472
+2000,LL survey,Sex combined,73,20,0.0472
 2001,LL survey,Sex combined,73,36,0.0483
 2002,Pot survey,Sex combined,73,10,0.0193
 2006,Pot survey,Sex combined,73,19,0.0363
@@ -2280,7 +2280,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,75,22,0.0775
 1998,LL survey,Female,75,22,0.1084
 1999,LL survey,Female,75,8,0.0513
-2e3,LL survey,Female,75,11,0.0487
+2000,LL survey,Female,75,11,0.0487
 2001,LL survey,Female,75,21,0.0603
 2002,Pot survey,Female,75,5,0.0175
 2006,Pot survey,Female,75,17,0.0605
@@ -2324,7 +2324,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,75,11,0.037
 1998,LL survey,Male,75,5,0.0305
 1999,LL survey,Male,75,1,0.0053
-2e3,LL survey,Male,75,6,0.0303
+2000,LL survey,Male,75,6,0.0303
 2001,LL survey,Male,75,11,0.0277
 2002,Pot survey,Male,75,2,0.0085
 2006,Pot survey,Male,75,7,0.0289
@@ -2368,7 +2368,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,75,33,0.0568
 1998,LL survey,Sex combined,75,27,0.0736
 1999,LL survey,Sex combined,75,9,0.0262
-2e3,LL survey,Sex combined,75,17,0.0401
+2000,LL survey,Sex combined,75,17,0.0401
 2001,LL survey,Sex combined,75,32,0.043
 2002,Pot survey,Sex combined,75,7,0.0135
 2006,Pot survey,Sex combined,75,24,0.0459
@@ -2412,7 +2412,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,77,22,0.0775
 1998,LL survey,Female,77,13,0.064
 1999,LL survey,Female,77,7,0.0449
-2e3,LL survey,Female,77,9,0.0398
+2000,LL survey,Female,77,9,0.0398
 2001,LL survey,Female,77,18,0.0517
 2002,Pot survey,Female,77,7,0.0246
 2006,Pot survey,Female,77,8,0.0285
@@ -2456,7 +2456,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,77,8,0.0269
 1998,LL survey,Male,77,1,0.0061
 1999,LL survey,Male,77,3,0.016
-2e3,LL survey,Male,77,1,0.0051
+2000,LL survey,Male,77,1,0.0051
 2001,LL survey,Male,77,4,0.0101
 2002,Pot survey,Male,77,0,0
 2006,Pot survey,Male,77,1,0.0041
@@ -2500,7 +2500,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,77,30,0.0516
 1998,LL survey,Sex combined,77,14,0.0381
 1999,LL survey,Sex combined,77,10,0.0292
-2e3,LL survey,Sex combined,77,10,0.0236
+2000,LL survey,Sex combined,77,10,0.0236
 2001,LL survey,Sex combined,77,22,0.0295
 2002,Pot survey,Sex combined,77,7,0.0135
 2006,Pot survey,Sex combined,77,9,0.0172
@@ -2544,7 +2544,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,79,22,0.0775
 1998,LL survey,Female,79,16,0.0788
 1999,LL survey,Female,79,8,0.0513
-2e3,LL survey,Female,79,12,0.0531
+2000,LL survey,Female,79,12,0.0531
 2001,LL survey,Female,79,17,0.0489
 2002,Pot survey,Female,79,6,0.0211
 2006,Pot survey,Female,79,6,0.0214
@@ -2588,7 +2588,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,79,5,0.0168
 1998,LL survey,Male,79,1,0.0061
 1999,LL survey,Male,79,1,0.0053
-2e3,LL survey,Male,79,0,0
+2000,LL survey,Male,79,0,0
 2001,LL survey,Male,79,2,0.005
 2002,Pot survey,Male,79,1,0.0043
 2006,Pot survey,Male,79,1,0.0041
@@ -2632,7 +2632,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,79,27,0.0465
 1998,LL survey,Sex combined,79,17,0.0463
 1999,LL survey,Sex combined,79,9,0.0262
-2e3,LL survey,Sex combined,79,12,0.0283
+2000,LL survey,Sex combined,79,12,0.0283
 2001,LL survey,Sex combined,79,19,0.0255
 2002,Pot survey,Sex combined,79,7,0.0135
 2006,Pot survey,Sex combined,79,7,0.0134
@@ -2676,7 +2676,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,81,19,0.0669
 1998,LL survey,Female,81,19,0.0936
 1999,LL survey,Female,81,8,0.0513
-2e3,LL survey,Female,81,7,0.031
+2000,LL survey,Female,81,7,0.031
 2001,LL survey,Female,81,11,0.0316
 2002,Pot survey,Female,81,2,0.007
 2006,Pot survey,Female,81,1,0.0036
@@ -2720,7 +2720,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,81,1,0.0034
 1998,LL survey,Male,81,0,0
 1999,LL survey,Male,81,0,0
-2e3,LL survey,Male,81,1,0.0051
+2000,LL survey,Male,81,1,0.0051
 2001,LL survey,Male,81,4,0.0101
 2002,Pot survey,Male,81,0,0
 2006,Pot survey,Male,81,1,0.0041
@@ -2764,7 +2764,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,81,20,0.0344
 1998,LL survey,Sex combined,81,19,0.0518
 1999,LL survey,Sex combined,81,8,0.0233
-2e3,LL survey,Sex combined,81,8,0.0189
+2000,LL survey,Sex combined,81,8,0.0189
 2001,LL survey,Sex combined,81,15,0.0201
 2002,Pot survey,Sex combined,81,2,0.0039
 2006,Pot survey,Sex combined,81,2,0.0038
@@ -2808,7 +2808,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,83,15,0.0528
 1998,LL survey,Female,83,8,0.0394
 1999,LL survey,Female,83,6,0.0385
-2e3,LL survey,Female,83,9,0.0398
+2000,LL survey,Female,83,9,0.0398
 2001,LL survey,Female,83,5,0.0144
 2002,Pot survey,Female,83,1,0.0035
 2006,Pot survey,Female,83,1,0.0036
@@ -2852,7 +2852,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,83,0,0
 1998,LL survey,Male,83,0,0
 1999,LL survey,Male,83,1,0.0053
-2e3,LL survey,Male,83,0,0
+2000,LL survey,Male,83,0,0
 2001,LL survey,Male,83,0,0
 2002,Pot survey,Male,83,0,0
 2006,Pot survey,Male,83,0,0
@@ -2896,7 +2896,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,83,15,0.0258
 1998,LL survey,Sex combined,83,8,0.0218
 1999,LL survey,Sex combined,83,7,0.0204
-2e3,LL survey,Sex combined,83,9,0.0212
+2000,LL survey,Sex combined,83,9,0.0212
 2001,LL survey,Sex combined,83,5,0.0067
 2002,Pot survey,Sex combined,83,1,0.0019
 2006,Pot survey,Sex combined,83,1,0.0019
@@ -2940,7 +2940,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,85,5,0.0176
 1998,LL survey,Female,85,7,0.0345
 1999,LL survey,Female,85,3,0.0192
-2e3,LL survey,Female,85,4,0.0177
+2000,LL survey,Female,85,4,0.0177
 2001,LL survey,Female,85,6,0.0172
 2002,Pot survey,Female,85,2,0.007
 2006,Pot survey,Female,85,1,0.0036
@@ -2984,7 +2984,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,85,0,0
 1998,LL survey,Male,85,0,0
 1999,LL survey,Male,85,0,0
-2e3,LL survey,Male,85,0,0
+2000,LL survey,Male,85,0,0
 2001,LL survey,Male,85,0,0
 2002,Pot survey,Male,85,0,0
 2006,Pot survey,Male,85,0,0
@@ -3028,7 +3028,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,85,5,0.0086
 1998,LL survey,Sex combined,85,7,0.0191
 1999,LL survey,Sex combined,85,3,0.0087
-2e3,LL survey,Sex combined,85,4,0.0094
+2000,LL survey,Sex combined,85,4,0.0094
 2001,LL survey,Sex combined,85,6,0.0081
 2002,Pot survey,Sex combined,85,2,0.0039
 2006,Pot survey,Sex combined,85,1,0.0019
@@ -3072,7 +3072,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,87,11,0.0387
 1998,LL survey,Female,87,2,0.0099
 1999,LL survey,Female,87,1,0.0064
-2e3,LL survey,Female,87,4,0.0177
+2000,LL survey,Female,87,4,0.0177
 2001,LL survey,Female,87,9,0.0259
 2002,Pot survey,Female,87,2,0.007
 2006,Pot survey,Female,87,1,0.0036
@@ -3116,7 +3116,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,87,0,0
 1998,LL survey,Male,87,0,0
 1999,LL survey,Male,87,0,0
-2e3,LL survey,Male,87,0,0
+2000,LL survey,Male,87,0,0
 2001,LL survey,Male,87,0,0
 2002,Pot survey,Male,87,0,0
 2006,Pot survey,Male,87,0,0
@@ -3160,7 +3160,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,87,11,0.0189
 1998,LL survey,Sex combined,87,2,0.0054
 1999,LL survey,Sex combined,87,1,0.0029
-2e3,LL survey,Sex combined,87,4,0.0094
+2000,LL survey,Sex combined,87,4,0.0094
 2001,LL survey,Sex combined,87,9,0.0121
 2002,Pot survey,Sex combined,87,2,0.0039
 2006,Pot survey,Sex combined,87,1,0.0019
@@ -3204,7 +3204,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,89,10,0.0352
 1998,LL survey,Female,89,2,0.0099
 1999,LL survey,Female,89,4,0.0256
-2e3,LL survey,Female,89,3,0.0133
+2000,LL survey,Female,89,3,0.0133
 2001,LL survey,Female,89,2,0.0057
 2002,Pot survey,Female,89,1,0.0035
 2006,Pot survey,Female,89,0,0
@@ -3248,7 +3248,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,89,0,0
 1998,LL survey,Male,89,0,0
 1999,LL survey,Male,89,0,0
-2e3,LL survey,Male,89,0,0
+2000,LL survey,Male,89,0,0
 2001,LL survey,Male,89,0,0
 2002,Pot survey,Male,89,0,0
 2006,Pot survey,Male,89,0,0
@@ -3292,7 +3292,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,89,10,0.0172
 1998,LL survey,Sex combined,89,2,0.0054
 1999,LL survey,Sex combined,89,4,0.0117
-2e3,LL survey,Sex combined,89,3,0.0071
+2000,LL survey,Sex combined,89,3,0.0071
 2001,LL survey,Sex combined,89,2,0.0027
 2002,Pot survey,Sex combined,89,1,0.0019
 2006,Pot survey,Sex combined,89,0,0
@@ -3336,7 +3336,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,91,2,0.007
 1998,LL survey,Female,91,2,0.0099
 1999,LL survey,Female,91,0,0
-2e3,LL survey,Female,91,4,0.0177
+2000,LL survey,Female,91,4,0.0177
 2001,LL survey,Female,91,6,0.0172
 2002,Pot survey,Female,91,0,0
 2006,Pot survey,Female,91,0,0
@@ -3380,7 +3380,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,91,0,0
 1998,LL survey,Male,91,0,0
 1999,LL survey,Male,91,0,0
-2e3,LL survey,Male,91,0,0
+2000,LL survey,Male,91,0,0
 2001,LL survey,Male,91,0,0
 2002,Pot survey,Male,91,0,0
 2006,Pot survey,Male,91,0,0
@@ -3424,7 +3424,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,91,2,0.0034
 1998,LL survey,Sex combined,91,2,0.0054
 1999,LL survey,Sex combined,91,0,0
-2e3,LL survey,Sex combined,91,4,0.0094
+2000,LL survey,Sex combined,91,4,0.0094
 2001,LL survey,Sex combined,91,6,0.0081
 2002,Pot survey,Sex combined,91,0,0
 2006,Pot survey,Sex combined,91,0,0
@@ -3468,7 +3468,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,93,1,0.0035
 1998,LL survey,Female,93,5,0.0246
 1999,LL survey,Female,93,1,0.0064
-2e3,LL survey,Female,93,0,0
+2000,LL survey,Female,93,0,0
 2001,LL survey,Female,93,2,0.0057
 2002,Pot survey,Female,93,0,0
 2006,Pot survey,Female,93,0,0
@@ -3512,7 +3512,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,93,0,0
 1998,LL survey,Male,93,1,0.0061
 1999,LL survey,Male,93,0,0
-2e3,LL survey,Male,93,0,0
+2000,LL survey,Male,93,0,0
 2001,LL survey,Male,93,0,0
 2002,Pot survey,Male,93,0,0
 2006,Pot survey,Male,93,0,0
@@ -3556,7 +3556,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,93,1,0.0017
 1998,LL survey,Sex combined,93,6,0.0163
 1999,LL survey,Sex combined,93,1,0.0029
-2e3,LL survey,Sex combined,93,0,0
+2000,LL survey,Sex combined,93,0,0
 2001,LL survey,Sex combined,93,2,0.0027
 2002,Pot survey,Sex combined,93,0,0
 2006,Pot survey,Sex combined,93,0,0
@@ -3600,7 +3600,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,95,2,0.007
 1998,LL survey,Female,95,0,0
 1999,LL survey,Female,95,1,0.0064
-2e3,LL survey,Female,95,2,0.0088
+2000,LL survey,Female,95,2,0.0088
 2001,LL survey,Female,95,2,0.0057
 2002,Pot survey,Female,95,0,0
 2006,Pot survey,Female,95,1,0.0036
@@ -3644,7 +3644,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,95,0,0
 1998,LL survey,Male,95,0,0
 1999,LL survey,Male,95,1,0.0053
-2e3,LL survey,Male,95,0,0
+2000,LL survey,Male,95,0,0
 2001,LL survey,Male,95,0,0
 2002,Pot survey,Male,95,0,0
 2006,Pot survey,Male,95,0,0
@@ -3688,7 +3688,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,95,2,0.0034
 1998,LL survey,Sex combined,95,0,0
 1999,LL survey,Sex combined,95,2,0.0058
-2e3,LL survey,Sex combined,95,2,0.0047
+2000,LL survey,Sex combined,95,2,0.0047
 2001,LL survey,Sex combined,95,2,0.0027
 2002,Pot survey,Sex combined,95,0,0
 2006,Pot survey,Sex combined,95,1,0.0019
@@ -3732,7 +3732,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,97,1,0.0035
 1998,LL survey,Female,97,0,0
 1999,LL survey,Female,97,1,0.0064
-2e3,LL survey,Female,97,0,0
+2000,LL survey,Female,97,0,0
 2001,LL survey,Female,97,0,0
 2002,Pot survey,Female,97,0,0
 2006,Pot survey,Female,97,0,0
@@ -3776,7 +3776,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,97,0,0
 1998,LL survey,Male,97,0,0
 1999,LL survey,Male,97,0,0
-2e3,LL survey,Male,97,0,0
+2000,LL survey,Male,97,0,0
 2001,LL survey,Male,97,0,0
 2002,Pot survey,Male,97,0,0
 2006,Pot survey,Male,97,0,0
@@ -3820,7 +3820,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,97,1,0.0017
 1998,LL survey,Sex combined,97,0,0
 1999,LL survey,Sex combined,97,1,0.0029
-2e3,LL survey,Sex combined,97,0,0
+2000,LL survey,Sex combined,97,0,0
 2001,LL survey,Sex combined,97,0,0
 2002,Pot survey,Sex combined,97,0,0
 2006,Pot survey,Sex combined,97,0,0
@@ -3864,7 +3864,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Female,99,4,0.0141
 1998,LL survey,Female,99,1,0.0049
 1999,LL survey,Female,99,3,0.0192
-2e3,LL survey,Female,99,2,0.0088
+2000,LL survey,Female,99,2,0.0088
 2001,LL survey,Female,99,3,0.0086
 2002,Pot survey,Female,99,0,0
 2006,Pot survey,Female,99,1,0.0036
@@ -3908,7 +3908,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Male,99,0,0
 1998,LL survey,Male,99,0,0
 1999,LL survey,Male,99,0,0
-2e3,LL survey,Male,99,0,0
+2000,LL survey,Male,99,0,0
 2001,LL survey,Male,99,0,0
 2002,Pot survey,Male,99,0,0
 2006,Pot survey,Male,99,0,0
@@ -3952,7 +3952,7 @@ year,Source,Sex,length_bin,n,proportion
 1997,LL survey,Sex combined,99,4,0.0069
 1998,LL survey,Sex combined,99,1,0.0027
 1999,LL survey,Sex combined,99,3,0.0087
-2e3,LL survey,Sex combined,99,2,0.0047
+2000,LL survey,Sex combined,99,2,0.0047
 2001,LL survey,Sex combined,99,3,0.004
 2002,Pot survey,Sex combined,99,0,0
 2006,Pot survey,Sex combined,99,1,0.0019

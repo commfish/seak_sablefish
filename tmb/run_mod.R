@@ -15,7 +15,7 @@ tmb_path <- file.path(root, "tmb") # location of cpp
 tmbfigs <- file.path(root, "figures/tmb")
 tmbout <- file.path(root, "output/tmb")
 
-# Temporary debug flag, shut off estimation of mgmt ref pts
+# Temporary debug flag, shut off estimation of selectivity pars
 tmp_debug <- TRUE
 
 source("r/helper.r")
@@ -231,14 +231,14 @@ data <- list(
   yrs_fsh_age = fsh_age %>% distinct(index) %>% pull(),
   data_fsh_age = fsh_age %>% select(-c(year, index, Source, n, effn)) %>% as.matrix(),
   n_fsh_age = pull(fsh_age, n),        # total sample size
-  effn_fsh_age = pull(fsh_age, effn),  # effective sample size, currently sqrt(n_fsh_age)
+  effn_fsh_age = pull(fsh_age, n), # pull(fsh_age, effn),  # effective sample size, currently sqrt(n_fsh_age)
   
   # Survey age comps
   nyr_srv_age = srv_age %>% distinct(year) %>% nrow(),
   yrs_srv_age = srv_age %>% distinct(index) %>% pull(),
   data_srv_age = srv_age %>% select(-c(year, index, Source, n, effn)) %>% as.matrix(),
   n_srv_age = pull(srv_age, n),        # total sample size
-  effn_srv_age = pull(srv_age, effn),  # effective sample size, currently sqrt(n_srv_age)
+  effn_srv_age = pull(srv_age, n), #pull(srv_age, effn),  # effective sample size, currently sqrt(n_srv_age)
   
   # Fishery length comps
   nyr_fsh_len = length(unique(fsh_len$year)),
@@ -256,18 +256,25 @@ data <- list(
       array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(n),
             dim = c(length(unique(fsh_len$year)), 1, nsex)) } else {
               # Sex-structured (make sure males are first)
-              array(data = fsh_len %>% filter(Sex != "Sex combined") %>%
+              array(data = fsh_len %>% filter(Sex != "Sex combined") %>% 
                       arrange(desc(Sex)) %>% pull(n),
                     dim = c(length(unique(fsh_len$year)), 1, nsex))},
 
   effn_fsh_len =
     if (nsex == 1) { # Single sex model
-      array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(effn),
-            dim = c(length(unique(fsh_len$year)), 1, nsex))} else {
+      array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(n),
+            dim = c(length(unique(fsh_len$year)), 1, nsex)) } else {
               # Sex-structured (make sure males are first)
               array(data = fsh_len %>% filter(Sex != "Sex combined") %>%
-                      arrange(desc(Sex)) %>% pull(effn),
+                      arrange(desc(Sex)) %>% pull(n),
                     dim = c(length(unique(fsh_len$year)), 1, nsex))},
+    # if (nsex == 1) { # Single sex model
+    #   array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(effn),
+    #         dim = c(length(unique(fsh_len$year)), 1, nsex))} else {
+    #           # Sex-structured (make sure males are first)
+    #           array(data = fsh_len %>% filter(Sex != "Sex combined") %>%
+    #                   arrange(desc(Sex)) %>% pull(effn),
+    #                 dim = c(length(unique(fsh_len$year)), 1, nsex))},
 
   # Survey length comps
   nyr_srv_len = length(unique(srv_len$year)),
@@ -290,12 +297,19 @@ data <- list(
                     dim = c(length(unique(srv_len$year)), 1, nsex))},
   effn_srv_len =
     if (nsex == 1) { # Single sex model
-      array(data = srv_len %>% filter(Sex == "Sex combined") %>% pull(effn),
-            dim = c(length(unique(srv_len$year)), 1, nsex))} else {
+      array(data = srv_len %>% filter(Sex == "Sex combined") %>% pull(n),
+            dim = c(length(unique(srv_len$year)), 1, nsex)) } else {
               # Sex-structured (make sure males are first)
               array(data = srv_len %>% filter(Sex != "Sex combined") %>%
-                      arrange(desc(Sex)) %>% pull(effn),
+                      arrange(desc(Sex)) %>% pull(n),
                     dim = c(length(unique(srv_len$year)), 1, nsex))},
+    # if (nsex == 1) { # Single sex model
+    #   array(data = srv_len %>% filter(Sex == "Sex combined") %>% pull(effn),
+    #         dim = c(length(unique(srv_len$year)), 1, nsex))} else {
+    #           # Sex-structured (make sure males are first)
+    #           array(data = srv_len %>% filter(Sex != "Sex combined") %>%
+    #                   arrange(desc(Sex)) %>% pull(effn),
+    #                 dim = c(length(unique(srv_len$year)), 1, nsex))},
 
   # Ageing error matrix
   ageing_error = ageing_error,
@@ -461,6 +475,8 @@ upper <- out$upper
 
 # Quick look at MLE results
 rep
+best <- obj$env$last.par.best 
+best
 
 # MLE results ----
 
@@ -469,11 +485,6 @@ tidyrep <- tidy(summary(rep))
 names(tidyrep) <- c("Parameter", "Estimate", "se")
 key_params <- filter(tidyrep, !grepl('devs', Parameter)) # "Key" parameters (exclude devs)
 write_csv(key_params, paste0(tmbout, "/tmb_params_mle_", YEAR, ".csv"))
-
-best <- obj$env$last.par.best 
-print(as.numeric(best))
-print(best)
-obj$report(best)$pred_rec
 
 obj$report(best)$pred_landed * 2204.62
 obj$report(best)$pred_catch * 2204.62
