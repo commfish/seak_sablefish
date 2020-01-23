@@ -17,7 +17,6 @@
 #   phat_ij = estimated age or length comp in a given year
 #   n = number of years in the comp index
 
-
 # Sex-structured statistical catch-at-age model that includes catch, fishery and
 # survey CPUE, mark-recapture abundance estimates, fishery and survey
 # weight-at-age, survey data about maturity-at-age and proportions-at-age, and
@@ -33,6 +32,7 @@ root <- getwd() # project root
 tmb_path <- file.path(root, "tmb") # location of cpp
 tmbfigs <- file.path(root, "figures/tmb")
 tmbout <- file.path(root, "output/tmb")
+
 
 # Temporary debug flag, shut off estimation of selectivity pars
 tmp_debug <- TRUE
@@ -264,7 +264,7 @@ data <- list(
   yrs_fsh_len = fsh_len %>% distinct(index) %>% pull(),
   data_fsh_len = 
     if (nsex == 1) { # Single sex model
-      array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(proportion),                              ,
+      array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(proportion),                              
             dim = c(length(unique(fsh_len$year)), nlenbin, nsex)) } else {
               # Sex-structured (make sure males are first)
               array(data = fsh_len %>% filter(Sex != "Sex combined") %>% 
