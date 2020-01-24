@@ -283,27 +283,20 @@ data <- list(
   
   effn_fsh_len =
     if (nsex == 1) { # Single sex model
-      array(data = fsh_len %>% filter(Sex == "Sex combined") %>%  distinct(year, Sex, n) %>% pull(n),
+      array(data = fsh_len %>% filter(Sex == "Sex combined") %>% distinct(year, Sex, n) %>% pull(n),
             dim = c(length(unique(fsh_len$year)), 1, nsex)) } else {
               # Sex-structured (make sure males are first)
               array(data = fsh_len %>% filter(Sex != "Sex combined") %>%
                       distinct(year, Sex, n) %>% 
                       arrange(desc(Sex)) %>% pull(n),
                     dim = c(length(unique(fsh_len$year)), 1, nsex))},
-  # if (nsex == 1) { # Single sex model
-  #   array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(effn),
-  #         dim = c(length(unique(fsh_len$year)), 1, nsex))} else {
-  #           # Sex-structured (make sure males are first)
-  #           array(data = fsh_len %>% filter(Sex != "Sex combined") %>%
-  #                   arrange(desc(Sex)) %>% pull(effn),
-  #                 dim = c(length(unique(fsh_len$year)), 1, nsex))},
-  
+
   # Survey length comps
   nyr_srv_len = length(unique(srv_len$year)),
   yrs_srv_len = srv_len %>% distinct(index) %>% pull(),
   data_srv_len =
     if (nsex == 1) { # Single sex model
-      array(data = srv_len %>% filter(Sex == "Sex combined") %>% pull(proportion),                              ,
+      array(data = srv_len %>% filter(Sex == "Sex combined") %>% pull(proportion),                              
             dim = c(length(unique(srv_len$year)), nlenbin, nsex)) } else {
               # Sex-structured (make sure males are first)
               array(data = srv_len %>% filter(Sex != "Sex combined") %>%
