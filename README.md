@@ -42,7 +42,7 @@ Here is a summary of project codes in the data:
 | 602          | 02         | Commercial Longline Trip       |
 | 603          | 03         | Chatham Sablefish LL Survey    |
 | 604          | 04         | Commercial Jig Trip            |
-| 605          | 05         | Longline Survey **NMFS survey  |
+| 605          | 05         | Longline Survey (NMFS survey)  |
 | 606          | 06         | Jig Survey                     |
 | 607          | 07         | Atypical Sample (unknown gear) |
 | 608          | 08         | Atypical Longline Sample       |
