@@ -36,6 +36,7 @@ Ice and slime assumed to be 2% of total weight.
 | 9 (08 in IFDB)| Headed and gutted, Eastern cut | 0.63 |
 
 Here is a summary of project codes in the data:
+
 | New (Zander) | Old (IFDB) | Description                    |
 |--------------|------------|-------------------------------:|
 | 601          | 01         | Clarence Sablefish LL Survey   |
