@@ -9,11 +9,15 @@
 
 # Set up ----
 
+# most recent year of data
+YEAR <- 2018
+
 # Directory setup
 root <- getwd() # project root
+tmb_dat <- file.path(root, "data/tmb_inputs") # location of tmb model data inputs
 tmb_path <- file.path(root, "tmb") # location of cpp
-tmbfigs <- file.path(root, "figures/tmb")
-tmbout <- file.path(root, "output/tmb")
+tmbfigs <- file.path(root, "figures/tmb") # location where model figs are saved
+tmbout <- file.path(root, "output/tmb") # location where model output is saved
 
 # Temporary debug flag, shut off estimation of selectivity pars
 tmp_debug <- TRUE
@@ -26,8 +30,8 @@ library(tmbstan)
 library(shinystan)
 
 ts <- read_csv("data/tmb_inputs/abd_indices.csv")             # time series
-age <- read_csv("data/tmb_inputs/agecomps.csv")               # age comps
-len <- read_csv("data/tmb_inputs/lencomps.csv")               # len comps
+age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # age comps
+len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))  # len comps
 bio <- read_csv("data/tmb_inputs/maturity_sexratio.csv")      # proportion mature and proportion-at-age in the survey
 waa <- read_csv("data/tmb_inputs/waa.csv")                    # weight-at-age
 retention <- read_csv("data/tmb_inputs/retention_probs.csv")  # weight-at-age

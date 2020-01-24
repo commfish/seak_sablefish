@@ -3,19 +3,19 @@
 # McAllister-Ianelli (1997): This method sets the effective sample size by
 # comparing the residual variance with the variance expected under a multinomial
 # distribution. An overall effective sample size for each composition series is
-# calculated as the harmonic mean of the ratio of the estimated effective sample
-# size to the original effective sample size at each iteration (Stewart and
+# calculated as the harmonic mean across years at each iteration (Stewart and
 # Hamel 2014). 
 
 # Equations used:
 #   
-# Nhat_i = 1/N_j * sum_j{phat_ij * (1 - phat_ij)} / sum_j{(p_ij - phat_ij)^2}
+# Nhat_i = sum_j{phat_ij * (1 - phat_ij)} / sum_j{(p_ij - phat_ij)^2}
 # Nhat = n / sum_i{(Nhat_i)^(-1)}
-#   i = year, j = age or length
-#   Nhat = effective sample size
-#   p_ij = observed age or length comp in a given year
-#   phat_ij = estimated age or length comp in a given year
-#   n = number of years in the comp index
+
+# i = year, j = age or length
+# Nhat = effective sample size
+# p_ij = observed age or length comp in a given year
+# phat_ij = estimated age or length comp in a given year
+# n = number of years in the comp index
 
 # Sex-structured statistical catch-at-age model that includes catch, fishery and
 # survey CPUE, mark-recapture abundance estimates, fishery and survey
@@ -27,12 +27,13 @@
 
 # Set up ----
 
+# most recent year of data
+YEAR <- 2018
+
 # Directory setup
 root <- getwd() # project root
 tmb_path <- file.path(root, "tmb") # location of cpp
-tmbfigs <- file.path(root, "figures/tmb")
-tmbout <- file.path(root, "output/tmb")
-
+tmb_dat <- file.path(root, "data/tmb_inputs")
 
 # Temporary debug flag, shut off estimation of selectivity pars
 tmp_debug <- TRUE
@@ -483,7 +484,10 @@ tune_srv_age <- list()
 tune_fsh_len <- list()
 tune_srv_len <- list()
 
-for(iter in 1:15) {
+# Iterate ----
+niter <- 15
+
+for(iter in 1:niter) {
   
   # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
   out <- TMBphase(data, parameters, random = random_vars, 
@@ -492,16 +496,11 @@ for(iter in 1:15) {
   
   obj <- out$obj # TMB model object
   opt <- out$opt # fit
-  rep <- out$rep # sdreport
-  lower <- out$lower # bounds
-  upper <- out$upper
   
   # Quick look at MLE results
-  rep
   best <- obj$env$last.par.best 
-  best
-  
-  # Fishery age comps (sexes combined)
+
+  # Fishery age comps (sexes combined) ----
   pred_fsh_age <- as.matrix(obj$report(best)$pred_fsh_age)
   data_fsh_age <- as.matrix(data$data_fsh_age)
   effn_fsh_age <- vector(length = nrow(pred_fsh_age))
@@ -510,13 +509,12 @@ for(iter in 1:15) {
     effn_fsh_age[i] <- sum(pred_fsh_age[i,]*(1-pred_fsh_age[i,])) / sum((data_fsh_age[i,]-pred_fsh_age[i,])^2)
   }
   
-  effn_fsh_age <- 1/mean(1/(effn_fsh_age/data$effn_fsh_age)) # harmonic mean
-  # length(effn_fsh_age) / sum(1 / (effn_fsh_age * (1 / data$effn_fsh_age))) # other ways of calculating harmonic mean
-  # length(effn_fsh_age) / sum(1 / (effn_fsh_age / data$effn_fsh_age))
+  effn_fsh_age <- 1/mean(1/effn_fsh_age) # harmonic mean
+
   tune_fsh_age[[iter]] <- effn_fsh_age
   data$effn_fsh_age <- rep(effn_fsh_age, length(data$effn_fsh_age)) # replace data for next iteration
   
-  # Survey age comps (sexes combined)
+  # Survey age comps (sexes combined) ----
   pred_srv_age <- as.matrix(obj$report(best)$pred_srv_age)
   data_srv_age <- as.matrix(data$data_srv_age)
   effn_srv_age <- vector(length = nrow(pred_srv_age))
@@ -525,16 +523,16 @@ for(iter in 1:15) {
     effn_srv_age[i] <- sum(pred_srv_age[i,]*(1-pred_srv_age[i,])) / sum((data_srv_age[i,]-pred_srv_age[i,])^2)
   }
   
-  effn_srv_age <- 1/mean(1/(effn_srv_age/data$effn_srv_age)) # harmonic mean
+  effn_srv_age <- 1/mean(1/effn_srv_age) # harmonic mean
   tune_srv_age[[iter]] <- effn_srv_age
   data$effn_srv_age <- rep(effn_srv_age, length(data$effn_srv_age)) # replace data for next iteration
   
-  # Fishery length comps (currently only for sex-structured model where nsex = 2)
+  # Fishery length comps (currently only for sex-structured model where nsex = 2) ----
   pred_fsh_len <- obj$report(best)$pred_fsh_len
   data_fsh_len <- data$data_fsh_len
   effn_fsh_len <- matrix(nrow = nrow(pred_fsh_len[,,2]), ncol = 2)
   
-  data_fsh_len <- data_fsh_len + 0.00001 # add tiny constant so we don't get NaNs
+  data_fsh_len <- data_fsh_len + 1e-6 # add tiny constant so we don't get NaNs
   
   for(a in 1:nsex) {
     for(i in 1:nrow(pred_fsh_len)){
@@ -542,11 +540,10 @@ for(iter in 1:15) {
     }
   }
   
-  orig_effn_fsh_len <- matrix(data$effn_fsh_len, ncol = 2)
   new_effn_fsh_len <- matrix(ncol = 2, nrow = 1)
-  
+
   for(a in 1:nsex) {
-    new_effn_fsh_len[a] <- 1/mean(1/(effn_fsh_len[,a]/orig_effn_fsh_len[,a])) # harmonic mean
+    new_effn_fsh_len[a] <- 1/mean(1/effn_fsh_len[,a]) # harmonic mean
   }
   tune_fsh_len[[iter]] <- new_effn_fsh_len
   
@@ -554,12 +551,12 @@ for(iter in 1:15) {
   data$effn_fsh_len <- array(dim = c(nrow = nrow(pred_fsh_len), 1, nsex),
                              data = c(rep(new_effn_fsh_len[,1],  nrow(pred_fsh_len)), rep(new_effn_fsh_len[,2],  nrow(pred_fsh_len))))
   
-  # Survey length comps (currently only for sex-structured model where nsex = 2)
+  # Survey length comps (currently only for sex-structured model where nsex = 2) ----
   pred_srv_len <- obj$report(best)$pred_srv_len
   data_srv_len <- data$data_srv_len
   effn_srv_len <- matrix(nrow = nrow(pred_srv_len[,,2]), ncol = 2)
   
-  data_srv_len <- data_srv_len + 0.00001 # add tiny constant so we don't get NaNs
+  data_srv_len <- data_srv_len + 1e-6 # add tiny constant so we don't get NaNs
   
   for(a in 1:nsex) {
     for(i in 1:nrow(pred_srv_len)){
@@ -567,11 +564,10 @@ for(iter in 1:15) {
     }
   }
   
-  orig_effn_srv_len <- matrix(data$effn_srv_len, ncol = 2)
   new_effn_srv_len <- matrix(ncol = 2, nrow = 1)
   
   for(a in 1:nsex) {
-    new_effn_srv_len[a] <- 1/mean(1/(effn_srv_len[,a]/orig_effn_srv_len[,a])) # harmonic mean
+    new_effn_srv_len[a] <- 1/mean(1/effn_srv_len[,a]) # harmonic mean
   }
   tune_srv_len[[iter]] <- new_effn_srv_len
   
@@ -588,3 +584,24 @@ tune_fsh_len <- as.data.frame(do.call("rbind", tune_fsh_len))
 names(tune_fsh_len) <- c("male_fsh_len_ess", "fem_fsh_len_ess")
 tune_fsh_age <- as.data.frame(do.call("rbind", tune_fsh_age))
 names(tune_fsh_age) <- c("fsh_age_ess")
+
+tune_srv_len
+tune_srv_age
+tune_fsh_len
+tune_fsh_age
+
+# Write new ESS ----
+
+unique(age$Source)# check: should just be "Survey" and "Fishery"
+
+# Save tuned age comps
+age %>% 
+  mutate(effn = ifelse(age$Source == "Survey", tune_srv_age[niter,], tune_fsh_age[niter,])) %>%
+  write_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))
+
+# Save fishery and survey length comps
+fsh_len %>% 
+  mutate(effn = ifelse(fsh_len$Sex == "Male", tune_fsh_len[niter,1], tune_fsh_len[niter,2])) %>% 
+  bind_rows(srv_len %>% 
+              mutate(effn = ifelse(srv_len$Sex == "Male", tune_srv_len[niter,1], tune_srv_len[niter,2]))) %>% 
+  write_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))
