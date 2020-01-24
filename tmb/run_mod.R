@@ -235,21 +235,21 @@ data <- list(
   yrs_fsh_age = fsh_age %>% distinct(index) %>% pull(),
   data_fsh_age = fsh_age %>% select(-c(year, index, Source, n, effn)) %>% as.matrix(),
   n_fsh_age = pull(fsh_age, n),        # total sample size
-  effn_fsh_age = pull(fsh_age, n), # pull(fsh_age, effn),  # effective sample size, currently sqrt(n_fsh_age)
+  effn_fsh_age = pull(fsh_age, effn),  # effective sample size, currently sqrt(n_fsh_age)
   
   # Survey age comps
   nyr_srv_age = srv_age %>% distinct(year) %>% nrow(),
   yrs_srv_age = srv_age %>% distinct(index) %>% pull(),
   data_srv_age = srv_age %>% select(-c(year, index, Source, n, effn)) %>% as.matrix(),
   n_srv_age = pull(srv_age, n),        # total sample size
-  effn_srv_age = pull(srv_age, n), #pull(srv_age, effn),  # effective sample size, currently sqrt(n_srv_age)
+  effn_srv_age = pull(srv_age, effn),  # effective sample size, currently sqrt(n_srv_age)
   
   # Fishery length comps
   nyr_fsh_len = length(unique(fsh_len$year)),
   yrs_fsh_len = fsh_len %>% distinct(index) %>% pull(),
   data_fsh_len = 
     if (nsex == 1) { # Single sex model
-      array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(proportion),                              ,
+      array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(proportion),                            
             dim = c(length(unique(fsh_len$year)), nlenbin, nsex)) } else {
               # Sex-structured (make sure males are first)
               array(data = fsh_len %>% filter(Sex != "Sex combined") %>% 
@@ -257,39 +257,30 @@ data <- list(
                     dim = c(length(unique(fsh_len$year)), nlenbin, nsex))},
   n_fsh_len =
     if (nsex == 1) { # Single sex model
-      array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(n),
+      array(data = fsh_len %>% filter(Sex == "Sex combined") %>% distinct(year, Sex, n) %>% pull(n),
             dim = c(length(unique(fsh_len$year)), 1, nsex)) } else {
               # Sex-structured (make sure males are first)
-<<<<<<< HEAD
               array(data = fsh_len %>% filter(Sex != "Sex combined") %>% 
-=======
-              array(data = fsh_len %>% filter(Sex != "Sex combined") %>% View()
->>>>>>> 3eb27cfa24ebec8f58aba055100941f5fe3dd11a
+                      distinct(year, Sex, n) %>%
                       arrange(desc(Sex)) %>% pull(n),
                     dim = c(length(unique(fsh_len$year)), 1, nsex))},
 
   effn_fsh_len =
     if (nsex == 1) { # Single sex model
-      array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(n),
+      array(data = fsh_len %>% filter(Sex == "Sex combined") %>% distinct(year, Sex, effn) %>% pull(effn),
             dim = c(length(unique(fsh_len$year)), 1, nsex)) } else {
               # Sex-structured (make sure males are first)
               array(data = fsh_len %>% filter(Sex != "Sex combined") %>%
-                      arrange(desc(Sex)) %>% pull(n),
+                      distinct(year, Sex, effn) %>% 
+                      arrange(desc(Sex)) %>% pull(effn),
                     dim = c(length(unique(fsh_len$year)), 1, nsex))},
-    # if (nsex == 1) { # Single sex model
-    #   array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(effn),
-    #         dim = c(length(unique(fsh_len$year)), 1, nsex))} else {
-    #           # Sex-structured (make sure males are first)
-    #           array(data = fsh_len %>% filter(Sex != "Sex combined") %>%
-    #                   arrange(desc(Sex)) %>% pull(effn),
-    #                 dim = c(length(unique(fsh_len$year)), 1, nsex))},
 
   # Survey length comps
   nyr_srv_len = length(unique(srv_len$year)),
   yrs_srv_len = srv_len %>% distinct(index) %>% pull(),
   data_srv_len =
     if (nsex == 1) { # Single sex model
-      array(data = srv_len %>% filter(Sex == "Sex combined") %>% pull(proportion),                              ,
+      array(data = srv_len %>% filter(Sex == "Sex combined") %>% pull(proportion),                              
             dim = c(length(unique(srv_len$year)), nlenbin, nsex)) } else {
               # Sex-structured (make sure males are first)
               array(data = srv_len %>% filter(Sex != "Sex combined") %>%
@@ -297,27 +288,22 @@ data <- list(
                     dim = c(length(unique(srv_len$year)), nlenbin, nsex))},
   n_srv_len =
     if (nsex == 1) { # Single sex model
-      array(data = srv_len %>% filter(Sex == "Sex combined") %>% pull(n),
+      array(data = srv_len %>% filter(Sex == "Sex combined") %>% distinct(year, Sex, n) %>% pull(n),
             dim = c(length(unique(srv_len$year)), 1, nsex)) } else {
               # Sex-structured (make sure males are first)
               array(data = srv_len %>% filter(Sex != "Sex combined") %>%
+                      distinct(year, Sex, n) %>% 
                       arrange(desc(Sex)) %>% pull(n),
                     dim = c(length(unique(srv_len$year)), 1, nsex))},
   effn_srv_len =
     if (nsex == 1) { # Single sex model
-      array(data = srv_len %>% filter(Sex == "Sex combined") %>% pull(n),
+      array(data = srv_len %>% filter(Sex == "Sex combined") %>%  distinct(year, Sex, effn) %>% pull(effn),
             dim = c(length(unique(srv_len$year)), 1, nsex)) } else {
               # Sex-structured (make sure males are first)
               array(data = srv_len %>% filter(Sex != "Sex combined") %>%
-                      arrange(desc(Sex)) %>% pull(n),
+                      distinct(year, Sex, effn) %>% 
+                      arrange(desc(Sex)) %>% pull(effn),
                     dim = c(length(unique(srv_len$year)), 1, nsex))},
-    # if (nsex == 1) { # Single sex model
-    #   array(data = srv_len %>% filter(Sex == "Sex combined") %>% pull(effn),
-    #         dim = c(length(unique(srv_len$year)), 1, nsex))} else {
-    #           # Sex-structured (make sure males are first)
-    #           array(data = srv_len %>% filter(Sex != "Sex combined") %>%
-    #                   arrange(desc(Sex)) %>% pull(effn),
-    #                 dim = c(length(unique(srv_len$year)), 1, nsex))},
 
   # Ageing error matrix
   ageing_error = ageing_error,
@@ -485,67 +471,6 @@ upper <- out$upper
 rep
 best <- obj$env$last.par.best 
 best
-<<<<<<< HEAD
-=======
-
-# Tune composition data ----
-
-# McAllister-Ianelli (1997): This method sets the effective sample size by
-# comparing the residual variance with the variance expected under a multinomial
-# distribution. An overall effective sample size for each composition series is
-# calculated as the harmonic mean of the ratio of the estimated effective sample
-# size to the original effective sample size at each iteration (Stewart and
-# Hamel 2014). A good description of this method is found in Muradian et al.
-# 2017.
-
-# Fishery age comps (sexes combined)
-pred_fsh_age <- as.matrix(obj$report(best)$pred_fsh_age)
-data_fsh_age <- as.matrix(data$data_fsh_age)
-effn_fsh_age <- vector(length = nrow(pred_fsh_age))
-
-for(i in 1:nrow(pred_fsh_age)){
-  effn_fsh_age[i] <- sum((pred_fsh_age[i,]*(1-pred_fsh_age[i,])) / (data_fsh_age[i,]-pred_fsh_age[i,])^2)
-}
-
-effn_fsh_age <- 1/mean(1/(effn_fsh_age/data$effn_fsh_age)) # harmonic mean
-data$effn_fsh_age <- rep(effn_fsh_age, length(data$effn_fsh_age)) # replace data for next iteration
-
-# Survey age comps (sexes combined)
-pred_srv_age <- as.matrix(obj$report(best)$pred_srv_age)
-data_srv_age <- as.matrix(data$data_srv_age)
-effn_srv_age <- vector(length = nrow(pred_srv_age))
-
-for(i in 1:nrow(pred_srv_age)){
-  effn_srv_age[i] <- sum((pred_srv_age[i,]*(1-pred_srv_age[i,])) / (data_srv_age[i,]-pred_srv_age[i,])^2)
-}
-
-effn_srv_age <- 1/mean(1/(effn_srv_age/data$effn_srv_age)) # harmonic mean
-data$effn_srv_age <- rep(effn_srv_age, length(data$effn_srv_age)) # replace data for next iteration
-
-# Fishery length comps (currently only for sex-structured model where nsex = 2)
-pred_fsh_len <- obj$report(best)$pred_fsh_len
-data_fsh_len <- data$data_fsh_len
-effn_fsh_len <- matrix(nrow = nrow(pred_fsh_len[,,2]), ncol = 2)
-
-data_fsh_len <- data_fsh_len + 0.00001 # add tiny constant so we don't get NaNs
-
-for(a in 1:nsex) {
-  for(i in 1:nrow(pred_fsh_len)){
-    effn_fsh_len[i,a] <- sum((pred_fsh_len[i,,a]*(1-pred_fsh_len[i,,a])) / (data_fsh_len[i,,a]-pred_fsh_len[i,,a])^2)
-  }
-}
-
-orig_effn_fsh_len <- matrix(data$effn_fsh_len, ncol = 2)
-new_effn_fsh_len <- matrix(ncol = 2, nrow = 1)
-
-for(a in 1:nsex) {
-  new_effn_fsh_len[a] <- 1/mean(1/(effn_fsh_len[,a]/orig_effn_fsh_len[,a])) # harmonic mean
-}
-
-# replace data for next iteration
-data$effn_fsh_len <- array(dim = c(nrow = nrow(pred_fsh_len), 1, nsex),
-                           data = c(rep(new_effn_fsh_len[,1],  nrow(pred_fsh_len)), rep(new_effn_fsh_len[,2],  nrow(pred_fsh_len))))
->>>>>>> 3eb27cfa24ebec8f58aba055100941f5fe3dd11a
 
 # MLE results ----
 
