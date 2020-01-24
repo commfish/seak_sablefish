@@ -359,6 +359,10 @@ write_csv(fsh_eff, paste0("data/fishery/fishery_cpue_",
 # Fishery and pot survey bio data still come from IFDB, ZPROD official source
 # for longline survey data
 
+# Before 2019 I was accidentally including age readability codes > 3. I repulled
+# all the data in 2019. Kevin McNeel (Age Determination Unit) 20190116: only
+# code 1-3 should be used for analyses (see Issue #33)
+
 query <-
   paste0(" select  year, project_code, trip_no, adfg_no, vessel_name, sell_date, g_stat_area,
           g_management_area_code, sample_type, species_code, length_type_code, 
@@ -370,14 +374,15 @@ query <-
 
   where   species_code = '710' and
           project_code in ('02', '17') and
-          g_management_area_code = 'NSEI' and year = ", YEAR)
+          age_readability_code in ('01', '02', '03') and
+          g_management_area_code = 'NSEI'") # and year = ", YEAR)
 
 dbGetQuery(ifdb_channel, query) -> fsh_bio
 
-write_csv(fsh_bio, paste0("data/fishery/raw_data/fishery_bio_", 
+write_csv(fsh_bio, paste0("data/fishery/raw_data/fishery_bio_", # min(fsh_bio$YEAR), "_",
                  max(fsh_bio$YEAR), ".csv"))
 
-read_csv(paste0("data/fishery/raw_data/fishery_bio_", 
+read_csv(paste0("data/fishery/raw_data/fishery_bio_", # min(fsh_bio$YEAR), "_", 
                 max(fsh_bio$YEAR), ".csv"), 
          guess_max = 50000) %>% 
   mutate(date = ymd(as.Date(SELL_DATE)), #ISO 8601 format
@@ -399,7 +404,8 @@ read_csv(paste0("data/fishery/raw_data/fishery_bio_",
   mutate(Adfg = as.character(Adfg)) -> fsh_bio
 
 # Data quieried before (that way you're using the same data that was used for
-# the assessment, starting in 2017)
+# the assessment, starting in 2017). This was updated again in 2019 due to the
+# age readability code issue.
 read_csv(paste0("data/fishery/fishery_bio_2000_", YEAR-1, ".csv"), 
          guess_max = 50000) %>% 
   mutate(Maturity = as.character(Maturity)) -> past_fsh_bio
@@ -515,6 +521,10 @@ write_csv(srv_eff, paste0("data/survey/llsrv_by_condition_",
 # data has migrated to zprod under output.out_g_sur_longline_specimen. These are
 # now stored in the modern database, Zander (aka ZPROD)
 
+# Same issue as Fishery Biological data with the age readability codes (see
+# description above). Repulled all data in 2019 to strip out age readability
+# codes > 3.
+
 query <-
   paste0(" select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
           time_first_buoy_onboard, number_of_stations, hooks_per_set, hook_size, 
@@ -528,7 +538,8 @@ query <-
   from    output.out_g_sur_longline_specimen
 
   where   species_code = '710' and
-          project_code in ('603', '03') and year = ", YEAR)
+          age_readability_code in ('01', '02', '03') and
+          project_code in ('603', '03') ) and year = ", YEAR)
 
 dbGetQuery(zprod_channel, query) -> srv_bio
 
@@ -537,12 +548,15 @@ dbGetQuery(zprod_channel, query) -> srv_bio
 
 merge(srv_bio, stat_areas, by = "STAT") -> srv_bio
 
-write_csv(srv_bio, paste0("data/survey/raw_data/llsrv_bio_", max(srv_bio$YEAR), ".csv"))
+write_csv(srv_bio, paste0("data/survey/raw_data/llsrv_bio_", #min(srv_bio$YEAR), "_",
+                          max(srv_bio$YEAR), ".csv"))
 
-read_csv(paste0("data/survey/raw_data/llsrv_bio_", max(srv_bio$YEAR), ".csv"), 
+read_csv(paste0("data/survey/raw_data/llsrv_bio_", #min(srv_bio$YEAR), "_",
+                max(srv_bio$YEAR), ".csv"), 
          guess_max = 50000) %>% 
   mutate(date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
-         julian_day = yday(date),Sex = derivedFactor("Male" = SEX_CODE == "01",
+         julian_day = yday(date),
+         Sex = derivedFactor("Male" = SEX_CODE == "01",
                                                      "Female" = SEX_CODE == "02",
                                                      .default = NA),
          Maturity = derivedFactor("0" = MATURITY_CODE %in% c("01", "02"), 
@@ -556,7 +570,7 @@ read_csv(paste0("data/survey/raw_data/llsrv_bio_", max(srv_bio$YEAR), ".csv"),
          age_readability = AGE_READABILITY_CODE, otolith_condition = OTOLITH_CONDITION_CODE )  %>% 
   filter(Mgmt_area == 'NSEI') -> srv_bio
 
-read_csv(paste0("data/survey/llsrv_bio_1985_", YEAR-1, ".csv"), 
+read_csv(paste0("data/survey/llsrv_bio_1988_", YEAR-1, ".csv"), 
          guess_max = 50000) %>% 
   mutate(Maturity = as.character(Maturity)) -> past_srv_bio
 
@@ -584,8 +598,11 @@ write_csv(srv_bio, paste0("data/survey/llsrv_bio_",
 # The out_g_bio_effort_age_sex_size view has all the biological samples for the
 # pot surveys, and includes fish that were not tagged (tag_no = 'T-').
 
+# Updated query 20200124 to include project code = 66, the experimental code
+# used for the 2019 (and 2020) escape ring studies
+
 query <- 
-  paste0(" select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name, 
+  paste0(" select  year, project_code, trip_no, target_species_code, adfg_no, vessel_name,
           time_first_buoy_onboard, effort_no, station_no, species_code, 
           g_stat_area as stat, management_area, start_latitude_decimal_degrees as start_lat,
           start_longitude_decimal_degree as start_lon, end_latitude_decimal_degrees as end_lat,
@@ -597,8 +614,7 @@ query <-
   from    out_g_bio_effort_age_sex_size
 
   where   species_code = '710' and
-          gear_code = '91' and
-          project_code in ('11', '611') and year = ", YEAR)
+          project_code in ('11', '611', '66') and year = ", YEAR)
 
 
 dbGetQuery(ifdb_channel, query) -> pot_bio
@@ -629,6 +645,10 @@ read_csv(paste0("data/survey/potsrv_bio_1981_", YEAR-1, ".csv"),
 
 bind_rows(past_pot_bio, pot_bio) -> pot_bio
 
+# Ages for the pot data are sparse anyway but removie any age readability codes
+# that aren't 01, 02, or 03 (same as llsrv and llfsh 20200124 #33)
+filter(pot_bio, age_readability %in% c('01', '02', '03')) -> pot_bio
+
 write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
                           min(pot_bio$year), "_", max(pot_bio$year), ".csv"))
 
@@ -643,6 +663,9 @@ write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
 # reference the batch_no's with fish recovered outside of the directed fishery.
 # Note that each year has a unique tag_batch_no
 
+# Updated query 20200124 to include project code = 66, the experimental code
+# used for the 2019 (and 2020) escape ring studies
+
 query <- paste0(
   " select  year, project_code, trip_no, time_second_anchor_overboard, species_code, 
           g_stat_area as stat, management_area, length_millimeters / 10 as length, 
@@ -650,7 +673,7 @@ query <- paste0(
 
   from    out_g_bio_eff_age_sex_size_tag
 
-  where   species_code = '710' and project_code in ('11', '611') and year = ", YEAR)
+  where   species_code = '710' and project_code in ('11', '611', '66') and year = ", YEAR)
 
 dbGetQuery(ifdb_channel, query) -> tag_releases
 
@@ -735,7 +758,6 @@ read_csv(paste0("data/fishery/raw_data/tag_recoveries_",
          measurer_type = MEASURER_TYPE, info_source = INFORMATION_SOURCE, returned_by = TAG_RETURNED_BY_TYPE,
          comments = COMMENTS) -> tag_recoveries
 
-
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
 read_csv(paste0("data/fishery/tag_recoveries_2003_", YEAR-1, ".csv"), 
@@ -746,10 +768,10 @@ bind_rows(past_recoveries, tag_recoveries) -> tag_recoveries
 write_csv(tag_recoveries, paste0("data/fishery/tag_recoveries_",
                                min(tag_recoveries$year), "_", max(tag_recoveries$year), ".csv"))
 
-
 tag_recoveries %>% 
   group_by(year, info_source) %>% 
-  summarize(n_distinct(tag_no))
+  summarize(n_distinct(tag_no)) %>% 
+  print(n = Inf)
 
 # Fishery countbacks ----
 
@@ -785,18 +807,6 @@ read_csv(paste0("data/fishery/raw_data/nsei_daily_tag_accounting_", YEAR, ".csv"
            julian_day = yday(date),
            total_obs = unmarked + marked,
            whole_kg = round_lbs * 0.453592) -> counts
-
-# 2019 - a couple trips were split into A and B due to tendering... rename these
-# in a numbered sequence to make them compatible with other data. The N/A is a
-# subsistence trip, recode as 0.
-counts %>% 
-  mutate(trip_no = ifelse(trip_no == "113 A", "113",
-                          ifelse(trip_no == "113 B", "114",
-                                 ifelse(trip_no == "144 A", "144",
-                                        ifelse(trip_no == "144 B", "145",
-                                               ifelse(trip_no == "N/A", "0",
-                                                      trip_no)))))) %>% 
-  mutate(trip_no = as.numeric(trip_no)) -> counts
 
 read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR-1, ".csv"),
          guess_max = 50000) -> past_counts

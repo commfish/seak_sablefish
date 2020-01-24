@@ -539,7 +539,7 @@ write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR, ".csv"))
 
 # Fits to abundance indices, derived time series, and F. Use units = "imperial" or
 # "metric" to switch between units. 
-plot_ts(save = TRUE, path = tmbfigs)
+plot_ts(save = TRUE, units = "metric", plot_variance = FALSE, path = tmbfigs)
 plot_ts_resids(save = TRUE, path = tmbfigs)
 plot_derived_ts(save = TRUE, path = tmbfigs, units = "metric", plot_variance = FALSE)
 plot_F()
