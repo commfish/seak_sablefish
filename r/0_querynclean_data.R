@@ -666,6 +666,7 @@ write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
 # Updated query 20200124 to include project code = 66, the experimental code
 # used for the 2019 (and 2020) escape ring studies
 
+# Normal query
 query <- paste0(
   " select  year, project_code, trip_no, time_second_anchor_overboard, species_code, 
           g_stat_area as stat, management_area, length_millimeters / 10 as length, 
@@ -675,7 +676,33 @@ query <- paste0(
 
   where   species_code = '710' and project_code in ('11', '611', '66') and year = ", YEAR)
 
+
+# queries used in 2019 to merge date, time, and stat area information from the
+# survey effort table
+query <- paste0(
+  " select year, project_code, trip_no, effort_no, species_code, 
+          management_area, length_millimeters / 10 as length, 
+          tag_no, tag_batch_no, discard_status, release_condition_code, comments
+
+  from    out_g_bio_eff_age_sex_size_tag
+
+  where   species_code = '710' and project_code in ('11', '611', '66') and year = ", YEAR)
+
 dbGetQuery(ifdb_channel, query) -> tag_releases
+
+query <-
+  paste0(
+    " select year, trip_no, effort_no, time_second_anchor_overboard, species_code, 
+          g_stat_area as stat
+
+  from out_g_sur_pot
+
+  where species_code = '710' and
+        year = ", YEAR)
+
+dbGetQuery(zprod_channel, query) -> pot_effort
+
+tag_releases %>% left_join(pot_effort, by = c('YEAR', 'TRIP_NO', 'EFFORT_NO', 'SPECIES_CODE')) -> tag_releases
 
 # Lookup table for release condition codes "select * from g_bio_release_condition" **not sure if this column is useful
 # RELEASE_CONDITION_CODE - RELEASE_CONDITION

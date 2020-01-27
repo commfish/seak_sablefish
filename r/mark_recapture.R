@@ -36,7 +36,7 @@ library(rjags) # run jags/bugs models
 library(purrr)
 
 FIRST_YEAR <- 2005 
-YEAR <- 2018 # Current assessment year
+YEAR <- 2019 # Current assessment year, most recent year of data
 NO_MARK_SRV <- c(2011, 2014, 2016) # years without a marking survey
 
 # Past assessments ----
@@ -61,6 +61,11 @@ read_csv(paste0("data/survey/tag_releases_2003_", YEAR, ".csv"),
   filter(year >= FIRST_YEAR) -> releases
 
 releases %>% group_by(discard_status) %>% summarise(n_distinct(tag_no)) # Check - these should be all tagged and released
+# *FLAG* Contacted Aaron Balwin 20200124 about 4 tags with unknown discard
+# status. Also b/c of the 2019 escape ring study (project code 66) there is no
+# date or other identifying info for tag releases in this year. This information
+# can be obtained at the survey level.
+releases %>% filter(discard_status == "Unknown")
 
 # Lookup table for year and tag batch no combos
 releases %>% 
@@ -92,7 +97,7 @@ recoveries %>%
 # whoever is leading the tagging project. In the past there have been occasional
 # tags that were recovered in the personal use or commercial fishery that were
 # left as NAs and need to be fixed
-filter(recoveries, is.na(Project_cde)) %>% distinct(tag_no)
+filter(recoveries, is.na(Project_cde)) %>% distinct(year, date, catch_date, landing_date, returned_by, Project_cde, tag_no, comments)
 
 # Project_cde NA that are personal use trips should be code
 # "27" - change it to appropriate code
@@ -100,6 +105,23 @@ recoveries %>%
   mutate(Project_cde = ifelse(is.na(Project_cde) &
                                 grepl(c("Personal Use|subsistance|sport"), comments), 
                               "27", Project_cde)) -> recoveries
+
+# *FLAG* Contacted Aaron Balwin 20200124 about 8 tags from 2019 with NA
+# project_cdes and dates. Fixing these as commercial fishery (02) tags for now, with
+# the dates in the comments. For the other 2 recovery dates, remove prior to the
+# fishery starting:
+recoveries %>% mutate(date = ifelse(tag_no == "T-099921", "2019-10-03", date)) -> recoveries
+recoveries %>% mutate(date = ifelse(tag_no == "T-101200", "2019-09-26", date)) -> recoveries
+recoveries %>% mutate(date = ifelse(tag_no == "T-100043", "2019-09-26", date)) -> recoveries
+recoveries %>% mutate(date = ifelse(tag_no == "T-100142", "2019-09-26", date)) -> recoveries
+recoveries %>% mutate(date = ifelse(tag_no == "T-101197", "2019-11-04", date)) -> recoveries
+recoveries %>% mutate(date = ifelse(tag_no == "T-091749", "2019-07-31", date)) -> recoveries
+recoveries %>% mutate(date = ifelse(tag_no == "T-097545", "2019-08-13", date)) -> recoveries
+recoveries %>% mutate(date = ifelse(tag_no == "T-100148", "2019-08-13", date)) -> recoveries
+recoveries %>% 
+  mutate(Project_cde = ifelse(tag_no %in% c("T-099921", "T-101200", "T-100043", "T-097545",
+                                          "T-100142", "T-101197", "T-091749", "T-100148"),
+                              "02", Project_cde))
 
 # Size selectivity differences ----
 
@@ -109,7 +131,11 @@ releases %>%
   summarize(min = min(length, na.rm = TRUE),
             max = max(length, na.rm = TRUE))
 
+# *FLAG* mininum length in 2019 = 1 cm? Contacted A Bladwin 20200124
+releases %>% filter(length < 38) %>% distinct(year, Project_cde, length, tag_no, release_condition_cde, discard_status)
+
 recoveries %>% 
+  filter(measurer_type == "Scientific staff") %>% 
   group_by(year) %>% 
   summarize(min = min(length, na.rm = TRUE),
             max = max(length, na.rm = TRUE))
