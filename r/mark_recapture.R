@@ -61,11 +61,6 @@ read_csv(paste0("data/survey/tag_releases_2003_", YEAR, ".csv"),
   filter(year >= FIRST_YEAR) -> releases
 
 releases %>% group_by(discard_status) %>% summarise(n_distinct(tag_no)) # Check - these should be all tagged and released
-# *FLAG* Contacted Aaron Balwin 20200124 about 4 tags with unknown discard
-# status. Also b/c of the 2019 escape ring study (project code 66) there is no
-# date or other identifying info for tag releases in this year. This information
-# can be obtained at the survey level.
-releases %>% filter(discard_status == "Unknown")
 
 # Lookup table for year and tag batch no combos
 releases %>% 
@@ -106,23 +101,6 @@ recoveries %>%
                                 grepl(c("Personal Use|subsistance|sport"), comments), 
                               "27", Project_cde)) -> recoveries
 
-# *FLAG* Contacted Aaron Balwin 20200124 about 8 tags from 2019 with NA
-# project_cdes and dates. Fixing these as commercial fishery (02) tags for now, with
-# the dates in the comments. For the other 2 recovery dates, remove prior to the
-# fishery starting:
-recoveries %>% mutate(date = ifelse(tag_no == "T-099921", "2019-10-03", date)) -> recoveries
-recoveries %>% mutate(date = ifelse(tag_no == "T-101200", "2019-09-26", date)) -> recoveries
-recoveries %>% mutate(date = ifelse(tag_no == "T-100043", "2019-09-26", date)) -> recoveries
-recoveries %>% mutate(date = ifelse(tag_no == "T-100142", "2019-09-26", date)) -> recoveries
-recoveries %>% mutate(date = ifelse(tag_no == "T-101197", "2019-11-04", date)) -> recoveries
-recoveries %>% mutate(date = ifelse(tag_no == "T-091749", "2019-07-31", date)) -> recoveries
-recoveries %>% mutate(date = ifelse(tag_no == "T-097545", "2019-08-13", date)) -> recoveries
-recoveries %>% mutate(date = ifelse(tag_no == "T-100148", "2019-08-13", date)) -> recoveries
-recoveries %>% 
-  mutate(Project_cde = ifelse(tag_no %in% c("T-099921", "T-101200", "T-100043", "T-097545",
-                                          "T-100142", "T-101197", "T-091749", "T-100148"),
-                              "02", Project_cde))
-
 # Size selectivity differences ----
 
 # Check range of data
@@ -131,7 +109,9 @@ releases %>%
   summarize(min = min(length, na.rm = TRUE),
             max = max(length, na.rm = TRUE))
 
-# *FLAG* mininum length in 2019 = 1 cm? Contacted A Bladwin 20200124
+# *FLAG* Contacted A Bladwin 20200124 about T-096264 length = 30 cm. The paper
+# form also says it was 30 cm, but he doesn't think they would have tagged a
+# fish that small. Don't know how I should treat this... leave it in for now.
 releases %>% filter(length < 38) %>% distinct(year, Project_cde, length, tag_no, release_condition_cde, discard_status)
 
 recoveries %>% 
@@ -365,7 +345,7 @@ ggplot(move, aes(x = releases, y = recaptures)) +
   geom_tile(aes(fill = Probability), colour = "grey") +
   facet_wrap(~ year, ncol = 2, dir = "v") +
   scale_fill_gradient(low = "white", high = "black", space = "Lab",
-                      na.value = "red", guide = "colourbar",
+                      na.value = "white", guide = "colourbar",
                       name = "Probability\n") +
   # scale_fill_gradient(low = "white", high = "red", space = "Lab",
   #                     na.value = "white", guide = "colourbar",
@@ -394,7 +374,7 @@ ggplot(move, aes(x = releases, y = recaptures)) +
   labs(x = '\nAge', y = '') +
   # guides(size = FALSE) +
   scale_fill_gradient(low = "white", high = "grey35", space = "Lab",
-                      na.value = "red", guide = "colourbar",
+                      na.value = "white", guide = "colourbar",
                       name = "Proportion") +
   labs(x = "\nRelease Stat Area", y = "Recapture Stat Area\n", size = "No. of\ntagged fish")
 
@@ -407,7 +387,8 @@ ggsave(paste0("figures/movement_matrix_with_N_",
 # 1. Countbacks
 
 # Prior to the 2019 assessment, it was assumed all fish on the LL survey were
-# checked for marks. Only 2008 and 2010 surveys had countbacks. See Issue #39 for documentation.
+# checked for marks. Only 2008 and 2010 surveys had countbacks. See Issue #39
+# for documentation.
 srv_count <- read_csv("data/survey/nsei_sable_llsurvey_countbacks.csv")
 
 # Expand grid, sum within years, and apply 0s for NAs
@@ -459,7 +440,7 @@ read_csv(paste0("data/survey/llsrv_bio_1985_", YEAR,".csv"),
 # From IFDB database. These will help us check the countback daily accounting
 # sheets and also account for fishing mortality in the LL survey.
 
-read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR,".csv"), 
+read_csv(paste0("data/fishery/nseiharvest_ifdb_1985_", YEAR,".csv"), 
          guess_max = 50000) %>% 
   filter(year >= FIRST_YEAR) %>% 
   mutate(whole_kg = whole_pounds * 0.453592,
@@ -558,7 +539,7 @@ anti_join(recoveries %>%
                      Project_cde == "02"), 
           marks, by = "year_trip") %>% 
   group_by(year_trip, Mgmt_area, date) %>% 
-  summarize(tags_from_fishery = n_distinct(tag_no)) -> no_match # 7 trips from 2008, all in the NSEI
+  summarize(tags_from_fishery = n_distinct(tag_no)) -> no_match # 7 trips from 2008, all in the NSEI; 3 from 2018
 
 # Daily summary ----
 
@@ -614,7 +595,7 @@ recoveries %>% filter(!c(date %in% daily_marks$date)) -> recoveries
 # Remaining tag loss ----
 
 # These are tags from other fisheries, from the directed fishery but without
-# trip/date info, or Canada, or IPHCS/NMFS/other surveys.Potential periods of
+# trip/date info, or Canada, or IPHCS/NMFS/other surveys. Potential periods of
 # remaining tag loss:
 #   1) Between start of pot survey and day before start of LL survey (D.0)
 #   2) Beginning of longline survey and day before start of fishery (D.1)
@@ -649,7 +630,12 @@ right_join(recoveries %>%
   summarise(n = n_distinct(tag_no)) %>% 
   ungroup() %>% 
   dcast(year ~ D, value.var = "n", fill = 0) %>% 
-  left_join(tag_summary, by = "year") -> tag_summary
+  left_join(tag_summary, by = "year") %>% 
+  # Add the two D.1 variables together (D.1.x are recaptures from longline
+  # survey, D.1.y are recaptures from other fisheries that occurred between the
+  # beginning of longline survey and day before start of fishery
+  mutate(D.1 = D.1.x + D.1.y) %>% 
+  select(-D.1.x, -D.1.y) -> tag_summary
 
 # Currently n.1 and k.1 reflect observed and marked in the longline survey. Add
 # similar columns for the fishery
@@ -720,186 +706,186 @@ pb <- txtProgressBar(min = 0, max = strats, style = 3)
 
 for(j in 1:strats) {
   
-# Base strata on percentiles of cumulative catch. Could also use number of marks
-# observed or some other variable. STRATA_NUM is the dynamic variable specifying
-# the number of time strata to split the fishery into and it currently
-# accomodates 8 or fewer strata.
-STRATA_NUM <- j
-
-daily_marks %>% 
-  group_by(year) %>% 
-  mutate(catch_strata = cut(percent_rank(cum_whole_kg) %>% round(2),
-                            breaks = seq(0, 1, by = 1 / STRATA_NUM),
-                            include.lowest = TRUE, right = TRUE, ordered_result = TRUE,
-                            labels = paste(seq(2, STRATA_NUM + 1, by = 1)))) -> daily_marks
- 
-# Summarize by strata
-daily_marks %>% 
-  group_by(year, catch_strata) %>% 
-  summarize(t = n_distinct(date),
-            catch_kg = sum(whole_kg) %>% round(1),
-            n = sum(total_obs),
-            k = sum(total_marked),
-            D = sum(fishery_D),
-            NPUE = mean(mean_npue, na.rm = TRUE) %>% round(1),
-            # Use the interpolated mean weight here so it doesn't break at large
-            # STRATA_NUMs
-            mean_weight = mean(interp_mean, na.rm = TRUE)) %>% 
-  mutate(C = (catch_kg / mean_weight) %>% round(0)) -> strata_sum
-
-# Running Chapman estimator
-strata_sum %>% 
-  left_join(tag_summary %>% select(year, K.0), by = "year") %>% 
-  # cumulative marked and observed
-  group_by(year) %>% 
-  mutate(cumn = cumsum(n),
-         cumk = cumsum(k),
-         cumd = cumsum(D),
-         K_running = K.0 - cumd) %>% 
-  # This deducts period specific D's
-  mutate(running_Chapman = ((K_running + 1)*(cumn + 1) / (cumk + 1)) - 1,
-         Chap_var = ((K_running + 1)*(cumn + 1)*(K_running - cumk)*(cumn - cumk)) / ((cumk + 1)*(cumk + 1)*(cumk + 2)) ) -> strata_sum
-
-# Prep data for JAGS ----  
-dcast(setDT(strata_sum), year ~ catch_strata, 
-      value.var = c("D", "C", "n", "t", "k", "NPUE"), sep = ".") %>% 
-  left_join(tag_summary, by = "year") %>% 
-  # order the columns alphanumerically - very convenient
-  select(year, order(colnames(.))) -> jags_dat
-
-jags_dat %>%
-  select(year, K.0, contains("D."), contains("C."), starts_with("n."), 
-         starts_with("t."), contains("k."), contains("NPUE.")) -> jags_dat
-
-# Add in the abundance estimates from the past assessments as mu.N (the mean for
-# the prior on N.1)
-assessment_summary %>% 
-  filter(year >= FIRST_YEAR & !year %in% NO_MARK_SRV) %>% 
-  select(year, mu.N = abundance_age2plus) -> abd_est
-
-left_join(jags_dat, abd_est, by = "year") -> jags_dat
-
-# Length of unique years to run model
-model_years <- unique(jags_dat$year)
-
-# Create an empty list to store JAGS data (we want a list of lists)
-model_dat <- vector('list', length(model_years))
-
-# Reshape data into lists of each variable. Flexible by number of time strata.
-# Will look for a more efficient way to do this next year - maybe start here:
-# https://stackoverflow.com/questions/31561238/lapply-function-loops-on-list-of-lists-r
-
-for(i in 1:length(model_years)){
-
-  sub <- jags_dat %>% filter(year == model_years[i])
+  # Base strata on percentiles of cumulative catch. Could also use number of marks
+  # observed or some other variable. STRATA_NUM is the dynamic variable specifying
+  # the number of time strata to split the fishery into and it currently
+  # accomodates 8 or fewer strata.
+  STRATA_NUM <- j
   
-  sub_dat <-
-    list(P = STRATA_NUM + 1, # number of time Periods
-         M = 0.1 / 365, # Daily natural mortality
-         mu.N = sub$mu.N, # mean of starting abundance values, from past assessments
-         K.0 = sub$K.0,
-         D.0 = sub$D.0,
-         C = select(sub, contains("C.")) %>% as.numeric() , 
-         D = select(sub, contains("D."), -D.0) %>% as.numeric(),
-         t = select(sub, contains("t.")) %>% as.numeric(),
-         n = select(sub, contains("n.")) %>% as.numeric(),
-         k = select(sub, contains("k."), -K.0) %>% as.numeric(),
-         NPUE = select(sub, contains("NPUE.")) %>% as.numeric()
-         )
+  daily_marks %>% 
+    group_by(year) %>% 
+    mutate(catch_strata = cut(percent_rank(cum_whole_kg) %>% round(2),
+                              breaks = seq(0, 1, by = 1 / STRATA_NUM),
+                              include.lowest = TRUE, right = TRUE, ordered_result = TRUE,
+                              labels = paste(seq(2, STRATA_NUM + 1, by = 1)))) -> daily_marks
   
-  model_dat[[i]] <- sub_dat
-  rm(sub_dat)
+  # Summarize by strata
+  daily_marks %>% 
+    group_by(year, catch_strata) %>% 
+    summarize(t = n_distinct(date),
+              catch_kg = sum(whole_kg) %>% round(1),
+              n = sum(total_obs),
+              k = sum(total_marked),
+              D = sum(fishery_D),
+              NPUE = mean(mean_npue, na.rm = TRUE) %>% round(1),
+              # Use the interpolated mean weight here so it doesn't break at large
+              # STRATA_NUMs
+              mean_weight = mean(interp_mean, na.rm = TRUE)) %>% 
+    mutate(C = (catch_kg / mean_weight) %>% round(0)) -> strata_sum
   
-}
-
-# Initial values ----
-
-# Franz had initial values, but you don't need them (JAGS initializes chains
-# from a central value from the population, the mean of which is defined from
-# past assessments)
-
-# # Create an empty list to store JAGS inital values (we want a list of lists)
-# inits <- vector('list', length(model_years))
-# 
-# for(i in 1:length(model_years)){
-#   for(j in 1:length(model_years)){
-#     
-#     sub <- abd_est %>% filter(year == model_years[i])
-#     
-#     sub_dat <-
-#       list(init.N = select(sub, mu.N) %>% as.numeric())
-#     
-#     inits[[j]] <- sub_dat
-#     rm(sub_dat)
-#     
-#   }
-# }
-
-# Prior on p ----
-
-# Visualize choice of prior for p, the probabilty of catching a marked
-# sabelfish.
-
-# https://stats.stackexchange.com/questions/58564/help-me-understand-bayesian-prior-and-posterior-distributions/58792#58792
-
-# beta prior for plotting
-# prior <- function(m, n_eq){
-#   a <- n_eq * m
-#   b <- n_eq * (1 - m)
-#   dom <- seq(0, 1, 0.0001)
-#   val <- dbeta(dom, a, b)
-#   return(data.frame('x' = dom,
-#                     'y' = val,
-#                     'n_eq'= rep(n_eq, length(dom))))
-# }
-#
-# m <- 0.0031 # The K/N in 2017
-#
-# bind_rows(prior(m, n_eq = 10000),
-#           prior(m, n_eq = 5000),
-#           prior(m, n_eq = 1000),
-#           prior(m, n_eq = 500),
-#           prior(m, n_eq = 100),
-#           prior(m, n_eq = 10)) %>%
-# ggplot(aes(x, y, col = factor(n_eq))) +
-#   geom_line(size = 1) +
-#   geom_vline(aes(xintercept = m), lty = 2) +
-#   theme_bw() +
-#   xlim(c(0, 0.010)) +
-#   ylab(expression(paste('p(',theta,')', sep = ''))) +
-#   xlab(expression(theta))
-
-# prior_mean <- function(m, n_eq){
-#   a <- n_eq * m
-#   b <- n_eq * (1 - m)
-#   mean = a / (a + b)
-#   var = (a * b) / ((a + b)^2 * (a + b + 1))
-#   return(data.frame('mean' = mean,
-#                     'var' = var,
-#                     'n_eq'= n_eq))
-# }
-#
-# # All the priors have the same mean, variance increases with decreasing n_eq
-# bind_rows(prior_mean(m, n_eq = 10000),
-#           prior_mean(m, n_eq = 5000),
-#           prior_mean(m, n_eq = 1000),
-#           prior_mean(m, n_eq = 500),
-#           prior_mean(m, n_eq = 100),
-#           prior_mean(m, n_eq = 10)) %>% kable()
-
-# *FLAG* I am most comfortable with an neq > 5000, which keeps the range of p within
-# the same order of magnitude as M/N. If we decrease neq the point estimate on
-# the population decreases dramatically. We ultimately selected 10000.
-
-# Model 1 ----
-
-# Time-stratified mark-recapture model with natural mortality includes all
-# clipped fish recaptured in longline survey data and fishery data
-
-# Informed prior option = 10000
-# Uninformed prior = 100
-
-mod1 <- "
+  # Running Chapman estimator
+  strata_sum %>% 
+    left_join(tag_summary %>% select(year, K.0), by = "year") %>% 
+    # cumulative marked and observed
+    group_by(year) %>% 
+    mutate(cumn = cumsum(n),
+           cumk = cumsum(k),
+           cumd = cumsum(D),
+           K_running = K.0 - cumd) %>% 
+    # This deducts period specific D's
+    mutate(running_Chapman = ((K_running + 1)*(cumn + 1) / (cumk + 1)) - 1,
+           Chap_var = ((K_running + 1)*(cumn + 1)*(K_running - cumk)*(cumn - cumk)) / ((cumk + 1)*(cumk + 1)*(cumk + 2)) ) -> strata_sum
+  
+  # Prep data for JAGS ----  
+  dcast(setDT(strata_sum), year ~ catch_strata, 
+        value.var = c("D", "C", "n", "t", "k", "NPUE"), sep = ".") %>% 
+    left_join(tag_summary, by = "year") %>% 
+    # order the columns alphanumerically - very convenient
+    select(year, order(colnames(.))) -> jags_dat
+  
+  jags_dat %>%
+    select(year, K.0, contains("D."), contains("C."), starts_with("n."), 
+           starts_with("t."), contains("k."), contains("NPUE.")) -> jags_dat
+  
+  # Add in the abundance estimates from the past assessments as mu.N (the mean for
+  # the prior on N.1)
+  assessment_summary %>% 
+    filter(year >= FIRST_YEAR & !year %in% NO_MARK_SRV) %>% 
+    select(year, mu.N = abundance_age2plus) -> abd_est
+  
+  left_join(jags_dat, abd_est, by = "year") -> jags_dat
+  
+  # Length of unique years to run model
+  model_years <- unique(jags_dat$year)
+  
+  # Create an empty list to store JAGS data (we want a list of lists)
+  model_dat <- vector('list', length(model_years))
+  
+  # Reshape data into lists of each variable. Flexible by number of time strata.
+  # Will look for a more efficient way to do this next year - maybe start here:
+  # https://stackoverflow.com/questions/31561238/lapply-function-loops-on-list-of-lists-r
+  
+  for(i in 1:length(model_years)){
+    
+    sub <- jags_dat %>% filter(year == model_years[i])
+    
+    sub_dat <-
+      list(P = STRATA_NUM + 1, # number of time Periods
+           M = 0.1 / 365, # Daily natural mortality
+           mu.N = sub$mu.N, # mean of starting abundance values, from past assessments
+           K.0 = sub$K.0,
+           D.0 = sub$D.0,
+           C = select(sub, contains("C.")) %>% as.numeric() , 
+           D = select(sub, contains("D."), -D.0) %>% as.numeric(),
+           t = select(sub, contains("t.")) %>% as.numeric(),
+           n = select(sub, contains("n.")) %>% as.numeric(),
+           k = select(sub, contains("k."), -K.0) %>% as.numeric(),
+           NPUE = select(sub, contains("NPUE.")) %>% as.numeric()
+      )
+    
+    model_dat[[i]] <- sub_dat
+    rm(sub_dat)
+    
+  }
+  
+  # Initial values ----
+  
+  # Franz had initial values, but you don't need them (JAGS initializes chains
+  # from a central value from the population, the mean of which is defined from
+  # past assessments)
+  
+  # # Create an empty list to store JAGS inital values (we want a list of lists)
+  # inits <- vector('list', length(model_years))
+  # 
+  # for(i in 1:length(model_years)){
+  #   for(j in 1:length(model_years)){
+  #     
+  #     sub <- abd_est %>% filter(year == model_years[i])
+  #     
+  #     sub_dat <-
+  #       list(init.N = select(sub, mu.N) %>% as.numeric())
+  #     
+  #     inits[[j]] <- sub_dat
+  #     rm(sub_dat)
+  #     
+  #   }
+  # }
+  
+  # Prior on p ----
+  
+  # Visualize choice of prior for p, the probabilty of catching a marked
+  # sabelfish.
+  
+  # https://stats.stackexchange.com/questions/58564/help-me-understand-bayesian-prior-and-posterior-distributions/58792#58792
+  
+  # beta prior for plotting
+  # prior <- function(m, n_eq){
+  #   a <- n_eq * m
+  #   b <- n_eq * (1 - m)
+  #   dom <- seq(0, 1, 0.0001)
+  #   val <- dbeta(dom, a, b)
+  #   return(data.frame('x' = dom,
+  #                     'y' = val,
+  #                     'n_eq'= rep(n_eq, length(dom))))
+  # }
+  #
+  # m <- 0.0031 # The K/N in 2017
+  #
+  # bind_rows(prior(m, n_eq = 10000),
+  #           prior(m, n_eq = 5000),
+  #           prior(m, n_eq = 1000),
+  #           prior(m, n_eq = 500),
+  #           prior(m, n_eq = 100),
+  #           prior(m, n_eq = 10)) %>%
+  # ggplot(aes(x, y, col = factor(n_eq))) +
+  #   geom_line(size = 1) +
+  #   geom_vline(aes(xintercept = m), lty = 2) +
+  #   theme_bw() +
+  #   xlim(c(0, 0.010)) +
+  #   ylab(expression(paste('p(',theta,')', sep = ''))) +
+  #   xlab(expression(theta))
+  
+  # prior_mean <- function(m, n_eq){
+  #   a <- n_eq * m
+  #   b <- n_eq * (1 - m)
+  #   mean = a / (a + b)
+  #   var = (a * b) / ((a + b)^2 * (a + b + 1))
+  #   return(data.frame('mean' = mean,
+  #                     'var' = var,
+  #                     'n_eq'= n_eq))
+  # }
+  #
+  # # All the priors have the same mean, variance increases with decreasing n_eq
+  # bind_rows(prior_mean(m, n_eq = 10000),
+  #           prior_mean(m, n_eq = 5000),
+  #           prior_mean(m, n_eq = 1000),
+  #           prior_mean(m, n_eq = 500),
+  #           prior_mean(m, n_eq = 100),
+  #           prior_mean(m, n_eq = 10)) %>% kable()
+  
+  # *FLAG* I am most comfortable with an neq > 5000, which keeps the range of p within
+  # the same order of magnitude as M/N. If we decrease neq the point estimate on
+  # the population decreases dramatically. We ultimately selected 10000.
+  
+  # Model 1 ----
+  
+  # Time-stratified mark-recapture model with natural mortality includes all
+  # clipped fish recaptured in longline survey data and fishery data
+  
+  # Informed prior option = 10000
+  # Uninformed prior = 100
+  
+  mod1 <- "
 model {
 # Priors
 N.1 ~ dnorm(mu.N,1.0E-12) #I(0,)	# number of sablefish in Chatham at beginning of period 1
@@ -1185,11 +1171,11 @@ save(list = c("dic_summary", "N_summary", "convergence_summary",
               "mod1_posterior_ls", "mod2_posterior_ls", 
               "mod3_posterior_ls", "mod4_posterior_ls",
               "data_ls", "data_df"),
-     file = "output/mark_recap_model_selection.Rdata")
+     file = paste0("output/mark_recap_model_selection_", YEAR, ".Rdata"))
 
 # Model selection ----
 
-load("output/mark_recap_model_selection.Rdata")
+load(paste0("output/mark_recap_model_selection_", YEAR, ".Rdata"))
 
 convergence_summary %>% 
   mutate(mod_version = paste(year, model, P, sep = "_")) %>% 
@@ -1726,7 +1712,7 @@ ggplot(df) +
              aes(x = year, y = est),
              shape = 8, size = 1.5, colour = "grey") +
   scale_colour_grey() +
-  ylim(c(1, 3.5)) +
+  ylim(c(1, 4)) +
   labs(x = "", y = "Number of sablefish (millions)\n",
        colour = NULL, shape = NULL, linetype = NULL) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
@@ -1763,6 +1749,15 @@ ggplot(assumptions, aes(x = factor(year), y = estimate, fill = `Assumptions for 
 ggsave(paste0("figures/llsrv_countback_assumptions_",
               FIRST_YEAR, "_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
+
+results %>% 
+  gather("time_period", "N.avg", contains("N.avg")) %>% 
+  group_by(year) %>% 
+  summarise(estimate = mean(N.avg) / 1e6,
+            sd = sd(N.avg) / 1e6,
+            q025 = quantile(N.avg, 0.025) / 1e6,
+            q975 = quantile(N.avg, 0.975) / 1e6) %>% 
+  write_csv(paste0("output/mr_index_", YEAR, ".csv"))
 
 # results %>%
 #   gather("time_period", "p", contains("p[")) %>%
