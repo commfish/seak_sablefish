@@ -435,12 +435,11 @@ query <-
           start_longitude_decimal_degree as start_lon, end_latitude_decimal_degrees as end_lat,
           end_longitude_decimal_degrees as end_lon, avg_depth_fathoms * 1.8288 as depth_meters, 
           number_hooks, bare, bait, invalid, sablefish, 
-          subset_condition_code
+          subset_condition_code, trip_comments, trip_design_comment, effort_comment, subset_comments
 
   from    output.out_g_sur_longline_hook_acc_bi
   
   where   project_code in ('603', '03') and year = ", YEAR)
-
 
 dbGetQuery(zprod_channel, query) -> srv_eff
 
@@ -692,7 +691,7 @@ dbGetQuery(ifdb_channel, query) -> tag_releases
 
 query <-
   paste0(
-    " select year, trip_no, effort_no, time_second_anchor_overboard, species_code, 
+    " select distinct year, trip_no, effort_no, time_second_anchor_overboard, species_code, 
           g_stat_area as stat
 
   from out_g_sur_pot
