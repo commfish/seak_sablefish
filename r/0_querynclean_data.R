@@ -468,7 +468,7 @@ bind_rows(past_srv_eff, srv_eff) -> srv_eff
 
 write_csv(srv_eff, paste0("data/survey/llsrv_cpue_", min(srv_eff$year), "_", max(srv_eff$year), ".csv"))
 
-# Longline survey CPUE v2 ----
+# LL srv CPUE v2 ----
 
 # 2020-01-28: Attempt to do a better job cleaning up the data based on comments.
 # Invalidate: skates with >= 12 invalid hooks (should be done already), large
@@ -493,21 +493,34 @@ query <-
 
 dbGetQuery(zprod_channel, query) -> srv_eff
 
+# names(srv_eff)
 write_csv(srv_eff, paste0("data/survey/raw_data/llsrv_cpue_v2_", min(srv_eff$YEAR), "_",
                           max(srv_eff$YEAR), ".csv"))
 
-read_csv(srv_eff, paste0("data/survey/raw_data/llsrv_cpue_v2_", min(srv_eff$YEAR), "_",
+read_csv(paste0("data/survey/raw_data/llsrv_cpue_v2_", min(srv_eff$YEAR), "_",
                           max(srv_eff$YEAR), ".csv"), 
          guess_max = 50000) %>% 
   filter(YEAR <= YEAR) %>% #the programmers have some dummy data in the db for the upcoming year
-  mutate(date = ymd(as.Date(TIME_SET)), #ISO 8601 format
-         julian_day = yday(date)) %>% 
-  select(year = YEAR, Project_cde = PROJECT_CODE, Station_no = STATION_NO,
-         trip_no = TRIP_NO, Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
-         Stat = STAT,  set = EFFORT_NO, start_lat = START_LAT, start_lon = START_LON, end_lat = END_LAT,
-         end_lon = END_LON, depth = DEPTH_METERS, no_hooks = NUMBER_HOOKS, hooks_bare = BARE,
-         hooks_bait = BAIT, hook_invalid = INVALID, hooks_sablefish = SABLEFISH,
-         subset_condition_cde = SUBSET_CONDITION_CODE) -> srv_eff
+  mutate(date = ymd(as.Date(TIME_SECOND_ANCHOR_OVERBOARD)), #ISO 8601 format
+         julian_day = yday(date),
+         soak = difftime(TIME_FIRST_ANCHOR_ONBOARD, TIME_SECOND_ANCHOR_OVERBOARD, units = "hours"),
+         slope = abs(START_DEPTH_FATHOMS - END_DEPTH_FATHOMS) * 1.8288, # slope of the set
+         depth = AVG_DEPTH_FATHOMS * 1.8288) %>% # depth in meters
+  select(year = YEAR, Project_cde = PROJECT_CODE, Adfg = ADFG_NO, Vessel = VESSEL_NAME, 
+         Station_no = STATION_NO, trip_no = TRIP_NO, set = EFFORT_NO, skate = SUBSET_NO,
+         date, julian_day, soak, depth, slope,
+         Stat = G_STAT_AREA, area_description = AREA_DESCRIPTION,
+         start_lat = START_LATITUDE_DECIMAL_DEGREES, start_lon = START_LONGITUDE_DECIMAL_DEGREE, 
+         end_lat = END_LATITUDE_DECIMAL_DEGREES, end_lon = END_LONGITUDE_DECIMAL_DEGREES,
+         skate_condition_cde = SUBSET_CONDITION_CODE, bait_cde = BAIT_CODE, 
+         trip_comments = TRIP_COMMENTS, set_comments = EFFORT_COMMENT, skate_comments = SUBSET_COMMENTS,
+         no_hooks = NUMBER_HOOKS, bare = BARE, bait = BAIT, invalid = INVALID, 
+         sablefish = SABLEFISH, halibut = HALIBUT, idiot = IDIOT, 
+         shortraker = SHORTRAKER, rougheye = ROUGHEYE, skate_general = SKATE_GENERAL,
+         longnose_skate = SKATE_LONGNOSE, big_skate = SKATE_BIG, sleeper_shark = SLEEPER_SHARK) -> srv_eff
+
+write_csv(srv_eff, paste0("data/survey/llsrv_cpue_v2_", min(srv_eff$year), "_",
+                          max(srv_eff$year), ".csv"))
 
 # Longline survey catch ----
 
