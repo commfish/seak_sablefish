@@ -38,9 +38,10 @@ srv_cpue %>% filter(skate_condition_cde != "02") %>%
 srv_cpue %>% filter(skate_condition_cde != "02") %>% 
   distinct(set_comments) #%>% View() # any red flags?
 
+srv_cpue %>% filter(no_hooks < 0)
 srv_cpue %>% filter(year >= 1997 & c(is.na(no_hooks) | no_hooks == 0)) # there should be none
 
-srv_cpue %>% filter(end_lon > 0 | stat_lon > 0) #View() # should be none. these are data entry errors
+srv_cpue %>% filter(end_lon > 0 | start_lon > 0) #View() # should be none. these are data entry errors
 # Hard code fix, sent error to Rhea and Aaron 20200205 to fix in database
 srv_cpue <- srv_cpue %>%  mutate(end_lon = ifelse(end_lon > 0, -1 * end_lon, end_lon))
 
@@ -54,35 +55,27 @@ srv_cpue  %>%
            # Mike Vaughn 2018-03-06: Sets (aka subsets with 12 or more invalid
            # hooks are subset condition code "02" or invalid)
            skate_condition_cde != "02") %>% 
+  replace_na(list(bare=0, bait=0, invalid=0, sablefish=0, halibut=0,
+                  idiot=0, shortraker=0, rougheye=0, skate_general=0,
+                  longnose_skate=0, big_skate=0, sleeper_shark=0)) %>% 
   mutate(Year = factor(year),
          Stat = factor(Stat),
          Adfg = factor(Adfg),
-         bare = ifelse(is.na(bare), 0, bare),
-         bait = ifelse(is.na(bait), 0, bait),
-         invalid = ifelse(is.na(invalid), 0, invalid),
-         sablefish = ifelse(is.na(sablefish), 0, sablefish),
-         halibut = ifelse(is.na(halibut), 0, halibut),
-         idiot = ifelse(is.na(idiot), 0, idiot),
-         shortraker = ifelse(is.na(shortraker), 0, shortraker),
-         rougheye = ifelse(is.na(rougheye), 0, rougheye),
-         skate_general = ifelse(is.na(skate_general), 0, skate_general),
-         longnose_skate = ifelse(is.na(longnose_skate), 0, longnose_skate),
-         big_skate = ifelse(is.na(big_skate), 0, big_skate),
-         sleeper_shark = ifelse(is.na(sleeper_shark), 0, sleeper_shark),
          no_hooks = no_hooks - invalid, # remove invalid hooks
          # Lump all skates since id's have changed over time. There are no big
          # skates on the survey, this was an error. Asked it to be fixed in the
          # data 20200204.
          skates = skate_general + longnose_skate + big_skate,
+         shortraker_rougheye = shortraker + rougheye,
          #standardize hook spacing (Sigler & Lunsford 2001, CJFAS) changes in
          #hook spacing. pers. comm. with aaron.baldwin@alaska.gov: 1995 & 1996 -
          #118 in; 1997 - 72 in.; 1998 & 1999 - 64; 2000-present - 78". This is
          #different from KVK's code (he assumed 3 m before 1997, 2 m in 1997 and
          #after)
-         std_hooks = ifelse(year <= 1996, 2.2 * no_hooks * (1 - exp(-0.57 * (118 * 0.0254))),
-                            ifelse(year == 1997, 2.2 * no_hooks * (1 - exp(-0.57 * (72 * 0.0254))),
-                                   ifelse( year %in% c(1998, 1999), 2.2 * no_hooks * (1 - exp(-0.57 * (64 * 0.0254))),
-                                           2.2 * no_hooks * (1 - exp(-0.57 * (78 * 0.0254)))))),
+         std_hooks = case_when(year <= 1996 ~ 2.2 * no_hooks * (1 - exp(-0.57 * (118 * 0.0254))),
+                               year == 1997 ~ 2.2 * no_hooks * (1 - exp(-0.57 * (72 * 0.0254))),
+                               year %in% c(1998, 1999) ~ 2.2 * no_hooks * (1 - exp(-0.57 * (64 * 0.0254))),
+                               TRUE ~ 2.2 * no_hooks * (1 - exp(-0.57 * (78 * 0.0254)))),
          # flags for clotheslined gear or sharks in gear. These are issues that
          # can be standardized instead of invalidating sets. FLAG -- look for
          # high proportions of baited hooks to identify clotheslined sets. Mike
@@ -92,26 +85,26 @@ srv_cpue  %>%
                                  grepl("clotheslined|Clotheslined", set_comments), 1, 0),
          shark = ifelse(grepl("sleeper|Sleeper|shark|sharks", skate_comments) | 
                           grepl("sleeper|Sleepershark|sharks", set_comments), 1, 
-                        ifelse(sleeper_shark > 0, 1, 0))
-  ) -> srv_cpue
+                        ifelse(sleeper_shark > 0, 1, 0))) %>% 
+  rename(shortspine_thornyhead = idiot) -> srv_cpue
 
 # Calculate the set (aka station) level cpue
 srv_cpue %>% 
   # Summarize data at the set (or station) level
   group_by(year, Vessel, Station_no) %>% # julian_day, soak, depth, slope, Stat, end_lat, end_lon, clotheslined, shark) %>% 
   mutate(bare = sum(bare),
-            bait = sum(bait),
-            sablefish = sum(sablefish),
-            halibut = sum(halibut),
-            idiot = sum(idiot),
-            shortraker = sum(shortraker),
-            rougheye = sum(rougheye),
-            skates = sum(skates),
-            sleeper_shark = sum(sleeper_shark),
-            set_hooks = sum(std_hooks)) %>% 
+         bait = sum(bait),
+         sablefish = sum(sablefish),
+         halibut = sum(halibut),
+         shortspine_thornyhead = sum(shortspine_thornyhead),
+         shortraker_rougheye = sum(shortraker_rougheye),
+         skates = sum(skates),
+         sleeper_shark = sum(sleeper_shark),
+         set_hooks = sum(std_hooks)) %>% 
   ungroup() %>% 
-  melt(measure.vars = c("sablefish", "halibut", "idiot", "shortraker", 
-                        "rougheye", "skates", "sleeper_shark"),
+  melt(measure.vars = c("sablefish", "shortspine_thornyhead", 
+                        "skates", "shortraker_rougheye", "halibut",
+                        "sleeper_shark"),
        variable.name = "hook_accounting", value.name = "n") %>%
   mutate(set_cpue = n / set_hooks) %>% 
   # Calculate cpue by stat area
@@ -120,71 +113,86 @@ srv_cpue %>%
   # Calculate annual cpue (n = number of stations sampled in a year)
   group_by(year, hook_accounting) %>% 
   mutate(n_set = length(unique(Station_no)),
-         cpue = round(mean(set_cpue), 2),
+         cpue = mean(set_cpue),
          sd = round(sd(set_cpue), 4),
          se = round(sd / sqrt(n_set), 4)) -> srv_cpue
-
+  
 # Sablefish-specific dataframe for analysis
 sable <- srv_cpue %>% 
   filter(hook_accounting == "sablefish") %>% 
-  distinct(year, Adfg, Station_no, set_cpue, depth, 
-           end_lon, end_lat, soak, slope, bare, clotheslined, shark) %>%
+  distinct(year, Adfg, Station_no, set_cpue, depth, end_lon, end_lat, 
+           soak, slope, bare, bait, clotheslined, shark) %>%
   ungroup() %>% 
   mutate(Station_no = factor(Station_no),
          Year = factor(year),
          Clotheslined = factor(clotheslined),
          Shark = factor(shark)) 
 
-# eda ----
+srv_cpue %>% 
+  ungroup() %>% 
+  filter(hook_accounting == "sablefish") %>% 
+  distinct(year, std_cpue = cpue, sd, se) %>% 
+  arrange(year) -> srv_sum
+
+write_csv(srv_sum, paste0("output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
+
+# figures
+
+axis <- tickr(srv_sum, year, 5)
+ggplot(data = srv_sum) +
+  geom_point(aes(x = year, y = std_cpue)) +
+  geom_line(aes(x = year, y = std_cpue)) +
+  geom_ribbon(aes(year, ymin = std_cpue - sd, ymax = std_cpue + sd),
+              alpha = 0.2, col = "white", fill = "grey") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  lims(y = c(0, 0.35)) +
+  labs(x = NULL, y = "Survey CPUE (number per hook)\n") 
+
+ggsave(paste0("figures/npue_llsrv_", YEAR, ".png"), 
+       dpi=300, height=4, width=7, units="in")
 
 ggplot() +
   geom_line(data = srv_cpue, 
             aes(x = year, y = set_cpue, group = Station_no), col = "lightgrey") +
-  geom_line(data = srv_cpue, 
-            aes(x = year, y = cpue), size = 1) +
+  geom_line(data = srv_cpue, aes(x = year, y = cpue)) +
+  geom_hline(data = srv_cpue %>% 
+               group_by(hook_accounting) %>% 
+               droplevels() %>% 
+               dplyr::summarize(mu_cpue = mean(cpue)),
+             aes(yintercept = mu_cpue), lty = 2) +
   facet_wrap(~hook_accounting, scales = "free_y") +
-  ylab("Number per standardized hook") +
-  ggtitle("Annual = black line, Station = grey lines")
+  expand_limits(y = 0) +
+  labs(x = NULL, y = "Number per standardized hook") 
 
+ggsave(paste0("figures/npue_llsrv_allspp_", YEAR, ".png"), 
+       dpi=300, height=7/1.6, width=7, units="in")
+
+# By stat area
 ggplot() +
-  geom_line(data = srv_cpue, 
+  geom_line(data = srv_cpue %>% filter(hook_accounting == "sablefish"), 
             aes(x = year, y = set_cpue, group = Station_no), col = "lightgrey") +
-  geom_line(data = srv_cpue, 
-            aes(x = year, y = stat_cpue), size = 1) +
-  facet_grid(hook_accounting ~ Stat, scales = "free") +
-  ylab("Number per standardized hook") +
-  ggtitle("Annual = black line, Station = grey lines")
+  geom_line(data = srv_cpue %>% filter(hook_accounting == "sablefish"), 
+            aes(x = year, y = stat_cpue)) +
+  geom_hline(data = srv_cpue %>% 
+               filter(hook_accounting == "sablefish") %>% 
+               group_by(Stat) %>% 
+               droplevels() %>% 
+               dplyr::summarize(mu_cpue = mean(stat_cpue)),
+             aes(yintercept = mu_cpue), lty = 2) +
+  facet_wrap(~ Stat, scales = "free_y", ncol = 1) +
+  labs(x = NULL, y = "Number per standardized hook")
 
-ggplot() +
-  geom_line(data = srv_cpue %>% filter(hook_accounting %in% c("skate_general", "longnose_skate", "big_skate")), 
-            aes(x = year, y = set_cpue, group = Station_no), col = "lightgrey") +
-  facet_wrap(~hook_accounting, scales = "free_y")
+ggsave(paste0("figures/npue_llsrv_stat_", YEAR, ".png"), 
+       dpi=300, height=7/1.6, width=3.5, units="in")
 
-ggplot( ) +
-  geom_line(data = srv_cpue %>% filter(hook_accounting %in% c("sablefish")), 
-                   aes(x = year, y = set_cpue, group = Station_no), col = "lightgrey") +
-  geom_line(data = srv_cpue %>% filter(hook_accounting %in% c("sablefish")), 
-                   aes(x = year, y = stat_cpue)) +
-  facet_wrap(~Stat)
-
-ggplot( ) +
-  geom_line(data = srv_cpue %>% filter(hook_accounting %in% c("bare")), 
-                   aes(x = year, y = set_cpue, group = Station_no), col = "lightgrey") +
-  geom_line(data = srv_cpue %>% filter(hook_accounting %in% c("bare")), 
-                   aes(x = year, y = stat_cpue)) +
-  facet_wrap(~Stat)
-
-ggplot( ) +
-  geom_line(data = srv_cpue %>% filter(hook_accounting %in% c("halibut")), 
-            aes(x = year, y = set_cpue)) +
-  facet_wrap(~Station_no)
+# GAM explorations ----
 
 library(GGally)
 library(mgcViz)
 library(mgcv)
 
 sable %>% 
-  select(set_cpue, depth, end_lon, soak, slope, bare, Clotheslined, Shark) %>% 
+  select(set_cpue, depth, end_lon, soak, slope, bare, bait, Clotheslined, Shark) %>% 
   GGally::ggpairs() # cut off anything with a correlation less than 0.05 (just shark flag)
 
 sable %>%
@@ -196,27 +204,45 @@ sable %>%
 # GAM modeling ----
 
 sable %>% filter(set_cpue == 0) # there should be no zero values
-
-sable %>% filter(is.na(depth) & is.na(soak)) %>% nrow()
-
-sable <- sable %>% filter(!is.na(depth) & !is.na(soak)) 
-
+# sable %>% filter(is.na(depth) & is.na(soak)) %>% nrow()
+# sable <- sable %>% filter(!is.na(depth) & !is.na(soak)) 
+# sable %>% filter(bait > 900) %>% View()
 # sable <- sable %>% filter(soak < 10) 
 # sable <- sable %>% filter(slope < 300) 
 
-hist(sable$soak)
-mod0 <- bam(set_cpue ~ s(soak, k = 4) + s(depth, k = 4) + s(slope, k = 4) + s(bare, k = 4) +
-              te(end_lon, end_lat) + Year + Clotheslined + s(Adfg, bs='re'), 
+# bait = better than Clotheslined; also highly correlated with bare (so bare has
+# been removed to avoid confounding)
+mod0 <- bam(set_cpue ~ s(soak, k = 4) + s(depth, k = 4) + s(slope, k = 4) + 
+              s(bait, k = 4) + 
+              te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
             data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE,
-            subset = soak < 10 & slope < 300)
+            subset = soak < 10 & slope < 300 & bait < 900)
 
 summary(mod0)
 anova(mod0)
-print(plot(getViz(mod0)) + l_fitRaster() + l_fitContour() + 
-        l_points(color = "grey60")+ l_fitLine() + l_ciLine() 
-      + l_ciBar(linetype = 1) + l_fitPoints(size = 1), pages = 3)
-par(mfrow=c(2,2), cex=1.1)
-gam.check(mod0)
+print(plot(getViz(mod0), allTerms = TRUE) + l_fitRaster() + l_fitContour() + 
+        l_points(color = "grey60", size = 0.5)+ l_fitLine() + l_ciLine() +
+        l_ciBar(linetype = 2) + l_fitPoints(size = 1), pages = 8)
+
+par(mfrow=c(2, 2), cex=1.1); gam.check(mod0)
+
+# drop soak time
+mod1 <- bam(set_cpue ~ s(soak, k = 4) + s(depth, k = 4) + s(slope, k = 4) + 
+              s(bait, k = 4) +
+              te(end_lon, end_lat) + Year + s(Adfg, bs='re'), #  Clotheslined + 
+            data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE,
+            subset = soak < 10 & slope < 300 & bait < 900)
+
+summary(mod1)
+BIC(mod0); BIC(mod1)
+anova(mod1)
+print(plot(getViz(mod1), allTerms = TRUE) + l_fitRaster() + l_fitContour() + 
+        l_points(color = "grey60", size = 0.5)+ l_fitLine() + l_ciLine() 
+      + l_ciBar(linetype = 2) + l_fitPoints(size = 1), pages = 1)
+
+par(mfrow=c(2, 2), cex=1.1); gam.check(mod1)
+
+
 # VERSION 1 (2017-2019): ----
 
 # data -----
