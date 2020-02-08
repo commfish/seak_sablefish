@@ -227,104 +227,109 @@ print(plot(getViz(mod0), allTerms = TRUE) + l_fitRaster() + l_fitContour() +
 par(mfrow=c(2, 2), cex=1.1); gam.check(mod0)
 
 # drop soak time
-mod1 <- bam(set_cpue ~ s(soak, k = 4) + s(depth, k = 4) + s(slope, k = 4) + 
+mod1 <- bam(set_cpue ~ s(depth, k = 4) + s(slope, k = 4) + 
               s(bait, k = 4) +
               te(end_lon, end_lat) + Year + s(Adfg, bs='re'), #  Clotheslined + 
             data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE,
             subset = soak < 10 & slope < 300 & bait < 900)
 
 summary(mod1)
-BIC(mod0); BIC(mod1)
-anova(mod1)
-print(plot(getViz(mod1), allTerms = TRUE) + l_fitRaster() + l_fitContour() + 
-        l_points(color = "grey60", size = 0.5)+ l_fitLine() + l_ciLine() 
-      + l_ciBar(linetype = 2) + l_fitPoints(size = 1), pages = 1)
-
+BIC(mod0); BIC(mod1) # soak time significant
 par(mfrow=c(2, 2), cex=1.1); gam.check(mod1)
 
+# drop slope
+mod2 <- bam(set_cpue ~ s(soak, k = 4) + s(depth, k = 4) + 
+              s(bait, k = 4) + 
+              te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
+            data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE,
+            subset = soak < 10 & slope < 300 & bait < 900)
+
+summary(mod2)
+BIC(mod0); BIC(mod2) # soak time significant
+par(mfrow=c(2, 2), cex=1.1); gam.check(mod2)
 
 # VERSION 1 (2017-2019): ----
 
-# data -----
-srv_cpue <- read_csv(paste0("data/survey/llsrv_cpue_1985_", YEAR, ".csv"),
-                     guess_max = 500000)
-
-srv_cpue  %>% 
-  filter(year >= 1997 & 
-           # Mike Vaughn 2018-03-06: Sets (aka subsets with 12 or more invalid
-           # hooks are subset condition code "02" or invalid)
-           subset_condition_cde != "02") %>% 
-  filter(!c(is.na(no_hooks) | no_hooks == 0)) %>% 
-  mutate(Year = factor(year),
-         Stat = factor(Stat),
-         #standardize hook spacing (Sigler & Lunsford 2001, CJFAS) changes in 
-         #hook spacing. pers. comm. with aaron.baldwin@alaska.gov: 1995 & 1996 -
-         #118 in; 1997 - 72 in.; 1998 & 1999 - 64; 2000-present - 78". This is
-         #different from KVK's code (he assumed 3 m before 1997, 2 m in 1997 and
-         #after)
-         hooks_bare = ifelse(is.na(hooks_bare), 0, hooks_bare),
-         hooks_bait = ifelse(is.na(hooks_bait), 0, hooks_bait),
-         hook_invalid = ifelse(is.na(hook_invalid), 0, hook_invalid),
-         no_hooks = no_hooks - hook_invalid,
-         std_hooks = ifelse(year <= 1996, 2.2 * no_hooks * (1 - exp(-0.57 * (118 * 0.0254))),
-                            ifelse(year == 1997, 2.2 * no_hooks * (1 - exp(-0.57 * (72 * 0.0254))),
-                                   ifelse( year %in% c(1998, 1999), 2.2 * no_hooks * (1 - exp(-0.57 * (64 * 0.0254))),
-                                           2.2 * no_hooks * (1 - exp(-0.57 * (78 * 0.0254)))))),
-         # std_hooks = ifelse(year < 1997, 2.2 * no_hooks * (1 - exp(-0.57 * 3)),
-         #                    2.2 * no_hooks * (1 - exp(-0.57 * 2))),
-         # sablefish_retained = ifelse(discard_status_cde == "01", hooks_sablefish, 0),
-         # sablefish_retained = hooks_sablefish,
-         sablefish_retained = replace(hooks_sablefish, is.na(hooks_sablefish), 0), # make any NAs 0 values
-         std_cpue = sablefish_retained/std_hooks #*FLAG* this is NPUE, the fishery is a WPUE
-         # raw_cpue = sablefish_retained/no_hooks
-  ) -> srv_cpue
-
-# Bootstrap ----
-
-axis <- tickr(srv_cpue, year, 5)
-
-# Simple bootstrap confidence intervals (smean.cl.boot from rms)
-srv_cpue %>%
-  group_by(year) %>%
-  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot
-
-ggplot(plot_boot) +
-  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper), 
-              alpha = 0.1, fill = "grey55") +
-  geom_point(aes(x = year, y = Mean), size = 1) +
-  geom_line(aes(x = year, y = Mean)) +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  labs(x = "", y = "Survey CPUE (number per hook)\n") +
-  lims(y = c(0.15, 0.3)) 
-  
-ggsave(paste0("figures/srvcpue_bootCI_1997_", YEAR, ".png"),
-       dpi=300, height=4, width=7, units="in")
-
-# With +/- 1 sd ----
-hist(srv_cpue$std_cpue)
-srv_cpue %>% 
-  group_by(year) %>% 
-  summarise(srv_cpue = round(mean(std_cpue), 2),
-         n = length(std_cpue),
-         sd = sd(std_cpue),
-         se = sd / sqrt(n)) -> srv_sum
-
-write_csv(srv_sum, paste0("output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
-
-# figures
-
-axis <- tickr(srv_sum, year, 5)
-ggplot(data = srv_sum) +
-  geom_point(aes(year, srv_cpue)) +
-  geom_line(aes(year, srv_cpue)) +
-  geom_ribbon(aes(year, ymin = srv_cpue - sd, ymax = srv_cpue + sd),
-              alpha = 0.2, col = "white", fill = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  lims(y = c(0, 0.4)) +
-  labs(x = NULL, y = "Survey CPUE (number per hook)\n") 
-
-ggsave(paste0("figures/npue_llsrv_", YEAR, ".png"), 
-       dpi=300, height=4, width=7, units="in")
+# # data -----
+# srv_cpue <- read_csv(paste0("data/survey/llsrv_cpue_1985_", YEAR, ".csv"),
+#                      guess_max = 500000)
+# 
+# srv_cpue  %>% 
+#   filter(year >= 1997 & 
+#            # Mike Vaughn 2018-03-06: Sets (aka subsets with 12 or more invalid
+#            # hooks are subset condition code "02" or invalid)
+#            subset_condition_cde != "02") %>% 
+#   filter(!c(is.na(no_hooks) | no_hooks == 0)) %>% 
+#   mutate(Year = factor(year),
+#          Stat = factor(Stat),
+#          #standardize hook spacing (Sigler & Lunsford 2001, CJFAS) changes in 
+#          #hook spacing. pers. comm. with aaron.baldwin@alaska.gov: 1995 & 1996 -
+#          #118 in; 1997 - 72 in.; 1998 & 1999 - 64; 2000-present - 78". This is
+#          #different from KVK's code (he assumed 3 m before 1997, 2 m in 1997 and
+#          #after)
+#          hooks_bare = ifelse(is.na(hooks_bare), 0, hooks_bare),
+#          hooks_bait = ifelse(is.na(hooks_bait), 0, hooks_bait),
+#          hook_invalid = ifelse(is.na(hook_invalid), 0, hook_invalid),
+#          no_hooks = no_hooks - hook_invalid,
+#          std_hooks = ifelse(year <= 1996, 2.2 * no_hooks * (1 - exp(-0.57 * (118 * 0.0254))),
+#                             ifelse(year == 1997, 2.2 * no_hooks * (1 - exp(-0.57 * (72 * 0.0254))),
+#                                    ifelse( year %in% c(1998, 1999), 2.2 * no_hooks * (1 - exp(-0.57 * (64 * 0.0254))),
+#                                            2.2 * no_hooks * (1 - exp(-0.57 * (78 * 0.0254)))))),
+#          # std_hooks = ifelse(year < 1997, 2.2 * no_hooks * (1 - exp(-0.57 * 3)),
+#          #                    2.2 * no_hooks * (1 - exp(-0.57 * 2))),
+#          # sablefish_retained = ifelse(discard_status_cde == "01", hooks_sablefish, 0),
+#          # sablefish_retained = hooks_sablefish,
+#          sablefish_retained = replace(hooks_sablefish, is.na(hooks_sablefish), 0), # make any NAs 0 values
+#          std_cpue = sablefish_retained/std_hooks #*FLAG* this is NPUE, the fishery is a WPUE
+#          # raw_cpue = sablefish_retained/no_hooks
+#   ) -> srv_cpue
+# 
+# # Bootstrap ----
+# 
+# axis <- tickr(srv_cpue, year, 5)
+# 
+# # Simple bootstrap confidence intervals (smean.cl.boot from rms)
+# srv_cpue %>%
+#   group_by(year) %>%
+#   do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot
+# 
+# ggplot(plot_boot) +
+#   geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper), 
+#               alpha = 0.1, fill = "grey55") +
+#   geom_point(aes(x = year, y = Mean), size = 1) +
+#   geom_line(aes(x = year, y = Mean)) +
+#   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+#   labs(x = "", y = "Survey CPUE (number per hook)\n") +
+#   lims(y = c(0.15, 0.3)) 
+#   
+# ggsave(paste0("figures/srvcpue_bootCI_1997_", YEAR, ".png"),
+#        dpi=300, height=4, width=7, units="in")
+# 
+# # With +/- 1 sd ----
+# hist(srv_cpue$std_cpue)
+# srv_cpue %>% 
+#   group_by(year) %>% 
+#   summarise(srv_cpue = round(mean(std_cpue), 2),
+#          n = length(std_cpue),
+#          sd = sd(std_cpue),
+#          se = sd / sqrt(n)) -> srv_sum
+# 
+# write_csv(srv_sum, paste0("output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
+# 
+# # figures
+# 
+# axis <- tickr(srv_sum, year, 5)
+# ggplot(data = srv_sum) +
+#   geom_point(aes(year, srv_cpue)) +
+#   geom_line(aes(year, srv_cpue)) +
+#   geom_ribbon(aes(year, ymin = srv_cpue - sd, ymax = srv_cpue + sd),
+#               alpha = 0.2, col = "white", fill = "grey") +
+#   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+#   lims(y = c(0, 0.4)) +
+#   labs(x = NULL, y = "Survey CPUE (number per hook)\n") 
+# 
+# ggsave(paste0("figures/npue_llsrv_", YEAR, ".png"), 
+#        dpi=300, height=4, width=7, units="in")
 
 # Explore hook standardization relationship ----
 

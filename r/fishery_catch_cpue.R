@@ -36,13 +36,17 @@ catch_ifdb <- read_csv(paste0("data/fishery/nseiharvest_ifdb_1985_", YEAR,".csv"
 bind_rows(catch_gef, catch_ifdb) -> catch
 
 catch_ifdb %>% 
-  filter(year %in% c("2013", "2014", "2015", "2016", "2017")) %>% 
+  filter(year > 2013) %>% 
   group_by(year, julian_day) %>% 
   summarise(pounds = sum(whole_pounds)) %>% 
-  mutate(cum_pounds = cumsum(pounds)) -> catch_plot
+  mutate(cum_pounds = cumsum(pounds)) %>% 
+  group_by(year) %>% 
+  mutate(tot_pounds = sum(pounds)) %>% 
+  ungroup() %>% 
+  mutate(cum_pounds = cum_pounds / tot_pounds) -> catch_plot
 
-ggplot(catch_plot, aes(x = julian_day, colour = factor(year), group = factor(year))) +
-  geom_line(aes(y = cum_pounds/1000000)) +
+ggplot(catch_plot, aes(x = julian_day, colour = year, group = factor(year))) +
+  geom_line(aes(y = cum_pounds)) +
   # facet_wrap(~ year, ncol = 1) +
   labs(x = "Julian Day", y = "Millions lb") +
   ylim(0, 1)
@@ -110,6 +114,7 @@ ggsave(paste0("figures/catch_byport_", YEAR, ".png"),
        dpi=300, height=8, width=7, units="in")
 
 View(port_catch)
+
 # Consolidation of fishery - number of vessels fishing and total number of trips
 # in Chatham over time
 
@@ -177,7 +182,7 @@ fsh_cpue %>%
   labs(x = "", y = "") +
   ylim(0, NA) -> trips_vessels
 
-ggsave(plot = trips_vessels,paste0("figures/fishery_tripandvessel_trends_1997_", YEAR, ".png"), 
+ggsave(plot = trips_vessels, paste0("figures/fishery_tripandvessel_trends_1997_", YEAR, ".png"), 
        dpi=300, height=6, width=5, units="in")
 
 # Bootstrap ----
@@ -196,7 +201,7 @@ ggplot(plot_boot) +
   geom_line(aes(x = year, y = Mean)) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
-  lims(y = c(0.4, 1.1))
+  lims(y = c(0, 1.1))
   
 ggsave(paste0("figures/fshcpue_bootCI_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
@@ -225,51 +230,39 @@ ggplot(fsh_cpue, aes(cpue)) + geom_density(alpha = 0.4, fill = 4)
 ggplot(fsh_cpue, aes(Year, std_cpue)) + geom_boxplot()
 
 # Trends over time by area
-ggplot(fsh_cpue, aes(Stat, std_cpue, fill = Year)) + 
+ggplot(fsh_cpue %>% 
+         filter(Stat %in% c("345603", "345631", "345701", "345731")), aes(Stat, std_cpue, fill = Year)) + 
   geom_boxplot() +
   scale_fill_manual(values = rev(colorspace::sequential_hcl(c = 0, l = c(30, 90), 
                                                             power = c(1/5, 1.3), 
                                                             n_distinct(fsh_cpue$year))),
                     guide = FALSE) +
-  labs(x = "", y = "Fishery CPUE (round pounds per hook)\n")
+  labs(x = NULL, y = "Fishery CPUE (round pounds per hook)\n")
 
 ggsave(paste0("figures/fshcpue_trendsbyStat_",min(fsh_cpue$year), "_", YEAR, ".png"), 
        dpi=400, height=4, width=7.5, units="in")
 
-# No one fished in Fred. Sound in 2018
+# No one fished in Fred. Sound in 2018, 2 in 2019
 fsh_cpue %>% filter(Stat %in% c("345702", "335701") & year == YEAR) %>% distinct(Adfg)
-# 12 vessels fished N Chatham, saw uptick in cpue 
+# Activity in N Chatham 
 fsh_cpue %>% filter(Stat %in% c("345731", "345803") & year == YEAR) %>% distinct(Adfg)
-# Decrease in S Chatham, but also decrease in number of boats fishing there.
-fsh_cpue %>% filter(Stat %in% c("345603")) %>% group_by(year) %>%  summarize(n_distinct(Adfg)) %>% View()
-fsh_cpue %>% filter(Stat %in% c("335701")) %>% group_by(year) %>%  summarize(n_distinct(Adfg)) %>% View()
+# Activity in S Chatham
+fsh_cpue %>% filter(Stat %in% c("345603")) %>% group_by(year) %>%  dplyr::summarize(n_distinct(Adfg)) %>% View()
+fsh_cpue %>% filter(Stat %in% c("335701")) %>% group_by(year) %>%  dplyr::summarize(n_distinct(Adfg)) %>% View()
 
 fsh_cpue %>% 
   group_by(year, Stat) %>% 
   dplyr::summarize(trips = n_distinct(trip_no),
             vessels = n_distinct(trip_no)) -> stat_sum
 
-
-# Trends over time by area
-ggplot(fsh_cpue %>% filter(! Stat %in% c("345702", "335701")), aes(year, std_cpue, fill = Year)) + 
-  geom_boxplot() +
-  scale_fill_manual(values = rev(colorspace::sequential_hcl(c = 0, l = c(30, 90), 
-                                                            power = c(1/5, 1.3), 
-                                                            n_distinct(fsh_cpue$year))),
-                    guide = FALSE) +
-  facet_wrap(~Stat) +
-  labs(x = "", y = "Fishery CPUE (round pounds per hook)\n") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) 
-
-
-# Summary about Fishery CPUE in 2018  
-  
 # Gear performance by Stat
 ggplot(fsh_cpue, aes(Stat, cpue, fill = Gear)) + geom_boxplot()
+
 # Gear performance over time
 ggplot(fsh_cpue, aes(Year, cpue, fill = Gear)) + geom_boxplot() +
   theme(axis.text.x = element_text(size = 14, angle = 90, h = 1)) +
   labs(x = "", y = "Fishery CPUE\n")
+
 # Only a handful of vessels with autobaiter gear
 ggplot(fsh_cpue, aes(Adfg, cpue, color = Gear)) + geom_jitter(alpha=.4) +
   theme(axis.text.x = element_text(colour = "white"))
@@ -288,6 +281,8 @@ ggplot(fsh_cpue, aes(Year, cpue, fill = Hook_size)) + geom_boxplot()+
   labs(x = "", y = "Fishery CPUE\n")
 ggplot(fsh_cpue, aes(Stat, cpue, fill = Hook_size)) + geom_boxplot()+
   labs(x = "\nStat area", y = "Fishery CPUE\n")
+# New hook size 6 in 2019, vessel look up:
+fsh_cpue %>% filter(Hook_size == "6") %>% distinct(Adfg, cpue)
 
 # Depth - clear increasing trend, asymptotes ~ 450 m
 ggplot(fsh_cpue, aes(depth, cpue)) + geom_point(shape = 20) + 
@@ -504,7 +499,8 @@ fsh_sum %>%
   scale_shape_manual(values = c(19, 17), name = "Standardized CPUE") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   labs(x = "", y = "Fishery CPUE (round lb/hook)\n") +
-  theme(legend.position = c(0.8, 0.2))
+  theme(legend.position = c(0.8, 0.2)) +
+  expand_limits(y = 0)
 
 ggsave(paste0("figures/compare_stdcpue_llfsh_", YEAR, ".png"), dpi=300, height=4, width=7, units="in")
 

@@ -7,9 +7,9 @@ source("r/helper.r")
 source("r/functions.r")
 library(ggridges)
 
-YEAR <- 2018
+YEAR <- 2019
 rec_age <- 2
-plus_group <- 42
+plus_group <- 31
 
 # data -----
 
