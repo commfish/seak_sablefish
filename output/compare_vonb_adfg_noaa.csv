@@ -1,26 +1,26 @@
 Parameter,Estimate,SE,Sex,Survey,Years,Region,Function,n,Source
-a,1.119100743841995e-5,6.270510910897832e-7,Male,ADFG Longline,1997-2018,Chatham Strait,Allometric,6330,seak_sablefish/code/biological.r
-b,2.9926139436629513,0.013360909206377756,Male,ADFG Longline,1997-2018,Chatham Strait,Allometric,6330,seak_sablefish/code/biological.r
-a,8.211966412138513e-6,2.891200738860922e-7,Female,ADFG Longline,1997-2018,Chatham Strait,Allometric,7338,seak_sablefish/code/biological.r
-b,3.064832755958585,0.008093027856579872,Female,ADFG Longline,1997-2018,Chatham Strait,Allometric,7338,seak_sablefish/code/biological.r
-a,8.894405280894344e-6,2.1743361205595757e-7,Combined,ADFG Longline,1997-2018,Chatham Strait,Allometric,NA,seak_sablefish/code/biological.r
-b,3.046733551160379,0.00567905280471925,Combined,ADFG Longline,1997-2018,Chatham Strait,Allometric,NA,seak_sablefish/code/biological.r
-l_inf,84.88846839854989,0.4015539772367302,Female,ADF&G Longline,1997-2018,Chatham Strait,Length-based LVB,7138,seak_sablefish/code/biological.r
-k,0.08805166597802389,0.0028266022341739204,Female,ADF&G Longline,1997-2018,Chatham Strait,Length-based LVB,7138,seak_sablefish/code/biological.r
-t0,-8.7122760249035,0.36599240234630565,Female,ADF&G Longline,1997-2018,Chatham Strait,Length-based LVB,7138,seak_sablefish/code/biological.r
-sigma,6.368292187188649,0.053305499807815494,Female,ADF&G Longline,1997-2018,Chatham Strait,Length-based LVB,7138,seak_sablefish/code/biological.r
-l_inf,69.08865116335859,0.1584750055074686,Male,ADF&G Longline,1997-2018,Chatham Strait,Length-based LVB,6156,seak_sablefish/code/biological.r
-k,0.12440365861340667,0.004260132070215231,Male,ADF&G Longline,1997-2018,Chatham Strait,Length-based LVB,6156,seak_sablefish/code/biological.r
-t0,-8.712678115965705,0.4378854861076317,Male,ADF&G Longline,1997-2018,Chatham Strait,Length-based LVB,6156,seak_sablefish/code/biological.r
-sigma,4.193901108205784,0.03779721086671859,Male,ADF&G Longline,1997-2018,Chatham Strait,Length-based LVB,6156,seak_sablefish/code/biological.r
-w_inf,6.312437892869932,0.09197066484524594,Female,ADFG Longline,1997-2018,Chatham Strait,Weight-based LVB,7071,seak_sablefish/code/biological.r
-k,0.10164203576040329,0.003094279962103814,Female,ADFG Longline,1997-2018,Chatham Strait,Weight-based LVB,7071,seak_sablefish/code/biological.r
-t0,-6.952477398148377,0.28870820392394986,Female,ADFG Longline,1997-2018,Chatham Strait,Weight-based LVB,7071,seak_sablefish/code/biological.r
-sigma,0.29463296979089054,0.002476859282076064,Female,ADFG Longline,1997-2018,Chatham Strait,Weight-based LVB,7071,seak_sablefish/code/biological.r
-w_inf,3.4977393901416605,0.024473291882667784,Male,ADFG Longline,1997-2018,Chatham Strait,Weight-based LVB,6112,seak_sablefish/code/biological.r
-k,0.14727011615153573,0.004636353505596203,Male,ADFG Longline,1997-2018,Chatham Strait,Weight-based LVB,6112,seak_sablefish/code/biological.r
-t0,-6.329075030507963,0.32192925721417737,Male,ADFG Longline,1997-2018,Chatham Strait,Weight-based LVB,6112,seak_sablefish/code/biological.r
-sigma,0.22323365736250717,0.0020189473270420624,Male,ADFG Longline,1997-2018,Chatham Strait,Weight-based LVB,6112,seak_sablefish/code/biological.r
+a,1.0984026584116964e-5,6.011419960619126e-7,Male,ADFG Longline,1997-2019,Chatham Strait,Allometric - NLS,6542,seak_sablefish/code/biological.r
+b,2.9968482536339294,0.013052016001637523,Male,ADFG Longline,1997-2019,Chatham Strait,Allometric - NLS,6542,seak_sablefish/code/biological.r
+a,8.066571276631019e-6,2.7716498239396164e-7,Female,ADFG Longline,1997-2019,Chatham Strait,Allometric - NLS,7625,seak_sablefish/code/biological.r
+b,3.0687612623507667,0.007900903359626081,Female,ADFG Longline,1997-2019,Chatham Strait,Allometric - NLS,7625,seak_sablefish/code/biological.r
+a,8.765962259693268e-6,2.0983635479376708e-7,Combined,ADFG Longline,1997-2019,Chatham Strait,Allometric - NLS,NA,seak_sablefish/code/biological.r
+b,3.0499213671176935,0.005562613010131283,Combined,ADFG Longline,1997-2019,Chatham Strait,Allometric - NLS,NA,seak_sablefish/code/biological.r
+l_inf,84.70431402215863,0.3839006219806151,Female,ADF&G Longline,1997-2019,Chatham Strait,Length-based LVB,7415,seak_sablefish/code/biological.r
+k,0.08982632942366078,0.00274946885734576,Female,ADF&G Longline,1997-2019,Chatham Strait,Length-based LVB,7415,seak_sablefish/code/biological.r
+t0,-8.440512532707453,0.34031510661748055,Female,ADF&G Longline,1997-2019,Chatham Strait,Length-based LVB,7415,seak_sablefish/code/biological.r
+sigma,6.342512447224715,0.052082610591284696,Female,ADF&G Longline,1997-2019,Chatham Strait,Length-based LVB,7415,seak_sablefish/code/biological.r
+l_inf,69.0538679024752,0.1542676640706408,Male,ADF&G Longline,1997-2019,Chatham Strait,Length-based LVB,6364,seak_sablefish/code/biological.r
+k,0.12634924742391307,0.004176541104843232,Male,ADF&G Longline,1997-2019,Chatham Strait,Length-based LVB,6364,seak_sablefish/code/biological.r
+t0,-8.460965844710952,0.4130682687326603,Male,ADF&G Longline,1997-2019,Chatham Strait,Length-based LVB,6364,seak_sablefish/code/biological.r
+sigma,4.195661577093422,0.037189490473286124,Male,ADF&G Longline,1997-2019,Chatham Strait,Length-based LVB,6364,seak_sablefish/code/biological.r
+w_inf,6.305784030444064,0.09014011014012575,Female,ADFG Longline,1997-2019,Chatham Strait,Weight-based LVB,7348,seak_sablefish/code/biological.r
+k,0.10215889471862366,0.0030160076284020125,Female,ADFG Longline,1997-2019,Chatham Strait,Weight-based LVB,7348,seak_sablefish/code/biological.r
+t0,-6.862090892958312,0.27547663680401774,Female,ADFG Longline,1997-2019,Chatham Strait,Weight-based LVB,7348,seak_sablefish/code/biological.r
+sigma,0.2948104945780491,0.002431766336484332,Female,ADFG Longline,1997-2019,Chatham Strait,Weight-based LVB,7348,seak_sablefish/code/biological.r
+w_inf,3.4946212565483403,0.023981229551559527,Male,ADFG Longline,1997-2019,Chatham Strait,Weight-based LVB,6320,seak_sablefish/code/biological.r
+k,0.1485643936706077,0.004509154551376971,Male,ADFG Longline,1997-2019,Chatham Strait,Weight-based LVB,6320,seak_sablefish/code/biological.r
+t0,-6.185418931855968,0.3045714933772639,Male,ADFG Longline,1997-2019,Chatham Strait,Weight-based LVB,6320,seak_sablefish/code/biological.r
+sigma,0.2241675692356615,0.001993720557031122,Male,ADFG Longline,1997-2019,Chatham Strait,Weight-based LVB,6320,seak_sablefish/code/biological.r
 l_inf,65.269,0.341,Male,NOAA Longline,1981-1993,Coastwide,Length-based LVB,30,Hanselman et al. 2007 Appendix 3C
 k,0.227,0.029,Male,NOAA Longline,1981-1993,Coastwide,Length-based LVB,30,Hanselman et al. 2007 Appendix 3C
 t0,-4.092,0.936,Male,NOAA Longline,1981-1993,Coastwide,Length-based LVB,30,Hanselman et al. 2007 Appendix 3C

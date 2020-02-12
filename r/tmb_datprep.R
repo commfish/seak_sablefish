@@ -9,7 +9,7 @@ source("r/helper.r")
 source("r/functions.r")
 
 syr <- 1980
-lyr <- YEAR <- 2018
+lyr <- YEAR <- 2019
 nyr <- length(syr:lyr)
 
 rec_age <- 2
@@ -21,7 +21,7 @@ read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"),
                        guess_max = 50000) %>% 
   filter(year >= syr) %>% 
   group_by(year) %>% 
-  summarize(total_pounds = sum(whole_pounds)) %>% 
+  dplyr::summarize(total_pounds = sum(whole_pounds)) %>% 
   # Convert lbs to mt
   mutate(catch = total_pounds * 0.000453592,
          sigma_catch = 0.05,
@@ -95,6 +95,7 @@ data.frame(year = 1980:1996,
 #          lower_srv_cpue = qnorm(0.025, log(srv_cpue), sigma_srv_cpue)) -> srv_cpue
 
 read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) %>% 
+  rename(srv_cpue = std_cpue) %>% 
   # assuming lognormal distribution, use relative se as model input sigma
   mutate(#sigma_srv_cpue = se / srv_cpue, # relative standard error too low! 
          #sigma_srv_cpue = sd / srv_cpue, # cv too high!
@@ -103,21 +104,11 @@ read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) %>%
          std = 1.96 * sqrt(log(sigma_srv_cpue + 1)),
          upper_srv_cpue = exp(ln_srv_cpue + std ),
          lower_srv_cpue = exp(ln_srv_cpue - std )) %>% 
-  select(-c(n, sd, se, ln_srv_cpue, std)) -> srv_cpue 
-
-# ggplot(data = srv_cpue) +
-#   geom_point(aes(year, annual_cpue), col = "darkgrey") +
-#   geom_line(aes(year, pred)) +
-#   geom_ribbon(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue),
-#               alpha = 0.2, col = "white", fill = "grey") +
-#   scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, labels = axis$labels) + 
-#   # lims(y = c(0, 0.3)) +
-#   labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL) #-> srv_cpue_plot
-
+  select(-c(sd, se, ln_srv_cpue, std)) -> srv_cpue 
 
 # Mark-recapture index ----
 
-read_csv(paste0("output/mr_index.csv")) %>% 
+read_csv(paste0("output/mr_index_", YEAR, ".csv")) %>% 
   select(year, mr = estimate, sigma_mr = sd) %>% 
   mutate(sigma_mr = sigma_mr / mr,
          ln_mr = log(mr),
@@ -203,7 +194,7 @@ full_join(catch, fsh_cpue) %>%
   full_join(mr) %>% 
   mutate(index = year - min(year)) -> ts
   
-write_csv(ts, "data/tmb_inputs/abd_indices.csv")
+write_csv(ts, paste0("data/tmb_inputs/abd_indices_", YEAR, ".csv"))
 
 # Biological data ----
 
@@ -221,7 +212,7 @@ read_csv(paste0("data/survey/llsrv_bio_1985_", lyr,".csv"),
 
 # Weight-at-age ----
 
-waa <- read_csv("output/pred_waa.csv")
+waa <- read_csv(paste0("output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 waa %>% 
   mutate(Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
@@ -243,11 +234,11 @@ waa %>%
                                 "Fishery (sexes combined)" = Source == "LL fishery" & Sex == "Combined",
                                 .default = NA)) -> waa2
 waa2 <- na.omit(waa2)
-write_csv(waa2, "data/tmb_inputs/waa.csv")
+write_csv(waa2, paste0("data/tmb_inputs/waa_", YEAR, ".csv"))
 
 # Proportion mature -----
 
-read_csv(paste0("output/fem_maturityatage_llsrv.csv"), 
+read_csv(paste0("output/fem_maturityatage_llsrv_plsgrp", plus_group, "_", YEAR, ".csv"), 
          guess_max = 50000) -> mat
 
 mat %>% 
@@ -340,14 +331,14 @@ ggplot(waa %>%
   geom_point() +
   geom_line() + 
   scale_colour_grey() +
-  expand_limits(y = c(0, 10)) +
+  expand_limits(y = c(0, 7)) +
   labs(x ="Age", y = "\n\nMean weight (kg)", colour = NULL, shape = NULL, linetype = NULL) +
   scale_x_discrete(breaks = unique(waa$Age), labels = age_labs) +
-  theme(legend.position = c(.15, .8),
+  theme(legend.position = c(.1, .8),
         legend.spacing.y = unit(0, "cm")) -> waa_plot
 
 # Equation text for plotting values of a_50
-a50 <- 6.4
+a50 <- 6.3
 a50_txt <- as.character(
   as.expression(substitute(
     paste(italic(a[50]), " = ", xx),
@@ -389,12 +380,10 @@ bottom_plot <- plot_grid(mat_plot, prop_fem, ncol = 2, align = 'hv', labels = c(
 
 plot_grid(waa_plot, bottom_plot, nrow = 2, rel_widths = c(1, 1), labels = c('(A)', ''))
 
-ggsave(paste0("figures/tmb/bio_dat.png"), dpi=300, height=7, width=7, units="in")
+ggsave(paste0("figures/tmb/bio_dat_", YEAR, ".png"), dpi=300, height=7, width=7, units="in")
 
 # Length compositions ----
 
-# FLAG where are all the pot survey lengths? We should have more years than we
-# do. Filter out for now and come back to this later.
 lencomps <- read_csv("output/lengthcomps.csv", guess_max = 500000)
 lencomps <- lencomps %>%   
   filter(Source != "Pot survey") %>% 
@@ -405,7 +394,7 @@ lencomps <- lencomps %>%
   left_join(data.frame(year = syr:lyr) %>% 
               mutate(index = year - min(year)))
 
-write_csv(lencomps, "data/tmb_inputs/lencomps.csv")
+write_csv(lencomps, paste0("data/tmb_inputs/lencomps_", YEAR, ".csv"))
 
 # Age compositions ----
 
@@ -442,12 +431,12 @@ bind_rows(fsh_comps, srv_comps) -> agecomps
 # Check that they sum to 1
 agecomps %>% 
   group_by(year, Source) %>% 
-  summarise(proportion = sum(proportion)) 
+  dplyr::summarize(proportion = sum(proportion)) 
 
 # Sample sizes 
 agecomps %>% 
   group_by(year, Source) %>% 
-  summarize(n = sum(n)) -> n_agecomps
+  dplyr::summarize(n = sum(n)) -> n_agecomps
 
 axisx <- tickr(agecomps, year, 5)
 
@@ -475,25 +464,25 @@ full_join(select(agecomps, -n), n_agecomps) %>%
 agecomps %>% dcast(year + index + Source + n + effn ~ age, value.var = "proportion") -> agecomps
 agecomps[is.na(agecomps)] <- 0
 
-write_csv(agecomps, "data/tmb_inputs/agecomps.csv")
-
+write_csv(agecomps, paste0("data/tmb_inputs/agecomps_", YEAR, ".csv"))
 
 # Data source by year ----
 
 ts %>% 
+  ungroup() %>% 
   gather("Source", "value", c(catch, fsh_cpue, srv_cpue, mr), na.rm = TRUE) %>% 
   select(year, Source) %>% 
   bind_rows(select(agecomps, year, Source)) %>% 
   bind_rows(select(lencomps, year, Source)) %>% 
-mutate(Source = derivedFactor(`Survey lengths` = Source == "srv_len",
-                              `Fishery lengths` = Source == "fsh_len",
-                              `Survey ages` = Source == "Survey",
-                              `Fishery ages` = Source == "Fishery",
-                              `Mark-recapture` = Source == "mr",
-                              `Survey CPUE` = Source == "srv_cpue",
-                              `Fishery CPUE` = Source == "fsh_cpue",
-                              `Catch` = Source == "catch",
-                              .ordered = TRUE)) -> df
+  mutate(Source = derivedFactor(`Survey lengths` = Source == "srv_len",
+                                `Fishery lengths` = Source == "fsh_len",
+                                `Survey ages` = Source == "Survey",
+                                `Fishery ages` = Source == "Fishery",
+                                `Mark-recapture` = Source == "mr",
+                                `Survey CPUE` = Source == "srv_cpue",
+                                `Fishery CPUE` = Source == "fsh_cpue",
+                                `Catch` = Source == "catch",
+                                .ordered = TRUE)) -> df
 
 df %>% 
   mutate(value = ifelse(year == YEAR & 
@@ -507,7 +496,7 @@ ggplot(df, aes(x = year, y = Source)) +
   labs(x = NULL, y = NULL) +
   scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
 
-ggsave(paste0("figures/tmb/sable_data_all.png"),
+ggsave(paste0("figures/tmb/sable_data_all_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
 
 ggplot(df, aes(x = year, y = Source, fill = value)) +
@@ -517,7 +506,7 @@ ggplot(df, aes(x = year, y = Source, fill = value)) +
   scale_fill_manual(values = c("white", "black")) +
   scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
 
-ggsave(paste0("figures/sable_data.png"),
+ggsave(paste0("figures/sable_data_", YEAR, ".png"),
        dpi=300, height=3.5, width=7, units="in")
 
 # Retention probabilities ---

@@ -201,8 +201,7 @@ query <-
   where   species_code = '710' and
           harvest_code NOT IN ('43', '42') and
           g_cfec_fishery = 'C61A' and
-          g_management_area_code = 'NSEI' ")
-# g_management_area_code = 'NSEI' and year = ", YEAR)
+          g_management_area_code = 'NSEI' and year = ", YEAR)
 
 dbGetQuery(ifdb_channel, query) -> ifdb_catch
 
@@ -234,10 +233,10 @@ read_csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
 
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
-# read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"), 
-#          guess_max = 50000) -> past_catch
-# 
-# bind_rows(past_catch, ifdb_catch) -> ifdb_catch
+read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"),
+         guess_max = 50000) -> past_catch
+
+bind_rows(past_catch, ifdb_catch) -> ifdb_catch
 
 write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
                              min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
@@ -703,7 +702,7 @@ bind_rows(past_pot_bio, pot_bio) -> pot_bio
 
 # Ages for the pot data are sparse anyway but removie any age readability codes
 # that aren't 01, 02, or 03 (same as llsrv and llfsh 20200124 #33)
-filter(pot_bio, age_readability %in% c('01', '02', '03')) -> pot_bio
+filter(pot_bio, is.na(age_readability) | age_readability %in% c('01', '02', '03')) -> pot_bio
 
 write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
                           min(pot_bio$year), "_", max(pot_bio$year), ".csv"))

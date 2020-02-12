@@ -9,7 +9,7 @@ library(ggridges)
 
 YEAR <- 2019
 rec_age <- 2
-plus_group <- 31
+plus_group <- 42
 
 # data -----
 
@@ -83,8 +83,8 @@ bind_rows(
     summarise(weight = mean(weight) %>% round(4)) %>% 
     mutate(Sex = "Combined")) -> emp_waa
 
-# Expand to grid to include all age combos and fill in NAs if there are any using linear
-# interpolation
+# Expand to grid to include all age combos and fill in NAs if there are any
+# using linear interpolation
 expand.grid(Source = unique(emp_waa$Source),
             Sex = unique(emp_waa$Sex),
             age = seq(rec_age, plus_group, 1))  %>% 
@@ -114,7 +114,7 @@ pal <- ggthemes::canva_pal("Warm and cool")(4)
 
 # By cohort
 df_cohort <- df %>% 
-         filter(cohort >= 2010 & cohort <= 2015 & age >=2 & age <= 5) %>% 
+         filter(cohort >= 2010 & cohort <= YEAR-3 & age >=2 & age <= 5) %>% 
          droplevels()
 
 # Axis ticks for plot (see helper.r tickr() fxn for details)
@@ -180,9 +180,9 @@ start_m <- c(l_inf = 68, k = 0.29, t0 = -2.3, sigma = 10)
 
 # mle fit for females
 vb_mle_f <- vonb_len(obs_length = laa_f$length,
-                   age = laa_f$age,
-                   starting_vals = start_f,
-                   sex = "Female")
+                     age = laa_f$age,
+                     starting_vals = start_f,
+                     sex = "Female")
 
 # mle fit for males
 vb_mle_m <- vonb_len(obs_length = laa_m$length,
@@ -209,12 +209,12 @@ pred_pl <- pred %>% filter(pred <= plus_group)
 axis <- tickr(laa_plot, age, 10)
 
 ggplot(laa_plot, aes(age, length)) +
-  geom_jitter(aes(col = Sex, shape = Sex), alpha=.2) +
-  geom_line(data = pred, aes(y = pred, col = Sex, lty = Sex, group = Sex), lwd = 1) + #"#00BFC4"
+  geom_jitter(aes(col = Sex, shape = Sex), alpha=.2, shape = 20) +
+  geom_line(data = pred, aes(y = pred, col = Sex, group = Sex)) + #"#00BFC4"
   # geom_line(data = pred, aes(y = pred, group = Sex), col = "darkgrey" ) + #"#00BFC4"
   scale_colour_grey(start = 0, end = 0.5) +
   scale_linetype_manual(values = c(2,1)) +
-  scale_x_continuous(limits = c(2,31),breaks = axis$breaks, labels = axis$labels) +
+  scale_x_continuous(limits = c(rec_age, plus_group), breaks = axis$breaks, labels = axis$labels) +
   xlab("\nAge (yrs)") +
   ylab("Length (cm)\n") + 
   theme(legend.position = c(0.9, 0.2)) 
@@ -419,8 +419,8 @@ wvb_mle <- vonb_weight(obs_weight = waa_sub$weight,
                          starting_vals = start_a,
                          sex = "Combined")
 
-# Past assessments: for the plus group (31+) take the mean of all samples >=
-# 31. Now just use the predicted mean asymptotic length.
+# Past assessments: for the plus group take the mean of all samples >=
+# plus group. Now just use the predicted mean asymptotic length.
 srv_f_waa <- wvb_mle_f$ypr_predictions
 # srv_f_waa[31, 2] <- mean(waa_f$weight[waa_f$age >= plus_group], na.rm = TRUE)
 
@@ -448,8 +448,8 @@ wvb_mle_f$results %>%
               summarise(n = n()), by = 'Sex') -> wvb_pars
 
 ggplot() +
-  geom_jitter(data = waa_sub, aes(x = age, y = weight, col = Sex, shape = Sex), alpha = 0.2) +
-  geom_line(data = pred, aes(x = age, y = pred, col = Sex, lty = Sex, group = Sex), lwd = 1) + #"#00BFC4"
+  geom_jitter(data = waa_sub, aes(x = age, y = weight, col = Sex, shape = Sex), shape = 20, alpha = 0.2) +
+  geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex)) + #"#00BFC4"
   scale_colour_grey(start = 0, end = 0.5) +
   scale_linetype_manual(values = c(2,1)) +
   scale_x_continuous(limits = c(2,plus_group),breaks = axis$breaks, labels = axis$labels) +
@@ -466,7 +466,7 @@ pred %>%
   ggplot(aes(std_resid)) + geom_histogram(bins=100) +
   facet_wrap(~Sex)
 
-pred %>% 
+pred %>% # females don't look great, but this is already with a multiplicative error structure
   ggplot(aes(age, std_resid)) + 
   geom_point(alpha=.2) +
   geom_hline(yintercept=0, lty=4, alpha=.5) +
@@ -519,20 +519,12 @@ fsh_wvb_a <- vonb_weight(obs_weight = fsh_waa_sub$weight,
                          starting_vals = start_a,
                          sex = "Combined")
 
-ggplot() +
-  geom_jitter(data = fsh_waa_sub, aes(x = age, y = weight)) +
-  geom_line(data = fsh_wvb_a$ypr_predictions, aes(x = age, y = weight), 
-            lwd = 2, col = "red") + #"#00BFC4"
-  xlab("\nAge (yrs)") +
-  ylab("Weight (kg)\n") +
-  lims(x = c(2,plus_group), y = c(0,15))
-
-# Past assessments: for the plus group (31+) take the mean of all samples >=
-# 31. Now just use the predicted mean asymptotic length.
+# Past assessments: for the plus group take the mean of all samples >=
+# plus_group Now just use the predicted mean asymptotic length.
 fsh_f_waa <- fsh_wvb_f$ypr_predictions
 # fsh_f_waa[31, 2] <- mean(fsh_waa_f$weight[fsh_waa_f$age >= plus_group], na.rm = TRUE)
 fsh_m_waa <- fsh_wvb_m$ypr_predictions
-# fsh_m_waa[41, 2] <- mean(fsh_waa_m$weight[fsh_waa_m$age >= plus_greoup], na.rm = TRUE)
+# fsh_m_waa[31, 2] <- mean(fsh_waa_m$weight[fsh_waa_m$age >= plus_greoup], na.rm = TRUE)
 fsh_a_waa <- fsh_wvb_a$ypr_predictions
 
 rbind(fsh_f_waa, fsh_m_waa, fsh_a_waa) %>% 
@@ -541,15 +533,17 @@ rbind(fsh_f_waa, fsh_m_waa, fsh_a_waa) %>%
   mutate(weight = round(weight, 4)) %>% 
   select(Source, Sex, age, weight) -> pred_waa 
 
+
 ggplot(data = pred_waa, aes(x = age, y = weight, colour = Source, 
                             shape = Sex, linetype = Sex)) +
   geom_point() +
   geom_line() + 
   scale_colour_grey() +
   xlab("\nAge (yrs)") +
-  ylab("Weight (kg)\n") 
+  ylab("Weight (kg)\n") +
+  expand_limits(y = 0)
 
-write_csv(pred_waa, paste0("output/pred_waa.csv"))
+write_csv(pred_waa, paste0("output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 # Compare empirical and predicted weight-at-age
 ggplot() +
@@ -574,30 +568,26 @@ bind_rows(allom_pars, lvb_pars, wvb_pars) %>%
   write_csv(., "output/compare_vonb_adfg_noaa.csv")
 
 # Maturity ----
+
+# Fit length-based maturity -> translate to age.
+
 # 0 = immature, 1 = mature
 
-# what years do we have maturity data for?
+# what survey years do we have maturity data for?
 laa_f %>% filter(!is.na(Mature)) %>%
   group_by(year) %>% 
   summarise(n = n())
 
-# base models
+# base model
 fit_length <- glm(Mature ~ length, data = laa_f, family = binomial)
 len <- seq(0, 120, 0.05)
 (L50 <- round(- coef(fit_length)[1]/coef(fit_length)[2],1))
 (kmat <- round(((coef(fit_length)[1] + coef(fit_length)[2]*len) / (len - L50))[1], 2))
 
-
-fit_age <- glm(Mature ~ age, data = laa_f, family = binomial)
-
 # by year
 fit_length_year <- glm(Mature ~ length * Year, data = laa_f, family = binomial)
-fit_age_year <- glm(Mature ~ age * Year, data = laa_f, family = binomial)      
-# Warning message:
-#   glm.fit: fitted probabilities numerically 0 or 1 occurred 
 
-# FLAG! Not appropriate to use AIC to compare models with different data (2019-12-20)
-AIC(fit_length, fit_age, fit_length_year, fit_age_year)
+AIC(fit_length, fit_length_year)
 
 ## select the "best model" (fit_length_year) and run the model on the new full
 # dataset (there is more length data than age so it will usually fit better)
@@ -610,7 +600,7 @@ srv_bio %>%
            !is.na(length)) %>% 
   droplevels() -> len_f
 
-fit_length_year <- glm(Mature ~ length * Year, data = len_f, family = binomial)
+fit_length_year <- glm(Mature ~ length * Year, data = len_f, family = quasibinomial)
 
 # New df for prediction
 new_len_f <- data.frame(length = rep(seq(0, 120, 0.05), n_distinct(len_f$year)),
@@ -624,14 +614,14 @@ broom::augment(x = fit_length_year,
   group_by(length) %>% 
   mutate(Probability = mean(fitted)) -> pred
 
-#Length-based maturity curves (light blue lines are annual mean preditions, dark
-#blue is the mean)
+#Length-based maturity curves 
 ggplot(pred) +
-  geom_line(aes(x = length, y = fitted, group = Year), colour = "lightblue") +
+  geom_line(aes(x = length, y = fitted, group = Year, colour = as.numeric(as.character(Year)))) +
   geom_line(aes(x = length, y = Probability), 
-            colour = "darkblue", size = 2) +
+            colour = "black", size = 1, lty = 2) +
   lims(x = c(40, 85)) +
-  labs(x = "\nLength (cm)", y = "Probability\n")
+  labs(x = "\nLength (cm)", y = "Probability\n", colour = "Year") +
+  theme(legend.position = c(.8, .4))
 
 ggsave(paste0("figures/maturity_atlength_byyear_srvfem.png"), 
        dpi=300, height=4, width=6, units="in")
@@ -706,6 +696,17 @@ merge(mature_results %>%
   mutate(mu_a_50 = mean(a_50),
          mu_l_50 = mean(l_50)) -> mat_50_year
 
+# trends in L50 and a50 by year
+ggplot(mat_50_year, aes(x = year, y = l_50)) +
+  geom_point() +
+  geom_line() +
+  geom_hline(aes(yintercept = mu_l_50), lty = 2)
+
+ggplot(mat_50_year, aes(x = year, y = a_50)) +
+  geom_point() +
+  geom_line() +
+  geom_hline(aes(yintercept = mu_a_50), lty = 2)
+
 merge(pred %>% mutate(year = Year), mat_50_year, by = "year") -> pred
 
 # Age-based maturity curves estimated from length-based maturity and vonB growth
@@ -719,6 +720,7 @@ ggplot(pred) +
   labs(x = "Age", y = "Probability") -> maturity_at_age_plot
 
 # Comparison with age-based maturity curve
+fit_age_year <- glm(Mature ~ age * Year, data = laa_f, family = binomial)
 # New df for prediction
 new_f <- data.frame(age = seq(0, 30, by = 0.01), n_distinct(laa_f$year),
                     Year = factor(sort(rep(unique(laa_f$year), 
@@ -753,80 +755,40 @@ maturity_at_age_plot +
 left_join(broom::augment(x = fit_length, 
                newdata = data.frame(length = seq(0, 200, 0.01)), 
                type.predict = "response") %>% 
-  select(length, fitted = .fitted, se =.se.fit), 
-  age_pred, by = "length") -> simple_fit
+            select(length, fitted = .fitted, se =.se.fit), 
+          age_pred, by = "length") -> simple_fit
 
 # Maturity at age for YPR
 simple_fit %>%  
-  filter(age %in% c(2:plus_group)) %>%
-  right_join(data.frame(age = 2:plus_group)) %>% 
+  filter(age %in% c(rec_age:plus_group)) %>%
+  right_join(data.frame(age = rec_age:plus_group)) %>% 
   # interpolate fitted probability to fill in any missing values
   mutate(Sex = "Female",
          Source = "LL survey",
-         probability = round(zoo::na.approx(fitted, maxgap = 20, rule = 2),2)) %>% 
+         probability = round(zoo::na.approx(fitted, maxgap = 20, rule = 2), 2)) %>% 
   select(age, probability) %>% 
-  write_csv("output/fem_maturityatage_llsrv.csv")
-
-# Fit age-based model to fitted values so you can derive parameter estimates
-fit_age <- glm(fitted ~ age, data = simple_fit, family = binomial)
+  write_csv(paste0("output/fem_maturityatage_llsrv_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 #Derive age at 50% maturity and kmat (slope of logistic curve)
-b0 <- fit_age$coefficients[1]
-b1 <- fit_age$coefficients[2]
-a50 <- -b0/b1
-age <- min(laa_f$age):max(laa_f$age)
-kmat <- ((b0 + b1*age) / (age - a50))[1]
-
-
 b0 <- fit_length$coefficients[1]
 b1 <- fit_length$coefficients[2]
-L50 <- -b0/b1
-L50
+(L50 <- round(-b0/b1, 1))
+(a50 <- age_pred %>% 
+  right_join(data.frame(length = L50)) %>% 
+  group_by(length) %>% 
+  dplyr::summarise(a50 = mean(age)))
+(kmat <- round(((coef(fit_length)[1] + coef(fit_length)[2]*len) / (len - L50))[1], 2))
 
-# proportion mature at age
-laa_f %>% ungroup() %>%
-  count(Mature, age) %>%
-  group_by(age) %>%
-  mutate(proportion = round(nn / sum(nn), 2)) %>% 
-  filter(Mature == 1) -> proportion_mature
-
-# Final age-based maturity curve estimated from length-based maturity and vonB growth
-# curve. Points are proportion mature at age (1997-present)
-
-# Equation text for plotting values of a_50 and kmat
-a50_txt <- as.character(
-  as.expression(substitute(
-    paste(italic(a[50]), " = ", xx),
-    list(xx = formatC(a50, format = "f", digits = 1)))))
-
-kmat_txt <- as.character(
-  as.expression(substitute(
-    paste(italic(k[mat]), " = ", xx),
-    list(xx = formatC(kmat, format = "f", digits = 1)))))
-
-simple_fit %>%
-  sample_frac(0.1) %>% 
-ggplot() +
-  geom_line(aes(x = age, y = fitted), 
-            colour = "darkblue", size = 2) +
-  geom_segment(aes(x = a50, y = 0, xend = a50, yend = 0.50), 
-               lty = 2, col = "darkblue") +
-  geom_segment(aes(x = 0, y = 0.50, xend = a50, yend = 0.50), 
-               lty = 2, col = "darkblue") +
-  # Porportion mature by age
-  geom_point(data = proportion_mature,
-             aes(x = age, y = proportion),
-             colour = "lightblue") +
-  # a_50 and kmat labels
-  geom_text(aes(10, 0.5, label = a50_txt), face = "bold", size = 5, parse = TRUE) +
-  # geom_text(aes(10, 0.46, label = kmat_txt), face = "bold", parse = TRUE) +
-  lims(x = c(0, 15)) +
-  labs(x = "\nAge", y = "Probability\n") 
-
-# ggsave("figures/fem_maturity_at_age.png", dpi=300, 
-#        height = 4, width = 5, units="in")
-ggsave("figures/fem_maturity_at_age2.png", dpi=300, 
-       height = 4, width = 4, units="in")
+# # Equation text for plotting values of a_50 and kmat
+# a50_txt <- as.character(
+#   as.expression(substitute(
+#     paste(italic(a[50]), " = ", xx),
+#     list(xx = formatC(a50, format = "f", digits = 1)))))
+# 
+# kmat_txt <- as.character(
+#   as.expression(substitute(
+#     paste(italic(k[mat]), " = ", xx),
+#     list(xx = formatC(kmat, format = "f", digits = 1)))))
 
 # Sex ratios ----
 
@@ -950,7 +912,7 @@ srv_bio %>%
               filter(Sex == "Female")) -> byyear
 
 # Save output for YPR analysis
-write_csv(byyear, "output/sexratio_byyear.csv")
+write_csv(byyear, paste0("output/sexratio_byyear_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 # get generalized additive model fits and predictions
 # survey
@@ -1021,12 +983,9 @@ ggsave(paste0("figures/sex_ratios_", YEAR, ".png"), dpi=300,  height=6, width=7,
 #quos() uses stand eval in dplyr, eval cols with nonstand eval using !!!
 cols <- quos(Source, year, Sex, age) 
 
-rbind(
-  fsh_bio %>% mutate(Source = "LL fishery") %>% select(!!!cols), 
-  rbind( 
-    srv_bio %>% mutate(Source = "LL survey") %>% select(!!!cols), 
-    potsrv_bio %>% mutate(Source = "Pot survey") %>% select(!!!cols)) 
-  ) %>% 
+bind_rows(fsh_bio %>% mutate(Source = "LL fishery") %>% select(!!!cols), 
+          srv_bio %>% mutate(Source = "LL survey") %>% select(!!!cols)) %>% 
+  bind_rows(potsrv_bio %>% mutate(Source = "Pot survey") %>% select(!!!cols)) %>% 
   filter(Sex %in% c('Female', 'Male') & !is.na(age)) %>% 
   droplevels() %>% 
   mutate(age = ifelse(age >= plus_group, plus_group, age)) %>% 
@@ -1056,9 +1015,9 @@ all_bio %>%
          # Age = factor(age)) # for plotting, ordered = TRUE
 
 # Years with pot bio data
-potsrv_bio %>% 
-  filter(!is.na(age) & !is.na(Sex)) %>% 
-  distinct(year) -> pot_yrs
+# potsrv_bio %>% 
+#   filter(!is.na(age) & !is.na(Sex)) %>% 
+#   distinct(year) -> pot_yrs
 
 # complete() was behaving weirdly. Expand to grid to include all age combos
 expand.grid(year = unique(agecomps$year), 
@@ -1072,8 +1031,7 @@ expand.grid(year = unique(agecomps$year),
          proportion = round(proportion, 5)) %>%
   # Keep only relevant years for each Source
   filter(c(Source == "LL fishery" & year >= 2002) |
-           c(Source == "LL survey" & year >= 1997) |
-           c(Source == "Pot survey" & year %in% pot_yrs$year)) -> agecomps
+           c(Source == "LL survey" & year >= 1997)) -> agecomps
 
 # Check that they sum to 1
 agecomps %>% 
@@ -1083,12 +1041,12 @@ agecomps %>%
 # Sample sizes by source/year/sex
 agecomps %>% 
   group_by(Source, year, Sex) %>% 
-  summarize(n = sum(n)) %>% 
+  dplyr::summarize(n = sum(n)) %>% 
   dcast(Source + Sex ~ year, value.var = "n") %>% 
-  write_csv("output/n_agecomps.csv")
+  write_csv(paste0("output/n_agecomps_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 # Age comp matrix
-agecomps %>% write_csv("output/agecomps.csv")
+agecomps %>% write_csv(paste0("output/agecomps_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 # Bargraph for presentation
 agecomps %>% 
@@ -1135,7 +1093,7 @@ agecompdat <- agecomps %>%
            age <= plus_group) %>% 
   ungroup()
 
-axisx <- tickr(agecompdat, year, 5)
+axisx <- tickr(agecompdat, year, 3)
 axisy <- tickr(agecompdat, age, 5)
 
 ggplot(data = agecompdat,
@@ -1158,7 +1116,7 @@ agecompdat <- agecomps %>%
            age <= plus_group) %>% 
   ungroup()
 
-axisx <- tickr(agecompdat, year, 5)
+axisx <- tickr(agecompdat, year, 3)
 axisy <- tickr(agecompdat, age, 5)
 
 ggplot(data = agecompdat,
@@ -1192,12 +1150,13 @@ bind_rows(srv_bio %>%
                      Sex %in% c("Female", "Male") &
                      !is.na(length)) %>% 
             select(year, Sex, length) %>% 
-            mutate(Source = "LL fishery"),
-          potsrv_bio %>% 
-            filter(Sex %in% c("Female", "Male") &
-                     !is.na(length)) %>% 
-            select(year, Sex, length) %>% 
-            mutate(Source = "Pot survey")) %>% 
+            mutate(Source = "LL fishery")#,
+          # potsrv_bio %>% 
+          #   filter(Sex %in% c("Female", "Male") &
+          #            !is.na(length)) %>% 
+          #   select(year, Sex, length) %>% 
+          #   mutate(Source = "Pot survey")
+          ) %>% 
   filter(!c(length < 40)) %>% 
   mutate(length2 = ifelse(length < 41, 41,
                           ifelse(length > 99, 99, length)),
@@ -1228,15 +1187,16 @@ expand.grid(year = unique(lencomps$year),
          proportion = round(proportion, 4)) %>%
   # Keep only relevant years for each Source
   filter(c(Source == "LL fishery" & year >= 2002) |
-           c(Source == "LL survey" & year >= 1997) |
-           c(Source == "Pot survey" & year %in% pot_yrs$year)) -> lencomps
+           c(Source == "LL survey" & year >= 1997) #|
+           # c(Source == "Pot survey" & year %in% pot_yrs$year)
+         ) -> lencomps
 
 # Check that they sum to 1
 lencomps %>% 
   group_by(Source, Sex, year) %>% 
   summarise(sum(proportion)) #%>% View()
 
-write_csv(lencomps,"output/lengthcomps.csv")
+write_csv(lencomps, paste0("output/lengthcomps_", YEAR, ".csv"))
 
 lendat %>% 
   # Mean length comp for comparison
@@ -1281,7 +1241,7 @@ lendat %>%
   theme(legend.position = "none") + 
   facet_wrap(~ Source)
 
-ggsave("figures/lengthcomp_ggridges.png", 
+ggsave(paste0("figures/lengthcomp_ggridges_", YEAR, ".png"), 
        dpi=300, height=8, width=10, units="in")
 
 # ggride plot for len dat by sex (for TMB inputs)
@@ -1470,6 +1430,7 @@ agesum %>%
 
 cowplot::plot_grid(l, a, align = "hv", ncol = 1) -> compare_comp_sums
 
+compare_comp_sums
 ggsave("figures/compare_comp_summaries.png",
        plot = compare_comp_sums,
        dpi=300, height=8, width=6.5, units="in")
@@ -1492,7 +1453,7 @@ bind_rows(srv_bio %>%
             select(Sex, age, length) %>% 
             mutate(Source = "Fishery")) %>% 
   filter(!c(length < 40)) %>% 
-  mutate(age = ifelse(age > 31, 31, age),
+  mutate(age = ifelse(age > plus_group, plus_group, age),
          length2 = ifelse(length < 41, 41,
                           ifelse(length > 99, 99, length)),
          length_bin = cut(length2, breaks = seq(39.9, 99.9, 2),

@@ -14,12 +14,15 @@ source("r/functions.r")
 # User inputs ----
 
 FIRST_YEAR <- 2005 # First year for which we have consistent mark-recapture abundance estimates
-YEAR <- 2018 # Assessment year
+YEAR <- 2019 # Assessment year
 
 # F implemented in previous year fishery. From final assessment summary table.
-F_previous <- 0.0635 # 0.0683 in 2017, 0.0677 in 2016
+F_previous <- 0.0632 # 0.0635 in 2018, 0.0683 in 2017, 0.0677 in 2016
 
 mort <- 0.1 # natural mortality
+
+rec_age <- 2
+plus_group <- 42
 
 # Mark-recapture results ----
 
@@ -37,18 +40,19 @@ assessment_summary <- read_csv(paste0("output/assessment_summary_", YEAR, ".csv"
 # males, then survey females, males Manual input from Dana's NMFS spreadsheet -
 # request from him
 
-f50_f <-  3.86
-fslp_f <- 2.61
-f50_m <-  4.22
-fslp_m <- 2.61
+# Updated 20200211 with values from D Hanselman
+f50_f <-  3.98 # 3.86
+fslp_f <- 1.87 # 2.61
+f50_m <-  4.20 # 4.22
+fslp_m <- 2.57 # 2.61
 
-s50_f <- 3.75
-sslp_f <- 2.21
-s50_m <- 3.72
-sslp_m <- 2.21
+s50_f <- 3.74 # 3.75
+sslp_f <- 1.90 # 2.21
+s50_m <- 4.52 # 3.72
+sslp_m <- 1.90 # 2.21
 
 # Selectivity vectors 
-age <- 2:31
+age <- rec_age:plus_group
 
 f_sel <- 1 / (1 + exp(-fslp_f * (age - f50_f)))
 m_sel <- 1 / (1 + exp(-fslp_m * (age - f50_m)))
@@ -86,7 +90,7 @@ ggsave(paste0("figures/fixed_selectivity_", YEAR, ".png"),
 # Outputs from biological.r
 
 # Weight-at-age
-read_csv(paste0("output/pred_waa.csv"), guess_max = 50000) -> waa_l
+read_csv(paste0("output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) -> waa_l
 waa_l %>% dcast(Source + Sex ~ age, value.var = "weight") -> waa
 
 # Female, survey
@@ -107,7 +111,7 @@ wt_f_f <- wt_s_f
 wt_f_m <- wt_s_m
 
 # Maturity at age, female survey
-read_csv("output/fem_maturityatage_llsrv.csv", guess_max = 50000) -> mat
+read_csv(paste0("output/fem_maturityatage_llsrv_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) -> mat
 
 mat_s_f <- mat %>% dcast(. ~ age, value.var = "probability") %>% select(matches("^[[:digit:]]+$")) %>% as.numeric()
 
@@ -144,7 +148,7 @@ ggsave(paste0("figures/ypr_bio_inputs_", YEAR, ".png"), dpi=300, height=7, width
 # Sex ratio ----
 
 # Sex ratio in the commercial fishery in YEAR 
-female_p <- read_csv("output/sexratio_byyear.csv", guess_max = 50000) %>%
+female_p <- read_csv(paste0("output/sexratio_byyear_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) %>%
   filter(Source == "LL fishery" & year == YEAR) %>%
   select(proportion) %>%
   as.numeric()
@@ -153,7 +157,7 @@ male_p <-  1 - female_p
 
 # Fishery age comps ----
 
-read_csv("output/agecomps.csv", guess_max = 50000) %>%
+read_csv(paste0("output/agecomps_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) %>% 
   filter(Source == "LL fishery" & year == YEAR & Sex %in% c("Female", "Male")) -> agecomps 
 
 f <- filter(agecomps, Sex == "Female") %>% pull(proportion)
@@ -169,7 +173,7 @@ ggplot(agecomps, aes(x = age, y = proportion)) +
   # labs(x = "\nAge", y = "Proportion\n") +
   theme(legend.position = c(0.9, 0.7))
 
-read_csv("output/agecomps.csv", guess_max = 50000) %>% 
+read_csv(paste0("output/agecomps_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) %>% 
   filter(year >= 2015 & Sex %in% c("Sex combined") & age <= 10) -> agecomps 
 
 agecomps %>% 
@@ -282,16 +286,20 @@ ggsave(paste0("figures/retention_prob_", YEAR, ".png"), dpi=300,  height=4, widt
 
 N_MR_sex <- results %>% filter(year == YEAR) %>% dplyr::summarize(mean(N.avg)) %>% pull()
 
-AGE <- 2:42
-Nm <- 1:41
-Nf <- 1:41
+AGE <- rec_age:plus_group
+Nm <- (rec_age-1):(plus_group-1)
+Nf <- (rec_age-1):(plus_group-1)
 
-for(i in 1:41){
+for(i in (rec_age-1):(plus_group-1)){
   
   Nm[i] <- (N_MR_sex * male_p * m[i]) / m_sel[i]
   Nf[i] <- (N_MR_sex * female_p * f[i]) / f_sel[i]
   
 }
+
+N_MR_sex
+sum(Nm, Nf)
+sum(Nm[2:41], Nf[2:41])
 
 # Assume discard mortality = 0.16, same as halibut directed fishery
 
@@ -332,24 +340,25 @@ estimate_F <- function(x, N_MR_sex, discard) {
   
   }
   
-  N_fp <- 1:41 
-  N_mp <- 1:41 
+  N_fp <- (rec_age-1):(plus_group-1) 
+  N_mp <- (rec_age-1):(plus_group-1)
   
   N_fp[1] <- Nf[1]
   N_mp[1] <- Nm[1]
   
   # Ages 3 - 41
-  for(i in 2:40){
+  # for(i in 2:40){
+  for(i in rec_age:(plus_group-2)){
     N_fp[i] <- Nf[i-1] * exp(-(Ff[i-1] + mort))
     N_mp[i] <- Nm[i-1] * exp(-(Fm[i-1] + mort))
   }
   
   # Plus class
-  N_mp[41] <- Nm[40] * exp(-(Fm[40] + mort)) + 
-    ((Nm[40] * exp(-(Fm[40] + mort))) * exp(-(Fm[41] + mort)))
+  N_mp[plus_group-1] <- Nm[plus_group-2] * exp(-(Fm[plus_group-2] + mort)) + 
+    ((Nm[plus_group-2] * exp(-(Fm[plus_group-2] + mort))) * exp(-(Fm[plus_group-1] + mort)))
   
-  N_fp[41] <- Nf[40] * exp(-(Ff[40] + mort)) +
-    ((Nf[40] * exp(-(Ff[40] + mort))) * exp(-((Ff[41]) + mort)))
+  N_fp[plus_group-1] <- Nf[plus_group-2] * exp(-(Ff[plus_group-2] + mort)) +
+    ((Nf[plus_group-2] * exp(-(Ff[plus_group-2] + mort))) * exp(-((Ff[plus_group-1]) + mort)))
   
   N_sex <- sum(N_fp,N_mp)
   
@@ -396,24 +405,24 @@ ggsave(paste0("figures/fmort_discards_", YEAR, ".png"),
 # Fm <- Fm_old
 # Ff <- Ff_old
 
-N_fp <- 1:41 # THIS IS FOR FEMALE SPAWNING BIOMASS
-N_mp <- 1:41 # THIS IS FOR MALES
+N_fp <- (rec_age-1):(plus_group-1) # females
+N_mp <- (rec_age-1):(plus_group-1) # males
 
 N_fp[1] <- Nf[1]
 N_mp[1] <- Nm[1]
 
-# Ages 3 - 41
-for(i in 2:40){
+# Ages: rec_age+1 to plus_group-1 (indexed from 1)
+for(i in rec_age:(plus_group-2)){
   N_fp[i] <- Nf[i-1] * exp(-(Ff[i-1] + mort))
   N_mp[i] <- Nm[i-1] * exp(-(Fm[i-1] + mort))
 }
 
-# Plus class
-N_mp[41] <- Nm[40] * exp(-(Fm[40] + mort)) + 
-  ((Nm[40] * exp(-(Fm[40] + mort))) * exp(-(Fm[41] + mort)))
+# Plus group
+N_mp[plus_group-1] <- Nm[plus_group-2] * exp(-(Fm[plus_group-2] + mort)) + 
+  ((Nm[plus_group-2] * exp(-(Fm[plus_group-2] + mort))) * exp(-(Fm[plus_group-1] + mort)))
 
-N_fp[41] <- Nf[40] * exp(-(Ff[40] + mort)) +
-  ((Nf[40] * exp(-(Ff[40] + mort))) * exp(-((Ff[41]) + mort)))
+N_fp[plus_group-1] <- Nf[plus_group-2] * exp(-(Ff[plus_group-2] + mort)) +
+  ((Nf[plus_group-2] * exp(-(Ff[plus_group-2] + mort))) * exp(-((Ff[plus_group-1]) + mort)))
 
 
 #CHECK
@@ -423,13 +432,12 @@ N_sex
 N_MR_sex
 
 # BEGIN CALCS FOR FORECAST NUMBERS
-# KILOGRAMS TO POUNDS = 2.20462
 
 #kilograms to pounds
 ktp <- 2.20462
 
 # Spawning Biomass
-SB_age_s <- 1:41
+SB_age_s <- 1:(plus_group-1)
 
 SB_age_s <- N_fp * mat_s_f * wt_s_f * ktp
 
@@ -444,21 +452,21 @@ SBs
 F <- 0.0
 
 #Abundance-at-age
-N <- 1:41
+N <- 1:(plus_group-1)#1:41
 
 N[1] <- 500
 
-for(i in 2:40){
+for(i in rec_age:(plus_group-2)){
   
   N[i] <- N[i-1] * exp(-((F * f_sel[i-1]) + mort))
   
 }
 
-N[41] <- N[40] * exp(-((F * f_sel[40]) + mort)) + ((N[40] * exp(-((F * f_sel[40]) + mort))) * exp(-((F * f_sel[41]) + mort)))
+N[plus_group-1] <- N[plus_group-2] * exp(-((F * f_sel[plus_group-2]) + mort)) + ((N[plus_group-2] * exp(-((F * f_sel[plus_group-2]) + mort))) * exp(-((F * f_sel[plus_group-1]) + mort)))
 N
 sum(N)
 
-SB_age <- 1:41
+SB_age <- 1:(plus_group-1)
 
 SB_age <- N * mat_s_f * wt_s_f * ktp
 SB <- sum(SB_age)
@@ -472,7 +480,7 @@ SBf <- function(x,SB) {
   
   NS <- 500
   
-  for(i in 1:41){
+  for(i in 1:(plus_group-1)){
     
     if(i == 1)
       N[i] <- NS
@@ -485,7 +493,7 @@ SBf <- function(x,SB) {
     }
   
   # Plus group
-  N[41] <- N[40] * exp(-((x * f_sel[40]) + mort)) + N[40] * exp(-( mort + x * f_sel[40] )) * exp(-( mort + x * f_sel[41]))
+  N[plus_group-1] <- N[plus_group-2] * exp(-((x * f_sel[plus_group-2]) + mort)) + N[plus_group-2] * exp(-( mort + x * f_sel[plus_group-2] )) * exp(-( mort + x * f_sel[plus_group-1]))
   
   SB_ageS <- N * mat_s_f * wt_s_f * ktp
   
@@ -520,12 +528,12 @@ Q50 <- sum( (N_fp * wt_f_f * ktp) * (f_retention * F50 * f_sel) / (f_Z50) * (1 -
 D50 <- sum( (N_fp * wt_f_f * ktp) * (F50 * f_sel * dm * (1 - f_retention)) / (f_Z50) * (1 - exp(-(f_Z50))) +
               (N_mp * wt_f_m * ktp) * (F50 * m_sel * dm * (1 - m_retention)) / (m_Z50) * (1 - exp(-(m_Z50))))
 
-# Total exploited biomass (Reference: Quinn and Deriso p 339)
+# Total forecasted exploited biomass (Reference: Quinn and Deriso p 339)
 exp_b <- ktp * sum((N_fp * wt_f_f * f_sel) + (N_mp * wt_f_m * m_sel))
 exp_b
 
-# Total exploited abundance
-exp_n<-sum((N_fp*f_sel)+(N_mp*m_sel))
+# Total forecasted exploited abundance
+exp_n <- sum((N_fp * f_sel) + (N_mp * m_sel))
 exp_n
 
 # For retrospective/forecast plot in Forecast summary
@@ -534,7 +542,7 @@ fcast <- data.frame(year = YEAR, n = exp_n) %>%
   select(- n)
 
 data.frame(age = age, 
-           Sex = c(rep("Female", 41), rep("Male", 41)),
+           Sex = c(rep("Female", plus_group-1), rep("Male", plus_group-1)),
            N = c(N_fp * f_sel, N_mp * m_sel),
            B = ktp * c(N_fp * wt_f_f * f_sel, N_mp * wt_f_m * m_sel)) %>% 
   mutate(N = N / 1000,
@@ -572,9 +580,11 @@ forec_byage %>%
 
 vFOREC <- c(exp_n, exp_b, F50, Q50) 
 
-# Inputs for previous assessment
-
-vYEAR <- c(N_MR_sex, 16454232, 0.0635, 965354)
+# Inputs for previous assessment (from summary table): Mark recap estimate for
+# YEAR, YEAR forecast for exploitable biomass from YEAR-1, YEAR estimate of F50
+# from YEAR-1, ABC for YEAR from YEAR-1
+vYEAR <- c(N_MR_sex, 20131204, 0.0632, 1058037)
+# vYEAR <- c(N_MR_sex, 16454232, 0.0635, 965354)
 
 format(round((vFOREC - vYEAR)/vYEAR * 100, 1),  nsmall=1) -> perc_change
 
@@ -597,17 +607,21 @@ updYEAR_expb <- ktp * sum((N_mp * wt_f_f  * f_sel) + (N_fp * wt_f_m * m_sel))
 
 # Summary table ----
 
-data.frame("Quantity" = c("Exploited abundance (2018 value from last year)",
+# FLAG this language isn't generalized, need to update each year
+data.frame("Quantity" = c("Exploited abundance (2019 value from last year)",
                           "Updated exploited abundance",
-                          "Exploited biomass (round lb, 2018 value from last year)",
+                          "Exploited biomass (round lb, 2019 value from last year)",
                           "Updated exploited biomass (round lb)",
                           "$F_{ABC}=F_{50\\%}$",
                           "Mortality from discards (round lb)",
                           "Recommended $ABC$ (round lb)"),
-           "Y2018" = c(1931191, N_MR_sex, 
-                       16454232, updYEAR_expb,
-                       0.0635, NA, 965354),
-           "Y2019" = c(exp_n, exp_n, 
+           # "Y2018" = c(1931191, N_MR_sex, 
+           #             16454232, updYEAR_expb,
+           #             0.0635, NA, 965354),
+           "Y2019" = c(2702393, N_MR_sex, 
+                       20131204, updYEAR_expb,
+                       0.0632, 19142, 1058037),
+           "Y2020" = c(exp_n, exp_n, 
                       exp_b, exp_b,
                        F50, D50, Q50)) %>% 
   # *FLAG_DISCARD* To test impact of including discard mortality, comment out when not in use
@@ -666,7 +680,7 @@ ggplot(data = forec_plot) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   scale_color_manual(values = c("black", "grey75")) + 
   scale_linetype_manual(values = c(1, 4)) + 
-  ylim(c(1, 3.5)) +
+  ylim(c(1, 4)) +
   labs(x = "", y = "Number of sablefish (millions)\n",
        colour = NULL, shape = NULL, linetype = NULL) +
   theme(legend.position = c(.7, .9))

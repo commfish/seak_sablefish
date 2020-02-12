@@ -79,8 +79,8 @@ vonb_weight <- function(obs_weight, age, b, starting_vals, sex ) {
   pred <- exp(log_pred)
   resids <- obs_weight - pred # retaining residuals
   
-  # For YPR and future ASA, get predictions for ages 2:31
-  new_ages <- c(2:31)
+  # For YPR and future ASA, get predictions for age range in the model
+  new_ages <- c(rec_age:plus_group)
   log_pred <- log(w_inf_opt) + b * log(1 - exp(-k_opt * (new_ages - t0_opt))) #  predicted values
   ypr_preds <- exp(log_pred)
   
