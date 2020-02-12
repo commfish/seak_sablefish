@@ -1,10 +1,14 @@
-# Data prep for Model 1 ASA inputs
+# Data prep for statistical catch-at-age model
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
 # Last edited: 2018-04-09
 
-# Model 1 - base ASA that only includes catch, fishery CPUE, fishery
-# weight-at-age, and catch compositions. No sex structure.
+# Model is sex-structured, catch, fishery and survey CPUE, fishery and survey
+# weight-at-age, fishery and survey age compositions (sexes combined due to
+# sample size), and fishery and survey length compositions.
+
+# Set up ----
+
 source("r/helper.r")
 source("r/functions.r")
 
@@ -313,7 +317,7 @@ full_join(byage %>%
             select(age, prop_fem = fit),
           mat %>% 
             select(age, prop_mature)) %>% 
-  write_csv("data/tmb_inputs/maturity_sexratio.csv")
+  write_csv(paste0("data/tmb_inputs/maturity_sexratio_", YEAR, ".csv"))
 
 # Graphics ----
 
@@ -509,41 +513,8 @@ ggplot(df, aes(x = year, y = Source, fill = value)) +
 ggsave(paste0("figures/sable_data_", YEAR, ".png"),
        dpi=300, height=3.5, width=7, units="in")
 
-# Retention probabilities ---
+# Retention probabilities ----
 
-# Started this analysis May 2019 after a conversation in April 2019 with Steven
-# Rhoades about alternative ways of developing these curves. This approach
-# assumes that anything below a 7+ has some probability of being released
-# because the risk of releasing a smaller fish comes with the potential reward
-# of catching a larger fish. I use the same Eastern cut processor grade/price
-# data from M. Vaughn used in the earlier analysis.
-
-data.frame(dressed_lb = seq(0.1, 7, 0.1)) %>% 
-  mutate(grade = derivedFactor('no_grade' = dressed_lb < 1,
-                               '1/2' = dressed_lb >= 1 & dressed_lb < 2,
-                               '2/3' = dressed_lb >= 2 & dressed_lb < 3,
-                               '3/4' = dressed_lb >= 3 & dressed_lb < 4,
-                               '4/5' = dressed_lb >= 4 & dressed_lb < 5,
-                               '5/7' = dressed_lb >= 5 & dressed_lb < 7,
-                               '7+' = dressed_lb >= 7,
-                               .method = "unique",
-                               .ordered = TRUE),
-         Price = derivedFactor('$0' = grade == 'no_grade',
-                               '$1.00' = grade == '1/2',
-                               '$2.20' = grade == '2/3',
-                               '$3.25' = grade == '3/4',
-                               '$4.75' = grade == '4/5',
-                               '$7.55' = grade == '5/7',
-                               '$8.05' = grade == '7+',
-                               .method = "unique",
-                               .ordered = TRUE),
-         price = readr::parse_number(Price),
-         value = dressed_lb * price,
-         p_retain = value / max(value),
-         whole_lb = dressed_lb/0.63) %>% # E/C to whole conversion
-  ggplot(aes(x = whole_lb, y = p_retain)) +
-  geom_point() +
-  geom_line()
 
 
 # processor will be used to define the probability of retaining a fish
@@ -581,75 +552,41 @@ grades <- data.frame(
          lbs_whole = round(lbs, 0),
          y = 1 - p)
 # Smallest dressed weight assumed full retention = min dressed lb of a 7+
-full_retention <- grade %>% summarize(max(min_dressed_lb)) %>% pull(min_dressed_lb)
+full_retention <- grades %>% dplyr::summarize(max(min_dressed_lb)) %>% pull(min_dressed_lb)
 
-# Starting values ------
+# Alternative retention probability ----
 
-#fishing mortality deviations
+# # Started this analysis May 2019 after a conversation in April 2019 with Steven
+# Rhoades about alternative ways of developing these curves. This approach
+# assumes that anything below a 7+ has some probability of being released
+# because the risk of releasing a smaller fish comes with the potential reward
+# of catching a larger fish. I use the same Eastern cut processor grade/price
+# data from M. Vaughn used in the earlier analysis.
 
-# Parameter estimates for fishing mortality deviations for 2006 ASA run by F
-# Mueter
-finits <- c( -1.56630826679, -1.99300652020, -2.01246349536, -1.71978991896,
-             -1.83724533971, -1.27684899334, -0.983905919896, -1.02192341186,
-             -0.927685571254, -1.00247299047, -1.07852014044, -0.837760996556,
-             -0.672220868864, -0.311074414121, -0.345622227419, -0.254984198245,
-             -0.0825745205838, 0.0567339057886, 0.189847547504, -0.142833191728,
-             -0.440286665534, -0.446782301623, -0.552812445258, -0.546158911033
-             -0.385300803085, -0.417195861174, -0.296751206500)
-
-# Fishing mortalities most correlated with catch; use simple linear regression
-# to develop starting values for 2006-2017
-tmp <- catch %>% 
-  filter(year %in% 1980:2005) %>% 
-  mutate(finits = finits)
-f <- lm(finits ~ log(catch), data = tmp)
-summary(f)
-predf <- predict(f, 
-                 newdata = data.frame(catch = ts %>% filter(year > 2005) %>% 
-                                        pull(catch) %>% log()), 
-                 type = "response")
-
-finits <- data.frame(year = syr:lyr,
-                     finits = c(finits, predf))
-
-# Starting values for initial numbers-at-age deviations (nage-2)
-inits_rinit <- c( 0.0405374218174, 0.0442650418415, 0.0482389177436,
-                  0.0523509979580, 0.0564424635349, 0.0601823372231,
-                  0.0631895950940, 0.0660174557708, 0.0543158576109,
-                  0.00467416429863, 0.0405374218174, 0.0442650418415, 
-                  0.0523509979580, 0.0564424635349, 0.0601823372231,
-                  0.0631895950940, 0.0660174557708, 0.0543158576109,
-                  0.0482389177436, 0.0442650418415, 0.0482389177436,
-                  0.0523509979580, 0.0564424635349, 0.0601823372231,
-                  0.0631895950940, 0.0660174557708, 0.0543158576109,
-                  0.00467416429863, 0.0405374218174, 0.0442650418415, 
-                  0.0523509979580, 0.0564424635349, 0.0601823372231,
-                  0.0631895950940, 0.0660174557708, 0.0543158576109,
-                  0.0631895950940, 0.0660174557708, 0.0543158576109)
-
-n_rinit <- length((rec_age+1):(plus_group-1))
-inits_rinit <- data.frame(age = (rec_age+1):(plus_group-1),
-                          inits_rinit = inits_rinit[1:n_rinit])
-
-# Starting values for recruitment deviations           
-inits_rec_dev <- c(-0.0188002294100, -0.0697329463801, -0.152542991556,
-                   -0.124574875686, -0.152542991556, -0.148273569414,
-                   -0.103762760913, -0.0592664599196, -0.0417456966159,
-                   -0.0293342663812, 0.0655298533471, -0.105369343293,
-                   -0.282231768850, 2.33324844068, 2.02041811445,
-                   0.430788527045, 0.136257510816, 1.38475669371,
-                   0.106716839276, 0.834180223062, 0.129001661339,
-                   0.192456696119, 0.149727613444, -0.227607751620,
-                   -0.385442447714, 0.0419339981551, -0.0971306887540,
-                   0.00714024634689, -0.928016835774, 0.285420095181,
-                   -0.138735004317, 0.469180409653, 0.566364647489,
-                   0.349805017285, -0.448967807172, -0.169286675728,
-                   -1.42262349732, -1.74624961284, -1.42262349732)
-
-inits_rec_dev <- data.frame(year = syr:lyr,
-                            inits_rec_dev = inits_rec_dev)
-# Only write files if the vectors are the right lengths
-write_csv(finits, "data/tmb_inputs/inits_f_devs.csv")
-write_csv(inits_rinit, "data/tmb_inputs/inits_rinit.csv")
-write_csv(inits_rec_dev, "data/tmb_inputs/inits_rec_devs.csv")
+data.frame(dressed_lb = seq(0.1, 7, 0.1)) %>% 
+  mutate(grade = derivedFactor('no_grade' = dressed_lb < 1,
+                               '1/2' = dressed_lb >= 1 & dressed_lb < 2,
+                               '2/3' = dressed_lb >= 2 & dressed_lb < 3,
+                               '3/4' = dressed_lb >= 3 & dressed_lb < 4,
+                               '4/5' = dressed_lb >= 4 & dressed_lb < 5,
+                               '5/7' = dressed_lb >= 5 & dressed_lb < 7,
+                               '7+' = dressed_lb >= 7,
+                               .method = "unique",
+                               .ordered = TRUE),
+         Price = derivedFactor('$0' = grade == 'no_grade',
+                               '$1.00' = grade == '1/2',
+                               '$2.20' = grade == '2/3',
+                               '$3.25' = grade == '3/4',
+                               '$4.75' = grade == '4/5',
+                               '$7.55' = grade == '5/7',
+                               '$8.05' = grade == '7+',
+                               .method = "unique",
+                               .ordered = TRUE),
+         price = readr::parse_number(as.character(Price)),
+         value = dressed_lb * price,
+         p_retain = value / max(value),
+         whole_lb = dressed_lb/0.63) %>% # E/C to whole conversion
+  ggplot(aes(x = whole_lb, y = p_retain)) +
+  geom_point() +
+  geom_line()
 

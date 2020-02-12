@@ -10,7 +10,7 @@
 # Set up ----
 
 # most recent year of data
-YEAR <- 2018
+YEAR <- 2019
 
 # Directory setup
 root <- getwd() # project root
@@ -19,9 +19,6 @@ tmb_path <- file.path(root, "tmb") # location of cpp
 tmbfigs <- file.path(root, "figures/tmb") # location where model figs are saved
 tmbout <- file.path(root, "output/tmb") # location where model output is saved
 
-# Temporary debug flag, shut off estimation of selectivity pars
-tmp_debug <- TRUE
-
 source("r/helper.r")
 source("r/functions.r")
 
@@ -29,12 +26,14 @@ library(TMB)
 library(tmbstan)
 library(shinystan)
 
-ts <- read_csv("data/tmb_inputs/abd_indices.csv")             # time series
-age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # age comps
-len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))  # len comps
-bio <- read_csv("data/tmb_inputs/maturity_sexratio.csv")      # proportion mature and proportion-at-age in the survey
-waa <- read_csv("data/tmb_inputs/waa.csv")                    # weight-at-age
-retention <- read_csv("data/tmb_inputs/retention_probs.csv")  # weight-at-age
+ts <- read_csv(paste0(tmb_dat, "/abd_indices_", YEAR, ".csv"))        # time series
+age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
+len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
+# age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # tuned age comps
+# len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))  # tunedlen comps
+bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
+waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
+retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
 
 # Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
 # develop one for ADFG. Row = true age, Column = observed age. Proportion
@@ -49,11 +48,14 @@ agelen_key_m <- scan("data/tmb_inputs/agelen_key_male.txt", sep = " ", skip = 1)
 rowSums(agelen_key_m) # should all = 1
 agelen_key_f <- scan("data/tmb_inputs/agelen_key_fem.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
 rowSums(agelen_key_f) 
+
 # Starting values
-# finits <- read_csv("data/tmb_inputs/inits_f_devs.csv")   # log F devs
-# inits_rec_dev <- read_csv("data/tmb_inputs/inits_rec_devs.csv") # log rec devs
-# inits_rinit <- read_csv("data/tmb_inputs/inits_rinit.csv") # log rec devs
-inits <- read_csv("data/tmb_inputs/inits_v2.csv")
+inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, ".csv"))
+rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
+rec_devs_inits <- c(rec_devs_inits, mean(rec_devs_inits)) # mean for current year starting value
+rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
+Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
+Fdevs_inits <- c(Fdevs_inits, mean(Fdevs_inits)) # mean for current year starting value
 
 # Model dimensions / user inputs
 syr <- min(ts$year)                   # model start year
@@ -63,11 +65,10 @@ rec_age <- min(waa$age)               # recruitment age
 plus_group <- max(waa$age)            # plus group age
 nage <- length(rec_age:plus_group)    # number of ages
 nlenbin <- n_distinct(len$length_bin) # number of length bins
-nsex <- 2                             # single sex or sex-structured
-# number of years to project forward *FLAG* eventually add to cpp file,
-# currently just for graphics
-nproj <- 1                            
-include_discards <- TRUE # include discard mortality, TRUE or FALSE
+nsex <- 2                 # single sex or sex-structured
+nproj <- 1                # projection years *FLAG* eventually add to cpp file, currently just for graphics
+include_discards <- TRUE  # include discard mortality, TRUE or FALSE
+tmp_debug <- TRUE         # Temporary debug flag, shut off estimation of selectivity pars
 
 # Subsets
 mr <- filter(ts, !is.na(mr))
@@ -147,7 +148,7 @@ data <- list(
   p_mr_q = 1.0,
   sigma_mr_q = 0.01,
   
-  # Weights on likelihood components ("wt_" denotes weight)
+  # Weights on likelihood components ("wt_" denotes weight) based on weights in Federal model
   wt_catch = 1.0,
   wt_fsh_cpue = 1.0,
   wt_srv_cpue = 1.0,
@@ -156,7 +157,7 @@ data <- list(
   wt_srv_age = 1.0,
   wt_fsh_len = 1.0,
   wt_srv_len = 1.0,
-  wt_rec_like = 2,
+  wt_rec_like = 1,
   wt_fpen = 0.1,
   wt_spr = 100,
   
@@ -396,31 +397,28 @@ parameters <- list(
             dim = c(length(data$srv_blks), 2, nsex)) }, # 2 = npar for this slx_type
   
   # Catchability
-  fsh_logq = c(-16.6, -16),
-  srv_logq = -17,
-  mr_logq = log(1),
+  fsh_logq = inits %>% filter(grepl("fsh_logq", Parameter)) %>% pull(Estimate), 
+  srv_logq = inits %>% filter(grepl("srv_logq", Parameter)) %>% pull(Estimate),
+  mr_logq = inits %>% filter(grepl("mr_logq", Parameter)) %>% pull(Estimate),
   
   # Log mean recruitment and deviations (nyr)
-  log_rbar = 2.5,
-  log_rec_devs = inits %>% filter(grepl("rec_devs", parameter)) %>% pull(estimate) %>% head(nyr),
-    # inits_rec_dev$inits_rec_dev,
+  log_rbar = inits %>% filter(Parameter == "log_rbar") %>% pull(Estimate), 
+  log_rec_devs = rec_devs_inits,
 
   # Log mean initial numbers-at-age and deviations (nage-2)
-  log_rinit = 3.5,
-  log_rinit_devs = inits %>% filter(grepl("init_devs", parameter)) %>% pull(estimate),
-    # inits_rinit$inits_rinit,
+  log_rinit = inits %>% filter(Parameter == "log_rinit") %>% pull(Estimate), 
+  log_rinit_devs = rinit_devs_inits,
 
   # Variability in rec_devs and rinit_devs
   log_sigma_r = log(1.2), # Federal value of 1.2 on log scale
   
   # Fishing mortality
-  log_Fbar = -1.8289,
-  log_F_devs = inits %>% filter(grepl("F_devs", parameter)) %>% pull(estimate) %>% head(nyr),
-#finits$finits,
+  log_Fbar = inits %>% filter(Parameter == "log_Fbar") %>% pull(Estimate),
+  log_F_devs = Fdevs_inits,
   
   # SPR-based fishing mortality rates, i.e. the F at which the spawning biomass
   # per recruit is reduced to xx% of its value in an unfished stock
-  log_spr_Fxx = c(log(0.128), log(0.105), log(0.071), log(0.066), log(0.058)), # F35, F40, F50, F60, F70
+  log_spr_Fxx = inits %>% filter(grepl("spr_Fxx", Parameter)) %>% pull(Estimate), # F35, F40, F50, F60, F70
 
   # Parameter related to effective sample size for Dirichlet-multinomial
   # likelihood used for composition data. Default of 10 taken from LIME model by
@@ -479,6 +477,9 @@ tidyrep <- tidy(summary(rep))
 names(tidyrep) <- c("Parameter", "Estimate", "se")
 key_params <- filter(tidyrep, !grepl('devs', Parameter)) # "Key" parameters (exclude devs)
 write_csv(key_params, paste0(tmbout, "/tmb_params_mle_", YEAR, ".csv"))
+
+# Save starting values for next year
+write_csv(tidyrep, paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
 
 obj$report(best)$pred_landed * 2204.62
 obj$report(best)$pred_catch * 2204.62
