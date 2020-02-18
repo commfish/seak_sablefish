@@ -5,7 +5,7 @@
 # fishery and survey age and length compositions.
 
 # Contact: jane.sullivan1@alaska.gov
-# Last updated Jan 2020
+# Last updated Feb 2020
 
 # Set up ----
 
@@ -64,7 +64,7 @@ nyr <- length(syr:lyr)                # number of years
 rec_age <- min(waa$age)               # recruitment age                  
 plus_group <- max(waa$age)            # plus group age
 nage <- length(rec_age:plus_group)    # number of ages
-nlenbin <- n_distinct(len$length_bin) # number of length bins
+nlenbin <- length(unique(len$length_bin)) # number of length bins
 nsex <- 2                 # single sex or sex-structured
 nproj <- 1                # projection years *FLAG* eventually add to cpp file, currently just for graphics
 include_discards <- TRUE  # include discard mortality, TRUE or FALSE
@@ -93,7 +93,7 @@ data <- list(
   
   # Switch recruitment estimation: 0 = penalized likelihood (fixed sigma_r), 1 =
   # random effects
-  random_rec = 0,
+  random_rec = 1,
   
   # Switch for selectivity type: 0 = a50, a95 logistic; 1 = a50, slope logistic
   slx_type = 1,
@@ -157,7 +157,7 @@ data <- list(
   wt_srv_age = 1.0,
   wt_fsh_len = 1.0,
   wt_srv_len = 1.0,
-  wt_rec_like = 1,
+  wt_rec_like = 2.0,
   wt_fpen = 0.1,
   wt_spr = 100,
   
@@ -169,7 +169,7 @@ data <- list(
   nyr_mr = n_distinct(mr, mr),
   yrs_mr = mr %>% distinct(index) %>% pull(),
   data_mr = pull(mr, mr),
-  sigma_mr = rep(0.05,11),#mr %>% pull(sigma_mr)
+  sigma_mr = rep(0.05, n_distinct(mr, mr)), #mr %>% pull(sigma_mr), 
   
   # Fishery CPUE
   nyr_fsh_cpue = fsh_cpue %>% n_distinct(fsh_cpue),
@@ -248,14 +248,15 @@ data <- list(
   # Fishery length comps
   nyr_fsh_len = length(unique(fsh_len$year)),
   yrs_fsh_len = fsh_len %>% distinct(index) %>% pull(),
-  data_fsh_len = 
+  data_fsh_len =
     if (nsex == 1) { # Single sex model
-      array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(proportion),                            
+      array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(proportion),
             dim = c(length(unique(fsh_len$year)), nlenbin, nsex)) } else {
               # Sex-structured (make sure males are first)
-              array(data = fsh_len %>% filter(Sex != "Sex combined") %>% 
-                      arrange(desc(Sex)) %>% pull(proportion),
+              array(data = fsh_len %>% filter(Sex != "Sex combined") %>%
+                      arrange(desc(Sex), year) %>% pull(proportion),
                     dim = c(length(unique(fsh_len$year)), nlenbin, nsex))},
+
   n_fsh_len =
     if (nsex == 1) { # Single sex model
       array(data = fsh_len %>% filter(Sex == "Sex combined") %>% distinct(year, Sex, n) %>% pull(n),
@@ -410,7 +411,7 @@ parameters <- list(
   log_rinit_devs = rinit_devs_inits,
 
   # Variability in rec_devs and rinit_devs
-  log_sigma_r = log(1.2), # Federal value of 1.2 on log scale
+  log_sigma_r = log(0.6), #log(1.2), # Federal value of 1.2 on log scale
   
   # Fishing mortality
   log_Fbar = inits %>% filter(Parameter == "log_Fbar") %>% pull(Estimate),
@@ -447,12 +448,13 @@ if(data$random_rec == 0) {
 
 setwd(tmb_path)
 
-# Three ways to run model:
+# Four ways to run model:
 # (1) MLE in phases (like ADMB). Code defined by build_phases() in functions.R.
 # Use TMBphase(phase = TRUE)
 # (2) MLE without phased optimation (phase = FALSE)
 # (3) Bayesian using tmbstan and the no-U-turn sampler (NUTS): Run step 2 first
 # to build TMB object, map, and bounds
+# (4) Debug mode with debug = TRUE (will need to uncomment out obj_fun = dummy * dummy; )
 
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
@@ -468,7 +470,6 @@ upper <- out$upper
 # Quick look at MLE results
 rep
 best <- obj$env$last.par.best 
-best
 
 # MLE results ----
 
@@ -481,19 +482,19 @@ write_csv(key_params, paste0(tmbout, "/tmb_params_mle_", YEAR, ".csv"))
 # Save starting values for next year
 write_csv(tidyrep, paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
 
-obj$report(best)$pred_landed * 2204.62
-obj$report(best)$pred_catch * 2204.62
-obj$report(best)$pred_wastage * 2204.62
-obj$report(best)$ABC * 2204.62 
-obj$report(best)$SB * 2204.62 
-obj$report(best)$Fxx
-
-exp(as.list(rep, what = "Estimate")$fsh_logq)
-exp(as.list(rep, what = "Estimate")$srv_logq)
-exp(as.list(rep, what = "Estimate")$mr_logq)
-exp(as.list(rep, what = "Estimate")$log_rbar)
-exp(as.list(rep, what = "Estimate")$log_rinit)
-exp(as.list(rep, what = "Estimate")$log_Fbar)
+# obj$report(best)$pred_landed * 2204.62
+# obj$report(best)$pred_catch * 2204.62
+# obj$report(best)$pred_wastage * 2204.62
+# obj$report(best)$ABC * 2204.62 
+# obj$report(best)$SB * 2204.62 
+# obj$report(best)$Fxx
+# 
+# exp(as.list(rep, what = "Estimate")$fsh_logq)
+# exp(as.list(rep, what = "Estimate")$srv_logq)
+# exp(as.list(rep, what = "Estimate")$mr_logq)
+# exp(as.list(rep, what = "Estimate")$log_rbar)
+# exp(as.list(rep, what = "Estimate")$log_rinit)
+# exp(as.list(rep, what = "Estimate")$log_Fbar)
 
 # variance-covriance
 VarCo <- solve(obj$he())
@@ -540,9 +541,9 @@ write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR, ".csv"))
 
 # Fits to abundance indices, derived time series, and F. Use units = "imperial" or
 # "metric" to switch between units. 
-plot_ts(save = TRUE, units = "metric", plot_variance = FALSE, path = tmbfigs)
+plot_ts(save = TRUE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
 plot_ts_resids(save = TRUE, path = tmbfigs)
-plot_derived_ts(save = TRUE, path = tmbfigs, units = "metric", plot_variance = FALSE)
+plot_derived_ts(save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
 plot_F()
 
 agecomps <- reshape_age()
@@ -616,7 +617,7 @@ ABC <- ABC %>%
   mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
   data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC")
 
-ABC %>% filter(Fxx == "0.5" & year == 2019)
+ABC %>% filter(Fxx == "0.5" & year == YEAR+1)
 ABC %>% filter(Fxx == "0.5")
 obj$report()$SB
 obj$report()$SBPR

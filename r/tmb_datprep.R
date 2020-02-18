@@ -1,7 +1,7 @@
 # Data prep for statistical catch-at-age model
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2018-04-09
+# Last edited: Feb 2019
 
 # Model is sex-structured, catch, fishery and survey CPUE, fishery and survey
 # weight-at-age, fishery and survey age compositions (sexes combined due to
@@ -138,7 +138,7 @@ catch %>%
   # Board implemented Limited Entry in 1985
   # geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
   # Board implemented Equal Quota Share in 1994
-  geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
+  # geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   scale_y_continuous(labels = scales::comma) + 
   labs(x = "", y = "\n\nCatch\n(round mt)") +
@@ -238,6 +238,7 @@ waa %>%
                                 "Fishery (sexes combined)" = Source == "LL fishery" & Sex == "Combined",
                                 .default = NA)) -> waa2
 waa2 <- na.omit(waa2)
+waa2 <- waa2 %>% arrange(Source, Sex, age)
 write_csv(waa2, paste0("data/tmb_inputs/waa_", YEAR, ".csv"))
 
 # Proportion mature -----
@@ -394,9 +395,11 @@ lencomps <- lencomps %>%
   mutate(Source = derivedVariable(`fsh_len` = Source == "LL fishery",
                                   `srv_len` = Source == "LL survey")) %>% 
   group_by(Source, Sex, year) %>% 
-  mutate(n = sum(n)) %>% 
+  mutate(n = sum(n),
+         effn = sqrt(n)) %>% 
   left_join(data.frame(year = syr:lyr) %>% 
-              mutate(index = year - min(year)))
+              mutate(index = year - min(year))) %>% 
+  arrange(Source, year, Sex)
 
 write_csv(lencomps, paste0("data/tmb_inputs/lencomps_", YEAR, ".csv"))
 
@@ -435,7 +438,8 @@ bind_rows(fsh_comps, srv_comps) -> agecomps
 # Check that they sum to 1
 agecomps %>% 
   group_by(year, Source) %>% 
-  dplyr::summarize(proportion = sum(proportion)) 
+  dplyr::summarize(proportion = sum(proportion)) %>% 
+  filter(proportion > 1.0001)
 
 # Sample sizes 
 agecomps %>% 
@@ -467,6 +471,8 @@ full_join(select(agecomps, -n), n_agecomps) %>%
 # Reshape
 agecomps %>% dcast(year + index + Source + n + effn ~ age, value.var = "proportion") -> agecomps
 agecomps[is.na(agecomps)] <- 0
+
+agecomps <- agecomps %>% arrange(Source, year)
 
 write_csv(agecomps, paste0("data/tmb_inputs/agecomps_", YEAR, ".csv"))
 

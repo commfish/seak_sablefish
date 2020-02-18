@@ -608,7 +608,7 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
     
     TMB::newtonOption(obj,smartsearch=FALSE)
     opt <- nlminb(start = obj$par, objective = obj$fn, hessian = obj$gr,
-                  control=list(eval.max=10000,iter.max=1000, trace=TRUE),
+                  control=list(eval.max=1000,iter.max=500, trace=TRUE),
                   lower = lower, upper = upper)
     rep <- TMB::sdreport(obj)
   }

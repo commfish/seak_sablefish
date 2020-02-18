@@ -954,7 +954,7 @@ template<class Type>
   // Preliminary calcs, get Fs out of log space
   vector<Type> spr_Fxx(n_Fxx+1);
   spr_Fxx(0) = 0;     // No fishing
-  
+
   for(int x = 1; x <= n_Fxx; x++) {
     spr_Fxx(x) = exp(log_spr_Fxx(x-1));
   }
@@ -1000,16 +1000,16 @@ template<class Type>
       SBPR(0) +=  Nspr(0,j) * prop_mature(j) * data_srv_waa(0,j,1) * survival_spawn(nyr-1,j,nsex-1); //Type(0.5) *
   }
 
-  // Remaining spawning biomass per recruit matrix 
+  // Remaining spawning biomass per recruit matrix
   for(int x = 1; x <= n_Fxx; x++) {
     for(int j = 0; j < nage; j++) {
-      
+
       if (nsex == 1) { // single sex model uses prop_fem vector
         SBPR(x) +=  Nspr(x,j) * prop_mature(j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + Fxx(x) * spr_fsh_slx(j))); //prop_fem(j) *
-        
+
       }
       if (nsex == 2) { // sex-structured model uses sex_ratio matrix
-        SBPR(x) += Nspr(x,j) * prop_mature(0,j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + Fxx(x) * spr_fsh_slx(j))); //sex_ratio(nsex-1,j) * 
+        SBPR(x) += Nspr(x,j) * prop_mature(0,j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + Fxx(x) * spr_fsh_slx(j))); //sex_ratio(nsex-1,j) *
       }
     }
   }
@@ -1018,44 +1018,44 @@ template<class Type>
   // Mean recruitment, where spr_rec_type is a switch for different assumptions
   // of what the "mean" should be
   Type mean_rec;
-  
+
   switch (spr_rec_type) {
-  
+
   case 0: // Arithmentic mean
-    
+
     mean_rec = 0;
     for (int i = 0; i < nyr; i++) {
       mean_rec += pred_rec(i);
     }
     mean_rec /= nyr;
     break;
-    
+
   case 1: // Geometric mean
-    
+
     mean_rec = 1;
     for (int i = 0; i < nyr; i++) {
       mean_rec *= pred_rec(i);
     }
     mean_rec = pow(mean_rec, Type(1)/nyr);
     break;
-    
+
     // case 2: // Median *FLAG* future development
   }
-  
+
   // Virgin female spawning biomass (no fishing), assuming 50:50 sex ratio for
   // recruitment (equivalent to B_100)
-  // SB(0) = SBPR(0) * mean_rec; 
+  // SB(0) = SBPR(0) * mean_rec;
 
   // Spawning biomass as a fraction of virgin spawning biomass - FLAG check this
   // for(int x = 1; x <= n_Fxx; x++) {
   //   SB(x) = Fxx_levels(x-1) * SB(0);
   // }
-  
+
   for(int x = 0; x <= n_Fxx; x++) {
     SB(x) = Type(0.5) * SBPR(x) * mean_rec; //
   }
-  
-  
+
+
   // std::cout << "Spawning biomass\n" << SB << "\n";
 
   // Get Allowable Biological Catch and wastage estimates for different Fxx levels: all of
@@ -1073,22 +1073,22 @@ template<class Type>
       }
     }
   }
-  
+
   for(int i = 0; i <= nyr; i++) { // include forecast year
     for(int x = 0; x < n_Fxx; x++) {
       for(int k = 0; k < nsex; k++) {
         for(int j = 0; j < nage; j++) {
-          
+
           // ABC calculation (landed catch under Fxx) using projected abundance
           ABC(i,x) += data_srv_waa(0,j,k) * retention(0,j,k) * N(i,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
-          
+
           // Discarded catch assumed to die under Fxx
           wastage(i,x) += data_srv_waa(0,j,k) * dmr(nyr-1,j,k) * (Type(1.0) - retention(0,j,k)) * N(i,j,k) * sel_Fxx(x,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
         }
       }
     }
   }
-  
+
   // std::cout << "ABC\n" << ABC << "\n";
   // std::cout << "Wastage\n" << wastage << "\n";
 
@@ -1098,7 +1098,7 @@ template<class Type>
   for (int h = 0; h < fsh_blks.size(); h++){
     priors(0) += square( log(fsh_q(h) / p_fsh_q(h)) ) / ( Type(2.0) * square(sigma_fsh_q(h)) );
   }
-  
+
   // Survey catchability coefficient
   priors(1) = square( log(srv_q / p_srv_q) ) / ( Type(2.0) * square(sigma_srv_q) );
 
@@ -1112,7 +1112,7 @@ template<class Type>
   //   catch_like += square( (data_catch(i) - pred_landed(i)) / pred_landed(i)) /
   //     (Type(2.0) * square(sigma_catch(i)));
   // }
-  
+
   // Catch: lognormal
   // for (int i = 0; i < nyr; i++) {
   //   catch_like += square( log((data_catch(i) + c) / (pred_landed(i) + c)) )/
@@ -1161,19 +1161,19 @@ template<class Type>
 
     for (int i = 0; i < nyr_fsh_age; i++) {
       for (int j = 0; j < nage; j++) {
-        
+
         // Offset
         offset(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(data_fsh_age(i,j) + c);
         // Likelihood
         age_like(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(pred_fsh_age(i,j) + c);
       }
     }
-    
+
     age_like(0) -= offset(0);     // subtract offset
     age_like(0) *= wt_fsh_age;    // likelihood weight
-    
+
     break;
-    
+
   case 1: // Dirichlet-multinomial (D-M)
 
     for (int i = 0; i < nyr_fsh_age; i++) {
@@ -1200,10 +1200,10 @@ template<class Type>
   vector<Type> sum1_srv(nyr_srv_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
   vector<Type> sum2_srv(nyr_srv_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
 
-  
+
   // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
   switch (comp_type) {
-  
+
   case 0: // Multinomial
 
     for (int i = 0; i < nyr_srv_age; i++) {
@@ -1216,11 +1216,11 @@ template<class Type>
     }
     age_like(1) -= offset(1);     // subtract offset
     age_like(1) *= wt_srv_age;    // likelihood weight
-    
+
     break;
-    
+
   case 1: // Dirichlet-multinomial (D-M)
-    
+
     for (int i = 0; i < nyr_srv_age; i++) {
       // Preliminary calcs
       for (int j = 0; j < nage; j++) {
@@ -1235,20 +1235,20 @@ template<class Type>
         lgamma(n_srv_age(i) + srv_theta * n_srv_age(i)) + sum2_srv(i);
     }
     break;
-    
+
     // case 2: // Multivariate logistic - future development
-    
+
   }
-  
+
 
   // std::cout << "Age comp offset\n" << offset << "\n";
   // std::cout << "Age comp likelihoods\n" << age_like << "\n";
 
   // Multinomial likelihood for fishery length comps.
   for (int k = 0; k < nsex; k++) {
-    
+
     for (int i = 0; i < nyr_fsh_len; i++) {
-      for (int l = 0; l < nlenbin; l++) {  
+      for (int l = 0; l < nlenbin; l++) {
         // Offset
         offset_fsh_len(k) -= effn_fsh_len(i,0,k) * (data_fsh_len(i,l,k) + c) * log(data_fsh_len(i,l,k) + c);
         // Likelihood
@@ -1256,26 +1256,26 @@ template<class Type>
       }
     }
     fsh_len_like(k) -= offset_fsh_len(k);     // subtract offset
-    fsh_len_like(k) *= wt_fsh_len;            // likelihood weight 
+    fsh_len_like(k) *= wt_fsh_len;            // likelihood weight
   }
-  
+
   // Multinomial likelihood for survey length comps.
   for (int k = 0; k < nsex; k++) {
-    
+
     for (int i = 0; i < nyr_srv_len; i++) {
-      for (int l = 0; l < nlenbin; l++) {  
+      for (int l = 0; l < nlenbin; l++) {
         // Offset
         offset_srv_len(k) -= effn_srv_len(i,0,k) * (data_srv_len(i,l,k) + c) * log(data_srv_len(i,l,k) + c);
         // Likelihood
         srv_len_like(k) -= effn_srv_len(i,0,k) * (data_srv_len(i,l,k) + c) * log(pred_srv_len(i,l,k) + c);
       }
     }
-    
+
     srv_len_like(k) -= offset_srv_len(k);     // subtract offset
-    srv_len_like(k) *= wt_srv_len;            // likelihood weight 
-    
+    srv_len_like(k) *= wt_srv_len;            // likelihood weight
+
   }
-  
+
   // Recruitment - random_rec switches between penalized likelihood and random
   // effects. Shared sigma_r between rinit_devs and rec_devs, rinit_devs are the
   // same as the rec_devs but have been reduced by mortality. They were kept
