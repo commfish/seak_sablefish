@@ -34,13 +34,17 @@ template<class Type>
   // yet)
   DATA_INTEGER(spr_rec_type)
     
+  // Prior for natural mortality
+  DATA_INTEGER(M_type)          // switch to fix M (0) or estimate with prior (1)
+  DATA_SCALAR(p_log_M)          // mean M=0.1
+  DATA_SCALAR(p_sigma_M)        // CV or sigma = 0.1
+    
   // Time varying parameter blocks (indexed as h) - each vector contains the terminal years of
   // each time block. Used for both selectivity and catchability
   DATA_IVECTOR(fsh_blks)        // fishery  
   DATA_IVECTOR(srv_blks)        // survey  
     
   // Fixed parameters
-  DATA_ARRAY(M)                 // natural mortality by year, age, and sex. assume constant M=0.1
   DATA_ARRAY(dmr)               // discard mortality in the fishery by year, age, and sex. assume constant dmr 0 or 0.16
   DATA_ARRAY(retention)         // probability of retaining a fish, sex- and age-based
   
@@ -164,6 +168,10 @@ template<class Type>
   // Dummy variable for troubleshooting 
   PARAMETER(dummy);          
 
+  // Natural mortality
+  PARAMETER(log_M);               // M_type = 0 is fixed, 1 is estimated    
+  Type M = exp(log_M);
+  
   // Selectivity 
   PARAMETER_ARRAY(log_fsh_slx_pars);       // Fishery selectivity (slx_type controls parameterization)
   PARAMETER_ARRAY(log_srv_slx_pars);       // Survey selectivity (slx_type controls parameterization)
@@ -297,6 +305,7 @@ template<class Type>
   // Priors, likelihoods, offsets, and penalty functions
   vector<Type> priors(3);       // Priors for catchability coefficients
   priors.setZero();
+  Type prior_M = 0;             // Prior on natural mortality if estimated
   
   Type catch_like = 0;          // Catch  
   Type rec_like = 0;            // Recruitment
@@ -442,7 +451,7 @@ template<class Type>
         F(i,j,k) = Fmort(i) * fsh_slx(i,j,k) * (retention(0,j,k) + dmr(i,j,k) * (Type(1.0) - retention(0,j,k)));
 
         // Total mortality by year, age, and sex
-        Z(i,j,k) = M(i,j,k) + F(i,j,k);
+        Z(i,j,k) = M + F(i,j,k);
 
         // Survivorship by year, age, and sex
         S(i,j,k) = exp(Type(-1.0) * Z(i,j,k));
@@ -462,9 +471,9 @@ template<class Type>
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
-        survival_srv(i,j,k) = exp(Type(-1.0) * srv_month * (M(i,j,k) + F(i,j,k)));
-        survival_fsh(i,j,k) = exp(Type(-1.0) * fsh_month * (M(i,j,k) + F(i,j,k)));
-        survival_spawn(i,j,k) = exp(Type(-1.0) * spawn_month * (M(i,j,k) + F(i,j,k)));
+        survival_srv(i,j,k) = exp(Type(-1.0) * srv_month * (M + F(i,j,k)));
+        survival_fsh(i,j,k) = exp(Type(-1.0) * fsh_month * (M + F(i,j,k)));
+        survival_spawn(i,j,k) = exp(Type(-1.0) * spawn_month * (M + F(i,j,k)));
       }
     }
   }
@@ -479,13 +488,13 @@ template<class Type>
   // (assuming 50/50 sex ratio). Don't know what the standard practice is here.
   for (int k = 0; k < nsex; k++) {
     for (int j = 1; j < nage-1; j++) {
-      N(0,j,k) = exp(log_rinit - M(0,j,k) * Type(j) + log_rinit_devs(j-1)) * Type(0.5); //sex_ratio(k,j);
+      N(0,j,k) = exp(log_rinit - M * Type(j) + log_rinit_devs(j-1)) * Type(0.5); //sex_ratio(k,j);
     }
   }
 
   // Start year: plus group *FLAG* sex ratio from survey or 50/50 or ?
   for (int k = 0; k < nsex; k++) {
-    N(0,nage-1,k) = exp(log_rinit - M(0,nage-1,k) * Type(nage-1)) / (1 - exp(-M(0,nage-1,k))) * Type(0.5); //sex_ratio(k,nage-1);
+    N(0,nage-1,k) = exp(log_rinit - M * Type(nage-1)) / (1 - exp(-M)) * Type(0.5); //sex_ratio(k,nage-1);
   }
 
   // Recruitment in all years (except the projected year) *FLAG* sex ratio from
@@ -986,12 +995,12 @@ template<class Type>
 
     // Survival equation by age
     for(int j = 1; j < nage - 1; j++) {
-      Nspr(x,j) = Nspr(x,j-1) * exp(Type(-1.0) * (Fxx(x) * spr_fsh_slx(j-1) + M(nyr-1,j-1,nsex-1)));
+      Nspr(x,j) = Nspr(x,j-1) * exp(Type(-1.0) * (Fxx(x) * spr_fsh_slx(j-1) + M));
     }
 
     // Plus group
-    Nspr(x,nage-1) = Nspr(x,nage-2) * exp(Type(-1.0) * (Fxx(x) * spr_fsh_slx(nage-2) + M(nyr-1,nage-2,nsex-1))) /
-      (Type(1.0) - exp(Type(-1.0) * (Fxx(x) * spr_fsh_slx(nage-1) + M(nyr-1,nage-1,nsex-1))));
+    Nspr(x,nage-1) = Nspr(x,nage-2) * exp(Type(-1.0) * (Fxx(x) * spr_fsh_slx(nage-2) + M)) /
+      (Type(1.0) - exp(Type(-1.0) * (Fxx(x) * spr_fsh_slx(nage-1) + M)));
   }
   // std::cout << "Number of spawners\n" << Nspr << "\n";
 
@@ -1005,11 +1014,11 @@ template<class Type>
     for(int j = 0; j < nage; j++) {
 
       if (nsex == 1) { // single sex model uses prop_fem vector
-        SBPR(x) +=  Nspr(x,j) * prop_mature(j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + Fxx(x) * spr_fsh_slx(j))); //prop_fem(j) *
+        SBPR(x) +=  Nspr(x,j) * prop_mature(j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M + Fxx(x) * spr_fsh_slx(j))); //prop_fem(j) *
 
       }
       if (nsex == 2) { // sex-structured model uses sex_ratio matrix
-        SBPR(x) += Nspr(x,j) * prop_mature(0,j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M(nyr-1,j,nsex-1) + Fxx(x) * spr_fsh_slx(j))); //sex_ratio(nsex-1,j) *
+        SBPR(x) += Nspr(x,j) * prop_mature(0,j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M + Fxx(x) * spr_fsh_slx(j))); //sex_ratio(nsex-1,j) *
       }
     }
   }
@@ -1068,7 +1077,7 @@ template<class Type>
         // (dmr) and retention probability = 1, this eqn collapses to Fmort *
         // fsh_slx)
         sel_Fxx(x,j,k) = Fxx(x+1) * fsh_slx(nyr-1,j,k) * (retention(0,j,k) + dmr(nyr-1,j,k) * (Type(1.0) - retention(0,j,k)));
-        Z_Fxx(x,j,k) = M(nyr-1,j,nsex-1) + sel_Fxx(x,j,k);    // Total instantaneous mortality at age
+        Z_Fxx(x,j,k) = M + sel_Fxx(x,j,k);    // Total instantaneous mortality at age
         S_Fxx(x,j,k) = exp(-Z_Fxx(x,j,k));                    // Total survival at age
       }
     }
@@ -1105,8 +1114,14 @@ template<class Type>
   // Mark-recapture abundance estimate catchability coefficient
   priors(2) = square( log(mr_q / p_mr_q) ) / ( Type(2.0) * square(sigma_mr_q) );
 
-   // std::cout << "priors\n" << priors << "\n";
+  // std::cout << "priors\n" << priors << "\n";
 
+  // Only calculate prior for M if estimated (M_type = 1), otherwise stays 0 and
+  // adds nothing to objective function
+  if(M_type == 1) {
+    prior_M += square(log_M - p_log_M) / (Type(2.0) * square(p_sigma_M));
+  }
+  
   // Catch:  normal (check)
   // for (int i = 0; i < nyr; i++) {
   //   catch_like += square( (data_catch(i) - pred_landed(i)) / pred_landed(i)) /
@@ -1339,6 +1354,7 @@ template<class Type>
   obj_fun += priors(0);         // Fishery q
   obj_fun += priors(1);         // Survey q
   obj_fun += priors(2);         // Mark-recapture abndance index q
+  obj_fun += prior_M;           // prior for natural mortality (if fixed this is 0)
   obj_fun += catch_like;        // Catch
   obj_fun += index_like(0);     // Fishery cpue
   obj_fun += index_like(1);     // Survey cpue
@@ -1420,6 +1436,7 @@ template<class Type>
 
   // Priors, likelihoods, offsets, and penalty functions
   REPORT(priors);           // q priors
+  REPORT(prior_M);          // M prior
   REPORT(catch_like);       // Catch
   REPORT(index_like);       // Abundance indices
   REPORT(age_like);         // Age compositions

@@ -113,7 +113,7 @@ plot_grid(catch, port, ncol = 1, align = 'hv')
 ggsave(paste0("figures/catch_byport_", YEAR, ".png"),
        dpi=300, height=8, width=7, units="in")
 
-View(port_catch)
+# View(port_catch)
 
 # Consolidation of fishery - number of vessels fishing and total number of trips
 # in Chatham over time

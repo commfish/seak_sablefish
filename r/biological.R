@@ -9,7 +9,7 @@ library(ggridges)
 
 YEAR <- 2019
 rec_age <- 2
-plus_group <- 42
+plus_group <- 31
 
 # data -----
 
@@ -519,6 +519,16 @@ fsh_wvb_a <- vonb_weight(obs_weight = fsh_waa_sub$weight,
                          starting_vals = start_a,
                          sex = "Combined")
 
+fsh_wvb_f$results %>% 
+  rbind(fsh_wvb_m$results) %>% 
+  mutate(Survey = "EQS longline fishery",
+         Years = paste0(min(fsh_waa_sub$year), "-", max(fsh_waa_sub$year)),
+         Region = "Chatham Strait",
+         Function = "Weight-based LVB") %>% 
+  full_join(fsh_waa_sub %>% 
+              group_by(Sex) %>% 
+              summarise(n = n()), by = 'Sex') -> fsh_wvb_pars
+
 # Past assessments: for the plus group take the mean of all samples >=
 # plus_group Now just use the predicted mean asymptotic length.
 fsh_f_waa <- fsh_wvb_f$ypr_predictions
@@ -562,9 +572,9 @@ ggsave(paste0("figures/compare_empirical_predicted_waa_", YEAR, ".png"),
 # Comparison of Hanselman et al. 2007 values with the Chatham Strait longline
 # survey. Units: length (cm), weight (kg), and age (yrs)
 
-bind_rows(allom_pars, lvb_pars, wvb_pars) %>% 
+bind_rows(allom_pars, lvb_pars, wvb_pars, fsh_wvb_pars) %>% 
       mutate(Source = "seak_sablefish/code/biological.r") %>% 
-  bind_rows(noaa_lvb) %>% 
+  bind_rows(noaa_lvb) %>% View()
   write_csv(., "output/compare_vonb_adfg_noaa.csv")
 
 # Maturity ----
@@ -991,6 +1001,10 @@ bind_rows(fsh_bio %>% mutate(Source = "LL fishery") %>% select(!!!cols),
   mutate(age = ifelse(age >= plus_group, plus_group, age)) %>% 
   filter(age >= 2) -> all_bio  # Plus group
 
+# Sensitivity for 2019 ypr model. How many age 2
+all_bio %>% filter(age < 10) %>% group_by(year, age) %>% dplyr::summarise(n()) %>% dcast(year ~ age, fill = 0)
+# all_bio <- all_bio %>% filter(!c(year == YEAR & age == 2))
+
 # Age comps (sex-specific)
 all_bio %>% 
   count(Source, Sex, year, age) %>%
@@ -1036,7 +1050,8 @@ expand.grid(year = unique(agecomps$year),
 # Check that they sum to 1
 agecomps %>% 
   group_by(Source, Sex, year) %>% 
-  summarise(sum(proportion)) 
+  summarise(sum(proportion)) %>% 
+  print(n = Inf)
 
 # Sample sizes by source/year/sex
 agecomps %>% 

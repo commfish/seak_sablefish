@@ -21,6 +21,14 @@ w_inf,3.4946212565483403,0.023981229551559527,Male,ADFG Longline,1997-2019,Chath
 k,0.1485643936706077,0.004509154551376971,Male,ADFG Longline,1997-2019,Chatham Strait,Weight-based LVB,6320,seak_sablefish/code/biological.r
 t0,-6.185418931855968,0.3045714933772639,Male,ADFG Longline,1997-2019,Chatham Strait,Weight-based LVB,6320,seak_sablefish/code/biological.r
 sigma,0.2241675692356615,0.001993720557031122,Male,ADFG Longline,1997-2019,Chatham Strait,Weight-based LVB,6320,seak_sablefish/code/biological.r
+w_inf,7.184826852838158,0.07609885498429164,Female,EQS longline fishery,2002-2019,Chatham Strait,Weight-based LVB,17509,seak_sablefish/code/biological.r
+k,0.0675205564340073,0.0017226846466897423,Female,EQS longline fishery,2002-2019,Chatham Strait,Weight-based LVB,17509,seak_sablefish/code/biological.r
+t0,-14.753171573084717,0.4215433591143613,Female,EQS longline fishery,2002-2019,Chatham Strait,Weight-based LVB,17509,seak_sablefish/code/biological.r
+sigma,0.26373041858069235,0.0014092672718833516,Female,EQS longline fishery,2002-2019,Chatham Strait,Weight-based LVB,17509,seak_sablefish/code/biological.r
+w_inf,3.803510031516332,0.024560405749503113,Male,EQS longline fishery,2002-2019,Chatham Strait,Weight-based LVB,10617,seak_sablefish/code/biological.r
+k,0.0965531771845635,0.0038750144091652394,Male,EQS longline fishery,2002-2019,Chatham Strait,Weight-based LVB,10617,seak_sablefish/code/biological.r
+t0,-14.871315863049531,0.7609552960714611,Male,EQS longline fishery,2002-2019,Chatham Strait,Weight-based LVB,10617,seak_sablefish/code/biological.r
+sigma,0.20877260729832942,0.001432345611793019,Male,EQS longline fishery,2002-2019,Chatham Strait,Weight-based LVB,10617,seak_sablefish/code/biological.r
 l_inf,65.269,0.341,Male,NOAA Longline,1981-1993,Coastwide,Length-based LVB,30,Hanselman et al. 2007 Appendix 3C
 k,0.227,0.029,Male,NOAA Longline,1981-1993,Coastwide,Length-based LVB,30,Hanselman et al. 2007 Appendix 3C
 t0,-4.092,0.936,Male,NOAA Longline,1981-1993,Coastwide,Length-based LVB,30,Hanselman et al. 2007 Appendix 3C

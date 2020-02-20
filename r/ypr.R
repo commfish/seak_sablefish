@@ -160,6 +160,10 @@ male_p <-  1 - female_p
 read_csv(paste0("output/agecomps_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) %>% 
   filter(Source == "LL fishery" & year == YEAR & Sex %in% c("Female", "Male")) -> agecomps 
 
+# If looking at the impact of the three age-2 fish sampled.
+# read_csv(paste0("output/agecomps_plsgrp", plus_group, "_", YEAR, "_sens.csv"), guess_max = 50000) %>% 
+#   filter(Source == "LL fishery" & year == YEAR & Sex %in% c("Female", "Male")) -> agecomps 
+
 f <- filter(agecomps, Sex == "Female") %>% pull(proportion)
 m <- filter(agecomps, Sex == "Male") %>% pull(proportion) 
 

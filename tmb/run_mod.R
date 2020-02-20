@@ -107,14 +107,14 @@ data <- list(
   # yet)
   spr_rec_type = 1,
   
+  # Natural mortality
+  M_type = 0,  # Switch for natural mortality: fixed = 0, estimated with prior = 1. 
+  p_log_M = log(0.1), # Priors for natural mortality (same as 2016-2019 Federal assessment
+  p_sigma_M = 0.1,
+  
   # Time varying parameters - each vector contains the terminal years of each time block
   fsh_blks = c(14, max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
   srv_blks = c(max(ts$index)), # no breaks survey selectivity
-  
-  # Natural mortality (fixed to 0.1 per Johnson and Quinn 1988). Can accomodate
-  # variation by year, age, or sex, but currently M is fixed across all
-  # dimensions.
-  M = array(data = 0.1, dim = c(nyr, nage, nsex)),
   
   # Discard mortality rate in the directed fishery (currently either 0 or 0.16,
   # borrowed from the halibut fishery)
@@ -137,6 +137,7 @@ data <- list(
               arrange(sex) %>% pull(p), dim = c(1, nage, nsex))
     },
   
+
   # Fxx levels that correspond with log_spr_Fxx in Parameter section
   Fxx_levels = c(0.35, 0.40, 0.50, 0.60, 0.70),
 
@@ -337,6 +338,8 @@ parameters <- list(
   
   dummy = 0,   # Used for troubleshooting model               
   
+  log_M = log(0.1),  # M_type = 0 is fixed, 1 is estimated
+  
   # Fishery selectivity - starting values developed using NOAA selectivity
   # curves see data/NOAA_sablefish_selectivities_2017_jys.xlxs
   log_fsh_slx_pars = 
@@ -509,6 +512,7 @@ print(sqrt(diag(VarCo)))
 
 # MLE likelihood components
 obj$report(best)$priors
+obj$report(best)$prior_M
 
 dat_like <- sum(obj$report(best)$catch_like,
                 obj$report(best)$index_like[1], obj$report(best)$index_like[3],
@@ -565,8 +569,11 @@ barplot_len("Fishery", sex = "Male")
 cores <- parallel::detectCores()-1
 options(mc.cores = cores)
 
-fit <- tmbstan(obj, chains = cores, open_progress = FALSE, 
-               init = init_fn, lower = lower, upper = upper)
+fit <- tmbstan(obj, chains = 3, iter = 1000000, warmup = 100000, thin = 100, 
+               open_progress = FALSE,  # chains = cores
+               # init = init_fn, 
+               init = "last.par.best",
+               lower = lower, upper = upper)
 
 # Save b/c this can take awhile to run
 save(list = c("fit"), file = paste0(tmbout,"/tmbstan_fit_", YEAR, ".Rdata"))
@@ -631,27 +638,28 @@ wastage <- wastage %>%
   mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
   data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "wastage")
 
+
+wastage %>% filter(Fxx == "0.5" & year == YEAR+1)
+
 retro_mgt <- ABC %>% 
-  left_join(wastage) %>% 
-  melt(id.vars = c("year", "Fxx")) %>% 
-  mutate(variable = factor(variable, 
-                           levels = c("wastage", "ABC"),
-                           labels = c("Wastage", "ABC"),
-                           ordered = TRUE))
+  left_join(wastage %>% filter(year != YEAR+1)) %>% 
+  left_join(ts %>% select(year, catch) %>% mutate(catch = catch * 2204.62)) %>% 
+  # filter(Fxx == "0.5") %>% 
+  melt(id.vars = c("year", "Fxx", "ABC")) 
+# %>% 
+#   mutate(variable = factor(variable, 
+#                            levels = c("wastage", "ABC"),
+#                            labels = c("Wastage", "ABC"),
+#                            ordered = TRUE))
 
 ggplot() +
-  geom_area(data = retro_mgt %>% 
-              filter(Fxx == "0.5"), aes(x = year, y = value, fill = variable), 
+  geom_area(data = retro_mgt %>% filter(year > 2000 & Fxx == "0.5"),
+            aes(x = year, y = value, fill = variable), 
             position = "stack") +
-  geom_line(data = ts %>% 
-              select(year, catch) %>% 
-              mutate(catch = catch * 2204.62),
-            aes(x = year, y = catch)) 
-
-# Figures ----
-
-
-
+  scale_fill_grey() +
+  geom_line(data = retro_mgt %>% filter(year > 2000 & Fxx %in% c("0.4", "0.5", "0.6")),
+            aes(x = year, y = ABC, linetype = Fxx)) +
+  labs
 
 
 # ts %>% 

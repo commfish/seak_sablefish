@@ -427,6 +427,10 @@ build_bounds <- function(param_list = NULL, data_list){
     lower_bnd[[i]] <- replace(lower_bnd[[i]], values = rep(-Inf, length(lower_bnd[[i]])))
   }
   
+  # Natural mortality
+  lower_bnd$log_M <- replace(lower_bnd$log_M, values = -3) 
+  upper_bnd$log_M <- replace(upper_bnd$log_M, values = -1) 
+  
   # Fishery selectivity
   lower_bnd$log_fsh_slx_pars[,,] <- replace(lower_bnd$log_fsh_slx_pars[,,], values = -2) 
   upper_bnd$log_fsh_slx_pars[,,] <- replace(upper_bnd$log_fsh_slx_pars[,,], values = 2) 
@@ -528,6 +532,7 @@ build_phases <- function(param_list = NULL, data_list){
 
   # 5: Reference points
   phases$log_spr_Fxx <- replace(phases$log_spr_Fxx, values = rep(5, length(phases$log_spr_Fxx)))
+  phases$log_M <- replace(phases$log_M, values = rep(5, length(phases$log_M)))
   
   # 6: Dirichlet-multinomial theta parameters (this will get turned off if
   # comp_type != 1 in the TMBphase function)
@@ -566,6 +571,12 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
     # if not using random effects, assign log_sigma_r an NA in the map so it's not estimated
     if (data$random_rec == FALSE) {
       map_use$log_sigma_r <- fill_vals(parameters$log_sigma_r, NA)
+    }
+    
+    # if natural mortality is fixed, assign log_M an NA in the map so its not
+    # estimated
+    if (data$M_type == 0) {
+      map_use$log_M <- fill_vals(parameters$log_M, NA)
     }
     
     # if not using the Dirichlet-multinonial, assign log_fsh_theta and
@@ -647,6 +658,12 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
           map_use$log_sigma_r <- fill_vals(parameters$log_sigma_r, NA)
         }
         
+        # if natural mortality is fixed, assign log_M an NA in the map so its not
+        # estimated
+        if (data$M_type == 0) {
+          map_use$log_M <- fill_vals(parameters$log_M, NA)
+        }
+        
         # if not using the Dirichlet-multinonial, assign log_fsh_theta and
         # log_srv_theta NAs in the map so they're not estimated
         if (data$comp_type != 1) {
@@ -715,6 +732,7 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
 
 # Function to jitter or generate random starting values when running MCMC on tmb model.
 init_fn <- function(){list(
+  #log_M = rnorm(n = 1, mean = log(0.1), sd = 0.1),
   fsh_logq = sort(runif(2, -18, -16)),
   srv_logq = runif(1, -18, -16),
   mr_logq = runif(1, -1, 1),
