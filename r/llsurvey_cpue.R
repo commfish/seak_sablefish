@@ -136,6 +136,25 @@ srv_cpue %>%
 
 write_csv(srv_sum, paste0("output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
 
+# Percent change in compared to a ten year rolling average
+srv_sum %>% 
+  rename(srv_cpue = std_cpue) %>% 
+  filter(year > YEAR - 10 & year <= YEAR) %>% 
+  mutate(lt_mean = mean(srv_cpue),
+         perc_change_lt = (srv_cpue - lt_mean) / lt_mean * 100,
+         eval_lt = ifelse(perc_change_lt < 0, "decrease", "increase")) %>% 
+  filter(year == YEAR) -> srv_lt
+
+# Percent change from last year
+srv_sum %>% 
+  rename(srv_cpue = std_cpue) %>%
+  filter(year >= YEAR - 1 & year <= YEAR) %>%
+  select(year, srv_cpue) %>% 
+  mutate(year2 = ifelse(year == YEAR, "thisyr", "lastyr")) %>% 
+  dcast("srv_cpue" ~ year2, value.var = "srv_cpue") %>% 
+  mutate(perc_change_ly = (thisyr - lastyr) / lastyr * 100,
+         eval_ly = ifelse(perc_change_ly < 0, "decreased", "increased")) -> srv_ly
+
 # figures
 
 axis <- tickr(srv_sum, year, 5)
