@@ -563,6 +563,132 @@ barplot_len("Survey", sex = "Male")
 barplot_len("Fishery", sex = "Female")
 barplot_len("Fishery", sex = "Male")
 
+# Compare current ABC with past harvest ----
+
+ABC <- as.data.frame(obj$report(best)$ABC * 2.20462)
+names(ABC) <- data$Fxx_levels
+ABC <- ABC %>% 
+  mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
+  data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC")
+
+ABC %>% filter(Fxx == "0.5" & year == YEAR+1)
+
+obj$report(best)$mean_rec 
+obj$report(best)$pred_rec
+
+wastage <- as.data.frame(obj$report()$wastage * 2.20462)
+names(wastage) <- data$Fxx_levels
+wastage <- wastage %>% 
+  mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
+  data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "wastage")
+
+wastage %>% filter(Fxx == "0.5" & year == YEAR+1)
+
+retro_mgt <- ABC %>% 
+  left_join(wastage %>% filter(year != YEAR+1)) %>% 
+  left_join(ts %>% select(year, catch) %>% mutate(catch = catch * 2204.62)) %>% 
+  # filter(Fxx == "0.5") %>% 
+  melt(id.vars = c("year", "Fxx", "ABC")) %>% 
+  rename(Fspr = Fxx)
+
+df <- data.frame(year = 2000:YEAR)
+xaxis <- tickr(df, year, 5)
+ggplot() +
+  geom_area(data = retro_mgt %>% filter(year > 2000 & Fspr == "0.5"),
+            aes(x = year, y = value, fill = variable), 
+            position = "stack") +
+  scale_fill_grey() +
+  geom_line(data = retro_mgt %>% filter(year > 2000 & Fspr %in% c("0.4", "0.5", "0.6")), #"0.5"),
+            aes(x = year, y = ABC, linetype = Fspr)) +
+  scale_x_continuous(breaks = xaxis$breaks, labels = xaxis$labels) +
+  scale_y_continuous(label = scales::comma) +
+  labs(x = NULL, y = "Catch (round lb)", fill = NULL)
+  
+ggsave(filename = paste0(tmbfigs, "/catch_ABC_Fspr_", YEAR, ".png"), 
+       dpi = 300, height = 4, width = 6, units = "in")
+
+
+# Last years values
+LYR_ABC <- 1058037 # ABC for YEAR
+LYR_wastage <- 19142
+LYR_F <- 0.0632
+
+# Current values
+(maxABC <- ABC %>% filter(Fxx == "0.5" & year == YEAR+1) %>% pull(ABC))
+(wastage_maxABC <- wastage %>% filter(Fxx == "0.5" & year == YEAR+1) %>% pull(wastage))
+# Get maxF_ABC
+(maxF_ABC <- tidyrep %>% 
+    filter(grepl('log_spr_Fxx', Parameter)) %>% 
+    mutate(Fspr = data$Fxx_levels) %>% 
+    filter(Fspr == 0.5) %>% 
+    mutate(maxF_ABC = exp(Estimate)) %>% 
+    pull(maxF_ABC))
+
+# Percent changes
+(maxABC_increase <- (maxABC - LYR_ABC) / maxABC)
+maxABC-LYR_ABC
+(wastage_maxABC - LYR_wastage)/ wastage_maxABC
+(maxF_ABC - LYR_F) / maxF_ABC
+
+# Constant 15% change management procedure:
+if( maxABC_increase > 0.15 ) {
+  recABC <- LYR_ABC / 0.85
+} else {recABC <- maxABC}
+recABC
+
+recABC-LYR_ABC
+# Estimate recommended F_ABC using Pope's approx
+N <- obj$report()$N 
+N <- sum(N[nyr+1,,1]) + sum(N[nyr+1,,2]) # sum of projected abundance across age and sex
+
+# F_ABC <- recABC / (N * exp(-0.5 * exp(parameters$log_M))) * 0.5
+
+nat_mort <- exp(parameters$log_M)
+catch <- recABC
+
+# Search sequence of F values to obtain recommended F_ABC based on 15% constant
+# change MP
+fish_mort <- seq(0.03, 1.6, .000001)
+
+# Calculate F for a given catch
+catch_to_F <- function(fish_mort, N, nat_mort, catch, F_to_catch) {
+  
+  F_to_catch <- function(N = n, nat_mort, fish_mort){
+    Z <- fish_mort + nat_mort
+    N * (1 - exp(-Z)) * fish_mort / Z
+  }
+  
+  F_ABC <- catch - F_to_catch(N, nat_mort, fish_mort)
+  return(F_ABC)
+}
+
+(F_ABC <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = recABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
+
+(F_ABC - LYR_F) / F_ABC
+
+
+# Projected total age-2+ projected biomass
+obj$report(best)$tot_biom[nyr+1] * 2.20462
+obj$report(best)$tot_biom[nyr] * 2.20462
+
+# Projected total female spawning biomass
+obj$report(best)$tot_spawn_biom[nyr+1] * 2.20462
+
+SB <- as.data.frame(obj$report(best)$SB * 2.20462)
+names(SB) <- "SB"
+SB <- SB %>% 
+  mutate(Fspr = c(0.0, data$Fxx_levels))
+
+(SB100 <- SB %>% filter(Fspr == 0) %>% pull(SB))
+(SB50 <- SB %>% filter(Fspr == 0.5) %>% pull(SB))
+obj$report()$SBPR
+
+# Sigma R
+
+tidyrep %>% 
+  filter(grepl('log_sigma_r', Parameter)) %>% 
+  pull(Estimate) %>% 
+  exp()
 # Bayesian model -----
 
 # Run in parallel with a init function
@@ -616,50 +742,6 @@ trace + scale_color_grey() + theme(legend.position = , legend.direction = "horiz
 ggsave(filename = paste0(tmbfigs, "/trace_logrecdevs_", YEAR, ".png"), width = 8, height = 30, units = "in")
 
 
-# Compare current ABC with past harvest ----
-
-ABC <- as.data.frame(obj$report(best)$ABC * 2.20462)
-names(ABC) <- data$Fxx_levels
-ABC <- ABC %>% 
-  mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
-  data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC")
-
-ABC %>% filter(Fxx == "0.5" & year == YEAR+1)
-ABC %>% filter(Fxx == "0.5")
-obj$report()$SB
-obj$report()$SBPR
-
-obj$report()$mean_rec #obj$env$last.par.best
-obj$report(obj$env$last.par.best)$pred_rec
-
-wastage <- as.data.frame(obj$report()$wastage * 2.20462)
-names(wastage) <- data$Fxx_levels
-wastage <- wastage %>% 
-  mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
-  data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "wastage")
-
-
-wastage %>% filter(Fxx == "0.5" & year == YEAR+1)
-
-retro_mgt <- ABC %>% 
-  left_join(wastage %>% filter(year != YEAR+1)) %>% 
-  left_join(ts %>% select(year, catch) %>% mutate(catch = catch * 2204.62)) %>% 
-  # filter(Fxx == "0.5") %>% 
-  melt(id.vars = c("year", "Fxx", "ABC")) 
-# %>% 
-#   mutate(variable = factor(variable, 
-#                            levels = c("wastage", "ABC"),
-#                            labels = c("Wastage", "ABC"),
-#                            ordered = TRUE))
-
-ggplot() +
-  geom_area(data = retro_mgt %>% filter(year > 2000 & Fxx == "0.5"),
-            aes(x = year, y = value, fill = variable), 
-            position = "stack") +
-  scale_fill_grey() +
-  geom_line(data = retro_mgt %>% filter(year > 2000 & Fxx %in% c("0.4", "0.5", "0.6")),
-            aes(x = year, y = ABC, linetype = Fxx)) +
-  labs
 
 
 # ts %>% 

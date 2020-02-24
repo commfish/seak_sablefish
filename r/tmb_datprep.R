@@ -121,9 +121,24 @@ read_csv(paste0("output/mr_index_", YEAR, ".csv")) %>%
          lower_mr = exp(ln_mr - std)) %>% 
   select(-c(std, ln_mr)) -> mr
 
-# mr_sum %>% 
-#   full_join(data.frame(year = min(mr_sum$year):lyr)) %>% 
-#   arrange(year) -> mr_sum
+
+# Percent change in compared to a ten year rolling average
+mr %>% 
+  filter(year > YEAR - 10 & year <= YEAR) %>% 
+  mutate(lt_mean = mean(mr),
+         perc_change_lt = (mr - lt_mean) / lt_mean * 100,
+         eval_lt = ifelse(perc_change_lt < 0, "decrease", "increase")) %>% 
+  filter(year == YEAR) -> mr_lt
+
+# Percent change from last year
+mr %>% 
+  filter(year >= YEAR - 1 & year <= YEAR) %>%
+  select(year, mr) %>% 
+  mutate(year2 = ifelse(year == YEAR, "thisyr", "lastyr")) %>% 
+  dcast("mr" ~ year2, value.var = "mr") %>% 
+  mutate(perc_change_ly = (thisyr - lastyr) / lastyr * 100,
+         eval_ly = ifelse(perc_change_ly < 0, "decreased", "increased")) -> mr_ly
+
 
 # Graphics ----
 

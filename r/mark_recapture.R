@@ -60,7 +60,7 @@ read_csv(paste0("data/survey/tag_releases_2003_", YEAR, ".csv"),
          guess_max = 50000) %>% 
   filter(year >= FIRST_YEAR) -> releases
 
-releases %>% group_by(discard_status) %>% summarise(n_distinct(tag_no)) # Check - these should be all tagged and released
+releases %>% group_by(discard_status) %>% dplyr::summarise(n_distinct(tag_no)) # Check - these should be all tagged and released
 
 # Lookup table for year and tag batch no combos
 releases %>% 
@@ -106,7 +106,7 @@ recoveries %>%
 # Check range of data
 releases %>% 
   group_by(year) %>% 
-  summarize(min = min(length, na.rm = TRUE),
+  dplyr::summarize(min = min(length, na.rm = TRUE),
             max = max(length, na.rm = TRUE))
 
 # *FLAG* Contacted A Bladwin 20200124 about T-096264 length = 30 cm. The paper
@@ -117,7 +117,7 @@ releases %>% filter(length < 38) %>% distinct(year, Project_cde, length, tag_no,
 recoveries %>% 
   filter(measurer_type == "Scientific staff") %>% 
   group_by(year) %>% 
-  summarize(min = min(length, na.rm = TRUE),
+  dplyr::summarize(min = min(length, na.rm = TRUE),
             max = max(length, na.rm = TRUE))
 
 # Create bins. Used 5-cm bins b/c the data is a little sparse
@@ -150,7 +150,7 @@ growth %>%
   filter(growth < 5) %>% 
   arrange(year, rel_bin) %>% 
   group_by(rel_bin) %>% 
-  summarize(n = length(tag_no),
+  dplyr::summarize(n = length(tag_no),
             mean_g = round(mean(growth), 2),
             max_g = max(growth),
             sd_g = round(sd(growth), 2)) %>% 
@@ -280,7 +280,7 @@ rec_sel %>%
   # fishery and was recaptured outside of Chatham in 365630.
   filter(!tag_no %in% "T-089116") %>% 
   group_by(year) %>% 
-  summarize(cutoff = min(as.numeric(as.character(rec_bin)))) %>% 
+  dplyr::summarize(cutoff = min(as.numeric(as.character(rec_bin)))) %>% 
   right_join(growth_sel, "year") %>% 
   mutate(growth_bin = as.numeric(as.character(growth_bin))) %>% #View()
   filter(growth_bin < cutoff) %>% 
@@ -291,7 +291,7 @@ throw_out %>% group_by(year) %>% summarize(n_distinct(tag_no)) # number tags to 
 # Total number tagged and released by year plus define length of time period 1
 releases %>% 
   group_by(year, tag_batch_no) %>% 
-  summarise(K = n_distinct(tag_no), # total fish tagged
+  dplyr::summarize(K = n_distinct(tag_no), # total fish tagged
             potsrv_beg = min(date),
             potsrv_end = max(date),
             # Mueter (2007) defined the length of time period 1 (t.1) as
@@ -311,7 +311,7 @@ releases %>%  filter(!tag_no %in% throw_out$tag_no) -> releases
 # Add these to tag_summary as K.0
 releases %>% 
   group_by(year, tag_batch_no) %>% 
-  summarise(K.0 = n_distinct(tag_no)) %>% left_join(tag_summary) -> tag_summary
+  dplyr::summarize(K.0 = n_distinct(tag_no)) %>% left_join(tag_summary) -> tag_summary
 
 # Movement in Chatham ----
 merge(rel_sel, 
@@ -394,7 +394,7 @@ srv_count <- read_csv("data/survey/nsei_sable_llsurvey_countbacks.csv")
 # Expand grid, sum within years, and apply 0s for NAs
 srv_count %>% 
   group_by(year) %>% 
-  summarize(n.1 = sum(number_unmarked, number_marked),  # number checked for marks
+  dplyr::summarize(n.1 = sum(number_unmarked, number_marked),  # number checked for marks
             k.1 = sum(number_marked)) %>%  # number marked
   right_join(data.frame(year = FIRST_YEAR:YEAR)) %>% 
   mutate(n.1 = ifelse(is.na(n.1), 0, n.1),
@@ -407,7 +407,7 @@ srv_count %>%
 recoveries %>% 
   filter(Project_cde == "03") %>% 
   group_by(year, tag_batch_no) %>%
-  summarise(D.1 = n_distinct(tag_no)) %>% # number of tags to remove before fishery starts
+  dplyr::summarize(D.1 = n_distinct(tag_no)) %>% # number of tags to remove before fishery starts
   left_join(tag_summary, by = c("year", "tag_batch_no")) -> tag_summary
 
 # Remove tags recovered in the survey from the releases df so they don't get
@@ -420,7 +420,7 @@ read_csv(paste0("data/survey/llsrv_by_condition_1988_", YEAR, ".csv"), guess_max
   filter(year >= FIRST_YEAR) %>% 
   mutate(sablefish_retained = ifelse(discard_status_cde == "01", hooks_sablefish, 0)) %>% 
   group_by(year) %>% 
-  summarize(llsrv_beg = min(date),
+  dplyr::summarize(llsrv_beg = min(date),
             llsrv_end = max(date),
             C.1 = sum(hooks_sablefish)) %>% # catch in numbers
   right_join(tag_summary, by = "year") -> tag_summary   
@@ -431,7 +431,7 @@ read_csv(paste0("data/survey/llsrv_bio_1985_", YEAR,".csv"),
          guess_max = 50000) %>% 
   filter(year >= FIRST_YEAR & !is.na(weight)) %>% 
   group_by(year) %>% 
-  summarise(mean_weight_1 = mean(weight)) -> srv_mean_weights
+  dplyr::summarize(mean_weight_1 = mean(weight)) -> srv_mean_weights
 
 # LL fishery ----
 
@@ -474,7 +474,7 @@ read_csv(paste0("data/fishery/fishery_bio_2000_", YEAR,".csv"),
   mutate(date = ymd(as.Date(date, "%m/%d/%Y"))) %>% 
   select(date, trip_no, weight) %>% 
   group_by(date, trip_no) %>% 
-  summarise(mean_weight_bios = mean(weight)) -> fsh_bio
+  dplyr::summarize(mean_weight_bios = mean(weight)) -> fsh_bio
 
 # Join the mark sampling with the biological sampling. If random bio samples
 # were taken, use those as the mean weight, if not use the estimated mean weight
@@ -498,7 +498,7 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
            # omit special projects before/after fishery
            julian_day > 226 & julian_day < 322) %>% 
   group_by(year, trip_no) %>% 
-  summarize(WPUE = mean(WPUE)) -> fsh_cpue
+  dplyr::summarize(WPUE = mean(WPUE)) -> fsh_cpue
 
 # Join the mark sampling with the fishery cpue
 left_join(marks, fsh_cpue, by = c("year", "trip_no")) -> marks
@@ -506,7 +506,7 @@ left_join(marks, fsh_cpue, by = c("year", "trip_no")) -> marks
 # 5. Timing of the fishery
 marks %>% 
   group_by(year) %>% 
-  summarise(fishery_beg = min(date),
+  dplyr::summarize(fishery_beg = min(date),
             fishery_end = max(date)) %>% 
   left_join(tag_summary, by = "year") %>% 
   # See earlier notes on changes in methods from Franz Mueter in the Released
@@ -523,7 +523,7 @@ marks %>%
 recoveries %>% 
   filter(year_trip %in% marks$year_trip & Project_cde == "02") %>% 
   group_by(year_trip) %>% 
-  summarize(tags_from_fishery = n_distinct(tag_no)) %>% 
+  dplyr::summarize(tags_from_fishery = n_distinct(tag_no)) %>% 
   right_join(marks, by = "year_trip") -> marks
 
 # Remove these matched tags from the releases df so they don't get double-counted by accident. 
@@ -539,7 +539,7 @@ anti_join(recoveries %>%
                      Project_cde == "02"), 
           marks, by = "year_trip") %>% 
   group_by(year_trip, Mgmt_area, date) %>% 
-  summarize(tags_from_fishery = n_distinct(tag_no)) -> no_match # 7 trips from 2008, all in the NSEI; 3 from 2018
+  dplyr::summarize(tags_from_fishery = n_distinct(tag_no)) -> no_match # 7 trips from 2008, all in the NSEI; 3 from 2018
 
 # Daily summary ----
 
@@ -550,7 +550,7 @@ marks %>%
   # padr::pad fills in missing dates with NAs, grouping by years.
   pad(group = "year") %>%
   group_by(year, date) %>% 
-  summarize(whole_kg = sum(whole_kg),
+  dplyr::summarize(whole_kg = sum(whole_kg),
             total_obs = sum(total_obs),
             total_marked = sum(marked),
             tags_from_fishery = sum(tags_from_fishery),
@@ -577,7 +577,7 @@ marks %>%
 recoveries %>% 
   filter(date %in% daily_marks$date) %>% 
   group_by(date) %>% 
-  summarize(other_tags = n_distinct(tag_no)) %>% 
+  dplyr::summarize(other_tags = n_distinct(tag_no)) %>% 
   right_join(daily_marks, by = "date") %>% 
   # padr::fill_ replaces NAs with 0 for specified cols
   fill_by_value(other_tags, value = 0) %>% 
@@ -627,7 +627,7 @@ right_join(recoveries %>%
     'postfishery_D' = date > fishery_end,
     .method = "unique")) %>% 
   group_by(year, D) %>% 
-  summarise(n = n_distinct(tag_no)) %>% 
+  dplyr::summarize(n = n_distinct(tag_no)) %>% 
   ungroup() %>% 
   dcast(year ~ D, value.var = "n", fill = 0) %>% 
   left_join(tag_summary, by = "year") %>% 
@@ -722,7 +722,7 @@ for(j in 1:strats) {
   # Summarize by strata
   daily_marks %>% 
     group_by(year, catch_strata) %>% 
-    summarize(t = n_distinct(date),
+    dplyr::summarize(t = n_distinct(date),
               catch_kg = sum(whole_kg) %>% round(1),
               n = sum(total_obs),
               k = sum(total_marked),
@@ -1205,7 +1205,7 @@ bind_rows(mod1_posterior_ls[[5]] %>% select(N.avg, year, model, P),
           mod4_posterior_ls[[5]] %>% select(N.avg, year, model, P)) %>% 
   group_by(model, year, P) %>% 
   # mutate(N.avg = N.avg / 1000000) %>% 
-  summarize(mean = mean(N.avg),
+  dplyr::summarize(mean = mean(N.avg),
             q025 = quantile(N.avg, 0.025),
             q975 = quantile(N.avg, 0.975)) -> N_summary
 
@@ -1271,7 +1271,7 @@ bind_rows(
                        ~select(.x, year, P, contains("N["), N.avg) %>%
                          melt(id.vars = c("year", "P")) %>% 
                          group_by(year, P, variable) %>% 
-                         summarise(median = median(value),
+                         dplyr::summarize(median = median(value),
                                    sd = sd(value),
                                    q025 = quantile(value, 0.025),
                                    q975 = quantile(value, 0.975)))) %>% 
@@ -1283,7 +1283,7 @@ bind_rows(
                        ~select(.x, year, P, contains("N["), N.avg, r) %>%
                          melt(id.vars = c("year", "P")) %>% 
                          group_by(year, P, variable) %>% 
-                         summarise(median = median(value),
+                         dplyr::summarize(median = median(value),
                                    sd = sd(value),
                                    q025 = quantile(value, 0.025),
                                    q975 = quantile(value, 0.975)))) %>% 
@@ -1295,7 +1295,7 @@ bind_rows(
                        ~select(.x, year, P, contains("N["), N.avg, q) %>%
                          melt(id.vars = c("year", "P")) %>% 
                          group_by(year, P, variable) %>% 
-                         summarise(median = median(value),
+                         dplyr::summarize(median = median(value),
                                    sd = sd(value),
                                    q025 = quantile(value, 0.025),
                                    q975 = quantile(value, 0.975)))) %>% 
@@ -1307,7 +1307,7 @@ bind_rows(
                        ~select(.x, year, P, contains("N["), N.avg, r, q) %>%
                          melt(id.vars = c("year", "P")) %>% 
                          group_by(year, P, variable) %>% 
-                         summarise(median = median(value),
+                         dplyr::summarize(median = median(value),
                                    sd = sd(value),
                                    q025 = quantile(value, 0.025),
                                    q975 = quantile(value, 0.975)))) %>% 
@@ -1574,7 +1574,7 @@ results %>%
 
 results %>% 
   group_by(year) %>% 
-  summarize(median = median(q),
+  dplyr::summarize(median = median(q),
             q025 = quantile(q, 0.025),
             q975 = quantile(q, 0.975))
 
@@ -1586,7 +1586,7 @@ results %>%
   select(year, P, contains("npue.hat")) %>% 
   melt(id.vars = c("year", "P")) %>% 
   group_by(year, variable) %>% 
-  summarize(NPUE = median(value),
+  dplyr::summarize(NPUE = median(value),
             q025 = quantile(value, 0.025),
             q975 = quantile(value, 0.975)) %>% 
   mutate(Type = "Estimated",
@@ -1626,7 +1626,7 @@ NPUE <- mod3_posterior_ls[[5]] %>% filter(year == YEAR) %>%
   select(model, year, P, contains("npue.hat")) %>% 
   melt(id.vars = c("model", "year", "P")) %>% 
   group_by(model, year, variable) %>% 
-  summarize(NPUE = median(value),
+  dplyr::summarize(NPUE = median(value),
             q025 = quantile(value, 0.025),
             q975 = quantile(value, 0.975)) %>% 
   mutate(Type = "Estimated",
@@ -1678,7 +1678,7 @@ axis <- tickr(df, year, 2)
 results %>% 
   gather("time_period", "N.avg", contains("N.avg")) %>% 
   group_by(year, time_period) %>% 
-  summarise(`Current estimate` = median(N.avg),
+  dplyr::summarize(`Current estimate` = median(N.avg),
             q025 = quantile(N.avg, 0.025),
             q975 = quantile(N.avg, 0.975)) %>% 
   arrange(year, time_period) %>% 
@@ -1726,7 +1726,7 @@ ggsave(paste0("figures/model1_N_retro_noforec_",
 results %>% 
   gather("time_period", "N.avg", contains("N.avg")) %>% 
   group_by(year) %>% 
-  summarise(estimate = mean(N.avg) / 1e6,
+  dplyr::summarize(estimate = mean(N.avg) / 1e6,
             sd = sd(N.avg) / 1e6,
             q025 = quantile(N.avg, 0.025) / 1e6,
             q975 = quantile(N.avg, 0.975) / 1e6) %>% 
@@ -1753,7 +1753,7 @@ ggsave(paste0("figures/llsrv_countback_assumptions_",
 results %>% 
   gather("time_period", "N.avg", contains("N.avg")) %>% 
   group_by(year) %>% 
-  summarise(estimate = mean(N.avg) / 1e6,
+  dplyr::summarise(estimate = mean(N.avg) / 1e6,
             sd = sd(N.avg) / 1e6,
             q025 = quantile(N.avg, 0.025) / 1e6,
             q975 = quantile(N.avg, 0.975) / 1e6) %>% 
@@ -1798,7 +1798,7 @@ results %>%
 
 results %>% 
   group_by(year) %>% 
-  summarize(N_current = mean(N.avg) ,
+  dplyr::summarize(N_current = mean(N.avg) ,
          q025 = quantile(N.avg, 0.025),
          q975 = quantile(N.avg, 0.975))  %>% 
   left_join(assessment_summary) -> assessment_summary
@@ -1807,7 +1807,7 @@ write_csv(assessment_summary, paste0("output/assessment_summary_", YEAR, ".csv")
 
 results %>% 
   group_by(year) %>% 
-  summarize(N = mean(N.avg) ,
+  dplyr::summarize(N = mean(N.avg) ,
             q025 = quantile(N.avg, 0.025),
             q975 = quantile(N.avg, 0.975)) -> ci
 

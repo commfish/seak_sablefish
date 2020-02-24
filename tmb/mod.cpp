@@ -1098,6 +1098,13 @@ template<class Type>
     }
   }
 
+// The final ABC is then the difference between the preliminart ABC and wastage estimates
+  for(int i = 0; i <= nyr; i++) { 
+    for(int x = 0; x < n_Fxx; x++) {
+      ABC(i,x) = ABC(i,x) - wastage(i,x);
+    }
+  }
+      
   // std::cout << "ABC\n" << ABC << "\n";
   // std::cout << "Wastage\n" << wastage << "\n";
 
