@@ -1,0 +1,57 @@
+$Version
+[1] "VAST_v9_2_0"
+
+$n_x
+[1] 50
+
+$Region
+[1] "other"
+
+$strata.limits
+     STRATA
+1 All_areas
+
+$zone
+[1] NA
+
+$FieldConfig
+  Omega1 Epsilon1   Omega2 Epsilon2 
+       0        0        1        1 
+
+$RhoConfig
+   Beta1    Beta2 Epsilon1 Epsilon2 
+       0        0        0        0 
+
+$VamConfig
+Method   Rank Timing 
+     0      0      0 
+
+$OverdispersionConfig
+Eta1 Eta2 
+   0    0 
+
+$ObsModel
+[1] 1 3
+
+$vars_to_correct
+[1] "Index_cyl"
+
+$Options
+        SD_site_logdensity            Calculate_Range   Calculate_effective_area treat_nonencounter_as_zero 
+                     FALSE                       TRUE                       TRUE                       TRUE 
+
+$grid_size_km
+[1] 25
+
+$Method
+[1] "Mesh"
+
+$use_anisotropy
+[1] TRUE
+
+$fine_scale
+[1] TRUE
+
+$bias.correct
+[1] FALSE
+

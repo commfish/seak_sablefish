@@ -625,18 +625,19 @@ LYR_F <- 0.0632
     pull(maxF_ABC))
 
 # Percent changes
-(maxABC_increase <- (maxABC - LYR_ABC) / maxABC)
-maxABC-LYR_ABC
-(wastage_maxABC - LYR_wastage)/ wastage_maxABC
-(maxF_ABC - LYR_F) / maxF_ABC
+(maxABC_increase <- (maxABC - LYR_ABC) / LYR_ABC)
+round(maxABC-LYR_ABC,0)
+(wastage_maxABC - LYR_wastage)/ LYR_wastage
+(maxF_ABC - LYR_F) / LYR_F
 
 # Constant 15% change management procedure:
 if( maxABC_increase > 0.15 ) {
-  recABC <- LYR_ABC / 0.85
+  recABC <- LYR_ABC * 1.15
 } else {recABC <- maxABC}
 recABC
 
-recABC-LYR_ABC
+round(recABC-LYR_ABC,0)
+
 # Estimate recommended F_ABC using Pope's approx
 N <- obj$report()$N 
 N <- sum(N[nyr+1,,1]) + sum(N[nyr+1,,2]) # sum of projected abundance across age and sex
@@ -689,6 +690,12 @@ tidyrep %>%
   filter(grepl('log_sigma_r', Parameter)) %>% 
   pull(Estimate) %>% 
   exp()
+
+# Percent of forecasted ssb 2014 year class makes up
+# Projected total female spawning biomass
+f_ssb <- obj$report(best)$spawn_biom[nyr+1,] * 2.20462
+round(f_ssb[5] / sum(f_ssb) * 100, 1)
+
 # Bayesian model -----
 
 # Run in parallel with a init function

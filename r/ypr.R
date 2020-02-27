@@ -160,9 +160,9 @@ male_p <-  1 - female_p
 read_csv(paste0("output/agecomps_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) %>% 
   filter(Source == "LL fishery" & year == YEAR & Sex %in% c("Female", "Male")) -> agecomps 
 
-# If looking at the impact of the three age-2 fish sampled.
-# read_csv(paste0("output/agecomps_plsgrp", plus_group, "_", YEAR, "_sens.csv"), guess_max = 50000) %>% 
-#   filter(Source == "LL fishery" & year == YEAR & Sex %in% c("Female", "Male")) -> agecomps 
+# # If looking at the impact of the three age-2 fish sampled.
+# read_csv(paste0("output/agecomps_plsgrp", plus_group, "_", YEAR, "_sens.csv"), guess_max = 50000) %>%
+#   filter(Source == "LL fishery" & year == YEAR & Sex %in% c("Female", "Male")) -> agecomps
 
 f <- filter(agecomps, Sex == "Female") %>% pull(proportion)
 m <- filter(agecomps, Sex == "Male") %>% pull(proportion) 
@@ -302,8 +302,8 @@ for(i in (rec_age-1):(plus_group-1)){
 }
 
 N_MR_sex
-sum(Nm, Nf)
-sum(Nm[2:41], Nf[2:41])
+N_avail <- sum(Nm, Nf)
+sum(Nm[2:41], Nf[2:41]) # excluding age-2s
 
 # Assume discard mortality = 0.16, same as halibut directed fishery
 
@@ -539,6 +539,20 @@ exp_b
 # Total forecasted exploited abundance
 exp_n <- sum((N_fp * f_sel) + (N_mp * m_sel))
 exp_n
+
+# Summary for comparison
+data.frame("Quantity" = c("Assessment year mark-recapture abundance estimate",
+                          "Assessment year available abundance",
+                          "Forecasted available abundance",
+                          "Forecasted spawning biomass",
+                          "Forecasted exploitable abundance",
+                          "Forecasted exploitable biomass",
+                          "F_50",
+                          "ABC",
+                          "Mortality from discards"),
+           "Value" = c(N_MR_sex, N_avail, N_sex, SBs, exp_n, exp_b, F50, Q50, D50)) %>% 
+  write_csv(paste0("output/ypr_summary_", YEAR, ".csv"))
+  # write_csv(paste0("output/ypr_summary_", YEAR, "_sens.csv")) # if removing three age-2 samples
 
 # For retrospective/forecast plot in Forecast summary
 fcast <- data.frame(year = YEAR, n = exp_n) %>% 

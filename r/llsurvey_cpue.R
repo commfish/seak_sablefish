@@ -204,6 +204,49 @@ ggplot() +
 ggsave(paste0("figures/npue_llsrv_stat_", YEAR, ".png"), 
        dpi=300, height=7/1.6, width=3.5, units="in")
 
+# VAST exploration ----
+library(TMB)
+library(VAST)
+
+sampling_data <- sable %>% 
+  ungroup() %>% 
+  distinct(set_cpue, year, Adfg, end_lat, end_lon) %>% 
+  select(Catch_KG = set_cpue, Year = year, Vessel = Adfg, Lat = end_lat, Lon = end_lon) %>% 
+  mutate(AreaSwept_km2 = 1) %>% 
+  as.data.frame()
+
+strata.limits <- data.frame(STRATA = "All_areas")
+
+example <- list(sampling_data = sampling_data,
+                  Region = "other",
+                  strata.limits = strata.limits)
+
+settings = make_settings(n_x = 100, # number of knots
+                         ObsModel = c(1, 3), 
+                         FieldConfig = c("Omega1" = 0, "Epsilon1" = 0, "Omega2"=1, "Epsilon2"=1),
+                         Region = example$Region, 
+                         purpose = "index", 
+                         strata.limits = example$strata.limits, 
+                         bias.correct = TRUE)
+
+# Run model
+fit = fit_model( "settings" = settings, 
+                 "Lat_i" = example$sampling_data[, 'Lat'], 
+                 "Lon_i" = example$sampling_data[, 'Lon'], 
+                 "observations_LL" = example$sampling_data[, c('Lat', 'Lon')],
+                 "t_i" = example$sampling_data[, 'Year'],
+                 "c_i" = rep(0, nrow(example$sampling_data)), 
+                 "b_i" = example$sampling_data[, 'Catch_KG'], 
+                 "a_i" = example$sampling_data[, 'AreaSwept_km2'], 
+                 "v_i" = example$sampling_data[, 'Vessel'],
+                 "projargs" = "+proj=utm +zone=4 +units=km",
+                 "newtonsteps" = 0 # prevent final newton step to decrease mgc score
+)
+
+plot(fit)
+
+?fit_model
+?make_settings
 # GAM explorations ----
 
 library(GGally)
