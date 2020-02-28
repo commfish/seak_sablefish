@@ -247,6 +247,7 @@ plot(fit)
 
 ?fit_model
 ?make_settings
+
 # GAM explorations ----
 
 library(GGally)

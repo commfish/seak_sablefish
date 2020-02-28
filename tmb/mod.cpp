@@ -1451,6 +1451,7 @@ template<class Type>
   REPORT(fsh_len_like);     // Fishery length composition likelihoods
   REPORT(rec_like);         // Recruitment deviations
   REPORT(fpen);             // Fishing mortality deviations
+  REPORT(spr_pen);          // SPR penalty  
   REPORT(obj_fun);          // Total objective function
   REPORT(offset);           // Offsets for age comp multinomial
   REPORT(offset_srv_len);   // Offsets for survey length comp multinomial

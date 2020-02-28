@@ -470,9 +470,10 @@ rep <- out$rep # sdreport
 lower <- out$lower # bounds
 upper <- out$upper
 
-# Quick look at MLE results
 rep
-best <- obj$env$last.par.best 
+best <- obj$env$last.par.best
+# TODO: run model using TMBhelper::fit_tmb() and run Newton steps to reduce
+# final gradient
 
 # MLE results ----
 
@@ -481,6 +482,7 @@ tidyrep <- tidy(summary(rep))
 names(tidyrep) <- c("Parameter", "Estimate", "se")
 key_params <- filter(tidyrep, !grepl('devs', Parameter)) # "Key" parameters (exclude devs)
 write_csv(key_params, paste0(tmbout, "/tmb_params_mle_", YEAR, ".csv"))
+write_csv(tidyrep, paste0(tmbout, "/tmb_allparams_mle_", YEAR, ".csv"))
 
 # Save starting values for next year
 write_csv(tidyrep, paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
@@ -515,29 +517,51 @@ obj$report(best)$priors
 obj$report(best)$prior_M
 
 dat_like <- sum(obj$report(best)$catch_like,
-                obj$report(best)$index_like[1], obj$report(best)$index_like[3],
+                obj$report(best)$index_like[1], 
+                obj$report(best)$index_like[2],
                 obj$report(best)$index_like[3],
                 obj$report(best)$age_like[1], obj$report(best)$age_like[2],
                 sum(obj$report(best)$fsh_len_like),  sum(obj$report(best)$srv_len_like))
 
+sum(obj$report()$catch_like,
+    obj$report()$index_like[1], 
+    obj$report()$index_like[2],
+    obj$report()$index_like[3],
+    obj$report()$age_like[1], obj$report()$age_like[2],
+    sum(obj$report()$fsh_len_like),  sum(obj$report()$srv_len_like))
+
 like_sum <- data.frame(like = c("Catch", 
-                                "Fishery CPUE", "Survey CPUE", 
+                                "Fishery CPUE", 
+                                "Survey CPUE", 
                                 "Mark-recapture abundance",
-                                "Survey ages", "Fishery ages", 
-                                "Survey lengths", "Fishery lengths",
+                                "Fishery ages",
+                                "Survey ages", 
+                                "Fishery lengths",
+                                "Survey lengths", 
                                 "Data likelihood",
+                                "Fishing mortality penalty",
+                                "Recruitment likelihood",
+                                "SPR penalty",
+                                "Sum of catchability priors",
                                 "Total likelihood"),
                        value = c(obj$report(best)$catch_like,
-                                 obj$report(best)$index_like[1], obj$report(best)$index_like[3],
+                                 obj$report(best)$index_like[1], 
+                                 obj$report(best)$index_like[2],
                                  obj$report(best)$index_like[3],
-                                 obj$report(best)$age_like[1], obj$report(best)$age_like[2],
-                                 sum(obj$report(best)$fsh_len_like),  sum(obj$report(best)$srv_len_like),
+                                 obj$report(best)$age_like[1], 
+                                 obj$report(best)$age_like[2],
+                                 sum(obj$report(best)$fsh_len_like),
+                                 sum(obj$report(best)$srv_len_like),
                                  dat_like,
-                                 obj$report(best)$obj_fun
-                       )) %>% 
-  mutate(tot = obj$report()$obj_fun,
+                                 obj$report(best)$fpen,
+                                 obj$report(best)$rec_like,
+                                 obj$report(best)$spr_pen,
+                                 sum(obj$report(best)$priors),
+                                 obj$report(best)$obj_fun)) %>% 
+  mutate(tot = dat_like,
          perc = (value / tot) * 100) %>% 
-  select(-tot)
+  select(-tot) %>% 
+  rename(`Likelihood component` = like, Likelihood = value, `Percent of data likelihood` = perc)
 
 write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR, ".csv"))
 
@@ -573,25 +597,23 @@ ABC <- ABC %>%
 
 ABC %>% filter(Fxx == "0.5" & year == YEAR+1)
 
-obj$report(best)$mean_rec 
-obj$report(best)$pred_rec
-
 wastage <- as.data.frame(obj$report()$wastage * 2.20462)
 names(wastage) <- data$Fxx_levels
 wastage <- wastage %>% 
   mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
-  data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "wastage")
+  data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "disarded")
 
 wastage %>% filter(Fxx == "0.5" & year == YEAR+1)
 
 retro_mgt <- ABC %>% 
   left_join(wastage %>% filter(year != YEAR+1)) %>% 
-  left_join(ts %>% select(year, catch) %>% mutate(catch = catch * 2204.62)) %>% 
+  left_join(ts %>% select(year, landed = catch) %>% 
+              mutate(landed = landed * 2204.62)) %>% 
   # filter(Fxx == "0.5") %>% 
   melt(id.vars = c("year", "Fxx", "ABC")) %>% 
   rename(Fspr = Fxx)
 
-df <- data.frame(year = 2000:YEAR)
+df <- data.frame(year = 2000:YEAR+1)
 xaxis <- tickr(df, year, 5)
 ggplot() +
   geom_area(data = retro_mgt %>% filter(year > 2000 & Fspr == "0.5"),
@@ -602,7 +624,7 @@ ggplot() +
             aes(x = year, y = ABC, linetype = Fspr)) +
   scale_x_continuous(breaks = xaxis$breaks, labels = xaxis$labels) +
   scale_y_continuous(label = scales::comma) +
-  labs(x = NULL, y = "Catch (round lb)", fill = NULL)
+  labs(x = NULL, y = "Catch (round lb)", fill = "Catch")
   
 ggsave(filename = paste0(tmbfigs, "/catch_ABC_Fspr_", YEAR, ".png"), 
        dpi = 300, height = 4, width = 6, units = "in")

@@ -284,7 +284,7 @@ ggplot(ret_sex, aes(x = Age, y = value, col = Sex, linetype = Sex)) +
 
 plot_grid(size, sex, align = "h")
 
-ggsave(paste0("figures/retention_prob_", YEAR, ".png"), dpi=300,  height=4, width=8,  units="in")
+ggsave(paste0("figures/retention_prob_", YEAR, "_", plus_group, ".png"), dpi=300,  height=4, width=8,  units="in")
 
 # Adjust F to include discard mortality ----
 
