@@ -601,7 +601,7 @@ wastage <- as.data.frame(obj$report()$wastage * 2.20462)
 names(wastage) <- data$Fxx_levels
 wastage <- wastage %>% 
   mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
-  data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "disarded")
+  data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "discarded")
 
 wastage %>% filter(Fxx == "0.5" & year == YEAR+1)
 

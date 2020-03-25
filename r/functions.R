@@ -996,7 +996,7 @@ plot_ts <- function(save = TRUE, path = tmbfigs,
       # assumed error for data
       geom_errorbar(aes(year, ymin = lower_catch, ymax = upper_catch), width = 0.2) +
       scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-      scale_y_continuous(label = scales::comma) +
+      # scale_y_continuous(label = scales::comma) +
       labs(x = NULL, y = ifelse(units == "metric", "\n\nCatch\n(round mt)",
                                 "\n\nCatch\n(million round lb)")) +
       theme(axis.title.y = element_text(angle=0)) -> p_catch
@@ -1051,7 +1051,7 @@ plot_ts <- function(save = TRUE, path = tmbfigs,
     geom_ribbon(aes(year, ymin = lower_catch, ymax = upper_catch),
                 alpha = 0.2,  fill = "black", colour = NA) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-    scale_y_continuous(label = scales::comma) +
+    # scale_y_continuous(label = scales::comma) +
     labs(x = NULL, y = ifelse(units == "metric", "\n\nCatch\n(round mt)",
                               "\n\nCatch\n(million round lb)")) +
     theme(axis.title.y = element_text(angle=0)) -> p_catch

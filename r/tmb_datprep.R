@@ -114,7 +114,8 @@ read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) %>%
 
 read_csv(paste0("output/mr_index_", YEAR, ".csv")) %>% 
   select(year, mr = estimate, sigma_mr = sd) %>% 
-  mutate(sigma_mr = sigma_mr / mr,
+  mutate(# sigma_mr = sigma_mr / mr,
+         sigma_mr = 0.05,
          ln_mr = log(mr),
          std = 1.96 * sqrt(log(sigma_mr + 1)),
          upper_mr = exp(ln_mr + std),
