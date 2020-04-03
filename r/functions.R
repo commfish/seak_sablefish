@@ -413,8 +413,8 @@ tickr <- function(
 build_data <- function(
   # data sources (makes it easier to generalize for sensitivity and
   # retrospective analysts)
-  # ts, 
-  # mr, 
+  ts,
+  # mr,
   # fsh_cpue,
   # srv_cpue,
   # fsh_age,
@@ -438,7 +438,7 @@ build_data <- function(
   # slx_type,
   # comp_type,
   # spr_rec_type,
-  # M_type
+  # M_type,
   ...) {
   
   # Structure data for TMB - must use same variable names as .cpp
@@ -699,9 +699,9 @@ build_parameters <- function(
   # data,
   # nsex,
   # inits,
-  # rec_devs_inits,
+  rec_devs_inits,
   # rinit_devs_inits,
-  # Fdevs_inits,
+  Fdevs_inits,
   ...) {
   
   # Parameter starting values
@@ -785,7 +785,7 @@ build_parameters <- function(
     log_rinit_devs = rinit_devs_inits,
     
     # Variability in rec_devs and rinit_devs
-    log_sigma_r = log(0.6), #log(1.2), # Federal value of 1.2 on log scale
+    log_sigma_r = log(0.46), #log(1.2), # Federal value of 1.2 on log scale
     
     # Fishing mortality
     log_Fbar = inits %>% filter(Parameter == "log_Fbar") %>% pull(Estimate),
@@ -968,8 +968,8 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
                      optimizer = "nlminb", debug = FALSE) {
   
   # Debug function
-  # random <-  random_vars <- NULL
-  # # phases <- build_phases(parameters, data)
+  # random <-  random_vars# <- NULL
+  # phases <- build_phases(parameters, data)
   # model_name <- "mod"
   # debug <- FALSE
   
@@ -1167,7 +1167,34 @@ init_fn <- function(){list(
 )
 }
 
-# TMB figure functions ----
+# TMB figure/output functions ----
+
+# Save MLE parameter estimates from TMB
+save_mle <- function(#rep, # output from sdreport()
+                     save = TRUE,   # save output
+                     path = tmbout, # file path for tmb output 
+                     save_inits = TRUE, # save mle estimates as starting values for next yr?
+                     path_inits = tmb_dat, # file path for starting values
+                     year = YEAR) {
+  
+  # MLE parameter estimates and standard errors in useable format
+  tidyrep <- tidy(summary(rep))
+  names(tidyrep) <- c("Parameter", "Estimate", "se")
+  key_params <- filter(tidyrep, !grepl('devs', Parameter)) # "Key" parameters (exclude devs)
+  
+  # Save output
+  if(save == TRUE) {
+  write_csv(key_params, paste0(path, "/tmb_params_mle_", year, ".csv"))
+  write_csv(tidyrep, paste0(path, "/tmb_allparams_mle_", year, ".csv"))
+  }
+  
+  # Save starting values for next year
+  if(save_inits == TRUE) {
+    write_csv(tidyrep, paste0(path_inits, "/inits_for_", year+1, ".csv"))
+  }
+  
+  return(tidyrep)
+}
 
 # Unit translations
 
@@ -1336,7 +1363,7 @@ summarize_mcmc <- function(post) {
 }
 
 # Reshape ts (index) data and get resids
-reshape_ts <- function(){
+reshape_ts <- function(ts){
   
   ts$pred_catch <- obj$report(best)$pred_landed
   ts %>% 
@@ -1375,11 +1402,11 @@ reshape_ts <- function(){
 }
 
 # Plot time series
-plot_ts <- function(save = TRUE, path = tmbfigs, 
+plot_ts <- function(save = TRUE, path = tmbfigs, ts,
                     units = c('metric', 'imperial'), plot_variance = TRUE){
   
 
-  out <- reshape_ts()
+  out <- reshape_ts(ts = ts)
   out$ts -> catch # catch in kg
   out$fsh_cpue -> fsh_cpue # kg/hk
   out$srv_cpue -> srv_cpue
@@ -1608,7 +1635,8 @@ plot_ts_resids <- function(save = TRUE, path = tmbfigs) {
 plot_derived_ts <- function(save = TRUE, 
                             path = tmbfigs, 
                             units = c("imperial", "metric"), 
-                            plot_variance = FALSE) {
+                            plot_variance = FALSE,
+                            ts) {
   
   if(plot_variance == TRUE) {
     
@@ -1686,6 +1714,11 @@ plot_derived_ts <- function(save = TRUE,
   
   if(plot_variance == FALSE) {
     
+    # Get recruitment
+    log_rbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
+    log_rec_devs <- tidyrep %>% filter(Parameter == "log_rec_devs") %>% pull(Estimate)
+    tmp_rec <- exp(log_rbar + log_rec_devs)
+    
     if(units == "metric") {
       ts %>% 
         # Add another year to hold projected values
@@ -1693,7 +1726,8 @@ plot_derived_ts <- function(save = TRUE,
         # For ts by numbers go divide by 1e6 to get values in millions, for biomass
         # divide by 1e3 to go from kg to mt
         mutate(Fmort = c(obj$report(best)$Fmort, rep(NA, nproj)),
-               pred_rec = c(obj$report(best)$pred_rec, rep(NA, nproj)) / 1e6,
+               # pred_rec = c(obj$report(best)$pred_rec, rep(NA, nproj)) / 1e6,
+               pred_rec = c(tmp_rec, rep(NA, nproj)) / 1e6,
                biom = obj$report(best)$tot_biom / 1e6, 
                expl_biom = obj$report(best)$tot_expl_biom / 1e6,
                expl_abd = obj$report(best)$tot_expl_abd / 1e6, 
@@ -1707,7 +1741,8 @@ plot_derived_ts <- function(save = TRUE,
         # For ts by numbers go divide by 1e6 to get values in millions, for biomass
         # divide report in million lb
         mutate(Fmort = c(obj$report(best)$Fmort, rep(NA, nproj)),
-               pred_rec = c(obj$report(best)$pred_rec, rep(NA, nproj)) / 1e6,
+               # pred_rec = c(obj$report(best)$pred_rec, rep(NA, nproj)) / 1e6,
+               pred_rec = c(tmp_rec, rep(NA, nproj)) / 1e6,
                biom = obj$report(best)$tot_biom * 2.20462 / 1e6, 
                expl_biom = obj$report(best)$tot_expl_biom * 2.20462 / 1e6,
                expl_abd = obj$report(best)$tot_expl_abd / 1e6, 

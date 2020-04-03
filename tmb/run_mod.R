@@ -5,7 +5,7 @@
 # fishery and survey age and length compositions.
 
 # Contact: jane.sullivan1@alaska.gov
-# Last updated Feb 2020
+# Last updated Apr 2020
 
 # Set up ----
 
@@ -89,8 +89,8 @@ srv_len <- filter(len, Source == "srv_len")
 # TMB set up ----
 
 # User-defined fxns in functions.R
-data <- build_data()
-parameters <- build_parameters()
+data <- build_data(ts = ts)
+parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 random_vars <- build_random_vars()
 
 # Run model ----
@@ -123,15 +123,10 @@ best <- obj$env$last.par.best
 
 # MLE results ----
 
-# MLE parameter estimates and standard errors in useable format
-tidyrep <- tidy(summary(rep))
-names(tidyrep) <- c("Parameter", "Estimate", "se")
-key_params <- filter(tidyrep, !grepl('devs', Parameter)) # "Key" parameters (exclude devs)
-write_csv(key_params, paste0(tmbout, "/tmb_params_mle_", YEAR, ".csv"))
-write_csv(tidyrep, paste0(tmbout, "/tmb_allparams_mle_", YEAR, ".csv"))
-
-# Save starting values for next year
-write_csv(tidyrep, paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
+# MLE parameter estimates and standard errors in useable format. Saves output to
+# tmbout and starting vals for next year to tmb_dat by default. See functions.R
+# for more info.
+tidyrep <- save_mle() 
 
 # obj$report(best)$pred_landed * 2204.62
 # obj$report(best)$pred_catch * 2204.62
