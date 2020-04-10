@@ -337,6 +337,7 @@ obj$report(best)$tot_biom[nyr] * 2.20462
 # Projected total female spawning biomass
 obj$report(best)$tot_spawn_biom[nyr+1] * 2.20462
 
+# Unfished/fished SSB
 SB <- as.data.frame(obj$report(best)$SB * 2.20462)
 names(SB) <- "SB"
 SB <- SB %>% 
