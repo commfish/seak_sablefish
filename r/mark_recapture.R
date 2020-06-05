@@ -1,7 +1,7 @@
 # Mark-recapture analysis
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: Dec 2019
+# Last edited: June 2020
 
 # Conduct MR annual estimates using data >= 2005. 2003 countbacks were partially
 # lost, 2004 used PIT tags and batch 15 (2004) recoveries aren't in database.
@@ -31,9 +31,8 @@
 
 source("r/helper.r")
 source("r/functions.r")
-library(zoo) # interpolate values
-library(rjags) # run jags/bugs models
-library(purrr)
+if(!require("rjags"))   install.packages("rjags") # run jags/bugs models
+if(!require("purrr"))   install.packages("purrr") # clean up posterior output
 
 FIRST_YEAR <- 2005 
 YEAR <- 2019 # Current assessment year, most recent year of data

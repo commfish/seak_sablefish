@@ -2,11 +2,12 @@
 # Fishery catch 1985-present, fishery CPUE 1997-present
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: March 2019
+# Last edited: June 2020
 
 source("r/helper.r")
 source("r/functions.r")
-library("rms")   #install.packages("rms") # simple bootstrap confidence intervals
+
+if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
 # Most recent year of data
 YEAR <- 2019
@@ -15,26 +16,16 @@ YEAR <- 2019
 
 # There are multiple sources of catch data. The IFDB (Region I database) was
 # used in the past, but J. Shriver recommends using the Gross Earnings File
-# (GEF) for catch histories. The problem is the GEF isn't updated until data has
-# been finalized, so 2017 isn't ready yet. The IFDB data goes back to 1969,
-# while the GEF data only goes back to 1975. They are the same from 1985 to
-# present, so for now, just IFDB's 1985-present
-
-cols <- quos(year, date, julian_day, Mgmt_area, Stat, Cfec_permit, Delivery_cde, 
-             Harvest_cde, Spp_cde, whole_pounds, pounds, src) 
-
-catch_gef <- read_csv(paste0("data/fishery/nseiharvest_gef_1975_", YEAR-1,".csv"), 
-                      guess_max = 50000) %>% 
-  mutate(src = "gef") %>% 
-  select(!!!cols)
+# (GEF) for catch histories, which go back to 1975. The problem is the GEF isn't
+# updated until data has been finalized, so it's never ready for the current
+# year's assessment. The IFDB and GEF are the same from 1985-present, so use
+# that. The SCAA model relies on Carlile et al 2002 published estimates of NSEI
+# catch 1975-1984.
 
 catch_ifdb <- read_csv(paste0("data/fishery/nseiharvest_ifdb_1985_", YEAR,".csv"), 
                        guess_max = 50000) #%>% 
-# mutate(src = "ifdb") #%>% 
-#select(!!!cols)
-exvessel_value <- read.csv("data/exvessel_value.csv")
 
-bind_rows(catch_gef, catch_ifdb) -> catch
+exvessel_value <- read.csv("data/exvessel_value.csv")
 
 catch_ifdb %>% 
   filter(year > 2013) %>% 
@@ -46,12 +37,14 @@ catch_ifdb %>%
   ungroup() %>% 
   mutate(cum_pounds = cum_pounds / tot_pounds) -> catch_plot
 
+# Cumulative catch over the fishery seasons
 ggplot(catch_plot, aes(x = julian_day, colour = year, group = factor(year))) +
   geom_line(aes(y = cum_pounds)) +
   # facet_wrap(~ year, ncol = 1) +
   labs(x = "Julian Day", y = "Millions lb") +
   ylim(0, 1)
   
+# Total catch by year
 catch_ifdb %>% 
   group_by(year) %>% 
   dplyr::summarize(total_pounds = sum(whole_pounds)) -> sum_catch
@@ -74,6 +67,7 @@ catch
 ggsave(paste0("figures/fishery_harvest_1985_", YEAR, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
 
+# Catch by ports
 '%ni%' <- Negate('%in%')
 
 catch_ifdb %>% filter(year == YEAR) %>% distinct(Port)
@@ -133,7 +127,8 @@ ggsave(paste0("figures/catch_exvesselvalue_", YEAR, ".png"),
        dpi=300, height=8, width=7, units="in")
 # View(port_catch)
 
-library(ggrepel)
+# Relationship between ex-vessel price and catch
+if(!require("ggrepel"))   install.packages("ggrepel") 
 sum_catch %>% 
   left_join(exvessel_value) %>% 
   mutate(flag = ifelse(year %in% c(YEAR, YEAR-1, YEAR-2), "a", "b")) %>% 
@@ -147,10 +142,6 @@ sum_catch %>%
 ggsave(paste0("figures/exvessel_catch_correlation_1985_", YEAR, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
 
-
-
-# Consolidation of fishery - number of vessels fishing and total number of trips
-# in Chatham over time
 
 # Logbook/CPUE data  ----
 
@@ -202,6 +193,8 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
     total_trips = n_distinct(trip_no)) %>% 
   ungroup() -> fsh_cpue
 
+# Consolidation of fishery - number of vessels fishing and total number of trips
+# in Chatham over time
 axis <- tickr(fsh_cpue, year, 5)
 
 fsh_cpue %>% 
@@ -215,7 +208,7 @@ fsh_cpue %>%
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "") +
   ylim(0, NA) -> trips_vessels
-
+trips_vessels
 ggsave(plot = trips_vessels, paste0("figures/fishery_tripandvessel_trends_1997_", YEAR, ".png"), 
        dpi=300, height=6, width=5, units="in")
 
@@ -240,7 +233,8 @@ ggplot(plot_boot) +
 ggsave(paste0("figures/fshcpue_bootCI_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
 
-# New CPUE analysis for NSEI, mirroring what was done by Jenny and Ben in SSEI
+# Prelim works towards CPUE analysis for NSEI, mirroring what was done by Jenny
+# Stahl and Ben Williams in SSEI
 
 # Normality
 
@@ -548,7 +542,7 @@ fsh_sum %>%
 fsh_sum %>% 
   filter(year >= YEAR - 1) %>%
   select(year, fsh_cpue) %>% 
-  dcast("fsh_cpue" ~ year) -> perc_ch
+  reshape2::dcast("fsh_cpue" ~ year) -> perc_ch
 
 names(perc_ch) <- c("cpue", "last_year", "this_year") 
 perc_ch %>% mutate(perc_change_ly = (`this_year` - `last_year`) / `last_year` * 100)

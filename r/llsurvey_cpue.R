@@ -3,11 +3,11 @@
 # Contact: jane.sullivan1@alaska.gov
 # Last edited: Feb 2020
 
-# Currently includes current longline survey cpue, which is calculated at the
-# skate level. The next version of this "v2" will be at the set level and may
+# The most version of this "V2" calculates survey cpue at the set level and may
 # standardized by soak time, depth, lat/lon, tide, and catch of other species.
-# v2 will also include a more rigorous review of invalid skates through
-# inspection of set and skate specific comments
+# v2 also includes a more rigorous review of invalid skates through inspection
+# of set and skate specific comments. Past longline survey cpue was calculated
+# at the skate level.
 
 # At the end of the code is an exploration of the hook standardization
 # relationship.
@@ -15,7 +15,7 @@
 #load ----
 source("r/helper.r")
 source("r/functions.r")
-library("rms")   #install.packages("rms") # simple bootstrap confidence intervals
+if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
 YEAR <- 2019 # most recent year of data
 
@@ -151,7 +151,7 @@ srv_sum %>%
   filter(year >= YEAR - 1 & year <= YEAR) %>%
   select(year, srv_cpue) %>% 
   mutate(year2 = ifelse(year == YEAR, "thisyr", "lastyr")) %>% 
-  dcast("srv_cpue" ~ year2, value.var = "srv_cpue") %>% 
+  reshape2::dcast("srv_cpue" ~ year2, value.var = "srv_cpue") %>% 
   mutate(perc_change_ly = (thisyr - lastyr) / lastyr * 100,
          eval_ly = ifelse(perc_change_ly < 0, "decreased", "increased")) -> srv_ly
 
@@ -205,8 +205,10 @@ ggsave(paste0("figures/npue_llsrv_stat_", YEAR, ".png"),
        dpi=300, height=7/1.6, width=3.5, units="in")
 
 # VAST exploration ----
-library(TMB)
-library(VAST)
+
+# Careful! VAST adds a lot of files to the root of the project
+if(!require("TMB"))   install.packages("TMB") 
+if(!require("VAST"))   install.packages("VAST") 
 
 sampling_data <- sable %>% 
   ungroup() %>% 
@@ -248,11 +250,11 @@ plot(fit)
 ?fit_model
 ?make_settings
 
-# GAM explorations ----
+# GAM CPUE standardization explorations ----
 
-library(GGally)
-library(mgcViz)
-library(mgcv)
+if(!require("GGally"))   install.packages("GGally") 
+if(!require("mgcViz"))   install.packages("mgcViz") 
+if(!require("mgcv"))   install.packages("mgcv") 
 
 sable %>% 
   select(set_cpue, depth, end_lon, soak, slope, bare, bait, Clotheslined, Shark) %>% 

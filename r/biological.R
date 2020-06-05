@@ -1,4 +1,4 @@
-# work up of survey and fishery biological data
+# Work up of survey and fishery biological data
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov (ummjane@gmail.com)
 # Last updated: June 2020 
