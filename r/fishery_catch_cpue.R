@@ -32,6 +32,7 @@ catch_ifdb <- read_csv(paste0("data/fishery/nseiharvest_ifdb_1985_", YEAR,".csv"
                        guess_max = 50000) #%>% 
 # mutate(src = "ifdb") #%>% 
 #select(!!!cols)
+exvessel_value <- read.csv("data/exvessel_value.csv")
 
 bind_rows(catch_gef, catch_ifdb) -> catch
 
@@ -113,7 +114,40 @@ plot_grid(catch, port, ncol = 1, align = 'hv')
 ggsave(paste0("figures/catch_byport_", YEAR, ".png"),
        dpi=300, height=8, width=7, units="in")
 
+# Exvessel value ----
+exvessel <- ggplot(exvessel_value, aes(x = year, y = exvessel_mil_usd)) +
+  geom_point() +
+  geom_line() +
+  # add a line for EQS starting in 1994 (1997 in the SSEI).
+  geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = NULL, y = "Ex-vessel value (million USD)\n") +
+  ylim(c(0, 12))
+exvessel
+ggsave(paste0("figures/exvessel_value_1985_", YEAR, ".png"), 
+       dpi=300,  height=4, width=7,  units="in")
+
+plot_grid(catch, exvessel, ncol = 1, align = 'hv')
+
+ggsave(paste0("figures/catch_exvesselvalue_", YEAR, ".png"),
+       dpi=300, height=8, width=7, units="in")
 # View(port_catch)
+
+library(ggrepel)
+sum_catch %>% 
+  left_join(exvessel_value) %>% 
+  mutate(flag = ifelse(year %in% c(YEAR, YEAR-1, YEAR-2), "a", "b")) %>% 
+  ggplot(aes(x = total_pounds / 1e6, y = exvessel_mil_usd, col = flag)) +
+  geom_smooth(method = "lm", se = FALSE, col = "grey") +
+  geom_point() + 
+  ggrepel::geom_text_repel(aes(label = year)) +
+  scale_colour_manual(values = c("red", "black"), guide = FALSE) +
+  labs(x = "\nCatch (million round lb)", y = "Ex-vessel value (million USD)")
+
+ggsave(paste0("figures/exvessel_catch_correlation_1985_", YEAR, ".png"), 
+       dpi=300,  height=4, width=7,  units="in")
+
+
 
 # Consolidation of fishery - number of vessels fishing and total number of trips
 # in Chatham over time

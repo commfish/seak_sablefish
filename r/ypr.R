@@ -22,7 +22,7 @@ F_previous <- 0.0632 # 0.0635 in 2018, 0.0683 in 2017, 0.0677 in 2016
 mort <- 0.1 # natural mortality
 
 rec_age <- 2
-plus_group <- 42
+plus_group <- 31
 
 # Mark-recapture results ----
 
@@ -91,7 +91,7 @@ ggsave(paste0("figures/fixed_selectivity_", YEAR, ".png"),
 
 # Weight-at-age
 read_csv(paste0("output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) -> waa_l
-waa_l %>% dcast(Source + Sex ~ age, value.var = "weight") -> waa
+waa_l %>% dcast(Source + Sex ~ age, value.var = "round_kg") -> waa
 
 # Female, survey
 wt_s_f <- waa %>% filter(Source == "LL survey" & Sex == "Female") %>%  select(matches("^[[:digit:]]+$")) %>% as.numeric() 
@@ -255,16 +255,16 @@ grades %>%
   mutate(label = paste0(price, "/lb"),
          y = c(0.1, 0.2, 0.5, 0.4, 0.75, 0.9, 0.9))  -> grades2
 
-axis <- tickr(grades, lbs_whole , 1)
+axis <- tickr(grades, lbs , 1)
 
 ggplot() +
-  geom_line(data = grades %>% filter(lbs <= 12), 
+  geom_line(data = grades %>% filter(lbs <= 10), 
             aes(x = lbs, y = p), size = 1) +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   geom_rect(data = grades2, aes(xmin = mn, xmax = mx, ymin = -Inf, ymax = Inf, fill = plot_cde, group = 1), 
             colour = NA, alpha = 0.2, show.legend = FALSE) +
   scale_fill_manual(values = c("white", "grey80")) +
-  labs(x = "\n Round weight (lb)", y = "Retention probability\n") + 
+  labs(x = "\n Dressed weight (lb)", y = "Retention probability\n") + 
   geom_text(data = grades2, aes(label = label, x = mu, y = y), 
             vjust = 1, size = 2.5) -> size 
 

@@ -1,11 +1,10 @@
 # work up of survey and fishery biological data
 # Author: Jane Sullivan
-# Contact: jane.sullivan1@alaska.gov
-# Last edited: 2018-02-06
+# Contact: jane.sullivan1@alaska.gov (ummjane@gmail.com)
+# Last updated: June 2020 
 
 source("r/helper.r")
 source("r/functions.r")
-library(ggridges)
 
 YEAR <- 2019
 rec_age <- 2
@@ -155,7 +154,7 @@ ggplot(df,
 
 ggsave("figures/waa_trends.png", dpi = 300, height = 5, width = 7, units = "in")
 
-# Length-based Ludwig von Bertalanffy growth model -----
+# Survey length-at-age -----
 
 # subsets by length, age, sex
 srv_bio %>% 
@@ -191,7 +190,6 @@ vb_mle_m <- vonb_len(obs_length = laa_m$length,
                    sex = "Male")
 
 # combine predictions and parameter estimates and plot mle
-
 bind_rows(vb_mle_f$predictions, vb_mle_m$predictions) %>% 
   mutate(std_resid = scale(resid)) -> pred
 
@@ -206,17 +204,18 @@ bind_rows(vb_mle_f$results, vb_mle_m$results) %>%
 
 laa_plot <- laa_sub %>% filter(age <= plus_group)
 pred_pl <- pred %>% filter(pred <= plus_group)
-axis <- tickr(laa_plot, age, 10)
+axis <- tickr(laa_plot, age, 5)
 
 ggplot(laa_plot, aes(age, length)) +
   geom_jitter(aes(col = Sex, shape = Sex), alpha=.2, shape = 20) +
-  geom_line(data = pred, aes(y = pred, col = Sex, group = Sex)) + #"#00BFC4"
+  geom_line(data = pred, aes(y = pred, col = Sex, group = Sex), size = 1) + #"#00BFC4"
   # geom_line(data = pred, aes(y = pred, group = Sex), col = "darkgrey" ) + #"#00BFC4"
-  scale_colour_grey(start = 0, end = 0.5) +
+  # scale_colour_grey(start = 0, end = 0.5) +
   scale_linetype_manual(values = c(2,1)) +
   scale_x_continuous(limits = c(rec_age, plus_group), breaks = axis$breaks, labels = axis$labels) +
-  xlab("\nAge (yrs)") +
-  ylab("Length (cm)\n") + 
+  xlab("Age (yrs)") +
+  ylab("Fork length (cm)") + 
+  expand_limits(y = 0) +
   theme(legend.position = c(0.9, 0.2)) 
 
 ggsave(paste0("figures/length_vonb_chathamllsurvey_1997_", YEAR, ".png"), dpi=300, height=4, width=6, units="in")
@@ -226,18 +225,8 @@ ggplot(data = pred) +
   geom_histogram(aes(x = std_resid), bins=100) +
   facet_wrap(~ Sex)
 
-ggplot(pred, aes(age, std_resid)) + 
-  geom_point(alpha=.5) +
-  geom_hline(yintercept = 0, lty = 2, col = "red") + 
-  facet_wrap(~ Sex)
-
-ggplot(pred, aes(pred, std_resid)) + 
-  geom_point(alpha=.5) +
-  geom_hline(yintercept = 0, lty = 2, col = "red") + 
-  facet_wrap(~ Sex)
-
-# Are there annual trends in length-at-age? First vonB curves by Year for illustrative
-# purposes
+# Are there annual trends in length-at-age? First vonB curves by Year for
+# illustrative purposes
 
 list_yrs <- unique(laa_f$year)
 
@@ -245,10 +234,10 @@ for (i in 1:length(list_yrs)) {
   
   #Get year-specific subset and fit model
   laa_yr <- laa_f %>% filter(year == list_yrs[i])
-
+  
   vbfit <- vonb_len(obs_length = laa_yr$length,
-                     age = laa_yr$age, starting_vals = start_f,
-                     sex = "Female")
+                    age = laa_yr$age, starting_vals = start_f,
+                    sex = "Female")
   
   #Append resuts for vonB predictions and parameter estimates
   pred <- vbfit$predictions %>% mutate(year = list_yrs[i])
@@ -289,6 +278,68 @@ ggplot() +
 
 ggsave(paste0("figures/trends_lenvonbpars_1997_", YEAR, ".png"), 
        dpi=300, height=7, width=6, units="in")
+
+# Fishery length-at-age ----
+
+# subsets by length, age, sex
+fsh_bio %>% 
+  filter(Sex %in% c("Female", "Male") &
+           year >= 1997 & # *FLAG* advent of "modern" survey
+           !is.na(length) &
+           !is.na(age)) %>% 
+  droplevels() -> fsh_laa_sub
+
+fsh_laa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Female") -> fsh_laa_f
+
+fsh_laa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Male") -> fsh_laa_m
+
+#sex-specific starting values from Hanselman et al. 2007 (Appendix C, Table 1),
+#except sigma
+fsh_start_f <- c(l_inf = 80, k = 0.22, t0 = -1.9, sigma = 10) 
+fsh_start_m <- c(l_inf = 68, k = 0.29, t0 = -2.3, sigma = 10)
+
+# mle fit for females
+vb_fsh_f <- vonb_len(obs_length = fsh_laa_f$length,
+                     age = fsh_laa_f$age,
+                     starting_vals = fsh_start_f,
+                     sex = "Female")
+
+# mle fit for males
+vb_fsh_m <- vonb_len(obs_length = fsh_laa_m$length,
+                     age = fsh_laa_m$age,
+                     starting_vals = fsh_start_m,
+                     sex = "Male")
+
+# combine predictions and parameter estimates and plot mle
+bind_rows(vb_fsh_f$predictions, vb_fsh_m$predictions) %>% 
+  mutate(std_resid = scale(resid)) -> fsh_pred
+
+fsh_laa_plot <- fsh_laa_sub %>% filter(age <= plus_group)
+fsh_pred_pl <- fsh_pred %>% filter(pred <= plus_group)
+axis <- tickr(fsh_laa_plot, age, 5)
+
+ggplot(fsh_laa_plot, aes(age, length)) +
+  geom_jitter(aes(col = Sex, shape = Sex), alpha=.2, shape = 20) +
+  geom_line(data = fsh_pred, aes(y = pred, col = Sex, group = Sex), size = 1) + #"#00BFC4"
+  # geom_line(data = pred, aes(y = pred, group = Sex), col = "darkgrey" ) + #"#00BFC4"
+  # scale_colour_grey(start = 0, end = 0.5) +
+  scale_linetype_manual(values = c(2,1)) +
+  scale_x_continuous(limits = c(rec_age, plus_group), breaks = axis$breaks, labels = axis$labels) +
+  xlab("Age (yrs)") +
+  ylab("Fork length (cm)") + 
+  expand_limits(y = 0) +
+  theme(legend.position = c(0.9, 0.2)) 
+
+ggsave(paste0("figures/length_vonb_chathamllfishery_2002_", YEAR, ".png"), dpi=300, height=4, width=6, units="in")
+
+bind_rows(vb_mle_f$ypr_predictions, vb_mle_m$ypr_predictions) %>% mutate(Source = "LL survey") %>% 
+  bind_rows(bind_rows(vb_fsh_f$ypr_predictions, vb_fsh_m$ypr_predictions) %>% mutate(Source = "LL fishery")) %>% 
+  rename(fork_len = length) %>% 
+  write_csv(paste0("output/pred_laa_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 # Weight-length allometry W = alpha * L ^ beta ----
 
@@ -336,43 +387,21 @@ bind_rows(tidy(male_fit) %>% mutate(Sex = "Male"),
               summarise(n = n())) -> allom_pars
 
 ggplot(allom_sub, aes(length, weight, col = Sex, shape = Sex)) +
-  geom_jitter() + 
+  geom_jitter(alpha =0.8) + 
   stat_function(fun = lw_allometry, 
                 args = as.list(tidy(fem_fit)$estimate),
-                col = "black") + 
+                col = "#F8766D") + 
   stat_function(fun = lw_allometry, 
                 args = as.list(tidy(male_fit)$estimate),
-                col = "grey", lty = 2) + 
-  labs(x = "\nFork length (cm)", y = "Round weight (kg)\n", alpha = NULL) +
-  scale_colour_grey() +
-  theme(legend.position = c(0.9, 0.2))
+                col = "#00BFC4", lty = 2) + 
+  labs(x = "Fork length (cm)", y = "Round weight (kg)", alpha = NULL) +
+  # scale_colour_grey() +
+  theme(legend.position = c(0.85, 0.2))
 
 ggsave(paste0("figures/allometry_chathamllsurvey_1997_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
   
-# Allometry using linear fxn ----
-lw <- lm(log(weight) ~ log(length), data = allom_sub) # estimate on log transformed
-lwfit <- exp(fitted(lw) * exp((sigma(lw)^2) / 2)) # adjust for bias
-lwresid <- allom_sub$weight - lwfit # calculate resids
-plot(lwfit, lwresid) # always plot to see how things look
-abline(h=0, lty=4)
-summary(lw)  # are values the same/similar?
-
-lw_f <- lm(log(weight) ~ log(length), data = filter(allom_sub, Sex == "Female"))
-lw_m <- lm(log(weight) ~ log(length), data = filter(allom_sub, Sex == "Male"))
-
-bind_rows(tidy(lw_f) %>% mutate(Sex = "Female"),
-          tidy(lw_m) %>% mutate(Sex = "Male")) %>% 
-  bind_rows(tidy(lw) %>% mutate(Sex = "Combined")) %>% 
-  mutate(Parameter = derivedFactor("a" = term == "(Intercept)",
-                                   "b" = term == "log(length)"),
-         Estimate = ifelse(Parameter == "a", exp(estimate), estimate),
-         Function = "Allometric - LM log trans") %>% 
-  select(Function, Parameter, Estimate, Sex) %>% 
-  bind_rows(select(allom_pars, Function, Parameter, Estimate, Sex)) %>% 
-  arrange(Sex, Parameter)
-
-# Weight-based Ludwig von Bertalanffy growth model ----
+# Survey weight-at-age ----
 
 # subsets by weight, age, sex
 srv_bio %>% 
@@ -430,7 +459,8 @@ srv_m_waa <- wvb_mle_m$ypr_predictions
 srv_a_waa <- wvb_mle$ypr_predictions
 
 rbind(srv_f_waa, srv_m_waa, srv_a_waa) %>% 
-  mutate(Source = "LL survey") -> srv_waa
+  mutate(Source = "LL survey") %>% 
+  rename(round_kg = weight) -> srv_waa
 
 # combine predictions and parameter estimates and plot fitted values
 wvb_mle_f$predictions %>% 
@@ -449,13 +479,14 @@ wvb_mle_f$results %>%
 
 ggplot() +
   geom_jitter(data = waa_sub, aes(x = age, y = weight, col = Sex, shape = Sex), shape = 20, alpha = 0.2) +
-  geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex)) + #"#00BFC4"
-  scale_colour_grey(start = 0, end = 0.5) +
+  geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex), size = 1) + #"#00BFC4"
+  # scale_colour_grey(start = 0, end = 0.5) +
   scale_linetype_manual(values = c(2,1)) +
   scale_x_continuous(limits = c(2,plus_group),breaks = axis$breaks, labels = axis$labels) +
   ylim(c(0,10)) +
-  xlab("\nAge (yrs)") +
-  ylab("Weight (kg)\n") + 
+  xlab("Age (yrs)") +
+  ylab("Round weight (kg)") + 
+  expand_limits(y = 0) +
   theme(legend.position = c(0.2, 0.8))
 
 ggsave(paste0("figures/weight_vonb_chathamllsurvey_1997_", YEAR, ".png"), 
@@ -472,15 +503,9 @@ pred %>% # females don't look great, but this is already with a multiplicative e
   geom_hline(yintercept=0, lty=4, alpha=.5) +
   facet_wrap(~Sex)
 
-pred %>% 
-  ggplot(aes(pred, std_resid)) + geom_point(alpha=.2) +
-  geom_hline(yintercept=0, lty=4, alpha=.5) +
-  facet_wrap(~Sex)
-
 # Fishery weight-at-age ----
 
-# For YPR analysis, use same methods as survey and same starting
-# values)
+# Use same methods as survey and same starting values)
 
 # subsets by weight, age, sex
 fsh_bio %>% 
@@ -519,6 +544,11 @@ fsh_wvb_a <- vonb_weight(obs_weight = fsh_waa_sub$weight,
                          starting_vals = start_a,
                          sex = "Combined")
 
+# combine predictions and parameter estimates and plot fitted values
+fsh_wvb_f$predictions %>% 
+  rbind(fsh_wvb_m$predictions) %>% 
+  mutate(std_resid = scale(resid)) -> pred
+
 fsh_wvb_f$results %>% 
   rbind(fsh_wvb_m$results) %>% 
   mutate(Survey = "EQS longline fishery",
@@ -528,6 +558,21 @@ fsh_wvb_f$results %>%
   full_join(fsh_waa_sub %>% 
               group_by(Sex) %>% 
               summarise(n = n()), by = 'Sex') -> fsh_wvb_pars
+
+ggplot() +
+  geom_jitter(data = fsh_waa_sub, aes(x = age, y = weight, col = Sex, shape = Sex), shape = 20, alpha = 0.2) +
+  geom_line(data = pred, aes(x = age, y = pred, col = Sex, group = Sex), size = 1) + #"#00BFC4"
+  # scale_colour_grey(start = 0, end = 0.5) +
+  scale_linetype_manual(values = c(2,1)) +
+  scale_x_continuous(limits = c(2,plus_group),breaks = axis$breaks, labels = axis$labels) +
+  ylim(c(0,10)) +
+  xlab("Age (yrs)") +
+  ylab("Round weight (kg)") + 
+  expand_limits(y = 0) +
+  theme(legend.position = c(0.2, 0.8))
+
+ggsave(paste0("figures/weight_vonb_chathamfishery_1997_", YEAR, ".png"), 
+       dpi=300, height=4, width=6, units="in")
 
 # Past assessments: for the plus group take the mean of all samples >=
 # plus_group Now just use the predicted mean asymptotic length.
@@ -539,29 +584,33 @@ fsh_a_waa <- fsh_wvb_a$ypr_predictions
 
 rbind(fsh_f_waa, fsh_m_waa, fsh_a_waa) %>% 
   mutate(Source = "LL fishery") %>% 
+  rename(round_kg = weight) %>% 
   rbind(srv_waa) %>% 
-  mutate(weight = round(weight, 4)) %>% 
-  select(Source, Sex, age, weight) -> pred_waa 
-
-
-ggplot(data = pred_waa, aes(x = age, y = weight, colour = Source, 
-                            shape = Sex, linetype = Sex)) +
-  geom_point() +
-  geom_line() + 
-  scale_colour_grey() +
-  xlab("\nAge (yrs)") +
-  ylab("Weight (kg)\n") +
-  expand_limits(y = 0)
-
+  mutate(round_kg = round(round_kg, 4)) %>% 
+  select(Source, Sex, age, round_kg) -> pred_waa 
 write_csv(pred_waa, paste0("output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"))
+
+ggplot(data = pred_waa, aes(x = age, y = round_kg * 2.20462 * 0.63, colour = Sex, 
+                            linetype = Source)) +
+  # geom_point() +
+  geom_line(size = 1) + 
+  scale_colour_manual(values = c("#F8766D", "#00BFC4", "#7CAE00")) +
+  xlab("Age (yrs)") +
+  ylab("Dressed weight (lb)") +
+  expand_limits(y = 0) +
+  scale_x_continuous(limits = c(2,plus_group),breaks = axis$breaks, labels = axis$labels)
+  
+ggsave(paste0("figures/waa_dressedlb_1997_", YEAR, ".png"), 
+       dpi=300, height=4, width=6, units="in")
 
 # Compare empirical and predicted weight-at-age
 ggplot() +
   geom_point(data = emp_waa, 
        aes(x = age, y = weight, col = Source, shape = Sex)) +
   geom_line(data = pred_waa,
-            aes(x = age, y = weight, col = Source, linetype = Sex), size = 1) +
+            aes(x = age, y = round_kg, col = Source, linetype = Sex), size = 1) +
   scale_colour_grey() +
+  expand_limits(y = 0) +
   labs(x = "\nAge", y = "Weight (kg)\n", linetype = "Sex", shape = "Sex")
 
 ggsave(paste0("figures/compare_empirical_predicted_waa_", YEAR, ".png"), 
@@ -574,63 +623,75 @@ ggsave(paste0("figures/compare_empirical_predicted_waa_", YEAR, ".png"),
 
 bind_rows(allom_pars, lvb_pars, wvb_pars, fsh_wvb_pars) %>% 
       mutate(Source = "seak_sablefish/code/biological.r") %>% 
-  bind_rows(noaa_lvb) %>% View()
+  bind_rows(noaa_lvb) %>% 
   write_csv(., "output/compare_vonb_adfg_noaa.csv")
 
 # Maturity ----
 
-# Fit length-based maturity -> translate to age.
+# Maturity could use a more rigorous analysis. Based on recommendations from Ben
+# Williams, the maturity used for stock assessment is a length-based maturity
+# curve (fit to 1997-current longline survey data) that is then translated to
+# age using survey length-at-age predictions from vonB. There is also code here
+# to compare this with yearly fits to length and also fits to age.
 
-# 0 = immature, 1 = mature
-
-# what survey years do we have maturity data for?
-laa_f %>% filter(!is.na(Mature)) %>%
-  group_by(year) %>% 
-  summarise(n = n())
-
-# base model
-fit_length <- glm(Mature ~ length, data = laa_f, family = binomial)
-len <- seq(0, 120, 0.05)
-(L50 <- round(- coef(fit_length)[1]/coef(fit_length)[2],1))
-(kmat <- round(((coef(fit_length)[1] + coef(fit_length)[2]*len) / (len - L50))[1], 2))
-
-# by year
-fit_length_year <- glm(Mature ~ length * Year, data = laa_f, family = binomial)
-
-AIC(fit_length, fit_length_year)
-
-## select the "best model" (fit_length_year) and run the model on the new full
-# dataset (there is more length data than age so it will usually fit better)
+# 0 = immature, 1 = mature. Only conducted for females (because biological
+# reference points / harvest strategy are based on female spawning biomass)
 
 # subsets by length
 srv_bio %>% 
   ungroup() %>% 
   filter(Sex == "Female" &
            year >= 1997 & # *FLAG* advent of "modern" survey
+           !is.na(Mature) &
            !is.na(length)) %>% 
   droplevels() -> len_f
 
-fit_length_year <- glm(Mature ~ length * Year, data = len_f, family = quasibinomial)
+# Sample sizes by year
+with(len_f, table(year))
 
-# New df for prediction
+# base model
+fit_length <- glm(Mature ~ length, data = len_f, family = binomial)
+len <- seq(0, 120, 0.05)
+(L50 <- round(- coef(fit_length)[1]/coef(fit_length)[2],1))
+(kmat <- round(((coef(fit_length)[1] + coef(fit_length)[2]*len) / (len - L50))[1], 2))
+
+# by year, for comparison
+fit_length_year <- glm(Mature ~ length * Year, data = len_f, family = binomial)
+
+AIC(fit_length, fit_length_year)
+
+# fit_length_year <- glm(Mature ~ length * Year, data = len_f, family = quasibinomial)
+
+# New df for prediction for fit_length
+new_len_f_simple <- data.frame(length = seq(0, 120, 0.05))
+
+# New df for prediction for fit_length_year
 new_len_f <- data.frame(length = rep(seq(0, 120, 0.05), n_distinct(len_f$year)),
-           Year = factor(sort(rep(unique(len_f$year), length(seq(0, 120, 0.05))), decreasing = FALSE)))
+                        Year = factor(sort(rep(unique(len_f$year), length(seq(0, 120, 0.05))), decreasing = FALSE)))
 
-# Get predicted values by year and take the mean           
+# Get predicted values for fit_length       
+broom::augment(x = fit_length, 
+               newdata = new_len_f_simple, 
+               type.predict = "response") %>% 
+  select(length, fitted = .fitted, se =.se.fit) -> pred_simple
+
+# Get predicted values by year for fit_length_year          
 broom::augment(x = fit_length_year, 
                newdata = new_len_f, 
                type.predict = "response") %>% 
-  select(Year, length, fitted = .fitted, se =.se.fit) %>% 
-  group_by(length) %>% 
-  mutate(Probability = mean(fitted)) -> pred
+  select(Year, length, fitted = .fitted, se =.se.fit) -> pred
 
-#Length-based maturity curves 
-ggplot(pred) +
-  geom_line(aes(x = length, y = fitted, group = Year, colour = as.numeric(as.character(Year)))) +
-  geom_line(aes(x = length, y = Probability), 
-            colour = "black", size = 1, lty = 2) +
+#Length-based maturity curves - 2019 does appear to have early age-at-maturation
+#relative to other years
+ggplot() +
+  geom_line(data = pred, 
+            aes(x = length, y = fitted, group = Year, colour = as.numeric(as.character(Year)))) +
+  geom_line(data = pred_simple, aes(x = length, y = fitted, lty = "All years combined"),
+            colour = "black", size = 1) +
   lims(x = c(40, 85)) +
-  labs(x = "\nLength (cm)", y = "Probability\n", colour = "Year") +
+  scale_colour_gradientn(colours=rainbow(4)) +
+  scale_linetype_manual(values = 2) +
+  labs(x = "\nLength (cm)", y = "Probability\n", colour = "Year", lty = NULL) +
   theme(legend.position = c(.8, .4))
 
 ggsave(paste0("figures/maturity_atlength_byyear_srvfem.png"), 
@@ -683,19 +744,27 @@ ggplot() +
   labs(x = "", y = "Scaled parameter estimates") +
   facet_wrap(~ Parameter, ncol = 1)
 
-# Next convert predictions back to age via vonb
+# Next convert predictions to age using von B preditions from ll survey
+# length-at-age data
 age_pred <- seq(0, plus_group, by = 0.01)
 vb_pars <- vb_mle_f$results
 age_pred <- data.frame(age = age_pred,
                        length = round(vb_pars$Estimate[1] * (1 - exp(- vb_pars$Estimate[2] * (age_pred - vb_pars$Estimate[3]))), 1))
 
-# Match lengths back to lengths predicted by vonb
+# Match lengths back to lengths predicted by vonb for fit_length
+pred_simple <- merge(pred_simple, age_pred, by = "length")
+which(is.na(pred_simple)) # should be integer(0)
+
+# Match lengths back to lengths predicted by vonb for fit_length_year
 pred <- merge(pred, age_pred, by = "length") 
+which(is.na(pred)) # should be integer(0)
 
 # Get length at 50% maturity (L_50 = -b_0/b_1) and get a_50 from age_pred
 # (predicted from vonB)
 merge(mature_results %>% 
-        dcast(year ~ Parameter, value.var = "est") %>% 
+        select(-scaled_est, -param) %>% 
+        # dcast(year ~ Parameter, value.var = "est") %>%
+        pivot_wider(names_from = Parameter, values_from = est) %>%
         mutate(length = - round(b_0 / b_1, 1)), #length at 50% maturity)
       age_pred, by = "length") %>% 
   arrange(year) %>% 
@@ -721,16 +790,22 @@ merge(pred %>% mutate(year = Year), mat_50_year, by = "year") -> pred
 
 # Age-based maturity curves estimated from length-based maturity and vonB growth
 # curve (light blue lines are annual mean preditions, dark blue is the mean)
-ggplot(pred) +
-  geom_line(aes(x = age, y = fitted, group = Year), 
-            colour = "lightblue") +
-  geom_line(aes(x = age, y = Probability), 
-            colour = "darkblue", size = 2) +
+ggplot() +
+  geom_line(data = pred, aes(x = age, y = fitted, group = Year, colour = as.numeric(as.character(Year)))) +  
+  geom_line(data = pred_simple, aes(x = age, y = fitted, lty = "All years combined"),
+            colour = "black", size = 1) +
+  scale_colour_gradientn(colours=rainbow(4)) +
   lims(x = c(0, 20)) +
-  labs(x = "Age", y = "Probability") -> maturity_at_age_plot
+  scale_linetype_manual(values = 2) +
+  labs(x = "\nAge (yr)", y = "Probability\n", colour = "Year", lty = NULL) +
+  theme(legend.position = c(.8, .4)) 
+
+ggsave(paste0("figures/maturity_atage_byyear_srvfem.png"), 
+       dpi=300, height=4, width=6, units="in")
 
 # Comparison with age-based maturity curve
-fit_age_year <- glm(Mature ~ age * Year, data = laa_f, family = binomial)
+fit_age_year <- glm(Mature ~ age * Year, data = len_f, family = binomial)
+
 # New df for prediction
 new_f <- data.frame(age = seq(0, 30, by = 0.01), n_distinct(laa_f$year),
                     Year = factor(sort(rep(unique(laa_f$year), 
@@ -743,12 +818,20 @@ broom::augment(x = fit_age_year,
                type.predict = "response") %>% 
   select(Year, age, fitted = .fitted, se =.se.fit) %>% 
   group_by(age) %>% 
+  # Just use mean for illustrative purposes
   mutate(Probability = mean(fitted)) -> pred_age
 
 # Comparison of maturity at age curves. Blue is derived from length-based
 # maturity cuve, red is estimated directly from age. Light lines are annual mean
 # predictions, dark lines are the means.
-maturity_at_age_plot +
+ggplot() +
+  geom_line(data = pred, aes(x = age, y = fitted, group = Year), col = "lightblue") +  
+  geom_line(data = pred_simple, aes(x = age, y = fitted),
+            colour = "blue", size = 2, alpha = 0.5) +
+  lims(x = c(0, 20)) +
+  # scale_linetype_manual(values = 2) +
+  labs(x = "\nAge (yr)", y = "Probability\n") +
+  theme(legend.position = c(.8, .4)) +
   geom_line(data = pred_age,
             aes(x = age, y = fitted, group = Year), 
             colour = "lightpink", alpha = 0.5) +
@@ -757,22 +840,16 @@ maturity_at_age_plot +
             colour = "red", size = 2, alpha = 0.5) +
   labs(x = "Age", y = "Probability")
 
-#Length-based (translated to age) is more realistic than age-based. Also there
-#is no clear reason to choose the more complicated model (fit_length_year) over
-#the simpler model (fit_length)
+# Length-based (translated to age) is more realistic than age-based. Also there
+# is no clear reason to choose the more complicated model (fit_length_year) over
+# the simpler model (fit_length)
 
-# Get predicted values for the simpler model, then merge with age predictions from the vonb          
-left_join(broom::augment(x = fit_length, 
-               newdata = data.frame(length = seq(0, 200, 0.01)), 
-               type.predict = "response") %>% 
-            select(length, fitted = .fitted, se =.se.fit), 
-          age_pred, by = "length") -> simple_fit
-
-# Maturity at age for YPR
-simple_fit %>%  
+# Maturity at age for YPR and SCAA models
+pred_simple %>%  
   filter(age %in% c(rec_age:plus_group)) %>%
-  right_join(data.frame(age = rec_age:plus_group)) %>% 
-  # interpolate fitted probability to fill in any missing values
+  right_join(data.frame(age = rec_age:plus_group)) %>%
+  # interpolate fitted probability to fill in any missing values - feel free to
+  # revisit rounding if so desired
   mutate(Sex = "Female",
          Source = "LL survey",
          probability = round(zoo::na.approx(fitted, maxgap = 20, rule = 2), 2)) %>% 
@@ -1001,9 +1078,17 @@ bind_rows(fsh_bio %>% mutate(Source = "LL fishery") %>% select(!!!cols),
   mutate(age = ifelse(age >= plus_group, plus_group, age)) %>% 
   filter(age >= 2) -> all_bio  # Plus group
 
-# Sensitivity for 2019 ypr model. How many age 2
-all_bio %>% filter(age < 10) %>% group_by(year, age) %>% dplyr::summarise(n()) %>% dcast(year ~ age, fill = 0)
-# all_bio <- all_bio %>% filter(!c(year == YEAR & age == 2))
+# Sensitivity for 2019 YPR model on age-2s
+all_bio %>% 
+  filter(age < 10) %>% 
+  group_by(year, age) %>% 
+  dplyr::summarise(n = n()) %>% 
+  pivot_wider(names_from = age, values_from = n, values_fill = list(n = 0)) %>% 
+  print(n = Inf)
+# a lot of years don't have any age-2s
+# used for YPR analysis in 2019 to examine the impact of leaving out age-2s
+# (must uncomment following line to rerun analysis):
+# all_bio <- all_bio %>% filter(!c(year == YEAR & age == 2)) 
 
 # Age comps (sex-specific)
 all_bio %>% 
@@ -1014,19 +1099,7 @@ all_bio %>%
           count(Source, year, age) %>%
           group_by(Source, year) %>% 
           mutate(proportion = round( n / sum(n), 5),
-                 Sex = "Sex combined")) -> agecomps   #%>% 
-  # *FLAG* weight the proportion-at-age by the sample size in a given year
-  # (N_year) divided by the total sample size (N)
-  #mutate(N_year = sum(n)) %>% 
-  # group_by(Source, Sex) %>% 
-  # mutate(N = sum(n)) %>% 
-  # ungroup() %>% 
-  # arrange(age, Source, Sex, year) %>% 
-  # complete(Source, Sex, year, age, 
-  #          fill = list(n = 0, proportion = 0)) %>% 
-  # mutate(#weight = N_year/N,
-         #proportion_scaled = proportion * weight,
-         # Age = factor(age)) # for plotting, ordered = TRUE
+                 Sex = "Sex combined")) -> agecomps  
 
 # Years with pot bio data
 # potsrv_bio %>% 
@@ -1057,7 +1130,8 @@ agecomps %>%
 agecomps %>% 
   group_by(Source, year, Sex) %>% 
   dplyr::summarize(n = sum(n)) %>% 
-  dcast(Source + Sex ~ year, value.var = "n") %>% 
+  arrange(year) %>% 
+  pivot_wider(names_from = year, values_from = n, values_fill = list(n = 0)) %>% 
   write_csv(paste0("output/n_agecomps_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 # Age comp matrix
@@ -1248,7 +1322,7 @@ lendat %>%
   ggplot(aes(length, year, group = year, fill = year)) + 
   geom_density_ridges(aes(point_fill = year, point_color = year),
                       alpha = 0.3) +
-  #geom_vline(xintercept = 61, linetype = 4) +
+  geom_vline(xintercept = 63, linetype = 4) +
   xlim(40, 90) + 
   xlab("\nLength (cm)") + 
   ylab(NULL) +
@@ -1438,665 +1512,17 @@ agesum %>%
   scale_colour_grey() +
   facet_wrap(~ Sex) +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  scale_y_continuous(breaks = axisy$breaks, labels = axisy$labels) +
+  # scale_y_continuous(breaks = axisy$breaks, labels = axisy$labels) +
   labs(x = NULL, y = "Mean\nage\n(yrs)") +
   theme(legend.position = "bottom",
         axis.title.y = element_text(angle=0)) -> a
 
-cowplot::plot_grid(l, a, align = "hv", ncol = 1) -> compare_comp_sums
+cowplot::plot_grid(l, a, axis = "lrtb", align = "hv", ncol = 1) -> compare_comp_sums
 
 compare_comp_sums
 ggsave("figures/compare_comp_summaries.png",
        plot = compare_comp_sums,
-       dpi=300, height=8, width=6.5, units="in")
+       dpi=300, height=5.5, width=6.5, units="in")
 
 bind_rows(agesum, lensum) %>% 
   write_csv("output/comps_summary.csv")
-
-# Age-length transition matrices ----
-
-bind_rows(srv_bio %>% 
-            filter(year >= 1997 &
-                     Sex %in% c("Female", "Male") &
-                     !is.na(age) & !is.na(length)) %>% 
-            select(Sex, age, length) %>% 
-            mutate(Source = "Survey"),
-          fsh_bio %>% 
-            filter(year >= 2002 &
-                     Sex %in% c("Female", "Male") &
-                     !is.na(age) & !is.na(length)) %>% 
-            select(Sex, age, length) %>% 
-            mutate(Source = "Fishery")) %>% 
-  filter(!c(length < 40)) %>% 
-  mutate(age = ifelse(age > plus_group, plus_group, age),
-         length2 = ifelse(length < 41, 41,
-                          ifelse(length > 99, 99, length)),
-         length_bin = cut(length2, breaks = seq(39.9, 99.9, 2),
-                          labels = paste(seq(41, 99, 2)))) %>% 
-  select(-length2, -length) -> asl_dat
-
-asl_dat %>% 
-  count(Source, Sex, age, length_bin) %>%
-  group_by(Source, Sex, length_bin) %>% 
-  mutate(proportion = round( n / sum(n), 4)) -> asl_dat
-
-expand.grid(age = rec_age:plus_group, 
-            Source = unique(asl_dat$Source),
-            Sex = unique(asl_dat$Sex),
-            length_bin = sort(unique(asl_dat$length_bin)))  %>% 
-  data.frame()  %>% 
-  full_join(asl_dat) %>%
-  fill_by_value(n, proportion, value = 0) %>% 
-  group_by(Source, Sex, length_bin) %>% 
-  mutate(N = sum(n)) -> asl_dat
-
-# Check that they sum to 1
-asl_dat %>% 
-  group_by(Source, Sex, length_bin) %>% 
-  summarise(sum(proportion)) %>% View()
-
-axis <- tickr(asl_dat, age, 5)
-len_labs <- get_len_labs()
-
-ggplot(asl_dat, aes(x = age, y = length_bin, size = proportion)) +
-  geom_point(shape = 21, fill = "black") +
-  scale_size(range = c(0, 4)) +
-  guides(size = FALSE) +
-  facet_grid(Sex ~ Source) +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  scale_y_discrete(breaks = unique(asl_dat$length_bin), labels = len_labs) +
-  labs(x = "\nObserved age", y = "Length bin (cm)\n", size = NULL)
-
-ggsave(paste0("figures/firsttry_agelength_key.png"), dpi = 300, height = 9, width = 9, units = "in")
-
-# 
-# #OLD CODE
-# ###############################################################################
-# ##  SABLEFISH LENGTH-AT-AGE FROM ALEX DATA
-# ##  QUINN AND DERISO: 301 : 305
-# ##  Eq. 8.14a, b, and c
-# ##  Updated 2/19/2015 Kray Van Kirk
-# ##
-# ##  THIS SCRIPT INCLUDES LENGTH-TO-AGE TRANSITION
-# ##  MATRICES FOR EACH SEX AND FISHERY/SURVEY
-# ##
-# ##  Note: the calcs below don't make a huge difference relative to simply
-# ##  calling the age-dist from the ADU; this was mostly an experiment, but
-# ##  it's fairly involved so keep it for future use
-# ##
-# 
-# #----------------------------------------------------------------
-# # ALEX QUERY CRITERIA FOR FISH_BIO_DATA
-# #----------------------------------------------------------------
-# # year BETWEEN 1980 AND 2015 AND species_code = '710' AND 
-# # g_management_area_code = 'NSEI' AND project_code = '02'
-# # NOTE: when running, always make sure that all data have been read 
-# # and uploaded into IFDB by the ADU
-# #----------------------------------------------------------------
-# 
-# 
-# #----------------------------------------------------------------
-# # ALEX QUERY CRITERIA FOR SRV_BIO_DATA
-# #----------------------------------------------------------------
-# #
-# # BIOLOGICAL DATA >> Age Sex Size Sampled at Sea
-# #  Base Table	out_g_bio_effort_age_sex_size							
-# #  Select Clause	*							
-# # Where Clause	year BETWEEN 1988 AND 2015 AND 
-# #                   species_code = '710' AND 
-# #                   project_code = '03'																	
-# #----------------------------------------------------------------
-# 
-# 
-# #----------------------------------------------------------------
-# # LIBRARIES
-# #----------------------------------------------------------------
-# library(lattice)
-# library(nlme)
-# library(plyr)
-# 
-# #----------------------------------------------------------------
-# 
-# #----------------------------------------------------------------
-# # SET WORKING DIRECTORY AND READ IN DATA
-# #----------------------------------------------------------------
-# LWA.LL  <-read.table("data/srv_bio_data.csv",header=TRUE,sep=",")
-# LWA.fshy<-read.table("data/fish_bio_data.csv",header=TRUE,sep=",")
-# 
-# 
-# #----------------------------------------------------------------
-# # LONGLINE SURVEY DATA
-# #
-# # catch-age from catch-length and aging subset frequencies
-# #----------------------------------------------------------------
-# 
-# 
-# #----------------------------------------------------------------
-# # Create subset of length data only
-# # NOTE: DO *NOT* subset on age - the subset of all lengthed fish
-# # selected for aging is integral to the analysis, so you need all
-# # those non-aged fish for which there are lengths to remain
-# #----------------------------------------------------------------
-# j <- !is.na(LWA.LL$LENGTH_MILLIMETERS) 
-# dat <- LWA.LL[j,c("YEAR", "SEX", "AGE", "LENGTH_MILLIMETERS")]
-# 
-# dat$LENGTH_MILLIMETERS<-round_any(dat$LENGTH_MILLIMETERS,10)
-# 
-# dat$AGE[dat$AGE > 41] <- 42
-# dat$LENGTH_MILLIMETERS[dat$LENGTH_MILLIMETERS > 990] <- 1000
-# dat$LENGTH_MILLIMETERS[dat$LENGTH_MILLIMETERS < 470] <- 470
-# 
-# #Check
-# head(dat)
-# 
-# #Check sample size
-# dim(dat)
-# 
-# #----------------------------------------------------------------
-# # Calculate alpha_l = C_l / C
-# # Proportion of fish lengthed per length over all fish measured
-# # (Okay - I could have used the word 'lengthed' again, but... )
-# #----------------------------------------------------------------
-# L<-as.matrix(table(dat$LENGTH_MILLIMETERS,dat$YEAR))
-# L_tot<-colSums(L)
-# alpha_l<-as.matrix(sweep(L, 2, L_tot,"/"))
-# alpha_l
-# colSums(alpha_l)
-# 
-# #----------------------------------------------------------------
-# # Calculate theta_la = A_la / A_l
-# # Proportion of all fished of length 'l' measured that were
-# # then selected for aging
-# #----------------------------------------------------------------
-# theta_la<-as.array(table(dat$LENGTH_MILLIMETERS,dat$AGE,dat$YEAR))
-# 
-# theta_la_tot<-as.matrix(apply(theta_la,c(1,3),sum)) 
-# theta_la_tot
-# 
-# theta_la <- sweep(theta_la, c(1,3), apply(theta_la,c(1,3),sum)+1E-10, "/")
-# 
-# round(theta_la,3)
-# 
-# #----------------------------------------------------------------
-# # Eq. 8.14 a page 305 Q&D
-# #----------------------------------------------------------------
-# theta_a<-sweep(theta_la, c(1,3),alpha_l, "*")
-# theta_A<-colSums(theta_a)
-# round(theta_A,4)
-# #write.table(theta_A,"clipboard")
-# 
-# #----------------------------------------------------------------
-# # Calculate variance, which includes both within length and
-# # between length variability  8.14b, c
-# #----------------------------------------------------------------
-# 
-# tmpw<-theta_la*(1-theta_la)
-# tmpw1<-sweep(tmpw,c(1,3),alpha_l^2,"*")
-# tmpw2<-sweep(tmpw1, c(1,3), theta_la_tot-1+1E-10, "/")
-# tmpw3<-apply(tmpw2,c(1,3),sum)
-# tmpw3
-# SE_within<-tmpw2
-# 
-# tmpb<-sweep(theta_la, c(2,3), theta_A,"*")
-# tmpb<-tmpb^2
-# tmpb1<-sweep(tmpb, c(1,3), alpha_l, "*")
-# tmpb2<-sweep(tmpb1, 3, L_tot, "/")
-# tmpb3<-apply(tmpb2,c(1,3),sum)
-# SE_between<-tmpb2
-# 
-# SE<-SE_within + SE_between
-# SE_tot<-apply(SE, c(2,3), sum)
-# SE_tot<-sqrt(SE_tot)
-# round(SE_tot,4)
-# 
-# 
-# #----------------------------------------------------------------
-# # Write longline survey theta_A and SE_tot to file
-# # ---------------------------------------------------------------
-# write.table(theta_A,"output/age_length_s_all.csv")
-# write.table(SE_tot,"output/age_length_s_allvar.csv")
-# 
-# rm(dat,tmpw,tmpw1,tmpw2,tmpb,tmpb1,tmpb2,alpha_l, theta_la, theta_A, L_tot, theta_la_tot, L)
-# 
-# 
-# 
-# #----------------------------------------------------------------
-# #
-# # Survey males
-# #
-# #----------------------------------------------------------------
-# j <- !is.na(LWA.LL$LENGTH_MILLIMETERS)
-# j <- j & is.element(LWA.LL$SEX,"Male")
-# dat <- LWA.LL[j,c("YEAR", "SEX", "AGE", "LENGTH_MILLIMETERS")]
-# 
-# dat$LENGTH_MILLIMETERS<-round_any(dat$LENGTH_MILLIMETERS,10)
-# 
-# dat$AGE[dat$AGE > 41] <- 42
-# dat$LENGTH_MILLIMETERS[dat$LENGTH_MILLIMETERS > 800] <- 800
-# dat$LENGTH_MILLIMETERS[dat$LENGTH_MILLIMETERS < 470] <- 470
-# 
-# 
-# 
-# #----------------------------------------------------------------
-# # Calculate alpha_l = C_l / C
-# # Proportion of fish lengthed per length over all fish measured
-# # (Okay - I could have used the word 'lengthed' again, but... )
-# #----------------------------------------------------------------
-# L<-as.matrix(table(dat$LENGTH_MILLIMETERS,dat$YEAR))
-# dim(L)
-# L_tot<-colSums(L)
-# alpha_l<-as.matrix(sweep(L, 2, L_tot,"/"))
-# alpha_l
-# colSums(alpha_l)
-# 
-# #----------------------------------------------------------------
-# # Calculate theta_la = A_la / A_l
-# # Proportion of all fished of length 'l' measured that were
-# # then selected for aging
-# #----------------------------------------------------------------
-# theta_la<-as.array(table(dat$LENGTH_MILLIMETERS,dat$AGE,dat$YEAR))
-# 
-# theta_la_tot<-as.matrix(apply(theta_la,c(1,3),sum)) 
-# theta_la_tot
-# 
-# theta_la <- sweep(theta_la, c(1,3), apply(theta_la,c(1,3),sum)+1E-10, "/")
-# 
-# round(theta_la,3)
-# dim(theta_la)
-# 
-# #----------------------------------------------------------------
-# # Eq. 8.14 a page 305 Q&D
-# #----------------------------------------------------------------
-# theta_a<-sweep(theta_la, c(1,3),alpha_l, "*")
-# theta_A<-colSums(theta_a)
-# round(theta_A,4)
-# #write.table(theta_A,"clipboard")
-# 
-# #----------------------------------------------------------------
-# # Calculate variance, which includes both within length and
-# # between length variability  8.14b, c
-# #----------------------------------------------------------------
-# 
-# tmpw<-theta_la*(1-theta_la)
-# tmpw1<-sweep(tmpw,c(1,3),alpha_l^2,"*")
-# tmpw2<-sweep(tmpw1, c(1,3), theta_la_tot-1+1E-10, "/")
-# SE_within<-tmpw2
-# 
-# tmpb<-sweep(theta_la, c(2,3), theta_A,"-")
-# tmpb<-tmpb^2
-# tmpb1<-sweep(tmpb, c(1,3), alpha_l, "*")
-# tmpb2<-sweep(tmpb1, 3, L_tot, "/")
-# SE_between<-tmpb2
-# 
-# SE<-SE_within + SE_between
-# SE_tot<-apply(SE, c(2,3), sum)
-# SE_tot<-sqrt(SE_tot)
-# round(SE_tot,4)
-# 
-# #----------------------------------------------------------------
-# # Write longline survey theta_A and SE_tot to file
-# # ---------------------------------------------------------------
-# write.table(theta_A,"output/age_length_s_m.csv")
-# write.table(SE_tot,"output/age_length_s_mvar.csv")
-# 
-# rm(tmpw,tmpw1,tmpw2,tmpb,tmpb1,tmpb2,alpha_l, theta_la, theta_A, L_tot, theta_la_tot, L)
-# 
-# #----------------------------------------------------------------
-# #
-# # Survey females
-# #
-# #----------------------------------------------------------------
-# j <- !is.na(LWA.LL$LENGTH_MILLIMETERS)
-# j <- j & is.element(LWA.LL$SEX,"Female")
-# dat.f <- LWA.LL[j,c("YEAR", "SEX", "AGE", "LENGTH_MILLIMETERS")]
-# 
-# 
-# dat.f$LENGTH_MILLIMETERS<-round_any(dat.f$LENGTH_MILLIMETERS,10)
-# 
-# dat.f$AGE[dat.f$AGE > 41] <- 42
-# dat.f$LENGTH_MILLIMETERS[dat.f$LENGTH_MILLIMETERS > 990] <- 1000
-# dat.f$LENGTH_MILLIMETERS[dat.f$LENGTH_MILLIMETERS < 470] <- 470
-# 
-# head(dat.f)
-# dim(dat.f)
-# 
-# #----------------------------------------------------------------
-# # Calculate alpha_l = C_l / C
-# # Proportion of fish lengthed per length over all fish measured
-# # (Okay - I could have used the word 'lengthed' again, but... )
-# #----------------------------------------------------------------
-# L<-as.matrix(table(dat.f$LENGTH_MILLIMETERS,dat.f$YEAR))
-# L_tot<-colSums(L)
-# alpha_l<-as.matrix(sweep(L, 2, L_tot,"/"))
-# alpha_l
-# colSums(alpha_l)
-# 
-# #----------------------------------------------------------------
-# # Calculate theta_la = A_la / A_l
-# # Proportion of all fished of length 'l' measured that were
-# # then selected for aging
-# #----------------------------------------------------------------
-# theta_la<-as.array(table(dat.f$LENGTH_MILLIMETERS,dat.f$AGE,dat.f$YEAR))
-# 
-# theta_la_tot<-as.matrix(apply(theta_la,c(1,3),sum)+0.000000000001) 
-# theta_la_tot
-# 
-# theta_la <- sweep(theta_la, c(1,3), apply(theta_la,c(1,3),sum)+1E-10, "/")
-# 
-# colSums(theta_la_tot)
-# round(theta_la,3)
-# 
-# #----------------------------------------------------------------
-# # Eq. 8.14 a page 305 Q&D
-# #----------------------------------------------------------------
-# theta_a<-sweep(theta_la, c(1,3),alpha_l, "*")
-# theta_A<-colSums(theta_a)
-# round(theta_A,4)
-# colSums(theta_A)
-# 
-# #----------------------------------------------------------------
-# # Calculate variance, which includes both within length and
-# # between length variability  8.14b, c
-# #----------------------------------------------------------------
-# 
-# tmpw<-theta_la*(1-theta_la)
-# tmpw1<-sweep(tmpw,c(1,3),alpha_l^2,"*")
-# tmpw2<-sweep(tmpw1, c(1,3), theta_la_tot-1+1E-10, "/")
-# tmpw3<-apply(tmpw2,c(1,3),sum)
-# tmpw3
-# SE_within<-tmpw2
-# 
-# tmpb<-sweep(theta_la, c(2,3), theta_A,"*")
-# tmpb<-tmpb^2
-# tmpb1<-sweep(tmpb, c(1,3), alpha_l, "*")
-# tmpb2<-sweep(tmpb1, 3, L_tot+1E-10, "/")
-# tmpb3<-apply(tmpb2,c(1,3),sum)
-# SE_between<-tmpb2
-# 
-# SE<-SE_within + SE_between
-# SE_tot<-apply(SE, c(2,3), sum)
-# SE_tot<-sqrt(SE_tot)
-# round(SE_tot,4)
-# 
-# #----------------------------------------------------------------
-# # Write longline survey theta_A and SE_tot to file
-# # ---------------------------------------------------------------
-# write.table(theta_A,"output/age_length_s_f.csv")
-# write.table(SE_tot,"output/age_length_s_fvar.csv")
-# 
-# 
-# 
-# 
-# #----------------------------------------------------------------
-# # COMMERCIAL FISHERY DATA
-# #
-# # catch-age from catch-length and aging subset frequencies
-# #----------------------------------------------------------------
-# 
-# 
-# #----------------------------------------------------------------
-# # Create subset of length data only
-# # NOTE: DO *NOT* subset on age - the subset of all lengthed fish
-# # selected for aging is integral to the analysis, so you need all
-# # those non-aged fish for which there are lengths to remain
-# #----------------------------------------------------------------
-# j <- !is.na(LWA.fshy$LENGTH_MILLIMETERS) & LWA.fshy$YEAR > 2001
-# dat <- LWA.fshy[j,c("YEAR", "SEX_CODE", "AGE", "LENGTH_MILLIMETERS")]
-# 
-# dat$LENGTH_MILLIMETERS<-round_any(dat$LENGTH_MILLIMETERS,10)
-# 
-# dat$AGE[dat$AGE > 41] <- 42
-# dat$LENGTH_MILLIMETERS[dat$LENGTH_MILLIMETERS > 990] <- 1000
-# dat$LENGTH_MILLIMETERS[dat$LENGTH_MILLIMETERS < 470] <- 470
-# 
-# #Check
-# head(dat)
-# 
-# #Check sample size
-# dim(dat)
-# 
-# #----------------------------------------------------------------
-# # Calculate alpha_l = C_l / C
-# # Proportion of fish lengthed per length over all fish measured
-# # (Okay - I could have used the word 'lengthed' again, but... )
-# #----------------------------------------------------------------
-# L<-as.matrix(table(dat$LENGTH_MILLIMETERS,dat$YEAR))
-# L_tot<-colSums(L)
-# alpha_l<-as.matrix(sweep(L, 2, L_tot,"/"))
-# alpha_l
-# colSums(alpha_l)
-# 
-# #----------------------------------------------------------------
-# # Calculate theta_la = A_la / A_l
-# # Proportion of all fished of length 'l' measured that were
-# # then selected for aging
-# #----------------------------------------------------------------
-# theta_la<-as.array(table(dat$LENGTH_MILLIMETERS,dat$AGE,dat$YEAR))
-# 
-# theta_la_tot<-as.matrix(apply(theta_la,c(1,3),sum)) 
-# theta_la_tot
-# 
-# theta_la <- sweep(theta_la, c(1,3), apply(theta_la,c(1,3),sum)+1E-10, "/")
-# 
-# round(theta_la,3)
-# 
-# #----------------------------------------------------------------
-# # Eq. 8.14 a page 305 Q&D
-# #----------------------------------------------------------------
-# theta_a<-sweep(theta_la, c(1,3),alpha_l, "*")
-# theta_A<-colSums(theta_a)
-# round(theta_A,4)
-# #write.table(theta_A,"clipboard")
-# 
-# #----------------------------------------------------------------
-# # Calculate variance, which includes both within length and
-# # between length variability  8.14b, c
-# #----------------------------------------------------------------
-# 
-# tmpw<-theta_la*(1-theta_la)
-# tmpw1<-sweep(tmpw,c(1,3),alpha_l^2,"*")
-# tmpw2<-sweep(tmpw1, c(1,3), theta_la_tot-1+1E-10, "/")
-# tmpw3<-apply(tmpw2,c(1,3),sum)
-# tmpw3
-# SE_within<-tmpw2
-# 
-# tmpb<-sweep(theta_la, c(2,3), theta_A,"*")
-# tmpb<-tmpb^2
-# tmpb1<-sweep(tmpb, c(1,3), alpha_l, "*")
-# tmpb2<-sweep(tmpb1, 3, L_tot+1E-10, "/")
-# tmpb3<-apply(tmpb2,c(1,3),sum)
-# SE_between<-tmpb2
-# 
-# SE<-SE_within + SE_between
-# SE_tot<-apply(SE, c(2,3), sum)
-# SE_tot<-sqrt(SE_tot)
-# round(SE_tot,4)
-# 
-# #----------------------------------------------------------------
-# # Write longline survey theta_A and SE_tot to file
-# # ---------------------------------------------------------------
-# write.table(theta_A,"output/age_length_f_all.csv")
-# write.table(SE_tot,"output/age_length_f_allvar.csv")
-# 
-# 
-# 
-# #----------------------------------------------------------------
-# #
-# # Fishery males
-# #
-# #----------------------------------------------------------------
-# j <- !is.na(LWA.fshy$LENGTH_MILLIMETERS)
-# j <- j & is.element(LWA.fshy$SEX_CODE, 1)
-# dat <- LWA.fshy[j,c("YEAR", "SEX_CODE", "AGE", "LENGTH_MILLIMETERS")]
-# 
-# dat$LENGTH_MILLIMETERS<-round_any(dat$LENGTH_MILLIMETERS,10)
-# 
-# dat$AGE[dat$AGE > 41] <- 42
-# dat$LENGTH_MILLIMETERS[dat$LENGTH_MILLIMETERS > 790] <- 800
-# dat$LENGTH_MILLIMETERS[dat$LENGTH_MILLIMETERS < 470] <- 470
-# 
-# 
-# head(dat)
-# dim(dat)
-# 
-# 
-# #----------------------------------------------------------------
-# # Calculate alpha_l = C_l / C
-# # Proportion of fish lengthed per length over all fish measured
-# # (Okay - I could have used the word 'lengthed' again, but... )
-# #----------------------------------------------------------------
-# L<-as.matrix(table(dat$LENGTH_MILLIMETERS,dat$YEAR))
-# L_tot<-colSums(L)
-# alpha_l<-as.matrix(sweep(L, 2, L_tot,"/"))
-# alpha_l
-# colSums(alpha_l)
-# 
-# 
-# #----------------------------------------------------------------
-# # Calculate theta_la = A_la / A_l
-# # Proportion of all fished of length 'l' measured that were
-# # then selected for aging
-# #----------------------------------------------------------------
-# theta_la<-as.array(table(dat$LENGTH_MILLIMETERS,dat$AGE,dat$YEAR))
-# 
-# theta_la_tot<-as.matrix(apply(theta_la,c(1,3),sum)) 
-# theta_la_tot
-# 
-# theta_la <- sweep(theta_la, c(1,3), apply(theta_la,c(1,3),sum)+1E-10, "/")
-# 
-# round(theta_la,3)
-# 
-# #----------------------------------------------------------------
-# # Eq. 8.14 a page 305 Q&D
-# # dimensions 'alpha_l'      = 54 x 13      (length x year)
-# # dimensions 'theta_la'     = 54 x 41 x 13 (length x age x year)
-# # dimensions 'theta_la_tot' = 54 x 13      (length x year)
-# # dimensions 'theta_a'      = 54 x 41 x 13 (length x age x year)
-# #----------------------------------------------------------------
-# theta_a<-sweep(theta_la, c(1,3),alpha_l, "*")
-# theta_A<-colSums(theta_a)
-# round(theta_A,4)
-# #write.table(theta_A,"clipboard")
-# 
-# #----------------------------------------------------------------
-# # Calculate variance, which includes both within length and
-# # between length variability  8.14b, c
-# #----------------------------------------------------------------
-# tmpw<-theta_la*(1-theta_la)
-# tmpw1<-sweep(tmpw,c(1,3),alpha_l^2,"*")
-# tmpw2<-sweep(tmpw1, c(1,3), theta_la_tot-1+1E-10, "/")
-# tmpw3<-apply(tmpw2,c(1,3),sum)
-# tmpw3
-# SE_within<-tmpw2
-# 
-# tmpb<-sweep(theta_la, c(2,3), theta_A,"*")
-# tmpb<-tmpb^2
-# tmpb1<-sweep(tmpb, c(1,3), alpha_l, "*")
-# tmpb2<-sweep(tmpb1, 3, L_tot+1E-10, "/")
-# tmpb3<-apply(tmpb2,c(1,3),sum)
-# SE_between<-tmpb2
-# 
-# SE<-SE_within + SE_between
-# SE_tot<-apply(SE, c(2,3), sum)
-# SE_tot<-sqrt(SE_tot)
-# round(SE_tot,4)
-# 
-# 
-# #----------------------------------------------------------------
-# # Write longline survey theta_A and SE_tot to file
-# # ---------------------------------------------------------------
-# write.table(theta_A,"output/age_length_f_m.csv")
-# write.table(SE_tot,"output/age_length_f_mvar.csv")
-# 
-# 
-# 
-# 
-# #----------------------------------------------------------------
-# #
-# # Fishery females
-# #
-# #----------------------------------------------------------------
-# j <- !is.na(LWA.fshy$LENGTH_MILLIMETERS)
-# j <- j & is.element(LWA.fshy$SEX_CODE, 2)
-# dat <- LWA.fshy[j,c("YEAR", "SEX_CODE", "AGE", "LENGTH_MILLIMETERS")]
-# 
-# dat$LENGTH_MILLIMETERS<-round_any(dat$LENGTH_MILLIMETERS,10)
-# 
-# dat$AGE[dat$AGE > 41] <- 42
-# dat$LENGTH_MILLIMETERS[dat$LENGTH_MILLIMETERS > 990] <- 1000
-# dat$LENGTH_MILLIMETERS[dat$LENGTH_MILLIMETERS < 470] <- 470
-# 
-# 
-# head(dat)
-# dim(dat)
-# 
-# 
-# 
-# #----------------------------------------------------------------
-# # Calculate alpha_l = C_l / C
-# # Proportion of fish lengthed per length over all fish measured
-# # (Okay - I could have used the word 'lengthed' again, but... )
-# #----------------------------------------------------------------
-# 
-# L<-as.matrix(table(dat$LENGTH_MILLIMETERS,dat$YEAR))
-# L_tot<-colSums(L)
-# alpha_l<-as.matrix(sweep(L, 2, L_tot,"/"))
-# alpha_l
-# colSums(alpha_l)
-# 
-# 
-# #----------------------------------------------------------------
-# # Calculate theta_la = A_la / A_l
-# # Proportion of all fished of length 'l' measured that were
-# # then selected for aging
-# #----------------------------------------------------------------
-# theta_la<-as.array(table(dat$LENGTH_MILLIMETERS,dat$AGE,dat$YEAR))
-# 
-# theta_la_tot<-as.matrix(apply(theta_la,c(1,3),sum)) 
-# theta_la_tot
-# 
-# theta_la <- sweep(theta_la, c(1,3), apply(theta_la,c(1,3),sum)+1E-10, "/")
-# 
-# round(theta_la,3)
-# 
-# #----------------------------------------------------------------
-# # Eq. 8.14 a page 305 Q&D
-# # dimensions 'alpha_l'      = 54 x 13      (length x year)
-# # dimensions 'theta_la'     = 54 x 41 x 13 (length x age x year)
-# # dimensions 'theta_la_tot' = 54 x 13      (length x year)
-# # dimensions 'theta_a'      = 54 x 41 x 13 (length x age x year)
-# #----------------------------------------------------------------
-# theta_a<-sweep(theta_la, c(1,3),alpha_l, "*")
-# theta_A<-colSums(theta_a)
-# round(theta_A,4)
-# #write.table(theta_A,"clipboard")
-# 
-# #----------------------------------------------------------------
-# # Calculate variance, which includes both within length and
-# # between length variability  8.14b, c
-# #----------------------------------------------------------------
-# tmpw<-theta_la*(1-theta_la)
-# tmpw1<-sweep(tmpw,c(1,3),alpha_l^2,"*")
-# tmpw2<-sweep(tmpw1, c(1,3), theta_la_tot-1+1E-10, "/")
-# tmpw3<-apply(tmpw2,c(1,3),sum)
-# tmpw3
-# SE_within<-tmpw2
-# 
-# tmpb<-sweep(theta_la, c(2,3), theta_A,"*")
-# tmpb<-tmpb^2
-# tmpb1<-sweep(tmpb, c(1,3), alpha_l, "*")
-# tmpb2<-sweep(tmpb1, 3, L_tot, "/")
-# tmpb3<-apply(tmpb2,c(1,3),sum)
-# SE_between<-tmpb2
-# 
-# SE<-SE_within + SE_between
-# SE_tot<-apply(SE, c(2,3), sum)
-# SE_tot<-sqrt(SE_tot)
-# round(SE_tot,4)
-# 
-# #----------------------------------------------------------------
-# # Write longline survey theta_A and SE_tot to file
-# # ---------------------------------------------------------------
-# write.table(theta_A,"output/age_length_f_f.csv")
-# write.table(SE_tot,"output/age_length_f_fvar.csv")
-# 

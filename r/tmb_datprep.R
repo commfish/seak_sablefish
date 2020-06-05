@@ -1,7 +1,7 @@
 # Data prep for statistical catch-at-age model
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: Feb 2019
+# Last edited: June 2020
 
 # Model is sex-structured, catch, fishery and survey CPUE, fishery and survey
 # weight-at-age, fishery and survey age compositions (sexes combined due to
@@ -12,7 +12,7 @@
 source("r/helper.r")
 source("r/functions.r")
 
-syr <- 1980
+syr <- 1975
 lyr <- YEAR <- 2019
 nyr <- length(syr:lyr)
 
@@ -21,20 +21,35 @@ plus_group <- 31
 nage <- length(rec_age:plus_group)
 
 # Harvest ----
+
+# Use IFDB/fish ticket data 1986-present and Dave Carlile's published catch time
+# series for 1975-1985, Carlile et al 2002 (Regional Information Report No.1
+# 1J02-02). Could use full catch time series in a model if you were interested
+# in reconstructing a long biomass time series.
+
+histcatch <- read_csv("data/fishery/nsei_historicalsablecatch_nosource_carlile_1907_2000.csv")
+names(histcatch) <- c("year", "catch")
+histcatch <- histcatch %>% 
+  # Convert round/whole lbs to mt
+  mutate(catch = catch * 0.000453592) %>% 
+  filter(year >= 1975 & year <= 1985)
+
 read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"), 
                        guess_max = 50000) %>% 
-  filter(year >= syr) %>% 
+  filter(year > 1985) %>% 
   group_by(year) %>% 
-  dplyr::summarize(total_pounds = sum(whole_pounds)) %>% 
   # Convert lbs to mt
-  mutate(catch = total_pounds * 0.000453592,
-         sigma_catch = 0.05,
+  dplyr::summarize(catch = sum(whole_pounds) * 0.000453592) %>% 
+  bind_rows(histcatch) %>% 
+  # Assumed variability in log space (CV) = 0.05
+  mutate(sigma_catch = 0.05,
          ln_catch = log(catch),
          std = 1.96 * sqrt(log(sigma_catch + 1)),
          upper_catch = exp(ln_catch + std),
          lower_catch = exp(ln_catch - std)) %>% 
-  select(-c(total_pounds, std, ln_catch)) %>% 
-  filter(year >= syr) -> catch
+  select(-c(std, ln_catch)) %>% 
+  filter(year >= syr) %>% 
+  arrange(year) -> catch
 
 # Fishery CPUE ----
 
@@ -122,6 +137,31 @@ read_csv(paste0("output/mr_index_", YEAR, ".csv")) %>%
          lower_mr = exp(ln_mr - std)) %>% 
   select(-c(std, ln_mr)) -> mr
 
+# Figure for industry mtg
+axis <- tickr(data.frame(year = 2005:YEAR), year, 3)
+read_csv(paste0("output/mr_index_", YEAR, ".csv")) %>% 
+  mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
+  pad(interval = "year") %>% 
+  mutate(year = year(year),
+         Year = factor(year)) %>% 
+  # gather("Abundance", "N", mr) %>% 
+  mutate(# interpolate the CI in missing years for plotting purposes
+    lower_mr = zoo::na.approx(q025, maxgap = 20, rule = 2),
+    upper_mr = zoo::na.approx(q975, maxgap = 20, rule = 2),
+    estimate_interp = zoo::na.approx(estimate, maxgap = 20, rule = 2)) %>%
+  ggplot() +
+  geom_ribbon(aes(x = year, ymin = lower_mr, ymax = upper_mr),
+              alpha = 0.2, col = "white", fill = "grey") +
+  geom_point(aes(x = year, y = estimate)) +
+  geom_line(aes(x = year, y = estimate)) +
+  geom_line(aes(x = year, y = estimate_interp), lty = 2) +
+  scale_x_continuous(breaks = axis$breaks, 
+                     labels = axis$labels) +
+  expand_limits(y = c(0, 4)) +
+  labs(x = NULL, y = "\n\nAbundance (millions)\n") 
+
+ggsave(paste0("figures/mr_abd_", YEAR, ".png"), 
+       dpi=300, height=4, width=7, units="in")
 
 # Percent change in compared to a ten year rolling average
 mr %>% 
@@ -130,6 +170,7 @@ mr %>%
          perc_change_lt = (mr - lt_mean) / lt_mean * 100,
          eval_lt = ifelse(perc_change_lt < 0, "decrease", "increase")) %>% 
   filter(year == YEAR) -> mr_lt
+mr_lt
 
 # Percent change from last year
 mr %>% 
@@ -139,7 +180,7 @@ mr %>%
   dcast("mr" ~ year2, value.var = "mr") %>% 
   mutate(perc_change_ly = (thisyr - lastyr) / lastyr * 100,
          eval_ly = ifelse(perc_change_ly < 0, "decreased", "increased")) -> mr_ly
-
+mr_ly
 
 # Graphics ----
 
@@ -157,21 +198,22 @@ catch %>%
   # geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   scale_y_continuous(labels = scales::comma) + 
+  expand_limits(y = 0) +
   labs(x = "", y = "\n\nCatch\n(round mt)") +
   theme(axis.title.y = element_text(angle=0)) -> catch_plot
 
 ggplot(fsh_cpue) +
-  geom_point(aes(year, fsh_cpue)) +
-  geom_line(aes(year, fsh_cpue)) +
-  geom_ribbon(aes(year, ymin = lower_fsh_cpue , ymax = upper_fsh_cpue),
+  geom_point(aes(year, fsh_cpue * 2.20462)) +
+  geom_line(aes(year, fsh_cpue * 2.20462)) +
+  geom_ribbon(aes(year, ymin = lower_fsh_cpue * 2.20462 , ymax = upper_fsh_cpue * 2.20462),
               alpha = 0.2, fill = "black", colour = NA) +
   # Board implemented Limitted Entry in 1985
   # geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
   # Board implemented Equal Quota Share in 1994
   geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, labels = axis$labels) + 
   expand_limits(y = 0) +
-  labs(x = "", y = "\n\nFishery CPUE\n(round kg/hook)") +
+  labs(x = "", y = "\n\nFishery CPUE\n(round lb/hook)") +
   theme(axis.title.y = element_text(angle=0)) -> fsh_cpue_plot
 
 ggplot(data = srv_cpue) +
@@ -204,7 +246,9 @@ mr %>%
   labs(x = "", y = "\n\nAbundance\n(millions)") +
   theme(axis.title.y = element_text(angle=0)) -> mr_plot
   
-plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv', labels = c('(A)', '(B)', '(C)', '(D)'))
+plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv',
+          labels = c('(A)', '(B)', '(C)', '(D)'))
+# plot_grid(fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv')
 
 ggsave(paste0("figures/tmb/abd_indices_", YEAR, ".png"),
        dpi=300, height=8, width=7, units="in")
@@ -245,16 +289,8 @@ waa %>%
                                  "16", "17", "18", "19", "20", "21", "22",
                                  "23", "24", "25", "26", "27", "28", "29", "30",
                                  "31+"))) -> waa
-waa %>% 
-  mutate(Source = derivedFactor("Survey (males)" = Source == "LL survey" & Sex == "Male",
-                                "Survey (females)" = Source == "LL survey" & Sex == "Female",
-                                "Survey (sexes combined)" = Source == "LL survey" & Sex == "Combined",
-                                "Fishery (males)" = Source == "LL fishery" & Sex == "Male",
-                                "Fishery (females)" = Source == "LL fishery" & Sex == "Female",
-                                "Fishery (sexes combined)" = Source == "LL fishery" & Sex == "Combined",
-                                .default = NA)) -> waa2
-waa2 <- na.omit(waa2)
-waa2 <- waa2 %>% arrange(Source, Sex, age)
+
+waa2 <- waa %>% arrange(Source, Sex, age)
 write_csv(waa2, paste0("data/tmb_inputs/waa_", YEAR, ".csv"))
 
 # Proportion mature -----
@@ -347,7 +383,7 @@ ggplot(waa %>%
          filter(! (Sex %in% c("Combined"))) %>% 
          droplevels() %>% 
          mutate(group = paste(Sex, Source)), 
-       aes(x = Age, y = weight, shape = Sex, 
+       aes(x = Age, y = round_kg, shape = Sex, 
            linetype = Sex, colour = Source, group = group)) +
   geom_point() +
   geom_line() + 
@@ -455,7 +491,7 @@ bind_rows(fsh_comps, srv_comps) -> agecomps
 agecomps %>% 
   group_by(year, Source) %>% 
   dplyr::summarize(proportion = sum(proportion)) %>% 
-  filter(proportion > 1.0001)
+  filter(proportion > 1.0001) # should be none of these!
 
 # Sample sizes 
 agecomps %>% 
@@ -537,44 +573,114 @@ ggsave(paste0("figures/sable_data_", YEAR, ".png"),
 
 # Retention probabilities ----
 
+# Background: prior to 2018, discarding behavior in the NSEI fishery was
+# ignored. Due to influx of small fish from 2014 recruitment event, concerns
+# over discarding were brought forward by then GF project leader Andrew Olson.
+# Because data on discards by size are not available, expert opinion was used to
+# develop a retention probability curve to be fixed in the assessment. This
+# curve was based on conversations with A Olson, Mike Vaughn, Kamala Carroll,
+# and Stephen Rhoades. The actual shape of the retention curve is not known and
+# there realistically could be a lot more highgrading than suggested by this
+# curve.
+
+# Sent from M Vaughn 2018-06-04:
+# Sablefish grade conversion Eastern cut to round weight (0.63)					
+# | E/C grade 	| Converted round lb minimum 	| Converted round lb maximum 	| min kg 	| max kg 	| E/C dock price 	|
+# |-----------	|----------------------------	|---------------------------:	|-------:	|-------:	|---------------:	|
+# | 1/2       	| 1.6                        	|                        3.2 	|    0.7 	|    1.4 	|         $1.00  	|
+# | 2/3       	| 3.2                        	|                        4.8 	|    1.4 	|    2.2 	|         $2.20  	|
+# | 3/4       	| 4.8                        	|                        6.3 	|    2.2 	|    2.9 	|         $3.25  	|
+# | 4/5       	| 6.3                        	|                        7.9 	|    2.9 	|    3.6 	|         $4.75  	|
+# | 5/7       	| 7.9                        	|                       11.1 	|    3.6 	|    5.0 	|         $7.55  	|
+# | +7        	| 11.1                       	|                            	|    5.0 	|        	|         $8.05  	|
 
 
 # processor will be used to define the probability of retaining a fish
 grades <- data.frame(
+  # Round kg
   kg = c(0.5, 0.6, 0.7, 1.4, 2.2, 2.9, 3.6, 5.0),
-  # Based off conversation with A. Alson 2018-06-04, set grade 3/4 as 50%
+  # Based off conversation with A. Olson 2018-06-04, set grade 3/4 as 50%
   # probability of retention (p), and very low for grades below.
   p = c(0.0, 0.0, 0.0, 0.1, 0.5, 1.0, 1, 1.0)) %>%  
   right_join(data.frame(kg = seq(0.5, 8.5, by = 0.1)) %>% 
-               mutate(grade = derivedFactor('no_grade' = kg < 0.7,
-                                            '1/2' = kg >= 0.7 & kg < 1.4,
-                                            '2/3' = kg >= 1.4 & kg < 2.2,
-                                            '3/4' = kg >= 2.2 & kg < 2.9,
-                                            '4/5' = kg >= 2.9 & kg < 3.6,
-                                            '5/7' = kg >= 3.6 & kg < 5,
-                                            '7+' = kg >= 5,
+               mutate(grade = derivedFactor('No grade' = kg < 0.7,
+                                            'Grade 1/2' = kg >= 0.7 & kg < 1.4,
+                                            'Grade 2/3' = kg >= 1.4 & kg < 2.2,
+                                            'Grade 3/4' = kg >= 2.2 & kg < 2.9,
+                                            'Grade 4/5' = kg >= 2.9 & kg < 3.6,
+                                            'Grade 5/7' = kg >= 3.6 & kg < 5,
+                                            'Grade 7+' = kg >= 5,
                                             .method = "unique",
                                             .ordered = TRUE),
-                      price = derivedFactor('$0' = grade == 'no_grade',
-                                            '$1.00' = grade == '1/2',
-                                            '$2.20' = grade == '2/3',
-                                            '$3.25' = grade == '3/4',
-                                            '$4.75' = grade == '4/5',
-                                            '$7.55' = grade == '5/7',
-                                            '$8.05' = grade == '7+',
+                      price = derivedFactor('$0' = grade == 'No grade',
+                                            '$1.00' = grade == 'Grade 1/2',
+                                            '$2.20' = grade == 'Grade 2/3',
+                                            '$3.25' = grade == 'Grade 3/4',
+                                            '$4.75' = grade == 'Grade 4/5',
+                                            '$7.55' = grade == 'Grade 5/7',
+                                            '$8.05' = grade == 'Grade 7+',
                                             .method = "unique",
                                             .ordered = TRUE),
                       # For plotting purposes (alternating grey and white panels)
-                      plot_cde = ifelse(grade %in% c('no_grade', '2/3', '4/5', '7+'), "0", "1")), by = "kg") %>% # 
+                      plot_cde = ifelse(grade %in% c('No grade', 'Grade 2/3', 'Grade 4/5', 'Grade 7+'), "0", "1")), by = "kg") %>% # 
   # set p = 1 for all large fish, interpolate p's using a cubic spline across
   # smaller sizes
   mutate(p = ifelse(kg > 3.6, 1, zoo::na.spline(p)),
-         lbs = 2.20462 * kg, # convert to lbs for visualization in memo
-         kg = round(kg, 1),
-         lbs_whole = round(lbs, 0),
-         y = 1 - p)
-# Smallest dressed weight assumed full retention = min dressed lb of a 7+
-full_retention <- grades %>% dplyr::summarize(max(min_dressed_lb)) %>% pull(min_dressed_lb)
+         lb = 2.20462 * kg, # convert to lbs for visualization in memo
+         y = 1 - p,
+         dressed_kg = 0.63 * kg,
+         dressed_lb = 0.63 * lb,
+         kg = round(kg, 1))
+
+# Retention probability inputs for TMB model, single sex and sex-structued:
+ret <- waa %>% filter(Source == "LL survey") %>% 
+  mutate(kg = round(round_kg, 1)) %>%
+  left_join(grades, by = "kg") 
+
+write_csv(ret %>% select(Source, Sex, age, kg, grade, price, p), 
+          "data/tmb_inputs/retention_probs.csv")
+
+# Plot size, sex, and age-specific probabilities of discarding a fish that
+# parameterize model
+# Min lbs by grade
+grades %>% 
+  filter(lb <= 12) %>% 
+  group_by(grade, price, plot_cde) %>% 
+  dplyr::summarize(mn = min(lb),
+                   mx = max(lb),
+                   mu = mean(lb)) %>% 
+  ungroup() %>% 
+  mutate(label = paste0(price, "/lb"),
+         y = c(0.1, 0.2, 0.5, 0.4, 0.75, 0.9, 0.9))  -> grades2
+
+axis <- tickr(grades, lb , 1)
+
+ggplot() +
+  geom_line(data = grades %>% filter(lb <= 12), 
+            aes(x = lb, y = p)) +
+  geom_rect(data = grades2, aes(xmin = mn, xmax = mx, ymin = -Inf, ymax = Inf, fill = plot_cde, group = 1), 
+            colour = NA, alpha = 0.2, show.legend = FALSE) +
+  scale_fill_manual(values = c("white", "grey80")) +
+  labs(x = "\n Round weight (lb)", y = "Retention probability\n") + 
+  geom_text(data = grades2, aes(label = label, x = mu, y = y), 
+            vjust = 1, size = 2) +
+  geom_text(data = grades2, aes(label = grade, x = mu, y = y + 0.03), 
+            vjust = 1, size = 2) -> size 
+
+axis <- tickr(ret_sex, age, 5)
+
+ggplot(ret_sex, aes(x = age, y = p, col = Sex, linetype = Sex)) +
+  geom_line() +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  scale_color_manual(values = c("black", "grey75")) + 
+  scale_linetype_manual(values = c(1, 4)) + 
+  # ylim(c(0, 1)) +
+  labs(x = "\nAge", y = NULL) +
+  theme(legend.position = c(.8, .7)) -> sex
+
+plot_grid(size, sex, align = "h")
+
+ggsave(paste0("figures/retention_prob_", YEAR, "_", plus_group, ".png"), dpi=300,  height=4, width=8,  units="in")
 
 # Alternative retention probability ----
 
@@ -612,3 +718,66 @@ data.frame(dressed_lb = seq(0.1, 7, 0.1)) %>%
   geom_point() +
   geom_line()
 
+# Allometry ----
+
+# New tables in report to help users translate figures during the industry
+# meeting and when reading the stock assessment
+
+# Federal sex-specific allometry Hanselman et al 2006 for comparison
+# ma	<- 1.24E-05	#	Male
+# mb	<- 2.96	#	Male
+# fa	<- 1.01E-05	#	Female
+# fb	<- 3.015	#	Female
+
+# Chatham allom sex comb from biological.r
+a	<- 8.77E-06	
+b	<- 3.049921367	
+
+# From biological.r, comparing NLS vs log-transformed lm() - didn't have time to
+# fully dive into this.
+# Function                  Parameter   Estimate Sex     
+# <chr>                     <chr>          <dbl> <chr>   
+# 1 Allometric - LM log trans a         0.00000651 Combined
+# 2 Allometric - NLS          a         0.00000877 Combined
+# 3 Allometric - LM log trans b         3.12       Combined
+# 4 Allometric - NLS          b         3.05       Combined
+# 5 Allometric - LM log trans a         0.00000594 Female  
+# 6 Allometric - NLS          a         0.00000807 Female  
+# 7 Allometric - LM log trans b         3.14       Female  
+# 8 Allometric - NLS          b         3.07       Female  
+# 9 Allometric - LM log trans a         0.00000604 Male    
+# 10 Allometric - NLS          a        0.0000110  Male    
+# 11 Allometric - LM log trans b        3.14       Male    
+# 12 Allometric - NLS          b        3.00       Male   
+
+fork_len <- seq(40, 90, 1)
+
+df <- data.frame(
+  fork_length_cm = fork_len,
+  sex_comb = a * fork_len ^ b
+) %>% 
+  pivot_longer(-fork_length_cm, names_to = "Sex", values_to = "round_kg") %>% 
+  mutate(round_kg = round(round_kg, 2),
+         round_lb = round_kg * 2.20462,
+         easterncut_lb_0.63 = 0.63 * round_lb) # Eastern cut conversion 
+
+df %>% 
+  mutate(Sex = "Sexes combined") %>% 
+  select(Sex, fork_length_cm, round_kg, round_lb, easterncut_lb_0.63) %>% 
+  write_csv(paste0("output/NSEI_forklen_dressedwt_conversion_", YEAR, ".csv"))
+
+df %>% filter(fork_length_cm == 63)
+
+waa <- read_csv(paste0("output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) 
+laa <- read_csv(paste0("output/pred_laa_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) 
+full_join(waa, laa) %>% 
+  rename(fork_length_cm = fork_len) %>% 
+  mutate(round_kg = round(round_kg, 2),
+         round_lb = round(round_kg * 2.20462, 2),
+         easterncut_lb_0.63 = round(round_lb * 0.63, 2)) -> waa_laa
+  
+waa_laa %>% filter(Source == "LL fishery") %>% 
+  write_csv(paste0("output/NSEI_fishery_forklen_weight_age_conversion_", YEAR, ".csv"))
+  
+waa_laa %>% filter(Source == "LL survey") %>% 
+  write_csv(paste0("output/NSEI_survey_forklen_weight_age_conversion_", YEAR, ".csv"))

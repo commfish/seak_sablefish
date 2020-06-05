@@ -1,3 +1,12 @@
+
+// Sex-structured statistical catch-at-age model for NSEI sablefish that
+// includes catch, fishery and survey CPUE, mark-recapture abundance estimates,
+// fishery and survey weight-at-age, survey data about maturity-at-age and
+// proportions-at-age, and fishery and survey age and length compositions.
+
+// Author: Jane Sullivan, ummjane@gmail.com
+// Last updated May 2020
+
 #include <TMB.hpp>
 #include <numeric>
 
@@ -568,9 +577,9 @@ template<class Type>
   // Total catch summed to get a total catch biomass by year
     for (int i = 0; i < nyr; i++) {
     pred_catch(i) += pred_landed(i) + pred_wastage(i);
-    
+
   }
-  
+
   // std::cout << C << "\nTotal catch in numbers-at-age\n";
   // std::cout << pred_catch << "\nPredicted total catch biomass\n"
   // std::cout << L << "\nLanded catch in numbers-at-age\n";
@@ -659,9 +668,9 @@ template<class Type>
 
   // Female spawning biomass: Calculated a little differently if model is
   // single-sex or sex-structured
-  
+
   if (nsex == 1) {
-    
+
     // By year and age
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
@@ -679,9 +688,9 @@ template<class Type>
       }
     }
   }
-  
+
   if (nsex == 2) {
-    
+
     // By year and age
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
@@ -726,10 +735,10 @@ template<class Type>
   
   i = 0;
   for(int h = 0; h < fsh_blks.size(); h++){
-    do{
+    while (i < yrs_fsh_cpue.size() && yrs_fsh_cpue(i) <= fsh_blks(h)) {
       pred_fsh_cpue(i) = fsh_q(h) * tot_expl_biom(yrs_fsh_cpue(i));
       i++;
-    } while (i <= fsh_blks(h));
+    }
   }
   // std::cout << "Predicted fishery cpue\n" << pred_fsh_cpue << "\n";
 
@@ -747,7 +756,7 @@ template<class Type>
   Type sumL = 0;
   vector<Type> sumL_age(nage);
   vector<Type> sumN_age(nage);
-  
+
   for (int i = 0; i < nyr_fsh_age; i++) {
 
     // sumL = temporary variable, landed catch in numbers summed over age and
@@ -775,7 +784,7 @@ template<class Type>
     // Loop over each year i
   }
   pred_fsh_age = pred_fsh_age * ageing_error; // apply ageing error matrix
-  
+
   // std::cout << "Predicted fishery age comps\n" << pred_fsh_age << "\n";
 
   // Test do the predicted age comps sum to 1
@@ -808,7 +817,7 @@ template<class Type>
     // Loop over each year i
   }
   pred_srv_age = pred_srv_age * ageing_error; // apply ageing error matrix
-  
+
   // // Test do the predicted age comps sum to 1
   // vector<Type> tst(nyr_srv_age);
   // for (int i = 0; i < nyr_srv_age; i++) {
@@ -828,62 +837,62 @@ template<class Type>
   //     pred_srv_age(i,j) = N(yrs_srv_age(i),j) * srv_slx(j) / sum(N(yrs_srv_age(i)) * srv_slx(j));
   //   }
   // }
-  
+
   // Predicted fishery length compositions (for landed portion of catch)- *FLAG*
   // early in development, would like to streamline
-  
-  matrix<Type> sumL_jk(nage,nsex); 
+
+  matrix<Type> sumL_jk(nage,nsex);
   vector<Type> sumL_k(nsex);
-  
+
   for (int i = 0; i < nyr_fsh_len; i++) {
-    
+
     sumL_k.setZero();   // tmp variable for each year
-    sumL_jk.setZero();  
-    
+    sumL_jk.setZero();
+
     for (int k = 0; k < nsex; k++) {
       for (int j = 0; j < nage; j++) {
         sumL_k(k) += L(yrs_fsh_len(i),j,k);          // numbers by sex
         sumL_jk(j,k) += L(yrs_fsh_len(i),j,k);       // numbers by sex and age
       }
     }
-    
+
     for (int k = 0; k < nsex; k++) {
       for (int j = 0; j < nage; j++) {
         pred_fsh_obsage(i,j,k) = sumL_jk(j,k) / sumL_k(k);  // Get predicted age comps (proportions-at-age)
       }
     }
   }
-  
+
   matrix<Type> tmp_pred_fsh_obsage(nyr_fsh_len,nage);
   matrix<Type> tmp_fsh_agelen(nage,nlenbin);
   matrix<Type> tmp_pred_fsh_len(nyr_srv_len,nlenbin);
-  
+
   for (int k = 0; k < nsex; k++) {
-    
+
     tmp_pred_fsh_obsage.setZero();
     for (int i = 0; i < nyr_fsh_len; i++) {
       for (int j = 0; j < nage; j++) {
         tmp_pred_fsh_obsage(i,j) = pred_fsh_obsage(i,j,k);    // Extract nyr x nage matrix
       }
     }
-    
+
     tmp_fsh_agelen.setZero();
     for (int j = 0; j < nage; j++) {
       for (int l = 0; l < nlenbin; l++) {
         tmp_fsh_agelen(j,l) = agelen_key_fsh(j,l,k);          // Extract age-length key
       }
     }
-    
+
     tmp_pred_fsh_len.setZero();
     tmp_pred_fsh_len = tmp_pred_fsh_obsage * tmp_fsh_agelen;  // Apply age-length key
-    
+
     for (int i = 0; i < nyr_fsh_len; i++) {
       for (int l = 0; l < nlenbin; l++) {
         pred_fsh_len(i,l,k) = tmp_pred_fsh_len(i,l);          // Put everything back in the arry
       }
     }
   }
-  
+
   // Test do the initial observed age comps sum to 1
   // vector<Type> tst2(nyr_fsh_len);
   // for (int i = 0; i < nyr_fsh_len; i++) {
@@ -892,61 +901,61 @@ template<class Type>
   //   }
   // }
   // std::cout << "Do the length comps sum to 1?\n" << tst2 << "\n";
-  
+
   // Predicted survey length compositions - *FLAG* would like to streamline this
-  
-  matrix<Type> sumN_jk(nage,nsex); 
+
+  matrix<Type> sumN_jk(nage,nsex);
   vector<Type> sumN_k(nsex);
-  
+
   for (int i = 0; i < nyr_srv_len; i++) {
-    
+
     sumN_k.setZero();   // tmp variable for each year
-    sumN_jk.setZero();  
-    
+    sumN_jk.setZero();
+
     for (int k = 0; k < nsex; k++) {
       for (int j = 0; j < nage; j++) {
         sumN_k(k) += vuln_abd(yrs_srv_len(i),j,k);          // numbers by sex
         sumN_jk(j,k) += vuln_abd(yrs_srv_len(i),j,k);       // numbers by sex and age
       }
     }
-    
+
     for (int k = 0; k < nsex; k++) {
       for (int j = 0; j < nage; j++) {
         pred_srv_obsage(i,j,k) = sumN_jk(j,k) / sumN_k(k);  // Get predicted age comps (proportions-at-age)
       }
     }
   }
-  
+
   matrix<Type> tmp_pred_obsage(nyr_srv_len,nage);
   matrix<Type> tmp_agelen(nage,nlenbin);
   matrix<Type> tmp_pred_len(nyr_srv_len,nlenbin);
-  
+
   for (int k = 0; k < nsex; k++) {
-    
+
     tmp_pred_obsage.setZero();
     for (int i = 0; i < nyr_srv_len; i++) {
       for (int j = 0; j < nage; j++) {
         tmp_pred_obsage(i,j) = pred_srv_obsage(i,j,k);      // Extract nyr x nage matrix
       }
     }
-    
+
     tmp_agelen.setZero();
     for (int j = 0; j < nage; j++) {
       for (int l = 0; l < nlenbin; l++) {
         tmp_agelen(j,l) = agelen_key_srv(j,l,k);            // Extract age-length key
       }
     }
-    
+
     tmp_pred_len.setZero();
     tmp_pred_len = tmp_pred_obsage * tmp_agelen;            // Apply age-length key
-    
+
     for (int i = 0; i < nyr_srv_len; i++) {
       for (int l = 0; l < nlenbin; l++) {
-        pred_srv_len(i,l,k) = tmp_pred_len(i,l);            // Put everything back in the arry
+        pred_srv_len(i,l,k) = tmp_pred_len(i,l);            // Put everything back in the array
       }
     }
   }
-  
+
   // Test do the initial observed age comps sum to 1
   // vector<Type> tst3(nyr_srv_len);
   // for (int i = 0; i < nyr_srv_len; i++) {
@@ -955,7 +964,7 @@ template<class Type>
   //   }
   // }
   // std::cout << "Do the length comps sum to 1?\n" << tst3 << "\n";
-  
+
   // Compute SPR rates and spawning biomass under different Fxx levels. Note
   // that biological reference points are only for the female component of the
   // population.
@@ -1099,14 +1108,46 @@ template<class Type>
   }
 
 // The final ABC is then the difference between the preliminart ABC and wastage estimates
-  for(int i = 0; i <= nyr; i++) { 
+  for(int i = 0; i <= nyr; i++) {
     for(int x = 0; x < n_Fxx; x++) {
       ABC(i,x) = ABC(i,x) - wastage(i,x);
     }
   }
-      
+
   // std::cout << "ABC\n" << ABC << "\n";
   // std::cout << "Wastage\n" << wastage << "\n";
+
+  // Get sex-specific numbers-at-length for Luke Rogers data request
+  array<Type> Nlen(nyr+1,nlenbin,nsex);
+  matrix<Type> tmp_N(nyr+1,nage);
+  matrix<Type> tmp_Nlen(nyr+1,nage);
+  // matrix<Type> tmp_agelen(nage,nlenbin); // already defined when predicting len comps
+
+  for (int k = 0; k < nsex; k++) {
+
+    tmp_N.setZero();
+    for (int i = 0; i < nyr+1; i++) {
+      for (int j = 0; j < nage; j++) {
+        tmp_N(i,j) = N(i,j,k); // Extract nyr+1 x nage matrix
+      }
+    }
+
+    tmp_agelen.setZero();
+    for (int j = 0; j < nage; j++) {
+      for (int l = 0; l < nlenbin; l++) {
+        tmp_agelen(j,l) = agelen_key_srv(j,l,k); // Extract sex-specific age-length key
+      }
+    }
+
+    tmp_Nlen.setZero();
+    tmp_Nlen = tmp_N * tmp_agelen; // Apply age-length key
+
+    for (int i = 0; i < nyr+1; i++) {
+      for (int l = 0; l < nlenbin; l++) {
+        Nlen(i,l,k) = tmp_Nlen(i,l); // Put everything into array
+      }
+    }
+  }
 
   // Priors
 
@@ -1128,7 +1169,7 @@ template<class Type>
   if(M_type == 1) {
     prior_M += square(log_M - p_log_M) / (Type(2.0) * square(p_sigma_M));
   }
-  
+
   // Catch:  normal (check)
   // for (int i = 0; i < nyr; i++) {
   //   catch_like += square( (data_catch(i) - pred_landed(i)) / pred_landed(i)) /
@@ -1378,7 +1419,7 @@ template<class Type>
 
   // std::cout << "Objective function\n" << obj_fun << "\n";
 
-  // obj_fun = dummy*dummy;        // TEST CODE
+  // obj_fun = dummy*dummy;        // Uncomment when debugging code
 
   // REPORT SECTION
 
@@ -1406,6 +1447,7 @@ template<class Type>
 
   // Derived matrices by year and age
   REPORT(N);                // Abundance-at-age, projected 1 year forward
+  REPORT(Nlen);             // Abundance-at-length, projected 1 year forward
   REPORT(Z);                // Total mortality
   REPORT(F);                // Fishing mortality
   REPORT(S);                // Survivorship
@@ -1451,7 +1493,7 @@ template<class Type>
   REPORT(fsh_len_like);     // Fishery length composition likelihoods
   REPORT(rec_like);         // Recruitment deviations
   REPORT(fpen);             // Fishing mortality deviations
-  REPORT(spr_pen);          // SPR penalty  
+  REPORT(spr_pen);          // SPR penalty
   REPORT(obj_fun);          // Total objective function
   REPORT(offset);           // Offsets for age comp multinomial
   REPORT(offset_srv_len);   // Offsets for survey length comp multinomial

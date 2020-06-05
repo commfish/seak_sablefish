@@ -1,14 +1,16 @@
 # my user-defined functions for the sablefish assessment
 # Author: Jane Sullivan
-# Contact: jane.sullivan1@alaska.gov
-# Last edited: 2018-02-26
+# Contact: jane.sullivan1@alaska.gov (ummjane@gmail.com)
+# Last edited: 2020-06-04
 
-# includes functions for: 
+# Includes functions for: 
 # -  estimating length- and weight- based von bertalanffy using maximum
 # likelihood estimation
 # - getting sex ratios by age or year (or both)
 # - a modification to the captioner library's captioner() fxn
-# - cleaning up coda output
+# - cleaning up coda Bayesian posterior output
+# - Functions for building TMB data/parameter lists, running models
+# - Function to save TMB model output, reshape results, and create figures
 
 # source("r/helper.R")
 
@@ -40,13 +42,22 @@ vonb_len <- function(obs_length, age, starting_vals, sex) {
   logl <- attributes(summary(vb_mle))$m2logL/-2
   pred <- l_inf_opt * (1 - exp(-k_opt * (age - t0_opt))) # retaining predicted values
   resids <- obs_length - pred # retaining residuals
+  
+   # For YPR and future ASA, get predictions for age range in the model
+  new_ages <- c(rec_age:plus_group)
+  ypr_preds <- l_inf_opt * (1 - exp(-k_opt * (new_ages - t0_opt))) 
+  
   results <- list(predictions = data.frame(obs_length = obs_length,
                                            age = age, pred = pred, 
                                            resid = resids, Sex = sex),
+                  ypr_predictions = data.frame(age = new_ages, 
+                                               length = ypr_preds,
+                                               Sex = sex),
                   results = tidy(coef(summary(vb_mle))) %>% 
                     select(Parameter = `.rownames`, Estimate, SE = `Std..Error`) %>% 
                     mutate(Sex = sex), 
                   logl = logl)
+  
   return(results)
 }
 
@@ -473,7 +484,7 @@ build_data <- function(
     p_sigma_M = 0.1,
     
     # Time varying parameters - each vector contains the terminal years of each time block
-    fsh_blks = c(14, max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
+    fsh_blks = c(ts %>% filter(year == 1994) %>% pull(index), max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
     srv_blks = c(max(ts$index)), # no breaks survey selectivity
     
     # Discard mortality rate in the directed fishery (currently either 0 or 0.16,
@@ -573,23 +584,27 @@ build_data <- function(
     # years
     data_fsh_waa =
       if (nsex == 1) { # Single sex model
-        filter(waa, Source == "Fishery (sexes combined)") %>%
-          pull(weight) %>%  matrix(ncol = nage, nrow = nsex)  %>%
+        filter(waa, Source == "LL fishery" & Sex == "Combined") %>%
+          pull(round_kg) %>%  matrix(ncol = nage, nrow = nsex)  %>%
           array(dim = c(1, nage, nsex))} else {
             # Sex-structured - males in first matrix, females in second
-            filter(waa, Source %in% c("Fishery (males)", "Fishery (females)")) %>%
-              arrange(desc(Sex)) %>% pull(weight) %>% matrix(ncol = nage, nrow = nsex)  %>%
+            filter(waa, Source == "LL fishery" & Sex %in% c("Male", "Female")) %>%
+              arrange(desc(Sex)) %>% 
+              pull(round_kg) %>% 
+              matrix(ncol = nage, nrow = nsex)  %>%
               array(dim = c(1, nage, nsex))},
     
     # Survey weight-at-age used for everything except predicting catch
     data_srv_waa = 
       if (nsex == 1) { # Single sex model
-        filter(waa, Source == "Survey (sexes combined)") %>% 
-          pull(weight) %>%  matrix(ncol = nage, nrow = nsex)  %>% 
+        filter(waa, Source == "LL survey" & Sex == "Combined") %>% 
+          pull(round_kg) %>%  matrix(ncol = nage, nrow = nsex)  %>% 
           array(dim = c(1, nage, nsex))} else {
             # Sex-structured - males in first matrix, females in second
-            filter(waa, Source %in% c("Survey (males)", "Survey (females)")) %>% 
-              arrange(desc(Sex)) %>% pull(weight) %>% matrix(ncol = nage, nrow = nsex)  %>% 
+            filter(waa, Source == "LL survey" & Sex %in% c("Male", "Female")) %>% 
+              arrange(desc(Sex)) %>% 
+              pull(round_kg) %>% 
+              matrix(ncol = nage, nrow = nsex)  %>% 
               array(dim = c(1, nage, nsex))},
     
     # Fishery age comps
@@ -712,7 +727,7 @@ build_parameters <- function(
     log_M = log(0.1),  # M_type = 0 is fixed, 1 is estimated
     
     # Fishery selectivity - starting values developed using NOAA selectivity
-    # curves see data/NOAA_sablefish_selectivities_2017_jys.xlxs
+    # curves see data/NOAA_sablefish_selectivities_2017_jys.xlxs, pers comm Hanselman
     log_fsh_slx_pars = 
       # Logistic with a50 and a95, data$slx_type = 0, single sex model
       if(data$slx_type == 0 & nsex == 1) {
@@ -741,7 +756,8 @@ build_parameters <- function(
                        log(2.29), log(2.61)),
               dim = c(length(data$fsh_blks), 2, nsex)) }, # 2 = npar for this slx_type
     
-    # Survey selectivity - starting values developed using NOAA selectivity curves
+    # Survey selectivity - starting values developed using NOAA selectivity
+    # curves, pers. comm. Hanselman
     log_srv_slx_pars = 
       # Logistic with a50 and a95, data$slx_type = 0, single sex model
       if(data$slx_type == 0 & nsex == 1) {
@@ -785,7 +801,7 @@ build_parameters <- function(
     log_rinit_devs = rinit_devs_inits,
     
     # Variability in rec_devs and rinit_devs
-    log_sigma_r = log(0.46), #log(1.2), # Federal value of 1.2 on log scale
+    log_sigma_r = log(1.2), #log(1.2), # Federal value of 1.2 on log scale
     
     # Fishing mortality
     log_Fbar = inits %>% filter(Parameter == "log_Fbar") %>% pull(Estimate),
@@ -947,23 +963,26 @@ build_phases <- function(param_list = NULL, data_list){
   phases$fsh_logq <- replace(phases$fsh_logq, values = rep(3, length(phases$fsh_logq)))
   phases$srv_logq <- replace(phases$srv_logq, values = rep(3, length(phases$srv_logq)))
   
-  # 4: Selectivity
-  phases$log_fsh_slx_pars[,,] <- replace(phases$log_fsh_slx_pars[,,], values = 4)
-  phases$log_srv_slx_pars[,,] <- replace(phases$log_srv_slx_pars[,,], values = 4)
+  # 4: Selectivity - turned off until selectivity/discarding issue can be fixed
+  phases$log_fsh_slx_pars[,,] <- replace(phases$log_fsh_slx_pars[,,], values = 3)
+  phases$log_srv_slx_pars[,,] <- replace(phases$log_srv_slx_pars[,,], values = 3)
 
-  # 5: Reference points
-  phases$log_spr_Fxx <- replace(phases$log_spr_Fxx, values = rep(5, length(phases$log_spr_Fxx)))
-  phases$log_M <- replace(phases$log_M, values = rep(5, length(phases$log_M)))
+  # 4: Reference points
+  phases$log_spr_Fxx <- replace(phases$log_spr_Fxx, values = rep(4, length(phases$log_spr_Fxx)))
+  phases$log_M <- replace(phases$log_M, values = rep(4, length(phases$log_M)))
   
-  # 6: Dirichlet-multinomial theta parameters (this will get turned off if
+  # 5: Dirichlet-multinomial theta parameters (this will get turned off if
   # comp_type != 1 in the TMBphase function)
-  phases$log_fsh_theta <- replace(phases$log_fsh_theta, values = rep(6, length(phases$log_fsh_theta)))
-  phases$log_srv_theta <- replace(phases$log_srv_theta, values = rep(6, length(phases$log_srv_theta)))
+  phases$log_fsh_theta <- replace(phases$log_fsh_theta, values = rep(5, length(phases$log_fsh_theta)))
+  phases$log_srv_theta <- replace(phases$log_srv_theta, values = rep(5, length(phases$log_srv_theta)))
 
   return(phases)
 }
 
-# Original code by Gavin Fay, adaped for use in the sablefish model
+# function to fill list component with a factor
+fill_vals <- function(x,vals){rep(as.factor(vals), length(x))}
+
+# Original code by Gavin Fay, adaped for use in the sablefish model - requires fill_vals() fxn
 TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
                      optimizer = "nlminb", debug = FALSE) {
   
@@ -972,10 +991,7 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
   # phases <- build_phases(parameters, data)
   # model_name <- "mod"
   # debug <- FALSE
-  
-  # function to fill list component with a factor
-  fill_vals <- function(x,vals){rep(as.factor(vals), length(x))}
-  
+
   # compile the model
   TMB::compile(paste0(model_name,".cpp"))
   dyn.load(TMB::dynlib(model_name))
@@ -1008,12 +1024,10 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
     }
     
     # Temporary debug trying to figure out why I'm getting NA/NaN function
-    # evaluation
+    # evaluation - think it's something to do with discarding
     if (tmp_debug == TRUE) {
-      # map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
       map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
       map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
-      # map_use$fsh_logq <- fill_vals(parameters$fsh_logq, NA)
     }
     
     # Build upper and lower parameter bounds and remove any that are not
@@ -1030,17 +1044,26 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
     if (data$random_rec == FALSE) {
       lower <- lower[!names(lower) %in% "log_sigma_r"]
       upper <- upper[!names(lower) %in% "log_sigma_r"]
-    }
+    }    
+    
+    # if (data$random_rec == TRUE) {
+    #   lower <- lower[-which(grepl(random[1], names(lower)))]
+    #   lower <- lower[-which(grepl(random[2], names(lower)))]
+    #   upper <- upper[-which(grepl(random[1], names(upper)))]
+    #   upper <- upper[-which(grepl(random[2], names(upper)))]
+    # }
     
     # initialize the parameters at values in previous phase
     params_use <- parameters
     
     # Fit the model
-    obj <- TMB::MakeADFun(data,params_use,random=NULL,DLL=DLL_use,map=map_use)  
+    obj <- TMB::MakeADFun(data,params_use,random=NULL,
+                          DLL=DLL_use,map=map_use)  
     
     TMB::newtonOption(obj,smartsearch=FALSE)
+    # lower and upper bounds relate to obj$par and must be the same length as obj$par
     opt <- nlminb(start = obj$par, objective = obj$fn, hessian = obj$gr,
-                  control=list(eval.max=1000,iter.max=500, trace=TRUE),
+                  control=list(eval.max = 1e4, iter.max = 1e4, trace = 0),
                   lower = lower, upper = upper)
     rep <- TMB::sdreport(obj)
   }
@@ -1065,14 +1088,26 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
         
         for(i in 1:length(map_use)){
           map_use[[i]] <- factor(map_use[[i]])
-        }
+        } 
         
       } else {
         
         # work out the map for this phase if phases for parameters is less than the
         # current phase then map will contain a factor filled with NAs
         map_use <- list()
+        
+        
         map_use$dummy <- fill_vals(parameters$dummy, NA)
+        
+        j <- 1 # change to 0 if you get rid of the dummy debugging feature
+        
+        for (i in 1:length(parameters)) {
+          if (phases[[i]]>phase_cur) {
+            j <- j+1
+            map_use[[j]] <- fill_vals(parameters[[i]], NA)
+            names(map_use)[j] <- names(parameters)[i]               
+          }
+        }
         
         # if not using random effects, assign log_sigma_r an NA in the map so it's not estimated
         if (data$random_rec == FALSE) {
@@ -1093,23 +1128,22 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
         }
         
         # Temporary debug trying to figure out why I'm getting NA/NaN function
-        # evaluation
+        # evaluation - think it's something to do with discarding
         if (tmp_debug == TRUE) {
-          # map_use$log_spr_Fxx <- fill_vals(parameters$log_spr_Fxx, NA)
           map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
           map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
-          # map_use$fsh_logq <- fill_vals(parameters$fsh_logq, NA)
         }
         
-        j <- 1 # change to 0 if you get rid of the dummy debugging feature
-        
-        for (i in 1:length(parameters)) {
-          if (phases[[i]]>phase_cur) {
-            j <- j+1
-            map_use[[j]] <- fill_vals(parameters[[i]], NA)
-            names(map_use)[j] <- names(parameters)[i]               
-          }
-        }
+        # j <- 1 # change to 0 if you get rid of the dummy debugging feature
+        # 
+        # for (i in 1:length(parameters)) {
+        #   # if (phases[[i]]>=phase_cur) {
+        #   if (phases[[i]]>phase_cur) {
+        #     j <- j+1
+        #     map_use[[j]] <- fill_vals(parameters[[i]], NA)
+        #     names(map_use)[j] <- names(parameters)[i]               
+        #   }
+        # }
         map_use
       }
       
@@ -1128,16 +1162,26 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
         lower <- lower[!names(lower) %in% "log_sigma_r"]
         upper <- upper[!names(lower) %in% "log_sigma_r"]
       }
+      
+      # if (data$random_rec == TRUE) {
+      #   lower <- lower[which(!grepl(random[1], names(lower)))]
+      #   lower <- lower[which(!grepl(random[2], names(lower)))]
+      #   upper <- upper[which(!grepl(random[1], names(upper)))]
+      #   upper <- upper[which(!grepl(random[2], names(upper)))]
+      # }
+      
       # initialize the parameters at values in previous phase
       params_use <- parameters
       if (phase_cur>1) params_use <- obj$env$parList(obj$env$last.par.best)
       
       # Fit the model
-      obj <- TMB::MakeADFun(data,params_use,random=NULL,DLL=DLL_use,map=map_use)  
+      obj <- TMB::MakeADFun(data,params_use,random=NULL, 
+                            DLL=DLL_use,map=map_use)  
       
       TMB::newtonOption(obj,smartsearch=FALSE)
+      # lower and upper bounds relate to obj$par and must be the same length as obj$par
       opt <- nlminb(start = obj$env$last.par.best, objective = obj$fn, hessian = obj$gr,
-                    control=list(eval.max=100000,iter.max=1000, trace=TRUE),
+                    control=list(eval.max = 1e4, iter.max = 1e4, trace = 0),
                     lower = lower, upper = upper)
       rep <- TMB::sdreport(obj)
     }
@@ -1447,6 +1491,7 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
       # scale_y_continuous(label = scales::comma) +
       labs(x = NULL, y = ifelse(units == "metric", "\n\nCatch\n(round mt)",
                                 "\n\nCatch\n(million round lb)")) +
+      expand_limits(y = 0) +
       theme(axis.title.y = element_text(angle=0)) -> p_catch
     
     # Fishery cpue
@@ -1456,7 +1501,8 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
       geom_ribbon(data = post_fsh_cpue, aes(year, ymin = q025 , ymax = q975, group = period),
                   alpha = 0.2, fill = "black", colour = NA) +
       geom_errorbar(aes(year, ymin = lower_fsh_cpue , ymax = upper_fsh_cpue), width = 0.2) +
-      scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+      scale_x_continuous(limits = c(min(ts$year), max(ts$year)),
+                         breaks = axis$breaks, labels = axis$labels) +
       expand_limits(y = 0) +
       labs(x = NULL, y = ifelse(units == "metric", "\n\nFishery CPUE\n(round kg/hook)",
                                 "\n\nFishery CPUE\n(round lb/hook)"), lty = NULL) +
@@ -1483,7 +1529,7 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
       geom_ribbon(aes(x = year, ymin = q025, ymax = q975),
                   alpha = 0.2, fill = "black", colour = NA) +
       geom_errorbar(data = mr_plot, aes(x = year, ymin = lower_mr, ymax = upper_mr), width = 0.2) +
-      scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+      scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
       expand_limits(y = 0) +
       labs(x = NULL, y = "\n\nAbundance\n(millions)") +
       theme(axis.title.y = element_text(angle=0)) -> p_mr
@@ -1500,6 +1546,7 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
                 alpha = 0.2,  fill = "black", colour = NA) +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     # scale_y_continuous(label = scales::comma) +
+    expand_limits(y = 0) +
     labs(x = NULL, y = ifelse(units == "metric", "\n\nCatch\n(round mt)",
                               "\n\nCatch\n(million round lb)")) +
     theme(axis.title.y = element_text(angle=0)) -> p_catch
@@ -1510,7 +1557,8 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
     geom_line(aes(y = pred_fsh_cpue, lty = period)) +
     geom_ribbon(aes(year, ymin = lower_fsh_cpue , ymax = upper_fsh_cpue),
                 alpha = 0.2, fill = "black", colour = NA) +
-    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    scale_x_continuous(limits = c(min(ts$year), max(ts$year)),
+                       breaks = axis$breaks, labels = axis$labels) +
     expand_limits(y = 0) +
     labs(x = NULL, y = ifelse(units == "metric", "\n\nFishery CPUE\n(round kg/hook)",
                               "\n\nFishery CPUE\n(round lb/hook)"), lty = NULL) +
@@ -1724,7 +1772,7 @@ plot_derived_ts <- function(save = TRUE,
         # Add another year to hold projected values
         full_join(data.frame(year = (max(ts$year) + 1):(max(ts$year) + nproj))) %>%
         # For ts by numbers go divide by 1e6 to get values in millions, for biomass
-        # divide by 1e3 to go from kg to mt
+        # divide by 1e6 to go from kg to kilotons
         mutate(Fmort = c(obj$report(best)$Fmort, rep(NA, nproj)),
                # pred_rec = c(obj$report(best)$pred_rec, rep(NA, nproj)) / 1e6,
                pred_rec = c(tmp_rec, rep(NA, nproj)) / 1e6,
@@ -1784,6 +1832,11 @@ plot_derived_ts <- function(save = TRUE,
       expand_limits(y = 0) +
       labs(x = "", y = ifelse(units == "imperial", "\n\nSpawning\nbiomass\n(million lb)",
                               "\n\nSpawning\nbiomass\n(kt)")) -> p_sbiom
+  
+    if(save == TRUE){ 
+      write_csv(ts %>% select(year, index, Fmort, pred_rec, biom, expl_biom, expl_abd, spawn_biom),
+                paste0(path, "/derived_ts_", units, "_", YEAR, ".csv"))
+    }
   }
   
   plot_grid(p_rec, p_sbiom, p_eabd, p_ebiom, ncol = 1, align = 'hv', 
@@ -2061,7 +2114,7 @@ barplot_len <- function(src = "Survey", sex = "Female", save = TRUE, path = tmbf
   }
 }
 
-plot_sel <- function() {
+plot_sel <- function(save = TRUE, path = tmbfigs) {
   
   require(data.table)
   
@@ -2119,17 +2172,44 @@ plot_sel <- function() {
   
   axis <- tickr(sel, age, 3)
   
-  ggplot(sel, aes(x = age, y = proportion, colour = Selectivity, 
-                  shape = Selectivity, lty = Selectivity, group = Selectivity)) +
+  ggplot(sel %>% filter(Selectivity == "Fishery"), 
+         aes(x = age, y = proportion, colour = Sex, 
+                  shape = Sex, lty = Sex, group = Sex)) +
     geom_point() +
     geom_line() +
-    facet_grid(Sex~`Time blocks`) +
+    facet_wrap(~`Time blocks`, ncol = 1) +
     scale_colour_grey() +
     scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-    labs(y = "Selectivity\n", x = NULL, 
-         colour = NULL, lty = NULL, shape = NULL) +
-    theme(legend.position = c(.85, .15)) 
+    labs(#y = "Proportion retained\n", 
+      x = NULL, y = NULL,
+      colour = NULL, lty = NULL, shape = NULL,
+      title = "Fishery selectivity") +
+    theme(legend.position = c(.85, .15)) -> fsh_sel
   
+  
+  ggplot(sel %>% filter(Selectivity == "Survey"), 
+         aes(x = age, y = proportion, colour = Sex, 
+             shape = Sex, lty = Sex, group = Sex)) +
+    geom_point() +
+    geom_line() +
+    facet_grid(~`Time blocks`) +
+    scale_colour_grey() +
+    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    labs(#y = "Proportion retained\n", 
+      x = NULL, y = NULL,
+      colour = NULL, lty = NULL, shape = NULL,
+      title = "Survey selectivity") +
+    theme(legend.position = c(.85, .2)) -> srv_sel
+  
+  
+  plot_grid(fsh_sel, srv_sel, ncol = 1, rel_heights = c(2/3, 1/3)) -> p
+  
+  print(p)
+  
+  if(save == TRUE){ 
+    ggsave(plot = p, filename = paste0(path, "/selectivity_", YEAR, ".png"), 
+           dpi = 300, height = 7, width = 6, units = "in")
+  }
   # ggsave("selectivity.png", dpi = 300, height = 4, width = 6, units = "in")
   
 }

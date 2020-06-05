@@ -187,7 +187,7 @@ assessment_summary %>%
                        abc = c(1046873, 952538, 807559))) %>% 
   arrange(year) -> df
 
-axis <- tickr(df, year, 5)
+axis <- tickr(df, year, 2)
 p1 <- ggplot(df, aes(x = year, y = abc / 1e6)) + 
   geom_point(colour = "grey") +
   geom_line(colour = "grey") +
@@ -195,9 +195,10 @@ p1 <- ggplot(df, aes(x = year, y = abc / 1e6)) +
   scale_y_continuous(limits = c(0, 2.5)) +
   geom_point(data = ABC_out %>% 
                mutate(model = "ABC when MR estimate is missing in previous year"),
-             aes(x = year, y = ABC / 1e6, colour = model, shape = model)) +
-  scale_colour_manual(values = "black") +
-  scale_shape_manual(values = 2) +
+             aes(x = year, y = ABC / 1e6, colour = model, shape = model),
+             size = 3) +
+  # scale_colour_manual(values = "black") +
+  scale_shape_manual(values = 17) +
   labs(x = NULL, y = "ABC (million round lb)\n",
        colour = NULL, shape = NULL) +
   theme(legend.position = c(0.5, 0.9),
@@ -366,17 +367,18 @@ p2 <- ggplot(df, aes(x = year, y = abc / 1e6)) +
                mutate(year = as.numeric(year)+1),
              aes(x = year, y = ABC / 1e6, colour = `Survey scenarios`, 
                  shape = `Survey scenarios`),
-             size = 2) +
-  scale_color_grey() +
+             size = 3) +
+  # scale_shape_manual(guide = FALSE) +
+  # scale_color_grey() +
   labs(x = NULL, y = "ABC (million round lb)\n",
        colour = NULL, shape = NULL) +
-  theme(legend.position = c(0.5, 0.9),
-        legend.text.align = 0.5)
+  theme(legend.position = "none") +
+  theme(legend.position = c(0.5, 0.85))
 
 ggsave(plot = p2, filename = paste0(obj2_dir, "/ABC_", min(df$year), "_", YEAR+1, ".png"), 
-       dpi=300,  height=4, width=7,  units="in")
+       dpi=300,  height=5.5, width=7,  units="in")
 
 plot_grid(p1, p2, ncol = 1, labels = c("(A)", "(B)"))
 ggsave(filename = paste0(mr_sens_dir, "/ABC_", min(df$year), "_", YEAR+1, ".png"), 
-       dpi=300,  height=7.5, width=7,  units="in")
+       dpi=300,  height=7, width=6,  units="in")
 

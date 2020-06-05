@@ -1,7 +1,11 @@
 # Query and clean data - processing script for all incoming data
 # Author: Jane Sullivan
 # Contact: jane.sullivan1@alaska.gov
-# Last edited: 2018-08-01
+# Last edited: June 2020
+
+# NOTE: The last time queries were run using ROracle was using R version 3.5.3
+# 64-bit. This package has NOT been tested using the current 3.6.3 64-bit
+# version
 
 # All final columns formatted as follows unless otherwise specified:
 # length: fork length, cm
