@@ -1,7 +1,9 @@
 # Northern Southeast Inside Waters (NSEI) sablefish (*Anoplopoma fimbria*) stock assessment
 
 Please direct any questions to: 
-Jane Sullivan (jane.sullivan1@alaska.gov), Ben Williams (ben.williams@alaska.gov), or Andrew Olson (andrew.olson@alaska.gov)
+Jane Sullivan (jane.sullivan1@alaska.gov, ummjane@gmail.com) or Rhea Ehresmann (rhea.ehresmann@alaska.gov)
+
+Last updated: June 2020
 
 ## Fishery development and history 
 
@@ -16,13 +18,15 @@ Sablefish have been historically managed with limitations on fishing seasons and
 
 ## Stock assessment
 
-Currently the Alaska Department of Fish and Game (ADF&G) conducts an annual mark-recapture pot survey in May that serves as the basis for stock assessment and managment (Stahl and Holum 2010). Tags are recaptured in the ADF&G longline survey in July and the longline fishery in August (Beder and Stahl 2016). A time-stratified Chapmanized Petersen model is used to estimate abundance in the Bayesian open source software `JAGS 4.3.0` (Chapman 1951, Sullivan and Williams 2018, Depaoli 2016). The abundance estimate is then partitioned into age classes and biomass estimates using age composition and weight-at-age data collected during the longline survey and fishery. A yield-per-recruit model is used to estimate <a href="https://www.codecogs.com/eqnedit.php?latex=$F_{50\%}$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?$F_{50\%}$" title="$F_{50\%}$" /></a> using the `optim()` function in the statistical software `R` (R Core Team 2018). ADF&G has defined Acceptable Biological Catch (ABC) as <a href="https://www.codecogs.com/eqnedit.php?latex=$F_{ABC}$=$F_{50\%}$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?$F_{ABC}$=$F_{50\%}$" title="$F_{ABC}$=$F_{50\%}$" /></a> for the NSEI sablefish stock (Dressel 2009). 
+The Alaska Department of Fish and Game (ADFG) conducts an annual mark-recapture pot survey in May that serves as the basis for stock assessment and managment (Stahl and Holum 2010). Tags are recaptured in the ADFG longline survey in July and the longline fishery in August (Beder and Stahl 2016). A time-stratified Chapmanized Petersen model is used to estimate abundance in the Bayesian open source software `JAGS 4.3.0` (Chapman 1951, Sullivan and Williams 2018, Depaoli 2016). 
 
-Several factors motivated the development of a new statistical catch-at-age model. The current ADF&G framework relies heavily on the mark-recapture experiment, which may be vulnerable to future budget cuts. Further the mark-recapture estimate provides a single snapshot in time and therefore results in high inter-annual variability in abundance and biomass estimates. Consequently, we are unable to fully integrate the available data sources, explore historical trends, or adequately assess stock status or harvest strategies. ADF&G collects a significant amount of data in the NSEI through multiple surveys, logbooks, and port sampling. Moving to a new modeling framework will allow us to better utilize these data and will make management more resilient to potential budget cuts. In addition, the current assessment relies on Federal estimates of selectivity and does not estimate recruitment for the stock. If there are differences in availability, gear selectivity, or stock dynamics in NSEI, we are unable to detect them. Finally, strong recruitment from the 2014 and possibly 2013 and 2015 year classes were reported in the Federal assessment, prompting questions about how to treat the uncertainty in recruitment for State management (Hanselman et al. 2017, Sullivan and Williams 2018). A statistical catch-at-age model coded in Template Model Builder (`TMB`) will allow more flexibility in exploring recruitment using random effects (Kasper et al. 2016).
+Prior to 2020 the abundance estimate was partitioned into age classes and biomass estimates using age composition and weight-at-age data collected during the longline survey and fishery. A yield-per-recruit (YPR) model was used to estimate <a href="https://www.codecogs.com/eqnedit.php?latex=$F_{50\%}$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?$F_{50\%}$" title="$F_{50\%}$" /></a> using the `optim()` function in the statistical software `R` (R Core Team 2018). ADFG defines Acceptable Biological Catch (ABC) as <a href="https://www.codecogs.com/eqnedit.php?latex=$F_{ABC}$=$F_{50\%}$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?$F_{ABC}$=$F_{50\%}$" title="$F_{ABC}$=$F_{50\%}$" /></a> for the NSEI sablefish stock (Dressel 2009). 
+
+Several factors motivated the development of a statistical catch-at-age (SCAA) model, which was implemented for management of the 2020 NSEI sablefish fishery. The current ADFG framework relies heavily on the mark-recapture experiment, which is vulnerable to future budget cuts. Further the mark-recapture estimate provides a single snapshot in time and therefore results in high inter-annual variability in abundance and biomass estimates. Consequently, we are unable to fully integrate the available data sources, explore historical trends, or adequately assess stock status or harvest strategies. ADFG collects a significant amount of data in the NSEI through multiple surveys, logbooks, and port sampling. Moving to a new modeling framework will allow us to better utilize these data and will make management more resilient to potential budget cuts. Finally, strong recruitment from the 2014 and 2016 year classes were reported in the Federal assessment, prompting questions about how to treat the uncertainty in recruitment for State management (Hanselman et al. 2017, Sullivan and Williams 2018). A statistical catch-at-age model coded in Template Model Builder (`TMB`) will allow more flexibility in exploring recruitment using random effects (Kristensen 2016 et al. 2016).
 
 ## Data
 
-Fisheries-independent data and inputs to the `TMB` model are made available under [`data/`](https://github.com/commfish/seak_sablefish/tree/master/data) of this repository. These include biological data and indices of effort. Fisheries-dependent data are not made public to protect fishermen and processor confidentiality, but may be obtained through a formal data request to ADF&G. All descriptions of the data, `SQL` queries, and subsequent manipulations to the data are found in [`r/0_querynclean_data.r`](https://github.com/commfish/seak_sablefish/blob/master/r/0_querynclean_data.R).
+Fisheries-independent data and inputs to the `TMB` model are made available under [`data/`](https://github.com/commfish/seak_sablefish/tree/master/data) of this repository. These include biological data and indices of effort. Fisheries-dependent data are not made public to protect fishermen and processor confidentiality, but may be obtained through a formal data request to ADF&G. 
 
 The following product recovery rates for sablefish were used:
 
@@ -71,19 +75,27 @@ Here is a summary of project codes in the data:
 
 ## Code
 
-
 The analyses underpinning the current stock assessment are found in [`r/`](https://github.com/commfish/seak_sablefish/tree/master/r) of this repository. In order to reproduce the assessment results, the scripts should be run in the following order:
 
 ![alt text](https://github.com/commfish/seak_sablefish/blob/master/figures/readme/steps_to_run_assessment.jpg)
 
 **Description of R scripts:**
-1.  [`fishery_catch_cpue.r`](https://github.com/commfish/seak_sablefish/blob/master/r/fishery_catch_cpue.R): summarize harvest and fishery CPUE and a preliminary CPUE standardization anaylsis using a generalized additive model;
-2.  [`llsurvey_cpue.r`](https://github.com/commfish/seak_sablefish/blob/master/r/llsurvey_cpue.R): standardization and summary of ADF&G longline survey in NSEI;
-3.  [`biological.r`](https://github.com/commfish/seak_sablefish/blob/master/r/biological.R): analysis of fishery, longline, and pot survey data, including growth and maturity modeling, age and length compositions, and preliminary code for age-length keys;
-4.  [`mark_recapture.r`](https://github.com/commfish/seak_sablefish/blob/master/r/mark_recapture.R): summary of tag data and model selection for the mark-recapture analysis, which was conducted using the Bayesian software `JAGS`;
-5.  [`ypr.r`](https://github.com/commfish/seak_sablefish/blob/master/r/ypr.R): yield-per-recruit analysis and ABC calculation.
+1.  [`r/helper.r`](https://github.com/commfish/seak_sablefish/blob/master/r/helper.R): Sourced by most other R scripts in this project, includes libraries/dependecies and ggplot themes;
+2.  [`r/functions.r`](https://github.com/commfish/seak_sablefish/blob/master/r/functions.R):  Sourced by most other R scripts in this project, includes user-defined functions; 
+3.  [`r/0_querynclean_data.r`](https://github.com/commfish/seak_sablefish/blob/master/r/0_querynclean_data.R): Descriptions of the data, `SQL` queries, and subsequent manipulations to clean raw data;
+4.  [`llsurvey_cpue.r`](https://github.com/commfish/seak_sablefish/blob/master/r/llsurvey_cpue.R): ADFG longline survey CPUE analysis and a preliminary steps towards a CPUE standardization;
+5.  [`fishery_catch_cpue.r`](https://github.com/commfish/seak_sablefish/blob/master/r/fishery_catch_cpue.R): summarize harvest (1985-present) and fishery CPUE and a preliminary CPUE standardization anaylsis using a generalized additive model;
+6.  [`biological.r`](https://github.com/commfish/seak_sablefish/blob/master/r/biological.R): analysis of fishery and longline survey data, including modeling of growth, length-weight allometry, maturity, and sex ratios, as well as compilation of age and length compositions for stock assessment;
+7.  [`mark_recapture.r`](https://github.com/commfish/seak_sablefish/blob/master/r/mark_recapture.R): clean release and recapture data, evaluate assumptions for mark-recapture experiment, and conduct analysis and model selection for the mark-recapture analysis; mark-recapture abundance estimated using the Bayesian software `JAGS`;
+8.  [`scaa_dataprep.r`](https://github.com/commfish/seak_sablefish/blob/master/r/scaa_dataprep.R): compilation of catch, indices of relative and absolute abundace, age and length comps, biological data, and fishery retention probabilities for use in the SCAA model; also includes conversion tables for age-length-weight, which appears in an appendix in the 2020 assessment;
+9.  [`scaa.r`](https://github.com/commfish/seak_sablefish/blob/master/r/scaa_dataprep.R): run SCAA model, generate output, results, and figures for assessment; also includes prelim work to run the SCAA as a Bayesian model;
+10.  [`tune_comps.r`](https://github.com/commfish/seak_sablefish/blob/master/r/tune_comps.R): prelim work to estimate effective samples sizes for age/length comps using McAllister and Ianelli (1997) with harmonic mean; not currently implemented for assessment;
+11.  [`retrospective.r`](https://github.com/commfish/seak_sablefish/blob/master/r/retrospective.R): retrospective analysis to evaluate performance of SCAA model;
+12.  [`marking_survey_analysis.r`](https://github.com/commfish/seak_sablefish/blob/master/r/marking_survey_analysis.R): sensitivity analysis of marking survey/abundance estimate on SCAA results; impact of moving to a bi- or triennial stock assessment; appeared in 2020 forecast, does not need to be rerun annually;
+13.  [`ypr.r`](https://github.com/commfish/seak_sablefish/blob/master/r/ypr.R): run YPR stock assessment by partitioning mark-recapture abundance estimate into sex and age classes, estimating F50 YPR model, and calculating ABC;
+14.  [`ageing_error_matrix.r`](https://github.com/commfish/seak_sablefish/blob/master/r/ageing_error_matrix.R): old code from Kray Van Kirk (previous biometrician) that may be useful when developing an updated ageing error matrix.
 
-Data preparation and visualization of model inputs to the preliminary `TMB` statistical catch-at-age model are found in [`tmb_dataprep.r`](https://github.com/commfish/seak_sablefish/blob/master/r/tmb_datprep.R).  The [`.cpp file`](https://github.com/commfish/seak_sablefish/blob/master/tmb/mod.cpp) and [`R` script](https://github.com/commfish/seak_sablefish/blob/master/tmb/run_mod.R) to run the model are found in the `tmb/` folder.
+The [`.cpp file`](https://github.com/commfish/seak_sablefish/blob/master/tmb/scaa_mod.cpp) for the SCAA model is found in `tmb/` folder.
 
 ## Reports
 
