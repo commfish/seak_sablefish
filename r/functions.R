@@ -989,7 +989,7 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
   # Debug function
   # random <-  random_vars# <- NULL
   # phases <- build_phases(parameters, data)
-  # model_name <- "mod"
+  # model_name <- "scaa_mod"
   # debug <- FALSE
 
   # compile the model
