@@ -74,9 +74,9 @@ Here is a summary of project codes in the data:
 
 The analyses underpinning the current stock assessment are found in [`r/`](https://github.com/commfish/seak_sablefish/tree/master/r) of this repository. In order to reproduce the assessment results, the scripts should be run in the following order:
 
-![alt text](https://github.com/commfish/seak_sablefish/blob/master/figures/readme/steps_to_run_assessment.png)
+![alt text](https://github.com/commfish/seak_sablefish/blob/master/figures/readme/steps_to_run_assessment.jpg)
 
-**Descriptions of R scripts:**
+**Description of R scripts:**
 1.  [`fishery_catch_cpue.r`](https://github.com/commfish/seak_sablefish/blob/master/r/fishery_catch_cpue.R): summarize harvest and fishery CPUE and a preliminary CPUE standardization anaylsis using a generalized additive model;
 2.  [`llsurvey_cpue.r`](https://github.com/commfish/seak_sablefish/blob/master/r/llsurvey_cpue.R): standardization and summary of ADF&G longline survey in NSEI;
 3.  [`biological.r`](https://github.com/commfish/seak_sablefish/blob/master/r/biological.R): analysis of fishery, longline, and pot survey data, including growth and maturity modeling, age and length compositions, and preliminary code for age-length keys;
@@ -93,6 +93,7 @@ The 2019 assessment is also available as a Regional Information Report (http://w
 
 ## Session Info
 
+Last updated: June 2020
 ```
 - Session info ---------------------------------------------------------------------------------------------------------------------------------------------------
  setting  value                       
