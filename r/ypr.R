@@ -654,7 +654,7 @@ data.frame("Quantity" = c("Exploited abundance (2019 value from last year)",
 results %>% 
   gather("time_period", "N.avg", contains("N.avg")) %>% 
   group_by(year, time_period) %>% 
-  summarise(current_estimate = mean(N.avg),
+  dplyr::summarise(current_estimate = mean(N.avg),
             q025 = quantile(N.avg, 0.025),
             q975 = quantile(N.avg, 0.975)) %>% 
   arrange(year, time_period) %>% 

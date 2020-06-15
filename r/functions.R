@@ -382,7 +382,7 @@ mr_jags <- function(
   coda_res_out %>% 
     group_by(year) %>% 
     mutate(N.avg = N.avg / 1000000) %>% 
-    summarize(mean = mean(N.avg),
+    dplyr::summarize(mean = mean(N.avg),
            q025 = quantile(N.avg, 0.025),
            q975 = quantile(N.avg, 0.975)) %>% 
     mutate(model = mod_name) -> n_summary_out
@@ -801,7 +801,7 @@ build_parameters <- function(
     log_rinit_devs = rinit_devs_inits,
     
     # Variability in rec_devs and rinit_devs
-    log_sigma_r = log(1.2), #log(1.2), # Federal value of 1.2 on log scale
+    log_sigma_r = log(1.2), # Federal value of 1.2 on log scale
     
     # Fishing mortality
     log_Fbar = inits %>% filter(Parameter == "log_Fbar") %>% pull(Estimate),
@@ -1253,7 +1253,7 @@ post_byyear <- function(df, by = year) {
   names(df) <- c("var", "iter", "year")
   df <- df %>% 
     group_by({{ by }}) %>% 
-    summarise(mean = mean(var, na.rm = TRUE),
+    dplyr::summarise(mean = mean(var, na.rm = TRUE),
               median = median(var, na.rm = TRUE),
               q025 = quantile(var, 0.025, na.rm = TRUE),
               q975 = quantile(var, 0.975, na.rm = TRUE))
@@ -1264,7 +1264,7 @@ postsum <- function(df) {
   
   names(df) <- c("var", "iter")
   df <- df %>% 
-    summarise(mean = mean(var, na.rm = TRUE),
+    dplyr::summarise(mean = mean(var, na.rm = TRUE),
               median = median(var, na.rm = TRUE),
               q025 = quantile(var, 0.025, na.rm = TRUE),
               q975 = quantile(var, 0.975, na.rm = TRUE))

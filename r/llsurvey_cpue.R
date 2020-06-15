@@ -374,7 +374,7 @@ par(mfrow=c(2, 2), cex=1.1); gam.check(mod2)
 # hist(srv_cpue$std_cpue)
 # srv_cpue %>% 
 #   group_by(year) %>% 
-#   summarise(srv_cpue = round(mean(std_cpue), 2),
+#   dplyr::summarise(srv_cpue = round(mean(std_cpue), 2),
 #          n = length(std_cpue),
 #          sd = sd(std_cpue),
 #          se = sd / sqrt(n)) -> srv_sum

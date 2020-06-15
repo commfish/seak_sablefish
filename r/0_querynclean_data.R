@@ -209,7 +209,7 @@ query <-
 
 dbGetQuery(ifdb_channel, query) -> ifdb_catch
 
-# ifdb_catch %>% group_by(YEAR) %>% summarize(sum(ROUND_POUNDS)) %>% View()
+# ifdb_catch %>% group_by(YEAR) %>% dplyr::summarize(sum(ROUND_POUNDS)) %>% View()
 # unique(ifdb_catch$HARVEST_CODE)
 
 write_csv(ifdb_catch, paste0("data/fishery/raw_data/nseiharvest_ifdb_",
@@ -250,7 +250,7 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
 #            c(#'C09B', 'C91A', 'Z99B', 'M61B', 'C61C', 'B06B', 
 #              'C06B', 'C06A', 'B61B', '0000', 'C61B', 'C61A')) %>%
 #   group_by(YEAR, G_CFEC_FISHERY) %>% 
-#   summarise(pounds = sum(POUNDS),
+#   dplyr::summarise(pounds = sum(POUNDS),
 #             round_pounds = sum(ROUND_POUNDS)) %>%
 #   group_by(YEAR) %>% 
 #   mutate(tot_pounds = sum(pounds),
@@ -800,14 +800,14 @@ write_csv(tag_releases, paste0("data/survey/tag_releases_",
                                min(tag_releases$year), "_", max(tag_releases$year), ".csv"))
 
 # Exploratory total number of marks
-tag_releases %>% group_by(year, tag_batch_no) %>% summarise(n_distinct(tag_no))
+tag_releases %>% group_by(year, tag_batch_no) %>% dplyr::summarise(n_distinct(tag_no))
 
 # Exploratory release code that fish "lacks vigor", but is tagged and released any way?
 tag_releases %>% group_by(year, release_condition_cde, discard_status) %>% 
-  summarise(n_distinct(tag_no)) %>% filter(release_condition_cde == '08')
+  dplyr::summarise(n_distinct(tag_no)) %>% filter(release_condition_cde == '08')
 
 # Few recaptures
-tag_releases %>% group_by(year, discard_status) %>% summarise(n_distinct(tag_no))
+tag_releases %>% group_by(year, discard_status) %>% dplyr::summarise(n_distinct(tag_no))
 
 # Tag recoveries ----
 
@@ -856,7 +856,7 @@ write_csv(tag_recoveries, paste0("data/fishery/tag_recoveries_",
 
 tag_recoveries %>% 
   group_by(year, info_source) %>% 
-  summarize(n_distinct(tag_no)) %>% 
+  dplyr::summarize(n_distinct(tag_no)) %>% 
   print(n = Inf)
 
 # Fishery countbacks ----

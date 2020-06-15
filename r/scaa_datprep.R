@@ -66,7 +66,7 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", lyr,".csv"),
 # Nominal CPUE 
 fsh_cpue %>% 
   group_by(year) %>% 
-  summarise(fsh_cpue = mean(std_cpue_kg),
+  dplyr::summarise(fsh_cpue = mean(std_cpue_kg),
             n = n(),
             sd = sd(std_cpue_kg),
             se = sd / sqrt(n),
@@ -177,7 +177,7 @@ mr %>%
   filter(year >= YEAR - 1 & year <= YEAR) %>%
   select(year, mr) %>% 
   mutate(year2 = ifelse(year == YEAR, "thisyr", "lastyr")) %>% 
-  dcast("mr" ~ year2, value.var = "mr") %>% 
+  reshape2::dcast("mr" ~ year2, value.var = "mr") %>% 
   mutate(perc_change_ly = (thisyr - lastyr) / lastyr * 100,
          eval_ly = ifelse(perc_change_ly < 0, "decreased", "increased")) -> mr_ly
 mr_ly
@@ -394,8 +394,10 @@ ggplot(waa %>%
   theme(legend.position = c(.1, .8),
         legend.spacing.y = unit(0, "cm")) -> waa_plot
 
-# Equation text for plotting values of a_50
-a50 <- 6.3
+# Equation text for plotting values of a_50 (from biological.R)
+(a50 <- read_csv(paste0("output/maturity_param_", YEAR)) %>% 
+  pull(a50))
+
 a50_txt <- as.character(
   as.expression(substitute(
     paste(italic(a[50]), " = ", xx),
@@ -437,7 +439,10 @@ bottom_plot <- plot_grid(mat_plot, prop_fem, ncol = 2, align = 'hv', labels = c(
 
 plot_grid(waa_plot, bottom_plot, nrow = 2, rel_widths = c(1, 1), labels = c('(A)', ''))
 
-ggsave(paste0("figures/tmb/bio_dat_", YEAR, ".png"), dpi=300, height=7, width=7, units="in")
+# Drop sex ratios since it's not used in SCAA model when sex-structured
+plot_grid(waa_plot, mat_plot, nrow = 2, rel_widths = c(1, 1), labels = c('(A)', '(B)'))
+
+ggsave(paste0("figures/tmb/bio_dat_", YEAR, ".png"), dpi=300, height=7, width=6, units="in")
 
 # Length compositions ----
 
@@ -729,26 +734,12 @@ data.frame(dressed_lb = seq(0.1, 7, 0.1)) %>%
 # fa	<- 1.01E-05	#	Female
 # fb	<- 3.015	#	Female
 
-# Chatham allom sex comb from biological.r
-a	<- 8.77E-06	
-b	<- 3.049921367	
+# Use Chatham allomotry for sexes comb from biological.r
+allom <- read_csv("output/compare_vonb_adfg_noaa.csv") %>% 
+  filter(Sex == "Combined" & Survey == "ADFG Longline")
 
-# From biological.r, comparing NLS vs log-transformed lm() - didn't have time to
-# fully dive into this.
-# Function                  Parameter   Estimate Sex     
-# <chr>                     <chr>          <dbl> <chr>   
-# 1 Allometric - LM log trans a         0.00000651 Combined
-# 2 Allometric - NLS          a         0.00000877 Combined
-# 3 Allometric - LM log trans b         3.12       Combined
-# 4 Allometric - NLS          b         3.05       Combined
-# 5 Allometric - LM log trans a         0.00000594 Female  
-# 6 Allometric - NLS          a         0.00000807 Female  
-# 7 Allometric - LM log trans b         3.14       Female  
-# 8 Allometric - NLS          b         3.07       Female  
-# 9 Allometric - LM log trans a         0.00000604 Male    
-# 10 Allometric - NLS          a        0.0000110  Male    
-# 11 Allometric - LM log trans b        3.14       Male    
-# 12 Allometric - NLS          b        3.00       Male   
+a	<- allom %>% filter(Parameter == "a") %>% pull(Estimate) 	
+b	<- allom %>% filter(Parameter == "b") %>% pull(Estimate) 	
 
 fork_len <- seq(40, 90, 1)
 

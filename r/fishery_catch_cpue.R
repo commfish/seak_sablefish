@@ -30,7 +30,7 @@ exvessel_value <- read.csv("data/exvessel_value.csv")
 catch_ifdb %>% 
   filter(year > 2013) %>% 
   group_by(year, julian_day) %>% 
-  summarise(pounds = sum(whole_pounds)) %>% 
+  dplyr::summarise(pounds = sum(whole_pounds)) %>% 
   mutate(cum_pounds = cumsum(pounds)) %>% 
   group_by(year) %>% 
   mutate(tot_pounds = sum(pounds)) %>% 
@@ -499,7 +499,7 @@ std_dat %>%
 
 fsh_cpue %>% 
   group_by(year) %>% 
-  summarise(fsh_cpue = mean(std_cpue),
+  dplyr::summarise(fsh_cpue = mean(std_cpue),
             sd = sd(std_cpue),
             n = length(std_cpue),
             se = sd / (n ^ (1/2)),

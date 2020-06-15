@@ -863,8 +863,15 @@ b1 <- fit_length$coefficients[2]
 (a50 <- age_pred %>% 
   right_join(data.frame(length = L50)) %>% 
   group_by(length) %>% 
-  dplyr::summarise(a50 = mean(age)))
+  dplyr::summarise(a50 = round(mean(age), 1)) %>% 
+    pull(a50))
 (kmat <- round(((coef(fit_length)[1] + coef(fit_length)[2]*len) / (len - L50))[1], 2))
+
+data.frame(year_updated = YEAR,
+           L50 = L50,
+           kmat = kmat,
+           a50 = a50) %>% 
+  write_csv(paste0("output/maturity_param_", YEAR))
 
 # # Equation text for plotting values of a_50 and kmat
 # a50_txt <- as.character(

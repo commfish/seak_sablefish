@@ -30,8 +30,8 @@ library(shinystan)
 ts <- read_csv(paste0(tmb_dat, "/abd_indices_", YEAR, ".csv"))        # time series
 age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
 len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
-# age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # tuned age comps
-# len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))  # tunedlen comps
+# age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
+# len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))  # tuned len comps
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
 waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
 retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
@@ -43,8 +43,9 @@ ageing_error <- scan("data/tmb_inputs/ageing_error_fed.txt", sep = " ") %>% matr
 rowSums(ageing_error) # should be 1
 
 # Age-length key from D. Hanselman 2019-04-18. On To DO list to develop one for
-# ADFG (will need separate onces for fishery and survey).  Proportion at length
-# given age. Row = age, Column = length bin
+# ADFG (will need separate onces for fishery and survey). See
+# ageing_error_matrix.R for KVK's code, which may be a good start.  Proportion
+# at length given age. Row = age, Column = length bin
 agelen_key_m <- scan("data/tmb_inputs/agelen_key_male.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
 rowSums(agelen_key_m) # should all = 1
 agelen_key_f <- scan("data/tmb_inputs/agelen_key_fem.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
@@ -57,7 +58,9 @@ rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estima
 rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
 Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
 
-# Starting values for YEAR >= 2020 - uncomment for 2021 forecast
+# Starting values for YEAR >= 2020 - uncomment the following chunk for 2021
+# forecast:
+
 # inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, ".csv"))
 # rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
 # rec_devs_inits <- c(rec_devs_inits, mean(rec_devs_inits)) # mean for current year starting value
@@ -136,52 +139,9 @@ best <- obj$env$last.par.best
 # for more info.
 tidyrep <- save_mle() 
 
-# males first in array, females second
-male_Nlen <- as.data.frame((obj$report(best)$Nlen/1e6)[,,1])
-female_Nlen <- as.data.frame((obj$report(best)$Nlen/1e6)[,,2])
-
-# Clean up dataframe
-names(male_Nlen) <- unique(sort(len$length_bin))
-names(female_Nlen) <- unique(sort(len$length_bin))
-row.names(male_Nlen) <- syr:(lyr+1)
-row.names(female_Nlen) <- syr:(lyr+1)
-write.csv(male_Nlen, paste0(tmbout, "/Chatham_Nlength_millions_male.csv"))
-write.csv(female_Nlen, paste0(tmbout, "/Chatham_Nlength_millions_female.csv"))
-
-# Fishing mortality
-data.frame(Year = syr:lyr,
-           Fmort = obj$report(best)$Fmort) %>% 
-  write_csv(paste0(tmbout, "/Chatham_annual_F.csv"))
-
-obj$report(best)$N/1e6
-# obj$report(best)$pred_landed * 2204.62
-# obj$report(best)$pred_catch * 2204.62
-# obj$report(best)$pred_wastage * 2204.62
-# obj$report(best)$ABC * 2204.62 
-# obj$report(best)$SB * 2204.62 
-# obj$report(best)$Fxx
-# 
-# exp(as.list(rep, what = "Estimate")$fsh_logq)
-# exp(as.list(rep, what = "Estimate")$srv_logq)
-# exp(as.list(rep, what = "Estimate")$mr_logq)
-# exp(as.list(rep, what = "Estimate")$log_rbar)
-# exp(as.list(rep, what = "Estimate")$log_rinit)
-# exp(as.list(rep, what = "Estimate")$log_Fbar)
-
-# variance-covriance
-VarCo <- solve(obj$he())
-# Check  Hessian is pos def
-print(sqrt(diag(VarCo)))
-
-# Not totally clear on this...
-# D <- obj$he()
-# D <- as.data.frame(D)
-# names(D) <- rep$par.fixed %>% names
-# write_csv(D, paste0(tmbout, "/Dmatrix_", YEAR, ".csv"))
-
 # MLE likelihood components
 obj$report(best)$priors
-obj$report(best)$prior_M
+obj$report(best)$prior_M # should be 0 as long as M is not estimated 
 
 dat_like <- sum(obj$report(best)$catch_like,
                 obj$report(best)$index_like[1], 
@@ -240,6 +200,15 @@ plot_ts(ts = ts, save = TRUE, units = "imperial", plot_variance = FALSE, path = 
 plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
 plot_F()
 
+ts %>% 
+  # Add another year to hold projected values
+  full_join(data.frame(year = max(ts$year))) %>%
+  mutate(Fmort = c(obj$report(best)$Fmort),
+         expl_biom = obj$report(best)$tot_expl_biom[1:nyr] / 1e3,
+         exploit = obj$report(best)$pred_catch / expl_biom) %>% 
+  filter(year == YEAR) %>% 
+  pull(exploit)
+
 agecomps <- reshape_age()
 plot_sel() # Selectivity, fixed at Federal values
 
@@ -274,18 +243,12 @@ wastage <- wastage %>%
   pivot_longer(-year, names_to = "Fxx", values_to = "discarded")
 
 # Current (YEAR + 1) wastage under F50
-(wastage_maxABC <- wastage %>% filter(Fxx == "0.5" & year == YEAR+1) %>% pull(wastage))
+(wastage_maxABC <- wastage %>% filter(Fxx == "0.5" & year == YEAR+1) %>% pull(discarded))
 
 # Last years values - manually input from previous assessment! Double check.
 LYR_ABC <- 1058037 # ABC for YEAR
 LYR_wastage <- 19142 # wastage for YEAR
 LYR_F <- 0.0632 # F50 for YEAR
-
-# Percent changes and differences for ABC and wastage (used in assessment text)
-(maxABC_increase <- (maxABC - LYR_ABC) / LYR_ABC)
-round(maxABC-LYR_ABC,0)
-(wastage_maxABC - LYR_wastage)/ LYR_wastage
-(maxF_ABC - LYR_F) / LYR_F
 
 # Get maxF_ABC
 (maxF_ABC <- tidyrep %>% 
@@ -295,11 +258,17 @@ round(maxABC-LYR_ABC,0)
     mutate(maxF_ABC = exp(Estimate)) %>% 
     pull(maxF_ABC))
 
+# Percent changes and differences for ABC and wastage (used in assessment text)
+round((maxABC_increase <- (maxABC - LYR_ABC) / LYR_ABC) * 100, 1)
+round(maxABC-LYR_ABC,0)
+round((wastage_maxABC - LYR_wastage)/ LYR_wastage * 100, 1)
+round((maxF_ABC - LYR_F) / LYR_F * 100, 1)
+
 # Constant 15% change management procedure:
 if( maxABC_increase > 0.15 ) {
   recABC <- LYR_ABC * 1.15
 } else {recABC <- maxABC}
-recABC
+recABC # recommended ABC
 
 # Difference between recommended ABC and last year's recommended ABC
 round(recABC-LYR_ABC,0)
@@ -326,9 +295,10 @@ catch_to_F <- function(fish_mort, N, nat_mort, catch, F_to_catch) {
   return(F_ABC)
 }
 
+# F under recommended ABC
 (F_ABC <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = recABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
 
-(F_ABC - LYR_F) / F_ABC # Percent difference from Last year's F
+(F_ABC - LYR_F) / LYR_F # Percent difference from Last year's F
 
 # Projected total age-2+ projected biomass
 obj$report(best)$tot_biom[nyr+1] * 2.20462
@@ -384,6 +354,30 @@ ggplot() +
 ggsave(filename = paste0(tmbfigs, "/catch_ABC_Fspr_", YEAR, ".png"), 
        dpi = 300, height = 4, width = 6, units = "in")
 
+# Data request May 2020 ----
+
+# Luke Rogers, post-doc working with the coastwide sablefish group (contact:
+# Luke.Rogers@dfo-mpo.gc.ca). Requests numbers-at-length and fishing mortality
+# annual estimates. I added the numbers-at-length output to the scaa_mod.cpp
+# using the federal age-length keys.
+
+# males first in array, females second
+male_Nlen <- as.data.frame((obj$report(best)$Nlen/1e6)[,,1])
+female_Nlen <- as.data.frame((obj$report(best)$Nlen/1e6)[,,2])
+
+# Clean up dataframe
+names(male_Nlen) <- unique(sort(len$length_bin))
+names(female_Nlen) <- unique(sort(len$length_bin))
+row.names(male_Nlen) <- syr:(lyr+1)
+row.names(female_Nlen) <- syr:(lyr+1)
+write.csv(male_Nlen, paste0(tmbout, "/Chatham_Nlength_millions_male.csv"))
+write.csv(female_Nlen, paste0(tmbout, "/Chatham_Nlength_millions_female.csv"))
+
+# Fishing mortality
+data.frame(Year = syr:lyr,
+           Fmort = obj$report(best)$Fmort) %>% 
+  write_csv(paste0(tmbout, "/Chatham_annual_F.csv"))
+
 # Bayesian model -----
 
 # UNDER DEVELOPMENT
@@ -436,35 +430,6 @@ ggsave(filename = paste0(tmbfigs, "/trace_keypars_", YEAR, ".png"), width = 8, h
 trace <- traceplot(fit, pars = names(obj$par)[which(grepl("rec_devs", names(obj$par)))], inc_warmup = FALSE, ncol = 3)
 trace + scale_color_grey() + theme(legend.position = , legend.direction = "horizontal")
 ggsave(filename = paste0(tmbfigs, "/trace_logrecdevs_", YEAR, ".png"), width = 8, height = 30, units = "in")
-
-
-
-
-# Compile
-compile("scaa_mod.cpp")
-dyn.load(dynlib("scaa_mod"))
-# Use map to turn off parameters, either for testing with dummy, phasing, or to
-# fix parameter values
-
-# Debug
-map <- list(log_fsh_slx_pars = factor(array(data = c(rep(factor(NA), length(data$fsh_blks)),
-                                     rep(factor(NA), length(data$fsh_blks))),
-                            dim = c(length(data$fsh_blks), 2, nsex))),
-            log_srv_slx_pars = factor(array(data = c(rep(factor(NA), length(data$srv_blks)),
-                                                 rep(factor(NA), length(data$srv_blks))),
-                                        dim = c(length(data$srv_blks), 2, nsex))),
-            fsh_logq = factor(NA), srv_logq = factor(NA), mr_logq = factor(NA),
-            log_rbar = factor(NA), log_rec_devs = rep(factor(NA), nyr),
-            log_rinit = factor(NA), log_rinit_devs = rep(factor(NA), nage-2),
-            log_sigma_r = factor(NA), log_Fbar = factor(NA), log_F_devs = rep(factor(NA), nyr),
-            log_spr_Fxx = rep(factor(NA), length(data$Fxx_levels)),
-            log_fsh_theta = factor(NA), log_srv_theta = factor(NA))
-model <- MakeADFun(data, parameters, DLL = "scaa_mod",
-                   silent = TRUE, map = map,
-                   random = random_vars)
-
-# fit <- nlminb(model$par, model$fn, model$gr,
-#               control=list(eval.max=100000,iter.max=1000))
 
 # Ageing error figure ----
 
@@ -519,9 +484,12 @@ ggplot(al_key, aes(x = age, y = length, size = obs)) +
 
 ggsave(paste0("figures/tmb/age_length_key.png"), dpi = 300, height = 7, width = 9, units = "in")
 
-# Code used to get new starting values for rec devs and F devs. Use relationship (gam)
-# between current initial values and catch to obtain starting values for
-# 1907-1979
+# Old code ----
+
+# The following code was used to get new starting values for rec devs and F
+# devs. Use relationship (gam) between current initial values and catch to
+# obtain starting values for 1907-1979
+
 # new_inits <- data.frame(year = 1980:YEAR,
 #                        rec_devs = rec_devs_inits,
 #                        Fdevs = Fdevs_inits,

@@ -7,6 +7,8 @@
 # lost, 2004 used PIT tags and batch 15 (2004) recoveries aren't in database.
 # Other MR data go back to 1997, but these data haven't been recovered.
 
+# NOTE: The mark-recap models take awhile to run. Allot some time to this.
+
 # Past release: https://github.com/commfish/seak_sablefish/releases/tag/mark-recapture-pre-2019-assessment
 # Issue on survey countbacks: https://github.com/commfish/seak_sablefish/issues/39
 
@@ -285,7 +287,7 @@ rec_sel %>%
   filter(growth_bin < cutoff) %>% 
   distinct(year, tag_no) -> throw_out
 
-throw_out %>% group_by(year) %>% summarize(n_distinct(tag_no)) # number tags to throw out by year
+throw_out %>% group_by(year) %>% dplyr::summarize(n_distinct(tag_no)) # number tags to throw out by year
 
 # Total number tagged and released by year plus define length of time period 1
 releases %>% 
@@ -628,7 +630,7 @@ right_join(recoveries %>%
   group_by(year, D) %>% 
   dplyr::summarize(n = n_distinct(tag_no)) %>% 
   ungroup() %>% 
-  dcast(year ~ D, value.var = "n", fill = 0) %>% 
+  reshape2::dcast(year ~ D, value.var = "n", fill = 0) %>% 
   left_join(tag_summary, by = "year") %>% 
   # Add the two D.1 variables together (D.1.x are recaptures from longline
   # survey, D.1.y are recaptures from other fisheries that occurred between the
@@ -640,7 +642,7 @@ right_join(recoveries %>%
 # similar columns for the fishery
 daily_marks %>% 
   group_by(year) %>% 
-  summarize(k_fishery = sum(total_marked),
+  dplyr::summarize(k_fishery = sum(total_marked),
             n_fishery = sum(total_obs),
             D_fishery = sum(fishery_D)) %>% 
   left_join(tag_summary) -> tag_summary
@@ -1314,6 +1316,157 @@ bind_rows(
     mutate(model = "Model4",
            mod_version = paste(year, model, P, sep = "_"))) -> post_sums
 
+# Model 1 P = 6 Results ----
+
+# After reviewing all models for several years, Model 1 with 6 time periods
+# consistently was the "best model" used for management. See the 2018 assessment
+# for more details on model selection. This can be revited periodically but to
+# streamline the assessment process, I've put the code to output Model 1 P=6 up
+# front.
+results <- mod1_posterior_ls[[5]]
+model_years <- unique(tag_summary$year)
+
+write_csv(results, paste0("output/final_mod_posterior_", 
+                          min(results$year), "_", max(results$year), ".csv"))
+
+# Credibility intervals N and p, N by time period
+df <- data.frame(year = FIRST_YEAR:YEAR)
+axis <- tickr(df, year, 2)
+
+results %>% 
+  gather("time_period", "N.avg", contains("N.avg")) %>% 
+  group_by(year, time_period) %>% 
+  dplyr::summarize(`Current estimate` = median(N.avg),
+                   q025 = quantile(N.avg, 0.025),
+                   q975 = quantile(N.avg, 0.975)) %>% 
+  arrange(year, time_period) %>% 
+  ungroup() %>% 
+  mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
+  pad(interval = "year") %>% 
+  mutate(year = year(year),
+         Year = factor(year)) %>%
+  left_join(assessment_summary %>%
+              select(year, `Previous estimate` = abundance_age2plus) %>%
+              mutate(`Previous estimate` = ifelse(year == YEAR, NA, `Previous estimate`)),
+            by = "year") %>%
+  gather("Abundance", "N", c(`Current estimate`, `Previous estimate`)) %>% 
+  mutate(N = N / 1e6,
+         # interpolate the CI in missing years for plotting purposes
+         q025 = zoo::na.approx(q025 / 1e6, maxgap = 20, rule = 2),
+         q975 = zoo::na.approx(q975 / 1e6, maxgap = 20, rule = 2)) -> df
+
+ggplot(df) +
+  geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), 
+             size = 1.5) +
+  geom_line(data = df %>% filter(!is.na(N)), 
+            aes(x = year, y = N, col = Abundance, linetype = Abundance)) +
+  geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
+              alpha = 0.2, fill = "grey") +
+  scale_x_continuous(breaks = seq(min(model_years), max(model_years), 2), 
+                     labels = seq(min(model_years), max(model_years), 2)) +
+  geom_point(data = assessment_summary %>%
+               filter(year %in% c(YEAR)) %>%
+               mutate(est = abundance_age2plus / 1e6),
+             aes(x = year, y = est),
+             shape = 8, size = 1.5, colour = "grey") +
+  scale_colour_grey() +
+  ylim(c(1, 4)) +
+  labs(x = "", y = "Number of sablefish (millions)\n",
+       colour = NULL, shape = NULL, linetype = NULL) +
+  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  theme(legend.position = c(.7, .9))
+
+ggsave(paste0("figures/model1_N_retro_noforec_",
+              FIRST_YEAR, "_", YEAR, ".png"),
+       dpi=300, height=4, width=6, units="in")
+
+# Write results to file for ASA
+results %>% 
+  gather("time_period", "N.avg", contains("N.avg")) %>% 
+  group_by(year) %>% 
+  dplyr::summarize(estimate = mean(N.avg) / 1e6,
+                   sd = sd(N.avg) / 1e6,
+                   q025 = quantile(N.avg, 0.025) / 1e6,
+                   q975 = quantile(N.avg, 0.975) / 1e6) %>% 
+  write_csv("output/mr_index_newsrvcountbackassumptions.csv")
+
+# Compare new and old results for survey countback assumptions 
+assumptions <- read_csv("output/mr_index_newsrvcountbackassumptions.csv") %>% 
+  mutate(`Assumptions for survey countbacks` = "New (fish only checked for marks in 2008 and 2010)") %>% 
+  bind_rows(read_csv("output/mr_index.csv") %>% 
+              mutate(`Assumptions for survey countbacks` = "Old (all fish checked for marks)"))
+
+ggplot(assumptions, aes(x = factor(year), y = estimate, fill = `Assumptions for survey countbacks`)) +
+  scale_fill_manual(values = c("grey90", "darkgrey")) +
+  geom_bar(position = position_dodge(), stat = "identity", col = "black") +
+  geom_errorbar(aes(ymin = q025, ymax = q975), width = 0.2, position = position_dodge(.9)) +
+  labs(x = NULL, y = "Number of sablefish in millions") +
+  theme(legend.position = "top") +
+  guides(fill = guide_legend(nrow = 2, byrow=TRUE))
+
+ggsave(paste0("figures/llsrv_countback_assumptions_",
+              FIRST_YEAR, "_", YEAR, ".png"),
+       dpi=300, height=4, width=6, units="in")
+
+results %>% 
+  gather("time_period", "N.avg", contains("N.avg")) %>% 
+  group_by(year) %>% 
+  dplyr::summarize(estimate = mean(N.avg) / 1e6,
+                   sd = sd(N.avg) / 1e6,
+                   q025 = quantile(N.avg, 0.025) / 1e6,
+                   q975 = quantile(N.avg, 0.975) / 1e6) %>% 
+  write_csv(paste0("output/mr_index_", YEAR, ".csv"))
+
+# Posterior distributions from the last 4 years with MR data
+results %>% 
+  filter(year > 2012) %>%
+  group_by(year) %>% 
+  mutate(N.avg = N.avg / 1000000,
+         q025 = quantile(N.avg, 0.025),
+         q975 = quantile(N.avg, 0.975),
+         ci = ifelse(N.avg >= q025 & N.avg <=q975, 1, 0),
+         median = median(N.avg)) %>% 
+  ggplot(aes(N.avg)) + 
+  geom_histogram(fill = 4, alpha = 0.2, bins = 100, color = 'black') + 
+  geom_histogram(data = . %>% filter(ci==1), 
+                 aes(N.avg), fill = 4, alpha = 0.6, bins = 100) +
+  geom_vline(aes(xintercept = median), col = "red", linetype = 2, size = 1) +
+  facet_wrap(~ year, dir = "v") +
+  labs(x = "Number of sablefish in millions",
+       y = "Posterior distribution")
+
+results %>% 
+  group_by(year) %>% 
+  dplyr::summarize(N_current = mean(N.avg) ,
+                   q025 = quantile(N.avg, 0.025),
+                   q975 = quantile(N.avg, 0.975))  %>% 
+  left_join(assessment_summary) -> assessment_summary
+
+write_csv(assessment_summary, paste0("output/assessment_summary_", YEAR, ".csv"))
+
+results %>% 
+  group_by(year) %>% 
+  dplyr::summarize(N = mean(N.avg) ,
+                   q025 = quantile(N.avg, 0.025),
+                   q975 = quantile(N.avg, 0.975)) -> ci
+
+ci[c(2:4)] <- lapply(ci[,c(2:4)], prettyNum, trim=TRUE, big.mark=",")
+
+ci %>% #filter(year == YEAR) %>% 
+  select(`Estimate N` = N, `Lower CI` = q025, 
+         `Upper CI` = q975) %>% 
+  kable()
+
+# Tag summary
+
+tag_summary %>% 
+  select(Year = year, `$K$` = K, `$K_0$` = K.0, `$D_0$` = D.0, 
+         `$k_{srv}$` = k.1, `$n_{srv}$` = n.1, `$D_{srv}$` = D.1,
+         `$k_{fsh}$` = k_fishery, `$n_{fsh}$` = n_fishery, `$D_{fsh}$` = D_fishery) %>% 
+  write_csv(paste0("output/tag_summary_report_", YEAR, ".csv"))
+
+# Examination of other models ----
+
 # Scale parameters within model and year to test effect of increasing P (time
 # periods) on point and variance estimates
 post_sums %>% 
@@ -1583,7 +1736,7 @@ data_df[[5]] %>%
 
 results %>% 
   select(year, P, contains("npue.hat")) %>% 
-  melt(id.vars = c("year", "P")) %>% 
+  reshape2::melt(id.vars = c("year", "P")) %>% 
   group_by(year, variable) %>% 
   dplyr::summarize(NPUE = median(value),
             q025 = quantile(value, 0.025),
@@ -1623,7 +1776,7 @@ ggsave(paste0("figures/NPUE_obsvsfitted_mod4_", YEAR, ".png"),
 NPUE <- mod3_posterior_ls[[5]] %>% filter(year == YEAR) %>% 
   bind_rows(mod4_posterior_ls[[5]] %>% filter(year == YEAR)) %>% 
   select(model, year, P, contains("npue.hat")) %>% 
-  melt(id.vars = c("model", "year", "P")) %>% 
+  reshape2::melt(id.vars = c("model", "year", "P")) %>% 
   group_by(model, year, variable) %>% 
   dplyr::summarize(NPUE = median(value),
             q025 = quantile(value, 0.025),
@@ -1661,167 +1814,3 @@ ggplot() +
 
 ggsave(paste0("figures/NPUE_mod3_vs_mod4_", YEAR, ".png"), 
        dpi=300, height=4, width=6, units="in")
-
-# Model 1 P = 6 Results ----
-
-results <- mod1_posterior_ls[[5]]
-model_years <- unique(tag_summary$year)
-
-write_csv(results, paste0("output/final_mod_posterior_", 
-                                     min(results$year), "_", max(results$year), ".csv"))
-
-# Credibility intervals N and p, N by time period
-df <- data.frame(year = FIRST_YEAR:YEAR)
-axis <- tickr(df, year, 2)
-
-results %>% 
-  gather("time_period", "N.avg", contains("N.avg")) %>% 
-  group_by(year, time_period) %>% 
-  dplyr::summarize(`Current estimate` = median(N.avg),
-            q025 = quantile(N.avg, 0.025),
-            q975 = quantile(N.avg, 0.975)) %>% 
-  arrange(year, time_period) %>% 
-  ungroup() %>% 
-  mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
-  pad(interval = "year") %>% 
-  mutate(year = year(year),
-         Year = factor(year)) %>%
-  left_join(assessment_summary %>%
-              select(year, `Previous estimate` = abundance_age2plus) %>%
-              mutate(`Previous estimate` = ifelse(year == YEAR, NA, `Previous estimate`)),
-            by = "year") %>%
-  gather("Abundance", "N", c(`Current estimate`, `Previous estimate`)) %>% 
-  mutate(N = N / 1e6,
-         # interpolate the CI in missing years for plotting purposes
-         q025 = zoo::na.approx(q025 / 1e6, maxgap = 20, rule = 2),
-         q975 = zoo::na.approx(q975 / 1e6, maxgap = 20, rule = 2)) -> df
-
-ggplot(df) +
-  geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), 
-             size = 1.5) +
-  geom_line(data = df %>% filter(!is.na(N)), 
-            aes(x = year, y = N, col = Abundance, linetype = Abundance)) +
-  geom_ribbon(aes(x = year, ymin = q025, ymax = q975), 
-              alpha = 0.2, fill = "grey") +
-  scale_x_continuous(breaks = seq(min(model_years), max(model_years), 2), 
-                     labels = seq(min(model_years), max(model_years), 2)) +
-  geom_point(data = assessment_summary %>%
-               filter(year %in% c(YEAR)) %>%
-               mutate(est = abundance_age2plus / 1e6),
-             aes(x = year, y = est),
-             shape = 8, size = 1.5, colour = "grey") +
-  scale_colour_grey() +
-  ylim(c(1, 4)) +
-  labs(x = "", y = "Number of sablefish (millions)\n",
-       colour = NULL, shape = NULL, linetype = NULL) +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  theme(legend.position = c(.7, .9))
-
-ggsave(paste0("figures/model1_N_retro_noforec_",
-              FIRST_YEAR, "_", YEAR, ".png"),
-       dpi=300, height=4, width=6, units="in")
-
-# Write results to file for ASA
-results %>% 
-  gather("time_period", "N.avg", contains("N.avg")) %>% 
-  group_by(year) %>% 
-  dplyr::summarize(estimate = mean(N.avg) / 1e6,
-            sd = sd(N.avg) / 1e6,
-            q025 = quantile(N.avg, 0.025) / 1e6,
-            q975 = quantile(N.avg, 0.975) / 1e6) %>% 
-  write_csv("output/mr_index_newsrvcountbackassumptions.csv")
-
-# Compare new and old results for survey countback assumptions 
-assumptions <- read_csv("output/mr_index_newsrvcountbackassumptions.csv") %>% 
-  mutate(`Assumptions for survey countbacks` = "New (fish only checked for marks in 2008 and 2010)") %>% 
-  bind_rows(read_csv("output/mr_index.csv") %>% 
-  mutate(`Assumptions for survey countbacks` = "Old (all fish checked for marks)"))
-
-ggplot(assumptions, aes(x = factor(year), y = estimate, fill = `Assumptions for survey countbacks`)) +
-  scale_fill_manual(values = c("grey90", "darkgrey")) +
-  geom_bar(position = position_dodge(), stat = "identity", col = "black") +
-  geom_errorbar(aes(ymin = q025, ymax = q975), width = 0.2, position = position_dodge(.9)) +
-  labs(x = NULL, y = "Number of sablefish in millions") +
-  theme(legend.position = "top") +
-  guides(fill = guide_legend(nrow = 2, byrow=TRUE))
-
-ggsave(paste0("figures/llsrv_countback_assumptions_",
-              FIRST_YEAR, "_", YEAR, ".png"),
-       dpi=300, height=4, width=6, units="in")
-
-results %>% 
-  gather("time_period", "N.avg", contains("N.avg")) %>% 
-  group_by(year) %>% 
-  dplyr::summarise(estimate = mean(N.avg) / 1e6,
-            sd = sd(N.avg) / 1e6,
-            q025 = quantile(N.avg, 0.025) / 1e6,
-            q975 = quantile(N.avg, 0.975) / 1e6) %>% 
-  write_csv(paste0("output/mr_index_", YEAR, ".csv"))
-
-# results %>%
-#   gather("time_period", "p", contains("p[")) %>%
-#   group_by(year, time_period) %>%
-#   summarise(median = median(p),
-#             q025 = quantile(p, 0.025),
-#             q975 = quantile(p, 0.975))
-
-# results %>%
-#   gather("time_period", "N", contains("N[")) %>%
-#   group_by(year, time_period) %>%
-#   summarise(mean = mean(N) / 1e6,
-#             q025 = quantile(N, 0.025) / 1e6,
-#             q975 = quantile(N, 0.975) / 1e6) %>%
-#   arrange(year, time_period) %>% 
-#   ggplot(aes(x = time_period, y = mean)) +
-#   geom_point() +
-#   geom_line() +
-#   facet_wrap(~year)
-
-# Posterior distributions from the last 4 years with MR data
-results %>% 
-  filter(year > 2012) %>%
-  group_by(year) %>% 
-  mutate(N.avg = N.avg / 1000000,
-         q025 = quantile(N.avg, 0.025),
-         q975 = quantile(N.avg, 0.975),
-         ci = ifelse(N.avg >= q025 & N.avg <=q975, 1, 0),
-         median = median(N.avg)) %>% 
-  ggplot(aes(N.avg)) + 
-  geom_histogram(fill = 4, alpha = 0.2, bins = 100, color = 'black') + 
-  geom_histogram(data = . %>% filter(ci==1), 
-                 aes(N.avg), fill = 4, alpha = 0.6, bins = 100) +
-  geom_vline(aes(xintercept = median), col = "red", linetype = 2, size = 1) +
-  facet_wrap(~ year, dir = "v") +
-  labs(x = "Number of sablefish in millions",
-       y = "Posterior distribution")
-
-results %>% 
-  group_by(year) %>% 
-  dplyr::summarize(N_current = mean(N.avg) ,
-         q025 = quantile(N.avg, 0.025),
-         q975 = quantile(N.avg, 0.975))  %>% 
-  left_join(assessment_summary) -> assessment_summary
-
-write_csv(assessment_summary, paste0("output/assessment_summary_", YEAR, ".csv"))
-
-results %>% 
-  group_by(year) %>% 
-  dplyr::summarize(N = mean(N.avg) ,
-            q025 = quantile(N.avg, 0.025),
-            q975 = quantile(N.avg, 0.975)) -> ci
-
-ci[c(2:4)] <- lapply(ci[,c(2:4)], prettyNum, trim=TRUE, big.mark=",")
-
-ci %>% #filter(year == YEAR) %>% 
-  select(`Estimate N` = N, `Lower CI` = q025, 
-         `Upper CI` = q975) %>% 
-  kable()
-
-# Tag summary
-
-tag_summary %>% 
-  select(Year = year, `$K$` = K, `$K_0$` = K.0, `$D_0$` = D.0, 
-         `$k_{srv}$` = k.1, `$n_{srv}$` = n.1, `$D_{srv}$` = D.1,
-         `$k_{fsh}$` = k_fishery, `$n_{fsh}$` = n_fishery, `$D_{fsh}$` = D_fishery) %>% 
-  write_csv(paste0("output/tag_summary_report_", YEAR, ".csv"))
-
