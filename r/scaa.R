@@ -7,10 +7,33 @@
 # Contact: jane.sullivan1@alaska.gov
 # Last updated June 2020
 
-# Set up ----
+# Manual inputs ----
+
+# These must be checked or updated annually!
 
 # most recent year of data (YEAR+1 should be the forecast year)
 YEAR <- 2019
+
+# Last years ABC, mortality from discards, and F_ABC values - manually input
+# from previous assessment! Double check these values with the summary table.
+# Note that in years when the recommended ABC = maxABC, there will be
+# repeats
+LYR_maxABC <- 1058037 # maxABC for YEAR (ABC under F50)
+LYR_recABC <- 1058037 # recommended ABC for YEAR
+LYR_wastage <- 19142 # wastage for YEAR (this is only defined under maxABC b/c it's included in the calculation of maxABC for the 2020 forecast and beyond)
+LYR_maxF_ABC <- 0.0632 # F50 for YEAR
+LYR_F_ABC <- 0.0632 # F under the recommended ABC
+
+# Last years projected biomass and SPR - the old assessment framework didn't
+# report these. They are reported in 2020 and will hopefully be provided for
+# comparison moving forward similar to federal assessment. These values are
+# reported in assessment summary table
+LYR_proj_age2plus <- NA # projected age-2+ biomass
+LYR_proj_fSSB <- NA # projected female spawning biomass
+LYR_SB100 <- NA # unfished equilibrium female spawning biomass (SPR = 100)
+LYR_SB50 <- NA # equilibrium female spawning biomass under F50 (SPR = 50)
+
+# Set up ----
 
 # Directory setup
 root <- getwd() # project root
@@ -53,20 +76,23 @@ rowSums(agelen_key_f)
 
 # Starting values for YEAR == 2019 - delete for the 2020 assessment and
 # uncomment out the next chunk of code
-inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
-rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
-rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
-Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
+if(YEAR == 2019) {
+  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
+  rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
+  rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
+  Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
+}
 
 # Starting values for YEAR >= 2020 - uncomment the following chunk for 2021
 # forecast:
-
-# inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, ".csv"))
-# rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
-# rec_devs_inits <- c(rec_devs_inits, mean(rec_devs_inits)) # mean for current year starting value
-# rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
-# Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
-# Fdevs_inits <- c(Fdevs_inits, mean(Fdevs_inits)) # mean for current year starting value
+if(YEAR > 2019) {
+  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, ".csv"))
+  rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
+  rec_devs_inits <- c(rec_devs_inits, mean(rec_devs_inits)) # mean for current year starting value
+  rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
+  Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
+  Fdevs_inits <- c(Fdevs_inits, mean(Fdevs_inits)) # mean for current year starting value
+}
 
 # Model dimensions / user inputs
 syr <- min(ts$year)                   # model start year
@@ -109,9 +135,9 @@ random_vars <- build_random_vars() # random effects still in development
 setwd(tmb_path)
 
 # Four ways to run model:
-# (1) MLE in phases (like ADMB). Code defined by build_phases() in functions.R.
+# (1) Maximum Likelihood Estimation (MLE) in phases (like ADMB). Code defined by build_phases() in functions.R.
 # Use TMBphase(phase = TRUE)
-# (2) MLE without phased optimation (phase = FALSE)
+# (2) MLE without phased optimization (phase = FALSE)
 # (3) Bayesian using tmbstan and the no-U-turn sampler (NUTS): Run step 2 first
 # to build TMB object, map, and bounds
 # (4) Debug mode with debug = TRUE (will need to uncomment out obj_fun = dummy * dummy; )
@@ -127,8 +153,11 @@ rep <- out$rep # sdreport
 lower <- out$lower # bounds
 upper <- out$upper
 
-rep
-best <- obj$env$last.par.best
+# Report gives you a look at estimated parameters with standard errors. The
+# maximum gradient component is a diagnostic of convergence; it should be <=
+# 0.001.
+rep 
+best <- obj$env$last.par.best # maximum likelihood estimates
 # TODO: run model using TMBhelper::fit_tmb() and run Newton steps to reduce
 # final gradient
 
@@ -200,6 +229,7 @@ plot_ts(ts = ts, save = TRUE, units = "imperial", plot_variance = FALSE, path = 
 plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
 plot_F()
 
+# FLAG FOR JANE
 ts %>% 
   # Add another year to hold projected values
   full_join(data.frame(year = max(ts$year))) %>%
@@ -225,7 +255,7 @@ barplot_len("Fishery", sex = "Male")
 
 # Assessment results  ----
 
-# Prep ABC output (ABC = Allowable Biological Catch)
+# Prep ABC output (ABC = Acceptable Biological Catch)
 ABC <- as.data.frame(obj$report(best)$ABC * 2.20462)
 names(ABC) <- data$Fxx_levels
 ABC <- ABC %>% 
@@ -245,11 +275,6 @@ wastage <- wastage %>%
 # Current (YEAR + 1) wastage under F50
 (wastage_maxABC <- wastage %>% filter(Fxx == "0.5" & year == YEAR+1) %>% pull(discarded))
 
-# Last years values - manually input from previous assessment! Double check.
-LYR_ABC <- 1058037 # ABC for YEAR
-LYR_wastage <- 19142 # wastage for YEAR
-LYR_F <- 0.0632 # F50 for YEAR
-
 # Get maxF_ABC
 (maxF_ABC <- tidyrep %>% 
     filter(grepl('log_spr_Fxx', Parameter)) %>% 
@@ -259,22 +284,21 @@ LYR_F <- 0.0632 # F50 for YEAR
     pull(maxF_ABC))
 
 # Percent changes and differences for ABC and wastage (used in assessment text)
-round((maxABC_increase <- (maxABC - LYR_ABC) / LYR_ABC) * 100, 1)
-round(maxABC-LYR_ABC,0)
-round((wastage_maxABC - LYR_wastage)/ LYR_wastage * 100, 1)
-round((maxF_ABC - LYR_F) / LYR_F * 100, 1)
+round((maxABC_diff <- (maxABC - LYR_recABC) / LYR_recABC) * 100, 1)
 
 # Constant 15% change management procedure:
-if( maxABC_increase > 0.15 ) {
-  recABC <- LYR_ABC * 1.15
-} else {recABC <- maxABC}
+if( maxABC_diff > 0.15 ) {
+  recABC <- LYR_recABC * 1.15
+} else if (maxABC_diff < -0.15) {
+  recABC <- LYR_recABC * 0.85
+  } else {recABC <- maxABC}
 recABC # recommended ABC
 
 # Difference between recommended ABC and last year's recommended ABC
 round(recABC-LYR_ABC,0)
 
 # Estimate recommended F_ABC using numerical methods
-N <- obj$report()$N 
+N <- obj$report()$N  
 N <- sum(N[nyr+1,,1]) + sum(N[nyr+1,,2]) # sum of projected abundance across age and sex
 
 nat_mort <- exp(parameters$log_M)
@@ -298,14 +322,14 @@ catch_to_F <- function(fish_mort, N, nat_mort, catch, F_to_catch) {
 # F under recommended ABC
 (F_ABC <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = recABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
 
-(F_ABC - LYR_F) / LYR_F # Percent difference from Last year's F
-
 # Projected total age-2+ projected biomass
-obj$report(best)$tot_biom[nyr+1] * 2.20462
+(proj_age2plus <- obj$report(best)$tot_biom[nyr+1] * 2.20462)
+
+# Comparison with current age-2+ biomass
 obj$report(best)$tot_biom[nyr] * 2.20462
 
 # Projected total female spawning biomass
-obj$report(best)$tot_spawn_biom[nyr+1] * 2.20462
+(proj_fSSB <- obj$report(best)$tot_spawn_biom[nyr+1] * 2.20462)
 
 # Unfished/fished SSB
 SB <- as.data.frame(obj$report(best)$SB * 2.20462)
@@ -354,6 +378,135 @@ ggplot() +
 ggsave(filename = paste0(tmbfigs, "/catch_ABC_Fspr_", YEAR, ".png"), 
        dpi = 300, height = 4, width = 6, units = "in")
 
+# Write BRPs ----
+
+res <- c(paste0("STATISTICAL CATCH-AT-AGE MODEL RESULTS FOR NSEI SABLEFISH", "\n",
+                "\n",
+                "Report produced by scaa.R", "\n",
+                # Update as needed!
+                "Contact: jane.sullivan1@alaska.gov or ummjane@gmail.com or rhea.ehresmann@alaska.gov", "\n",
+                "Report generated: ", paste0(Sys.Date()),  "\n",
+                "\n",
+                "Model diagnostics", "\n",
+                "Number of parameters:,", "\n", length(best),  "\n",
+                "Negative log likelihood:,", "\n",round(obj$report(best)$obj_fun),  "\n",
+                "Maximum gradient component:,", "\n", max(rep$gradient.fixed), "\n", "\n", 
+                "ALL VARIABLES REPORTED IN ROUND LB UNLESS OTHERWISE SPECIFIED", "\n", "\n"))
+
+write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR, ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n")
+
+# Last years reference points
+res <- c(paste0("Summary of ", YEAR, " (last year's) Biological Reference Points", "\n",
+                
+                "Projected age-2 biomass: ", "\n",
+                LYR_proj_age2plus, "\n",
+                
+                "Projected female spawning biomass: ", "\n",
+                LYR_proj_fSSB, "\n",
+                
+                "Unfished equilibrium female spawning biomass (SPR = 100): ", "\n",
+                LYR_SB100, "\n",
+                
+                "Equilibrium female spawning biomass under F50 (SPR = 50): ", "\n",
+                LYR_SB50, "\n",
+                
+                "Max ABC: ", "\n",
+                LYR_maxABC, "\n",
+                
+                "Recommended ABC: ", "\n",
+                LYR_recABC, "\n",
+                
+                "Mortality from fishery discards under max ABC: ", "\n",
+                LYR_wastage, "\n",
+                
+                "max F_ABC = F_50: ", "\n",
+                LYR_maxF_ABC, "\n",
+                
+                "F under recommended ABC: ", "\n",
+                LYR_F_ABC,  "\n"))
+
+write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR, ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
+
+# Current estimated reference points
+res <- c(paste0("Summary of ", YEAR+1, " (current year's) Biological Reference Points", "\n",
+                
+                "Projected age-2 biomass: ", "\n",
+                proj_age2plus, "\n",
+                
+                "Projected female spawning biomass: ", "\n",
+                proj_fSSB, "\n",
+                
+                "Unfished equilibrium female spawning biomass (SPR = 100): ", "\n",
+                SB100, "\n",
+                
+                "Equilibrium female spawning biomass under F50 (SPR = 50): ", "\n",
+                SB50, "\n",
+                
+                "Max ABC: ", "\n",
+                maxABC, "\n",
+                
+                "Recommended ABC: ", "\n",
+                recABC, "\n",
+                
+                "Mortality from fishery discards under max ABC: ", "\n",
+                wastage_maxABC, "\n",
+                
+                "max F_ABC = F_50: ", "\n",
+                maxF_ABC, "\n",
+                
+                "F under recommended ABC: ", "\n",
+                F_ABC, "\n"))
+
+write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR, ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
+
+# Summary of raw and percent changes between last year and current years
+# reference points (used for text summaries)
+res <- c(paste0("Summary of percent changes and differences between ", YEAR, " and ", YEAR+1, " Biological Reference Points", "\n",
+                
+                "Difference between projected age-2+ biomass (round lb): ", "\n",
+                round(proj_age2plus - LYR_proj_age2plus, 0), "\n",
+                "Percent difference between projected age-2+ biomass: ", "\n",
+                round((proj_age2plus - LYR_proj_age2plus)/ LYR_proj_age2plus * 100, 1), "%", "\n",
+                
+                "Difference between projected female spawning biomass (round lb): ", "\n",
+                round(proj_fSSB - LYR_proj_fSSB, 0), "\n",
+                "Percent difference between projected female spawning biomass: ", "\n",
+                round((proj_fSSB - LYR_proj_fSSB)/ LYR_proj_fSSB * 100, 1), "%", "\n",
+                
+                "Difference between Unfished equilibrium female spawning biomass (round lb): ", "\n",
+                round(SB100 - LYR_SB100, 0), "\n",
+                "Percent difference between Unfished equilibrium female spawning biomass: ", "\n",
+                round((SB100 - LYR_SB100)/ LYR_SB100 * 100, 1), "%", "\n",
+                
+                "Difference between equilibrium female spawning biomass under F50 (round lb): ", "\n",
+                round(SB50 - LYR_SB50, 0), "\n",
+                "Percent difference between equilibrium female spawning biomass under F50: ", "\n",
+                round((SB50 - LYR_SB50)/ LYR_SB50 * 100, 1), "%", "\n",
+                
+                "Difference between max ABCs (round lb): ", "\n",
+                round(maxABC-LYR_maxABC,0), "\n",
+                "Percent difference between max ABCs: ", "\n",
+                round(maxABC_diff * 100, 1), "%", "\n",
+                
+                "Difference between recommended ABCs (round lb): ", "\n",
+                round(recABC-LYR_recABC,0), "\n",
+                "Percent difference between recommended ABCs: ", "\n",
+                round((recABC - LYR_recABC)/LYR_recABC * 100, 1), "%", "\n",
+                
+                "Difference between mortalities from fishery discards under max ABC: ", "\n",
+                round(wastage_maxABC - LYR_wastage, 0), "\n",
+                "Percent difference between mortalities from fishery discards under max ABC: ", "\n",
+                round((wastage_maxABC - LYR_wastage)/ LYR_wastage * 100, 1), "%", "\n",
+                
+                "Percent difference between maxF_ABCs: ", "\n",
+                round((maxF_ABC - LYR_maxF_ABC) / LYR_maxF_ABC * 100, 1), "%", "\n",
+                "Percent difference between recomended F_ABCs: ", "\n",
+                round((F_ABC - LYR_F_ABC) / LYR_F_ABC * 100, 1), "%", "\n"))
+
+write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR, ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
+
+# You could continue to append any variables of interest to the SCAA report.
+
 # Data request May 2020 ----
 
 # Luke Rogers, post-doc working with the coastwide sablefish group (contact:
@@ -377,6 +530,10 @@ write.csv(female_Nlen, paste0(tmbout, "/Chatham_Nlength_millions_female.csv"))
 data.frame(Year = syr:lyr,
            Fmort = obj$report(best)$Fmort) %>% 
   write_csv(paste0(tmbout, "/Chatham_annual_F.csv"))
+
+
+# Write model output ----
+
 
 # Bayesian model -----
 
