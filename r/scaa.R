@@ -250,31 +250,6 @@ rec <- data.frame(year = syr:lyr,
 rec <- rec %>% 
   mutate(brood_year = year - rec_age)
 rec %>% filter(brood_year == 2014) %>% pull(rec)
-# Estimation of rec highly sensitive to data$wt_rec_like (defined in
-# functions.R::build_data(). When wt_rec_like = 2.0 (same as Federal model), the
-# estimation of the 2014 year class = 8.53. Increasing the weight decreases the
-# estimate, for example a weight of 3.5 results in a 2014 recruitment of 5.49.
-
-# Increaseing wt_Fpen from 0.1 to 0.5 with wt_rec_like results in 2014 yr class
-# of 8.53 (good mgc). Increasing wt_Fpen to 1, 2014 yr class is 8.51 (bad mgc)
-
-# wt_Fpen = 1, rec_wt = 1, 2014 yr class = 1.4 but rest of model blows up (2015 yr class > 50)
-# wt_Fpen = 1, rec_wt = 3.0, mgc = 0.01, 2014 yr class = 6.55
-# wt_Fpen = 1, rec_wt = 3.5, mgc = 0.015, 2014 yr class = 5.52
-# wt_Fpen = 0.5, rec_wt = 3.5, mgc = 0.005, 2014 yr class = 5.51
-# wt_Fpen = 0.5, rec_wt = 3.0, mgc = 0.005, 2014 yr class = 6.54
-# wt_Fpen = 0.1, rec_wt = 3.0, mgc = 0.016, 2014 yr class = 6.53
-
-
-# FLAG FOR JANE
-ts %>% 
-  # Add another year to hold projected values
-  full_join(data.frame(year = max(ts$year))) %>%
-  mutate(Fmort = c(obj$report(best)$Fmort),
-         expl_biom = obj$report(best)$tot_expl_biom[1:nyr] / 1e3,
-         exploit = obj$report(best)$pred_catch / expl_biom) %>% 
-  filter(year == YEAR) %>% 
-  pull(exploit)
 
 agecomps <- reshape_age()
 plot_sel() # Selectivity, fixed at Federal values
