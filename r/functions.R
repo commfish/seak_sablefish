@@ -529,8 +529,12 @@ build_data <- function(
     wt_srv_age = 1.0,
     wt_fsh_len = 1.0,
     wt_srv_len = 1.0,
-    wt_rec_like = 2.0,
-    wt_fpen = 0.1,
+    # wt_rec_like = 2.0 in the federal assessment. This weighting is highly
+    # influential to estimation of 2014 year class (more than fixing sigmaR at a
+    # lower value). The higher wt_rec_like of 3.5 reduces the estimated size of
+    # the 2014 year class
+    wt_rec_like = 3.5, 
+    wt_fpen = 0.1, 
     wt_spr = 100,
     
     # Catch
@@ -984,7 +988,7 @@ fill_vals <- function(x,vals){rep(as.factor(vals), length(x))}
 
 # Original code by Gavin Fay, adaped for use in the sablefish model - requires fill_vals() fxn
 TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
-                     optimizer = "nlminb", debug = FALSE) {
+                     optimizer = "nlminb", debug = FALSE, loopnum = 3, newtonsteps = 0) {
   
   # Debug function
   # random <-  random_vars# <- NULL
@@ -1063,8 +1067,28 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
     TMB::newtonOption(obj,smartsearch=FALSE)
     # lower and upper bounds relate to obj$par and must be the same length as obj$par
     opt <- nlminb(start = obj$par, objective = obj$fn, hessian = obj$gr,
-                  control=list(eval.max = 1e4, iter.max = 1e4, trace = 0),
+                  control = list(eval.max = 1e4, iter.max = 1e4, trace = 0),
                   lower = lower, upper = upper)
+    
+    # Re-run to further decrease final gradient - used tmb_helper.R -
+    # https://github.com/kaskr/TMB_contrib_R/blob/master/TMBhelper/R/fit_tmb.R
+    for(i in seq(2, loopnum, length = max(0, loopnum - 1))){
+      tmp <- opt[c('iterations','evaluations')]
+      opt <- nlminb(start = opt$par, objective = obj$fn, gradient = obj$gr, 
+                   control = list(eval.max = 1e4, iter.max = 1e4, trace = 0), 
+                   lower = lower, upper = upper )
+      opt[['iterations']] <- opt[['iterations']] + tmp[['iterations']]
+      opt[['evaluations']] <- opt[['evaluations']] + tmp[['evaluations']]
+    }
+    
+    # Run some Newton steps - slow but reduces final gradient (code also from
+    # tmb_helper.R)
+    for(i in seq_len(newtonsteps)) {
+      g <- as.numeric(gr(opt$par))
+      h <- optimHess(opt$par, fn = obj$fn, gr = obj$gr)
+      opt$par <- opt$par - solve(h, g)
+      opt$objective <- fn(opt$par)
+    }
     rep <- TMB::sdreport(obj)
   }
   

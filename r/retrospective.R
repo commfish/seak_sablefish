@@ -1,6 +1,6 @@
 # Retrospective analysis
 # jane.sullivan1@alaska.gov
-# April 8, 2020
+# Last updated June 2020
 
 # Set up ----
 
@@ -18,8 +18,6 @@ source("r/helper.r")
 source("r/functions.r")
 
 library(TMB) 
-library(tmbstan)
-library(shinystan)
 
 # Data for SCAA
 ts <- read_csv(paste0(tmb_dat, "/abd_indices_", YEAR, ".csv"))        # time series
@@ -50,18 +48,18 @@ rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Es
 Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
 
 # Model dimensions / user inputs
-syr <- min(ts$year)                   # model start year
-rec_age <- min(waa$age)               # recruitment age                  
-plus_group <- max(waa$age)            # plus group age
-nage <- length(rec_age:plus_group)    # number of ages
+syr <- min(ts$year)                       # model start year
+rec_age <- min(waa$age)                   # recruitment age                  
+plus_group <- max(waa$age)                # plus group age
+nage <- length(rec_age:plus_group)        # number of ages
 nlenbin <- length(unique(len$length_bin)) # number of length bins
 nsex <- 2                 # single sex or sex-structured
 nproj <- 1                # projection years *FLAG* eventually add to cpp file, currently just for graphics
 include_discards <- TRUE  # include discard mortality, TRUE or FALSE
-tmp_debug <- TRUE         # Temporary debug flag, shut off estimation of selectivity pars
+tmp_debug <- TRUE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
 
 # Model switches
-rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects
+rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 comp_type <- 0    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
@@ -76,7 +74,9 @@ Fmort_ls <- list()      # fishing mortality rate (Ft)
 ABC_ls <- list()        # abc forecast
 SB100_ls <- list()      # unfished equilibrium spawning biomass
 SB50_ls <- list()       # equilibrium spawning biomass at F50
-sigmaR_ls <- list()     # sigma_R (estimated used random effects when rec_type = 1)
+if(rec_type == 1){
+  sigmaR_ls <- list()     # sigma_R (estimated used random effects when rec_type = 1)
+}
 mgc_ls <- list()        # max gradient component
 
 retro <- 0:10           # number of peels
@@ -112,7 +112,7 @@ for(i in 1:length(retro)){
   # Run model using MLE
   setwd(tmb_path)
   out <- TMBphase(data, parameters, random = random_vars, 
-                  model_name = "mod", phase = FALSE, 
+                  model_name = "scaa_mod", phase = FALSE, 
                   debug = FALSE)
   
   obj <- out$obj # TMB model object
@@ -164,11 +164,13 @@ for(i in 1:length(retro)){
     mutate(retro = paste0("retro_", retro[i]))
   
   # sigma_R (estimated used random effects when rec_type = 1)
-  sigmaR_ls[[i]] <- data.frame(sigmaR = tidyrep %>% 
-                                 filter(Parameter == "log_sigma_r") %>% 
-                                 pull(Estimate) %>% 
-                                 exp(),
-                               retro = paste0("retro_", retro[i]))
+  if(rec_type == 1){
+    sigmaR_ls[[i]] <- data.frame(sigmaR = tidyrep %>% 
+                                   filter(Parameter == "log_sigma_r") %>% 
+                                   pull(Estimate) %>% 
+                                   exp(),
+                                 retro = paste0("retro_", retro[i]))
+  }
   
   # check on max gradient component
   mgc_ls[[i]] <- data.frame(retro = paste0("retro_", retro[i]),
@@ -181,7 +183,9 @@ Fmort <- do.call(rbind, Fmort_ls)
 ABC <- do.call(rbind, ABC_ls)
 SB100 <- do.call(rbind, SB100_ls)
 SB50 <- do.call(rbind, SB50_ls)
-sigmaR <- do.call(rbind, sigmaR_ls)
+if(rec_type == 1){
+  sigmaR <- do.call(rbind, sigmaR_ls)
+}
 mgc <- do.call(rbind, mgc_ls)
 
 # Save objects so you don't have to rerun analysis ever time.
@@ -191,7 +195,9 @@ write_csv(Fmort, paste0(retro_dir, "/retro_Fmort_", YEAR, ".csv"))
 write_csv(ABC, paste0(retro_dir, "/retro_ABC_", YEAR, ".csv"))
 write_csv(SB100, paste0(retro_dir, "/retro_SB100_", YEAR, ".csv"))
 write_csv(SB50, paste0(retro_dir, "/retro_SB50_", YEAR, ".csv"))
-write_csv(sigmaR, paste0(retro_dir, "/retro_sigmaR_", YEAR, ".csv"))
+if(rec_type == 1){
+  write_csv(sigmaR, paste0(retro_dir, "/retro_sigmaR_", YEAR, ".csv"))
+}
 write_csv(mgc, paste0(retro_dir, "/retro_convergence_", YEAR, ".csv"))
 
 # Load ----
@@ -201,13 +207,22 @@ Fmort <- read_csv(paste0(retro_dir, "/retro_Fmort_", YEAR, ".csv"))
 ABC <- read_csv(paste0(retro_dir, "/retro_ABC_", YEAR, ".csv"))
 SB100 <- read_csv(paste0(retro_dir, "/retro_SB100_", YEAR, ".csv"))
 SB50 <- read_csv(paste0(retro_dir, "/retro_SB50_", YEAR, ".csv"))
-sigmaR <- read_csv(paste0(retro_dir, "/retro_sigmaR_", YEAR, ".csv"))
+if(rec_type == 1){
+  sigmaR <- read_csv(paste0(retro_dir, "/retro_sigmaR_", YEAR, ".csv"))
+}
 mgc <- read_csv(paste0(retro_dir, "/retro_convergence_", YEAR, ".csv"))
 
-ggplot(sigmaR, aes(x = retro, y = sigmaR)) +
-  geom_col
+# Do estimates of sigmaR change over time? *Only when estimated*
+if(rec_type == 1){
+  ggplot(sigmaR, aes(x = retro, y = sigmaR)) +
+    geom_col
+}
 
-# Function plots and save retrospective plot (including traditoinal
+order_retro <- SB %>% 
+  distinct(retro) %>% 
+  mutate(order_retro = factor(order(nchar(retro), retro), ordered = TRUE))
+
+# Function plots and saves retrospective plot (including traditoinal
 # retrospective plot plus another that shows relative % diff between peel and
 # terminal year estimate per Clark et al 2012), also calculates AFSC Mohn's Rho
 make_retro <- function(df, y, min_year, y_lab, plot_lab) {
@@ -221,6 +236,9 @@ make_retro <- function(df, y, min_year, y_lab, plot_lab) {
                 select(year, term = !!y),
               by = "year") %>% 
     mutate(diff = (!!y - term) / term * 100) %>% 
+    # NOTE - join order_retro into df for plotting - this variable is external
+    # to this function
+    left_join(order_retro) %>% 
     filter(year >= min_year) -> df
   
   # Rho calculations
@@ -244,48 +262,50 @@ make_retro <- function(df, y, min_year, y_lab, plot_lab) {
 
   # Conventional retrospective plot
   p1 <- ggplot() +
-    geom_line(data = df, aes(x = year, y = !!y, col = retro, group = retro)) +
-    geom_point(data = df %>% 
-                 group_by(retro) %>% 
-                 dplyr::summarise(year = max(year)) %>% 
+    geom_line(data = df, aes(x = year, y = !!y, col = order_retro, group = order_retro)) +
+    geom_point(data = df %>%
+                 group_by(order_retro) %>%
+                 dplyr::summarise(year = max(year)) %>%
                  left_join(df),
-               aes(x = year, y = !!y, col = retro)) +
+               aes(x = year, y = !!y, col = order_retro)) +
     scale_colour_grey(guide = FALSE) +
-    geom_text(aes(x = min_year + 3, 
-                  y = df %>% 
-                    ungroup() %>% 
-                    dplyr::summarize(txt_y = 0.9 * max(!!y)) %>% 
+    geom_text(aes(x = min_year + 3,
+                  y = df %>%
+                    ungroup() %>%
+                    dplyr::summarize(txt_y = 0.9 * max(!!y)) %>%
                     pull(txt_y), label = rho_txt),
               colour = "black", parse = TRUE, family = "Times New Roman") +
     labs(x = NULL, y = y_lab) +
-    scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
-  
+    scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
+    theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
+
   # Percent difference plot
   p2 <- ggplot(df) +
     # geom_hline(yintercept = 0, linetype = 2) +
-    # geom_line(data = filter(df, retro != "retro_0"), 
-    geom_line(data = df, 
-              aes(x = year, y = diff, colour = retro, group = retro)) +
-    geom_point(data = df %>% 
-                 group_by(retro) %>% 
-                 dplyr::summarise(year = max(year)) %>% 
+    # geom_line(data = filter(df, retro != "retro_0"),
+    geom_line(data = df,
+              aes(x = year, y = diff, colour = order_retro, group = order_retro)) +
+    geom_point(data = df %>%
+                 group_by(order_retro) %>%
+                 dplyr::summarise(year = max(year)) %>%
                  left_join(df),
-               aes(x = year, y = diff, col = retro)) +
+               aes(x = year, y = diff, col = order_retro)) +
     scale_color_grey(guide = FALSE) +
-    labs(x = NULL, y = "Percent change from terminal year") +
-    scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
-  
+    labs(x = NULL, y = "Percent change\nfrom terminal year") +
+    scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
+    theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
+
   cowplot::plot_grid(p1, p2, align = "hv", nrow = 2) -> retro_plot
-  
-  ggsave(filename = paste0(retro_dir, "/retrospective_", plot_lab, "_", YEAR, ".png"), plot = retro_plot, 
-         dpi = 300, height = 6, width = 10, units = "in")
-  
+
+  ggsave(filename = paste0(retro_dir, "/retrospective_", plot_lab, "_", YEAR, ".png"), plot = retro_plot,
+         dpi = 300, height = 5, width = 6, units = "in")
+
   print(retro_plot)
   return(df)
 }
 
-SB <- make_retro(df = SB, y = spawn_biom, min_year = 2000, y_lab = "Spawning biomass (million lb)\n", plot_lab = "spawn_biom")
-rec <- make_retro(df = rec, y = rec, min_year = 2000, y_lab = "Age-2 recruits (millions)", plot_lab = "recruitment")
+SB <- make_retro(df = SB, y = spawn_biom, min_year = 2000, y_lab = "Spawning biomass\n(million lb)", plot_lab = "spawn_biom")
+rec <- make_retro(df = rec, y = rec, min_year = 2000, y_lab = "Age-2 recruits\n(millions)", plot_lab = "recruitment")
 Fmort <- make_retro(df = Fmort, y = Fmort, min_year = 2000, y_lab = "Fishing mortality", plot_lab = "Fmort")
 
 # Mohn's Rho ----

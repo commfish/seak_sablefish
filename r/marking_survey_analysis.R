@@ -1,6 +1,6 @@
 # Sensitivity analysis on NSEI marking survey
 # jane.sullivan1@alaska.gov
-# April 8, 2020
+# Last updated June 2020
 
 # One of the benefits of transitioning to an integrated statistical catch-at-age
 # model is reduced reliance on the marking survey, which forms the foundation of
@@ -33,8 +33,6 @@ source("r/helper.r")
 source("r/functions.r")
 
 library(TMB) 
-library(tmbstan)
-library(shinystan)
 
 # Assessment summary for graphics
 assessment_summary <- read_csv(paste0("output/assessment_summary_", YEAR, ".csv"))
@@ -79,7 +77,7 @@ include_discards <- TRUE  # include discard mortality, TRUE or FALSE
 tmp_debug <- TRUE         # Temporary debug flag, shut off estimation of selectivity pars
 
 # Model switches
-rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects
+rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 comp_type <- 0    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
@@ -132,8 +130,8 @@ for(i in 1:length(no_srv_yrs$year)) { # TODO: I had to run each iteration manual
   
   # Run model using MLE
   out <- TMBphase(data, parameters, random = random_vars, 
-                  model_name = "mod", phase = FALSE, 
-                  debug = FALSE)
+                  model_name = "scaa_mod", phase = FALSE, 
+                  debug = FALSE, loopnum = 5)
   
   obj <- out$obj # TMB model object
   opt <- out$opt # fit
@@ -171,16 +169,16 @@ ABC_out %>%
   left_join(assessment_summary %>% 
               select(year, past_ABC = abc_round_lbs) %>% 
               bind_rows(data.frame(year = YEAR + 1,
-                                   # max ABC (from this year, results from run_mod.R)
-                                   past_ABC = 1382902))) %>% 
+                                   # max ABC (from this year, results from scaa.R)
+                                   past_ABC = 1280406))) %>% 
   mutate(diff = (ABC - past_ABC),
          perc_diff = diff / past_ABC * 100)
 
 assessment_summary %>% 
   select(year, abc = abc_round_lbs) %>% 
   bind_rows(data.frame(year = YEAR + 1,
-                       # max ABC (from this year, results from run_mod.R)
-                       abc = 1382902)) %>% 
+                       # max ABC (from this year, results from scaa.R)
+                       abc = 1280406)) %>% 
   # Fill in missing years - pulled these from AHO subdirectories from the M
   # drive
   bind_rows(data.frame(year = c(2011, 2014, 2016), 
@@ -196,15 +194,15 @@ p1 <- ggplot(df, aes(x = year, y = abc / 1e6)) +
   geom_point(data = ABC_out %>% 
                mutate(model = "ABC when MR estimate is missing in previous year"),
              aes(x = year, y = ABC / 1e6, colour = model, shape = model),
-             size = 3) +
-  # scale_colour_manual(values = "black") +
+             size = 2) +
+  scale_colour_manual(values = "black") +
   scale_shape_manual(values = 17) +
   labs(x = NULL, y = "ABC (million round lb)\n",
        colour = NULL, shape = NULL) +
   theme(legend.position = c(0.5, 0.9),
         legend.text.align = 0.5)
   # theme(legend.position = "top")
-  
+p1
 ggsave(plot = p1, filename = paste0(obj1_dir, "/ABC_", min(df$year), "_", YEAR+1, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
 
@@ -223,8 +221,8 @@ data <- build_data(ts = ts)
 parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 random_vars <- build_random_vars()
 out <- TMBphase(data, parameters, random = random_vars, 
-                model_name = "mod", phase = FALSE, 
-                debug = FALSE)
+                model_name = "scaa_mod", phase = FALSE, 
+                debug = FALSE, loopnum = 5)
 obj <- out$obj # TMB model object
 best <- obj$env$last.par.best
 
@@ -292,8 +290,8 @@ for(i in 1:length(survey_scenarios)) {
     
     # Run model using MLE
     out <- TMBphase(data, parameters, random = random_vars, 
-                    model_name = "mod", phase = FALSE, 
-                    debug = FALSE)
+                    model_name = "scaa_mod", phase = FALSE, 
+                    debug = FALSE, loopnum = 5)
     
     obj <- out$obj # TMB model object
     opt <- out$opt # fit
@@ -352,8 +350,8 @@ out %>%
   left_join(assessment_summary %>% 
                  select(year, past_ABC = abc_round_lbs) %>% 
                  bind_rows(data.frame(year = c(2016, YEAR + 1),
-                                      # max ABC (from this year, results from run_mod.R)
-                                      past_ABC = c(807559, 1382902)))) %>% 
+                                      # max ABC (from this year, results from scaa.R)
+                                      past_ABC = c(807559, 1280406)))) %>% 
   mutate(diff = (ABC - past_ABC),
          perc_diff = diff / past_ABC * 100)
 
@@ -367,14 +365,15 @@ p2 <- ggplot(df, aes(x = year, y = abc / 1e6)) +
                mutate(year = as.numeric(year)+1),
              aes(x = year, y = ABC / 1e6, colour = `Survey scenarios`, 
                  shape = `Survey scenarios`),
-             size = 3) +
+             size = 2) +
   # scale_shape_manual(guide = FALSE) +
-  # scale_color_grey() +
+  scale_color_grey() +
   labs(x = NULL, y = "ABC (million round lb)\n",
        colour = NULL, shape = NULL) +
   theme(legend.position = "none") +
   theme(legend.position = c(0.5, 0.85))
 
+p2
 ggsave(plot = p2, filename = paste0(obj2_dir, "/ABC_", min(df$year), "_", YEAR+1, ".png"), 
        dpi=300,  height=5.5, width=7,  units="in")
 

@@ -383,13 +383,13 @@ ggplot(waa %>%
          filter(! (Sex %in% c("Combined"))) %>% 
          droplevels() %>% 
          mutate(group = paste(Sex, Source)), 
-       aes(x = Age, y = round_kg, shape = Sex, 
+       aes(x = Age, y = round_kg * 2.20462, shape = Sex, 
            linetype = Sex, colour = Source, group = group)) +
   geom_point() +
   geom_line() + 
   scale_colour_grey() +
   expand_limits(y = c(0, 7)) +
-  labs(x ="Age", y = "\n\nMean weight (kg)", colour = NULL, shape = NULL, linetype = NULL) +
+  labs(x ="Age", y = "\n\nMean weight (lb)", colour = NULL, shape = NULL, linetype = NULL) +
   scale_x_discrete(breaks = unique(waa$Age), labels = age_labs) +
   theme(legend.position = c(.1, .8),
         legend.spacing.y = unit(0, "cm")) -> waa_plot
@@ -671,6 +671,8 @@ ggplot() +
             vjust = 1, size = 2) +
   geom_text(data = grades2, aes(label = grade, x = mu, y = y + 0.03), 
             vjust = 1, size = 2) -> size 
+
+ret_sex <- ret %>% filter(Sex %in% c("Female", "Male"))
 
 axis <- tickr(ret_sex, age, 5)
 

@@ -7,6 +7,19 @@
 # Contact: jane.sullivan1@alaska.gov
 # Last updated June 2020
 
+# The following libraries are used for running the SCAA as a Bayesian model,
+# which are still under development. A lot of the infrastructure has been
+# developed (running models, saving output, diagnostics, plotting figure fxns_,
+# but the model is very slow and needs to be optimized. A great place to start
+# is the publication and supplementary material for: Cole C Monnahan, Trevor A
+# Branch, James T Thorson, Ian J Stewart, Cody S Szuwalski, Overcoming long
+# Bayesian run times in integrated fisheries stock assessments, ICES Journal of
+# Marine Science, Volume 76, Issue 6, November-December 2019, Pages 1477–1488,
+# https://doi-org.arlis.idm.oclc.org/10.1093/icesjms/fsz059
+
+# library(tmbstan)
+# library(shinystan)
+
 # Manual inputs ----
 
 # These must be checked or updated annually!
@@ -46,8 +59,6 @@ source("r/helper.r")
 source("r/functions.r")
 
 library(TMB) 
-library(tmbstan)
-library(shinystan)
 
 # Load prepped data from scaa_dataprep.R
 ts <- read_csv(paste0(tmb_dat, "/abd_indices_", YEAR, ".csv"))        # time series
@@ -105,7 +116,7 @@ nlenbin <- length(unique(len$length_bin)) # number of length bins
 nsex <- 2                 # single sex or sex-structured
 nproj <- 1                # projection years *FLAG* eventually add to cpp file, currently just for graphics
 include_discards <- TRUE  # include discard mortality, TRUE or FALSE
-tmp_debug <- TRUE         # Temporary debug flag, shut off estimation of selectivity pars
+tmp_debug <- TRUE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
 
 # Model switches
 rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
@@ -144,7 +155,7 @@ setwd(tmb_path)
 
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
-                model_name = "scaa_mod", phase = TRUE, 
+                model_name = "scaa_mod", phase = FALSE, 
                 debug = FALSE)
 
 obj <- out$obj # TMB model object
@@ -169,6 +180,7 @@ best <- obj$env$last.par.best # maximum likelihood estimates
 tidyrep <- save_mle() 
 
 # MLE likelihood components
+obj$report(best)$obj_fun
 obj$report(best)$priors
 obj$report(best)$prior_M # should be 0 as long as M is not estimated 
 
@@ -229,6 +241,31 @@ plot_ts(ts = ts, save = TRUE, units = "imperial", plot_variance = FALSE, path = 
 plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
 plot_F()
 
+# Recruitment estimates
+logrbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
+logrdevs <- tidyrep %>% filter(Parameter == "log_rec_devs") %>% pull(Estimate)
+rec <- data.frame(year = syr:lyr,
+                  rec = exp(logrbar + logrdevs) / 1e6)
+# Add brood year
+rec <- rec %>% 
+  mutate(brood_year = year - rec_age)
+rec %>% filter(brood_year == 2014) %>% pull(rec)
+# Estimation of rec highly sensitive to data$wt_rec_like (defined in
+# functions.R::build_data(). When wt_rec_like = 2.0 (same as Federal model), the
+# estimation of the 2014 year class = 8.53. Increasing the weight decreases the
+# estimate, for example a weight of 3.5 results in a 2014 recruitment of 5.49.
+
+# Increaseing wt_Fpen from 0.1 to 0.5 with wt_rec_like results in 2014 yr class
+# of 8.53 (good mgc). Increasing wt_Fpen to 1, 2014 yr class is 8.51 (bad mgc)
+
+# wt_Fpen = 1, rec_wt = 1, 2014 yr class = 1.4 but rest of model blows up (2015 yr class > 50)
+# wt_Fpen = 1, rec_wt = 3.0, mgc = 0.01, 2014 yr class = 6.55
+# wt_Fpen = 1, rec_wt = 3.5, mgc = 0.015, 2014 yr class = 5.52
+# wt_Fpen = 0.5, rec_wt = 3.5, mgc = 0.005, 2014 yr class = 5.51
+# wt_Fpen = 0.5, rec_wt = 3.0, mgc = 0.005, 2014 yr class = 6.54
+# wt_Fpen = 0.1, rec_wt = 3.0, mgc = 0.016, 2014 yr class = 6.53
+
+
 # FLAG FOR JANE
 ts %>% 
   # Add another year to hold projected values
@@ -285,6 +322,9 @@ wastage <- wastage %>%
 
 # Percent changes and differences for ABC and wastage (used in assessment text)
 round((maxABC_diff <- (maxABC - LYR_recABC) / LYR_recABC) * 100, 1)
+round(maxABC - LYR_recABC,0)
+round((wastage_maxABC - LYR_wastage)/ LYR_wastage * 100, 1)
+round((maxF_ABC - LYR_F_ABC) / LYR_F_ABC * 100, 1)
 
 # Constant 15% change management procedure:
 if( maxABC_diff > 0.15 ) {
@@ -295,7 +335,7 @@ if( maxABC_diff > 0.15 ) {
 recABC # recommended ABC
 
 # Difference between recommended ABC and last year's recommended ABC
-round(recABC-LYR_ABC,0)
+round(recABC-LYR_recABC,0)
 
 # Estimate recommended F_ABC using numerical methods
 N <- obj$report()$N  
@@ -322,6 +362,8 @@ catch_to_F <- function(fish_mort, N, nat_mort, catch, F_to_catch) {
 # F under recommended ABC
 (F_ABC <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = recABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
 
+(F_ABC - LYR_F_ABC) / LYR_F_ABC # Percent difference from Last year's F
+
 # Projected total age-2+ projected biomass
 (proj_age2plus <- obj$report(best)$tot_biom[nyr+1] * 2.20462)
 
@@ -341,12 +383,16 @@ SB <- SB %>%
 (SB50 <- SB %>% filter(Fspr == 0.5) %>% pull(SB)) # F50 equilibrium
 obj$report()$SBPR # Spawning biomass per recruit
 
-# Sigma R - only if estimated using random effects (still in development)
-# tidyrep %>% 
-#   filter(grepl('log_sigma_r', Parameter)) %>% 
-#   pull(Estimate) %>% 
-#   exp()
+# Differences between this year and last year
+(proj_age2plus - LYR_proj_age2plus)/LYR_proj_age2plus
 
+# Sigma R - only if estimated using random effects (still in development)
+if(rec_type == 1){
+  tidyrep %>%
+    filter(grepl('log_sigma_r', Parameter)) %>%
+    pull(Estimate) %>%
+    exp()
+}
 # Percent of forecasted ssb 2014 year class makes up
 # Projected total female spawning biomass
 f_ssb <- obj$report(best)$spawn_biom[nyr+1,] * 2.20462
