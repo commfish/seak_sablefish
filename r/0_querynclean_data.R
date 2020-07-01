@@ -293,14 +293,14 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
 
 # Kamala Carroll pulls the IFDB view out_g_log_longline_c_e, populates new
 # columns effort_target_species_code and effort_comments, and sends to Scott
-# Johnson. Scott runs a series of Martina Kallenburger's sql scripts (which I
-# don't have access to) that match fish tickets pounds back to set based on
-# Kamala's set target designation based on some undocumented methodology
-# (proportional to numbers/pounds in logbook?). It lives in a view called
-# sablefish_cpue_final_view in scottj's IFDB schema, though he has made a public
-# synonym for it. This output doesn't contain information on sets designated as
-# halibut targets. Note that it is missing effort_no's (effort_no's = individual
-# sets).
+# Johnson. Scott runs a series of Martina Kallenburger's sql scripts
+# (https://github.com/commfish/seak_sablefish/issues/7) that match fish
+# tickets pounds back to set based on Kamala's set target designation based on
+# some undocumented methodology (proportional to numbers/pounds in logbook?). It
+# lives in a view called sablefish_cpue_final_view in scottj's IFDB schema,
+# though he has made a public synonym for it. This output doesn't contain
+# information on sets designated as halibut targets. Note that it is missing
+# effort_no's (effort_no's = individual sets).
 
 query <- 
   paste0(" select  year, project_code, trip_no, adfg_no, longline_system_code, sell_date, 
