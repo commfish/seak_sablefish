@@ -8,6 +8,7 @@ Last updated: June 2020
 ## Reports
 
 2020 forecast: http://www.adfg.alaska.gov/FedAidPDFs/RIR.5J.2020.05.pdf.
+
 2019 forecast: http://www.adfg.alaska.gov/FedAidPDFs/RIR.5J.2019.03.pdf.
 
 The 2017, 2018, and 2019 forecasts were developed as reproducible research projects in `RMarkdown` and found under `text/`(https://github.com/commfish/seak_sablefish/tree/master/text).
