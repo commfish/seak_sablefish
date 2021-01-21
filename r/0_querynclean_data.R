@@ -378,14 +378,14 @@ query <-
   where   species_code = '710' and
           project_code in ('02', '17') and
           age_readability_code in ('01', '02', '03') and
-          g_management_area_code = 'NSEI'") # and year = ", YEAR)
+          g_management_area_code = 'NSEI'and year = ", YEAR)
 
 dbGetQuery(ifdb_channel, query) -> fsh_bio
 
-write_csv(fsh_bio, paste0("data/fishery/raw_data/fishery_bio_", # min(fsh_bio$YEAR), "_",
+write_csv(fsh_bio, paste0("data/fishery/raw_data/fishery_bio_", 
                  max(fsh_bio$YEAR), ".csv"))
 
-read_csv(paste0("data/fishery/raw_data/fishery_bio_", # min(fsh_bio$YEAR), "_", 
+read_csv(paste0("data/fishery/raw_data/fishery_bio_",
                 max(fsh_bio$YEAR), ".csv"), 
          guess_max = 50000) %>% 
   mutate(date = ymd(as.Date(SELL_DATE)), #ISO 8601 format
