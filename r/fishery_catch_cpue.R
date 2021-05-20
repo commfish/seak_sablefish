@@ -1,16 +1,16 @@
 
 # Fishery catch 1985-present, fishery CPUE 1997-present
 # Author: Jane Sullivan
-# Contact: jane.sullivan1@alaska.gov
-# Last edited: June 2020
+# Contact: jane.sullivan@noaa.gov
+# Last edited: Feb 2021
 
 source("r/helper.r")
 source("r/functions.r")
 
-if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
+# if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
 # Most recent year of data
-YEAR <- 2019
+YEAR <- 2020
 
 # Harvest ----
 
@@ -25,7 +25,7 @@ YEAR <- 2019
 catch_ifdb <- read_csv(paste0("data/fishery/nseiharvest_ifdb_1985_", YEAR,".csv"), 
                        guess_max = 50000) #%>% 
 
-exvessel_value <- read.csv("data/exvessel_value.csv")
+exvessel_value <- read.csv("data/exvessel_value.csv") # request from Aaron.baldwin@alaska.gov
 
 catch_ifdb %>% 
   filter(year > 2013) %>% 
@@ -38,10 +38,12 @@ catch_ifdb %>%
   mutate(cum_pounds = cum_pounds / tot_pounds) -> catch_plot
 
 # Cumulative catch over the fishery seasons
-ggplot(catch_plot, aes(x = julian_day, colour = year, group = factor(year))) +
+ggplot(catch_plot, aes(x = julian_day, colour = factor(year), size = factor(year), group = factor(year))) +
   geom_line(aes(y = cum_pounds)) +
+  scale_color_stata() +
+  scale_size_manual(values = c(rep(1, length(unique(catch_plot$year))-1), 2)) +
   # facet_wrap(~ year, ncol = 1) +
-  labs(x = "Julian Day", y = "Millions lb") +
+  labs(x = "Julian Day", y = "Cumulative catch", col = NULL, size = NULL) +
   ylim(0, 1)
   
 # Total catch by year
@@ -49,13 +51,13 @@ catch_ifdb %>%
   group_by(year) %>% 
   dplyr::summarize(total_pounds = sum(whole_pounds)) -> sum_catch
 
-axis <- tickr(sum_catch, year, 5)
+# axis <- tickr(sum_catch, year, 5)
 ggplot(sum_catch %>% 
          filter(year >= 1985), 
        aes(x = year, y = total_pounds/1e6)) +
   geom_line(group=1) +
   geom_point() +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   scale_y_continuous(breaks = seq(0, 6, 1), limits = c(0, 6), labels = seq(0, 6, 1)) +
   # add a line for EQS starting in 1994 (1997 in the SSEI).
   geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
@@ -95,36 +97,36 @@ ggplot(port_catch, aes(x = year, y = perc, fill = Port)) +
   geom_bar(stat = "identity", width = 1, colour = "black") +
   scale_fill_grey(start = 0.15, end = 1) +
   # add a line for EQS starting in 1994 (1997 in the SSEI).
-  geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  # geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   theme(legend.position = c(0.87,0.8),
         legend.background = element_rect(color = "black", 
                                          fill = "white", 
                                          linetype = "solid")) +
-  labs(x = NULL, y = "Percent\n", fill = NULL) -> port
+  labs(x = NULL, y = "Percent", fill = NULL) -> port 
 
 plot_grid(catch, port, ncol = 1, align = 'hv')
 
 ggsave(paste0("figures/catch_byport_", YEAR, ".png"),
-       dpi=300, height=8, width=7, units="in")
+       dpi=300, height=10, width=7, units="in")
 
 # Exvessel value ----
 exvessel <- ggplot(exvessel_value, aes(x = year, y = exvessel_mil_usd)) +
   geom_point() +
   geom_line() +
   # add a line for EQS starting in 1994 (1997 in the SSEI).
-  geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  # geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = NULL, y = "Ex-vessel value (million USD)\n") +
   ylim(c(0, 12))
 exvessel
 ggsave(paste0("figures/exvessel_value_1985_", YEAR, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
 
-plot_grid(catch, exvessel, ncol = 1, align = 'hv')
+plot_grid(catch, port, exvessel, ncol = 1)#, align = 'hv')
 
 ggsave(paste0("figures/catch_exvesselvalue_", YEAR, ".png"),
-       dpi=300, height=8, width=7, units="in")
+       dpi=300, height=10, width=7, units="in")
 # View(port_catch)
 
 # Relationship between ex-vessel price and catch
@@ -141,7 +143,6 @@ sum_catch %>%
 
 ggsave(paste0("figures/exvessel_catch_correlation_1985_", YEAR, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
-
 
 # Logbook/CPUE data  ----
 
@@ -195,7 +196,7 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
 
 # Consolidation of fishery - number of vessels fishing and total number of trips
 # in Chatham over time
-axis <- tickr(fsh_cpue, year, 5)
+# axis <- tickr(fsh_cpue, year, 5)
 
 fsh_cpue %>% 
   select(year, Vessels = total_vessels, Trips = total_trips) %>% 
@@ -205,7 +206,7 @@ fsh_cpue %>%
   geom_line() +
   geom_point(size = 1) +
   facet_wrap(~ Variable, ncol = 1, scales = "free") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "") +
   ylim(0, NA) -> trips_vessels
 trips_vessels
@@ -214,7 +215,7 @@ ggsave(plot = trips_vessels, paste0("figures/fishery_tripandvessel_trends_1997_"
 
 # Bootstrap ----
 
-axis <- tickr(fsh_cpue, year, 5)
+# axis <- tickr(fsh_cpue, year, 5)
 
 # Simple bootstrap confidence intervals (smean.cl.boot from rms)
 fsh_cpue %>%
@@ -226,7 +227,7 @@ ggplot(plot_boot) +
               alpha = 0.1, fill = "grey55") +
   geom_point(aes(x = year, y = Mean), size = 1) +
   geom_line(aes(x = year, y = Mean)) +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
   lims(y = c(0, 1.1))
   
@@ -580,7 +581,7 @@ ggplot(cpue_ts_short) +
   geom_ribbon(aes(year, ymin = cpue - sqrt(var), ymax = cpue + sqrt(var)),
   # geom_ribbon(aes(year, ymin = cpue - var, ymax = cpue + var),
               alpha = 0.2,  fill = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   lims(y = c(0, 1.5)) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") 
 

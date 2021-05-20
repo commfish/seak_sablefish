@@ -619,10 +619,10 @@ template<class Type>
         biom(i,j,k) = data_srv_waa(0,j,k) * N(i,j,k) * survival_srv(i,j,k);
 
         // Exploitable biomass to the fishery at the beginning of the fishery
-        expl_biom(i,j,k) = data_srv_waa(0,j,k) * fsh_slx(i,j,k) * N(i,j,k) * survival_fsh(i,j,k);
+        expl_biom(i,j,k) = data_srv_waa(0,j,k) * fsh_slx(i,j,k) * retention(0,j,k) * N(i,j,k) * survival_fsh(i,j,k);
 
         // Exploitable abundance to the fishery at the beginning of the fishery
-        expl_abd(i,j,k) = fsh_slx(i,j,k) * N(i,j,k) * survival_fsh(i,j,k);
+        expl_abd(i,j,k) = fsh_slx(i,j,k) * retention(0,j,k) * N(i,j,k) * survival_fsh(i,j,k);
 
         // Vulnerable abundance to the survey at the beginning of the survey
         vuln_abd(i,j,k) = srv_slx(i,j,k) * N(i,j,k) * survival_srv(i,j,k);
@@ -634,8 +634,8 @@ template<class Type>
   for (int k = 0; k < nsex; k++) {
     for (int j = 0; j < nage; j++) {
       biom(nyr,j,k) = data_srv_waa(0,j,k) * N(nyr,j,k) * survival_srv(nyr-1,j,k);
-      expl_biom(nyr,j,k) = data_srv_waa(0,j,k) * fsh_slx(nyr-1,j,k) * N(nyr,j,k) * survival_fsh(nyr-1,j,k);
-      expl_abd(nyr,j,k) = fsh_slx(nyr-1,j,k) * N(nyr,j,k) * survival_fsh(nyr-1,j,k);
+      expl_biom(nyr,j,k) = data_srv_waa(0,j,k) * fsh_slx(nyr-1,j,k) * retention(0,j,k) * N(nyr,j,k) * survival_fsh(nyr-1,j,k);
+      expl_abd(nyr,j,k) = fsh_slx(nyr-1,j,k) * retention(0,j,k) * N(nyr,j,k) * survival_fsh(nyr-1,j,k);
       vuln_abd(nyr,j,k) = srv_slx(nyr-1,j,k) * N(nyr,j,k) * survival_srv(nyr-1,j,k);
     }
   }
@@ -1107,7 +1107,7 @@ template<class Type>
     }
   }
 
-// The final ABC is then the difference between the preliminart ABC and wastage estimates
+   // The final ABC is then the difference between the preliminary ABC and wastage estimates
   for(int i = 0; i <= nyr; i++) {
     for(int x = 0; x < n_Fxx; x++) {
       ABC(i,x) = ABC(i,x) - wastage(i,x);
@@ -1454,7 +1454,7 @@ template<class Type>
   REPORT(C);                // Catch in numbers at age
 
   // Derived vectors by year
-  REPORT(pred_rec);         // Predicted age-2 recruitment
+  ADREPORT(pred_rec);         // Predicted age-2 recruitment
   REPORT(tot_biom);         // Total age-2+ biomass
   REPORT(tot_expl_biom);    // Vulnerable biomass to fishery at the beginning of the fishery
   REPORT(tot_expl_abd);     // Vulnerable abundance to fishery at the beginning of the fishery

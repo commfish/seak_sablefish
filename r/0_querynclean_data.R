@@ -58,6 +58,8 @@ YEAR <- 2019
 # Load ----
 source("r/helper.R")
 
+if(!require("ROracle"))   install.packages("ROracle") # database access through R
+
 # Oracle connections ----
 
 # Database usernames and passwords (user-specific, ignored)

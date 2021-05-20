@@ -20,7 +20,6 @@ if(!require("lubridate"))   install.packages("lubridate") # dates functions like
 if(!require("mgcv"))   install.packages("mgcv") # gams
 if(!require("gridExtra"))   install.packages("gridExtra") # multipanneled plots
 if(!require("data.table"))   install.packages("data.table") # dcast, foverlaps
-if(!require("ROracle"))   install.packages("ROracle") # database access through R
 if(!require("broom"))   install.packages("broom") # tidying regression model output
 if(!require("padr"))   install.packages("padr") # fills in missing values in a time series
 if(!require("tidyr"))   install.packages("tidyr") # reshaping data
@@ -83,3 +82,5 @@ theme_present <- function(base_size = 16) {
     )
 }
 # theme_set(theme_present())
+
+theme_set(theme_bw(base_size = 12)) #, base_family = "Times"

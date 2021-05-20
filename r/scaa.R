@@ -4,8 +4,8 @@
 # weight-at-age, survey data about maturity-at-age and proportions-at-age, and
 # fishery and survey age and length compositions.
 
-# Contact: jane.sullivan1@alaska.gov
-# Last updated June 2020
+# Contact: jane.sullivan@noaa.gov
+# Last updated April 2021
 
 # The following libraries are used for running the SCAA as a Bayesian model,
 # which are still under development. A lot of the infrastructure has been
@@ -25,26 +25,26 @@
 # These must be checked or updated annually!
 
 # most recent year of data (YEAR+1 should be the forecast year)
-YEAR <- 2019
+YEAR <- 2020
 
 # Last years ABC, mortality from discards, and F_ABC values - manually input
 # from previous assessment! Double check these values with the summary table.
-# Note that in years when the recommended ABC = maxABC, there will be
-# repeats
-LYR_maxABC <- 1058037 # maxABC for YEAR (ABC under F50)
-LYR_recABC <- 1058037 # recommended ABC for YEAR
-LYR_wastage <- 19142 # wastage for YEAR (this is only defined under maxABC b/c it's included in the calculation of maxABC for the 2020 forecast and beyond)
-LYR_maxF_ABC <- 0.0632 # F50 for YEAR
-LYR_F_ABC <- 0.0632 # F under the recommended ABC
+# Note that in years when the recommended ABC = maxABC, there will be repeats
+# (previous years values commented out for reference/check)
+LYR_maxABC <- 1280406 #1058037 # maxABC for YEAR (ABC under F50)
+LYR_recABC <- 1216743 #1058037 # recommended ABC for YEAR
+LYR_wastage <- 57716 #19142 # wastage for YEAR (this is only defined under maxABC b/c it's included in the calculation of maxABC for the 2020 forecast and beyond)
+LYR_maxF_ABC <- 0.0765 #0.0632 # F50 for YEAR
+LYR_F_ABC <- 0.0659 #0.0632 # F under the recommended ABC
 
 # Last years projected biomass and SPR - the old assessment framework didn't
-# report these. They are reported in 2020 and will hopefully be provided for
+# report these. They are reported in 2020 and will be reported for
 # comparison moving forward similar to federal assessment. These values are
 # reported in assessment summary table
-LYR_proj_age2plus <- NA # projected age-2+ biomass
-LYR_proj_fSSB <- NA # projected female spawning biomass
-LYR_SB100 <- NA # unfished equilibrium female spawning biomass (SPR = 100)
-LYR_SB50 <- NA # equilibrium female spawning biomass under F50 (SPR = 50)
+LYR_proj_age2plus <- 48513401 # projected age-2+ biomass
+LYR_proj_fSSB <- 15679118 # projected female spawning biomass
+LYR_SB100 <- 24853774 # unfished equilibrium female spawning biomass (SPR = 100)
+LYR_SB50 <- 12426887 # equilibrium female spawning biomass under F50 (SPR = 50)
 
 # Set up ----
 
@@ -69,6 +69,7 @@ len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comp
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
 waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
 retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
+slx_pars <- read_csv("data/tmb_inputs/fed_selectivity_transformed_2020.csv") # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
 
 # Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
 # develop one for ADFG. Row = true age, Column = observed age. Proportion
@@ -134,12 +135,23 @@ srv_age <- filter(age, Source == "Survey")
 fsh_len <- filter(len, Source == "fsh_len")
 srv_len <- filter(len, Source == "srv_len")
 
+# initial value processing
+tmp_inits <- data.frame(year = c(YEAR - length(rec_devs_inits)+1):YEAR,
+                        rec_devs_inits = rec_devs_inits,
+                        Fdevs_inits = Fdevs_inits) %>% 
+  filter(between(year, syr, lyr))
+rec_devs_inits <- tmp_inits %>% pull(rec_devs_inits)
+Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
+
 # TMB set up ----
 
 # User-defined fxns in functions.R
 data <- build_data(ts = ts)
 parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 random_vars <- build_random_vars() # random effects still in development
+
+# parameters <- list(dummy = 0)
+# compile("tst.cpp")
 
 # Run model ----
 
@@ -156,6 +168,7 @@ setwd(tmb_path)
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
                 model_name = "scaa_mod", phase = FALSE, 
+                newtonsteps = 3, # make this zero initially for faster run times
                 debug = FALSE)
 
 obj <- out$obj # TMB model object
@@ -166,18 +179,17 @@ upper <- out$upper
 
 # Report gives you a look at estimated parameters with standard errors. The
 # maximum gradient component is a diagnostic of convergence; it should be <=
-# 0.001.
+# 0.001. If sufficiently small use newtonsteps > 0 to further reduce grad.
 rep 
 best <- obj$env$last.par.best # maximum likelihood estimates
-# TODO: run model using TMBhelper::fit_tmb() and run Newton steps to reduce
-# final gradient
 
 # MLE results ----
 
 # MLE parameter estimates and standard errors in useable format. Saves output to
 # tmbout and starting vals for next year to tmb_dat by default. See functions.R
 # for more info.
-tidyrep <- save_mle() 
+tidyrep <- save_mle(save = TRUE,
+                    save_inits = TRUE) 
 
 # MLE likelihood components
 obj$report(best)$obj_fun
@@ -230,7 +242,7 @@ like_sum <- data.frame(like = c("Catch",
          perc = (value / tot) * 100) %>% 
   select(-tot) %>% 
   rename(`Likelihood component` = like, Likelihood = value, `Percent of data likelihood` = perc)
-
+like_sum
 write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR, ".csv"))
 
 # MLE figs ----
@@ -239,20 +251,23 @@ write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR, ".csv"))
 # "metric" to switch between units. 
 plot_ts(ts = ts, save = TRUE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
 plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
-plot_F()
+plot_F(save = TRUE)
 
 # Recruitment estimates
 logrbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
-logrdevs <- tidyrep %>% filter(Parameter == "log_rec_devs") %>% pull(Estimate)
+logrdevs <- tidyrep %>% filter(grepl("log_rec_devs", Parameter)) %>% pull(Estimate)
 rec <- data.frame(year = syr:lyr,
                   rec = exp(logrbar + logrdevs) / 1e6)
 # Add brood year
 rec <- rec %>% 
   mutate(brood_year = year - rec_age)
+rec
 rec %>% filter(brood_year == 2014) %>% pull(rec)
+rec %>% filter(brood_year == 2015) %>% pull(rec)
+rec %>% filter(brood_year == 1978) %>% pull(rec)
 
 agecomps <- reshape_age()
-plot_sel() # Selectivity, fixed at Federal values
+plot_sel(save = TRUE) # Selectivity, fixed at Federal values
 
 plot_age_resids() # Fits to age comps
 barplot_age("Survey")
@@ -295,6 +310,8 @@ wastage <- wastage %>%
     mutate(maxF_ABC = exp(Estimate)) %>% 
     pull(maxF_ABC))
 
+write_csv(ABC %>% left_join(wastage), paste0(tmbfigs, "/abc_wastage_", YEAR, ".csv"))
+
 # Percent changes and differences for ABC and wastage (used in assessment text)
 round((maxABC_diff <- (maxABC - LYR_recABC) / LYR_recABC) * 100, 1)
 round(maxABC - LYR_recABC,0)
@@ -312,30 +329,37 @@ recABC # recommended ABC
 # Difference between recommended ABC and last year's recommended ABC
 round(recABC-LYR_recABC,0)
 
-# Estimate recommended F_ABC using numerical methods
-N <- obj$report()$N  
-N <- sum(N[nyr+1,,1]) + sum(N[nyr+1,,2]) # sum of projected abundance across age and sex
-
-nat_mort <- exp(parameters$log_M)
-catch <- recABC
-
-# Search sequence of F values to obtain recommended F_ABC based on 15% constant
-# change MP
-fish_mort <- seq(0.03, 1.6, .000001)
-
-# Calculate F for a given catch
-catch_to_F <- function(fish_mort, N, nat_mort, catch, F_to_catch) {
+# If the maxABC is within 15%, then F_ABC = maxF_ABC, otherwise calculate new F
+# for constrained ABC
+if(recABC == maxABC) {
+  (F_ABC <- maxF_ABC)
+} else {
   
-  F_to_catch <- function(N = n, nat_mort, fish_mort){
-    Z <- fish_mort + nat_mort
-    N * (1 - exp(-Z)) * fish_mort / Z
+  # Estimate recommended F_ABC using numerical methods
+  N <- obj$report()$N  
+  N <- sum(N[nyr+1,,1]) + sum(N[nyr+1,,2]) # sum of projected abundance across age and sex
+  
+  nat_mort <- exp(parameters$log_M)
+  catch <- recABC
+  
+  # Search sequence of F values to obtain recommended F_ABC based on 15% constant
+  # change MP
+  fish_mort <- seq(0.03, 1.6, .000001)
+  
+  # Calculate F for a given catch
+  catch_to_F <- function(fish_mort, N, nat_mort, catch, F_to_catch) {
+    
+    F_to_catch <- function(N = n, nat_mort, fish_mort){
+      Z <- fish_mort + nat_mort
+      N * (1 - exp(-Z)) * fish_mort / Z
+    }
+    F_ABC <- catch - F_to_catch(N, nat_mort, fish_mort)
+    return(F_ABC)
   }
-  F_ABC <- catch - F_to_catch(N, nat_mort, fish_mort)
-  return(F_ABC)
+  
+  # F under recommended ABC
+  (F_ABC <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = recABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
 }
-
-# F under recommended ABC
-(F_ABC <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = recABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
 
 (F_ABC - LYR_F_ABC) / LYR_F_ABC # Percent difference from Last year's F
 
@@ -374,6 +398,25 @@ f_ssb <- obj$report(best)$spawn_biom[nyr+1,] * 2.20462
 index_2014 <- which(((YEAR+1) - rec_age:plus_group) == 2014)
 round(f_ssb[index_2014] / sum(f_ssb) * 100, 1)
 
+tmp <- data.frame(ssb = f_ssb,
+           age = 2:31) %>% 
+  mutate(year_class = (YEAR+1) - age,
+         perc = ssb / sum(f_ssb),
+         label = ifelse(perc > 0.05, paste0(year_class), NA)) 
+
+tmp %>% 
+  ggplot(aes(x = year_class, y = ssb / 1e6, size = perc, label = label)) +
+  geom_point() +
+  geom_text(position = position_nudge(y = .2)) +
+  scale_size(labels = scales::percent) +
+  labs(x = "Year class", y = "SSB (kt)", size = paste0("Percent\ncontribution\nto the ", YEAR+1, "\nSSB"))
+
+ggsave(paste0(tmbout, "/percentSSB_bycohort_", YEAR, ".png"),
+       dpi=300, height=6, width=8, units="in")
+
+tmp %>% filter(!is.na(label)) %>% mutate(sum(perc))
+tmp %>% filter(year_class >= 2013)%>% mutate(sum(perc))
+
 # Figure of current estimates of ABC under contemporary estimates of
 # F50 (and F40, F60) compare with Catch
 retro_mgt <- ABC %>% 
@@ -384,7 +427,7 @@ retro_mgt <- ABC %>%
   rename(Fspr = Fxx)
 
 df <- data.frame(year = 1990:YEAR+1)
-xaxis <- tickr(df, year, 5)
+# xaxis <- tickr(df, year, 5)
 ggplot() +
   geom_area(data = retro_mgt %>% filter(year > 2000 & Fspr == "0.5"),
             aes(x = year, y = value, fill = name), 
@@ -392,7 +435,7 @@ ggplot() +
   scale_fill_grey() +
   geom_line(data = retro_mgt %>% filter(year > 2000 & Fspr %in% c("0.4", "0.5", "0.6")), #"0.5"),
             aes(x = year, y = ABC, linetype = Fspr)) +
-  scale_x_continuous(breaks = xaxis$breaks, labels = xaxis$labels) +
+  # scale_x_continuous(breaks = xaxis$breaks, labels = xaxis$labels) +
   scale_y_continuous(label = scales::comma) +
   labs(x = NULL, y = "Catch (round lb)", fill = "Catch")
 
@@ -507,7 +550,7 @@ res <- c(paste0("Summary of percent changes and differences between ", YEAR, " a
                 "Difference between max ABCs (round lb): ", "\n",
                 round(maxABC-LYR_maxABC,0), "\n",
                 "Percent difference between max ABCs: ", "\n",
-                round(maxABC_diff * 100, 1), "%", "\n",
+                round((maxABC - LYR_maxABC) / LYR_maxABC) * 100, 1), "%", "\n",
                 
                 "Difference between recommended ABCs (round lb): ", "\n",
                 round(recABC-LYR_recABC,0), "\n",
@@ -522,7 +565,7 @@ res <- c(paste0("Summary of percent changes and differences between ", YEAR, " a
                 "Percent difference between maxF_ABCs: ", "\n",
                 round((maxF_ABC - LYR_maxF_ABC) / LYR_maxF_ABC * 100, 1), "%", "\n",
                 "Percent difference between recomended F_ABCs: ", "\n",
-                round((F_ABC - LYR_F_ABC) / LYR_F_ABC * 100, 1), "%", "\n"))
+                round((F_ABC - LYR_F_ABC) / LYR_F_ABC * 100, 1), "%", "\n")
 
 write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR, ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
 

@@ -1,8 +1,8 @@
 
 # Yield per recruit analysis
 # Author: Jane Sullivan
-# Contact: jane.sullivan1@alaska.gov
-# Last edited: Mar 2019
+# Contact: jane.sullivan@noaa.gov
+# Last edited: May 2021
 
 source("r/helper.r")
 source("r/functions.r")
@@ -14,10 +14,10 @@ source("r/functions.r")
 # User inputs ----
 
 FIRST_YEAR <- 2005 # First year for which we have consistent mark-recapture abundance estimates
-YEAR <- 2019 # Assessment year
+YEAR <- 2020 # Assessment year
 
 # F implemented in previous year fishery. From final assessment summary table.
-F_previous <- 0.0632 # 0.0635 in 2018, 0.0683 in 2017, 0.0677 in 2016
+F_previous <- 0.0765 # 0.0632 in 2019, 0.0635 in 2018, 0.0683 in 2017, 0.0677 in 2016
 
 mort <- 0.1 # natural mortality
 
@@ -71,14 +71,14 @@ sel_df <- data.frame(age = rep(age, 4),
                      selectivity = c(f_sel, m_sel, sf_sel, sm_sel)) %>% 
   filter(age <= 8)
 
-axis <- tickr(sel_df, age, 1)
+# axis <- tickr(sel_df, age, 1)
 ggplot(sel_df %>% filter(Source == "Fishery"), 
        aes(x = age, y = selectivity, #colour = Source, 
            linetype = Sex, shape = Sex)) +
   geom_point() + 
   geom_line() +
   scale_colour_grey() +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   theme(legend.position = c(0.8, 0.2)) +
   labs(x = "\nAge", y = "Selectivity\n")
 
@@ -118,13 +118,13 @@ mat_s_f <- mat %>% dcast(. ~ age, value.var = "probability") %>% select(matches(
 #Check to make sure all have been read in as numeric vectors
 length(wt_s_f); length(wt_s_m); length(wt_f_f); length(wt_f_m); length(mat_s_f)
 
-axis <- tickr(waa_l, age, 5)
+# axis <- tickr(waa_l, age, 5)
 ggplot(waa_l %>% filter(Sex != "Combined"),
-       aes(x = age, y = weight, colour = Source, linetype = Sex, shape = Sex)) +
+       aes(x = age, y = round_kg, colour = Source, linetype = Sex, shape = Sex)) +
   geom_point() +
   geom_line() +
   scale_colour_grey() +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   scale_y_continuous(limits = c(0,7), breaks = seq(0,7,1), labels = seq(0,7,1)) +
   labs(x = NULL, y = "Round weight (kg)\n", colour = NULL, linetype = NULL, shape = NULL) +
   theme(legend.position = c(0.8, 0.2),
@@ -133,11 +133,11 @@ ggplot(waa_l %>% filter(Sex != "Combined"),
         legend.spacing.y = unit(0, "cm")) -> waa_fig
 
 mat %>% filter(age <= 20) -> mat
-axis <- tickr(mat, age, 5)
+# axis <- tickr(mat, age, 5)
 ggplot(mat, aes(x = age, y = probability, shape = "Female, LL survey", linetype = "Female, LL survey")) + 
   geom_line() +
   geom_point() +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "\nAge", y = "Proportion mature\n", shape = NULL, linetype = NULL) +
   theme(legend.position = c(0.75, 0.2)) -> mat_fig
   
@@ -167,13 +167,13 @@ read_csv(paste0("output/agecomps_plsgrp", plus_group, "_", YEAR, ".csv"), guess_
 f <- filter(agecomps, Sex == "Female") %>% pull(proportion)
 m <- filter(agecomps, Sex == "Male") %>% pull(proportion) 
 
-axis <- tickr(agecomps, age, 5)
+# axis <- tickr(agecomps, age, 5)
 ggplot(agecomps, aes(x = age, y = proportion)) +
   geom_bar(stat = "identity",
            position = "dodge", width = 0.8, fill = "grey") +
   scale_fill_grey(start = 0.55, end = 0.85) +
   facet_wrap(~Sex, ncol = 1) +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   # labs(x = "\nAge", y = "Proportion\n") +
   theme(legend.position = c(0.9, 0.7))
 
@@ -184,12 +184,12 @@ agecomps %>%
   mutate(cohort = year - age,
          Cohort = as.factor(cohort)) -> agecomps2
 
-axis <- tickr(agecomps2, age, 1)
+# axis <- tickr(agecomps2, age, 1)
 agecomps2 %>% filter(Source == "LL survey") %>% 
   ggplot(aes(x = age, y = proportion, fill = Cohort)) +
   geom_bar(stat = "identity", position = "dodge", width = 0.8, colour = "black") +
   facet_wrap(~year, ncol = 1) +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "\nAge", y = "Proportion\n") +
   theme(legend.position = "bottom")
 
@@ -198,93 +198,97 @@ agecomps2 %>% filter(Source == "LL survey") %>%
 # From M. Vaughn and K. Carroll 2018-06-04: Size grade and cost definition from
 # processor will be used to define the probability of retaining a fish
 grades <- data.frame(
+  # Round kg
   kg = c(0.5, 0.6, 0.7, 1.4, 2.2, 2.9, 3.6, 5.0),
-  # Based off conversation with A. Alson 2018-06-04, set grade 3/4 as 50%
+  # Based off conversation with A. Olson 2018-06-04, set grade 3/4 as 50%
   # probability of retention (p), and very low for grades below.
   p = c(0.0, 0.0, 0.0, 0.1, 0.5, 1.0, 1, 1.0)) %>%  
   right_join(data.frame(kg = seq(0.5, 8.5, by = 0.1)) %>% 
-               mutate(grade = derivedFactor('no_grade' = kg < 0.7,
-                                            '1/2' = kg >= 0.7 & kg < 1.4,
-                                            '2/3' = kg >= 1.4 & kg < 2.2,
-                                            '3/4' = kg >= 2.2 & kg < 2.9,
-                                            '4/5' = kg >= 2.9 & kg < 3.6,
-                                            '5/7' = kg >= 3.6 & kg < 5,
-                                            '7+' = kg >= 5,
+               mutate(grade = derivedFactor('No grade' = kg < 0.7,
+                                            'Grade 1/2' = kg >= 0.7 & kg < 1.4,
+                                            'Grade 2/3' = kg >= 1.4 & kg < 2.2,
+                                            'Grade 3/4' = kg >= 2.2 & kg < 2.9,
+                                            'Grade 4/5' = kg >= 2.9 & kg < 3.6,
+                                            'Grade 5/7' = kg >= 3.6 & kg < 5,
+                                            'Grade 7+' = kg >= 5,
                                             .method = "unique",
                                             .ordered = TRUE),
-                      price = derivedFactor('$0' = grade == 'no_grade',
-                                            '$1.00' = grade == '1/2',
-                                            '$2.20' = grade == '2/3',
-                                            '$3.25' = grade == '3/4',
-                                            '$4.75' = grade == '4/5',
-                                            '$7.55' = grade == '5/7',
-                                            '$8.05' = grade == '7+',
+                      price = derivedFactor('$0' = grade == 'No grade',
+                                            '$1.00' = grade == 'Grade 1/2',
+                                            '$2.20' = grade == 'Grade 2/3',
+                                            '$3.25' = grade == 'Grade 3/4',
+                                            '$4.75' = grade == 'Grade 4/5',
+                                            '$7.55' = grade == 'Grade 5/7',
+                                            '$8.05' = grade == 'Grade 7+',
                                             .method = "unique",
                                             .ordered = TRUE),
                       # For plotting purposes (alternating grey and white panels)
-                      plot_cde = ifelse(grade %in% c('no_grade', '2/3', '4/5', '7+'), "0", "1")), by = "kg") %>% # 
+                      plot_cde = ifelse(grade %in% c('No grade', 'Grade 2/3', 'Grade 4/5', 'Grade 7+'), "0", "1")), by = "kg") %>% # 
   # set p = 1 for all large fish, interpolate p's using a cubic spline across
   # smaller sizes
+  arrange(kg) %>% 
   mutate(p = ifelse(kg > 3.6, 1, zoo::na.spline(p)),
-         lbs = 2.20462 * kg, # convert to lbs for visualization in memo
-         kg = round(kg, 1),
-         lbs_whole = round(lbs, 0),
-         y = 1 - p)
+         lb = 2.20462 * kg, # convert to lbs for visualization in memo
+         y = 1 - p,
+         dressed_kg = 0.63 * kg,
+         dressed_lb = 0.63 * lb,
+         kg = round(kg, 1))
 
 # Female and male probabilities of retention at age based on survey (population) weight-at-age 
 f_retention <- data.frame(age = age, kg = round(wt_s_f, 1)) %>% left_join(grades, by = "kg") %>%  pull(p)
 m_retention <- data.frame(age = age, kg = round(wt_s_m, 1)) %>% left_join(grades, by = "kg") %>% pull(p)
 
-# Retention probability inputs for TMB model, single sex and sex-structued:
-waa_l %>% filter(Source == "LL survey") %>% 
-  mutate(kg = round(weight, 1)) %>%
-  left_join(grades, by = "kg") %>% 
-  select(Source, Sex, age, kg, grade, price, p) %>% 
-  write_csv("data/tmb_inputs/retention_probs.csv")
+# # Retention probability inputs for TMB model, single sex and sex-structued: -
+# NOW IN scaa_datprep.R
+# waa_l %>% filter(Source == "LL survey") %>% 
+#   mutate(kg = round(round_kg, 1)) %>%
+#   left_join(grades, by = "kg") %>% 
+#   select(Source, Sex, age, kg, grade, price, p) %>% 
+#   write_csv("data/tmb_inputs/retention_probs.csv")
 
 # Plot size, sex, and age-specific probabilities of discarding a fish that
 # parameterize model
 # Min lbs by grade
-grades %>% 
-  filter(lbs <= 12) %>% 
-  group_by(grade, price, plot_cde) %>% 
-  dplyr::summarize(mn = min(lbs),
-            mx = max(lbs),
-            mu = mean(lbs)) %>% 
-  ungroup() %>% 
-  mutate(label = paste0(price, "/lb"),
-         y = c(0.1, 0.2, 0.5, 0.4, 0.75, 0.9, 0.9))  -> grades2
-
-axis <- tickr(grades, lbs , 1)
-
-ggplot() +
-  geom_line(data = grades %>% filter(lbs <= 10), 
-            aes(x = lbs, y = p), size = 1) +
-  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  geom_rect(data = grades2, aes(xmin = mn, xmax = mx, ymin = -Inf, ymax = Inf, fill = plot_cde, group = 1), 
-            colour = NA, alpha = 0.2, show.legend = FALSE) +
-  scale_fill_manual(values = c("white", "grey80")) +
-  labs(x = "\n Dressed weight (lb)", y = "Retention probability\n") + 
-  geom_text(data = grades2, aes(label = label, x = mu, y = y), 
-            vjust = 1, size = 2.5) -> size 
-
-data.frame(Age = age, Female = f_retention, Male = m_retention) %>% 
-  melt(id.vars = c("Age"), measure.vars = c("Female", "Male"), variable.name = "Sex") -> ret_sex 
-
-axis <- tickr(ret_sex, Age, 5)
-
-ggplot(ret_sex, aes(x = Age, y = value, col = Sex, linetype = Sex)) +
-  geom_line(size = 1) +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  scale_color_manual(values = c("black", "grey75")) + 
-  scale_linetype_manual(values = c(1, 4)) + 
-  # ylim(c(0, 1)) +
-  labs(x = "\nAge", y = NULL) +
-  theme(legend.position = c(.8, .7)) -> sex
-
-plot_grid(size, sex, align = "h")
-
-ggsave(paste0("figures/retention_prob_", YEAR, "_", plus_group, ".png"), dpi=300,  height=4, width=8,  units="in")
+# grades %>% 
+#   filter(lbs <= 12) %>% 
+#   group_by(grade, price, plot_cde) %>% 
+#   dplyr::summarize(mn = min(lbs),
+#             mx = max(lbs),
+#             mu = mean(lbs)) %>% 
+#   ungroup() %>% 
+#   mutate(label = paste0(price, "/lb"),
+#          y = c(0.1, 0.2, 0.5, 0.4, 0.75, 0.9, 0.9))  -> grades2
+# 
+# # axis <- tickr(grades, lbs , 1)
+# 
+# ggplot() +
+#   geom_line(data = grades %>% filter(lbs <= 10), 
+#             aes(x = lbs, y = p), size = 1) +
+#   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+#   geom_rect(data = grades2, aes(xmin = mn, xmax = mx, ymin = -Inf, ymax = Inf, fill = plot_cde, group = 1), 
+#             colour = NA, alpha = 0.2, show.legend = FALSE) +
+#   scale_fill_manual(values = c("white", "grey80")) +
+#   labs(x = "\n Dressed weight (lb)", y = "Retention probability\n") + 
+#   geom_text(data = grades2, aes(label = label, x = mu, y = y), 
+#             vjust = 1, size = 2.5) -> size 
+# 
+# data.frame(Age = age, Female = f_retention, Male = m_retention) %>% 
+#   melt(id.vars = c("Age"), measure.vars = c("Female", "Male"), variable.name = "Sex") -> ret_sex 
+# 
+# # axis <- tickr(ret_sex, Age, 5)
+# 
+# ggplot(ret_sex, aes(x = Age, y = value, col = Sex, linetype = Sex)) +
+#   geom_line(size = 1) +
+#   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+#   scale_color_manual(values = c("black", "grey75")) + 
+#   scale_linetype_manual(values = c(1, 4)) + 
+#   # ylim(c(0, 1)) +
+#   labs(x = "\nAge", y = NULL) +
+#   theme(legend.position = c(.8, .7)) -> sex
+# 
+# plot_grid(size, sex, align = "h")
+# 
+# ggsave(paste0("figures/retention_prob_", YEAR, "_", plus_group, ".png"), dpi=300,  height=4, width=8,  units="in")
 
 # Adjust F to include discard mortality ----
 
@@ -578,7 +582,7 @@ forec_byage %>%
   ggplot(aes(age, N)) +
   geom_bar(stat = "identity", fill = "grey",  position = "dodge", width = 0.8) +
   facet_wrap(~Sex, ncol = 1) +
-  scale_x_continuous(breaks = axis$breaks, labels =  axis$labels) +
+  # scale_x_continuous(breaks = axis$breaks, labels =  axis$labels) +
   # geom_vline(xintercept = 7, lty = 2) +
   labs(x = "\nAge", y = "Numbers (x 1000)\n") +
   theme(legend.position = c(0.9, 0.7)) #-> N

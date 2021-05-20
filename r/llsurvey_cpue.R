@@ -1,7 +1,7 @@
 # Longline Survey cpue
 # Author: Jane Sullivan
-# Contact: jane.sullivan1@alaska.gov
-# Last edited: Feb 2020
+# Contact: jane.sullivan@noaa.gov
+# Last edited: Feb 2021
 
 # The most version of this "V2" calculates survey cpue at the set level and may
 # standardized by soak time, depth, lat/lon, tide, and catch of other species.
@@ -17,7 +17,7 @@ source("r/helper.r")
 source("r/functions.r")
 if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
-YEAR <- 2019 # most recent year of data
+YEAR <- 2020 # most recent year of data
 
 # VERSION 2 (2020): ----
 
@@ -41,12 +41,15 @@ srv_cpue %>% filter(skate_condition_cde != "02") %>%
 srv_cpue %>% filter(no_hooks < 0)
 srv_cpue %>% filter(year >= 1997 & c(is.na(no_hooks) | no_hooks == 0)) # there should be none
 
-srv_cpue %>% filter(end_lon > 0 | start_lon > 0) #View() # should be none. these are data entry errors
-# Hard code fix, sent error to Rhea and Aaron 20200205 to fix in database
+# This should be none. these are data entry errors I used a hard code fix, sent
+# error to Rhea and Aaron 20200205 to fix in database. As of 2021 it was still
+# an issue.
+srv_cpue %>% filter(end_lon > 0 | start_lon > 0) #View() 
 srv_cpue <- srv_cpue %>%  mutate(end_lon = ifelse(end_lon > 0, -1 * end_lon, end_lon))
 
-srv_cpue %>% filter(is.na(Adfg)) # should be none.
-# Hard code fix, sent error to Rhea and Aaron 20200205 to fix in database
+# There should be none, sent error to Rhea and Aaron 20200205 to fix in database
+# Hard code fix
+srv_cpue %>% filter(is.na(Adfg)) 
 srv_cpue <- srv_cpue %>% mutate(Adfg = ifelse(is.na(Adfg), 55900, Adfg))
 
 # Data clean up
@@ -102,10 +105,15 @@ srv_cpue %>%
          sleeper_shark = sum(sleeper_shark),
          set_hooks = sum(std_hooks)) %>% 
   ungroup() %>% 
-  melt(measure.vars = c("sablefish", "shortspine_thornyhead", 
+  # Deprecated
+  # melt(measure.vars = c("sablefish", "shortspine_thornyhead", 
+  #                       "skates", "shortraker_rougheye", "halibut",
+  #                       "sleeper_shark"),
+  #      variable.name = "hook_accounting", value.name = "n") %>% 
+  pivot_longer(cols = c("sablefish", "shortspine_thornyhead", 
                         "skates", "shortraker_rougheye", "halibut",
-                        "sleeper_shark"),
-       variable.name = "hook_accounting", value.name = "n") %>%
+                        "sleeper_shark"), 
+               names_to = "hook_accounting", values_to = "n") %>% 
   mutate(set_cpue = n / set_hooks) %>% 
   # Calculate cpue by stat area
   group_by(year, Stat, hook_accounting) %>% 
@@ -134,6 +142,7 @@ srv_cpue %>%
   distinct(year, std_cpue = cpue, sd, se) %>% 
   arrange(year) -> srv_sum
 
+srv_sum %>% print(n = Inf)
 write_csv(srv_sum, paste0("output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
 
 # Percent change in compared to a ten year rolling average
@@ -156,15 +165,20 @@ srv_sum %>%
          eval_ly = ifelse(perc_change_ly < 0, "decreased", "increased")) -> srv_ly
 
 # figures
+# axis <- tickr(data = srv_sum, var = year, to = 3)
 
-axis <- tickr(srv_sum, year, 5)
 ggplot(data = srv_sum) +
   geom_point(aes(x = year, y = std_cpue)) +
   geom_line(aes(x = year, y = std_cpue)) +
   geom_ribbon(aes(year, ymin = std_cpue - sd, ymax = std_cpue + sd),
               alpha = 0.2, col = "white", fill = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  lims(y = c(0, 0.35)) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  # lims(y = c(0, 0.45)) + 
+  geom_text(x = YEAR-2, 
+            y = 1.1 * srv_ly$thisyr,
+            label = paste0(ifelse(srv_ly$eval_ly == "increased", "+", "-"),
+                                  sprintf("%.0f%%", srv_ly$perc_change_ly)), 
+            size = 8) +
   labs(x = NULL, y = "Survey CPUE (number per hook)\n") 
 
 ggsave(paste0("figures/npue_llsrv_", YEAR, ".png"), 
@@ -184,9 +198,17 @@ ggplot() +
   labs(x = NULL, y = "Number per standardized hook") 
 
 ggsave(paste0("figures/npue_llsrv_allspp_", YEAR, ".png"), 
-       dpi=300, height=7/1.6, width=7, units="in")
+       dpi=300, height=8, width=10, units="in")
 
 # By stat area
+
+srv_cpue <- srv_cpue %>% 
+  mutate(Stat = derivedFactor("345731" = Stat == "345731",
+                              "345701" = Stat == "345701",
+                              "345631" = Stat == "345631",
+                              "345603" = Stat == "345603",
+                              .ordered = TRUE))
+
 ggplot() +
   geom_line(data = srv_cpue %>% filter(hook_accounting == "sablefish"), 
             aes(x = year, y = set_cpue, group = Station_no), col = "lightgrey") +
@@ -202,7 +224,7 @@ ggplot() +
   labs(x = NULL, y = "Number per standardized hook")
 
 ggsave(paste0("figures/npue_llsrv_stat_", YEAR, ".png"), 
-       dpi=300, height=7/1.6, width=3.5, units="in")
+       dpi=300, height=10, width=8, units="in")
 
 # VAST exploration ----
 

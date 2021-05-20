@@ -31,9 +31,16 @@ vb_like <- function(obs_length, age, l_inf, k, t0, sigma) {
 # minimize negative log likelihood with mle function
 vonb_len <- function(obs_length, age, starting_vals, sex) {
   
-  vb_mle <- mle(vb_like, start = as.list(starting_vals), 
+  vb_mle <- optim(vb_like, 
+                start = as.list(starting_vals), 
                 fixed = list(obs_length = obs_length, age = age),
-                method = "BFGS")
+                # method = "BFGS") # stopped working when I went from R v 3.6.3 to R v 4.0.2
+                method = "L-BFGS-B",
+                lower = as.list(c(l_inf = 0.00001, k = 0.000000001, t0 = -5000000, sigma = 10000000)),
+                upper = as.list(c(l_inf = 500000, k = 1000000.0, t0 = 5000000, sigma = 0.00000001)))
+  
+  
+  
   print(summary(vb_mle))
   l_inf_opt <- coef(summary(vb_mle))[1] # parameter estimates
   k_opt <- coef(summary(vb_mle))[2]
@@ -53,8 +60,9 @@ vonb_len <- function(obs_length, age, starting_vals, sex) {
                   ypr_predictions = data.frame(age = new_ages, 
                                                length = ypr_preds,
                                                Sex = sex),
-                  results = tidy(coef(summary(vb_mle))) %>% 
-                    select(Parameter = `.rownames`, Estimate, SE = `Std..Error`) %>% 
+                  results = as.tibble(row.names(coef(summary(vb_mle)))) %>% 
+                                        bind_cols(as_tibble(coef(summary(vb_mle)))) %>% 
+                    select(Parameter = value, Estimate, SE = `Std. Error`) %>% 
                     mutate(Sex = sex), 
                   logl = logl)
   
@@ -101,8 +109,9 @@ vonb_weight <- function(obs_weight, age, b, starting_vals, sex ) {
                   ypr_predictions = data.frame(age = new_ages, 
                                                weight = ypr_preds,
                                                Sex = sex),
-                  results = tidy(coef(summary(wvb_mle))) %>% 
-                    select(Parameter = `.rownames`, Estimate, SE = `Std..Error`) %>% 
+                  results = as.tibble(row.names(coef(summary(wvb_mle)))) %>% 
+                    bind_cols(as_tibble(coef(summary(wvb_mle)))) %>% 
+                    select(Parameter = `.rownames`, Estimate, SE = `Std. Error`) %>% 
                     mutate(Sex = sex), 
                   logl = logl)
   return(results)
@@ -292,8 +301,8 @@ mr_jags <- function(
   model_years, # vector of years over which you want to run the model
   mpar, # parameters of interest, sample poterior distribution of 'mpar' variables
   mchains = 4, # number of desired chains
-  madapt = 1000, # burn in
-  miter = 10000, # number of iternations to run each chain
+  madapt = 2000, # burn in
+  miter = 50000, # number of iterations to run each chain
   mthin = 10 # thinning rate
 ) {
   
@@ -399,23 +408,51 @@ mr_jags <- function(
 # Tick marks ----
 
 # Format ggplot figures with ticked axes (especially good for marking year and
-# age) 
+# age) https://github.com/ben-williams/funcr/blob/be1751f34388aecd2e3703c19b2fac8e3380ee07/R/tickr.R
 
 # Depends on dplyr
-tickr <- function(
-  data, # dataframe
-  var, # column of interest
-  to # break point definition 
-){
+tickr <- function(data, var, to = 5, start = NULL, end = NULL, min = NULL){
   
-  VAR <- enquo(var) # makes VAR a dynamic variable
+  data %>%
+    dplyr::summarise(min = min({{var}}, na.rm = T),
+                     max = max({{var}}, na.rm = T)) -> out
   
-  data %>% 
-    distinct(!!VAR) %>%
-    ungroup(!!VAR) %>% 
-    mutate(labels = ifelse(!!VAR %in% seq(to * round(min(!!VAR) / to), max(!!VAR), to),
-                           !!VAR, "")) %>%
-    select(breaks = UQ(VAR), labels)
+  if(is.null(start) & is.null(end)){
+    
+    data.frame(breaks = out$min:out$max) %>%
+      dplyr::mutate(labels = ifelse(breaks %in%
+                                      seq(to * min(breaks) / to,
+                                          max(breaks), by = to), breaks, ""))
+    
+  } else if(!is.null(start) & is.null(end) & is.null(min)){
+    
+    data.frame(breaks = start:out$max) %>%
+      dplyr::mutate(labels = ifelse(breaks %in%
+                                      seq(to * start / to, max(breaks),
+                                          by = to), breaks, ""))
+    
+  } else if(!is.null(start) & is.null(end) & !is.null(min)){
+    data.frame(breaks = start:out$max) %>%
+      dplyr::mutate(labels = ifelse(breaks %in%
+                                      seq(to * start / to, max(breaks),
+                                          by = to), breaks, "")) %>%
+      dplyr::filter(breaks >= min) -> lb
+    lb$labels[1] <- lb$breaks[1]
+    lb
+    
+  } else if(is.null(start) & !is.null(end)){
+    
+    data.frame(breaks = out$min:end) %>%
+      dplyr::mutate(labels = ifelse(breaks %in%
+                                      seq(to * min(breaks) / to, end, by = to),
+                                    breaks, ""))
+  } else {
+    
+    data.frame(breaks = start:end) %>%
+      dplyr::mutate(labels = ifelse(breaks %in%
+                                      seq(to * start / to, end, by = to),
+                                    breaks, ""))
+  }
 }
 
 # TMB functions ----
@@ -424,33 +461,7 @@ tickr <- function(
 build_data <- function(
   # data sources (makes it easier to generalize for sensitivity and
   # retrospective analysts)
-  ts,
-  # mr,
-  # fsh_cpue,
-  # srv_cpue,
-  # fsh_age,
-  # srv_age,
-  # fsh_len,
-  # srv_len,
-  # # model dimensions
-  # syr,
-  # lyr,
-  # nyr,
-  # rec_age,
-  # plus_group,
-  # nlenbin,
-  # # user inputs
-  # nsex,
-  # nproj,
-  # include_discards,
-  # tmp_debug, # TODO: will stay in until we figure out how to estimate slx with discarding behavior
-  # # model switches
-  # rec_type,
-  # slx_type,
-  # comp_type,
-  # spr_rec_type,
-  # M_type,
-  ...) {
+  ts,  ...) {
   
   # Structure data for TMB - must use same variable names as .cpp
   data <- list(
@@ -518,24 +529,36 @@ build_data <- function(
     p_srv_q = exp(-17), 
     sigma_srv_q = 1,
     p_mr_q = 1.0,
-    sigma_mr_q = 0.01,
+    sigma_mr_q = 0.01, #0.01,
     
-    # Weights on likelihood components ("wt_" denotes weight) based on weights in Federal model
-    wt_catch = 1.0,
-    wt_fsh_cpue = 1.0,
-    wt_srv_cpue = 1.0,
-    wt_mr = 1.0,
-    wt_fsh_age = 1.0,
-    wt_srv_age = 1.0,
-    wt_fsh_len = 1.0,
-    wt_srv_len = 1.0,
-    # wt_rec_like = 2.0 in the federal assessment. This weighting is highly
-    # influential to estimation of 2014 year class (more than fixing sigmaR at a
-    # lower value). The higher wt_rec_like of 3.5 reduces the estimated size of
-    # the 2014 year class
-    wt_rec_like = 3.5, 
-    wt_fpen = 0.1, 
+    # Weights on likelihood components ("wt_" denotes weight) based on weights
+    # in Federal model
+    
+    # Updated weights for 2020 assessment (2021 ABC)
+    wt_catch = 10.0, # fed = 50
+    wt_fsh_cpue = 1,  # fed = 0.448
+    wt_srv_cpue = 4, # fed = 0.448
+    wt_mr = 1.5,
+    wt_fsh_age = 6, # fed = 7.8
+    wt_srv_age = 8, # fed = 7.95
+    wt_fsh_len = 1, # fed = 1
+    wt_srv_len = 1, # fed = 1
+    wt_rec_like = 1,
+    wt_fpen = 0.1,
     wt_spr = 100,
+    
+    # Original weights for 2019 assessment (2020 ABC)
+    # wt_catch = 1.0, 
+    # wt_fsh_cpue = 1.0,  
+    # wt_srv_cpue = 1.0, 
+    # wt_mr = 1.0,
+    # wt_fsh_age = 1.0, 
+    # wt_srv_age = 1.0, 
+    # wt_fsh_len = 1.0, 
+    # wt_srv_len = 1.0, 
+    # wt_rec_like = 1.0,
+    # wt_fpen = 0.1, 
+    # wt_spr = 100,
     
     # Catch
     data_catch = ts$catch,
@@ -634,7 +657,7 @@ build_data <- function(
               dim = c(length(unique(fsh_len$year)), nlenbin, nsex)) } else {
                 # Sex-structured (make sure males are first)
                 array(data = fsh_len %>% filter(Sex != "Sex combined") %>%
-                        arrange(desc(Sex), year) %>% pull(proportion),
+                        arrange(desc(Sex), length_bin, year) %>% pull(proportion),
                       dim = c(length(unique(fsh_len$year)), nlenbin, nsex))},
     
     n_fsh_len =
@@ -666,7 +689,7 @@ build_data <- function(
               dim = c(length(unique(srv_len$year)), nlenbin, nsex)) } else {
                 # Sex-structured (make sure males are first)
                 array(data = srv_len %>% filter(Sex != "Sex combined") %>%
-                        arrange(desc(Sex)) %>% pull(proportion),
+                      arrange(desc(Sex), length_bin, year) %>% pull(proportion),
                       dim = c(length(unique(srv_len$year)), nlenbin, nsex))},
     n_srv_len =
       if (nsex == 1) { # Single sex model
@@ -730,16 +753,23 @@ build_parameters <- function(
     
     log_M = log(0.1),  # M_type = 0 is fixed, 1 is estimated
     
-    # Fishery selectivity - starting values developed using NOAA selectivity
-    # curves see data/NOAA_sablefish_selectivities_2017_jys.xlxs, pers comm Hanselman
+    # Fishery selectivity - Contact fed sablefish author, tell him you want the
+    # most recent tem.std file. You're looking for parameters for the pre-IFQ
+    # domestic longline fishery (log_a50_fish1) and the IFQ fixed gear fishery
+    # (e.g. log_a50_fish4_f, log_delta_fish4_f). Note that at least as of 2020
+    # deltas are shared across time blocks and sex, but all a50s are distinct.
+    # Logistic parameters need to be adjusted to a different scale b/c tmb model
+    # fits between ages 0:29 instead of 2:31. see scaa_datprep.R for more info
     log_fsh_slx_pars = 
-      # Logistic with a50 and a95, data$slx_type = 0, single sex model
+      # Logistic with a50 and a95, data$slx_type = 0, single sex model - needs
+      # updating eventually if ever used
       if(data$slx_type == 0 & nsex == 1) {
         array(data = c(log(4.05), log(3.99), # Sexes combined
                        log(5.30), log(5.20)),
               dim = c(length(data$fsh_blks), 2, nsex)) # 2 = npar for this slx_type
         
-        # Logistic with a50 and a95, data$slx_type = 0, sex-structured model
+        # Logistic with a50 and a95, data$slx_type = 0, sex-structured model - needs
+        # updating eventually if ever used
       } else if (data$slx_type == 0 & nsex == 2) {
         array(data = c(log(4.19), log(5.12), # Male
                        log(5.50), log(6.30),
@@ -747,69 +777,104 @@ build_parameters <- function(
                        log(5.20), log(4.15)),
               dim = c(length(data$fsh_blks), 2, nsex)) # 2 = npar for this slx_type
         
-        # Logistic with a50 and slope, data$slx_type = 1, single sex model
+        # Logistic with a50 and slope, data$slx_type = 1, single sex model - needs
+        # updating eventually if ever used
       } else if (data$slx_type == 1 & nsex == 1) {
         array(data = c(log(4.05), log(3.99),
                        log(2.29), log(2.43)),
               dim = c(length(data$fsh_blks), 2, nsex)) # 2 = npar for this slx_type
         
-      } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model
-        array(data = c(log(5.12), log(4.22), # male
-                       log(2.57), log(2.61),
-                       log(2.87), log(3.86), # female
-                       log(2.29), log(2.61)),
+        # FISHERY SELECTIVITY FOR 2020 assessment (2021 ABC)
+      } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model - UPDATE ME!
+        array(data = c(slx_pars$log_a50[slx_pars$fleet == "fsh_t1_m"], # male a50s time block 1
+                       slx_pars$log_a50[slx_pars$fleet == "fsh_t2_m"], #  then time block 2
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t1_m"], # male slopes time block 1
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t2_m"], # then time block 2
+                       slx_pars$log_a50[slx_pars$fleet == "fsh_t1_f"], # female a50s time block 1
+                       slx_pars$log_a50[slx_pars$fleet == "fsh_t2_f"], #  then time block 2
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t1_f"], # female slopes time block 1
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t2_f"]), # then time block 2
               dim = c(length(data$fsh_blks), 2, nsex)) }, # 2 = npar for this slx_type
+        
+        # FISHERY SELECTIVITY FOR 2019 assessment (2020 ABC)
+      # } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model
+      #   array(data = c(log(5.12), log(4.22), # male
+      #                  log(2.57), log(2.61),
+      #                  log(2.87), log(3.86), # female
+      #                  log(2.29), log(2.61)),
+      #         dim = c(length(data$fsh_blks), 2, nsex)) }, # 2 = npar for this slx_type
     
-    # Survey selectivity - starting values developed using NOAA selectivity
-    # curves, pers. comm. Hanselman
+    # Survey selectivity - Contact fed sablefish author, tell him you want the
+    # most recent tem.std file. You're looking for parameters for the domestic
+    # survey (e.g. log_a50_srv1_f) and at least as of 2020 deltas are shared
+    # with log_a50_srv2_m (the male parameter for the cooperative US/JPN
+    # survey). # Logistic parameters need to be adjusted to a different scale
+    # b/c tmb model fits between ages 0:29 instead of 2:31. see scaa_datprep.R
+    # for more info
     log_srv_slx_pars = 
-      # Logistic with a50 and a95, data$slx_type = 0, single sex model
+      # Logistic with a50 and a95, data$slx_type = 0, single sex model- needs
+      # updating eventually if ever used
       if(data$slx_type == 0 & nsex == 1) {
         array(data = c(rep(log(3.74), length(data$srv_blks)),
                        rep(log(5.20), length(data$srv_blks))),
               dim = c(length(data$srv_blks), 2, nsex)) # 2 = npar for this slx_type 
         
-        # Logistic with a50 and a95, data$slx_type = 0, sex-structured model
+        # Logistic with a50 and a95, data$slx_type = 0, sex-structured model- needs
+        # updating eventually if ever used
       } else if (data$slx_type == 0 & nsex == 2) {
-        array(data = c(rep(log(3.73), length(data$srv_blks)), # male
-                       rep(log(5.20), length(data$srv_blks)),
-                       rep(log(3.74), length(data$srv_blks)), # female
-                       rep(log(5.20), length(data$srv_blks))),
+        array(data = c(rep(0.911681626710, length(data$srv_blks)), # male
+                       rep(0.656852516513, length(data$srv_blks)),
+                       rep(0.961385402921, length(data$srv_blks)), # female
+                       rep(0.656852516513, length(data$srv_blks))),
               dim = c(length(data$srv_blks), 2, nsex)) # 2 = npar for this slx_type 
         
-        # Logistic with a50 and slope, data$slx_type = 1, single sex model
+        # Logistic with a50 and slope, data$slx_type = 1, single sex model- needs
+        # updating eventually if ever used
       } else if (data$slx_type == 1 & nsex == 1) {
         array(data = c(rep(log(3.74), length(data$srv_blks)),
                        rep(log(1.96), length(data$srv_blks))),
               dim = c(length(data$srv_blks), 2, nsex)) # 2 = npar for this slx_type 
         
-        # Logistic with a50 and slope, data$slx_type = 1, sex-structured model
-      } else { 
-        array(data = c(rep(log(3.72), length(data$srv_blks)), # male
-                       rep(log(2.21), length(data$srv_blks)),
-                       rep(log(3.75), length(data$srv_blks)), # female
-                       rep(log(2.21), length(data$srv_blks))),
-              dim = c(length(data$srv_blks), 2, nsex)) }, # 2 = npar for this slx_type
+        
+        # SURVEY SELECTIVITY FOR 2020 assessment (2021 ABC)
+        # Logistic with a50 and slope, data$slx_type = 1, sex-structured model UPDATE ME!
+      } else {
+        array(data = c(rep(slx_pars$log_a50[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # male a50
+                       rep(slx_pars$log_k[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # slope
+                       rep(slx_pars$log_a50[slx_pars$fleet == "srv_f"], length(data$srv_blks)), # female a50
+                       rep(slx_pars$log_k[slx_pars$fleet == "srv_f"], length(data$srv_blks))), # slope
+              dim = c(length(data$srv_blks), 2, nsex))}, # 2 = npar for this slx_type
+        
+    # SURVEY SELECTIVITY FOR 2019 assessment (2020 ABC)
+      # } else { 
+      #   array(data = c(rep(log(3.72), length(data$srv_blks)), # male
+      #                  rep(log(2.21), length(data$srv_blks)),
+      #                  rep(log(3.75), length(data$srv_blks)), # female
+      #                  rep(log(2.21), length(data$srv_blks))),
+      #         dim = c(length(data$srv_blks), 2, nsex)) }, # 2 = npar for this slx_type
+    
     
     # Catchability
+    
+    
     fsh_logq = inits %>% filter(grepl("fsh_logq", Parameter)) %>% pull(Estimate), 
     srv_logq = inits %>% filter(grepl("srv_logq", Parameter)) %>% pull(Estimate),
-    mr_logq = inits %>% filter(grepl("mr_logq", Parameter)) %>% pull(Estimate),
+    mr_logq = inits %>% filter(grepl("srv_logq", Parameter)) %>% pull(Estimate),
     
     # Log mean recruitment and deviations (nyr)
-    log_rbar = inits %>% filter(Parameter == "log_rbar") %>% pull(Estimate), 
-    log_rec_devs = rec_devs_inits,
+    log_rbar = 2.5, #inits %>% filter(Parameter == "log_rbar") %>% pull(Estimate), 
+    log_rec_devs = rec_devs_inits, #rnorm(nyr,0,1), #
     
     # Log mean initial numbers-at-age and deviations (nage-2)
-    log_rinit = inits %>% filter(Parameter == "log_rinit") %>% pull(Estimate), 
+    log_rinit = 8, #inits %>% filter(Parameter == "log_rinit") %>% pull(Estimate), 
     log_rinit_devs = rinit_devs_inits,
     
     # Variability in rec_devs and rinit_devs
     log_sigma_r = log(1.2), # Federal value of 1.2 on log scale
     
     # Fishing mortality
-    log_Fbar = inits %>% filter(Parameter == "log_Fbar") %>% pull(Estimate),
-    log_F_devs = Fdevs_inits,
+    log_Fbar = -3, #inits %>% filter(Parameter == "log_Fbar") %>% pull(Estimate),
+    log_F_devs = rnorm(nyr,0,1), #Fdevs_inits,
     
     # SPR-based fishing mortality rates, i.e. the F at which the spawning biomass
     # per recruit is reduced to xx% of its value in an unfished stock
@@ -874,11 +939,11 @@ build_bounds <- function(param_list = NULL, data_list){
   
   # Fishery selectivity
   lower_bnd$log_fsh_slx_pars[,,] <- replace(lower_bnd$log_fsh_slx_pars[,,], values = -2) 
-  upper_bnd$log_fsh_slx_pars[,,] <- replace(upper_bnd$log_fsh_slx_pars[,,], values = 2) 
+  upper_bnd$log_fsh_slx_pars[,,] <- replace(upper_bnd$log_fsh_slx_pars[,,], values = 3) 
   
   # Survey selectivity
   lower_bnd$log_srv_slx_pars[,,] <- replace(lower_bnd$log_srv_slx_pars[,,], values = -2) 
-  upper_bnd$log_srv_slx_pars[,,] <- replace(upper_bnd$log_srv_slx_pars[,,], values = 2) 
+  upper_bnd$log_srv_slx_pars[,,] <- replace(upper_bnd$log_srv_slx_pars[,,], values = 3) 
   
   # Fishery catchability
   lower_bnd$fsh_logq <- replace(lower_bnd$fsh_logq, values = rep(-30, length(lower_bnd$fsh_logq)))
@@ -963,17 +1028,17 @@ build_phases <- function(param_list = NULL, data_list){
   phases$log_sigma_r <- replace(phases$log_sigma_r, values = rep(2, length(phases$log_sigma_r)))
 
   # 2: Fishing mortality devs and catchability
-  phases$log_F_devs <- replace(phases$log_F_devs, values = rep(3, length(phases$log_F_devs)))
+  phases$log_F_devs <- replace(phases$log_F_devs, values = rep(4, length(phases$log_F_devs)))
   phases$fsh_logq <- replace(phases$fsh_logq, values = rep(3, length(phases$fsh_logq)))
   phases$srv_logq <- replace(phases$srv_logq, values = rep(3, length(phases$srv_logq)))
   
   # 4: Selectivity - turned off until selectivity/discarding issue can be fixed
-  phases$log_fsh_slx_pars[,,] <- replace(phases$log_fsh_slx_pars[,,], values = 3)
-  phases$log_srv_slx_pars[,,] <- replace(phases$log_srv_slx_pars[,,], values = 3)
+  phases$log_fsh_slx_pars[,,] <- replace(phases$log_fsh_slx_pars[,,], values = 4)
+  phases$log_srv_slx_pars[,,] <- replace(phases$log_srv_slx_pars[,,], values = 2)
 
   # 4: Reference points
-  phases$log_spr_Fxx <- replace(phases$log_spr_Fxx, values = rep(4, length(phases$log_spr_Fxx)))
-  phases$log_M <- replace(phases$log_M, values = rep(4, length(phases$log_M)))
+  phases$log_spr_Fxx <- replace(phases$log_spr_Fxx, values = rep(5, length(phases$log_spr_Fxx)))
+  phases$log_M <- replace(phases$log_M, values = rep(5, length(phases$log_M)))
   
   # 5: Dirichlet-multinomial theta parameters (this will get turned off if
   # comp_type != 1 in the TMBphase function)
@@ -1032,6 +1097,9 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
     if (tmp_debug == TRUE) {
       map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
       map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
+      # map_use$mr_logq <- fill_vals(parameters$mr_logq, NA)
+      # map_use$log_fsh_slx_pars <- factor(c(1, 2, NA, NA, 3, 4, NA, NA))
+      # map_use$log_srv_slx_pars <- factor(c(1, NA, 2, NA))
     }
     
     # Build upper and lower parameter bounds and remove any that are not
@@ -1084,10 +1152,10 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
     # Run some Newton steps - slow but reduces final gradient (code also from
     # tmb_helper.R)
     for(i in seq_len(newtonsteps)) {
-      g <- as.numeric(gr(opt$par))
+      g <- as.numeric(obj$gr(opt$par))
       h <- optimHess(opt$par, fn = obj$fn, gr = obj$gr)
       opt$par <- opt$par - solve(h, g)
-      opt$objective <- fn(opt$par)
+      opt$objective <- obj$fn(opt$par)
     }
     rep <- TMB::sdreport(obj)
   }
@@ -1156,6 +1224,10 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
         if (tmp_debug == TRUE) {
           map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
           map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
+          # map_use$mr_logq <- fill_vals(parameters$mr_logq, NA)
+          
+          # map_use$log_fsh_slx_pars <- factor(c(1, 2, NA, NA, 3, 4, NA, NA))
+          # map_use$log_srv_slx_pars <- factor(c(1, NA, 2, NA))
         }
         
         # j <- 1 # change to 0 if you get rid of the dummy debugging feature
@@ -1168,7 +1240,6 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
         #     names(map_use)[j] <- names(parameters)[i]               
         #   }
         # }
-        map_use
       }
       
       # Build upper and lower parameter bounds and remove any that are not
@@ -1246,8 +1317,13 @@ save_mle <- function(#rep, # output from sdreport()
                      year = YEAR) {
   
   # MLE parameter estimates and standard errors in useable format
-  tidyrep <- tidy(summary(rep))
-  names(tidyrep) <- c("Parameter", "Estimate", "se")
+  # tidyrep <- tidy(summary(rep)) # broom no longer works. it's sad.
+  tidyrep <- as.data.frame(summary(rep), row.names = FALSE)
+  names(tidyrep) <- c("Estimate", "se")
+  tidyrep <- tidyrep %>% 
+    mutate(Parameter = rownames(as.data.frame(summary(rep)))) %>% 
+    select(Parameter, Estimate, se)
+  
   key_params <- filter(tidyrep, !grepl('devs', Parameter)) # "Key" parameters (exclude devs)
   
   # Save output
@@ -1481,6 +1557,14 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
   out$mr_plot -> mr_plot
   out$mr_plot_all -> mr_plot_all
   
+  if(save == TRUE) {
+    out$ts %>% 
+      select(year, catch, pred_catch) %>% 
+      left_join(out$fsh_cpue %>% select(year, fsh_cpue, pred_fsh_cpue)) %>%
+      left_join(out$srv_cpue %>% select(year, srv_cpue, pred_srv_cpue)) %>%
+      left_join(out$mr_plot %>% select(year, mr, pred_mr)) %>% 
+    write_csv(paste0(path, "/ts_pred_imperial_", YEAR, ".csv"))}
+  
   if(units == "imperial") { # Convert catch from mt to million lb and fsh_cpue from kg to lb
     
     catch <- catch %>% mutate_at(c("catch", "pred_catch", "upper_catch", "lower_catch"), mt2mlb) 
@@ -1500,7 +1584,7 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
       post_fsh_cpue <- post_fsh_cpue %>% mutate_at(c("mean", "median", "q025", "q975"), kg2lb)
     }
     
-    axis <- tickr(catch, year, 5)
+    # axis <- tickr(catch, year, 5)
     
     # Catch
     ggplot(data = catch, aes(x = year)) +
@@ -1511,12 +1595,12 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
                   alpha = 0.2,  fill = "black", colour = NA) +
       # assumed error for data
       geom_errorbar(aes(year, ymin = lower_catch, ymax = upper_catch), width = 0.2) +
-      scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+      # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
       # scale_y_continuous(label = scales::comma) +
       labs(x = NULL, y = ifelse(units == "metric", "\n\nCatch\n(round mt)",
                                 "\n\nCatch\n(million round lb)")) +
       expand_limits(y = 0) +
-      theme(axis.title.y = element_text(angle=0)) -> p_catch
+      theme(axis.title.y = element_text(angle = 0, vjust = 0.5)) -> p_catch
     
     # Fishery cpue
     ggplot(fsh_cpue, aes(x = year)) +
@@ -1525,13 +1609,13 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
       geom_ribbon(data = post_fsh_cpue, aes(year, ymin = q025 , ymax = q975, group = period),
                   alpha = 0.2, fill = "black", colour = NA) +
       geom_errorbar(aes(year, ymin = lower_fsh_cpue , ymax = upper_fsh_cpue), width = 0.2) +
-      scale_x_continuous(limits = c(min(ts$year), max(ts$year)),
-                         breaks = axis$breaks, labels = axis$labels) +
+      scale_x_continuous(limits = c(min(ts$year), max(ts$year))) + #,
+                         # breaks = axis$breaks, labels = axis$labels) +
       expand_limits(y = 0) +
       labs(x = NULL, y = ifelse(units == "metric", "\n\nFishery CPUE\n(round kg/hook)",
                                 "\n\nFishery CPUE\n(round lb/hook)"), lty = NULL) +
       theme(legend.position = c(0.8, 0.8),
-            axis.title.y = element_text(angle=0)) -> p_fsh
+            axis.title.y = element_text(angle = 0, vjust = 0.5)) -> p_fsh
     
     # Survey cpue
     ggplot(srv_cpue, aes(x = year)) +
@@ -1540,11 +1624,11 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
       geom_ribbon(data = post_srv_cpue, aes(year, ymin = q025, ymax = q975),
                   alpha = 0.2, fill = "black", colour = NA) +
       geom_errorbar(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue), width = 0.2) +
-      scale_x_continuous(limits = c(min(ts$year), max(ts$year)),
-                         breaks = axis$breaks, labels = axis$labels) +
+      scale_x_continuous(limits = c(min(ts$year), max(ts$year))) + #,
+                         # breaks = axis$breaks, labels = axis$labels) +
       expand_limits(y = 0) +
       labs(x = NULL, y = "\n\nSurvey CPUE\n(fish/hook)") +
-      theme(axis.title.y = element_text(angle=0)) -> p_srv
+      theme(axis.title.y = element_text(angle = 0, vjust = 0.5)) -> p_srv
     
     # Mark recapture 
     ggplot(post_mr, aes(x = year)) +
@@ -1553,27 +1637,27 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
       geom_ribbon(aes(x = year, ymin = q025, ymax = q975),
                   alpha = 0.2, fill = "black", colour = NA) +
       geom_errorbar(data = mr_plot, aes(x = year, ymin = lower_mr, ymax = upper_mr), width = 0.2) +
-      scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+      # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
       expand_limits(y = 0) +
       labs(x = NULL, y = "\n\nAbundance\n(millions)") +
-      theme(axis.title.y = element_text(angle=0)) -> p_mr
+      theme(axis.title.y = element_text(angle = 0, vjust = 0.5)) -> p_mr
   }
   
   if(plot_variance == FALSE) {
     
   # Catch 
-  axis <- tickr(catch, year, 5)
+  # axis <- tickr(catch, year, 5)
   ggplot(catch, aes(x = year)) +
     geom_point(aes(y = catch), colour = "darkgrey") +
     geom_line(aes(y = pred_catch)) +
     geom_ribbon(aes(year, ymin = lower_catch, ymax = upper_catch),
                 alpha = 0.2,  fill = "black", colour = NA) +
-    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     # scale_y_continuous(label = scales::comma) +
     expand_limits(y = 0) +
     labs(x = NULL, y = ifelse(units == "metric", "\n\nCatch\n(round mt)",
                               "\n\nCatch\n(million round lb)")) +
-    theme(axis.title.y = element_text(angle=0)) -> p_catch
+    theme(axis.title.y = element_text(angle = 0, vjust = 0.5)) -> p_catch
   
   # Fishery cpue
   ggplot(fsh_cpue, aes(x = year)) +
@@ -1581,13 +1665,13 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
     geom_line(aes(y = pred_fsh_cpue, lty = period)) +
     geom_ribbon(aes(year, ymin = lower_fsh_cpue , ymax = upper_fsh_cpue),
                 alpha = 0.2, fill = "black", colour = NA) +
-    scale_x_continuous(limits = c(min(ts$year), max(ts$year)),
-                       breaks = axis$breaks, labels = axis$labels) +
+    scale_x_continuous(limits = c(min(ts$year), max(ts$year))) + #,
+                       # breaks = axis$breaks, labels = axis$labels) +
     expand_limits(y = 0) +
     labs(x = NULL, y = ifelse(units == "metric", "\n\nFishery CPUE\n(round kg/hook)",
                               "\n\nFishery CPUE\n(round lb/hook)"), lty = NULL) +
     theme(legend.position = c(0.8, 0.8),
-          axis.title.y = element_text(angle=0))-> p_fsh
+          axis.title.y = element_text(angle = 0, vjust = 0.5))-> p_fsh
   
   # Survey cpue
   ggplot(srv_cpue, aes(x = year)) +
@@ -1595,11 +1679,11 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
     geom_line(aes(y = pred_srv_cpue)) +
     geom_ribbon(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue),
                 alpha = 0.2, fill = "black", colour = NA) +
-    scale_x_continuous(limits = c(min(ts$year), max(ts$year)),
-                       breaks = axis$breaks, labels = axis$labels) +
+    scale_x_continuous(limits = c(min(ts$year), max(ts$year))) + #,
+                       # breaks = axis$breaks, labels = axis$labels) +
     expand_limits(y = 0) +
     labs(x = NULL, y = "\n\nSurvey CPUE\n(fish/hook)") +
-    theme(axis.title.y = element_text(angle=0)) -> p_srv
+    theme(axis.title.y = element_text(angle = 0, vjust = 0.5)) -> p_srv
   
   # Mark recapture 
   mr_plot %>% 
@@ -1608,6 +1692,7 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
     mutate(year = year(year),
            Year = factor(year)) %>% 
     gather("Abundance", "mr", mr) %>% 
+    arrange(year) %>% 
     mutate(# interpolate the CI in missing years for plotting purposes
       lower_mr = zoo::na.approx(lower_mr, maxgap = 20, rule = 2),
       upper_mr = zoo::na.approx(upper_mr, maxgap = 20, rule = 2)) %>%
@@ -1617,10 +1702,10 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
     geom_point(aes(x = year, y = mr), colour = "darkgrey") +
     geom_line(aes(x = year, y = pred_mr, group = 1)) +
     geom_line(data = mr_plot_all, aes(x = year, y = pred_mr_all, group = 1), lty = 2) +
-    scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+    # scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
     expand_limits(y = 0) +
     labs(x = NULL, y = "\n\nAbundance\n(millions)") +
-    theme(axis.title.y = element_text(angle=0)) -> p_mr
+    theme(axis.title.y = element_text(angle = 0, vjust = 0.5)) -> p_mr
   }
   
   plot_grid(p_catch, p_fsh, p_srv, p_mr, ncol = 1, align = 'hv', 
@@ -1632,7 +1717,8 @@ plot_ts <- function(save = TRUE, path = tmbfigs, ts,
 
   if(save == TRUE){ 
     ggsave(plot = p, filename = paste0(path, "/pred_abd_indices_", units, "_", YEAR, mcmc_flag, ".png"), 
-           dpi = 300, height = 7, width = 6, units = "in")
+           # dpi = 300, height = 7, width = 6, units = "in")
+           dpi = 300, height = 10, width = 7, units = "in")
   }
 }
 
@@ -1645,7 +1731,7 @@ plot_ts_resids <- function(save = TRUE, path = tmbfigs) {
   out$srv_cpue -> srv_cpue
   out$mr_plot -> mr_plot
   
-  axis <- tickr(ts, year, 5)
+  # axis <- tickr(ts, year, 5)
   
   ggplot(ts, aes(x = year, y = catch_sresid)) + 
     geom_hline(yintercept = 0, colour = "grey", size = 1) +
@@ -1654,7 +1740,7 @@ plot_ts_resids <- function(save = TRUE, path = tmbfigs) {
     geom_point() +
     labs(x = "", y = "\n\nCatch\nresiduals") +
     expand_limits(y = c(-3, 3)) +
-    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     theme(axis.title.y = element_text(angle=0)) -> r_catch
   
   # Fishery cpue resids
@@ -1665,7 +1751,7 @@ plot_ts_resids <- function(save = TRUE, path = tmbfigs) {
     geom_point() +
     labs(x = "", y = "\n\nFishery CPUE\nresiduals") +
     expand_limits(y = c(-3, 3)) +
-    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     theme(axis.title.y = element_text(angle=0)) -> r_fsh
   
   # Survey cpues resids
@@ -1676,7 +1762,7 @@ plot_ts_resids <- function(save = TRUE, path = tmbfigs) {
     geom_point() +
     labs(x = "", y = "\n\nSurvey CPUE\nresiduals") +
     expand_limits(y = c(-3, 3)) +
-    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     theme(legend.position = "none",
           axis.title.y = element_text(angle=0)) -> r_srv
   
@@ -1688,7 +1774,7 @@ plot_ts_resids <- function(save = TRUE, path = tmbfigs) {
     geom_point() +
     labs(x = "", y = "\n\nMR abundance\nresiduals\n") +
     expand_limits(y = c(-3, 3)) +
-    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     theme(axis.title.y = element_text(angle=0)) -> r_mr
   
   plot_grid(r_catch, r_fsh, r_srv, r_mr, ncol = 1, align = 'hv', 
@@ -1731,14 +1817,14 @@ plot_derived_ts <- function(save = TRUE,
       post_spawn_biom <- post_spawn_biom %>% mutate_at(c("mean", "median", "q025", "q975"), kg2mlb)
     }  
     
-    axis <- tickr(post_expl_abd, year, 5)
+    # axis <- tickr(post_expl_abd, year, 5)
 
     # Recruitment
     ggplot(post_rec, aes(x = year)) +    
       geom_bar(aes(y = median), stat = "identity", fill = "grey") +
       geom_errorbar(aes(ymin = q025, ymax = q975), width = 0.2) +
       labs(x = "", y = "\n\nAge-2\nrecruits\n(millions)") +
-      scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+      # scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
       scale_y_continuous(label = scales::comma) +
       expand_limits(y = 0) +
       theme(axis.title.y = element_text(angle = 0)) -> p_rec
@@ -1750,7 +1836,7 @@ plot_derived_ts <- function(save = TRUE,
       geom_ribbon(aes(ymin = q025 , ymax = q975),
                   alpha = 0.2, fill = "black", colour = NA) +
       labs(x = "", y = "\n\nExploitable\nabundance\n(millions)") +
-      scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+      # scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
       scale_y_continuous(label = scales::comma) +
       expand_limits(y = 0) +
       theme(axis.title.y = element_text(angle = 0)) -> p_eabd  
@@ -1763,7 +1849,7 @@ plot_derived_ts <- function(save = TRUE,
                   alpha = 0.2, fill = "black", colour = NA) +
       labs(x = "", y = ifelse(units == "imperial", "\n\nExploitable\nbiomass\n(million lb)", 
                               "\n\nExploitable\nbiomass\n(kt)")) +
-      scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+      # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
       scale_y_continuous(label = scales::comma) +
       expand_limits(y = 0) +
       theme(axis.title.y = element_text(angle = 0)) -> p_ebiom
@@ -1776,7 +1862,7 @@ plot_derived_ts <- function(save = TRUE,
                   alpha = 0.2, fill = "black", colour = NA) +
       labs(x = "", y = ifelse(units == "imperial", "\n\nSpawning\nbiomass\n(million lb)",
                               "\n\nSpawning\nbiomass\n(kt)")) +
-      scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+      # scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
       scale_y_continuous(label = scales::comma) +
       expand_limits(y = 0) +
       theme(axis.title.y = element_text(angle = 0)) -> p_sbiom
@@ -1787,9 +1873,31 @@ plot_derived_ts <- function(save = TRUE,
   if(plot_variance == FALSE) {
     
     # Get recruitment
-    log_rbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
-    log_rec_devs <- tidyrep %>% filter(Parameter == "log_rec_devs") %>% pull(Estimate)
-    tmp_rec <- exp(log_rbar + log_rec_devs)
+    
+    # log_rbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
+    # # log_rec_devs <- tidyrep %>% filter(Parameter == "log_rec_devs") %>% pull(Estimate)
+    # log_rec_devs <- tidyrep %>% filter(grepl("log_rec_devs", Parameter)) %>% pull(Estimate)
+    # tmp_rec <- exp(log_rbar + log_rec_devs)
+    
+    sum <- summary(rep, "report") %>%
+      as.data.frame()
+    
+    sum <- rownames_to_column(sum)
+    names(sum) <- c("var", "est", "se")
+    
+    sum <- sum %>%
+      mutate(lower = est - 1.96 * se,
+             upper = est + 1.96 * se) %>% 
+      mutate(est = est / 1e6,
+             lower = lower / 1e6,
+             upper = upper / 1e6)
+    
+    rec <- sum %>%
+      filter(grepl("rec", var)) %>%
+      mutate(year = syr:(lyr),
+             year_class = year - 2,
+             lower = ifelse(lower < 0, 0, lower)) %>% 
+      full_join(data.frame(year = (max(ts$year) + 1):(max(ts$year) + nproj)))
     
     if(units == "metric") {
       ts %>% 
@@ -1799,7 +1907,7 @@ plot_derived_ts <- function(save = TRUE,
         # divide by 1e6 to go from kg to kilotons
         mutate(Fmort = c(obj$report(best)$Fmort, rep(NA, nproj)),
                # pred_rec = c(obj$report(best)$pred_rec, rep(NA, nproj)) / 1e6,
-               pred_rec = c(tmp_rec, rep(NA, nproj)) / 1e6,
+               # pred_rec = c(tmp_rec, rep(NA, nproj)) / 1e6,
                biom = obj$report(best)$tot_biom / 1e6, 
                expl_biom = obj$report(best)$tot_expl_biom / 1e6,
                expl_abd = obj$report(best)$tot_expl_abd / 1e6, 
@@ -1814,52 +1922,62 @@ plot_derived_ts <- function(save = TRUE,
         # divide report in million lb
         mutate(Fmort = c(obj$report(best)$Fmort, rep(NA, nproj)),
                # pred_rec = c(obj$report(best)$pred_rec, rep(NA, nproj)) / 1e6,
-               pred_rec = c(tmp_rec, rep(NA, nproj)) / 1e6,
+               # pred_rec = c(tmp_rec, rep(NA, nproj)) / 1e6,
                biom = obj$report(best)$tot_biom * 2.20462 / 1e6, 
                expl_biom = obj$report(best)$tot_expl_biom * 2.20462 / 1e6,
                expl_abd = obj$report(best)$tot_expl_abd / 1e6, 
                spawn_biom = obj$report(best)$tot_spawn_biom * 2.20462 / 1e6 ) -> ts
     }
     
-    axis <- tickr(ts, year, 5)
+    # axis <- tickr(ts, year, 5)
     
     p <- ggplot(ts, aes(x = year)) +
-      scale_x_continuous( breaks = axis$breaks, labels = axis$labels)+
+      # scale_x_continuous( breaks = axis$breaks, labels = axis$labels)+
       scale_y_continuous(label = scales::comma) +
       expand_limits(y = 0) +
-      theme(axis.title.y = element_text(angle=0))
+      theme(axis.title.y = element_text(angle=0, vjust = 0.5))
     
     # Recruitment
-    ggplot(ts, aes(year, pred_rec)) +    
-      geom_bar(stat = "identity") +
-      scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
-      # theme(axis.title.y = element_text(angle=0)) +
-      labs(x = "", y = "\n\nAge-2\nrecruits\n(millions)") +
-      theme(axis.title.y = element_text(angle=0))-> p_rec
+    # ggplot(ts, aes(year, pred_rec)) +    
+    #   geom_bar(stat = "identity") +
+    #   # scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+    #   # theme(axis.title.y = element_text(angle=0)) +
+    #   labs(x = "", y = "\n\nAge-2\nrecruits\n(millions)") +
+    #   theme(axis.title.y = element_text(angle=0))-> p_rec
+    
+    # Recruitment
+    ggplot(rec, aes(year, est)) +
+      geom_bar(stat = "identity", fill = "lightgrey", col = "lightgrey") +
+      # geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.1) +
+      labs(x = NULL, y = "Age-2\nrecruits\n(millions)") +
+      theme(axis.title.y = element_text(angle=0, vjust = 0.5)) -> p_rec
+    
     
     # Exploitable abundance (to fishery)
     p + geom_point(aes(y = expl_abd)) +
       geom_line(aes(y = expl_abd, group = 1)) +
       expand_limits(y = 0) +
-      labs(x = "", y = "\n\nExploitable\nabundance\n(millions)") -> p_eabd  
+      labs(x = NULL, y = "Exploitable\nabundance\n(millions)") -> p_eabd  
     
     # Exploitable biomass (to fishery)
     p + geom_point(aes(y = expl_biom)) +
       geom_line(aes(y = expl_biom, group = 1)) +
       expand_limits(y = 0) +
-      labs(x = "", y = ifelse(units == "imperial", "\n\nExploitable\nbiomass\n(million lb)", 
-                              "\n\nExploitable\nbiomass\n(kt)")) -> p_ebiom
+      labs(x = NULL, y = ifelse(units == "imperial", "Exploitable\nbiomass\n(million lb)", 
+                              "Exploitable\nbiomass\n(kt)")) -> p_ebiom
     
     # Spawning biomass 
     p + geom_point(aes(y = spawn_biom)) +
       geom_line(aes(y = spawn_biom, group = 1)) +
       expand_limits(y = 0) +
-      labs(x = "", y = ifelse(units == "imperial", "\n\nSpawning\nbiomass\n(million lb)",
-                              "\n\nSpawning\nbiomass\n(kt)")) -> p_sbiom
+      labs(x = NULL, y = ifelse(units == "imperial", "Spawning\nbiomass\n(million lb)",
+                              "Spawning\nbiomass\n(kt)")) -> p_sbiom
   
     if(save == TRUE){ 
-      write_csv(ts %>% select(year, index, Fmort, pred_rec, biom, expl_biom, expl_abd, spawn_biom),
+      write_csv(ts %>% select(year, index, Fmort, biom, expl_biom, expl_abd, spawn_biom),
                 paste0(path, "/derived_ts_", units, "_", YEAR, ".csv"))
+      write_csv(rec,
+                paste0(path, "/pred_rec_", YEAR, ".csv"))
     }
   }
   
@@ -1877,6 +1995,112 @@ plot_derived_ts <- function(save = TRUE,
   
 }
 
+# # Plot derived variables
+# plot_derived_ts2 <- function(save = TRUE,
+#                             path = tmbfigs,
+#                             units = c("imperial", "metric"),
+#                             ts) {
+# 
+#   sum <- summary(rep, "report") %>%
+#     as.data.frame()
+# 
+#   sum <- rownames_to_column(sum)
+#   names(sum) <- c("var", "est", "se")
+# 
+#   sum <- sum %>%
+#     mutate(lower = est - 1.96 * se,
+#            upper = est + 1.96 * se) %>% 
+#     mutate(est = est / 1e6,
+#            lower = lower / 1e6,
+#            upper = upper / 1e6)
+# 
+#   rec <- sum %>%
+#     filter(grepl("rec", var)) %>%
+#     mutate(year = syr:(lyr),
+#            year_class = year - 2,
+#            lower = ifelse(lower < 0, 0, lower))
+#   rec  
+#   ssb <- sum %>%
+#     filter(grepl("spawn", var)) %>%
+#     mutate(year = syr:(lyr+nproj))
+#     
+#   expl_b <- sum %>%
+#     filter(grepl("tot_expl_biom", var)) %>%
+#     mutate(year = syr:(lyr+nproj))
+#     
+#   expl_n <- sum %>%
+#     filter(grepl("tot_expl_abd", var)) %>%
+#     mutate(year = syr:(lyr+nproj))
+#   
+#   
+#   if(units == "imperial") { # ends up reported as million lb
+# 
+#     p <- ggplot(ts, aes(x = year)) +
+#       scale_y_continuous(label = scales::comma) +
+#       expand_limits(y = 0) +
+#       theme(axis.title.y = element_text(angle=0, vjust = 0.5))
+# 
+#     # Recruitment
+#     ggplot(rec, aes(year_class, est)) +
+#       geom_bar(stat = "identity", fill = "lightgrey", col = "lightgrey") +
+#       geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.1) +
+#       labs(x = "Year class", y = "Recruits\n(millions)") +
+#       theme(axis.title.y = element_text(angle=0, vjust = 0.5)) -> p_rec
+
+#     # Exploitable abundance (to fishery)
+#     expl_n %>% ggplot(aes(x = year, y = est)) +
+#       geom_ribbon(aes(ymin = lower, ymax = upper), fill = "lightgrey", col = "lightgrey") +
+#       geom_point() +
+#       geom_line() +
+#       expand_limits(y = 0) +
+#       labs(x = "", y = "Exploitable\nabundance\n(millions)") +
+#       scale_y_continuous(label = scales::comma) +
+#       expand_limits(y = 0) +
+#       theme(axis.title.y = element_text(angle=0, vjust = 0.5))-> p_eabd
+# 
+#     # Exploitable biomass (to fishery)
+#     expl_b %>% ggplot(aes(x = year, y = est)) +
+#       geom_ribbon(aes(ymin = lower, ymax = upper), fill = "lightgrey", col = "lightgrey") +
+#       geom_point() +
+#       geom_line() +
+#       expand_limits(y = 0) +
+#       labs(x = "", y = "Exploitable\nbiomass\n(million lb)") +
+#       scale_y_continuous(label = scales::comma) +
+#       expand_limits(y = 0) +
+#       theme(axis.title.y = element_text(angle=0, vjust = 0.5))-> p_ebiom
+#     
+#     # SSB
+#     ssb %>% ggplot(aes(x = year, y = est)) +
+#       geom_ribbon(aes(ymin = lower, ymax = upper), fill = "lightgrey", col = "lightgrey") +
+#       geom_point() +
+#       geom_line() +
+#       expand_limits(y = 0) +
+#       labs(x = "", y = "Spawning\nbiomass\n(million lb)") +
+#       scale_y_continuous(label = scales::comma) +
+#       expand_limits(y = 0) +
+#       theme(axis.title.y = element_text(angle=0, vjust = 0.5))-> p_sbiom
+# 
+# 
+#     if(save == TRUE){
+#       write_csv(ts %>% select(year, index, Fmort, pred_rec, biom, expl_biom, expl_abd, spawn_biom),
+#                 paste0(path, "/derived_ts_", units, "_", YEAR, ".csv"))
+#     }
+#   }
+# 
+#   plot_grid(p_rec, p_sbiom, p_eabd, p_ebiom, ncol = 1, align = 'hv',
+#             labels = c('(A)', '(B)', '(C)', '(D)')) -> p
+# 
+#   print(p)
+# 
+#   mcmc_flag <- ifelse(plot_variance == TRUE, "_mcmc", "")
+# 
+#   if(save == TRUE){
+#     ggsave(plot = p, filename = paste0(path, "/derived_ts_", units, "_", YEAR, mcmc_flag, ".png"),
+#            dpi = 300, height = 7, width = 6, units = "in")
+#   }
+# 
+# }
+
 # Fishing mort
 plot_F <- function(save = TRUE, path = tmbfigs) {
   
@@ -1887,19 +2111,19 @@ plot_F <- function(save = TRUE, path = tmbfigs) {
            expl_biom = obj$report(best)$tot_expl_biom[1:nyr] / 1e3,
            exploit = obj$report(best)$pred_catch / expl_biom ) -> ts
            
-  axis <- tickr(ts, year, 5)
+  # axis <- tickr(ts, year, 5)
   
   ggplot(ts, aes(x = year)) + 
     geom_point(aes(y = Fmort)) +
     geom_line(aes(y = Fmort, group = 1)) +
-    labs(x = "", y = "Fishing mortality\n") +
-    scale_x_continuous( breaks = axis$breaks, labels = axis$labels) -> fmort
+    # scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+    labs(x = "", y = "Fishing mortality\n") -> fmort
   
   ggplot(ts, aes(x = year)) + 
     geom_point(aes(y = exploit)) +
     geom_line(aes(y = exploit, group = 1)) +
-    labs(x = "", y = "Harvest rate\n") +
-    scale_x_continuous( breaks = axis$breaks, labels = axis$labels) -> hr
+    # scale_x_continuous( breaks = axis$breaks, labels = axis$labels) +
+    labs(x = "", y = "Harvest rate\n") -> hr
   
   plot_grid(fmort, hr,  ncol = 1, align = 'hv') -> p
   
@@ -2044,7 +2268,7 @@ plot_age_resids <- function(save = TRUE, path = tmbfigs) {
   
   age_labs <- get_age_labs()
   
-  axis <- tickr(agecomps, year, 5)
+  # axis <- tickr(agecomps, year, 5)
   
   ggplot(agecomps, aes(x = year, y = Age, size = std_resid,
                        fill = `obj performance`)) + 
@@ -2055,7 +2279,7 @@ plot_age_resids <- function(save = TRUE, path = tmbfigs) {
     guides(size = FALSE) +
     scale_fill_manual(values = c("white", "black")) +
     scale_y_discrete(breaks = unique(agecomps$Age), labels = age_labs) +
-    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     theme(legend.position = "bottom",
           strip.text.x = element_text(size = 11, colour = "black"),
           strip.text.y = element_text(size = 11, colour = "black")) -> p
@@ -2072,7 +2296,7 @@ plot_len_resids <- function(save = TRUE, path = tmbfigs) {
   
   len_labs <- get_len_labs()
   
-  axis <- tickr(lencomps, year, 5)
+  # axis <- tickr(lencomps, year, 5)
   
   ggplot(lencomps, aes(x = year, y = length_bin, size = std_resid,
                        fill = `obj performance`)) + 
@@ -2083,7 +2307,7 @@ plot_len_resids <- function(save = TRUE, path = tmbfigs) {
     guides(size = FALSE) +
     scale_fill_manual(values = c("white", "black")) +
     scale_y_discrete(breaks = unique(lencomps$length_bin), labels = len_labs) +
-    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     theme(legend.position = "bottom",
           strip.text.x = element_text(size = 11, colour = "black"),
           strip.text.y = element_text(size = 11, colour = "black")) -> p
@@ -2189,12 +2413,14 @@ plot_sel <- function(save = TRUE, path = tmbfigs) {
             by.x = c("Selectivity", "year", "year2"),
             type = "within") -> sel
   
+  if(save == TRUE) {write_csv(sel, paste0(path, "/selectivity_", YEAR, ".csv"))}
+  
   sel <- sel %>% 
     mutate(`Time blocks` = paste0(start_year, "-", end_year),
            age = as.numeric(Age)) %>% 
     filter(age <= 15)
   
-  axis <- tickr(sel, age, 3)
+  # axis <- tickr(sel, age, 3)
   
   ggplot(sel %>% filter(Selectivity == "Fishery"), 
          aes(x = age, y = proportion, colour = Sex, 
@@ -2203,7 +2429,7 @@ plot_sel <- function(save = TRUE, path = tmbfigs) {
     geom_line() +
     facet_wrap(~`Time blocks`, ncol = 1) +
     scale_colour_grey() +
-    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     labs(#y = "Proportion retained\n", 
       x = NULL, y = NULL,
       colour = NULL, lty = NULL, shape = NULL,
@@ -2218,7 +2444,7 @@ plot_sel <- function(save = TRUE, path = tmbfigs) {
     geom_line() +
     facet_grid(~`Time blocks`) +
     scale_colour_grey() +
-    scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
     labs(#y = "Proportion retained\n", 
       x = NULL, y = NULL,
       colour = NULL, lty = NULL, shape = NULL,
@@ -2237,3 +2463,4 @@ plot_sel <- function(save = TRUE, path = tmbfigs) {
   # ggsave("selectivity.png", dpi = 300, height = 4, width = 6, units = "in")
   
 }
+
