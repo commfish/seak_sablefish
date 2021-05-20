@@ -1,7 +1,7 @@
 # Data prep for statistical catch-at-age model
 # Author: Jane Sullivan
-# Contact: jane.sullivan1@alaska.gov
-# Last edited: June 2020
+# Contact: jane.sullivan@noaa.gov
+# Last edited: March 2021
 
 # Model is sex-structured, catch, fishery and survey CPUE, fishery and survey
 # weight-at-age, fishery and survey age compositions (sexes combined due to
@@ -13,7 +13,7 @@ source("r/helper.r")
 source("r/functions.r")
 
 syr <- 1975
-lyr <- YEAR <- 2019
+lyr <- YEAR <- 2020
 nyr <- length(syr:lyr)
 
 rec_age <- 2
@@ -53,8 +53,19 @@ read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"),
 
 # Fishery CPUE ----
 
+# Currently fishery CPUE are not available due to a restructure in the data
+# entry application. There is more documentation on this topic in the sql query
+# file, 0_clean_data.R, fishery_catch_cpue.R. For more information contact GF
+# project leader, Rhea Ehresmann. Until these data are available again, the SCAA
+# will insert NAs for missing years. Given that this index has not been
+# historically informative and is assumed to have high variability, we do not
+# anticipate these missing values to impact model performance.
+
+# temporary variable to deal with missing fishery CPUE data:
+fsh_lyr <- 2019
+
 # Read in data, standardize cpue, etc.
-read_csv(paste0("data/fishery/fishery_cpue_1997_", lyr,".csv"), 
+read_csv(paste0("data/fishery/fishery_cpue_1997_", fsh_lyr,".csv"), 
          guess_max = 50000) %>% 
   filter(!is.na(hook_space) & !is.na(sable_lbs_set) &
            julian_day > 226) %>%  # if there were special projects before the fishery opened
@@ -102,9 +113,15 @@ data.frame(year = 1980:1996,
          lower_fsh_cpue = exp(ln_fsh_cpue - std)) %>% 
   select(-c(n, sd, se, ln_fsh_cpue, std)) -> fsh_cpue
 
+# Temporary: include rows for missing years (can remove this once fishery CPUE
+# are reestablished)
+fsh_cpue <- data.frame(year = syr:lyr) %>% 
+  full_join(fsh_cpue) %>% 
+  arrange(year)
+
 # Survey NPUE ----
 
-# If I wanted to show it in log space
+# If you wanted to show it in log space
 # read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) %>% 
 #   mutate(cv = sdev / annual_cpue,
 #          pred = obj$report()$pred_srv_cpue,
@@ -138,11 +155,13 @@ read_csv(paste0("output/mr_index_", YEAR, ".csv")) %>%
   select(-c(std, ln_mr)) -> mr
 
 # Figure for industry mtg
-axis <- tickr(data.frame(year = 2005:YEAR), year, 3)
+# axis <- tickr(data.frame(year = 2005:YEAR), year, 3)
 read_csv(paste0("output/mr_index_", YEAR, ".csv")) %>% 
-  mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
-  pad(interval = "year") %>% 
-  mutate(year = year(year),
+  # mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
+  # pad(interval = "year") %>% 
+  full_join(data.frame(year = 2005:lyr)) %>%
+  arrange(year) %>% 
+  mutate(#year = year(year),
          Year = factor(year)) %>% 
   # gather("Abundance", "N", mr) %>% 
   mutate(# interpolate the CI in missing years for plotting purposes
@@ -151,12 +170,12 @@ read_csv(paste0("output/mr_index_", YEAR, ".csv")) %>%
     estimate_interp = zoo::na.approx(estimate, maxgap = 20, rule = 2)) %>%
   ggplot() +
   geom_ribbon(aes(x = year, ymin = lower_mr, ymax = upper_mr),
-              alpha = 0.2, col = "white", fill = "grey") +
+              alpha = 0.4, col = "white", fill = "grey") +
   geom_point(aes(x = year, y = estimate)) +
   geom_line(aes(x = year, y = estimate)) +
   geom_line(aes(x = year, y = estimate_interp), lty = 2) +
-  scale_x_continuous(breaks = axis$breaks, 
-                     labels = axis$labels) +
+  # scale_x_continuous(breaks = axis$breaks, 
+  #                    labels = axis$labels) +
   expand_limits(y = c(0, 4)) +
   labs(x = NULL, y = "\n\nAbundance (millions)\n") 
 
@@ -184,7 +203,7 @@ mr_ly
 
 # Graphics ----
 
-axis <- tickr(catch, year, 5)
+# axis <- tickr(catch, year, 5)
 
 catch %>% 
   ggplot() + 
@@ -196,11 +215,12 @@ catch %>%
   # geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
   # Board implemented Equal Quota Share in 1994
   # geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   scale_y_continuous(labels = scales::comma) + 
   expand_limits(y = 0) +
   labs(x = "", y = "\n\nCatch\n(round mt)") +
   theme(axis.title.y = element_text(angle=0)) -> catch_plot
+catch_plot
 
 ggplot(fsh_cpue) +
   geom_point(aes(year, fsh_cpue * 2.20462)) +
@@ -211,25 +231,30 @@ ggplot(fsh_cpue) +
   # geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
   # Board implemented Equal Quota Share in 1994
   geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
-  scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, labels = axis$labels) + 
+  scale_x_continuous(limits = c(syr,lyr)) + #, breaks = axis$breaks, labels = axis$labels) +
+  # scale_y_continuous(limits = c(0, ))
   expand_limits(y = 0) +
   labs(x = "", y = "\n\nFishery CPUE\n(round lb/hook)") +
   theme(axis.title.y = element_text(angle=0)) -> fsh_cpue_plot
+fsh_cpue_plot
 
 ggplot(data = srv_cpue) +
   geom_point(aes(year, srv_cpue)) +
   geom_line(aes(year, srv_cpue)) +
   geom_ribbon(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue),
               alpha = 0.2, fill = "black", colour = NA) +
-  scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, labels = axis$labels) + 
+  scale_x_continuous(limits = c(syr,lyr)) + #, breaks = axis$breaks, labels = axis$labels) + 
   expand_limits(y = 0) +
   labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL) +
   theme(axis.title.y = element_text(angle=0)) -> srv_cpue_plot
+srv_cpue_plot
 
 mr %>% 
-  mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
-  pad(interval = "year") %>% 
-  mutate(year = year(year),
+  # mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
+  # pad(interval = "year") %>% 
+  full_join(data.frame(year = 2005:lyr)) %>%
+  arrange(year) %>% 
+  mutate(#year = year(year),
          Year = factor(year)) %>% 
   gather("Abundance", "N", mr) %>% 
   mutate(# interpolate the CI in missing years for plotting purposes
@@ -240,24 +265,27 @@ mr %>%
               alpha = 0.2, fill = "black", colour = NA) +
   geom_point(aes(x = year, y = N)) +
   geom_line(aes(x = year, y = N, group = Abundance)) +
-  scale_x_continuous(limits = c(syr,lyr), breaks = axis$breaks, 
-                     labels = axis$labels) +
+  scale_x_continuous(limits = c(syr,lyr)) +#, breaks = axis$breaks, 
+                     # labels = axis$labels) +
   expand_limits(y = c(0, 5)) +
   labs(x = "", y = "\n\nAbundance\n(millions)") +
   theme(axis.title.y = element_text(angle=0)) -> mr_plot
+mr_plot
   
 plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv',
           labels = c('(A)', '(B)', '(C)', '(D)'))
 # plot_grid(fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv')
 
 ggsave(paste0("figures/tmb/abd_indices_", YEAR, ".png"),
-       dpi=300, height=8, width=7, units="in")
+       dpi=300, height=10, width=7.7, units="in")
 
 full_join(catch, fsh_cpue) %>% 
   full_join(srv_cpue) %>% 
   full_join(mr) %>% 
   mutate(index = year - min(year)) -> ts
   
+# View(ts)
+
 write_csv(ts, paste0("data/tmb_inputs/abd_indices_", YEAR, ".csv"))
 
 # Biological data ----
@@ -269,7 +297,7 @@ read_csv(paste0("data/fishery/fishery_bio_2000_", lyr,".csv"),
          Sex = factor(Sex)) -> fsh_bio
 
 # Survey biological data
-read_csv(paste0("data/survey/llsrv_bio_1985_", lyr,".csv"), 
+read_csv(paste0("data/survey/llsrv_bio_1988_", lyr,".csv"), 
          guess_max = 50000) %>%
   mutate(Year = factor(year),
          Sex = factor(Sex)) -> srv_bio
@@ -352,7 +380,7 @@ srv_predage <- predict(srv_fitage, newdata = data.frame(age = rec_age:plus_group
 bind_cols(
   byage,
   #do.call cbinds each vector in the predict() output list 
-  tbl_df(do.call(cbind, srv_predage))) -> byage
+  as_tibble(do.call(cbind, srv_predage))) -> byage
 
 byage %>% 
   rename(prop_fem = proportion) %>% 
@@ -393,6 +421,7 @@ ggplot(waa %>%
   scale_x_discrete(breaks = unique(waa$Age), labels = age_labs) +
   theme(legend.position = c(.1, .8),
         legend.spacing.y = unit(0, "cm")) -> waa_plot
+waa_plot 
 
 # Equation text for plotting values of a_50 (from biological.R)
 (a50 <- read_csv(paste0("output/maturity_param_", YEAR)) %>% 
@@ -404,10 +433,10 @@ a50_txt <- as.character(
     list(xx = formatC(a50, format = "f", digits = 1)))))
 
 mat_plot <- mat %>% filter(age <= 20)
-axis <- tickr(mat_plot, age, 1)
+# axis <- tickr(mat_plot, age, 1)
 
-age_labs2 <- c("2", "", "", "", "6", "", "", "", "10", "", "", "", "14", "",
-              "", "", "18", "", "") 
+# age_labs2 <- c("2", "", "", "", "6", "", "", "", "10", "", "", "", "14", "",
+              # "", "", "18", "", "") 
 
 ggplot(mat_plot %>% filter(age <= 20)) +
   geom_point(aes(x = age, y = prop_mature), colour = "black") +
@@ -419,11 +448,12 @@ ggplot(mat_plot %>% filter(age <= 20)) +
   # a_50 labels
   geom_text(aes(12, 0.5, label = a50_txt), 
             colour = "black", parse = TRUE, family = "Times New Roman") +
-  scale_x_continuous(limits = c(rec_age, 20), breaks = axis$breaks, 
-                     labels = age_labs2) +
+  scale_x_continuous(limits = c(rec_age, 20)) + # breaks = axis$breaks, 
+                     # labels = age_labs2) +
   labs(x = "Age", y = "\n\nProportion mature") -> mat_plot
+mat_plot
 
-axis <- tickr(byage, age, 1)
+# axis <- tickr(byage, age, 1)
 
 ggplot(byage, aes(x = Age)) +
   geom_line(aes(y = fit, group = 1), colour = "black") +
@@ -434,19 +464,20 @@ ggplot(byage, aes(x = Age)) +
   scale_x_discrete(breaks = unique(waa$Age), labels = age_labs) +
   labs(x = "Age", y = "\n\nProportion female") +
   geom_hline(yintercept = 0.5, lty = 2, col = "grey") -> prop_fem
+prop_fem
 
 bottom_plot <- plot_grid(mat_plot, prop_fem, ncol = 2, align = 'hv', labels = c('(B)', '(C)'))
-
+bottom_plot
 plot_grid(waa_plot, bottom_plot, nrow = 2, rel_widths = c(1, 1), labels = c('(A)', ''))
 
 # Drop sex ratios since it's not used in SCAA model when sex-structured
 plot_grid(waa_plot, mat_plot, nrow = 2, rel_widths = c(1, 1), labels = c('(A)', '(B)'))
 
-ggsave(paste0("figures/tmb/bio_dat_", YEAR, ".png"), dpi=300, height=7, width=6, units="in")
+ggsave(paste0("figures/tmb/bio_dat_", YEAR, ".png"), dpi=300, height=10, width=7.5, units="in")
 
 # Length compositions ----
 
-lencomps <- read_csv("output/lengthcomps.csv", guess_max = 500000)
+lencomps <- read_csv(paste0("output/lengthcomps_", YEAR, ".csv"), guess_max = 500000)
 lencomps <- lencomps %>%   
   filter(Source != "Pot survey") %>% 
   mutate(Source = derivedVariable(`fsh_len` = Source == "LL fishery",
@@ -503,7 +534,7 @@ agecomps %>%
   group_by(year, Source) %>% 
   dplyr::summarize(n = sum(n)) -> n_agecomps
 
-axisx <- tickr(agecomps, year, 5)
+# axisx <- tickr(agecomps, year, 5)
 
 ggplot(agecomps, aes(x = year, y = age, size = proportion)) +
   geom_point(shape = 21, colour = "black", fill = "black") +
@@ -511,7 +542,7 @@ ggplot(agecomps, aes(x = year, y = age, size = proportion)) +
   facet_wrap(~ Source) +
   labs(x = '\nYear', y = 'Observed age\n') +
   guides(size = FALSE) +
-  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
+  # scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
   scale_y_continuous(breaks = unique(agecomps$age), labels = age_labs) 
 
 ggsave(paste0("figures/tmb/agecomps_", YEAR, ".png"), dpi = 300, height = 7, width = 9, units = "in")
@@ -526,7 +557,7 @@ full_join(select(agecomps, -n), n_agecomps) %>%
   mutate(effn = sqrt(n)) -> agecomps
 
 # Reshape
-agecomps %>% dcast(year + index + Source + n + effn ~ age, value.var = "proportion") -> agecomps
+agecomps %>% reshape2::dcast(year + index + Source + n + effn ~ age, value.var = "proportion") -> agecomps
 agecomps[is.na(agecomps)] <- 0
 
 agecomps <- agecomps %>% arrange(Source, year)
@@ -553,27 +584,31 @@ ts %>%
 
 df %>% 
   mutate(value = ifelse(year == YEAR & 
-                          Source %in% c("Mark-recapture", "Fishery ages", "Catch", "Fishery CPUE"),
+                          # data were used previously for the
+                          # mark-recapture + yield per recruit (YPR) model
+                          Source %in% c("Mark-recapture", "Fishery ages"),
                         "1", "0")) -> df
 
-axisx <- tickr(df, year, 5)
+# axisx <- tickr(df, year, 5)
 
 ggplot(df, aes(x = year, y = Source)) +
   geom_point(shape = 21, colour = "black", fill = "black", size = 2) +
-  labs(x = NULL, y = NULL) +
-  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
+  labs(x = NULL, y = NULL) #+
+  # scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
 
 ggsave(paste0("figures/tmb/sable_data_all_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
 
+# This is the figure that shows which data were used previously for the
+# mark-recapture + yield per recruit (YPR) model
 ggplot(df, aes(x = year, y = Source, fill = value)) +
   geom_point(shape = 21, colour = "black", size = 2) +
   labs(x = NULL, y = NULL) +
   guides(fill = FALSE) +
-  scale_fill_manual(values = c("white", "black")) +
-  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
+  scale_fill_manual(values = c("white", "black")) #+
+  # scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
 
-ggsave(paste0("figures/sable_data_", YEAR, ".png"),
+ggsave(paste0("figures/sable_data_yprmodel_", YEAR, ".png"),
        dpi=300, height=3.5, width=7, units="in")
 
 # Retention probabilities ----
@@ -630,6 +665,7 @@ grades <- data.frame(
                       plot_cde = ifelse(grade %in% c('No grade', 'Grade 2/3', 'Grade 4/5', 'Grade 7+'), "0", "1")), by = "kg") %>% # 
   # set p = 1 for all large fish, interpolate p's using a cubic spline across
   # smaller sizes
+  arrange(kg) %>% 
   mutate(p = ifelse(kg > 3.6, 1, zoo::na.spline(p)),
          lb = 2.20462 * kg, # convert to lbs for visualization in memo
          y = 1 - p,
@@ -642,6 +678,7 @@ ret <- waa %>% filter(Source == "LL survey") %>%
   mutate(kg = round(round_kg, 1)) %>%
   left_join(grades, by = "kg") 
 
+# View(ret)
 write_csv(ret %>% select(Source, Sex, age, kg, grade, price, p), 
           "data/tmb_inputs/retention_probs.csv")
 
@@ -658,7 +695,7 @@ grades %>%
   mutate(label = paste0(price, "/lb"),
          y = c(0.1, 0.2, 0.5, 0.4, 0.75, 0.9, 0.9))  -> grades2
 
-axis <- tickr(grades, lb , 1)
+# axis <- tickr(grades, lb , 1)
 
 ggplot() +
   geom_line(data = grades %>% filter(lb <= 12), 
@@ -672,13 +709,14 @@ ggplot() +
   geom_text(data = grades2, aes(label = grade, x = mu, y = y + 0.03), 
             vjust = 1, size = 2) -> size 
 
+size
 ret_sex <- ret %>% filter(Sex %in% c("Female", "Male"))
 
-axis <- tickr(ret_sex, age, 5)
+# axis <- tickr(ret_sex, age, 5)
 
 ggplot(ret_sex, aes(x = age, y = p, col = Sex, linetype = Sex)) +
   geom_line() +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   scale_color_manual(values = c("black", "grey75")) + 
   scale_linetype_manual(values = c(1, 4)) + 
   # ylim(c(0, 1)) +
@@ -687,7 +725,7 @@ ggplot(ret_sex, aes(x = age, y = p, col = Sex, linetype = Sex)) +
 
 plot_grid(size, sex, align = "h")
 
-ggsave(paste0("figures/retention_prob_", YEAR, "_", plus_group, ".png"), dpi=300,  height=4, width=8,  units="in")
+ggsave(paste0("figures/tmb/retention_prob_", YEAR, "_", plus_group, ".png"), dpi=300,  height=4, width=8,  units="in")
 
 # Alternative retention probability ----
 
@@ -774,3 +812,52 @@ waa_laa %>% filter(Source == "LL fishery") %>%
   
 waa_laa %>% filter(Source == "LL survey") %>% 
   write_csv(paste0("output/NSEI_survey_forklen_weight_age_conversion_", YEAR, ".csv"))
+
+# Selectivity ----
+
+# update Apr 2021: tmb model indexes selectivity by 0, not the starting age of
+# 2. until i can fix this, transform federal selectivity predictions
+# appropriately. using predicted federal values, fit logistic curves to obtain
+# fishery/survey selectivity from 0:29 instead of 2:31
+sel <- read_csv("data/fed_selectivity_2020.csv")
+
+unique(sel$fleet)
+sel <- sel %>% 
+  filter(fleet %in% c("Dom LL Survey Female", 
+                      "Dom LL Survey Male",
+                      "Fixed Gear Fish Pre-IFQ (Derby) Female",
+                      "Fixed Gear Fishery Pre-IFQ (Derby) Male",
+                      "Fixed Gear Fish Post-IFQ Female",
+                      "Fixed Gear Fish Post-IFQ Male"))
+sel <- sel %>% 
+  pivot_longer(cols = 4:33, names_to = "age") %>% 
+  mutate(age = as.numeric(age),
+         tmb_age = age - 2)
+
+params <- sel %>% 
+  group_nest(fleet) %>% 
+  mutate(model = map(data, 
+                     ~glm(value ~ tmb_age, data = .x, family = "quasibinomial")),
+         a = map(model, ~coef(.x)[1]),
+         b = map(model, ~coef(.x)[2])) %>% 
+  unnest(cols = c(a,b)) %>% 
+  select(fleet, a, b)
+
+tmb_ages <- unique(sel$tmb_age)
+
+params <- params %>% 
+  mutate(a50 = -a/b) %>% 
+  group_by(fleet) %>% 
+  mutate(k = ((a + b * tmb_ages) / (tmb_ages - a50))[1],
+         log_a50 = log(a50),
+         log_k = log(k))
+
+params <- params %>% 
+  mutate(fleet = case_when(fleet == "Dom LL Survey Female" ~ "srv_f",
+                           fleet == "Dom LL Survey Male" ~ "srv_m",
+                           fleet == "Fixed Gear Fish Pre-IFQ (Derby) Female" ~ "fsh_t1_f" ,
+                           fleet == "Fixed Gear Fishery Pre-IFQ (Derby) Male" ~ "fsh_t1_m",
+                           fleet == "Fixed Gear Fish Post-IFQ Female" ~ "fsh_t2_f" ,
+                           fleet == "Fixed Gear Fish Post-IFQ Male" ~ "fsh_t2_m"))
+
+write_csv(params, "data/tmb_inputs/fed_selectivity_transformed_2020.csv")

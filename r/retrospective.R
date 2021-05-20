@@ -1,10 +1,10 @@
 # Retrospective analysis
-# jane.sullivan1@alaska.gov
-# Last updated June 2020
+# jane.sullivan@noaa.gov
+# Last updated May 2021
 
 # Set up ----
 
-YEAR <- 2019 # most recent year of data
+YEAR <- 2020 # most recent year of data
 
 # Directory setup
 root <- getwd() # project root
@@ -26,6 +26,7 @@ len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comp
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
 waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
 retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
+slx_pars <- read_csv("data/tmb_inputs/fed_selectivity_transformed_2020.csv") # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
 
 # Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
 # develop one for ADFG. Row = true age, Column = observed age. Proportion
@@ -125,7 +126,7 @@ for(i in 1:length(retro)){
  
   # recruitment in millions
   log_rbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
-  log_rec_devs <- tidyrep %>% filter(Parameter == "log_rec_devs") %>% pull(Estimate)
+  log_rec_devs <- tidyrep %>% filter(grepl("log_rec_devs", Parameter)) %>% pull(Estimate)
   rec_ls[[i]] <- data.frame(year = syr:lyr,
                             rec = exp(log_rbar + log_rec_devs) / 1e6,
                             retro = paste0("retro_", retro[i]))    
@@ -145,7 +146,8 @@ for(i in 1:length(retro)){
   names(ABC) <- data$Fxx_levels
   ABC_ls[[i]] <- ABC %>% 
     mutate(year = syr:(lyr+1)) %>% 
-    data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC") %>% 
+    tidyr::pivot_longer(cols = -year, names_to = "Fxx", values_to = "ABC") %>% 
+    # data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC") %>% 
     filter(Fxx == "0.5") %>% 
     mutate(retro = paste0("retro_", retro[i])) %>% 
     select(-Fxx)
@@ -222,7 +224,7 @@ order_retro <- SB %>%
   distinct(retro) %>% 
   mutate(order_retro = factor(order(nchar(retro), retro), ordered = TRUE))
 
-# Function plots and saves retrospective plot (including traditoinal
+# Function plots and saves retrospective plot (including traditional
 # retrospective plot plus another that shows relative % diff between peel and
 # terminal year estimate per Clark et al 2012), also calculates AFSC Mohn's Rho
 make_retro <- function(df, y, min_year, y_lab, plot_lab) {
@@ -269,15 +271,15 @@ make_retro <- function(df, y, min_year, y_lab, plot_lab) {
                  left_join(df),
                aes(x = year, y = !!y, col = order_retro)) +
     scale_colour_grey(guide = FALSE) +
-    geom_text(aes(x = min_year + 3,
+    geom_text(aes(x = min_year + 6,
                   y = df %>%
                     ungroup() %>%
                     dplyr::summarize(txt_y = 0.9 * max(!!y)) %>%
                     pull(txt_y), label = rho_txt),
               colour = "black", parse = TRUE, family = "Times New Roman") +
     labs(x = NULL, y = y_lab) +
-    scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
-    theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
+    scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
+    # theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
 
   # Percent difference plot
   p2 <- ggplot(df) +
@@ -292,8 +294,8 @@ make_retro <- function(df, y, min_year, y_lab, plot_lab) {
                aes(x = year, y = diff, col = order_retro)) +
     scale_color_grey(guide = FALSE) +
     labs(x = NULL, y = "Percent change\nfrom terminal year") +
-    scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
-    theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
+    scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
+    # theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
 
   cowplot::plot_grid(p1, p2, align = "hv", nrow = 2) -> retro_plot
 
