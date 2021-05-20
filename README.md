@@ -5,6 +5,14 @@ Jane Sullivan (jane.sullivan1@alaska.gov, ummjane@gmail.com) or Rhea Ehresmann (
 
 Last updated: June 2020
 
+## Reports
+
+2020 forecast: http://www.adfg.alaska.gov/FedAidPDFs/RIR.5J.2020.05.pdf.
+
+2019 forecast: http://www.adfg.alaska.gov/FedAidPDFs/RIR.5J.2019.03.pdf.
+
+The 2017, 2018, and 2019 forecasts were developed as reproducible research projects in `RMarkdown` and found under `text/`(https://github.com/commfish/seak_sablefish/tree/master/text).
+
 ## Fishery development and history 
 
 *History for NSEI and SSEI fisheries modified from a recent Board of Fish Report*
@@ -102,12 +110,6 @@ The analyses underpinning the current stock assessment are found in [`r/`](https
 14.  [`ageing_error_matrix.r`](https://github.com/commfish/seak_sablefish/blob/master/r/ageing_error_matrix.R): old code from Kray Van Kirk (previous biometrician) that may be useful when developing an updated ageing error matrix.
 
 The [`.cpp file`](https://github.com/commfish/seak_sablefish/blob/master/tmb/scaa_mod.cpp) for the SCAA model is found in `tmb/` folder.
-
-## Reports
-
-The 2018 and 2019 NSEI stock assessments and preliminary statistical catch-at-age model were developed as reproducible research projects in `RMarkdown` and found under `text/`(https://github.com/commfish/seak_sablefish/tree/master/text).
-
-The 2019 assessment is also available as a Regional Information Report (http://www.adfg.alaska.gov/FedAidPDFs/RIR.5J.2019.03.pdf)
 
 ## Session Info
 
