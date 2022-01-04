@@ -662,7 +662,8 @@ grades <- data.frame(
                                             .method = "unique",
                                             .ordered = TRUE),
                       # For plotting purposes (alternating grey and white panels)
-                      plot_cde = ifelse(grade %in% c('No grade', 'Grade 2/3', 'Grade 4/5', 'Grade 7+'), "0", "1")), by = "kg") %>% # 
+                      plot_cde = ifelse(grade %in% c('No grade', 'Grade 2/3', 'Grade 4/5', 'Grade 7+'), "0", "1")), by = "kg") %>% 
+  arrange(kg) %>%
   # set p = 1 for all large fish, interpolate p's using a cubic spline across
   # smaller sizes
   arrange(kg) %>% 
