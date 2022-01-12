@@ -33,7 +33,7 @@
 # catch - varies between whole_pounds or whole_kg depending on what its being used for
 
 # most recent year of data
-YEAR <- 2020
+YEAR <- 2021
 
 # Load ----
 source("r/helper.R")
@@ -43,6 +43,7 @@ source("r/helper.R")
 # Harvest from IFDB - what managers are using. This only includes directed NSEI
 # harvest (harvest_code = 43 is test fish)
 
+#JANE's CODE
 read_csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
                 YEAR, ".csv"), 
          guess_max = 500000) %>% 
@@ -55,18 +56,39 @@ read_csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
          # WHOLE_POUNDS is not populated prior to 1985. Here we assume fish were
          # delivered whole prior to 1985, because that's the best we have.
          whole_pounds = ifelse(ROUND_POUNDS == 0, POUNDS, ROUND_POUNDS)) %>% 
-  select(year = YEAR, date, julian_day, Mgmt_area = G_MANAGEMENT_AREA_CODE, Stat = G_STAT_AREA,
+  select(year = ï..YEAR, #YEAR, 
+         date, julian_day, Mgmt_area = G_MANAGEMENT_AREA_CODE, Stat = G_STAT_AREA,
+         Adfg = ADFG_NO, trip_no = TRIP_NO, sell_date, Vessel = VESSEL_NAME, Port = PORT_CODE,  
+         Cfec_permit = G_CFEC_FISHERY, Delivery_cde = DELIVERY_CODE, 
+         Harvest = HARVEST, Harvest_cde = HARVEST_CODE, Spp_cde = SPECIES_CODE, 
+         whole_pounds, 
+         pounds = POUNDS) %>% 
+  mutate(Stat = as.character(Stat),
+         Harvest_cde = as.character(Harvest_cde)) -> ifdb_catch
+
+#PHIL's CODE 2021
+Dat<-read.csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
+                     YEAR, ".csv"))
+ifdb_catch<-Dat %>% 
+  mutate(date = ymd(parse_date_time(CATCH_DATE, c("%Y-%m-%d %H:%M:%S"))), #ISO 8601 format
+         julian_day = yday(date),
+         sell_date = ymd(parse_date_time(SELL_DATE, c("%Y-%m-%d %H:%M:%S"))),
+         whole_pounds = ifelse(ROUND_POUNDS == 0, POUNDS, ROUND_POUNDS)) %>% 
+  select(year = ï..YEAR, date, julian_day, Mgmt_area = G_MANAGEMENT_AREA_CODE, Stat = G_STAT_AREA,
          Adfg = ADFG_NO, trip_no = TRIP_NO, sell_date, Vessel = VESSEL_NAME, Port = PORT_CODE,  
          Cfec_permit = G_CFEC_FISHERY, Delivery_cde = DELIVERY_CODE, 
          Harvest = HARVEST, Harvest_cde = HARVEST_CODE, Spp_cde = SPECIES_CODE, 
          whole_pounds, pounds = POUNDS) %>% 
   mutate(Stat = as.character(Stat),
-         Harvest_cde = as.character(Harvest_cde)) -> ifdb_catch
+         Harvest_cde = as.character(Harvest_cde))
 
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
 read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"),
          guess_max = 50000) -> past_catch
+#PJ patch2021
+ifdb_catch$Adfg<-as.character(past_catch$Adfg)
+ifdb_catch$Delivery_cde<-as.character(past_catch$Delivery_cde)
 
 bind_rows(past_catch, ifdb_catch) -> ifdb_catch
 
@@ -144,6 +166,7 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
 # codes > 3. I repulled all the data in 2019. Kevin McNeel (Age Determination
 # Unit) 20190116: only code 1-3 should be used for analyses (see Issue #33)
 
+#JANES' Code: 
 read_csv(paste0("data/fishery/raw_data/fishery_bio_", 
                 YEAR, ".csv"), 
          guess_max = 50000) %>% 
@@ -164,6 +187,34 @@ read_csv(paste0("data/fishery/raw_data/fishery_bio_",
          length = LENGTH, weight = WEIGHT_KILOGRAMS,
          age = AGE, Sex, Maturity) %>% 
   mutate(Adfg = as.character(Adfg)) -> fsh_bio
+
+#PHIL's code:
+#no pot survey this go around
+#also stupid dates... had to go about it a bit different;y
+read_csv(paste0("data/fishery/raw_data/fishery_bio_", 
+                YEAR, ".csv"), 
+         guess_max = 50000) %>% 
+  mutate(date = format(parse_date_time(SELL_DATE, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d"), #ISO 8601 format
+         julian_day = yday(date),
+         Sex = derivedFactor("Male" = SEX_CODE == "01",
+                             "Female" = SEX_CODE == "02",
+                             .default = NA),
+         Maturity = derivedFactor("0" = MATURITY_CODE %in% c("01", "02"), 
+                                  "1" = MATURITY_CODE %in% c("03", "04", "05", "06", "07"),
+                                  .default = NA),
+         Gear = "Longline") %>% #,
+  select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, 
+         Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
+         Stat = G_STAT_AREA, Mgmt_area = G_MANAGEMENT_AREA_CODE,
+         Sample_type = SAMPLE_TYPE, Spp_cde = SPECIES_CODE, 
+         length = LENGTH, weight = WEIGHT_KILOGRAMS,
+         age = AGE, Sex, Maturity) %>% 
+  mutate(Adfg = as.character(Adfg)) -> fsh_bio
+
+fsh_bio$date<-as.Date(fsh_bio$date)
+fsh_bio$Sex<-as.character(fsh_bio$Sex)
+fsh_bio$Maturity<-as.character(fsh_bio$Maturity)
+fsh_bio$Project_cde<-as.character(fsh_bio$Project_cde)
 
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017). This was updated again in 2019 due to the
@@ -242,6 +293,8 @@ write_csv(srv_eff, paste0("data/survey/llsrv_cpue_v2_", min(srv_eff$year), "_",
 # that was used. Jane found out about this false assumption during the 2019 longline
 # survey.
 
+#PJ: new data set (1/22) is 01-21, will need to download two data sets, get rid of redundancies 
+# and bind together to get 88-21...
 read_csv(paste0("data/survey/raw_data/llsrv_by_condition_1988_", YEAR, ".csv"), 
          guess_max = 50000) %>% 
   filter(YEAR <= YEAR) %>%
@@ -320,6 +373,7 @@ write_csv(srv_bio, paste0("data/survey/llsrv_bio_",
 # Updated query 20200124 to include project code = 66, the experimental code
 # used for the 2019 (and 2020) escape ring studies
 
+#PJ: No new pot survey in 21 so skip the new file here and just pull the '20 file 
 read_csv(paste0("data/survey/raw_data/potsrv_bio_", YEAR, ".csv"), 
          guess_max = 50000) %>% #filter(!is.na(TIME_FIRST_BUOY_ONBOARD)) %>% pull(TIME_FIRST_BUOY_ONBOARD)
   mutate(date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
@@ -366,6 +420,7 @@ write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
 # Updated query 20200124 to include project code = 66, the experimental code
 # used for the 2019 (and 2020) escape ring studies
 
+#PJ: no new tag releases in 2021 so this tep skipped in '22 analysis (thru '21 data)
 read_csv(paste0("data/survey/raw_data/tag_releases_",
                        YEAR, ".csv"), 
          guess_max = 50000) %>% #pull(TIME_SECOND_ANCHOR_OVERBOARD)
