@@ -44,6 +44,7 @@ source("r/helper.R")
 # harvest (harvest_code = 43 is test fish)
 
 #JANE's CODE
+{
 read_csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
                 YEAR, ".csv"), 
          guess_max = 500000) %>% 
@@ -65,7 +66,7 @@ read_csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
          pounds = POUNDS) %>% 
   mutate(Stat = as.character(Stat),
          Harvest_cde = as.character(Harvest_cde)) -> ifdb_catch
-
+}
 #PHIL's CODE 2021
 Dat<-read.csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
                      YEAR, ".csv"))
@@ -87,8 +88,8 @@ ifdb_catch<-Dat %>%
 read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"),
          guess_max = 50000) -> past_catch
 #PJ patch2021
-ifdb_catch$Adfg<-as.character(past_catch$Adfg)
-ifdb_catch$Delivery_cde<-as.character(past_catch$Delivery_cde)
+ifdb_catch$Adfg<-as.character(ifdb_catch$Adfg)
+ifdb_catch$Delivery_cde<-as.character(ifdb_catch$Delivery_cde)
 
 bind_rows(past_catch, ifdb_catch) -> ifdb_catch
 
@@ -167,6 +168,7 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
 # Unit) 20190116: only code 1-3 should be used for analyses (see Issue #33)
 
 #JANES' Code: 
+{
 read_csv(paste0("data/fishery/raw_data/fishery_bio_", 
                 YEAR, ".csv"), 
          guess_max = 50000) %>% 
@@ -187,7 +189,7 @@ read_csv(paste0("data/fishery/raw_data/fishery_bio_",
          length = LENGTH, weight = WEIGHT_KILOGRAMS,
          age = AGE, Sex, Maturity) %>% 
   mutate(Adfg = as.character(Adfg)) -> fsh_bio
-
+}
 #PHIL's code:
 #no pot survey this go around
 #also stupid dates... had to go about it a bit different;y
@@ -202,13 +204,13 @@ read_csv(paste0("data/fishery/raw_data/fishery_bio_",
          Maturity = derivedFactor("0" = MATURITY_CODE %in% c("01", "02"), 
                                   "1" = MATURITY_CODE %in% c("03", "04", "05", "06", "07"),
                                   .default = NA),
-         Gear = "Longline") %>% #,
+         Gear = "Longline") %>% #, 
   select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, 
          Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
          Stat = G_STAT_AREA, Mgmt_area = G_MANAGEMENT_AREA_CODE,
          Sample_type = SAMPLE_TYPE, Spp_cde = SPECIES_CODE, 
          length = LENGTH, weight = WEIGHT_KILOGRAMS,
-         age = AGE, Sex, Maturity) %>% 
+         age = AGE, Sex, Maturity) %>%   #note; Jane not factoring gear into this piece of data... 
   mutate(Adfg = as.character(Adfg)) -> fsh_bio
 
 fsh_bio$date<-as.Date(fsh_bio$date)
@@ -257,6 +259,8 @@ write_csv(fsh_bio, paste0("data/fishery/fishery_bio_",
 # number_hooks, bare, bait, invalid, sablefish, 
 # subset_condition_code, trip_comments, trip_design_comment, effort_comment, subset_comments
 
+#JANE's 2020 CODE
+{
 read_csv(paste0("data/survey/raw_data/llsrv_cpue_v2_1985_",
                           YEAR, ".csv"), 
          guess_max = 50000) %>% 
@@ -265,6 +269,32 @@ read_csv(paste0("data/survey/raw_data/llsrv_cpue_v2_1985_",
          julian_day = yday(date),
          time1 = ymd_hms(parse_date_time(TIME_FIRST_ANCHOR_ONBOARD, c("%m/%d/%y %H:%M:%S %p"))),
          time2 = ymd_hms(parse_date_time(TIME_SECOND_ANCHOR_OVERBOARD, c("%m/%d/%y %H:%M:%S %p"))),
+         soak = difftime(time1, time2,
+                         units = "hours"),
+         slope = abs(START_DEPTH_FATHOMS - END_DEPTH_FATHOMS) * 1.8288, # slope of the set
+         depth = AVG_DEPTH_FATHOMS * 1.8288) %>% # depth in meters
+  select(year = YEAR, Project_cde = PROJECT_CODE, Adfg = ADFG_NO, Vessel = VESSEL_NAME, 
+         Station_no = STATION_NO, trip_no = TRIP_NO, set = EFFORT_NO, skate = SUBSET_NO,
+         date, julian_day, soak, depth, slope,
+         Stat = G_STAT_AREA, area_description = AREA_DESCRIPTION,
+         start_lat = START_LATITUDE_DECIMAL_DEGREES, start_lon = START_LONGITUDE_DECIMAL_DEGREE, 
+         end_lat = END_LATITUDE_DECIMAL_DEGREES, end_lon = END_LONGITUDE_DECIMAL_DEGREES,
+         skate_condition_cde = SUBSET_CONDITION_CODE, bait_cde = BAIT_CODE, 
+         trip_comments = TRIP_COMMENTS, set_comments = EFFORT_COMMENT, skate_comments = SUBSET_COMMENTS,
+         no_hooks = NUMBER_HOOKS, bare = BARE, bait = BAIT, invalid = INVALID, 
+         sablefish = SABLEFISH, halibut = HALIBUT, idiot = IDIOT, 
+         shortraker = SHORTRAKER, rougheye = ROUGHEYE, skate_general = SKATE_GENERAL,
+         longnose_skate = SKATE_LONGNOSE, big_skate = SKATE_BIG, sleeper_shark = SLEEPER_SHARK) -> srv_eff
+}
+#PHIL's 2021 CODE
+read_csv(paste0("data/survey/raw_data/llsrv_cpue_v2_1985_",
+                YEAR, ".csv"), 
+         guess_max = 50000) %>% 
+  filter(YEAR <= YEAR) %>%
+  mutate(date = as.Date(format(parse_date_time(TIME_SECOND_ANCHOR_OVERBOARD, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d")), #ISO 8601 format
+         julian_day = yday(date),
+         time1 = ymd_hms(parse_date_time(TIME_FIRST_ANCHOR_ONBOARD, c("%Y-%m-%d %H:%M:%S"))),
+         time2 = ymd_hms(parse_date_time(TIME_SECOND_ANCHOR_OVERBOARD, c("%Y-%m-%d %H:%M:%S"))),
          soak = difftime(time1, time2,
                          units = "hours"),
          slope = abs(START_DEPTH_FATHOMS - END_DEPTH_FATHOMS) * 1.8288, # slope of the set
@@ -293,12 +323,12 @@ write_csv(srv_eff, paste0("data/survey/llsrv_cpue_v2_", min(srv_eff$year), "_",
 # that was used. Jane found out about this false assumption during the 2019 longline
 # survey.
 
-#PJ: new data set (1/22) is 01-21, will need to download two data sets, get rid of redundancies 
-# and bind together to get 88-21...
+#JANE's 2020 with PHIL's 2021 MODCODE
 read_csv(paste0("data/survey/raw_data/llsrv_by_condition_1988_", YEAR, ".csv"), 
          guess_max = 50000) %>% 
   filter(YEAR <= YEAR) %>%
-  mutate(date = ymd(as.Date(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%m/%d/%Y %H:%M:%S %p")))), # ISO 8601 format
+  mutate(date = as.Date(format(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d")),
+#  mutate(date = ymd(as.Date(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%m/%d/%Y %H:%M:%S %p")))), # ISO 8601 format
          julian_day = yday(date)) %>% 
   select(year = YEAR, Project_cde = PROJECT_CODE, 
          trip_no = TRIP_NO, Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, 
@@ -325,7 +355,8 @@ write_csv(srv_eff, paste0("data/survey/llsrv_by_condition_",
 read_csv(paste0("data/survey/raw_data/llsrv_bio_", 
                 YEAR, ".csv"), 
          guess_max = 50000) %>% 
-  mutate(date = date(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%m/%d/%Y %H:%M:%S %p"))), #ISO 8601 format 
+  mutate(date = date(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%Y-%m-%d %H:%M:%S"))), #ISO 8601 format
+#  mutate(date = date(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%m/%d/%Y %H:%M:%S %p"))), #ISO 8601 format 
          julian_day = yday(date),
          Sex = derivedFactor("Male" = SEX_CODE == "01",
                              "Female" = SEX_CODE == "02",
@@ -373,7 +404,11 @@ write_csv(srv_bio, paste0("data/survey/llsrv_bio_",
 # Updated query 20200124 to include project code = 66, the experimental code
 # used for the 2019 (and 2020) escape ring studies
 
-#PJ: No new pot survey in 21 so skip the new file here and just pull the '20 file 
+#PJ: No new pot survey in 21 so skip the new file here and just pull the '20 file
+# UNBLOCK THIS CODE IN 2023 when adding 2022 data! 
+#can skip whole section in 22 analysis of 21 data since 21 analysis of 20 data has everything processed
+#already in file: potsrv_bio_1981_2020
+{
 read_csv(paste0("data/survey/raw_data/potsrv_bio_", YEAR, ".csv"), 
          guess_max = 50000) %>% #filter(!is.na(TIME_FIRST_BUOY_ONBOARD)) %>% pull(TIME_FIRST_BUOY_ONBOARD)
   mutate(date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
@@ -393,11 +428,13 @@ read_csv(paste0("data/survey/raw_data/potsrv_bio_", YEAR, ".csv"),
          age_readability = AGE_READABILITY_CODE, tag_no = TAG_NO, 
          discard_status = DISCARD_STATUS, release_condition_cde = RELEASE_CONDITION_CODE )  -> pot_bio
 
+
+#PJ NOTE: Date column corrupted.  Not used in analysis and just need year? 
 read_csv(paste0("data/survey/potsrv_bio_1981_", YEAR-1, ".csv"), 
          guess_max = 50000) %>% 
   mutate(Maturity = as.character(Maturity)) -> past_pot_bio
 
-bind_rows(past_pot_bio, pot_bio) -> pot_bio
+bind_rows(past_pot_bio, pot_bio) -> pot_bio   #no new data in 21 so skipped in 22 analysis; unblock in 23 when new 22 data
 
 # Ages for the pot data are sparse anyway but remove any age readability codes
 # that aren't 01, 02, or 03 (same as llsrv and llfsh 20200124 #33)
@@ -405,6 +442,7 @@ filter(pot_bio, is.na(age_readability) | age_readability %in% c('01', '02', '03'
 
 write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
                           min(pot_bio$year), "_", max(pot_bio$year), ".csv"))
+}
 
 # 8. Tag releases ----
 
@@ -420,7 +458,9 @@ write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
 # Updated query 20200124 to include project code = 66, the experimental code
 # used for the 2019 (and 2020) escape ring studies
 
-#PJ: no new tag releases in 2021 so this tep skipped in '22 analysis (thru '21 data)
+#PJ: no new tag releases in 2021 so this step skipped in '22 analysis (thru '21 data)
+# open this up in 23 when new 22 data entered ... 
+{
 read_csv(paste0("data/survey/raw_data/tag_releases_",
                        YEAR, ".csv"), 
          guess_max = 50000) %>% #pull(TIME_SECOND_ANCHOR_OVERBOARD)
@@ -433,16 +473,20 @@ read_csv(paste0("data/survey/raw_data/tag_releases_",
          Stat = STAT, Mgmt_area = MANAGEMENT_AREA, length = LENGTH, tag_no = TAG_NO, tag_batch_no = TAG_BATCH_NO, 
          release_condition_cde = RELEASE_CONDITION_CODE, discard_status = DISCARD_STATUS,
          comments = COMMENTS) -> tag_releases
-
+}
 # Data queried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
 read_csv(paste0("data/survey/tag_releases_2003_", YEAR-1, ".csv"), 
          guess_max = 50000) -> past_releases
-
+#for 2022 analysis
+{
 bind_rows(past_releases, tag_releases) -> tag_releases
 
 write_csv(tag_releases, paste0("data/survey/tag_releases_",
                                min(tag_releases$year), "_", max(tag_releases$year), ".csv"))
+}
+#this line just for 22 analysis bc no new 21 data
+tag_releases<-past_releases
 
 # Exploratory total number of marks
 tag_releases %>% group_by(year, tag_batch_no) %>% dplyr::summarise(n_distinct(tag_no))
@@ -461,6 +505,8 @@ tag_releases %>% group_by(year, discard_status) %>% dplyr::summarise(n_distinct(
 # batch_no's to the tag_releases. Also includes recapture lengths (careful to
 # only use sampler lengths)
 
+#JANE's 2021 Code... data not working with NA's in 2022 so see Phil's code below
+{
 read_csv(paste0("data/fishery/raw_data/tag_recoveries_",
                 YEAR, ".csv"), 
          guess_max = 50000) %>% #pull(CATCH_DATE)
@@ -474,6 +520,22 @@ read_csv(paste0("data/fishery/raw_data/tag_recoveries_",
          Stat = G_STAT_AREA, length = LENGTH, tag_no = TAG_NO, tag_batch_no = TAG_BATCH_NO, 
          measurer_type = MEASURER_TYPE, info_source = INFORMATION_SOURCE, returned_by = TAG_RETURNED_BY_TYPE,
          comments = COMMENTS) -> tag_recoveries
+}
+#PHIL's 2022 CODE
+Dat<-read.csv(paste0("data/fishery/raw_data/tag_recoveries_",
+                     YEAR, ".csv"))
+tag_recoveries<-Dat %>%   
+  mutate(landing_date = as.Date(format(parse_date_time(LANDING_DATE, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d")),
+         landing_julian_day = yday(landing_date),
+         catch_date = as.Date(format(parse_date_time(CATCH_DATE, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d")), #ISO 8601 format 
+         catch_julian_day = yday(catch_date),
+         TAG_NO=ï..TAG_NO)%>%
+  select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, landing_date, landing_julian_day,
+         catch_date, catch_julian_day, Stat = G_STAT_AREA, Mgmt_area = G_MANAGEMENT_AREA_CODE,
+         Stat = G_STAT_AREA, length = LENGTH, tag_no = TAG_NO, tag_batch_no = TAG_BATCH_NO, 
+         measurer_type = MEASURER_TYPE, info_source = INFORMATION_SOURCE, returned_by = TAG_RETURNED_BY_TYPE,
+         comments = COMMENTS)
+tag_recoveries$Project_cde<-as.character(tag_recoveries$Project_cde)
 
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
