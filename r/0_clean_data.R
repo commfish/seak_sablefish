@@ -127,36 +127,40 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
 # information on sets designated as halibut targets. Note that it is missing
 # effort_no's (effort_no's = individual sets).
 
-# read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
+ read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
 #                 max(fsh_eff$YEAR), ".csv"), 
-#          guess_max = 50000) %>% 
+                 YEAR, ".csv"), 
+          guess_max = 50000) %>% 
 #   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
 #   # hooks and cpue
-#   mutate(date = ymd(as.Date(TIME_SET)), #ISO 8601 format
-#          julian_day = yday(date),
-#          soak = difftime(TIME_HAULED, TIME_SET, units = "hours"),
-#          Gear = factor(LONGLINE_SYSTEM_CODE),
-#          Hook_size = as.character(HOOK_SIZE), 
-#          hook_space = HOOK_SPACING, #*FLAG* - check that hook_space is in inches
-#          Size = factor(as.numeric(gsub("[^0-9]", "", Hook_size))),
-#          no_hooks = NUMBER_OF_HOOKS,
-#          sable_lbs_set = SABLE_LBS_PER_SET) %>% 
-#   select(year = YEAR, trip_no = TRIP_NO, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
-#          soak, Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, 
-#          hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
-#          sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
-#          start_lon = START_LONGITUDE_DECIMAL_DEGREE) -> fsh_eff
+   mutate(date = ymd(as.Date(TIME_SET)), #ISO 8601 format
+          julian_day = yday(date),
+          soak = difftime(TIME_HAULED, TIME_SET, units = "hours"),
+          Gear = factor(LONGLINE_SYSTEM_CODE),
+          Hook_size = as.character(HOOK_SIZE), 
+          hook_space = HOOK_SPACING, #*FLAG* - check that hook_space is in inches
+          Size = factor(as.numeric(gsub("[^0-9]", "", Hook_size))),
+          no_hooks = NUMBER_OF_HOOKS,
+          sable_lbs_set = SABLE_LBS_PER_SET) %>% 
+   select(year = YEAR, trip_no = TRIP_NO, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
+          soak, Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, 
+          hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
+          sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
+          start_lon = START_LONGITUDE_DECIMAL_DEGREE) -> fsh_eff
 # 
 # # Data quieried before (that way you're using the same data that was used for
 # # the assessment, starting in 2017)
 # read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR-1, ".csv"), 
-#          guess_max = 50000) %>% 
-#   mutate(Size = as.character(Size)) -> past_fsh_eff
-# 
-# bind_rows(past_fsh_eff, fsh_eff) -> fsh_eff
-# 
-# write_csv(fsh_eff, paste0("data/fishery/fishery_cpue_",
-#                    min(fsh_eff$year), "_", max(fsh_eff$year), ".csv"))
+ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR-2, ".csv"), 
+          guess_max = 50000) %>% 
+   mutate(Size = as.character(Size)) -> past_fsh_eff
+ 
+ fsh_eff$soak<-as.numeric(fsh_eff$soak)
+ 
+ bind_rows(past_fsh_eff, fsh_eff) -> fsh_eff
+ 
+ write_csv(fsh_eff, paste0("data/fishery/fishery_cpue_",
+                    min(fsh_eff$year), "_", max(fsh_eff$year), ".csv"))
 
 # 3. Fishery biological ----
 

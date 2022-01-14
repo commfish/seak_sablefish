@@ -1,5 +1,8 @@
-
-
+#################################################################################
+## January 2022
+## Phil's scrap code for sussing out 0_clean_data.R
+#################################################################################
+#1) 
 Dat<-read.csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
                      YEAR, ".csv"))
 head(Dat)
@@ -41,8 +44,31 @@ read_csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
 
 str(past_catch,5)
 str(ifdb_catch,5)
-
+#=============================================================================================
+#2) 
+ read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
+                 YEAR, ".csv"), 
+          guess_max = 50000) %>% 
+   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
+   # hooks and cpue
+   mutate(date = ymd(as.Date(TIME_SET)), #ISO 8601 format
+          julian_day = yday(date),
+          soak = difftime(TIME_HAULED, TIME_SET, units = "hours"),
+          Gear = factor(LONGLINE_SYSTEM_CODE),
+          Hook_size = as.character(HOOK_SIZE), 
+          hook_space = HOOK_SPACING, #*FLAG* - check that hook_space is in inches
+          Size = factor(as.numeric(gsub("[^0-9]", "", Hook_size))),
+          no_hooks = NUMBER_OF_HOOKS,
+          sable_lbs_set = SABLE_LBS_PER_SET) %>% 
+   select(year = YEAR, trip_no = TRIP_NO, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
+          soak, Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, 
+          hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
+          sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
+          start_lon = START_LONGITUDE_DECIMAL_DEGREE) -> fsh_eff
+str(fsh_eff); unique(fsh_eff$year)
+str(past_fsh_eff)
 #================================================================================================
+#3)
 Dat<-read.csv(paste0("data/fishery/raw_data/fishery_bio_", 
                      YEAR, ".csv"))
 #
