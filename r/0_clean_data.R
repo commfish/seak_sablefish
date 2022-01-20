@@ -408,6 +408,8 @@ write_csv(srv_bio, paste0("data/survey/llsrv_bio_",
 # Updated query 20200124 to include project code = 66, the experimental code
 # used for the 2019 (and 2020) escape ring studies
 
+#Codes
+
 #PJ: No new pot survey in 21 so skip the new file here and just pull the '20 file
 # UNBLOCK THIS CODE IN 2023 when adding 2022 data! 
 #can skip whole section in 22 analysis of 21 data since 21 analysis of 20 data has everything processed

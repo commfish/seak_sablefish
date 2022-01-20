@@ -17,7 +17,7 @@ source("r/helper.r")
 source("r/functions.r")
 if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
-YEAR <- 2020 # most recent year of data
+YEAR <- 2021 # most recent year of data
 
 # VERSION 2 (2020): ----
 
@@ -33,18 +33,40 @@ srv_cpue <- read_csv(paste0("data/survey/llsrv_cpue_v2_1985_", YEAR, ".csv"),
 
 # Checks
 srv_cpue %>% filter(skate_condition_cde != "02") %>% 
-  distinct(skate_comments) #%>% View() # any red flags?
+  distinct(skate_comments) #%>% View() # any red flags? #2021: Yes, maybe... lets look
 
+#Phil's checks 2021...
+valid<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
+  distinct(skate_comments) #%>% View() # any red flags? #2021: Yes, maybe... lets look
+sharks<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
+  filter(grepl("shark",skate_comments)) %>% View()
+snarl<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
+  filter(grepl("snarl",skate_comments)) %>% View()
+valid2<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
+  distinct(skate_comments) %>%
+  filter(!grepl("shark",skate_comments)) %>% 
+  filter(!grepl("snarl",skate_comments))
+
+nrow(sharks)
+nrow(snarl)
+nrow(valid2)
+nrow(valid)
+
+#Jane's check
 srv_cpue %>% filter(skate_condition_cde != "02") %>% 
-  distinct(set_comments) #%>% View() # any red flags?
+  distinct(set_comments) %>% View() # any red flags?
 
 srv_cpue %>% filter(no_hooks < 0)
 srv_cpue %>% filter(year >= 1997 & c(is.na(no_hooks) | no_hooks == 0)) # there should be none
 
+#Phil's 2021 checks...
+sharks2<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
+  filter(grepl("shark",set_comments)) %>% View()
+
 # This should be none. these are data entry errors I used a hard code fix, sent
 # error to Rhea and Aaron 20200205 to fix in database. As of 2021 it was still
 # an issue.
-srv_cpue %>% filter(end_lon > 0 | start_lon > 0) #View() 
+srv_cpue %>% filter(end_lon > 0 | start_lon > 0) # %>% View() 
 srv_cpue <- srv_cpue %>%  mutate(end_lon = ifelse(end_lon > 0, -1 * end_lon, end_lon))
 
 # There should be none, sent error to Rhea and Aaron 20200205 to fix in database
@@ -86,7 +108,7 @@ srv_cpue  %>%
          # documented in the comments
          clotheslined = ifelse(grepl("clotheslined|Clotheslined", skate_comments) | 
                                  grepl("clotheslined|Clotheslined", set_comments), 1, 0),
-         shark = ifelse(grepl("sleeper|Sleeper|shark|sharks", skate_comments) | 
+         shark = ifelse(grepl("sleeper|Sleeper|shark|sharks|slleepers", skate_comments) | 
                           grepl("sleeper|Sleepershark|sharks", set_comments), 1, 
                         ifelse(sleeper_shark > 0, 1, 0))) %>% 
   rename(shortspine_thornyhead = idiot) -> srv_cpue
@@ -232,11 +254,11 @@ ggsave(paste0("figures/npue_llsrv_stat_", YEAR, ".png"),
 if(!require("TMB"))   install.packages("TMB") 
 if(!require("VAST"))   install.packages("VAST") 
 
-sampling_data <- sable %>% 
+sampling_data <- sable %>%    #could include sope, depth, soak as covariates...? 
   ungroup() %>% 
   distinct(set_cpue, year, Adfg, end_lat, end_lon) %>% 
   select(Catch_KG = set_cpue, Year = year, Vessel = Adfg, Lat = end_lat, Lon = end_lon) %>% 
-  mutate(AreaSwept_km2 = 1) %>% 
+  mutate(AreaSwept_km2 = 1) %>%   #areaswept = 1 because its longline (i.e., not trawl survey)
   as.data.frame()
 
 strata.limits <- data.frame(STRATA = "All_areas")
@@ -245,12 +267,23 @@ example <- list(sampling_data = sampling_data,
                   Region = "other",
                   strata.limits = strata.limits)
 
-settings = make_settings(n_x = 100, # number of knots
-                         ObsModel = c(1, 3), 
+settings = make_settings(n_x = 100, # number of knots; set at 100 by JANE
+                         ObsModel = c(1, 3), #distribution for data and link-func for linear predictors; [1]=1=lognormal
+                                             # c("PosDist"=[Make Choice], "Link"=0); ObsMode[1]<-PDF
+                                             # ObsModel[2] set to 3 small # years with 100% encounter rate... 
+                                             #VAST checks species-years combos with 100%
+                                             #fixes corresponding intercepts for enc prob to a very high value
+                                             #why not ObsModel_ez
                          FieldConfig = c("Omega1" = 0, "Epsilon1" = 0, "Omega2"=1, "Epsilon2"=1),
+                         RhoConfig = c("Beta1"=0, "Beta2"=0, "Epsilon1"=0, "Epsilon2"=0), #default is 0's for all
+                         #Omega= spatial, eps=spat-temp
+                         #1 and 2 are linear predictors
+                         #so Jane ignores linear predictor 1... which is..?
                          Region = example$Region, 
-                         purpose = "index", 
+                         purpose = "index2", #make an index for a stock assessment
+                                            #2021 author recomends changing index to index2
                          strata.limits = example$strata.limits, 
+                         fine_scale = TRUE,
                          bias.correct = TRUE)
 
 # Run model
@@ -259,18 +292,32 @@ fit = fit_model( "settings" = settings,
                  "Lon_i" = example$sampling_data[, 'Lon'], 
                  "observations_LL" = example$sampling_data[, c('Lat', 'Lon')],
                  "t_i" = example$sampling_data[, 'Year'],
-                 "c_i" = rep(0, nrow(example$sampling_data)), 
+                 "c_i" = rep(0, nrow(example$sampling_data)), #???category... so just one for this
                  "b_i" = example$sampling_data[, 'Catch_KG'], 
                  "a_i" = example$sampling_data[, 'AreaSwept_km2'], 
-                 "v_i" = example$sampling_data[, 'Vessel'],
+                 "v_i" = example$sampling_data[, 'Vessel'],    #vessel effect; overdispersion...
                  "projargs" = "+proj=utm +zone=4 +units=km",
                  "newtonsteps" = 0 # prevent final newton step to decrease mgc score
 )
 
 plot(fit)
+Index<-read.csv("Index.csv")
+
+##lack of convergence and construction of model kind of indicates that VAST may not be best approach
+## to Chatham Sablefish.  Survey is set up to catch fish at all stations, so not really a random
+## survey because it targets the fishery... 
 
 ?fit_model
 ?make_settings
+?VAST::make_data
+
+str(fit)
+fit$parameter_estimates
+fit$extrapolation_list
+fit$spatial_list
+fit$Report
+fit$ParHat
+
 
 # GAM CPUE standardization explorations ----
 
@@ -304,7 +351,7 @@ mod0 <- bam(set_cpue ~ s(soak, k = 4) + s(depth, k = 4) + s(slope, k = 4) +
               te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
             data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE,
             subset = soak < 10 & slope < 300 & bait < 900)
-
+       #s = smooth; te = ??
 summary(mod0)
 anova(mod0)
 print(plot(getViz(mod0), allTerms = TRUE) + l_fitRaster() + l_fitContour() + 
@@ -460,3 +507,4 @@ ggplot(hk_stand, aes(x = no_hooks, y = std_hooks, col = factor(hook_space))) +
   scale_x_continuous(breaks = seq(0, 15000, by = 1000)) +
   scale_y_continuous(breaks = seq(0, 15000, by = 1000)) +
   geom_abline(slope = 1, col = "red", linetype = 2) 
+
