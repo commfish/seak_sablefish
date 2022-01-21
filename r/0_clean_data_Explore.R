@@ -42,7 +42,7 @@ catplot<-function(dat,var){  #dat<-fish.bio     var<-"Sex"
   }
 }
 ##############################################################
-
+#3) Fishery Bio
 fish.bio<-read.csv("data/fishery/fishery_bio_2000_2021.csv")
 str(fish.bio)
 view(fish.bio)
@@ -70,6 +70,7 @@ catplot(fish.bio,"Sex")
 catplot(fish.bio,"Maturity")
 
 #================================================================================
+#
 tagaccount<-read.csv("data/fishery/nsei_daily_tag_accounting_2004_2020.csv")
 str(tagaccount)
 view(tagaccount)
@@ -111,7 +112,7 @@ for (y in ys){   #y<-ys[10]
 }
 
 #======================================================================
-# Harvest Data
+# 1) Harvest Data
 harvest<-read.csv("data/fishery/nseiharvest_ifdb_1985_2021.csv")
 str(harvest)
 ys<-unique(harvest$year)
@@ -131,9 +132,61 @@ for (i in ys){
   dy<-dy[order(dy$julian_day),]
   plot(dy$whole_pounds~dy$julian_day, type="l")
 }
+#===============================================================
+#2) Fishery cpue ----
+fc<-read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
+         guess_max = 50000)
+str(fc)
+read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
+         guess_max = 50000) %>% 
+  filter(!is.na(date) & !is.na(hook_space) & !is.na(sable_lbs_set) &
+           !is.na(start_lon) & !is.na(start_lon) & !is.na(soak) & !is.na(depth) &
+           !is.na(Hook_size) & Hook_size != "MIX" &
+           soak > 0 & !is.na(soak) & # soak time in hrs
+           julian_day > 226 & # if there were special projects before the fishery opened
+           no_hooks < 15000 & # 15000 in Kray's scripts - 14370 is the 75th percentile
+           # limit analysis to Chatham Strait and Frederick Sounds where the
+           # majority of fishing occurs
+           Stat %in% c("345603", "345631", "345702",
+                       "335701", "345701", "345731", "345803")) %>% 
+  mutate(Year = factor(year), 
+         Gear = factor(Gear),
+         Adfg = factor(Adfg),
+         Stat = fct_relevel(factor(Stat),
+                            "345702", "335701", # Frederick Sound
+                            # Chatham south to north
+                            "345603", "345631", "345701", "345731", "345803"),
+         # 01=Conventional, 02=Snap On, 05=Mixed, 06=Autobaiter -> 01, 02, 05
+         # show no strong differences. main difference with autobaiters, which
+         # have lwr cpue than conventional gear
+         Gear = derivedFactor("AB" = Gear == "06",
+                              "CS" = Gear %in% c("01","02","05")),
+         Hook_size = factor(Hook_size),
+         # standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
+         std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (hook_space / 39.37))), 
+         std_cpue = sable_lbs_set / std_hooks,
+         # dummy varbs, for prediction with random effects
+         dum = 1, 
+         dumstat = 1) %>% 
+  #"sets" (aka effort_no) is the set identifier. Currently Martina's scripts
+  #filter out sets that Kamala identifies as halibut target sets. Create a new
+  #column that is the total number of sablefish target sets in a trip (trip_no's
+  #only unique within a year)
+  group_by(year, trip_no) %>% 
+  mutate(no_sets = n_distinct(sets)) %>% 
+  group_by(year) %>% 
+  mutate(
+    #The number of vessels participating in the fishery has descreased by 50% from
+    #1997-2015. create new column is the total number of active vessels
+    #participating in a given year
+    total_vessels = n_distinct(Adfg),
+    # Total unique trips per year
+    total_trips = n_distinct(trip_no)) %>% 
+  ungroup() -> fsh_cpue
 
+str(fsh_cpue)
 #---------------------------------------------------------------
-# tag recovery data
+# 9) tag recovery data
 tagrec<-read.csv("data/fishery/tag_recoveries_2003_2021.csv")
 str(tagrec)
 plot(tagrec$tag_batch_no~tagrec$year)
@@ -172,6 +225,7 @@ meas.tags<-tagrec[!is.na(tagrec$length),]
 dens(meas.tags,"length")
 
 #================================================================================
+#6) 
 llsbio<-read.csv("data/survey/llsrv_bio_1988_2021.csv")
 str(llsbio)
 dens(llsbio,"length")
@@ -181,6 +235,7 @@ catplot(llsbio,"Sex")
 catplot(llsbio,"Maturity")
 
 #===============================================================================
+#5)
 llcond<-read.csv("data/survey/llsrv_by_condition_1988_2021.csv")
 str(llcond)
 histos(llcond,"no_hooks")
@@ -190,6 +245,7 @@ histos(llcond,"hook_invalid")
 unique(llcond$discard_status)
 
 #===============================================================================
+# 4)
 llcpue<-read.csv("data/survey/llsrv_cpue_v2_1985_2021.csv")
 str(llcpue)
 #no_hooks SHOULD = bare+bait+invalid+fish caught
@@ -270,6 +326,7 @@ for (y in ys){   #y<-ys[13]
 sk5v1  #looks good... only two years with code 5
 
 #===================================================================================
+# 7)
 pot<-read.csv("data/survey/potsrv_bio_1981_2020.csv")
 str(pot)
 histos(pot,"release_condition_cde")
@@ -277,6 +334,7 @@ unique(pot$release_condition_cde)
 head(pot,20)
 
 #==================================================================================
+# 8)
 tagrel<-read.csv("data/survey/tag_releases_2003_2020.csv")
 str(tagrel)
 with(tagrel, table(year,release_condition_cde))

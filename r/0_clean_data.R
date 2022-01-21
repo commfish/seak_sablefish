@@ -98,6 +98,7 @@ ifdb_catch <- ifdb_catch %>% filter(year >= 1985)
 write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
                              min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
 
+#======================================================================================
 # 2. Fishery cpue ----
 
 # The fishery CPUE index will not be available for 2020, and the following
@@ -162,6 +163,7 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
  write_csv(fsh_eff, paste0("data/fishery/fishery_cpue_",
                     min(fsh_eff$year), "_", max(fsh_eff$year), ".csv"))
 
+ #=====================================================================================
 # 3. Fishery biological ----
 
 # Fishery and pot survey bio data still come from IFDB, ZPROD official source
@@ -234,6 +236,7 @@ bind_rows(past_fsh_bio, fsh_bio) -> fsh_bio
 write_csv(fsh_bio, paste0("data/fishery/fishery_bio_", 
                           min(fsh_bio$year), "_", max(fsh_bio$year), ".csv"))
 
+#======================================================================================
 # 4. Longline survey cpue ----
 
 # 2020-01-28: (i.e. "v2") Attempt to do a better job cleaning up the data based
@@ -319,6 +322,7 @@ read_csv(paste0("data/survey/raw_data/llsrv_cpue_v2_1985_",
 write_csv(srv_eff, paste0("data/survey/llsrv_cpue_v2_", min(srv_eff$year), "_",
                           max(srv_eff$year), ".csv"))
 
+#=======================================================================================
 # 5. Longline survey catch ----
 
 # There is no countback for each fish on the longline survey to check for marks.
@@ -344,6 +348,7 @@ read_csv(paste0("data/survey/raw_data/llsrv_by_condition_1988_", YEAR, ".csv"),
 write_csv(srv_eff, paste0("data/survey/llsrv_by_condition_",
                           min(srv_eff$year), "_", YEAR, ".csv"))
 
+#==============================================================================================
 # 6. Longline survey biological ----
 
 # Chatham Strait Longline Survey biological data. originally stored in ifdb
@@ -386,6 +391,7 @@ bind_rows(past_srv_bio, srv_bio) -> srv_bio
 write_csv(srv_bio, paste0("data/survey/llsrv_bio_",
                           min(srv_bio$year), "_", max(srv_bio$year), ".csv"))
 
+#================================================================================================
 # 7. Pot survey biological ----
 
 # The pot survey is a mark-recapture survey. Limited bio data exists. Use this
@@ -450,6 +456,7 @@ write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
                           min(pot_bio$year), "_", max(pot_bio$year), ".csv"))
 }
 
+#===================================================================================================
 # 8. Tag releases ----
 
 # From the pot marking survey, includes length
@@ -504,6 +511,7 @@ tag_releases %>% group_by(year, release_condition_cde, discard_status) %>%
 # Few recaptures
 tag_releases %>% group_by(year, discard_status) %>% dplyr::summarise(n_distinct(tag_no))
 
+#==========================================================================================
 # 9. Tag recoveries ----
 
 # This is the batch report that Mike Vaughn does (how we determine how many tags
@@ -558,6 +566,7 @@ tag_recoveries %>%
   dplyr::summarize(n_distinct(tag_no)) %>% 
   print(n = Inf)
 
+#========================================================================================
 # 10. Fishery countbacks ----
 
 # Daily accounting of observed fish and tag recoveries in the NSEI fishery.

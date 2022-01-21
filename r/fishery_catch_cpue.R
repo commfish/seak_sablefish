@@ -10,7 +10,7 @@ source("r/functions.r")
 # if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
 # Most recent year of data
-YEAR <- 2020
+YEAR <- 2021
 
 # Harvest ----
 
@@ -25,7 +25,16 @@ YEAR <- 2020
 catch_ifdb <- read_csv(paste0("data/fishery/nseiharvest_ifdb_1985_", YEAR,".csv"), 
                        guess_max = 50000) #%>% 
 
-exvessel_value <- read.csv("data/exvessel_value.csv") # request from Aaron.baldwin@alaska.gov
+#exvessel_value <- read.csv("data/exvessel_value.csv") # request from Aaron.baldwin@alaska.gov
+#update from OceanAK report for future standardization; 2022 onward will use this report...
+# link:
+exvessel_value <- read_csv("data/exvessel_value_22ud.csv") %>% 
+  mutate(year=Year_Landed, exvessel_mil_usd = CFEC_Value/1000000)
+#format like Jane's old for consistency with code... just year and value
+exvessel_value<-exvessel_value[,c(5,6)]
+#if new year not available, add in best est. from Aaron and groundfish crew.... 
+exvessel_value[nrow(exvessel_value)+1,]<-list(YEAR,2.821949)
+
 
 catch_ifdb %>% 
   filter(year > 2013) %>% 
@@ -49,7 +58,7 @@ ggplot(catch_plot, aes(x = julian_day, colour = factor(year), size = factor(year
 # Total catch by year
 catch_ifdb %>% 
   group_by(year) %>% 
-  dplyr::summarize(total_pounds = sum(whole_pounds)) -> sum_catch
+  dplyr::summarize(total_pounds = sum(whole_pounds)) -> sum_catch #view(sum_catch)
 
 # axis <- tickr(sum_catch, year, 5)
 ggplot(sum_catch %>% 
@@ -112,13 +121,14 @@ ggsave(paste0("figures/catch_byport_", YEAR, ".png"),
 
 # Exvessel value ----
 exvessel <- ggplot(exvessel_value, aes(x = year, y = exvessel_mil_usd)) +
+#exvessel <- ggplot(exvessel_value, aes(x = Year.Landed, y = CFEC.Value)) +
   geom_point() +
   geom_line() +
   # add a line for EQS starting in 1994 (1997 in the SSEI).
   # geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = NULL, y = "Ex-vessel value (million USD)\n") +
-  ylim(c(0, 12))
+  ylim(c(0, 12.5))
 exvessel
 ggsave(paste0("figures/exvessel_value_1985_", YEAR, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
@@ -137,9 +147,9 @@ sum_catch %>%
   ggplot(aes(x = total_pounds / 1e6, y = exvessel_mil_usd, col = flag)) +
   geom_smooth(method = "lm", se = FALSE, col = "grey") +
   geom_point() + 
-  ggrepel::geom_text_repel(aes(label = year)) +
+  ggrepel::geom_text_repel(aes(label = year), max.overlaps = Inf) +
   scale_colour_manual(values = c("red", "black"), guide = FALSE) +
-  labs(x = "\nCatch (million round lb)", y = "Ex-vessel value (million USD)")
+  labs(x = "\nCatch (million round lb)", y = "Ex-vessel value (million USD)") 
 
 ggsave(paste0("figures/exvessel_catch_correlation_1985_", YEAR, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
@@ -217,7 +227,8 @@ ggsave(plot = trips_vessels, paste0("figures/fishery_tripandvessel_trends_1997_"
 
 # axis <- tickr(fsh_cpue, year, 5)
 
-# Simple bootstrap confidence intervals (smean.cl.boot from rms)
+# Simple bootstrap confidence intervals (smean.cl.boot from rms) ??rms
+library(rms)
 fsh_cpue %>%
   group_by(year) %>%
   do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot
@@ -271,7 +282,7 @@ ggplot(fsh_cpue %>%
 ggsave(paste0("figures/fshcpue_trendsbyStat_",min(fsh_cpue$year), "_", YEAR, ".png"), 
        dpi=400, height=4, width=7.5, units="in")
 
-# No one fished in Fred. Sound in 2018, 2 in 2019
+# No one fished in Fred. Sound in 2018, 2 in 2019, 4 in 2021
 fsh_cpue %>% filter(Stat %in% c("345702", "335701") & year == YEAR) %>% distinct(Adfg)
 # Activity in N Chatham 
 fsh_cpue %>% filter(Stat %in% c("345731", "345803") & year == YEAR) %>% distinct(Adfg)
@@ -299,9 +310,15 @@ ggplot(fsh_cpue, aes(Adfg, cpue, color = Gear)) + geom_jitter(alpha=.4) +
 # Hook size performance - hook size 11 ashould be removed due to sample size and
 # infrequency of use. Probably size 7 too - 4 vessels fished size 7 hooks in
 # 1997, and only 1 vessel fished it until 2004
+# 2022: also size 6 hooks ... half as many as size 7
 table(fsh_cpue$Hook_size)
 fsh_cpue %>% filter(Hook_size == "7") %>% distinct(Adfg, Stat, Year)
-fsh_cpue %>% filter(!Hook_size %in% c("11", "7")) -> fsh_cpue
+fsh_cpue %>% filter(Hook_size == "6") %>% distinct(Adfg, Stat, Year)
+
+#before censoring hooks run analysis with them in there... they actually don't
+#make a big difference and can likely be ignored... pj2022
+fsh_cpue %>% filter(!Hook_size %in% c("11", "7", "6")) -> fsh_cpue
+
 # Not much contrast in CPUE between remaining hook sizes... maybe some
 # difference in performance between years/areas
 ggplot(fsh_cpue, aes(Hook_size, cpue)) + geom_boxplot()
@@ -319,6 +336,7 @@ ggplot(fsh_cpue, aes(depth, cpue)) + geom_point(shape = 20) +
 
 # Soak time - cut off at 40 hrs b/c it looks like there's a slight outlier
 # effect
+# hmmm ... debatable.  Outliers, but legit?  probably long soaks do to weather or other issues?
 ggplot(fsh_cpue, aes(soak, cpue)) + geom_point(shape = 20) + 
   geom_smooth(size = 2, se = FALSE) 
 fsh_cpue %>% filter(soak < 40) -> fsh_cpue
@@ -352,40 +370,47 @@ ggplot(fsh_cpue, aes(julian_day, cpue, group = Year, colour = Year)) +
 # be decreasing with latitude. There was no spatial autocorrelation detected (done in previous analysis).
 # start_lat/start_lon - spatial autocorrelation
 
-# Determine if random variables should be included
-m1 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
-m2 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) + s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
-m3 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) +s(Stat, bs='re', by=dumstat), data=fsh_cpue, gamma=1.4)
-m4 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4), data=fsh_cpue, gamma=1.4)
+# Determine if random variables should be included (Stat and Adfg)
+m1 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) + 
+            s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
+m1a <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + #hook size removed
+            s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
+m2 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) + 
+            s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
+m3 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) +
+            s(Stat, bs='re', by=dumstat), data=fsh_cpue, gamma=1.4)
+m4 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4), 
+          data=fsh_cpue, gamma=1.4)
 
-summary(m1) 
+summary(m1); summary(m1a) 
 summary(m2)
 summary(m3)
 summary(m4)
 
-AIC(m1,m2,m3, m4)
+AIC(m1,m1a, m2,m3, m4)
 
 # The model with the lowest AIC and highest deviance explained includes a random
-# effect for vessel and area.
+# effect for vessel and area. #same in 2022-pj
 
 # No residual patterns, but may be some outliers
 plot(fitted(m1), resid(m1))
 abline(h = 0, col = "red", lty = 2)
 
 # 14 outliers, get rid of them and refit models with new data set
-which(fitted(m1) < -1.5)
+which(fitted(m1) < -1.5)   #13 outliers in 2022
 not_outliers <- which(fitted(m1) >= -1.5)
 fsh_cpue <- fsh_cpue %>% 
   slice(not_outliers)
 
 m1 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
+m1a <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
 m2 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) + s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
 m3 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) +s(Stat, bs='re', by=dumstat), data=fsh_cpue, gamma=1.4)
 m4 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4), data=fsh_cpue, gamma=1.4)
 
-AIC(m1, m2, m3, m4)
+AIC(m1, m1a, m2, m3, m4)
 
-# Better
+# Better, AIC still likes hook size in there...
 plot(fitted(m1), resid(m1))
 abline(h = 0, col = "red", lty = 2)
 
@@ -397,8 +422,14 @@ summary(m1)
 # Conventional gear performs slightly better than autobaiter gear.
 
 # Determine whether to keep hook size or keep it as a random effect
-m5 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
-m6 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + s(Hook_size, bs='re', by=dum) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
+# not crazy about hook size as a random effect - it should always be a fixed affect because
+# it would directly affect cpue... as opposed to year or vessel random effect where there is 
+# random noise associated with the variable, hook size has a plausible effect on the response variable?
+m5 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
+            s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
+m6 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
+            s(Hook_size, bs='re', by=dum) + s(Stat, bs='re', by=dumstat)+ 
+            s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
 
 AIC(m1, m5, m6)
 
@@ -412,23 +443,39 @@ summary(m6)
 # there's no strong trend or difference between hook sizes and it seems just to
 # account up some of the random variation, I'm going carry m6 forward (the model
 # with the re for hook size).
+#2022:  OK, same results.  get Jane's point about no strong trend with hook size
+#       but am disinclined to treat it as a random effect.  HS is not a random category
+#       or group... there is an effect of HS on catchability.... 
 
 #Determine whether to include lat and long
-m7 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + s(Hook_size, bs='re', by=dum) + s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum) + te(start_lon, start_lat), data=fsh_cpue, gamma=1.4)
-m8 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + s(Hook_size, bs='re', by=dum) + s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum) + s(start_lon), data=fsh_cpue, gamma=1.4)
-m9 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + s(Hook_size, bs='re', by=dum) + s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum) + s(start_lat), data=fsh_cpue, gamma=1.4)
+m7 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
+            Hook_size + #s(Hook_size, bs='re', by=dum) + 
+            s(Stat, bs='re', by=dumstat) + 
+            s(Adfg, bs='re', by=dum) + te(start_lon, start_lat), data=fsh_cpue, gamma=1.4)
+m8 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
+            Hook_size + #s(Hook_size, bs='re', by=dum) + 
+            s(Stat, bs='re', by=dumstat) + 
+            s(Adfg, bs='re', by=dum) + s(start_lon), data=fsh_cpue, gamma=1.4)
+m9 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
+            Hook_size + #s(Hook_size, bs='re', by=dum) + 
+            s(Stat, bs='re', by=dumstat) + 
+            s(Adfg, bs='re', by=dum) + s(start_lat), data=fsh_cpue, gamma=1.4)
 
-AIC(m6, m7, m8, m9)
+AIC(m1, m6, m7, m8, m9) #AIC(m6, m7, m8, m9)
 
 summary(m7)
 summary(m8)
 summary(m9)
 
 # m9, the model with the latitudinal effect, performs best by AIC, but only
-# results in a slight improvement in the dev explained. Try limitting the number
+# results in a slight improvement in the dev explained. Try limiting the number
 # of knots to guard against overfitting... but m9 still performs best by AIC.
-m10 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + s(Hook_size, bs='re', by=dum) + s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum) + s(start_lat, k=6), data=fsh_cpue, gamma=1.4)
-AIC(m6, m7, m8, m9, m10)
+# Phil note: knots = k
+# same in 2022
+m10 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
+             s(Hook_size, bs='re', by=dum) + s(Stat, bs='re', by=dumstat) + 
+             s(Adfg, bs='re', by=dum) + s(start_lat, k=6), data=fsh_cpue, gamma=1.4)
+AIC(m1, m6, m7, m8, m9, m10)
 
 plot(m9, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
 plot(m10, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
@@ -441,25 +488,34 @@ vis.gam(m7, c('start_lon','start_lat'), type='response', plot.type='contour', co
 
 # The inclusion of a seasonal effect slightly improves model fit - there is a
 # slightly decreasing trend in cpue on average over the course of the season.
-m11 <- bam(cpue ~ Year + Gear + s(julian_day, k=4) + s(depth, k=4) + s(soak, k=4) + s(start_lat) + s(Hook_size, bs='re', by=dum) + s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
+m11 <- bam(cpue ~ Year + Gear + s(julian_day, k=4) + s(depth, k=4) + 
+             s(soak, k=4) + s(start_lat) + 
+             Hook_size + #s(Hook_size, bs='re', by=dum) + 
+             s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
 AIC(m9, m11)
 summary(m11)
 plot(m11, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
 
 # # Relationship between depth and soak time - highest cpue in > 450 m
 # # and ~ 10 hr soak time
-# vis.gam(m11, c('depth', 'soak'), plot.type='contour', type='response', color='topo', too.far=0.15)
+vis.gam(m11, c('depth', 'soak'), plot.type='contour', type='response', color='topo', too.far=0.15)
 
 # GAM summary ----
 
 # Final model structure (m11) (* = random effect):
-# CPUE ~ Year + Gear + s(julian day) + s(depth) + s(soak time) + s(latitude) + hooksize* + statarea* + vessel* 
+# CPUE ~ Year + Gear + s(julian day) + s(depth) + s(soak time) + 
+#   s(latitude) + hooksize* + statarea* + vessel* 
 
 # 36.7% deviance explained
+# 34.8% in 2022 with pj mods.  With Jane's original code get 34.9%
 
 # CPUE decreases throughout the season. CPUE increases with depth, then
 # asymptotes ~ 450 m. CPUE is constant and then drops off ~ 10 hr soak time,
-# possibly due to sandfleas or hagfish. CPUE is greatest in the northern and
+# possibly due to sandfleas or hagfish. 
+#!PJ2022: disagree about cause.  Assymptotic CPUE and time is expected as nearby
+#         catch-able fish are caught and bait is degraded by loss of scent as well
+#        as things like sand fleas and hagfish...
+# CPUE is greatest in the northern and
 # southern parts of chatham.
 
 # The overall effect of julian day, soak time, and latitude is weaker than
@@ -483,6 +539,10 @@ std_dat <- expand.grid(year = unique(fsh_cpue$year),
   mutate(Year = factor(year))
 
 pred_cpue <- predict(m11, std_dat, type = "link", se = TRUE)
+
+#checking my code with Jane's... checks out :)
+preds<-predict.bam(m11, type="response", std_dat, se = TRUE)
+str(preds); head(preds)
 
 #Put the standardized CPUE and SE into the data frame and convert to
 #backtransformed (bt) CPUE
@@ -526,7 +586,7 @@ fsh_sum %>%
   scale_colour_manual(values = c("darkcyan", "goldenrod"), name = "Standardized CPUE") +
   scale_fill_manual(values = c("darkcyan", "goldenrod"), name = "Standardized CPUE") +
   scale_shape_manual(values = c(19, 17), name = "Standardized CPUE") +
-  scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  #scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   labs(x = "", y = "Fishery CPUE (round lb/hook)\n") +
   theme(legend.position = c(0.8, 0.2)) +
   expand_limits(y = 0)
@@ -540,6 +600,7 @@ fsh_sum %>%
          perc_change_lt = (fsh_cpue - lt_mean) / lt_mean * 100) 
 
 # Percent change in fishery nominal cpue from last year
+#not relevant since no CPUE in 2020 due to stupid covid
 fsh_sum %>% 
   filter(year >= YEAR - 1) %>%
   select(year, fsh_cpue) %>% 
