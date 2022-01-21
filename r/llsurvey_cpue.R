@@ -16,6 +16,7 @@
 source("r/helper.r")
 source("r/functions.r")
 if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
+library("AICcmodavg")
 
 YEAR <- 2021 # most recent year of data
 
@@ -162,7 +163,7 @@ srv_cpue %>%
   ungroup() %>% 
   filter(hook_accounting == "sablefish") %>% 
   distinct(year, std_cpue = cpue, sd, se) %>% 
-  arrange(year) -> srv_sum
+  arrange(year) -> srv_sum #; view(srv_sum)
 
 srv_sum %>% print(n = Inf)
 write_csv(srv_sum, paste0("output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
@@ -248,8 +249,10 @@ ggplot() +
 ggsave(paste0("figures/npue_llsrv_stat_", YEAR, ".png"), 
        dpi=300, height=10, width=8, units="in")
 
+#=================================================================================
 # VAST exploration ----
-
+# SKIP 2022: Use code from VAST_extra_pj.R to get VAST models
+{
 # Careful! VAST adds a lot of files to the root of the project
 if(!require("TMB"))   install.packages("TMB") 
 if(!require("VAST"))   install.packages("VAST") 
@@ -317,8 +320,9 @@ fit$extrapolation_list
 fit$spatial_list
 fit$Report
 fit$ParHat
+}
 
-
+#=================================================================================
 # GAM CPUE standardization explorations ----
 
 if(!require("GGally"))   install.packages("GGally") 
@@ -331,7 +335,7 @@ sable %>%
 
 sable %>%
   ggplot()+
-  geom_point(aes(x = end_lon,  y = end_lat, color = set_cpue), alpha = 0.2)+
+  geom_point(aes(x = end_lon,  y = end_lat, color = set_cpue), alpha = 0.3)+
   scale_color_gradientn(colours = terrain.colors(10))+
   labs(y = "Latitude", x = "Longitude", color = "CPUE")
 
@@ -346,6 +350,8 @@ sable %>% filter(set_cpue == 0) # there should be no zero values
 
 # bait = better than Clotheslined; also highly correlated with bare (so bare has
 # been removed to avoid confounding)
+#JANE's Models... 
+{
 mod0 <- bam(set_cpue ~ s(soak, k = 4) + s(depth, k = 4) + s(slope, k = 4) + 
               s(bait, k = 4) + 
               te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
@@ -360,6 +366,7 @@ print(plot(getViz(mod0), allTerms = TRUE) + l_fitRaster() + l_fitContour() +
 
 par(mfrow=c(2, 2), cex=1.1); gam.check(mod0)
 
+predict.bam(mod0)
 # drop soak time
 mod1 <- bam(set_cpue ~ s(depth, k = 4) + s(slope, k = 4) + 
               s(bait, k = 4) +
@@ -381,6 +388,114 @@ mod2 <- bam(set_cpue ~ s(soak, k = 4) + s(depth, k = 4) +
 summary(mod2)
 BIC(mod0); BIC(mod2) # soak time significant
 par(mfrow=c(2, 2), cex=1.1); gam.check(mod2)
+}
+
+# 2022 Phil's models 
+#get rid of "bait"; correlated but seems like a wonky piece of data that should be correlated 
+# with CPUE but is the RESULT of CPUE dynamics...
+sable<-sable[sable$soak <10 & sable$slope < 300 & sable$bait < 900,]
+sable<-sable[complete.cases(sable),]
+
+mod0<-bam(set_cpue ~  
+             te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
+           data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE)
+
+mod.global<-bam(set_cpue ~ s(soak, k = 4) + s(depth, k = 4) + s(slope, k = 4) + 
+             te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
+           data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE)
+
+mod.soak<-bam(set_cpue ~ s(soak, k = 4) +  
+            te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
+          data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE)
+
+mod.depth<-bam(set_cpue ~ s(depth, k = 4) + 
+            te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
+          data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE)
+
+mod.slope<-bam(set_cpue ~ s(slope, k = 4) + 
+            te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
+          data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE)
+
+BIC(mod0); BIC(mod.global); BIC(mod.soak); BIC(mod.depth); BIC(mod.slope)
+AICc(mod0); AICc(mod.global); AICc(mod.soak); AICc(mod.depth); AICc(mod.slope)
+#global model noticeably better
+
+print(plot(getViz(mod0), allTerms = TRUE) + l_fitRaster() + l_fitContour() + 
+        l_points(color = "grey60", size = 0.5)+ l_fitLine() + l_ciLine() +
+        l_ciBar(linetype = 2) + l_fitPoints(size = 1), pages = 8)
+
+#add predicted cpue to sable and recalc yearly CPUE index for each model
+model.add<-function(mod,dat,colhead){  #mod<-mod.global; dat<-sable; colhead<-"global"
+  preds<-predict.bam(mod, type="response", se.fit=T)
+  name<-paste0("cpue.",colhead)
+  name.sd<-paste0("sd.cpue.",colhead)
+  sable[,name]<-preds$fit
+}
+
+model.add(mod=mod.global,dat=sable,"global")
+plot(sable$cpue.global~sable$set_cpue)
+
+head(sable)
+sable_cpue <- sable %>% 
+  #filter(hook_accounting == "sablefish") %>% 
+  distinct(year, Adfg, Station_no, set_cpue, depth, end_lon, end_lat, 
+           soak, slope, bare, bait, clotheslined, shark,
+           cpue.global) %>%
+  #ungroup() %>% 
+  group_by(year) %>%
+  mutate(Station_no = factor(Station_no),
+         Year = factor(year),
+         Clotheslined = factor(clotheslined),
+         Shark = factor(shark), 
+         n_set = length(unique(Station_no)),
+         raw.cpue = mean(set_cpue),
+         raw.sd = round(sd(set_cpue), 4),
+         raw.se = round(raw.sd / sqrt(n_set), 4),
+         gam.cpue = mean(cpue.global),           ##Change if different model used
+         gam.sd = round(sd(cpue.global), 4),     ##Change if different model used
+         gam.se = round(gam.sd / sqrt(n_set), 4)
+         )
+head(sable_cpue); plot(sable_cpue$cpue ~ sable_cpue$year)
+
+sable_cpue %>% 
+  ungroup() %>% 
+  #filter(hook_accounting == "sablefish") %>% 
+  distinct(year, std_cpue = raw.cpue, raw.sd, raw.se, gam.cpue, gam.sd, gam.se) %>% 
+  arrange(year) -> sable_sum; view(sable_sum)
+
+#retrieve VAST model results for comp...
+V.base<-read.csv("VAST_out/basePlots/Index.csv")
+V.q<-read.csv("VAST_out/qPlots/Index.csv")
+V.cov<-read.csv("VAST_out/covPlots/Index.csv")
+V.qcov<-read.csv("VAST_out/qcovPlots/Index.csv")
+
+plot(sable_sum$std_cpue ~ sable_sum$year, type="b")
+points(sable_sum$gam.cpue ~ sable_sum$year, col="forestgreen",type="b", pch=18)
+par(new=TRUE)
+plot(V.base$Estimate~V.base$Time,axes=FALSE,bty = "n", xlab = "", ylab = "",
+     col="red" , type="l", pch=18, 
+     ylim=c(min(V.q$Estimate),1.2*max(V.base$Estimate)))
+points(V.q$Estimate~V.q$Time, col="darkred", type="l", pch=17)
+points(V.cov$Estimate~V.cov$Time, col="purple", type="l", pch=16)
+points(V.qcov$Estimate~V.qcov$Time, col="violet", type="l", pch=19)
+axis(side=4, at = pretty(range(V.base$Estimate)))
+mtext("z", side=4, line=3)
+
+summary(lm(V.base$Estimate ~ V.q$Estimate))
+plot(V.base$Estimate ~ V.q$Estimate, ylim=c(0,270))
+abline(lm(V.base$Estimate ~ V.q$Estimate))
+
+summary(lm(V.base$Estimate ~ sable_sum$std_cpue))
+par(new=TRUE)
+plot(V.base$Estimate ~ sable_sum$std_cpue, col="blue", axes=FALSE, bty="n",
+     xlab = "", ylab = "")
+abline(lm(V.base$Estimate ~ sable_sum$std_cpue), col="blue")
+
+summary(lm(V.q$Estimate ~ sable_sum$std_cpue))
+points(V.q$Estimate ~ sable_sum$std_cpue, col="darkcyan")
+abline(lm(V.q$Estimate ~ sable_sum$std_cpue), col="darkcyan")
+#tight correlation of CPUE no matter how you model it... (this is good!)
+#VAST  models seem to smooth things out to a minor degree...
 
 # VERSION 1 (2017-2019): ----
 

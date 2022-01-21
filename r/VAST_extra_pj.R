@@ -1,8 +1,19 @@
 ################################################################################
-## Phil's Sablefish VAST stuuff
+## Phil's Sablefish VAST stuff
+## Based on Jane Sullivan's llsurvey_cpue.R 
+## modified to include catchability coefficient based on soak time of gear
+## and RPN's have a covariate of depth and slope
+## Bam models demonstrate soak effect (intuitive)
+## Save out put of models to compare CPUE estimates for SCAA
+#####################################################################################
+
 library(VAST)
 library(splines)  # Used to include basis-splines
 library(effects)  # 
+
+#Jane's code gets rid of these data .. assumed outlier/data entry error? 
+sable<-sable[sable$soak <10 & sable$slope < 300 & sable$bait < 900,]
+sable<-sable[complete.cases(sable),]
 
 sampling_data <- sable %>%    #could include sope, depth, soak as covariates...? 
   ungroup() %>% 
@@ -11,20 +22,22 @@ sampling_data <- sable %>%    #could include sope, depth, soak as covariates...?
   mutate(AreaSwept_km2 = 1) %>%   #areaswept = 1 because its longline (i.e., not trawl survey)
   as.data.frame()
 
+#catchability modelled on soak time
 catchability_data<- sable %>%    #could include sope, depth, soak as covariates...? 
   ungroup() %>% 
   distinct(set_cpue, year, Adfg, end_lat, end_lon, soak) %>% 
   select(Year = year, Lat = end_lat, Lon = end_lon, soak=soak) %>% 
   mutate(soak = na.approx(soak)) %>% #example.x$covariate_data[,'depth.f']<-na.approx(example.x$covariate_data[,'depth']);example.x$covariate_data[168:170,]
-  #mutate(AreaSwept_km2 = 1) %>%   #areaswept = 1 because its longline (i.e., not trawl survey)
+  mutate(AreaSwept_km2 = 1) %>%   #areaswept = 1 because its longline (i.e., not trawl survey)
   as.data.frame()
-  
+
+#covariates of depth and slope affecting abundance 
 covariate_data<-sable %>%    #could include sope, depth, soak as covariates...? 
   ungroup() %>% 
   distinct(set_cpue, year, Adfg, end_lat, end_lon, slope, depth) %>% 
   select(Year = year, Lat = end_lat, Lon = end_lon, slope = slope, depth = depth) %>% 
   mutate(depth = na.approx(depth)) %>% 
-  #mutate(AreaSwept_km2 = 1) %>%   #areaswept = 1 because its longline (i.e., not trawl survey)
+  mutate(AreaSwept_km2 = 1) %>%   #areaswept = 1 because its longline (i.e., not trawl survey)
   as.data.frame()
 
 nrow(sampling_data)
@@ -76,7 +89,8 @@ settings = make_settings(n_x = 100, # number of knots; set at 100 by JANE
                          fine_scale = TRUE,
                          bias.correct = TRUE)
 
-# Run model
+#========================================================================================
+# Run model with no catchability or covariates
 fit = fit_model( "settings" = settings, 
                  "Lat_i" = example$sampling_data[, 'Lat'], 
                  "Lon_i" = example$sampling_data[, 'Lon'], 
@@ -90,10 +104,25 @@ fit = fit_model( "settings" = settings,
                  "newtonsteps" = 0 # prevent final newton step to decrease mgc score
 )
 
-plot(fit)
-Index<-read.csv("Index.csv")
-
-#== Q ==========================================================================================
+#plot(fit)
+#Index<-read.csv("Index.csv")
+plot_results(
+  fit=fit,
+  settings = fit$settings,
+  plot_set = c(2,3,7,16,17),
+  working_dir = paste0(getwd(), "/VAST_out/basePlots/"),
+  use_biascorr = TRUE,
+  check_residuals = TRUE,
+  projargs = "+proj=longlat",
+  n_samples = 100,
+  calculate_relative_to_average = FALSE,
+  type = 1,
+  n_cells = NULL,
+  n_cells_residuals = NULL,
+  RotationMethod = "PCA",
+  quantiles = c(0.05, 0.5, 0.95)
+)
+#== Q Add soak time to catchability piece of model ==========================================================================================
 
 #define q formulas
 Q1_formula<- ~log(soak)
@@ -117,24 +146,20 @@ fit.q<-fit_model( "settings" = settings,
                   #"Q2_config_k" = rep(1, nrow(example.q$sampling_data)), #example.q$catchability_data$soak,
                   "Q2_formula" = Q2_formula
 )
-plot_results(fit.q)
-plot(fit.q)
-Index<-read.csv("Index.csv")
+#plot_results(fit.q)
+#plot(fit.q)
+#Index<-read.csv("Index.csv")
 
-out<-fit.q$Report
-str(out)
+#out<-fit.q$Report
+#str(out)
 
- out$Index_gctl
- getwd()
+# out$Index_gctl
+# getwd()
  plot_results(
    fit=fit.q,
    settings = fit.q$settings,
    plot_set = c(2,3,7,16,17),
    working_dir = paste0(getwd(), "/VAST_out/qPlots/"),
-   #year_labels = fit$year_labels,
-   #years_to_plot = fit$years_to_plot,
-   #category_names = fit$category_names,
-   #strata_names = fit$strata_names,
    use_biascorr = TRUE,
    #map_list,
    check_residuals = TRUE,
@@ -159,23 +184,14 @@ str(out)
                           transformation = list(link=identity, inverse=identity) )
  plot(pred)
   
-# == X ===========================================================================================
+# == X covariates model ===========================================================================================
  
- example.x$covariate_data[,'depth.f']<-na.approx(example.x$covariate_data[,'depth']);example.x$covariate_data[168:170,] 
+ 
  X1_formula = ~ bs( log(depth.f), degree=2, intercept=FALSE)
  #X1_formula = ~ poly( log(BOT_DEPTH), degree=2 )
  # I'm also showing how to construct an interaction
- X2_formula = ~ poly(log(depth.f), degree=2) + poly(slope, degree=2 )
- 
-  # If all covariates as "static" (not changing among years),
- #  then set Year = NA to cause values to be duplicated internally for all values of Year
- # If using a mix of static and dynamic covariates,
- #  then duplicate rows for static covariates for every value of Year
- # Here, all covariates are static, so I'm using the first approach.
- #example$covariate_data[,'Year'] = NA
- 
- # Rescale covariates being used to have an SD >0.1 and <10 (for numerical stability)
- example.x$covariate_data[,'depth.f'] = example.x$covariate_data[,'depth.f'] / 100
+ X2_formula = ~ poly(log(depth), degree=2) + poly(slope, degree=2 )
+ example.x$covariate_data[,'depth'] = example.x$covariate_data[,'depth'] / 100
  
  fit.x<-fit_model( "settings" = settings, 
                    "Lat_i" = example.x$sampling_data[, 'Lat'], 
@@ -188,11 +204,7 @@ str(out)
                    "v_i" = example.x$sampling_data[, 'Vessel'],    #vessel effect; overdispersion...
                    "projargs" = "+proj=utm +zone=4 +units=km",
                    "newtonsteps" = 0, # prevent final newton step to decrease mgc score
-                   #add covariates slope and depth
-                   #"X1config_cp" = 0,
-                   #"X2config_cp" = example.qx$covariate_data[, 1],
                    "covariate_data" = example.x$covariate_data,
-                   #"X1_formula" = X1_formula,
                    "X2_formula" = X2_formula
  )
  
@@ -209,7 +221,7 @@ str(out)
  
  # Plot 1st linear predictor, but could use `transformation` to apply link function
  pred = Effect.fit_model( fit.x,
-                          focal.predictors = c("depth.f"),
+                          focal.predictors = c("depth","slope"),
                           which_formula = "X2",
                           xlevels = 100,
                           transformation = list(link=identity, inverse=identity) )
@@ -243,7 +255,7 @@ str(out)
  library(ggplot2)
  autoplot(Partial)
  
-#== QX ================================================================================
+#== QX covariates and catchability in model ================================================================================
  Q2_formula = ~log(soak)
  X2_formula = ~ poly(log(depth), degree=2) + poly(slope, degree=2 )  # ?poly
  
@@ -266,6 +278,8 @@ str(out)
                    "X2_formula" = X2_formula
  ) 
 
+ str(fit.qx)
+ 
  plot(fit.qx, working_dir = paste0(getwd(), "/VAST_out/qcovPlots/"),
       plot_set=c(3,11,12),
       TmbData=fit.qx$data_list )
@@ -295,6 +309,53 @@ str(out)
  plot(covariate_data$slope ~ covariate_data$depth)
  lm<-lm(covariate_data$slope ~ covariate_data$depth); summary(lm)
  abline(lm, col="red")
+ 
+#================================================================================ 
+# K-fold comparisons; predictive performance
+# This is incomplete and not working January 2022 
+ 
+ install.packages("AICcmodavg")
+ library(AICcmodavg)
+ 
+ ParHat.0<-fit$ParHat    #<-MLE ; str(ParHat)
+ str(ParHat.0)
+ ParHat.q<-fit.q$ParHat
+ ParHat.x<-fit.x$ParHat
+ ParHat.qx<-fit.qx$ParHat
+ 
+ 
+ example$sampling_data$
+ 
+ # Generate partitions in data
+ n_fold = 10
+ Partition_i = sample( 1:n_fold, size=nrow(example$sampling_data), replace=TRUE )
+ prednll_f = rep(NA, n_fold )
+ 
+ ParHat<-ParHat.0
+ for( fI in 1:n_fold ){    #fI<-1
+    PredTF_i = ifelse( Partition_i==fI, TRUE, FALSE )
+    
+    # Refit, starting at MLE, without calculating standard errors (to save time)
+    fit_new = fit_model( "settings"=settings, "Lat_i"=example$sampling_data[,'Lat'],
+                         "Lon_i"=example$sampling_data[,'Lon'], 
+                         "observations_LL" = example$sampling_data[, c('Lat', 'Lon')],
+                         "t_i"=example$sampling_data[,'Year'],
+                         "c_i"=rep(0,nrow(example$sampling_data)), 
+                         "b_i"=example$sampling_data[,'Catch_KG'],
+                         "a_i"=example$sampling_data[,'AreaSwept_km2'], 
+                         "v_i"=example$sampling_data[,'Vessel'],
+                         "projargs" = "+proj=utm +zone=4 +units=km",
+                         "newtonsteps" = 0,
+                         "PredTF_i"=PredTF_i, 
+                         "Parameters"=ParHat, "getsd"=FALSE )
+    
+    # Save fit to out-of-bag data
+    prednll_f[fI] = fit_new$Report$pred_jnll
+ }
+ 
+ # Check fit to all out=of-bag data and use as metric of out-of-bag performance
+ sum( prednll_f ) 
+ 
 ##lack of convergence and construction of model kind of indicates that VAST may not be best approach
 ## to Chatham Sablefish.  Survey is set up to catch fish at all stations, so not really a random
 ## survey because it targets the fishery... 
