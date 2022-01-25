@@ -202,7 +202,7 @@ read_csv(paste0("data/fishery/raw_data/fishery_bio_",
 read_csv(paste0("data/fishery/raw_data/fishery_bio_", 
                 YEAR, ".csv"), 
          guess_max = 50000) %>% 
-  mutate(date = format(parse_date_time(SELL_DATE, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d"), #ISO 8601 format
+  mutate(date = as.Date(format(parse_date_time(SELL_DATE, c("%m/%d/%Y %H:%M")),"%Y-%m-%d")), #ISO 8601 format
          julian_day = yday(date),
          Sex = derivedFactor("Male" = SEX_CODE == "01",
                              "Female" = SEX_CODE == "02",
@@ -219,7 +219,7 @@ read_csv(paste0("data/fishery/raw_data/fishery_bio_",
          age = AGE, Sex, Maturity) %>%   #note; Jane not factoring gear into this piece of data... 
   mutate(Adfg = as.character(Adfg)) -> fsh_bio
 
-fsh_bio$date<-as.Date(fsh_bio$date)
+#fsh_bio$date<-as.Date(fsh_bio$date)
 fsh_bio$Sex<-as.character(fsh_bio$Sex)
 fsh_bio$Maturity<-as.character(fsh_bio$Maturity)
 fsh_bio$Project_cde<-as.character(fsh_bio$Project_cde)

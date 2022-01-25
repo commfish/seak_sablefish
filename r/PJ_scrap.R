@@ -75,27 +75,42 @@ Dat<-read.csv(paste0("data/fishery/raw_data/fishery_bio_",
 {str(Dat)
 
 Dat<-Dat %>% 
-  mutate(date = ymd(parse_date_time(SELL_DATE, c("%Y-%m-%d %H:%M:%S"))), #ISO 8601 format
+  mutate(date = ymd(parse_date_time(SELL_DATE, c("%Y/%m/%d %H:%M"))), #ISO 8601 format
          julian_day = yday(date))
 
-ex<-Dat$SELL_DATE[1]
-exp<-parse_date_time(ex, c("%Y-%m-%d %H:%M:%S"))
+ex<-Dat$SELL_DATE[1]; str(ex)
 
-exp<-parse_date_time(ex, c("%Y-%m-%d %H:%M:%S"))
+exp<-parse_date_time(ex, c("%m/%d/%Y %H:%M"))
+
+ymd(exp)
+
+ymd(as.Date(ex, format="%Y/%m/%d %H:%M"))
+
+as.Date(format(parse_date_time(ex, c("%Y/%m/%d %H:%M")),"%Y/%m/%d"))
+ymd(parse_date_time(ex, c("%m/%d/%Y %H:%M")))
+
+parse_date_time(ex, c("%m/%d/%Y %H:%M"))
+
 
 str(exp)
 ymd(exp, truncated=2)
 
 yday(exp)
 
-year(exp)
+year(ex)
 day(exp)
 month(exp)
 
-format(exp,"%Y-%m-%d")
+exd<-as.Date(exp,"%Y-%m-%d")
+
+expf<-format(exp,"%Y-%m-%d")
+str(expf)
+
+expfd<-as.Date(expf)
+str(expfd)
 
 Dat<-Dat %>% 
-  mutate(date = format(parse_date_time(SELL_DATE, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d"), #ISO 8601 format
+  mutate(date = as.Date(format(parse_date_time(SELL_DATE, c("%m/%d/%Y %H:%M")),"%Y-%m-%d")), #ISO 8601 format
          julian_day = yday(date))
 }
 
