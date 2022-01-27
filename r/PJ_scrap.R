@@ -73,7 +73,7 @@ Dat<-read.csv(paste0("data/fishery/raw_data/fishery_bio_",
                      YEAR, ".csv"))
 #
 {str(Dat)
-
+unique(Dat$PROJECT_CODE)
 Dat<-Dat %>% 
   mutate(date = ymd(parse_date_time(SELL_DATE, c("%Y/%m/%d %H:%M"))), #ISO 8601 format
          julian_day = yday(date))
@@ -114,6 +114,8 @@ Dat<-Dat %>%
          julian_day = yday(date))
 }
 
+unique(Dat$SEX_CODE)
+with(Dat,table(SEX_CODE))
 Dat<-Dat %>% 
   mutate(date = format(parse_date_time(SELL_DATE, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d"), #ISO 8601 format
          julian_day = yday(date),

@@ -50,8 +50,7 @@ read_csv(paste0("data/fishery/fishery_bio_2000_", YEAR,".csv"),
          length_mu = mean(length, na.rm = TRUE),
          weight_mu = mean(weight, na.rm = TRUE)) %>% 
   ungroup() -> fsh_bio
-
-str(fsh_bio)
+unique(fsh_bio$year)
 
 # Pot survey biological data
 #no pot survey 2021 because of stupid Covid, use data only through 2020
@@ -64,15 +63,105 @@ read_csv(paste0("data/survey/potsrv_bio_1981_", YEAR-1, ".csv"),
          Sex = factor(Sex)) -> potsrv_bio
 
 str(potsrv_bio)
-# Empirical weight-at-age ----
+
+#==============================================================================================
+###OULIER REMOVAL STEP for too fat and too skinny sablefish... usually weighing error
+unique(fsh_bio$year)
+new<-fsh_bio[fsh_bio$year == 2021,]; nrow(new)
+new$length
+new$weight
+new$Sex
+
+
+srv_bio %>% 
+  filter(Sex %in% c("Female", "Male") &
+           year >= 1997 & # *FLAG* advent of "modern" survey
+           !is.na(length) &
+           !is.na(weight)) %>% 
+  droplevels() -> srv_bio_mod
+unique(srv_bio_mod$year)
+
+# length-weight relationship
+lw_allometry <- function(length, a, b) {a * length ^ b}
+
+START <- c(a = 1e-5, b = 3) #Starting values close to Hanselman et al. 2007
+
+fem_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+               data = filter(srv_bio_mod, Sex == "Female"), start = START)
+
+male_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+                data = filter(srv_bio_mod, Sex == "Male"), start = START)
+
+all_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+               data = srv_bio_mod, start = START)
+
+# parameter estimates and plot fit 
+beta_m <- tidy(male_fit)$estimate[2]
+beta_f <- tidy(fem_fit)$estimate[2]
+beta_a <- tidy(all_fit)$estimate[2]
+
+srv_bio_noOL<-bind_rows(srv_bio_mod %>% filter(Sex %in% "Male") %>% 
+                            mutate(Condition = weight/(length^beta_m),
+                                   Quantile = ntile(Condition,1000)/1000),
+                        srv_bio_mod %>% filter(Sex %in% "Female") %>% 
+                            mutate(Condition = weight/(length^beta_f),
+                                   Quantile = ntile(Condition,1000)/1000))
+
+nrow(srv_bio_noOL)
+#remove fat and skinny fish in 99.9 and 0.1 percentiles
+srv_bio_noOL<-srv_bio_noOL[srv_bio_noOL$Quantile > 0.0005 & srv_bio_noOL$Quantile < 0.9995, ]
+nrow(srv_bio_noOL)
+nrow(srv_bio_mod)
+
+### #cull outliers from fishery ?  
+fsh_bio %>% 
+  filter(Sex %in% c("Female", "Male") &
+           year >= 2002 & # *FLAG* advent of "modern" survey
+           !is.na(length) &
+           !is.na(weight)) %>% 
+  droplevels() -> fsh_bio_mod
+nrow(fsh_bio_mod)
+
+plot(fsh_bio_mod$weight ~ fsh_bio_mod$length)
+
+# length-weight relationship
+fem_fit_fsh <- nls(weight ~ lw_allometry(length = length, a, b), 
+               data = filter(fsh_bio_mod, Sex == "Female"), start = START)
+
+male_fit_fsh <- nls(weight ~ lw_allometry(length = length, a, b), 
+                data = filter(fsh_bio_mod, Sex == "Male"), start = START)
+
+all_fit_fsh <- nls(weight ~ lw_allometry(length = length, a, b), 
+               data = fsh_bio_mod, start = START)
+
+# parameter estimates and plot fit 
+beta_m_fsh <- tidy(male_fit_fsh)$estimate[2]
+beta_f_fsh <- tidy(fem_fit_fsh)$estimate[2]
+beta_a_fsh <- tidy(all_fit_fsh)$estimate[2]
+
+fsh_bio_noOL<-bind_rows(fsh_bio_mod %>% filter(Sex %in% "Male") %>% 
+                          mutate(Condition = weight/(length^beta_m),
+                                 Quantile = ntile(Condition,1000)/1000),
+                        fsh_bio_mod %>% filter(Sex %in% "Female") %>% 
+                          mutate(Condition = weight/(length^beta_f),
+                                 Quantile = ntile(Condition,1000)/1000))
+min(fsh_bio_noOL$Quantile); max(fsh_bio_noOL$Quantile); hist(fsh_bio_noOL$Condition, breaks=200)
+nrow(fsh_bio_noOL)
+#remove fat and skinny fish in 99.9 and 0.1 percentiles
+fsh_bio_noOL<-fsh_bio_noOL[fsh_bio_noOL$Quantile > 0.0005 & fsh_bio_noOL$Quantile < 0.9995, ]
+nrow(fsh_bio_noOL); points(fsh_bio_noOL$weight ~ fsh_bio_noOL$length, col="blue")
+nrow(fsh_bio_mod)
+unique(fsh_bio$year); unique(fsh_bio_mod$year)
+#================================================================================================
+# Empirical weight-at-age ---- outliers left in for this piece
 
 # All years combined
 
 bind_rows(
-  srv_bio %>% 
+  srv_bio_noOL %>% 
     select(year, Project_cde, Sex, age, weight) %>% 
     filter(year >= 1997),
-  fsh_bio %>% 
+  fsh_bio_noOL %>% 
     select(year, Project_cde, Sex, age, weight) %>% 
     filter(year >= 2002)) %>% 
   filter(!is.na(weight) & !is.na(age) & !is.na(Sex)) %>% 
@@ -108,7 +197,7 @@ write_csv(emp_waa, paste0("output/empircal_waa_", YEAR, ".csv"))
 
 # Changes in weight-at-age
 
-srv_bio %>% 
+srv_bio_noOL %>% 
   select(year, Project_cde, Sex, age, weight) %>% 
   filter(year >= 1997) %>% 
   filter(!is.na(weight) & !is.na(age) & !is.na(Sex)) %>% 
@@ -172,7 +261,7 @@ ggsave("figures/waa_trends.png", dpi = 300, height = 5, width = 7, units = "in")
 # Survey length-at-age -----
 
 # subsets by length, age, sex
-srv_bio %>% 
+srv_bio_noOL %>% 
   filter(Sex %in% c("Female", "Male") &
            year >= 1997 & # *FLAG* advent of "modern" survey
            !is.na(length) &
@@ -310,7 +399,7 @@ ggsave(paste0("figures/trends_Linf_1997_", YEAR, ".png"),
 # Note that current port sampling protocals were implemented in 2002
 
 # subsets by length, age, sex
-fsh_bio %>% 
+fsh_bio_noOL %>% 
   filter(Sex %in% c("Female", "Male") &
            !is.na(length) &
            !is.na(age)) %>% 
@@ -386,13 +475,12 @@ write_csv(laa_preds, paste0("output/pred_laa_plsgrp", plus_group, "_", YEAR, ".c
 #ditto Jane.. simple to calculate exponent for a population...
 
 # subsets by weight, age, sex
-srv_bio %>% 
+srv_bio_noOL %>% 
   filter(Sex %in% c("Female", "Male") &
            year >= 1997 & #advent of "modern" survey
            !is.na(length) &
            !is.na(weight)) %>% 
   droplevels() -> allom_sub
-view(allom_sub)
 
 # length-weight relationship
 lw_allometry <- function(length, a, b) {a * length ^ b}
@@ -413,7 +501,10 @@ beta_m <- tidy(male_fit)$estimate[2]
 beta_f <- tidy(fem_fit)$estimate[2]
 beta_a <- tidy(all_fit)$estimate[2]
 
-bind_rows(tidy(male_fit) %>% mutate(Sex = "Male"),
+unique(allom_sub$Sex)
+
+
+bind_rows(tidy(male_fit) %>% mutate(Sex = "Male"),     
           tidy(fem_fit) %>% mutate(Sex = "Female")) %>% 
   bind_rows(tidy(all_fit) %>% mutate(Sex = "Combined")) %>% 
   dplyr::select(Parameter = term, Estimate = estimate, SE = std.error, Sex) %>% 
@@ -428,9 +519,6 @@ bind_rows(tidy(male_fit) %>% mutate(Sex = "Male"),
                           summarise(n = n()) %>% 
                           mutate(Sex = "Combined"))) -> allom_pars
 
-view(allom_pars)
-view(allom_sub)
-
 ggplot(allom_sub, aes(length, weight, col = Sex, shape = Sex)) +
   geom_jitter(alpha =0.8) + 
   stat_function(fun = lw_allometry, 
@@ -443,23 +531,20 @@ ggplot(allom_sub, aes(length, weight, col = Sex, shape = Sex)) +
   # scale_colour_grey() +
   theme(legend.position = c(0.85, 0.2))
 
-#2022 note; clear outliers in the LW relationship... some unrealistically heavy fish should be culled
-# as I did with YE
-
 ggsave(paste0("figures/allometry_chathamllsurvey_1997_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
-  
+
 #===================================================================================================
 # Survey weight-at-age ----
+#PJ 2022 note: this could be sensitive to those outliers... at least look at effect of removing them... 
 
 # subsets by weight, age, sex
-srv_bio %>% 
+srv_bio_noOL %>% 
   filter(Sex %in% c("Female", "Male") &
            year >= 1997 & # *FLAG* advent of "modern" survey
            !is.na(age) &
            !is.na(weight)) %>% 
   droplevels() -> waa_sub
-view(waa_sub)
 
 waa_sub %>% 
   ungroup() %>% 
@@ -529,7 +614,7 @@ lvb_pars %>% bind_rows(
 # Use same methods as survey and same starting values)
 
 # subsets by weight, age, sex
-fsh_bio %>% 
+fsh_bio_noOL %>% 
   filter(Sex %in% c("Female", "Male") &
            year >= 2002 & # use same years as survey
            !is.na(age) &
@@ -692,13 +777,13 @@ bind_rows(allom_pars, lvb_pars %>% rename(SE = `Std. Error`)) %>%
 # reference points / harvest strategy are based on female spawning biomass)
 
 # subsets by length
-srv_bio %>% 
+srv_bio_noOL %>% 
   ungroup() %>% 
   filter(Sex == "Female" &
            year >= 1997 & # *FLAG* advent of "modern" survey
            !is.na(Mature) &
            !is.na(length)) %>% 
-  droplevels() -> len_f
+  droplevels() -> len_f; nrow(len_f)
 
 # Sample sizes by year
 with(len_f, table(year))
@@ -755,7 +840,7 @@ ggsave(paste0("figures/maturity_atlength_byyear_srvfem_", YEAR, ".png"),
 broom::tidy(fit_length_year) %>% 
   select(param = term,
          est = estimate) -> mature_results
-
+view(mature_results)
 # Note on glm() output b/c I can never remember
 # (Intercept) = intercept for Year1997 (or first level of factor) on logit scale
 # length = slope for Year1997 on logit scale
@@ -900,6 +985,9 @@ ggplot() +
 # Length-based (translated to age; aka the blue one) is more realistic than
 # age-based (the red one). Also there is no clear reason to choose the more
 # complicated model (fit_length_year) over the simpler model (fit_length)
+###hmmm 2022pj: data through 20201 shows a prett drastic decline in A50 and L50
+### should we use latest est.?  Maybe worth sensitivity testing... 
+
 
 # Maturity at age for YPR and SCAA models
 pred_simple %>%  
@@ -933,6 +1021,22 @@ data.frame(year_updated = YEAR,
            a50 = a50) %>% 
   write_csv(paste0("output/maturity_param_", YEAR))
 
+#if we wanted to update this to using coefficients from recent years
+b0r <- fit_length_year$coefficients[1]
+b1r <- fit_length_year$coefficients[2]
+(L50r <- round(-b0r/b1r, 1))
+(a50r <- age_pred %>% 
+    right_join(data.frame(length = L50r)) %>% 
+    group_by(length) %>% 
+    dplyr::summarise(a50r = round(mean(age), 1)) %>% 
+    pull(a50r))
+(kmatr <- round(((coef(fit_length_year)[1] + coef(fit_length_year)[2]*len) / (len - L50r))[1], 2))
+
+data.frame(year_updated = YEAR,
+           L50 = L50,
+           kmat = kmat,
+           a50 = a50) %>% 
+  write_csv(paste0("output/maturity_param_", YEAR))
 # # Equation text for plotting values of a_50 and kmat
 # a50_txt <- as.character(
 #   as.expression(substitute(
@@ -946,14 +1050,14 @@ data.frame(year_updated = YEAR,
 
 #======================================================================================
 # Sex ratios ----
-#Note PJ first pass: fit of sex ratio models is aweful?  Need to follow up...
+#Note PJ first pass: fit of sex ratio models is awful?  Need to follow up...
 
 # proportion of females by age in survey and fishery
 
 # restrict age range
 aa <- rec_age:plus_group
 
-srv_bio %>% 
+srv_bio_noOL %>% 
   filter(age %in% aa) %>% 
   ungroup() %>% 
   select(Sex, age) %>% 
@@ -977,11 +1081,11 @@ srv_bio %>%
               mutate(proportion = round(n / sum(n), 2),
                      Source = "LL fishery") %>% 
               filter(Sex == "Female")) -> byage
-str(byage)
+str(byage); view(byage)
 # get generalized additive model fits and predictions
 # survey
 srv_fitage <- gam(I(Sex == "Female") ~ s(age), 
-                  data = filter(srv_bio, age %in% aa, 
+                  data = filter(srv_bio_noOL, age %in% aa, 
                                 Sex %in% c("Female", "Male")),
                family = "quasibinomial")
 summary(srv_fitage)
@@ -992,7 +1096,7 @@ srv_predage <- predict(srv_fitage, newdata = data.frame(age = aa),
 
 # fishery
 fsh_fitage <- gam(I(Sex == "Female") ~ s(age), 
-               data = filter(fsh_bio, age %in% aa,
+               data = filter(fsh_bio_noOL, age %in% aa,
                              Sex %in% c("Female", "Male")),
                family = "quasibinomial")
 summary(fsh_fitage)
@@ -1027,9 +1131,9 @@ ggplot(byage, aes(x = age)) +
   scale_fill_manual(values = c("black", "grey")) +
   theme(legend.position = c(0.8, 0.8)) -> byage_plot
 
-# proportion of females by year in the fishery and survey
+# proportion of females by year in the fishery and survey 
 
-srv_bio %>% 
+srv_bio_noOL %>% 
   filter(age %in% aa) %>% 
   ungroup() %>% 
   select(Sex, year) %>% 
@@ -1041,7 +1145,7 @@ srv_bio %>%
   mutate(proportion = round(n / sum(n), 2),
          Source = "LL survey") %>% 
   filter(Sex == "Female") %>% 
-  bind_rows(fsh_bio %>% 
+  bind_rows(fsh_bio_noOL %>% 
               filter(age %in% aa) %>% 
               ungroup() %>% 
               select(Sex, year) %>% 
@@ -1053,6 +1157,7 @@ srv_bio %>%
               mutate(proportion = round(n / sum(n), 2),
                      Source = "LL fishery") %>% 
               filter(Sex == "Female")) -> byyear
+view(byyear)
 
 # Save output for YPR analysis
 write_csv(byyear, paste0("output/sexratio_byyear_plsgrp", plus_group, "_", YEAR, ".csv"))
@@ -1060,7 +1165,7 @@ write_csv(byyear, paste0("output/sexratio_byyear_plsgrp", plus_group, "_", YEAR,
 # get generalized additive model fits and predictions
 # survey
 srv_fityear <- gam(I(Sex == "Female") ~ s(year, k = 4), 
-                  data = filter(srv_bio, Sex %in% c("Female", "Male")),
+                  data = filter(srv_bio_noOL, Sex %in% c("Female", "Male")),
                   family = "quasibinomial") #quasi- allows non-integers and avoids warnings...
 summary(srv_fityear); plot(srv_fityear)
 
@@ -1072,7 +1177,7 @@ srv_predyear <- predict(srv_fityear,
 
 # fishery
 fsh_fityear <- gam(I(Sex == "Female") ~ s(year, k = 4), 
-                   data = filter(fsh_bio, Sex %in% c("Female", "Male")),
+                   data = filter(fsh_bio_noOL, Sex %in% c("Female", "Male")),
                    family = "quasibinomial")
 summary(fsh_fityear); plot(fsh_fityear)
 
@@ -1118,13 +1223,14 @@ ggsave(paste0("figures/sex_ratios_", YEAR, ".png"), dpi=300,  height=6, width=7,
 #quos() uses stand eval in dplyr, eval cols with nonstand eval using !!!
 cols <- quos(Source, year, Sex, age) 
 
-bind_rows(fsh_bio %>% mutate(Source = "LL fishery") %>% select(!!!cols), 
-          srv_bio %>% mutate(Source = "LL survey") %>% select(!!!cols)) %>% 
+bind_rows(fsh_bio_noOL %>% mutate(Source = "LL fishery") %>% select(!!!cols), 
+          srv_bio_noOL %>% mutate(Source = "LL survey") %>% select(!!!cols)) %>% 
   bind_rows(potsrv_bio %>% mutate(Source = "Pot survey") %>% select(!!!cols)) %>% 
   filter(Sex %in% c('Female', 'Male') & !is.na(age)) %>% 
   droplevels() %>% 
   mutate(age = ifelse(age >= plus_group, plus_group, age)) %>% 
   filter(age >= 2) -> all_bio  # Plus group
+view(all_bio)
 
 # Sensitivity for 2019 YPR model on age-2s
 all_bio %>% 
@@ -1277,13 +1383,13 @@ ggsave("figures/bubble_fishery_agecomp_byyear.png",
 # 42-43.9 cm. They omit fish smaller than 40 and fish larger than 100 cm are
 # lumped into the 100 bin. I've maintained these conventions for easy
 # comparison:
-bind_rows(srv_bio %>% 
+bind_rows(srv_bio_noOL %>% 
             filter(year >= 1997 &
                      Sex %in% c("Female", "Male") &
                      !is.na(length)) %>% 
             select(year, Sex, length) %>% 
             mutate(Source = "LL survey"),
-          fsh_bio %>% 
+          fsh_bio_noOL %>% 
             filter(year >= 2002 &
                      Sex %in% c("Female", "Male") &
                      !is.na(length)) %>% 
@@ -1306,7 +1412,8 @@ lendat %>%
   # Length comps by Source, year, and Sex 
   count(Source, Sex, year, length_bin) %>%
   group_by(Source, Sex, year) %>% 
-  mutate(proportion = round( n / sum(n), 4)) %>% 
+#  mutate(proportion = round( n / sum(n), 4)) %>% 
+  mutate(proportion = n / sum(n)) %>%
   bind_rows(lendat %>% # Sexes combined
               count(Source, year, length_bin) %>%
               group_by(Source, year) %>% 
@@ -1332,7 +1439,9 @@ expand.grid(year = unique(lencomps$year),
 # Check that they sum to 1
 lencomps %>% 
   group_by(Source, Sex, year) %>% 
-  summarise(sum(proportion)) #%>% View()
+  summarise(sum(proportion)) %>% View()
+
+
 
 write_csv(lencomps, paste0("output/lengthcomps_", YEAR, ".csv"))
 
@@ -1612,7 +1721,7 @@ expand.grid(year = unique(statcomps$year),
 # Check that they sum to 1
 statcomps %>% 
   group_by(Stat, year) %>% 
-  summarise(sum(proportion)) 
+  summarise(sum(proportion)) %>% view
 
 statcomps %>% 
   group_by(year, Stat) %>% 

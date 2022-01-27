@@ -197,20 +197,22 @@ read_csv(paste0("data/fishery/raw_data/fishery_bio_",
   mutate(Adfg = as.character(Adfg)) -> fsh_bio
 }
 #PHIL's code:
-#no pot survey this go around
-#also stupid dates... had to go about it a bit different;y
+##also stupid dates... had to go about it a bit different;y
 read_csv(paste0("data/fishery/raw_data/fishery_bio_", 
                 YEAR, ".csv"), 
          guess_max = 50000) %>% 
   mutate(date = as.Date(format(parse_date_time(SELL_DATE, c("%m/%d/%Y %H:%M")),"%Y-%m-%d")), #ISO 8601 format
          julian_day = yday(date),
-         Sex = derivedFactor("Male" = SEX_CODE == "01",
-                             "Female" = SEX_CODE == "02",
+         Sex = derivedFactor("Male" = SEX_CODE == "1",#"01",
+                             "Female" = SEX_CODE == "2",#"02",
                              .default = NA),
          Maturity = derivedFactor("0" = MATURITY_CODE %in% c("01", "02"), 
                                   "1" = MATURITY_CODE %in% c("03", "04", "05", "06", "07"),
                                   .default = NA),
-         Gear = "Longline") %>% #, 
+         PROJECT_CODE = "02",   #new format has code as 602, but older data and legacy code ref's 02, so change here from
+                                #2022 onward
+         Gear = derivedFactor(#"Pot" = PROJECT_CODE == "17",
+                              "Longline" = PROJECT_CODE == "02")) %>%  #, Should be 02 for Longline, 602 is for the survey
   select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, 
          Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
          Stat = G_STAT_AREA, Mgmt_area = G_MANAGEMENT_AREA_CODE,
@@ -219,6 +221,8 @@ read_csv(paste0("data/fishery/raw_data/fishery_bio_",
          age = AGE, Sex, Maturity) %>%   #note; Jane not factoring gear into this piece of data... 
   mutate(Adfg = as.character(Adfg)) -> fsh_bio
 
+unique(fsh_bio$Sex)
+unique(fsh_bio$Project_cde)
 #fsh_bio$date<-as.Date(fsh_bio$date)
 fsh_bio$Sex<-as.character(fsh_bio$Sex)
 fsh_bio$Maturity<-as.character(fsh_bio$Maturity)
