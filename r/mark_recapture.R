@@ -800,10 +800,13 @@ strats <- 8
 #Prepare progress bar
 pb <- txtProgressBar(min = 0, max = strats, style = 3)
 
+#============================================================================================
+# Modelling loop
+
 for(j in 1:strats) {
   
   # j = 8
-  
+  #j=4
   # Base strata on percentiles of cumulative catch. Could also use number of marks
   # observed or some other variable. STRATA_NUM is the dynamic variable specifying
   # the number of time strata to split the fishery into and it currently
@@ -1263,7 +1266,7 @@ setTxtProgressBar(pb, j)
 #======================================================================================
 
 #Calls rbind on each list item to convert the list of dfs into one long df
-N_summary <- do.call("rbind", N_summary_ls)
+N_summary <- do.call("rbind", N_summary_ls); view(N_summary)
 dic_summary <- do.call("rbind", dic_ls)
 convergence_summary <- do.call("rbind", converge_ls)
 
@@ -1292,7 +1295,8 @@ not_converged %>% distinct(model, P) # do not include models that estimate q unl
 
 # Models with P>=6
 dic_summary %>% 
-  filter(P >= 6 & year == YEAR) %>% 
+#  filter(P >= 6 & year == YEAR) %>% 
+  filter(P >= 6 & year == YEAR-1) %>%
   group_by(year) %>% 
   mutate(min_DIC = min(DIC)) %>% 
   ungroup() %>% 
@@ -1311,7 +1315,8 @@ bind_rows(mod1_posterior_ls[[5]] %>% select(N.avg, year, model, P),
   # mutate(N.avg = N.avg / 1000000) %>% 
   dplyr::summarize(mean = mean(N.avg),
             q025 = quantile(N.avg, 0.025),
-            q975 = quantile(N.avg, 0.975)) -> N_summary
+            q975 = quantile(N.avg, 0.975)) -> N_summary 
+view(N_summary)
 
 N_summary %>% filter(model == "Model1") %>% write_csv(paste0("output/N_summary_tagsremoved_", YEAR, ".csv"))
 
@@ -1367,7 +1372,7 @@ tag_summary %>%
 # Summary of posterior distributions of quantities of interest, including
 # period-specific estimates of N (N[]), estimates of mean abundance (N.avg), net
 # migration (r) which can be positive or negative to indicate net immigration or
-# emigration, respetively, and catchability (q): map() applies the summary
+# emigration, respectively, and catchability (q): map() applies the summary
 # functions after the ~ to each df in the list. do.call() rbinds the output
 # together. Repeat this for each model and rbind into one summary df.
 bind_rows(
@@ -1457,6 +1462,7 @@ results %>%
          # interpolate the CI in missing years for plotting purposes
          q025 = zoo::na.approx(q025 / 1e6, maxgap = 20, rule = 2),
          q975 = zoo::na.approx(q975 / 1e6, maxgap = 20, rule = 2)) -> df
+view(df)
 
 ggplot(df) +
   geom_point(aes(x = year, y = N, col = Abundance, shape = Abundance), 
@@ -1623,7 +1629,7 @@ ggsave(paste0("figures/Nvar_scaledwithin.png"),
        dpi=300, height=4, width=4, units="in")
 
 # Examination of abundance (scaled between models) - trends with P are similar
-# as the within model examination... more strinking are the consistent between
+# as the within model examination... more striking are the consistent between
 # model trends. Model 2 has the greatest estimates for N by ~ 1 sd for all yrs
 # except 2017, followed by Model 4 or 1. Model 3 has the lowest estimate of N
 # for all years.
@@ -1758,7 +1764,7 @@ ggplot(post_sums %>% filter(variable == "q")) +
   labs(x = "\nNumber of time periods",
        y = "SD of catchability scaled between models\n")
 
-
+#now just looking at model2?  -pj2022
 results <- mod2_posterior_ls[[5]]
 
 results %>% 
@@ -1879,8 +1885,10 @@ ggsave(paste0("figures/NPUE_obsvsfitted_mod4_", YEAR, ".png"),
                         
 # In 2018 the models with NPUE only fit the data well when migration was included:
 
-NPUE <- mod3_posterior_ls[[5]] %>% filter(year == YEAR) %>% 
-  bind_rows(mod4_posterior_ls[[5]] %>% filter(year == YEAR)) %>% 
+#NPUE <- mod3_posterior_ls[[5]] %>% filter(year == YEAR) %>% 
+#  bind_rows(mod4_posterior_ls[[5]] %>% filter(year == YEAR)) %>% 
+NPUE <- mod3_posterior_ls[[5]] %>% filter(year == YEAR-1) %>% 
+  bind_rows(mod4_posterior_ls[[5]] %>% filter(year == YEAR-1)) %>% 
   select(model, year, P, contains("npue.hat")) %>% 
   reshape2::melt(id.vars = c("model", "year", "P")) %>% 
   group_by(model, year, variable) %>% 
@@ -1905,7 +1913,8 @@ NPUE <- mod3_posterior_ls[[5]] %>% filter(year == YEAR) %>%
   select(-variable)
 
 NPUE_dat <- data_df[[5]] %>% 
-  filter(year == YEAR) %>% 
+#  filter(year == YEAR) %>% 
+  filter(year == YEAR-1) %>%   #YEAR-1 for Phil's 2022 review
   select(P = catch_strata, NPUE)
 
 ggplot() +
