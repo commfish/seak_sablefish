@@ -90,6 +90,9 @@ releases %>%
 read_csv(paste0("data/fishery/tag_recoveries_2003_", YEAR, ".csv"), 
          guess_max = 50000) -> recoveries
 str(recoveries)
+
+par(mfrow=c(3,1))
+hist(recoveries$length); hist(releases$length)
 # project codes: query zprod: "select new_project_code, project_code, project from
 # lookup.project_conversion where category_code = 'g'"
 
@@ -806,7 +809,7 @@ pb <- txtProgressBar(min = 0, max = strats, style = 3)
 for(j in 1:strats) {
   
   # j = 8
-  #j=4
+  #j=3
   # Base strata on percentiles of cumulative catch. Could also use number of marks
   # observed or some other variable. STRATA_NUM is the dynamic variable specifying
   # the number of time strata to split the fishery into and it currently
@@ -863,6 +866,8 @@ for(j in 1:strats) {
   
   # Add in the abundance estimates from the past assessments as mu.N (the mean for
   # the prior on N.1)
+  #PJ 2022 note: could this be carrying forward past errors or poor analysis? 
+  
   assessment_summary %>% 
     filter(year >= FIRST_YEAR & !year %in% NO_MARK_SRV) %>% 
     select(year, mu.N = abundance_age2plus) -> abd_est

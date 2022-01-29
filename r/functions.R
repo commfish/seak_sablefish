@@ -291,7 +291,7 @@ coda_df <- function(coda.object, parameters = NULL) {
 # MR Jags ----
 
 # Run same (or multiple) models over full time series, exporting posterior
-# distributions, deviance information criterion, and convergance diagnostics all
+# distributions, deviance information criterion, and convergence diagnostics all
 # in one
 
 mr_jags <- function(
