@@ -422,7 +422,7 @@ summary(m1)
 # Conventional gear performs slightly better than autobaiter gear.
 
 # Determine whether to keep hook size or keep it as a random effect
-# not crazy about hook size as a random effect - it should always be a fixed affect because
+# PJ22: not crazy about hook size as a random effect - it should always be a fixed affect because
 # it would directly affect cpue... as opposed to year or vessel random effect where there is 
 # random noise associated with the variable, hook size has a plausible effect on the response variable?
 m5 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
@@ -643,7 +643,8 @@ ggplot(cpue_ts_short) +
   # geom_ribbon(aes(year, ymin = cpue - var, ymax = cpue + var),
               alpha = 0.2,  fill = "grey") +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  lims(y = c(0, 1.5)) +
+  #lims(y = c(0, 1.5)) +
+  #lims(y = c(-0.5, 1.5)) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") 
 
 ggsave(paste0("figures/fshcpue_1997_", YEAR, ".png"),

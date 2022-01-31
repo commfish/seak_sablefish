@@ -54,6 +54,7 @@ NO_MARK_SRV <- c(2011, 2014, 2016, 2021) # years without a marking survey
 read_csv("data/chatham_sablefish_abd_index.csv") -> assessment_summary
 view(assessment_summary)
 
+unique(assessment_summary$year)
 # Past years of mark-recapture variables, summarized to best of my ability based
 # on going through old Excel files on the server. Used for comparison purposes.
 read_csv("data/fishery/raw_data/mr_variable_summary.csv") -> mr_summary
@@ -89,6 +90,7 @@ releases %>%
 
 read_csv(paste0("data/fishery/tag_recoveries_2003_", YEAR, ".csv"), 
          guess_max = 50000) -> recoveries
+unique(recoveries$year)
 str(recoveries)
 
 par(mfrow=c(3,1))
@@ -555,35 +557,35 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
   dplyr::summarize(WPUE = mean(WPUE)) -> fsh_cpue # legacy code, YOU WILL GET AN ERROR!
 #PJ2022: No Error! Justin Daily still working on sql but presented data to me that "should" work... 
 str(fsh_cpue)
-unique(fsh_cpue$year) # !FLAG! Justin still working on 2020 data as of 1/26/22... hoping by end of day?
+unique(fsh_cpue$year) # !FLAG! Received from Justin 1/31/22 
                       #once have that data can get rid of code below 
 
 # Stop gap: use long term (1997-2019) mean for interim years (2020-whenever
 # fishery CPUE project is finished). Remove the following code chunks once the
 # new fishery CPUE index is developed:
-read_csv(paste0("data/fishery/fishery_cpue_1997_2019.csv"), 
-         guess_max = 50000) %>% 
-  filter(Spp_cde == "710") %>% 
-  mutate(sable_kg_set = sable_lbs_set * 0.45359237, # conversion lb to kg
-         std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (0.0254 * hook_space))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
+#read_csv(paste0("data/fishery/fishery_cpue_1997_2019.csv"), 
+#         guess_max = 50000) %>% 
+#  filter(Spp_cde == "710") %>% 
+#  mutate(sable_kg_set = sable_lbs_set * 0.45359237, # conversion lb to kg
+#         std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (0.0254 * hook_space))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
          # kg sablefish/1000 hooks, following Mueter 2007
-         WPUE = sable_kg_set / (std_hooks / 1000)) %>% 
-  filter(!is.na(date) & 
-           !is.na(sable_lbs_set) &
+#         WPUE = sable_kg_set / (std_hooks / 1000)) %>% 
+#  filter(!is.na(date) & 
+#           !is.na(sable_lbs_set) &
            # omit special projects before/after fishery
-           julian_day > 226 & julian_day < 322) %>% 
-  group_by(year, trip_no) %>% 
-  dplyr::summarize(WPUE = mean(WPUE)) -> fsh_cpue #
+#           julian_day > 226 & julian_day < 322) %>% 
+#  group_by(year, trip_no) %>% 
+#  dplyr::summarize(WPUE = mean(WPUE)) -> fsh_cpue #
 
 # here I fill in all trips in 2020 (or later) with the long-term fishery CPUE
 # mean. this will need to be deleted at some point!
-fsh_cpue <- marks %>% 
-  filter(date > 2020-01-01) %>% 
-  mutate(year = year(date)) %>% 
-  select(year, trip_no) %>% 
-  mutate(WPUE = mean(fsh_cpue$WPUE, na.rm = TRUE)) %>% 
-  bind_rows(fsh_cpue) %>% 
-  arrange(year)
+#fsh_cpue <- marks %>% 
+#  filter(date > 2020-01-01) %>% 
+#  mutate(year = year(date)) %>% 
+#  select(year, trip_no) %>% 
+#  mutate(WPUE = mean(fsh_cpue$WPUE, na.rm = TRUE)) %>% 
+#  bind_rows(fsh_cpue) %>% 
+#  arrange(year)
   
 # Join the mark sampling with the fishery cpue - add wpue column
 head(marks,20)
@@ -600,6 +602,7 @@ marks %>%
   # tags section - number of days to incur natural mortality
   mutate(t.1 = as.numeric((fishery_beg - 1) - potsrv_middle)) -> tag_summary
 
+unique(tag_summary$year)
 # 6. Tags from fishery
 
 # Join the recovered trips from a specific year-trip combination to the daily
@@ -613,6 +616,8 @@ recoveries %>%
   dplyr::summarize(tags_from_fishery = n_distinct(tag_no)) %>% 
   right_join(marks, by = "year_trip") -> marks
 
+unique(recoveries$year)
+unique(marks$year)
 # Remove these matched tags from the releases df so they don't get double-counted by accident. 
 recoveries %>% filter(!c(year_trip %in% marks$year_trip & Project_cde == "02")) -> recoveries
 str(recoveries)
@@ -1484,7 +1489,7 @@ ggplot(df) +
              aes(x = year, y = est),
              shape = 8, size = 1.5, colour = "grey") +
   scale_colour_grey() +
-  ylim(c(1, 4)) +
+  ylim(c(1, 4.5)) +
   labs(x = "", y = "Number of sablefish (millions)\n",
        colour = NULL, shape = NULL, linetype = NULL) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +

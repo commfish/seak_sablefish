@@ -130,7 +130,7 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
 
  read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
 #                 max(fsh_eff$YEAR), ".csv"), 
-                 YEAR, ".csv"), 
+                 YEAR-1, ".csv"), 
           guess_max = 50000) %>% 
 #   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
 #   # hooks and cpue
@@ -156,9 +156,12 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
           guess_max = 50000) %>% 
    mutate(Size = as.character(Size)) -> past_fsh_eff
  
+ fsh_eff2$soak<-as.numeric(fsh_eff2$soak)
  fsh_eff$soak<-as.numeric(fsh_eff$soak)
  
- bind_rows(past_fsh_eff, fsh_eff) -> fsh_eff
+ bind_rows(past_fsh_eff, fsh_eff2, fsh_eff) -> fsh_eff
+ 
+ unique(fsh_eff$year)
  
  write_csv(fsh_eff, paste0("data/fishery/fishery_cpue_",
                     min(fsh_eff$year), "_", max(fsh_eff$year), ".csv"))
