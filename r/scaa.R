@@ -25,26 +25,26 @@
 # These must be checked or updated annually!
 
 # most recent year of data (YEAR+1 should be the forecast year)
-YEAR <- 2020
+YEAR <- 2021
 
 # Last years ABC, mortality from discards, and F_ABC values - manually input
 # from previous assessment! Double check these values with the summary table.
 # Note that in years when the recommended ABC = maxABC, there will be repeats
 # (previous years values commented out for reference/check)
-LYR_maxABC <- 1280406 #1058037 # maxABC for YEAR (ABC under F50)
-LYR_recABC <- 1216743 #1058037 # recommended ABC for YEAR
-LYR_wastage <- 57716 #19142 # wastage for YEAR (this is only defined under maxABC b/c it's included in the calculation of maxABC for the 2020 forecast and beyond)
-LYR_maxF_ABC <- 0.0765 #0.0632 # F50 for YEAR
-LYR_F_ABC <- 0.0659 #0.0632 # F under the recommended ABC
+LYR_maxABC <- 1255056 #pj22; 1280406 #1058037 # maxABC for YEAR (ABC under F50)
+LYR_recABC <- 1255056 #pj22 1216743 #1058037 # recommended ABC for YEAR
+LYR_wastage <- 59017 #pj22; 57716 #19142 # wastage for YEAR (this is only defined under maxABC b/c it's included in the calculation of maxABC for the 2020 forecast and beyond)
+LYR_maxF_ABC <- 0.0611 #pjj22 (same as Rec ABC in 21 report?) ;  0.0765 #0.0632 # F50 for YEAR
+LYR_F_ABC <- 0.0611 #pj22, 0.0659 #0.0632 # F under the recommended ABC
 
 # Last years projected biomass and SPR - the old assessment framework didn't
 # report these. They are reported in 2020 and will be reported for
 # comparison moving forward similar to federal assessment. These values are
 # reported in assessment summary table
-LYR_proj_age2plus <- 48513401 # projected age-2+ biomass
-LYR_proj_fSSB <- 15679118 # projected female spawning biomass
-LYR_SB100 <- 24853774 # unfished equilibrium female spawning biomass (SPR = 100)
-LYR_SB50 <- 12426887 # equilibrium female spawning biomass under F50 (SPR = 50)
+LYR_proj_age2plus <- 43357877 #pj22; 48513401 # projected age-2+ biomass
+LYR_proj_fSSB <- 15278067 #pj22; 15679118 # projected female spawning biomass
+LYR_SB100 <- 26775615 #pj22; 24853774 # unfished equilibrium female spawning biomass (SPR = 100)
+LYR_SB50 <- 13387807 #pj22; 12426887 # equilibrium female spawning biomass under F50 (SPR = 50)
 
 # Set up ----
 
@@ -78,7 +78,7 @@ ageing_error <- scan("data/tmb_inputs/ageing_error_fed.txt", sep = " ") %>% matr
 rowSums(ageing_error) # should be 1
 
 # Age-length key from D. Hanselman 2019-04-18. On To DO list to develop one for
-# ADFG (will need separate onces for fishery and survey). See
+# ADFG (will need separate ones for fishery and survey). See
 # ageing_error_matrix.R for KVK's code, which may be a good start.  Proportion
 # at length given age. Row = age, Column = length bin
 agelen_key_m <- scan("data/tmb_inputs/agelen_key_male.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
@@ -165,10 +165,12 @@ setwd(tmb_path)
 # to build TMB object, map, and bounds
 # (4) Debug mode with debug = TRUE (will need to uncomment out obj_fun = dummy * dummy; )
 
+str(data)
+
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
                 model_name = "scaa_mod", phase = FALSE, 
-                newtonsteps = 3, # make this zero initially for faster run times
+                newtonsteps = 3, #3 make this zero initially for faster run times
                 debug = FALSE)
 
 obj <- out$obj # TMB model object
@@ -264,6 +266,7 @@ rec <- rec %>%
 rec
 rec %>% filter(brood_year == 2014) %>% pull(rec)
 rec %>% filter(brood_year == 2015) %>% pull(rec)
+rec %>% filter(brood_year == 2016) %>% pull(rec)
 rec %>% filter(brood_year == 1978) %>% pull(rec)
 
 agecomps <- reshape_age()
@@ -448,7 +451,8 @@ res <- c(paste0("STATISTICAL CATCH-AT-AGE MODEL RESULTS FOR NSEI SABLEFISH", "\n
                 "\n",
                 "Report produced by scaa.R", "\n",
                 # Update as needed!
-                "Contact: jane.sullivan1@alaska.gov or ummjane@gmail.com or rhea.ehresmann@alaska.gov", "\n",
+                "Developed by Jane Sullivan, ummjane@gmail.com",
+                "Contact: philip.joy1@alaska.gov or rhea.ehresmann@alaska.gov", "\n",
                 "Report generated: ", paste0(Sys.Date()),  "\n",
                 "\n",
                 "Model diagnostics", "\n",

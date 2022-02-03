@@ -13,7 +13,7 @@ source("r/helper.r")
 source("r/functions.r")
 
 syr <- 1975
-lyr <- YEAR <- 2020
+lyr <- YEAR <- 2021
 nyr <- length(syr:lyr)
 
 rec_age <- 2
@@ -61,19 +61,22 @@ read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"),
 # historically informative and is assumed to have high variability, we do not
 # anticipate these missing values to impact model performance.
 
+#PJ22: Issues resolved by Justin Daily, January 2022.  Using all data now...
+
 # temporary variable to deal with missing fishery CPUE data:
-fsh_lyr <- 2019
+fsh_lyr <- 2021
 
 # Read in data, standardize cpue, etc.
 read_csv(paste0("data/fishery/fishery_cpue_1997_", fsh_lyr,".csv"), 
          guess_max = 50000) %>% 
-  filter(!is.na(hook_space) & !is.na(sable_lbs_set) &
+  filter(!is.na(hook_space) & !is.na(sable_lbs_set) & !is.na(no_hooks) &
            julian_day > 226) %>%  # if there were special projects before the fishery opened
   mutate(# standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
          std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (hook_space / 39.37))), 
          # convert lbs to kg
          std_cpue_kg = (sable_lbs_set * 0.453592) / std_hooks) -> fsh_cpue  
-
+view(fsh_cpue)
+str(fsh_cpue)
 # Nominal CPUE 
 fsh_cpue %>% 
   group_by(year) %>% 
@@ -84,7 +87,8 @@ fsh_cpue %>%
             # sigma_fsh_cpue = se / fsh_cpue, # relative standard error too low
             # sigma_fsh_cpue = sd / fsh_cpue#, # CV too high
             # *FLAG* currently just assume cv=0.05 for new ts, 0.1 for old
-            sigma_fsh_cpue = 0.08 
+            sigma_fsh_cpue = 0.08,  #why assume sigma when you have sd measurements which are much larger?
+            truesigma_fsh_cpue = se / fsh_cpue
             ) -> fsh_cpue 
 
 # Historical CPUE 
@@ -373,6 +377,7 @@ srv_fitage <- gam(I(Sex == "Female") ~ s(age),
                   data = filter(srv_bio, age %in% rec_age:plus_group, 
                                 Sex %in% c("Female", "Male")),
                   family = "binomial")
+summary(srv_fitage)
 
 srv_predage <- predict(srv_fitage, newdata = data.frame(age = rec_age:plus_group),
                        type = "response", se = TRUE)
@@ -381,6 +386,7 @@ bind_cols(
   byage,
   #do.call cbinds each vector in the predict() output list 
   as_tibble(do.call(cbind, srv_predage))) -> byage
+view(byage)
 
 byage %>% 
   rename(prop_fem = proportion) %>% 
@@ -565,7 +571,7 @@ agecomps <- agecomps %>% arrange(Source, year)
 write_csv(agecomps, paste0("data/tmb_inputs/agecomps_", YEAR, ".csv"))
 
 # Data source by year ----
-
+view(ts)
 ts %>% 
   ungroup() %>% 
   gather("Source", "value", c(catch, fsh_cpue, srv_cpue, mr), na.rm = TRUE) %>% 
@@ -588,7 +594,7 @@ df %>%
                           # mark-recapture + yield per recruit (YPR) model
                           Source %in% c("Mark-recapture", "Fishery ages"),
                         "1", "0")) -> df
-
+view(df)
 # axisx <- tickr(df, year, 5)
 
 ggplot(df, aes(x = year, y = Source)) +
@@ -799,10 +805,12 @@ df %>%
 
 df %>% filter(fork_length_cm == 63)
 
-waa <- read_csv(paste0("output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) 
+waa <- read_csv(paste0("output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) %>% 
+  rename(sex = Sex)
 laa <- read_csv(paste0("output/pred_laa_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) 
 full_join(waa, laa) %>% 
-  rename(fork_length_cm = fork_len) %>% 
+#  rename(fork_length_cm = fork_len) %>% 
+  rename(fork_length_cm = length) %>% 
   mutate(round_kg = round(round_kg, 2),
          round_lb = round(round_kg * 2.20462, 2),
          easterncut_lb_0.63 = round(round_lb * 0.63, 2)) -> waa_laa
@@ -820,6 +828,7 @@ waa_laa %>% filter(Source == "LL survey") %>%
 # appropriately. using predicted federal values, fit logistic curves to obtain
 # fishery/survey selectivity from 0:29 instead of 2:31
 sel <- read_csv("data/fed_selectivity_2020.csv")
+view(sel)
 
 unique(sel$fleet)
 sel <- sel %>% 
@@ -842,6 +851,8 @@ params <- sel %>%
          b = map(model, ~coef(.x)[2])) %>% 
   unnest(cols = c(a,b)) %>% 
   select(fleet, a, b)
+
+view(params)
 
 tmb_ages <- unique(sel$tmb_age)
 

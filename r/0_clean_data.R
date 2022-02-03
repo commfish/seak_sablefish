@@ -92,6 +92,10 @@ ifdb_catch$Adfg<-as.character(ifdb_catch$Adfg)
 ifdb_catch$Delivery_cde<-as.character(ifdb_catch$Delivery_cde)
 
 bind_rows(past_catch, ifdb_catch) -> ifdb_catch
+unique(ifdb_catch$year)
+#save full '69 through this year for SCAA
+write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
+                             min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
 
 # only use this for year >= 1985 (see fishery_catch_cpue.R for more documentation)
 ifdb_catch <- ifdb_catch %>% filter(year >= 1985)
