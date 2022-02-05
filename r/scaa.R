@@ -170,7 +170,7 @@ str(data)
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
                 model_name = "scaa_mod", phase = FALSE, 
-                newtonsteps = 3, #3 make this zero initially for faster run times
+                newtonsteps = 5, #3 make this zero initially for faster run times
                 debug = FALSE)
 
 obj <- out$obj # TMB model object

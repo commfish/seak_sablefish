@@ -4,7 +4,7 @@
 
 # Set up ----
 
-YEAR <- 2020 # most recent year of data
+YEAR <- 2021 # most recent year of data
 
 # Directory setup
 root <- getwd() # project root
@@ -313,7 +313,7 @@ Fmort <- make_retro(df = Fmort, y = Fmort, min_year = 2000, y_lab = "Fishing mor
 # Mohn's Rho ----
 
 # Interpretation of Mohn's Rho (Hurtado-Ferro et al 2015):
-# Given that the variability of Mohn’s rdepends on life history, and that the
+# Given that the variability of Mohn’s r depends on life history, and that the
 # statistic appears insensitive to F, we propose the following rule of thumb
 # when determining whether a retrospective pattern should be addressed
 # explicitly: values of Mohn’s r higher than 0.20 or lower than 20.15 for

@@ -568,7 +568,7 @@ build_data <- function(
     nyr_mr = n_distinct(mr, mr),
     yrs_mr = mr %>% distinct(index) %>% pull(),
     data_mr = pull(mr, mr),
-    sigma_mr = rep(0.05, n_distinct(mr, mr)), #mr %>% pull(sigma_mr), 
+    sigma_mr = rep(0.08, n_distinct(mr, mr)), #mr %>% pull(sigma_mr), 
     
     # Fishery CPUE
     nyr_fsh_cpue = fsh_cpue %>% n_distinct(fsh_cpue),

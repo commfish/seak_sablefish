@@ -132,9 +132,37 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
 # information on sets designated as halibut targets. Note that it is missing
 # effort_no's (effort_no's = individual sets).
 
+#This code is for adding both 2020 and 20201 data at once since 2020 was skipped last year
+rbind(read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
+                          #                 max(fsh_eff$YEAR), ".csv"), 
+                          YEAR-1, ".csv"), 
+                   guess_max = 50000),
+          read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
+                          #                 max(fsh_eff$YEAR), ".csv"), 
+                          YEAR, ".csv"), 
+                   guess_max = 50000)) %>% 
+  #   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
+  #   # hooks and cpue
+  mutate(date = ymd(as.Date(TIME_SET)), #ISO 8601 format
+         julian_day = yday(date),
+         soak = as.numeric(difftime(TIME_HAULED, TIME_SET, units = "hours")),
+         Gear = factor(LONGLINE_SYSTEM_CODE),
+         Hook_size = as.character(HOOK_SIZE), 
+         hook_space = HOOK_SPACING, #*FLAG* - check that hook_space is in inches
+         Size = factor(as.numeric(gsub("[^0-9]", "", Hook_size))),
+         no_hooks = NUMBER_OF_HOOKS,
+         sable_lbs_set = SABLE_LBS_PER_SET) %>% 
+  select(year = YEAR, trip_no = TRIP_NO, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
+         soak, Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, 
+         hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
+         sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
+         start_lon = START_LONGITUDE_DECIMAL_DEGREE) -> fsh_eff
+
+#code for adding just one year.  Use in '23 for '22 analysis (hopefully)
+{
  read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
 #                 max(fsh_eff$YEAR), ".csv"), 
-                 YEAR-1, ".csv"), 
+                 YEAR, ".csv"), 
           guess_max = 50000) %>% 
 #   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
 #   # hooks and cpue
@@ -152,7 +180,8 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
           hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
           sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
           start_lon = START_LONGITUDE_DECIMAL_DEGREE) -> fsh_eff
-# 
+ }
+unique(fsh_eff$year) 
 # # Data quieried before (that way you're using the same data that was used for
 # # the assessment, starting in 2017)
 # read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR-1, ".csv"), 
@@ -160,10 +189,7 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
           guess_max = 50000) %>% 
    mutate(Size = as.character(Size)) -> past_fsh_eff
  
- fsh_eff2$soak<-as.numeric(fsh_eff2$soak)
- fsh_eff$soak<-as.numeric(fsh_eff$soak)
- 
- bind_rows(past_fsh_eff, fsh_eff2, fsh_eff) -> fsh_eff
+  bind_rows(past_fsh_eff, fsh_eff) -> fsh_eff
  
  unique(fsh_eff$year)
  

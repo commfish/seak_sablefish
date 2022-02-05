@@ -113,7 +113,7 @@ for (y in ys){   #y<-ys[10]
 
 #======================================================================
 # 1) Harvest Data
-harvest<-read.csv("data/fishery/nseiharvest_ifdb_1985_2021.csv")
+harvest<-read.csv("data/fishery/nseiharvest_ifdb_1969_2021.csv")
 str(harvest)
 ys<-unique(harvest$year)
 ann<-data.frame(); j<-1
@@ -134,9 +134,25 @@ for (i in ys){
 }
 #===============================================================
 #2) Fishery cpue ----
+f21<-read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
+                #                 max(fsh_eff$YEAR), ".csv"), 
+                YEAR, ".csv"), 
+         guess_max = 50000)
+
+f20<-read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
+                #                 max(fsh_eff$YEAR), ".csv"), 
+                YEAR-1, ".csv"), 
+         guess_max = 50000)
+str(f21); str(f20)
+ff<-rbind(f21,f20)
+
+str(ff)
+
 fc<-read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
          guess_max = 50000)
 str(fc)
+
+
 read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
          guess_max = 50000) %>% 
   filter(!is.na(date) & !is.na(hook_space) & !is.na(sable_lbs_set) &

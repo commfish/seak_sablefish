@@ -396,3 +396,79 @@ tag_recoveries$landing_date
 str(past_recoveries)
 tag_recoveries$Project_cde<-as.character(tag_recoveries$Project_cde)
 bind_rows(past_recoveries, tag_recoveries) -> tag_recoveries
+
+#=============================================================================================
+# more fishery cpue exam scrap
+
+read_csv(paste0("data/fishery/fishery_cpue_1997_", fsh_lyr,".csv"), 
+         guess_max = 50000) %>% 
+  filter(!is.na(hook_space) & !is.na(sable_lbs_set) & !is.na(no_hooks) &
+           julian_day > 226) %>%  # if there were special projects before the fishery opened
+  mutate(# standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
+    std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (hook_space / 39.37))), 
+    # convert lbs to kg
+    std_cpue_kg = (sable_lbs_set * 0.453592) / std_hooks) -> fsh_cpue  
+view(fsh_cpue)
+str(fsh_cpue)
+
+fsh_cpue<-read.csv(paste0("data/fishery/fishery_cpue_1997_", fsh_lyr,".csv"))
+
+C19<-fsh_cpue[fsh_cpue$year == 2019,]
+C20<-fsh_cpue[fsh_cpue$year == 2020,]
+C21<-fsh_cpue[fsh_cpue$year == 2021,]
+
+nrow(C21[is.na(C21$no_hooks),])
+
+C19<-C19 %>% 
+  filter(!is.na(hook_space) & !is.na(sable_lbs_set) &
+           julian_day > 226) %>%  # if there were special projects before the fishery opened
+  mutate(# standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
+    std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (hook_space / 39.37))), 
+    # convert lbs to kg
+    std_cpue_kg = (sable_lbs_set * 0.453592) / std_hooks) 
+nrow(C19)
+
+C20<-C20 %>% 
+  filter(!is.na(hook_space) & !is.na(sable_lbs_set) &
+           julian_day > 226) %>%  # if there were special projects before the fishery opened
+  mutate(# standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
+    std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (hook_space / 39.37))), 
+    # convert lbs to kg
+    std_cpue_kg = (sable_lbs_set * 0.453592) / std_hooks) 
+nrow(C20)
+
+C21<-C21 %>% 
+  filter(!is.na(hook_space) & !is.na(sable_lbs_set) &
+           julian_day > 226) %>%  # if there were special projects before the fishery opened
+  mutate(# standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
+    std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (hook_space / 39.37))), 
+    # convert lbs to kg
+    std_cpue_kg = (sable_lbs_set * 0.453592) / std_hooks) 
+nrow(C21)
+
+par(mfrow=c(3,1))
+hist(C19$std_cpue_kg, breaks=25, xlim=c(0,3))
+hist(C20$std_cpue_kg, breaks=25, xlim=c(0,3))
+hist(C21$std_cpue_kg, breaks=25, xlim=c(0,3))
+
+mean(C19$std_cpue_kg); mean(C20$std_cpue_kg); mean(C21$std_cpue_kg)
+sd(C19$std_cpue_kg)^2; sd(C20$std_cpue_kg)^2; sd(C21$std_cpue_kg)^2
+se(C19$std_cpue_kg); se(C20$std_cpue_kg); se(C21$std_cpue_kg)
+nrow(C21[is.na(C21$std_cpue_kg),])
+nrow(C21)
+C21[]
+
+# Nominal CPUE 
+C21 %>% 
+  group_by(year) %>% 
+  dplyr::summarise(fsh_cpue = mean(std_cpue_kg),
+                   n = n(),
+                   sd = sd(std_cpue_kg),
+                   se = sd / sqrt(n),
+                   # sigma_fsh_cpue = se / fsh_cpue, # relative standard error too low
+                   # sigma_fsh_cpue = sd / fsh_cpue#, # CV too high
+                   # *FLAG* currently just assume cv=0.05 for new ts, 0.1 for old
+                   sigma_fsh_cpue = 0.08,  #why assume sigma when you have sd measurements which are much larger?
+                   truesigma_fsh_cpue = sd^2/fsh_cpue
+  ) #-> fsh_cpue 
+
