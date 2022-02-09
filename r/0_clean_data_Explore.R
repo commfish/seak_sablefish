@@ -162,7 +162,7 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
            julian_day > 226 & # if there were special projects before the fishery opened
            no_hooks < 15000 & # 15000 in Kray's scripts - 14370 is the 75th percentile
            # limit analysis to Chatham Strait and Frederick Sounds where the
-           # majority of fishing occurs
+           # majority of fishing occurs=
            Stat %in% c("345603", "345631", "345702",
                        "335701", "345701", "345731", "345803")) %>% 
   mutate(Year = factor(year), 
@@ -200,9 +200,13 @@ read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"),
     total_trips = n_distinct(trip_no)) %>% 
   ungroup() -> fsh_cpue
 
+fsh_cpue<-read.csv("data/fishery/fishery_cpue_1997_2021.csv")
 str(fsh_cpue)
 #---------------------------------------------------------------
 # 9) tag recovery data
+#just data from 2021
+str(Dat)
+
 tagrec<-read.csv("data/fishery/tag_recoveries_2003_2021.csv")
 str(tagrec)
 plot(tagrec$tag_batch_no~tagrec$year)

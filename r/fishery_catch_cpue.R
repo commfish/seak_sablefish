@@ -282,6 +282,11 @@ ggplot(fsh_cpue %>%
 ggsave(paste0("figures/fshcpue_trendsbyStat_",min(fsh_cpue$year), "_", YEAR, ".png"), 
        dpi=400, height=4, width=7.5, units="in")
 
+#2022: Note that 2020 and 2021 have some very high CPUE outliers with new query from Justin...
+#or... with recruitment of '13-'16 year classes there is far more variability based on discard
+# behavior as some fisherman clean up on small fish (but most opt not to); could check the outlier
+# vessel if there were lengths... but just poundage... 
+
 # No one fished in Fred. Sound in 2018, 2 in 2019, 4 in 2021
 fsh_cpue %>% filter(Stat %in% c("345702", "335701") & year == YEAR) %>% distinct(Adfg)
 # Activity in N Chatham 
@@ -315,9 +320,10 @@ table(fsh_cpue$Hook_size)
 fsh_cpue %>% filter(Hook_size == "7") %>% distinct(Adfg, Stat, Year)
 fsh_cpue %>% filter(Hook_size == "6") %>% distinct(Adfg, Stat, Year)
 
-#before censoring hooks run analysis with them in there... they actually don't
-#make a big difference and can likely be ignored... pj2022
-fsh_cpue %>% filter(!Hook_size %in% c("11", "7", "6")) -> fsh_cpue
+# PJ22 obs: before censoring hooks run analysis with them in there... they actually don't
+# make a big difference and can likely be ignored... pj2022
+# fsh_cpue %>% filter(!Hook_size %in% c("11", "7", "6")) -> fsh_cpue
+fsh_cpue %>% filter(!Hook_size %in% c("6")) -> fsh_cpue
 
 # Not much contrast in CPUE between remaining hook sizes... maybe some
 # difference in performance between years/areas
@@ -357,18 +363,18 @@ ggplot(fsh_cpue, aes(julian_day, cpue, group = Year, colour = Year)) +
 # consistent trend between years
 # julian_day - decrease twoards the end of the season? EDA suggested there is no
 # consistent seasonal trend. If there is a trend, its slightly decreasing over
-# the season.
+# the season.  pj22: I agree with slight decreasing trend through season
 # Adfg - vessel effect, some are better fishermen than others. Routinely
 # improves model fit and doesn't grossly violate assumptions.
 # Gear - higher for conventional gear (01) over autobaiter (06) consistently
 # between years, although this becomes dampened with the inclusion on the vessel
 # effect
 # Hook_size - optimal hook size? No consistent trend between years. Treat as random
-# effect
+# effect (Pj22: not sure I agree with random effect designation?  )
 # start_lat - is there some consistent trend in Chatham Strait going north into
 # Chatham? Not one that is consistent between years. If one exists it tends to
 # be decreasing with latitude. There was no spatial autocorrelation detected (done in previous analysis).
-# start_lat/start_lon - spatial autocorrelation
+# start_lat/start_lon - spatial autocorrelation  (need to check on this - pj22)
 
 # Determine if random variables should be included (Stat and Adfg)
 m1 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) + 
@@ -425,9 +431,9 @@ summary(m1)
 # PJ22: not crazy about hook size as a random effect - it should always be a fixed affect because
 # it would directly affect cpue... as opposed to year or vessel random effect where there is 
 # random noise associated with the variable, hook size has a plausible effect on the response variable?
-m5 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
+m5 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) +    #no hook size
             s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
-m6 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
+m6 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) +    #hook size as a random variable
             s(Hook_size, bs='re', by=dum) + s(Stat, bs='re', by=dumstat)+ 
             s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
 
@@ -446,6 +452,7 @@ summary(m6)
 #2022:  OK, same results.  get Jane's point about no strong trend with hook size
 #       but am disinclined to treat it as a random effect.  HS is not a random category
 #       or group... there is an effect of HS on catchability.... 
+#       I will carry model 1 forward instead of model 6.
 
 #Determine whether to include lat and long
 m7 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
@@ -471,6 +478,7 @@ summary(m9)
 # results in a slight improvement in the dev explained. Try limiting the number
 # of knots to guard against overfitting... but m9 still performs best by AIC.
 # Phil note: knots = k
+# Phil note; tensor smoother allows integration of two variables (lat and lon here)
 # same in 2022
 m10 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
              s(Hook_size, bs='re', by=dum) + s(Stat, bs='re', by=dumstat) + 
@@ -492,13 +500,13 @@ m11 <- bam(cpue ~ Year + Gear + s(julian_day, k=4) + s(depth, k=4) +
              s(soak, k=4) + s(start_lat) + 
              Hook_size + #s(Hook_size, bs='re', by=dum) + 
              s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
-AIC(m9, m11)
+AIC(m7, m9, m11)
 summary(m11)
 plot(m11, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
 
 # # Relationship between depth and soak time - highest cpue in > 450 m
 # # and ~ 10 hr soak time
-vis.gam(m11, c('depth', 'soak'), plot.type='contour', type='response', color='topo', too.far=0.15)
+vis.gam(m11, c('depth', 'soak'), plot.type='contour', type='response', color='topo', too.far=0.1)
 
 # GAM summary ----
 
@@ -507,7 +515,7 @@ vis.gam(m11, c('depth', 'soak'), plot.type='contour', type='response', color='to
 #   s(latitude) + hooksize* + statarea* + vessel* 
 
 # 36.7% deviance explained
-# 34.8% in 2022 with pj mods.  With Jane's original code get 34.9%
+# 33.9% in 2022 with pj mods.  With Jane's original code get 34.9%
 
 # CPUE decreases throughout the season. CPUE increases with depth, then
 # asymptotes ~ 450 m. CPUE is constant and then drops off ~ 10 hr soak time,
@@ -524,7 +532,8 @@ vis.gam(m11, c('depth', 'soak'), plot.type='contour', type='response', color='to
 # Predictions ----
 
 #Create standard dataset to get standardized CPUE for each year
-
+# a little cnfused here... go through all this modelling and then producing 
+# predicted values from average values for each year?  
 std_dat <- expand.grid(year = unique(fsh_cpue$year),
                        Gear = 'CS',
                        depth = mean(fsh_cpue$depth), 
@@ -554,7 +563,9 @@ std_dat %>%
          bt_cpue = exp(fit) - (mean(fsh_cpue$std_cpue) * 0.1),
          bt_upper = exp(upper) - (mean(fsh_cpue$std_cpue) * 0.1),
          bt_lower = exp(lower) - (mean(fsh_cpue$std_cpue) * 0.1),
-         bt_se = (bt_upper - bt_cpue) / 2) -> std_dat
+         bt_se = (bt_upper - bt_cpue) / 2  #,
+         #bt_cv = bt_se/bt_cpue
+         ) -> std_dat
 
 # Nominal CPUE ----
 
@@ -651,5 +662,196 @@ ggsave(paste0("figures/fshcpue_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
 
 # Write to file
-write_csv(cpue_ts, paste0("output/fshcpue_", min(cpue_ts$year), "_", YEAR, ".csv"))
+write_csv(cpue_ts, paste0("output/fshcpue_", min(cpue_ts$year), "_", YEAR, "_base_nom.csv"))
 # write_csv(cpue_ts, paste0("output/nominalwpue_var_llfsh_", min(cpue_ts$year), "_", YEAR, ".csv"))
+
+#=================================================================================
+#2022: Added two more data sets to run in SCAA
+#1) use the gam output modelled using predictions of average values for each year
+#   I don't like that approach, but Jane used it so we'll check it
+#2) use the gam model to predict cpue for each trip, then bootstrap those predictions
+#   (as is done to produce the nominal values)
+
+#1) 
+str(fsh_sum)
+str(std_dat)
+comp<-fsh_sum %>%
+  select(year, cpue = fsh_cpue, upper, lower) %>% 
+  mutate(CPUE = "Nominal") %>% 
+  bind_rows(std_dat %>% 
+              select(year, cpue = bt_cpue, upper = bt_upper, lower = bt_lower) %>% 
+              mutate(CPUE = "GAM"))
+view(comp)
+
+std_dat$n<-fsh_sum$n
+std_dat$cv<-(std_dat$bt_se*(std_dat$n^0.5))/std_dat$bt_cpue
+
+data.frame(year = 1980:1996,
+           bt_cpue = hist_cpue) %>% 
+#mutate(var = (fsh_cpue * mean(fsh_sum$cv)) ^ 2) %>% 
+  mutate(var = mean(std_dat$bt_se^2)) %>%
+  bind_rows(std_dat %>% 
+              select(year, bt_cpue) %>% 
+              mutate(var = std_dat$bt_se^2)) %>% #std_dat$bt_se
+  mutate(cpue = round(bt_cpue, 3),
+         var = round(var, 5)) -> cpue_gam
+
+cpue_gam$bt_cpue<-as.numeric(cpue_gam$bt_cpue)
+cpue_gam$var<-as.numeric(cpue_gam$var)
+cpue_gam$cpue<-as.numeric(cpue_gam$cpue)
+
+str(cpue_gam)
+
+cpue_gam_short <- cpue_gam %>% 
+  filter(year >= 1997)
+
+ggplot(cpue_gam_short) +
+  geom_point(aes(year, cpue)) +
+  geom_line(aes(year, cpue)) +
+  geom_ribbon(aes(year, ymin = cpue - sqrt(var), ymax = cpue + sqrt(var)),
+              # geom_ribbon(aes(year, ymin = cpue - var, ymax = cpue + var),
+              alpha = 0.2,  fill = "grey") +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  #lims(y = c(0, 1.5)) +
+  #lims(y = c(-0.5, 1.5)) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") 
+
+ggsave(paste0("figures/fshcpue_1997_", YEAR, "_base_gam.png"),
+       dpi=300, height=4, width=7, units="in")
+
+# Write to file
+write_csv(cpue_gam, paste0("output/fshcpue_", min(cpue_gam$year), "_", YEAR, "_base_gam.csv"))
+
+#2) bootstrapped gam fit predictions... (oi)
+#2a) get predicted values for each data point... 
+m11 <- bam(cpue ~ Year + Gear + s(julian_day, k=4) + s(depth, k=4) + 
+             s(soak, k=4) + s(start_lat) + 
+             Hook_size + #s(Hook_size, bs='re', by=dum) + 
+             s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum), data=fsh_cpue, gamma=1.4)
+
+
+pred_cpue_fine <- predict(m11, fsh_cpue, type = "link", se = TRUE)
+str(pred_cpue_fine)
+#checking my code with Jane's... checks out :)
+preds_fine<-predict.bam(m11, type="response", fsh_cpue, se = TRUE)
+str(preds_fine)
+
+nrow(fsh_cpue)
+#Put the standardized CPUE and SE into the data frame and convert to
+#backtransformed (bt) CPUE
+
+fsh_cpue %>% 
+  mutate(fit = preds_fine$fit,
+         se = preds_fine$se.fit,
+         upper = fit + (1.96 * se),
+         lower = fit - (1.96 * se),
+#         bt_cpue = exp(fit) - (fsh_cpue$std_cpue * 0.1))->test
+         bt_cpue = exp(fit) - (mean(fsh_cpue$std_cpue) * 0.1),
+         bt_upper = exp(upper) - (mean(fsh_cpue$std_cpue) * 0.1),
+         bt_lower = exp(lower) - (mean(fsh_cpue$std_cpue) * 0.1),
+         bt_se = (bt_upper - bt_cpue) / 2) -> preds_fine_bt
+
+#std_dat %>% 
+#  mutate(fit = pred_cpue$fit,
+#         se = pred_cpue$se.fit,
+#         upper = fit + (2 * se),
+#         lower = fit - (2 * se),
+#         bt_cpue = exp(fit) - (mean(fsh_cpue$std_cpue) * 0.1),
+#         bt_upper = exp(upper) - (mean(fsh_cpue$std_cpue) * 0.1),
+#         bt_lower = exp(lower) - (mean(fsh_cpue$std_cpue) * 0.1),
+#         bt_se = (bt_upper - bt_cpue) / 2  #,
+         #bt_cv = bt_se/bt_cpue
+ # ) -> std_dat
+
+#2b) bootstrap that shit to get annual estimates
+preds_fine_bt %>%
+  group_by(year) %>%
+  do(data.frame(rbind(smean.cl.boot(.$bt_cpue)))) -> plot_boot_gam
+
+preds_fine_bt %>%
+  group_by(year) %>%
+  do(data.frame(rbind(smean.cl.normal(.$bt_cpue)))) -> plot_norm_gam
+
+fsh_cpue %>%
+  group_by(year) %>%
+  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot2
+
+#CIs are narrower than should be? CI for the mean, but narrower than nominal estimates... 
+
+ggplot(plot_boot_gam) +
+  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper), 
+              alpha = 0.1, fill = "grey55") +
+  geom_point(aes(x = year, y = Mean), size = 1) +
+  geom_line(aes(x = year, y = Mean)) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  lims(y = c(0, 1.1))
+
+ggsave(paste0("figures/fshcpue_bootCI_1997_", YEAR, "_boot_gam.png"),
+       dpi=300, height=4, width=7, units="in")
+
+#2c) compare to other estimates
+fsh_sum_p<-full_join(fsh_sum, plot_boot_gam, by = "year") %>% 
+  mutate(gam_cpue = Mean,
+         gam_lower = Lower,
+         gam_upper = Upper) %>%
+  select(year,fsh_cpue,sd,n,se,var,cv,upper,lower,gam_cpue,gam_lower,gam_upper)
+
+fsh_sum_p %>%
+  select(year, cpue = fsh_cpue, upper, lower) %>% 
+  mutate(CPUE = "Nominal") %>% 
+  bind_rows(plot_boot_gam %>% 
+              select(year, cpue = Mean, upper = Upper, lower = Lower) %>% 
+              mutate(CPUE = "GAM")) %>% 
+  ggplot() +
+  geom_ribbon(aes(year, ymin = lower, ymax = upper, fill = CPUE), 
+              colour = "white", alpha = 0.2) +
+  geom_point(aes(year, cpue, colour = CPUE, shape = CPUE), size = 2) +
+  geom_line(aes(year, cpue, colour = CPUE, group = CPUE), size = 1) +
+  # scale_colour_grey(name = "Standardized CPUE") +
+  # scale_fill_grey(name = "Standardized CPUE") +
+  scale_colour_manual(values = c("darkcyan", "goldenrod"), name = "Standardized CPUE") +
+  scale_fill_manual(values = c("darkcyan", "goldenrod"), name = "Standardized CPUE") +
+  scale_shape_manual(values = c(19, 17), name = "Standardized CPUE") +
+  #scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  labs(x = "", y = "Fishery CPUE (round lb/hook)\n") +
+  theme(legend.position = c(0.8, 0.2)) +
+  expand_limits(y = 0)
+
+#2d) export for SCAA
+plot_boot_gam %>% 
+  mutate(cpue = Mean,
+         var = Upper-Mean) %>% 
+  select(year,cpue,var)
+
+data.frame(year = 1980:1996,
+           cpue = hist_cpue) %>% 
+  #mutate(var = (fsh_cpue * mean(fsh_sum$cv)) ^ 2) %>% 
+  mutate(var = mean(plot_boot_gam$Upper - plot_boot_gam$Mean)) %>%
+  bind_rows(plot_boot_gam %>% 
+              mutate(cpue = Mean,
+                     var = Upper-Mean) %>% 
+              select(year,cpue,var)) %>% #std_dat$bt_se
+  mutate(cpue = round(cpue, 3),
+         var = round(var, 5)) -> cpue_gam_boot
+
+write_csv(cpue_gam_boot, paste0("output/fshcpue_", min(cpue_ts$year), "_", YEAR, "_boot_gam.csv"))
+
+#====scraps============
+sd = sd(std_cpue),
+n = length(std_cpue),
+se = sd / (n ^ (1/2)),
+var = var(std_cpue),
+cv = sd / fsh_cpue,
+
+
+
+
+
+
+
+
+
+
+
+

@@ -132,7 +132,7 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
 # information on sets designated as halibut targets. Note that it is missing
 # effort_no's (effort_no's = individual sets).
 
-#This code is for adding both 2020 and 20201 data at once since 2020 was skipped last year
+#A) This code is for adding both 2020 and 20201 data at once since 2020 was skipped last year
 rbind(read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
                           #                 max(fsh_eff$YEAR), ".csv"), 
                           YEAR-1, ".csv"), 
@@ -195,7 +195,33 @@ unique(fsh_eff$year)
  
  write_csv(fsh_eff, paste0("data/fishery/fishery_cpue_",
                     min(fsh_eff$year), "_", max(fsh_eff$year), ".csv"))
+ 
+ #2b) Justin Daily ran new script on corrected logbook reentries for all data back through
+ # 1997.  Here is that data for fishery CPUE... PJ checking it out February 2022
+ # if looks good this will become historical data and we will bypass old data set titled
+ # fishery_cpue_1997_2019.  Lets see!... 
+ read_csv(paste0("data/fishery/raw_data/fishery_cpue_1997_2021_update2022.csv"), 
+                guess_max = 50000) %>% 
+   #   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
+   #   # hooks and cpue
+   mutate(date = as.Date(TIME_SET, c("%m/%d/%Y")), #ISO 8601 format
+          julian_day = yday(date),
+          soak = as.numeric(difftime(TIME_HAULED, TIME_SET, units = "hours")),
+          Gear = factor(LONGLINE_SYSTEM_CODE),
+          Hook_size = as.character(HOOK_SIZE), 
+          hook_space = HOOK_SPACING, #*FLAG* - check that hook_space is in inches
+          Size = factor(as.numeric(gsub("[^0-9]", "", Hook_size))),
+          no_hooks = NUMBER_OF_HOOKS,
+          sable_lbs_set = SABLE_LBS_PER_SET) %>% 
+   select(year = YEAR, trip_no = TRIP_NO, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
+          soak, Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, 
+          hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
+          sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
+          start_lon = START_LONGITUDE_DECIMAL_DEGREE) -> fsh_eff_new22
+ 
+ str(fsh_eff_new22)
 
+ pr
  #=====================================================================================
 # 3. Fishery biological ----
 
@@ -631,6 +657,9 @@ tag_recoveries %>%
 # to 1997.
 
 # Now that these data are finalized, add on each year:
+# PJ22: no countbacks in 2021... need tocheck on this -pj22
+#not important for 2021 bc there was no marking survye
+# however, if open model is attempted this will be needed - pj22
 read_csv(paste0("data/fishery/raw_data/nsei_daily_tag_accounting_", YEAR, ".csv"),
          guess_max = 50000) %>% 
     mutate(date = as.Date(date, "%m/%d/%Y"),

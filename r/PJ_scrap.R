@@ -472,3 +472,102 @@ C21 %>%
                    truesigma_fsh_cpue = sd^2/fsh_cpue
   ) #-> fsh_cpue 
 
+#================
+#more fishery CPUE crap - Justin's big query of 1997-2021
+check<-read.csv("data/fishery/raw_data/fishery_cpue_2021.csv")
+just<-read.csv("data/fishery/raw_data/fishery_cpue_1997_2021_update2022.csv")
+
+unique(just$YEAR)
+unique(just$PROJECT_CODE)
+unique(just$TRIP_NO)
+unique(just$ADFG_NO)
+unique(just$LONGLINE_SYSTEM)
+unique(just$DATE_LEFT_PORT)
+unique(just$SELL_DATE)
+unique(just$HOOK_SIZE)
+unique(just$HOOK_SPACING)
+unique(just$HOOKS_PER_SKATE)
+unique(just$AVERAGE_DEPTH_METERS)
+unique(just$G_MANAGEMENT_AREA_CODE) #*** need to filter NSEI
+unique(just$G_STAT_AREA)
+unique(just$TRIP_TARGET)  #***need to filter for 710 sablefish for CPUE
+unique(just$SET_TARGET)
+unique(just$EFFORT_NO)
+unique(just$SABLE_LBS_PER_SET)
+unique(just$TIME_SET)
+unique(just$TIME_HAULED)
+unique(just$START_LATITUDE_DECIMAL_DEGREES)
+unique(just$START_LONGITUDE_DECIMAL_DEGREE)
+
+just %>% mutate(date = as.Date(TIME_SET, c("%m/%d/%Y"))) -> just
+yda
+
+unique(just$date)
+
+just$TIME_SET<-as.Date(just$TIME_SET)
+
+just$date
+
+str(just)
+str(just$SELL_DATE)
+
+just$TIME_HAULED
+
+ex<-just$TIME_SET[1]; str(ex)
+unique(just$TIME_SET)
+
+exp<-parse_date_time(ex, c("%m/%d/%Y"))
+ymd(exp)
+
+exf<-as.Date(just$TIME_SET, c("%m/%d/%Y"))
+str(ymd(exf))
+
+exf2<-parse_date_time(just$TIME_HAULED, c("%m/%d/%Y"))
+
+ymd(as.Date(ex, format="%Y/%m/%d %H:%M"))
+
+as.Date(format(parse_date_time(ex, c("%Y/%m/%d %H:%M")),"%Y/%m/%d"))
+ymd(parse_date_time(ex, c("%m/%d/%Y %H:%M")))
+
+parse_date_time(ex, c("%m/%d/%Y %H:%M"))
+
+fsh_eff_new22<-read_csv(paste0("data/fishery/raw_data/fishery_cpue_1997_2021_update2022.csv"), 
+                        guess_max = 50000)
+fsh_eff_new22 %>% mutate(date = as.Date(TIME_SET, c("%m/%d/%Y"))) -> fsh_eff_new22
+
+fsh_eff_new22$date
+nrow(fsh_eff_new22[!is.na(fsh_eff_new22$date),])
+
+fsh_eff_new22 %>% mutate(julian_day = yday(date)) -> fsh_eff_new22
+
+fsh_eff_new22 %>% mutate(
+  soak = as.numeric(difftime(TIME_HAULED, TIME_SET, units = "hours"))) -> fsh_eff_new22
+
+ex<-just$TIME_HAULED[1]
+ex2<-just$TIME_HAULED[3]
+
+parse_date_time(ex, c("%m/%d/%Y %H:%M"))
+
+str(just$TIME_HAULED)
+
+fsh_eff_new22 %>% mutate(time_hld = parse_date_time(TIME_HAULED, c("%m/%d/%Y %H:%M"))) -> fsh_eff_new22
+nrow(fsh_eff_new22[is.na(fsh_eff_new22$time_hld),])
+
+fsh_eff_new22 %>% mutate(t_set = parse_date_time(TIME_SET, c("%m/%d/%Y %H:%M"))) -> fsh_eff_new22
+nrow(fsh_eff_new22[!is.na(fsh_eff_new22$time_hld),])
+
+fsh_eff_new22 %>% mutate(soak = as.numeric(difftime(time_hld, t_set, units = "hours"))) -> fsh_eff_new22
+nrow(fsh_eff_new22[is.na(fsh_eff_new22$soak),])
+
+fsh_eff_new22 %>% mutate() -> fsh_eff_new22
+
+
+
+
+
+
+
+
+
+
+

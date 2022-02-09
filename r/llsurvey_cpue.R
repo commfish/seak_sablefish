@@ -147,7 +147,7 @@ srv_cpue %>%
          cpue = mean(set_cpue),
          sd = round(sd(set_cpue), 4),
          se = round(sd / sqrt(n_set), 4)) -> srv_cpue
-  
+#  view(srv_cpue)
 # Sablefish-specific dataframe for analysis
 sable <- srv_cpue %>% 
   filter(hook_accounting == "sablefish") %>% 
@@ -391,7 +391,7 @@ par(mfrow=c(2, 2), cex=1.1); gam.check(mod2)
 }
 
 # 2022 Phil's models 
-#get rid of "bait"; correlated but seems like a wonky piece of data that should be correlated 
+# get rid of "bait"; correlated but seems like a wonky piece of data that should be correlated 
 # with CPUE but is the RESULT of CPUE dynamics...
 sable<-sable[sable$soak <10 & sable$slope < 300 & sable$bait < 900,]
 sable<-sable[complete.cases(sable),]
@@ -455,7 +455,7 @@ sable_cpue <- sable %>%
          gam.sd = round(sd(cpue.global), 4),     ##Change if different model used
          gam.se = round(gam.sd / sqrt(n_set), 4)
          )
-head(sable_cpue); plot(sable_cpue$cpue ~ sable_cpue$year)
+head(sable_cpue); plot(sable_cpue$set_cpue ~ sable_cpue$year)
 
 sable_cpue %>% 
   ungroup() %>% 

@@ -15,7 +15,7 @@ library(effects)  #
 sable<-sable[sable$soak <10 & sable$slope < 300 & sable$bait < 900,]
 sable<-sable[complete.cases(sable),]
 
-sampling_data <- sable %>%    #could include sope, depth, soak as covariates...? 
+sampling_data <- sable %>%    #could include slope, depth, soak as covariates...? 
   ungroup() %>% 
   distinct(set_cpue, year, Adfg, end_lat, end_lon) %>% 
   select(Catch_KG = set_cpue, Year = year, Vessel = Adfg, Lat = end_lat, Lon = end_lon) %>% 
@@ -23,7 +23,7 @@ sampling_data <- sable %>%    #could include sope, depth, soak as covariates...?
   as.data.frame()
 
 #catchability modelled on soak time
-catchability_data<- sable %>%    #could include sope, depth, soak as covariates...? 
+catchability_data<- sable %>%    #could include slope, depth, soak as covariates...? 
   ungroup() %>% 
   distinct(set_cpue, year, Adfg, end_lat, end_lon, soak) %>% 
   select(Year = year, Lat = end_lat, Lon = end_lon, soak=soak) %>% 
@@ -32,7 +32,7 @@ catchability_data<- sable %>%    #could include sope, depth, soak as covariates.
   as.data.frame()
 
 #covariates of depth and slope affecting abundance 
-covariate_data<-sable %>%    #could include sope, depth, soak as covariates...? 
+covariate_data<-sable %>%    #could include slope, depth, soak as covariates...? 
   ungroup() %>% 
   distinct(set_cpue, year, Adfg, end_lat, end_lon, slope, depth) %>% 
   select(Year = year, Lat = end_lat, Lon = end_lon, slope = slope, depth = depth) %>% 
