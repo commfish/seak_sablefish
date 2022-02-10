@@ -72,7 +72,6 @@ new$length
 new$weight
 new$Sex
 
-
 srv_bio %>% 
   filter(Sex %in% c("Female", "Male") &
            year >= 1997 & # *FLAG* advent of "modern" survey
@@ -503,7 +502,6 @@ beta_a <- tidy(all_fit)$estimate[2]
 
 unique(allom_sub$Sex)
 
-
 bind_rows(tidy(male_fit) %>% mutate(Sex = "Male"),     
           tidy(fem_fit) %>% mutate(Sex = "Female")) %>% 
   bind_rows(tidy(all_fit) %>% mutate(Sex = "Combined")) %>% 
@@ -797,6 +795,7 @@ len <- seq(0, 120, 0.05)
 # by year, for comparison
 fit_length_year <- glm(Mature ~ length * Year, data = len_f, family = binomial)
 
+summary(fit_length_year)
 AIC(fit_length, fit_length_year)
 
 # fit_length_year <- glm(Mature ~ length * Year, data = len_f, family = quasibinomial)
@@ -985,9 +984,8 @@ ggplot() +
 # Length-based (translated to age; aka the blue one) is more realistic than
 # age-based (the red one). Also there is no clear reason to choose the more
 # complicated model (fit_length_year) over the simpler model (fit_length)
-###hmmm 2022pj: data through 20201 shows a prett drastic decline in A50 and L50
+###hmmm 2022pj: data through 2021 shows a pretty drastic decline in A50 and L50
 ### should we use latest est.?  Maybe worth sensitivity testing... 
-
 
 # Maturity at age for YPR and SCAA models
 pred_simple %>%  
@@ -1019,7 +1017,7 @@ data.frame(year_updated = YEAR,
            L50 = L50,
            kmat = kmat,
            a50 = a50) %>% 
-  write_csv(paste0("output/maturity_param_", YEAR))
+  write_csv(paste0("output/maturity_param_", YEAR))  #should this be a csv file? 
 
 #if we wanted to update this to using coefficients from recent years
 b0r <- fit_length_year$coefficients[1]
@@ -1033,10 +1031,10 @@ b1r <- fit_length_year$coefficients[2]
 (kmatr <- round(((coef(fit_length_year)[1] + coef(fit_length_year)[2]*len) / (len - L50r))[1], 2))
 
 data.frame(year_updated = YEAR,
-           L50 = L50,
-           kmat = kmat,
-           a50 = a50) %>% 
-  write_csv(paste0("output/maturity_param_", YEAR))
+           L50 = L50r,
+           kmat = kmatr,
+           a50 = a50r) %>% 
+  write_csv(paste0("output/maturity_param_recent_", YEAR))
 # # Equation text for plotting values of a_50 and kmat
 # a50_txt <- as.character(
 #   as.expression(substitute(
@@ -1084,7 +1082,7 @@ srv_bio_noOL %>%
 str(byage); view(byage)
 # get generalized additive model fits and predictions
 # survey
-srv_fitage <- gam(I(Sex == "Female") ~ s(age), 
+srv_fitage <- gam(I(Sex == "Female") ~ s(age, k=4), 
                   data = filter(srv_bio_noOL, age %in% aa, 
                                 Sex %in% c("Female", "Male")),
                family = "quasibinomial")
@@ -1095,7 +1093,7 @@ srv_predage <- predict(srv_fitage, newdata = data.frame(age = aa),
                        type = "response", se = TRUE)
 
 # fishery
-fsh_fitage <- gam(I(Sex == "Female") ~ s(age), 
+fsh_fitage <- gam(I(Sex == "Female") ~ s(age, k=4), 
                data = filter(fsh_bio_noOL, age %in% aa,
                              Sex %in% c("Female", "Male")),
                family = "quasibinomial")
@@ -1219,6 +1217,7 @@ ggsave(paste0("figures/sex_ratios_", YEAR, ".png"), dpi=300,  height=6, width=7,
 # Age compositions ----
 
 # Combine survey and fishery data for age comp analysis
+?quos
 
 #quos() uses stand eval in dplyr, eval cols with nonstand eval using !!!
 cols <- quos(Source, year, Sex, age) 
@@ -1440,8 +1439,6 @@ expand.grid(year = unique(lencomps$year),
 lencomps %>% 
   group_by(Source, Sex, year) %>% 
   summarise(sum(proportion)) %>% View()
-
-
 
 write_csv(lencomps, paste0("output/lengthcomps_", YEAR, ".csv"))
 

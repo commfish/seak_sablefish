@@ -204,9 +204,12 @@ unique(fsh_eff$year)
                 guess_max = 50000) %>% 
    #   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
    #   # hooks and cpue
-   mutate(date = as.Date(TIME_SET, c("%m/%d/%Y")), #ISO 8601 format
+   mutate(year = YEAR,
+          date = as.Date(TIME_SET, c("%m/%d/%Y")), #ISO 8601 format
           julian_day = yday(date),
-          soak = as.numeric(difftime(TIME_HAULED, TIME_SET, units = "hours")),
+          tm_hauled = parse_date_time(TIME_HAULED, c("%m/%d/%Y %H:%M %p")),
+          t_set = parse_date_time(TIME_SET, c("%m/%d/%Y %H:%M %p")),
+          soak = as.numeric(difftime(tm_hauled, t_set, units = "hours")),
           Gear = factor(LONGLINE_SYSTEM_CODE),
           Hook_size = as.character(HOOK_SIZE), 
           hook_space = HOOK_SPACING, #*FLAG* - check that hook_space is in inches
@@ -217,11 +220,17 @@ unique(fsh_eff$year)
           soak, Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, 
           hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
           sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
-          start_lon = START_LONGITUDE_DECIMAL_DEGREE) -> fsh_eff_new22
+          start_lon = START_LONGITUDE_DECIMAL_DEGREE, target = SET_TARGET) -> fsh_eff_new22
+ #note some of the dat time stuff will have warnings because of incomplete data
+ # will have to deal with NA's in anaysis
  
- str(fsh_eff_new22)
+ #in 2023, will need to get new query for '22 data and then add it to the data described
+ # by fsh_eff_new22
 
- pr
+ write_csv(fsh_eff_new22, paste0("data/fishery/fishery_cpue_2022reboot_",
+                           min(fsh_eff_new22$year), "_", max(fsh_eff_new22$year), ".csv"))
+ 
+ unique(fsh_eff_new22$target)
  #=====================================================================================
 # 3. Fishery biological ----
 

@@ -476,7 +476,7 @@ C21 %>%
 #more fishery CPUE crap - Justin's big query of 1997-2021
 check<-read.csv("data/fishery/raw_data/fishery_cpue_2021.csv")
 just<-read.csv("data/fishery/raw_data/fishery_cpue_1997_2021_update2022.csv")
-
+str(just)
 unique(just$YEAR)
 unique(just$PROJECT_CODE)
 unique(just$TRIP_NO)
@@ -531,43 +531,64 @@ ymd(parse_date_time(ex, c("%m/%d/%Y %H:%M")))
 
 parse_date_time(ex, c("%m/%d/%Y %H:%M"))
 
+#=======
+
 fsh_eff_new22<-read_csv(paste0("data/fishery/raw_data/fishery_cpue_1997_2021_update2022.csv"), 
                         guess_max = 50000)
 fsh_eff_new22 %>% mutate(date = as.Date(TIME_SET, c("%m/%d/%Y"))) -> fsh_eff_new22
 
 fsh_eff_new22$date
-nrow(fsh_eff_new22[!is.na(fsh_eff_new22$date),])
+nrow(fsh_eff_new22[is.na(fsh_eff_new22$date),])
 
 fsh_eff_new22 %>% mutate(julian_day = yday(date)) -> fsh_eff_new22
 
-fsh_eff_new22 %>% mutate(
-  soak = as.numeric(difftime(TIME_HAULED, TIME_SET, units = "hours"))) -> fsh_eff_new22
-
-ex<-just$TIME_HAULED[1]
-ex2<-just$TIME_HAULED[3]
-
-parse_date_time(ex, c("%m/%d/%Y %H:%M"))
-
-str(just$TIME_HAULED)
-
-fsh_eff_new22 %>% mutate(time_hld = parse_date_time(TIME_HAULED, c("%m/%d/%Y %H:%M"))) -> fsh_eff_new22
+fsh_eff_new22 %>% mutate(time_hld = parse_date_time(TIME_HAULED, c("%m/%d/%Y %H:%M %p"))) -> fsh_eff_new22
 nrow(fsh_eff_new22[is.na(fsh_eff_new22$time_hld),])
 
-fsh_eff_new22 %>% mutate(t_set = parse_date_time(TIME_SET, c("%m/%d/%Y %H:%M"))) -> fsh_eff_new22
-nrow(fsh_eff_new22[!is.na(fsh_eff_new22$time_hld),])
+fsh_eff_new22 %>% mutate(t_set = parse_date_time(TIME_SET, c("%m/%d/%Y %H:%M %p"))) -> fsh_eff_new22
+nrow(fsh_eff_new22[is.na(fsh_eff_new22$time_hld),])
 
 fsh_eff_new22 %>% mutate(soak = as.numeric(difftime(time_hld, t_set, units = "hours"))) -> fsh_eff_new22
 nrow(fsh_eff_new22[is.na(fsh_eff_new22$soak),])
+hist(fsh_eff_new22$soak, breaks=100)
+range(fsh_eff_new22$soak, na.rm=T)
 
-fsh_eff_new22 %>% mutate() -> fsh_eff_new22
+nrow(fsh_eff_new22[fsh_eff_new22$soak <= 0,])
+negsoak<-fsh_eff_new22[fsh_eff_new22$soak <= 0,]
+head(negsoak)
+view(negsoak)
+ex<-negsoak[3,]
 
+fsh_eff_new22 %>% mutate(year = YEAR) -> fsh_eff_new22
+fsh_soaks<-fsh_eff_new22[!is.na(fsh_eff_new22$soak),]
+str(fsh_soaks)
+histos(fsh_soaks,"soak")
 
+fsh_eff_new22 %>% mutate(Gear = factor(LONGLINE_SYSTEM_CODE)) -> fsh_eff_new22
+unique(fsh_eff_new22$Gear)
+warnings()
 
+fsh_eff_new22 %>% mutate(Hook_size = as.character(HOOK_SIZE), 
+                         hook_space = HOOK_SPACING, #*FLAG* - check that hook_space is in inches
+                         Size = factor(as.numeric(gsub("[^0-9]", "", Hook_size))),
+                         no_hooks = NUMBER_OF_HOOKS,
+                         sable_lbs_set = SABLE_LBS_PER_SET) -> fsh_eff_new22
 
+histos<-function(dat,var){    #dat<-fsh_soaks    var<-"soak"
+  ys<-sort(unique(dat$year))
+  coln<-3 #round(sqrt(length(ys)))
+  rown<-3 #ceiling(length(ys)/coln)
+  ref<-which(colnames(dat)==var)
+  par(mfrow=c(rown,coln))
+  for (y in ys){   #y<-ys[2]
+    daty<-dat[dat$year == y,]
+    nums<-as.numeric(unlist(daty[,ref]))
+    if (is.na(unique(daty[,ref]))) {} else {
+      hist(nums, main=y, na.rm=T)
+    }
+  }
+}
 
+fsh_eff_new22[is.na(fsh_eff_new22$year),]
 
-
-
-
-
-
+histos(fsh_eff_new22, "depth")
