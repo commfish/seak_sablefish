@@ -68,6 +68,7 @@ fsh_lyr <- 2021
 
 # Read in data, standardize cpue, etc.
 read_csv(paste0("data/fishery/fishery_cpue_1997_", fsh_lyr,".csv"), 
+#read_csv(paste0("data/fishery/fishery_cpue_2022reboot_1997_", fsh_lyr,".csv"), 
          guess_max = 50000) %>% 
   filter(!is.na(hook_space) & !is.na(sable_lbs_set) & !is.na(no_hooks) &
            julian_day > 226) %>%  # if there were special projects before the fishery opened
@@ -90,6 +91,29 @@ fsh_cpue %>%
             sigma_fsh_cpue = 0.08,  #why assume sigma when you have sd measurements which are much larger?
             truesigma_fsh_cpue = se / fsh_cpue
             ) -> fsh_cpue 
+
+#22rebooted data...
+read_csv(paste0("data/fishery/fishery_cpue_2022reboot_1997_", fsh_lyr,".csv"), 
+         guess_max = 50000) %>% 
+  filter(!is.na(hook_space) & !is.na(sable_lbs_set) & !is.na(no_hooks) &
+           julian_day > 226) %>%  # if there were special projects before the fishery opened
+  mutate(# standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
+    std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (hook_space / 39.37))), 
+    # convert lbs to kg
+    std_cpue_kg = (sable_lbs_set * 0.453592) / std_hooks) -> fsh_cpue_22rb  
+# Nominal CPUE 
+fsh_cpue_22rb %>% 
+  group_by(year) %>% 
+  dplyr::summarise(fsh_cpue = mean(std_cpue_kg),
+                   n = n(),
+                   sd = sd(std_cpue_kg),
+                   se = sd / sqrt(n),
+                   # sigma_fsh_cpue = se / fsh_cpue, # relative standard error too low
+                   # sigma_fsh_cpue = sd / fsh_cpue#, # CV too high
+                   # *FLAG* currently just assume cv=0.05 for new ts, 0.1 for old
+                   sigma_fsh_cpue = 0.08,  #why assume sigma when you have sd measurements which are much larger?
+                   truesigma_fsh_cpue = se / fsh_cpue
+  ) -> fsh_cpue_22rb 
 
 # Historical CPUE 
 
@@ -123,6 +147,40 @@ fsh_cpue <- data.frame(year = syr:lyr) %>%
   full_join(fsh_cpue) %>% 
   arrange(year)
 
+view(fsh_cpue)
+
+
+data.frame(year = 1980:1996,
+           # Convert to kg
+           fsh_cpue = hist_cpue * 0.453592,
+           sigma_fsh_cpue = 0.1) %>%
+  bind_rows(fsh_cpue_22rb) %>%
+  mutate(ln_fsh_cpue = log(fsh_cpue),
+         std = 1.96 * sqrt(log(sigma_fsh_cpue + 1)),
+         upper_fsh_cpue = exp(ln_fsh_cpue + std),
+         lower_fsh_cpue = exp(ln_fsh_cpue - std)) %>% 
+  select(-c(n, sd, se, ln_fsh_cpue, std)) -> fsh_cpue_22rb
+
+fsh_cpue_22rb <- data.frame(year = syr:lyr) %>% 
+  full_join(fsh_cpue_22rb) %>% 
+  arrange(year)
+view(fsh_cpue_22rb)
+
+#alternative fishery cpue estimates from GAMs and updated sql and logbook stuff... 
+read_csv(paste0("output/fshcpue_1980_", fsh_lyr,"_base_nom.csv")) -> fsh_cpue_base_nom
+read_csv(paste0("output/fshcpue_1980_", fsh_lyr,"_base_gam.csv")) -> fsh_cpue_base_gam
+read_csv(paste0("output/fshcpue_1980_", fsh_lyr,"_boot_gam.csv")) -> fsh_cpue_boot_gam
+read_csv(paste0("output/fshcpue_2022rb_1980_", fsh_lyr,"_base_gam.csv")) -> fsh_cpue_base_gam22
+read_csv(paste0("output/fshcpue_22rb_1980_", fsh_lyr,"_boot_gam.csv")) -> fsh_cpue_boot_gam22
+
+plot(fsh_cpue$fsh_cpue~fsh_cpue$year, ylim=c(0,2), type="l")
+points(fsh_cpue_base_nom$fsh_cpue~fsh_cpue_base_nom$year, type="l", col="blue")
+points(fsh_cpue_base_gam$cpue~fsh_cpue_base_gam$year, type="l", col="darkcyan")
+points(fsh_cpue_boot_gam$cpue~fsh_cpue_boot_gam$year, type="l", col="forestgreen")
+points(fsh_cpue_base_gam22$cpue~fsh_cpue_base_gam22$year, type="l", col="green")
+points(fsh_cpue_boot_gam22$cpue~fsh_cpue_boot_gam22$year, type="l", col="seagreen")
+points(fsh_cpue_22rb$fsh_cpue ~ fsh_cpue_22rb$year, type="l", col="red")
+#note that processed CPUEs are already in pounds, but one's processed here are in kg
 # Survey NPUE ----
 
 # If you wanted to show it in log space
@@ -292,6 +350,29 @@ full_join(catch, fsh_cpue) %>%
 
 write_csv(ts, paste0("data/tmb_inputs/abd_indices_", YEAR, ".csv"))
 
+#add in alternative fisheries cpe indices to see if they make a big difference... 
+full_join(ts, fsh_cpue_22rb %>% 
+            mutate(fsh_cpue_22rb = fsh_cpue) %>%
+            select(year,fsh_cpue_22rb)) %>% 
+  full_join(fsh_cpue_base_nom %>% 
+              mutate(fsh_cpue_base_nom = fsh_cpue/2.20462) %>%
+              select(year,fsh_cpue_base_nom)) %>% 
+  full_join(fsh_cpue_base_gam %>% 
+              mutate(fsh_cpue_base_gam = cpue/2.20462) %>%
+              select(year,fsh_cpue_base_gam)) %>% 
+  full_join(fsh_cpue_boot_gam %>% 
+              mutate(fsh_cpue_boot_gam = cpue/2.20462) %>%
+              select(year,fsh_cpue_boot_gam)) %>% 
+  full_join(fsh_cpue_base_gam22 %>% 
+              mutate(fsh_cpue_base_gam22 = cpue/2.20462) %>%
+              select(year,fsh_cpue_base_gam22)) %>% 
+  full_join(fsh_cpue_boot_gam22 %>% 
+              mutate(fsh_cpue_boot_gam22 = cpue/2.20462) %>%
+              select(year,fsh_cpue_boot_gam22)) -> ts_fsh_cpue_sens
+view(ts_fsh_cpue_sens)
+
+write_csv(ts_fsh_cpue_sens, paste0("data/tmb_inputs/abd_indices_CPUEsense_", YEAR, ".csv"))
+#==========================================================================
 # Biological data ----
 
 # Fishery biological data
@@ -377,7 +458,7 @@ srv_fitage <- gam(I(Sex == "Female") ~ s(age),
                   data = filter(srv_bio, age %in% rec_age:plus_group, 
                                 Sex %in% c("Female", "Male")),
                   family = "binomial")
-summary(srv_fitage)
+summary(srv_fitage) #note that this relationship is signifcant, but with a tiny r2
 
 srv_predage <- predict(srv_fitage, newdata = data.frame(age = rec_age:plus_group),
                        type = "response", se = TRUE)
