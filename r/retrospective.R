@@ -21,6 +21,7 @@ library(TMB)
 
 # Data for SCAA
 ts <- read_csv(paste0(tmb_dat, "/abd_indices_", YEAR, ".csv"))        # time series
+ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv"))        # time series
 age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
 len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
@@ -106,6 +107,9 @@ for(i in 1:length(retro)){
   
   # Build TMB objects
   data <- build_data(ts = iter_ts)
+  #change out fishery CPUE choice...
+  data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
+  
   parameters <- build_parameters(rec_devs_inits = iter_rec_devs_inits, 
                                  Fdevs_inits = iter_Fdevs_inits)
   random_vars <- build_random_vars()

@@ -106,7 +106,7 @@ recoveries %>%
          # use landing_date (same as the countbacks - see section below), otherwise catch_date
          date = as.Date(ifelse(is.na(landing_date), catch_date, landing_date))) %>% 
   filter(year >= FIRST_YEAR & year_batch %in% tag_summary$year_batch) -> recoveries
-
+nrow(recoveries[recoveries$year == 2020,])
 # Check for Project_cde NAs and if there are any check with A. Baldwin or
 # whoever is leading the tagging project. In the past there have been occasional
 # tags that were recovered in the personal use or commercial fishery that were
@@ -120,7 +120,7 @@ recoveries %>%
   mutate(Project_cde = ifelse(is.na(Project_cde) &
                                 grepl(c("Personal Use|subsistance|sport"), comments), 
                               "27", Project_cde)) -> recoveries
-
+nrow(recoveries[recoveries$year == 2020,])
 # Size selectivity differences ----
 
 # Check range of data
@@ -178,11 +178,11 @@ growth <-growth %>%
          growth3 = rec_length3 - rel_length3,
          perc_inc3 = growth3/rel_length3); growth[1,]
 quantile(growth$perc_inc3, c(0.001,0.01,0.05,0.95,0.99,0.999))
-hist(growth$perc_inc3, breaks=50)
+hist(growth$perc_inc3, breaks=100)
 
 growth %>% 
-  filter(growth < 5) %>% 
-#  filter(perc_inc3 < 0.10) %>%    #PJ2022 - alternative culling based on % increase in schwaggy mass of over 10%
+#  filter(growth < 5) %>% 
+  filter(perc_inc3 < 0.25) %>%    #PJ2022 - alternative culling based on % increase in schwaggy mass of over 10%
                                   # gives quite different answers... max growth in larger age size
                                   #thinking this is more realistic/appropriate... 
   arrange(year, rel_bin) %>% 
@@ -207,7 +207,7 @@ growth %>%
   arrange(tmp) %>% 
   select(-tmp) -> growth
 
-write_csv(growth, paste0("output/tag_estimated_growth_", min(rel_sel$year), 
+write_csv(growth, paste0("output/tag_estimated_growth_PJmeth_", min(rel_sel$year), 
                          "_", max(rel_sel$year), ".csv"))
 
 # Add growth to released fish then recalculate the bins
@@ -345,6 +345,7 @@ releases %>%
   mutate(year_batch = paste0(year, "_", tag_batch_no)) -> tag_summary
 
 # Remove tags that fall below the cutoff value to account for size-selectivity 
+# **!** PJ skip this for 2022 diagnostic exam
 releases %>%  filter(!tag_no %in% throw_out$tag_no) -> releases
 
 # Add these to tag_summary as K.0
@@ -487,6 +488,7 @@ read_csv(paste0("data/fishery/nseiharvest_ifdb_1985_", YEAR,".csv"),
   mutate(whole_kg = whole_pounds * 0.453592,
          year_trip = paste0(year, "_", trip_no)) -> fsh_tx
 str(fsh_tx)
+
 # 2. Fishery countbacks   
 
 # Daily tag accounting data in the fishery, includes catch. Note that many of
@@ -542,7 +544,8 @@ head(marks, 10); head(marks2,10)
 # low priority.
 
 # CPUE data - use nominal CPUE for now
-read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
+#read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
+read_csv(paste0("data/fishery/fishery_cpue_2022reboot_1997_", YEAR,".csv"),
          guess_max = 50000) %>% 
   filter(Spp_cde == "710") %>% 
   mutate(sable_kg_set = sable_lbs_set * 0.45359237, # conversion lb to kg
@@ -670,7 +673,7 @@ marks %>%
 # df. These could be from other fisheries in or outside the NSEI or from Canada.
 # Get fishery_D, the final count of tags to be decremented for the next time
 # period.
-#PJnote to self; removing marks that are recovered elsewhere
+# PJnote to self; removing marks that are recovered elsewhere
 recoveries %>% 
   filter(date %in% daily_marks$date) %>% 
   group_by(date) %>% 
@@ -772,6 +775,8 @@ ggplot(daily_marks,
   geom_smooth(method = 'lm') +
   facet_wrap(~ year, scales = "free", ncol = 2, dir = "v") +
   labs(x = "Julian Day", y = "Number sablefish per 1000 hooks\n")
+
+#*** If doing PJ diagnostics here is where you go to MR_exam_code_pj22.R
 
 #===============================================================================================================
 #model prep

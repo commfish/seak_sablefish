@@ -1,3 +1,25 @@
+###########################################################################
+## MR diagnostics and year-by-year review...
+## Use mark_recapture.R lines 1:XX to load data
+## then come back here to check shit out
+
+# assessment_summary = record of pervious abundance estimates
+# mr_summary = past mr variables as summarized by Jane
+# releases = marks
+# tag_summary = batch codes by year
+# recoveries = recaps, currently filtering out past year's marks... 
+# rel_sel = 5cm length bins for releases
+# rec_sel = 5cm length binds for recoveries
+# growth = growth of recaptured fish... 
+#          culls out fish that grew too much; Jane got rid of over 5 cm
+#         I opted to get rid of fish based on % increase in body mass
+# growth_sel = releases (binned) adjusted for growth
+# throw_out = tags from marked fish that were deemed too small based on recapture lengths
+# *** want to examine effect of leaving these in, performing calculations and declaring
+#     abundance estimate is germaine to population greater than size of smallest recap
+# move = data examining movement of tagged fish... 
+# marks = #'s of fish marked (I think...)
+
 unique(fsh_bio_noOL$year)
 
 fuck<-fsh_bio_noOL %>% 
@@ -41,13 +63,16 @@ KS.func<-function(M,C,R){
 }
 
 rel20<-releases[releases$year == 2020,]
+nrow(rel20)
 str(rel20); nrow(releases[is.na(rel20$tag_no),])
 M<-rel20$length[!is.na(rel20$length)]
+length(M)
 
 rec20<-recoveries[recoveries$year == 2020,]
 nrow(rec20[is.na(rec20$tag_no),])
 recaps<-rec20$length[!is.na(rec20$length)]
 
+#*** need to figure out Jane's Cs... ???
 cees<-read.csv(paste0("data/fishery/fishery_bio_2000_", YEAR,".csv"))
 str(cees)
 cees20<-cees[cees$year == 2020,]

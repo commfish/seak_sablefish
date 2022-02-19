@@ -39,7 +39,7 @@ exvessel_value <- read_csv("data/exvessel_value_22ud.csv") %>%
 exvessel_value<-exvessel_value[,c(5,6)]
 #if new year not available, add in best est. from Aaron and groundfish crew.... 
 exvessel_value[nrow(exvessel_value)+1,]<-list(YEAR,2.821949)
-
+view(exvessel_value)
 
 catch_ifdb %>% 
   filter(year > 2013) %>% 

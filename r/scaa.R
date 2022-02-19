@@ -89,12 +89,12 @@ rowSums(agelen_key_f)
 
 # Starting values for YEAR == 2019 - delete for the 2020 assessment and
 # uncomment out the next chunk of code
-if(YEAR == 2019) {
-  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
-  rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
-  rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
-  Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
-}
+#if(YEAR == 2019) {
+#  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
+#  rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
+#  rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
+#  Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
+#}
 
 # Starting values for YEAR >= 2020 - uncomment the following chunk for 2021
 # forecast:
@@ -157,8 +157,8 @@ str(data$data_fsh_cpue)
 
 #=====================================
 # *** Checking sensitivity to fishery CPUE data versions
-VER<-"base_gam22" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
-data$data_fsh_cpue<-ts$fsh_cpue_base_gam22[!is.na(ts$fsh_cpue_base_gam22)]
+VER<-"base_22rb" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
+data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
 #==================================================
 
 parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
