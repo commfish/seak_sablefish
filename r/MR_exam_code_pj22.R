@@ -18,27 +18,9 @@
 # *** want to examine effect of leaving these in, performing calculations and declaring
 #     abundance estimate is germaine to population greater than size of smallest recap
 # move = data examining movement of tagged fish... 
-# marks = #'s of fish marked (I think...)
-
-unique(fsh_bio_noOL$year)
-
-fuck<-fsh_bio_noOL %>% 
-  filter(age %in% aa) %>% 
-  ungroup() %>% 
-  select(Sex, year) %>% 
-  filter(Sex %in% c("Female", "Male")) %>% 
-  na.omit() %>% 
-  droplevels() %>% 
-  count(Sex, year) %>% 
-  group_by(year) %>% 
-  mutate(proportion = round(n / sum(n), 2),
-         Source = "LL fishery") %>% 
-  filter(Sex == "Female")
-
-unique(fuck$year)
-
-unique(recoveries$tag_batch_no)
-with(recoveries, table(tag_batch_no,year))
+# marks = #'s of marked fish recvered... very confusing terminology
+#fsh_cpue = need to get number of fish observed using weight data when not all fish were observed in the countback...
+#        so this gives us trip specific WPUE for those calculations... 
 
 #=====================================================================
 # old school diagnostics
@@ -53,6 +35,7 @@ D.func<-function(x,y){  #x<-C; y<-M
   return(max.at)
   
 }
+
 KS.func<-function(M,C,R){
   print(ks.test(M,R))
   print(D.func(M,R))
@@ -62,39 +45,204 @@ KS.func<-function(M,C,R){
   print(D.func(M,C))
 }
 
-rel20<-releases[releases$year == 2020,]
+#Mark data frames; from mark_recapture.R
+#these data have "too small" marks tossed aside
+str(releases_bin)
+releases_raw
+#capture (2nd event sample) data frame
+cees<-read.csv(paste0("data/fishery/fishery_bio_2000_", YEAR,".csv"))
+#recaps
+read_csv(paste0("data/fishery/tag_recoveries_2003_", YEAR, ".csv"), 
+         guess_max = 50000) -> recaps
+recaps %>% 
+  mutate(year_batch = paste0(year, "_", tag_batch_no),
+         year_trip = paste0(year, "_", trip_no),
+         # use landing_date (same as the countbacks - see section below), otherwise catch_date
+         date = as.Date(ifelse(is.na(landing_date), catch_date, landing_date))) %>% 
+  filter(year >= FIRST_YEAR & year_batch %in% tag_summary$year_batch) -> recaps
+recaps %>% 
+  mutate(Project_cde = ifelse(is.na(Project_cde) &
+                                grepl(c("Personal Use|subsistance|sport"), comments), 
+                              "27", Project_cde)) -> recaps
+recaps %>% 
+  filter(!is.na(length) &
+           measurer_type == "Scientific staff") %>% 
+  mutate(length_bin = cut(length, breaks = seq(32.5, 117.5, 5),
+                          labels = paste(seq(35, 115, 5)))) %>% 
+  select(year, rec_date = date, rec_stat = Stat, tag_no, tag_batch_no, length = length, #rec_len = length, 
+         rec_bin = length_bin) -> recaps
+
+#FUNCTION to examine lengths and make at least first division
+
+Length.bias.exam<-function(M,C,R){   #M,C,R are data frames with year and either
+                                     #marks, recaps, or capture (2nd event sample)
+  #M<-growth_sel; R<-recaps; C<-cees
+  #
+  j<-1
+  Res<-data.frame()
+  Ys<-sort(unique(M$year))
+  #par(mfrow=c(ceiling(length(Ys)/3),3))
+  par(mfrow=c(3,ceiling(length(Ys)/3)))
+  for (i in Ys) {  #i<-Ys[1]
+    Ms<-M$length[!is.na(M$length) & M$year == i]
+    Rs<-R$length[!is.na(R$length) & R$year == i]
+    Cs<-C$length[!is.na(C$length) & C$year == i]
+    
+    Ccdf<-ecdf(Cs); Mcdf<-ecdf(Ms) 
+    plot(Ccdf, verticals=TRUE, do.points=FALSE, main=i)
+    plot(Mcdf, verticals=TRUE, do.points=FALSE, add=TRUE, col="blue")
+    if(length(Rs) > 1) {
+    Rcdf<-ecdf(Rs)
+    plot(Rcdf, verticals=TRUE, do.points=FALSE, add=TRUE, col="forestgreen")
+    }
+    
+    Res[j,"year"]<-i
+    Res[j,"min.M"]<-min(Ms)
+    Res[j,"min.C"]<-min(Cs)
+    Res[j,"min.R"]<-min(Rs)
+    
+    Res[j,"MvR.p"]<-round(ks.test(Ms,Rs)$p.value,2)
+    #Res[j,"MvR.D"]<-round(ks.test(Ms,Rs)$statistic,3)
+    Res[j,"MR.strat.lgth"]<-D.func(Ms,Rs)
+    Res[j,"MvC.p"]<-round(ks.test(Ms,Cs)$p.value,2)
+    #Res[j,"MvC.D"]<-round(ks.test(Ms,Cs)$statistic,3)
+    Res[j,"MC.strat.lgth"]<-D.func(Ms,Cs)
+    Res[j,"CvR.p"]<-round(ks.test(Cs,Rs)$p.value,2)
+    #Res[j,"CvR.D"]<-round(ks.test(Cs,Rs)$statistic,3)
+    Res[j,"CR.strat.lgth"]<-D.func(Cs,Rs)
+
+    #if significant different, stratify once in the loop and recheck.  
+    if (Res[j,"MvR.p"] < 0.05 & Res[j,"MvC.p"] < 0.05 & Res[j,"CvR.p"]<0.05) {
+      #CASE IV stratify around MR length = round(Res[j,"MC.strat.lgth"],0)
+      Strat<-round(Res[j,"MC.strat.lgth"],0)
+      Res[j,"Strat_length"]<-Strat
+      
+      #small
+      Ms.sm<-Ms[Ms<= Strat]; Cs.sm<-Cs[Cs<=Strat]; Rs.sm<-Rs[Rs<=Strat]
+      Res[j,"MvR.sm.p"]<-round(ks.test(Ms.sm,Rs.sm)$p.value,2)
+      #Res[j,"MvR.sm.D"]<-round(ks.test(Ms.sm,Rs.sm)$statistic,3)
+      Res[j,"MR.sm.strat.lgth"]<-D.func(Ms.sm,Rs.sm)
+      Res[j,"MvC.sm.p"]<-round(ks.test(Ms.sm,Cs.sm)$p.value,2)
+      #Res[j,"MvC.sm.D"]<-round(ks.test(Ms.sm,Cs.sm)$statistic,3)
+      Res[j,"MC.sm.strat.lgth"]<-D.func(Ms.sm,Cs.sm)
+      Res[j,"CvR.sm.p"]<-round(ks.test(Cs.sm,Rs.sm)$p.value,2)
+      #Res[j,"CvR.sm.D"]<-round(ks.test(Cs.sm,Rs.sm)$statistic,3)
+      Res[j,"CR.sm.strat.lgth"]<-D.func(Cs.sm,Rs.sm)
+      
+      #big
+      Ms.bg<-Ms[Ms> Strat]; Cs.bg<-Cs[Cs>Strat]; Rs.bg<-Rs[Rs>Strat]
+      Res[j,"MvR.bg.p"]<-round(ks.test(Ms.bg,Rs.bg)$p.value,2)
+      #Res[j,"MvR.bg.D"]<-round(ks.test(Ms.bg,Rs.bg)$statistic,3)
+      Res[j,"MR.bg.strat.lgth"]<-D.func(Ms.bg,Rs.bg)
+      Res[j,"MvC.bg.p"]<-round(ks.test(Ms.bg,Cs.bg)$p.value,2)
+      #Res[j,"MvC.bg.D"]<-round(ks.test(Ms.bg,Cs.bg)$statistic,3)
+      Res[j,"MC.bg.strat.lgth"]<-D.func(Ms.bg,Cs.bg)
+      Res[j,"CvR.bg.p"]<-round(ks.test(Cs.bg,Rs.bg)$p.value,2)
+      #Res[j,"CvR.bg.D"]<-round(ks.test(Cs.bg,Rs.bg)$statistic,3)
+      Res[j,"CR.bg.strat.lgth"]<-D.func(Cs.bg,Rs.bg)
+      
+    } else {
+      Res[j,"Strat_length"]<-"No"
+    }
+    
+    j<-j+1
+  }
+  return(Res)
+}
+
+#M<-growth_sel; R<-recaps; C<-cees
+Length_exam<-Length.bias.exam(M=releases_raw,C=cees,R=recaps)
+
+#!!! 5 years suggest stratification is necessary!!! 
+
+#=================================================================================
+# Spatial bias exam...
+head(move,20)
+head(move[move$year == 2005,],20)
+move5<-move[move$year == 2005,]
+rel5<-releases_raw[releases_raw$year == 2005,]
+
+#1 Test of complete mixing
+as<-unique(move5$recaptures)
+mvmt.chi<-matrix(nrow=length(as),ncol=length(as)+1)
+i<-1
+for (a in as){   #a<-as[1]
+  a1<-move5[move5$recaptures == a,]
+  mvmt.chi[,i]<-a1$Freq
+  i<-i+1
+}
+i<-1
+for (a in as){
+  mvmt.chi[i,length(as)+1] <- nrow(rel5[rel5$Stat == a,])-
+    sum(mvmt.chi[i,], na.rm=TRUE)
+  i<-i+1
+}
+
+chisq.test(mvmt.chi)
+xt<-chisq.test(mvmt.chi)
+xt$p.value
+
+head(releases_raw)
+
+#2 Test of equal prob of capture 1st Event
+e1.chi<-data.frame()
+i<-1
+for (a in as){
+  m2<-move5[move5$recaptures == a,]
+  e1.chi[i,1]<-sum(m2$Freq) #recaptured m2
+  e1.chi[i,2]<-56565 -e1.chi[i,1]#unmarked (n2-m2) #!!!need number of fish examined 
+                                              #in each area!!! 
+}
+
+#3 Test of equal prob of capture 2nd Event
+
+#==================================================================================
+# SCRAP.... 
+
+rel20<-growth_sel[growth_sel$year == 2020,]
 nrow(rel20)
-str(rel20); nrow(releases[is.na(rel20$tag_no),])
-M<-rel20$length[!is.na(rel20$length)]
+str(rel20); nrow(rel20[is.na(rel20$tag_no),])
+M<-rel20$growth_len[!is.na(rel20$growth_len)]
 length(M)
 
-rec20<-recoveries[recoveries$year == 2020,]
+read_csv(paste0("data/fishery/tag_recoveries_2003_", YEAR, ".csv"), 
+         guess_max = 50000) -> recaps
+recaps %>% 
+  mutate(year_batch = paste0(year, "_", tag_batch_no),
+         year_trip = paste0(year, "_", trip_no),
+         # use landing_date (same as the countbacks - see section below), otherwise catch_date
+         date = as.Date(ifelse(is.na(landing_date), catch_date, landing_date))) %>% 
+  filter(year >= FIRST_YEAR & year_batch %in% tag_summary$year_batch) -> recaps
+nrow(recaps)
+rec20<-recaps[recaps$year == 2020,]
 nrow(rec20[is.na(rec20$tag_no),])
-recaps<-rec20$length[!is.na(rec20$length)]
+recaps20<-rec20$length[!is.na(rec20$length)]
+length(recaps20) 
 
 #*** need to figure out Jane's Cs... ???
-cees<-read.csv(paste0("data/fishery/fishery_bio_2000_", YEAR,".csv"))
+
 str(cees)
 cees20<-cees[cees$year == 2020,]
 C<-cees20$length[!is.na(cees20$length)]
+length(C)
 
-Ccdf<-ecdf(C); Mcdf<-ecdf(M); Rcdf<-ecdf(recaps)
+Ccdf<-ecdf(C); Mcdf<-ecdf(M); Rcdf<-ecdf(recaps20)
 plot(Ccdf, verticals=TRUE, do.points=FALSE)
 plot(Mcdf, verticals=TRUE, do.points=FALSE, add=TRUE, col="blue")
 plot(Rcdf, verticals=TRUE, do.points=FALSE, add=TRUE, col="forestgreen")
 
-ks.test(M,recaps); summary(ks.test(M,recaps)); D.func(M,recaps)
+ks.test(M,recaps20); summary(ks.test(M,recaps20)); D.func(M,recaps20)
 ks.test(M,C); summary(ks.test(M,C)); D.func(M,C)
 ks.test(C,recaps); summary(ks.test(C,recaps)); D.func(C,recaps)
 
 min(C)
 min(M)
-min(recaps)
-Clte61<-C[C<=61]; Mlte61<-M[M<=61]; Rlte61<-recaps[recaps<=61]
+min(recaps20)
+Clte61<-C[C<=61]; Mlte61<-M[M<=61]; Rlte61<-recaps20[recaps20<=61]
 
 KS.func(Mlte61,Clte61,Rlte61)
 
-Cgt61<-C[C>61]; Mgt61<-M[M>61]; Rgt61<-recaps[recaps>61]
+Cgt61<-C[C>61]; Mgt61<-M[M>61]; Rgt61<-recaps20[recaps20>61]
 
 KS.func(Mgt61,Cgt61,Rgt61)
 

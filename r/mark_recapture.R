@@ -134,6 +134,9 @@ releases %>%
 # fish that small. Don't know how I should treat this... leave it in for now.
 releases %>% filter(length <= 30) %>% distinct(year, Project_cde, length, tag_no, release_condition_cde, discard_status) 
 
+unique(recoveries$measurer_type)
+with(recoveries, table(year,measurer_type))
+
 recoveries %>% 
   filter(measurer_type == "Scientific staff") %>% 
   group_by(year) %>% 
@@ -147,8 +150,13 @@ releases %>%
                           labels = paste(seq(35, 115, 5)))) %>% 
   select(year, rel_date = date, rel_stat = Stat, tag_no, tag_batch_no, rel_len = length, 
          rel_bin = length_bin) -> rel_sel
+par(mfrow=c(2,1))
+hist(releases$length); hist(rel_sel$rel_len)
+nrow(releases); nrow(rel_sel)
 
 # Same for recoveries, only use measurements from scientific staff
+# pj22: only using sci staff culls 75+% of lengths !!! - OK here bc looking for most reliable
+# smallest fish. Mind weather this is an issue below (geographic exam...)
 recoveries %>% 
   filter(!is.na(length) &
            measurer_type == "Scientific staff") %>% 
@@ -156,12 +164,25 @@ recoveries %>%
                           labels = paste(seq(35, 115, 5)))) %>% 
   select(year, rec_date = date, rec_stat = Stat, tag_no, tag_batch_no, rec_len = length, 
          rec_bin = length_bin) -> rec_sel
+hist(recoveries$length); hist(rec_sel$rec_len)
+nrow(recoveries); nrow(rec_sel)
+
+#make similar data frame but keep in other measurements where we're examinng non-length
+#based assumptions... 
+recoveries %>% 
+  filter(!is.na(length) & !is.na(Stat)) %>% 
+         #  measurer_type == "Scientific staff") %>% 
+  mutate(length_bin = cut(length, breaks = seq(32.5, 117.5, 5),
+                          labels = paste(seq(35, 115, 5)))) %>% 
+  select(year, rec_date = date, rec_stat = Stat, tag_no, tag_batch_no, rec_len = length, 
+         rec_bin = length_bin) -> rec_mvt
 
 # Growth in tagged individuals by bin
 merge(rel_sel, rec_sel, by = c("year", "tag_no", "tag_batch_no")) %>% 
   mutate(growth = rec_len - rel_len) %>% 
   # lots of negative growth... 
   filter(!growth < 0) -> growth
+growth[1:10,]
 
 # Lots of unrealistic outliers, omit growth over 5 cm
 # PJ2022, just checking trends... would argue the %increase is better culling metric?
@@ -181,8 +202,8 @@ quantile(growth$perc_inc3, c(0.001,0.01,0.05,0.95,0.99,0.999))
 hist(growth$perc_inc3, breaks=100)
 
 growth %>% 
-#  filter(growth < 5) %>% 
-  filter(perc_inc3 < 0.25) %>%    #PJ2022 - alternative culling based on % increase in schwaggy mass of over 10%
+  filter(growth < 5) %>% 
+#  filter(perc_inc3 < 0.25) %>%    #PJ2022 - alternative culling based on % increase in schwaggy mass of over 10%
                                   # gives quite different answers... max growth in larger age size
                                   #thinking this is more realistic/appropriate... 
   arrange(year, rel_bin) %>% 
@@ -201,11 +222,13 @@ growth %>%
 
 growth[is.na(growth)] <- 0
 
+
 # Rearrange
 growth %>% 
   mutate(tmp = as.numeric(rel_bin)) %>% 
   arrange(tmp) %>% 
   select(-tmp) -> growth
+growth
 
 write_csv(growth, paste0("output/tag_estimated_growth_PJmeth_", min(rel_sel$year), 
                          "_", max(rel_sel$year), ".csv"))
@@ -215,7 +238,8 @@ merge(rel_sel, growth, by = "rel_bin") %>%
   mutate(growth_len = rel_len + g,
          growth_bin = cut(growth_len, breaks = seq(32.5, 117.5, 5),
                           labels = paste(seq(35, 115, 5)))) %>% 
-  select(year, tag_no, growth_bin) -> growth_sel
+  select(year, tag_no, growth_len, growth_bin) -> growth_sel
+growth_sel[1:10,]
 
 # Proportion by bin
 rel_sel %>% 
@@ -311,8 +335,11 @@ ggsave(paste0("figures/rel_rec_cumproplength_",
 # Approach discussed with B. Williams 2018-03-21: In a given year use the
 # minimum length bin recaptured as the cut off. Throw tags with a post-release
 # growth length bin less than the cut off out.
+#PJ22 Seems like we might be getting rid of a few too many fish using bins to cull.  Why not use
+# raw lengths for the culling part? Redid growth to keep raw lengths in there... 
+# using raw lengths actually gets rid of quite a bit more fish... should explore effects on
+# estimates...
 
-#PJ 2022 - not sure on this; abundance estimate will be germaine to the smallest fish recaptured???
 rec_sel %>% 
   # *FLAG* removing this single tag that NOAA returned to ADFG on 20190328 that
   # is officially the smallest recovered fish that we have since 2005 from the
@@ -327,6 +354,91 @@ rec_sel %>%
 
 throw_out %>% group_by(year) %>% dplyr::summarize(n_distinct(tag_no)) # number tags to throw out by year
 
+str(rec_sel)
+str(growth_sel)
+
+#do second thow_out using raw lengths as opposed to length bins... 
+rec_sel %>% 
+  filter(!tag_no %in% "T-089116") %>% 
+  group_by(year) %>% 
+  dplyr::summarize(cutoff = min(as.numeric(as.character(rec_len)))) %>% 
+  right_join(growth_sel, "year") %>% 
+  mutate(growth_len = as.numeric(as.character(growth_len))) %>% #View()
+  filter(growth_len < cutoff) %>% 
+  distinct(year, tag_no) -> throw_out_raw
+
+throw_out_raw %>% group_by(year) %>% dplyr::summarize(n_distinct(tag_no)) # number tags to throw out by year
+
+#Phil's primitive loop to look at this a little closer; had to figure out if I get the same
+#results.  Got it now.  
+{
+
+small<-data.frame()
+YRS<-unique(rec_sel$year)
+j<-1
+for (i in YRS) {     #i<-2020
+  dat<-rec_sel[rec_sel$year == i,]
+  dat$rec_bin<-as.numeric(dat$rec_bin)
+  dat2<-growth_sel[growth_sel$year == i,]
+  dat2$growth_bin<-as.numeric(dat2$growth_bin)
+  small[j,"year"]<-i
+  small[j,"smallest"]<-min(dat$rec_len)
+  small[j,"no.too.small"]<-nrow(dat2[dat2$growth_len < min(dat$rec_len),])
+  small[j,"smallest.bin"]<-min(dat$rec_bin) 
+  small[j,"no.too.small.bin"]<-nrow(dat2[dat2$growth_bin < min(dat$rec_bin),])
+  j<-j+1
+}
+small #bins mostly matches Jane - except 2018... 
+   #however, very different results with raw lengths! yuck...
+   #throw out a lot more marks using raw lengths... 
+
+i<-2018
+dat<-rec_sel[rec_sel$year == i,]
+dat$rec_bin<-as.numeric(as.character(dat$rec_bin))
+dat2<-growth_sel[growth_sel$year == i,]
+dat2$growth_bin<-as.numeric(as.character(dat2$growth_bin))
+par(mfrow=c(2,1))
+hist(dat$rec_len); min(dat$rec_len)
+#co<-min(as.numeric(as.character(dat$rec_bin)))
+hist(dat2$growth_len)
+length(dat2$growth_len[dat2$growth_len < min(dat$rec_len)]) #hmmm...need to go back and check how rec_len and growth_len derived...
+hist(dat$rec_bin); min(dat$rec_bin)
+hist(dat2$growth_bin)
+length(dat2$growth_bin[dat2$growth_bin < min(dat$rec_bin)])
+
+dat3<-rec_sel[rec_sel$tag_no != "T-089116" & rec_sel$year == i,]
+min(dat3$rec_len)
+min(as.numeric(as.character(dat3$rec_bin)))
+
+small2<-data.frame()
+YRS<-unique(rec_sel$year)
+j<-1
+for (i in YRS) {     #i<-2020
+  dat<-rec_sel[rec_sel$year == i & rec_sel$tag_no != "T-089116",]
+  dat$rec_bin<-as.numeric(dat$rec_bin)
+  dat2<-growth_sel[growth_sel$year == i,]
+  dat2$growth_bin<-as.numeric(dat2$growth_bin)
+  small2[j,"year"]<-i
+  small2[j,"smallest"]<-min(dat$rec_len)
+  small2[j,"no.too.small"]<-nrow(dat2[dat2$growth_len < min(dat$rec_len),])
+  small2[j,"smallest.bin"]<-min(dat$rec_bin) 
+  small2[j,"no.too.small.bin"]<-nrow(dat2[dat2$growth_bin < min(dat$rec_bin),])
+  j<-j+1
+}
+small2
+
+to18<-throw_out[throw_out$year == 2018,]
+head(to18); nrow(to18)
+
+rec_sel %>% 
+  filter(!tag_no %in% "T-089116" & year %in% 2018) %>% 
+  group_by(year) %>% 
+  dplyr::summarize(cutoff = min(as.numeric(as.character(rec_bin)))) %>% 
+  right_join(growth_sel, "year") %>% 
+  mutate(growth_bin = as.numeric(as.character(growth_bin))) %>% #View()
+  filter(growth_bin < cutoff) %>% 
+  distinct(year, tag_no) -> throw_out18
+}
 # Total number tagged and released by year plus define length of time period 1
 releases %>% 
   group_by(year, tag_batch_no) %>% 
@@ -345,17 +457,27 @@ releases %>%
   mutate(year_batch = paste0(year, "_", tag_batch_no)) -> tag_summary
 
 # Remove tags that fall below the cutoff value to account for size-selectivity 
-# **!** PJ skip this for 2022 diagnostic exam
-releases %>%  filter(!tag_no %in% throw_out$tag_no) -> releases
+# reviewed 2-21-22.  Getting rid of too small tags good; Phil approved! 
+releases %>%  filter(!tag_no %in% throw_out$tag_no) -> releases_bin
+releases %>%  filter(!tag_no %in% throw_out_raw$tag_no) -> releases_raw
 
+str(releases)
 # Add these to tag_summary as K.0
-releases %>% 
+releases_bin %>% 
   group_by(year, tag_batch_no) %>% 
-  dplyr::summarize(K.0 = n_distinct(tag_no)) %>% left_join(tag_summary) -> tag_summary
+  dplyr::summarize(K.0 = n_distinct(tag_no)) %>% left_join(tag_summary) -> tag_summary_bin
 
+releases_raw %>% 
+  group_by(year, tag_batch_no) %>% 
+  dplyr::summarize(K.0 = n_distinct(tag_no)) %>% left_join(tag_summary) -> tag_summary_raw
+
+#-------------------------------------------------------------------------------
 # Movement in Chatham ----
 merge(rel_sel, 
-      rec_sel %>% 
+#      rec_sel %>%  #nrow(rec_sel)   #why used culled recoveries here???
+        #these are culled based on who measured them, but does that effect the movement 
+        #piece of the puzzle
+     rec_mvt %>% 
         filter(!is.na(rec_stat)) %>% 
         mutate(rec_stat = ifelse(rec_stat %in% distinct(rel_sel, rel_stat)$rel_stat, 
                                  rec_stat, NA)), 
@@ -380,6 +502,8 @@ table(releases = move$rel_stat,
   mutate(N = sum(Freq), # number of releases in an area
          # probability of being recaptured in an area if released in an area
          Probability = Freq/N) -> move
+str(move)
+head(move, 30)
 
 ggplot(move, aes(x = releases, y = recaptures)) +
   geom_tile(aes(fill = Probability), colour = "grey") +
@@ -421,7 +545,8 @@ ggplot(move, aes(x = releases, y = recaptures)) +
 ggsave(paste0("figures/movement_matrix_with_N_", 
               FIRST_YEAR, "_", YEAR, ".png"), 
        dpi=300, height=8.5, width=7.5, units="in")
-
+# PJ22: mixing "looks" better when we use all the data (not just scientific samplers).  Still need
+# proper diagnostics
 #===============================================================================================================
 # Recaps and Second Event Sample
 # LL survey ----
@@ -432,6 +557,9 @@ ggsave(paste0("figures/movement_matrix_with_N_",
 # checked for marks. Only 2008 and 2010 surveys had countbacks. See Issue #39
 # for documentation.
 srv_count <- read_csv("data/survey/nsei_sable_llsurvey_countbacks.csv")
+
+# !!! clarify which valid mark data frame you are using, raw or binned length culling...
+tag_summary<-tag_summary_bin  #tag_summary_raw
 
 # Expand grid, sum within years, and apply 0s for NAs
 srv_count %>% 
@@ -446,6 +574,7 @@ srv_count %>%
 # 2. Recovered tags in LL survey
 
 # Add LL survey recoveries to the summary (survey is time period i = 1)
+head(recoveries)
 recoveries %>% 
   filter(Project_cde == "03") %>% 
   group_by(year, tag_batch_no) %>%
@@ -454,7 +583,12 @@ recoveries %>%
 
 # Remove tags recovered in the survey from the releases df so they don't get
 # double-counted by accident.
+# pj22: Jane does this at each step of accounting for recaptures.
+
+nrow(recoveries); head(recoveries)
+unique(recoveries$Project_cde)
 recoveries %>% filter(Project_cde != "03") -> recoveries
+nrow(recoveries2)
 
 # 3. LL survey catch in numbers (C.1)
 
@@ -475,6 +609,7 @@ read_csv(paste0("data/survey/llsrv_bio_1988_", YEAR,".csv"),
   group_by(year) %>% 
   dplyr::summarize(mean_weight_1 = mean(weight)) -> srv_mean_weights
 
+#--------------------------------------------------------------------------
 # LL fishery ----
 
 # 1. Fish tickets
@@ -497,19 +632,24 @@ str(fsh_tx)
 # counted, did not observe. There is no difference between dressed and round fish for
 # detecting marks, but we shouldn't be using it for estimating weight.
 
+#PJ22!! Note that no survey in '21 so YEAR-1 below; change after next abundance estiamte
 #read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv")) -> marks
 read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR-1, ".csv")) -> marks  #marks = recaps
 str(marks)
+marks$marked
+marks$unmarked
 
 marks %>% 
   filter(year >= FIRST_YEAR &
     !year %in% NO_MARK_SRV) %>% 
   mutate(all_observed = ifelse(
-    !grepl(c("Missing|missing|Missed|missed|eastern|Eastern|not counted|Did not observe|did not observe|dressed|Dressed"), comments) & 
+    !grepl(c("Missing|missing|Missed|missed|eastern|Eastern|not counted|
+             Did not observe|did not observe|dressed|Dressed"), comments) & 
                                  observed_flag == "Yes", "Yes", "No"),
     mean_weight = ifelse(all_observed == "Yes", whole_kg/total_obs, NA),
     year_trip = paste0(year, "_", trip_no)) -> marks
 view(marks)
+
 # 3. Fishery mean weight
 
 # Biological data to get mean weight to get numbers estimated on unobserved catch. 
@@ -529,8 +669,17 @@ left_join(marks, fsh_bio, by = c("date", "trip_no")) %>%
   mutate(mean_weight = ifelse(!is.na(mean_weight_bios), mean_weight_bios, mean_weight)) %>% 
   select(-mean_weight_bios) -> marks
 
-head(marks, 10); head(marks2,10)
+head(marks, 10)
 
+#hmmm... looks like if there are marks there are unmarked... 
+nrow(marks)
+nrow(marks[!is.na(marks$marked) & is.na(marks$unmarked),])
+nrow(marks[is.na(marks$marked),])
+nrow(marks[is.na(marks$unmarked),])
+nrow(marks[marks$observed_flag == "No",])
+nrow(marks[marks$all_observed == "No",])
+nrow(marks[marks$all_observed == "Yes",])
+866+557
 # 4. Fishery CPUE
 
 # FLAG! Starting with 2020 data, you will get an error here. In 2020, the
@@ -558,7 +707,7 @@ read_csv(paste0("data/fishery/fishery_cpue_2022reboot_1997_", YEAR,".csv"),
            julian_day > 226 & julian_day < 322) %>% 
   group_by(year, trip_no) %>% 
   dplyr::summarize(WPUE = mean(WPUE)) -> fsh_cpue # legacy code, YOU WILL GET AN ERROR!
-#PJ2022: No Error! Justin Daily still working on sql but presented data to me that "should" work... 
+#PJ2022: Fixed and good to go!  
 str(fsh_cpue)
 unique(fsh_cpue$year) # !FLAG! Received from Justin 1/31/22 
                       #once have that data can get rid of code below 
@@ -612,9 +761,13 @@ unique(tag_summary$year)
 # accounting dataframe. This will ultimately go into a D calculation. IMPORTANT
 # NOTE from Mike Vaughn 2018-02-22: trip_nos are year and project specific.
 # Canadian-recovered tags get a trip_no if there was an otolith collected.
+unique(recoveries$Project_cde)
+#!!!FLAG - in coming years make sure 602 accounted for, new standard.  Set up code
+# currently keep 602 -> 02 to keep consistent with Jane's code.  But something to 
+# be mindful of in coming years
 
 recoveries %>% 
-  filter(year_trip %in% marks$year_trip & Project_cde == "02") %>% 
+  filter(year_trip %in% marks$year_trip & Project_cde == "02") %>%  
   group_by(year_trip) %>% 
   dplyr::summarize(tags_from_fishery = n_distinct(tag_no)) %>% 
   right_join(marks, by = "year_trip") -> marks
@@ -622,6 +775,9 @@ recoveries %>%
 unique(recoveries$year)
 unique(marks$year)
 # Remove these matched tags from the releases df so they don't get double-counted by accident. 
+# pj22 - same as other removal; Jane says releases df, but its not in here??? 
+# from recoveries data frame, remove as you go ... 
+nrow(recoveries)
 recoveries %>% filter(!c(year_trip %in% marks$year_trip & Project_cde == "02")) -> recoveries
 str(recoveries)
 
@@ -637,13 +793,18 @@ anti_join(recoveries %>%
           marks, by = "year_trip") %>% 
   group_by(year_trip, Mgmt_area, date) %>% 
   dplyr::summarize(tags_from_fishery = n_distinct(tag_no)) -> no_match 
-# 7 trips from 2008, all in the NSEI; 3 from 2018; 2 trips in 2020... 2020_116
+# 7 trips from 2008, all in the NSEI; 3 from 2018; 1 trips in 2020... 2020_116
 # was part a tendered delivery, so no surprise it was weird.
 
+#--------------------------------------------------------------------------------
 # Daily summary ----
 
 # 1. Summary of observed (n), marks[recaps] (k), and recovered tags by day during the
 # directed NSEI season.
+# PJ!!! here is where some numbers are interpolated from weight data !!! 
+# this could make length based stratification problematic... will need to think on this
+# will need to interpolate length distributions ... yucko maybe
+view(marks)
 
 marks %>% 
   # padr::pad fills in missing dates with NAs, grouping by years.
@@ -658,15 +819,16 @@ marks %>%
   # interpolate mean_weight column to get npue from wpue (some trips have wpue
   # data but no bio data)
   mutate(interp_mean = zoo::na.approx(mean_weight, maxgap = 20, rule = 2),
-         mean_npue = mean_wpue / interp_mean) %>% 
+         mean_npue = mean_wpue / interp_mean) %>%    #<-weight to n
   # padr::fill_ replaces NAs with 0 for specified cols
   fill_by_value(whole_kg, total_obs, total_marked, tags_from_fishery, value = 0) %>% 
   group_by(year) %>% 
-  mutate(cum_whole_kg = cumsum(whole_kg),
+  mutate(cum_whole_kg = cumsum(whole_kg), #cumsum makes vector
          cum_obs = cumsum(total_obs),
          cum_marks = cumsum(total_marked),
          julian_day = yday(date)) -> daily_marks
 
+view(daily_marks)
 # 2. Other recovered tags from the fishery (D)
 
 # Join remaining recovered tags that have a matching data with the daily marks 
@@ -681,14 +843,15 @@ recoveries %>%
   right_join(daily_marks, by = "date") %>% 
   # padr::fill_ replaces NAs with 0 for specified cols
   fill_by_value(other_tags, value = 0) %>% 
-  # If tags observed in countback > marks, the D for the day is the difference
+  # If tags observed in countback (tags_from_fishery?) > marks (total_marked), 
+  # the D for the day is the difference
   # between tags and marks plus other tags from the recoveries df that haven't
   # been accounted for yet. This assumes any tags recovered at time of countback
   # are potentially linked with a marked fish.
   mutate(fishery_D = ifelse(tags_from_fishery - total_marked > 0, 
                             tags_from_fishery - total_marked + other_tags, 
                             other_tags)) -> daily_marks
-
+view(daily_marks)
 # Remove these matched tags from the releases df so they don't get double-counted by accident. 
 recoveries %>% filter(!c(date %in% daily_marks$date)) -> recoveries
 
@@ -746,6 +909,7 @@ daily_marks %>%
             D_fishery = sum(fishery_D)) %>% 
   left_join(tag_summary) -> tag_summary
 
+view(tag_summary)
 #=======================================================================================================
 # Trends ----
 
