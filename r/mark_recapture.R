@@ -584,6 +584,8 @@ recoveries %>%
 # Remove tags recovered in the survey from the releases df so they don't get
 # double-counted by accident.
 # pj22: Jane does this at each step of accounting for recaptures.
+#save recoveries for diagnostics before we start stripping this data away
+all_recoveries<-recoveries
 
 nrow(recoveries); head(recoveries)
 unique(recoveries$Project_cde)
@@ -635,7 +637,7 @@ str(fsh_tx)
 #PJ22!! Note that no survey in '21 so YEAR-1 below; change after next abundance estiamte
 #read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv")) -> marks
 read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR-1, ".csv")) -> marks  #marks = recaps
-str(marks)
+view(marks)
 marks$marked
 marks$unmarked
 
@@ -648,7 +650,7 @@ marks %>%
                                  observed_flag == "Yes", "Yes", "No"),
     mean_weight = ifelse(all_observed == "Yes", whole_kg/total_obs, NA),
     year_trip = paste0(year, "_", trip_no)) -> marks
-view(marks)
+nrow(marks)
 
 # 3. Fishery mean weight
 
@@ -741,10 +743,11 @@ unique(fsh_cpue$year) # !FLAG! Received from Justin 1/31/22
   
 # Join the mark sampling with the fishery cpue - add wpue column
 head(marks,20)
-left_join(marks, fsh_cpue, by = c("year", "trip_no")) -> marks
-view(marks)
+left_join(marks, fsh_cpue, by = c("year", "trip_no")) -> marks2
+view(marks2)
 
 # 5. Timing of the fishery
+marks<-marks2
 marks %>% 
   group_by(year) %>% 
   dplyr::summarize(fishery_beg = min(date),

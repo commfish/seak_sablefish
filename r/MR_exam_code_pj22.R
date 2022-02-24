@@ -184,16 +184,111 @@ xt$p.value
 
 head(releases_raw)
 
+#------------------------------------------------------------------------
 #2 Test of equal prob of capture 1st Event
+# get Stat area for modified Marks - need to recreate marks data frame from Jane's code
+#load everything and then start here ~line639 in MR code
+read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR-1, ".csv")) -> marks3 
+marks3<-marks
+#** marks already loaded with summed weight by trip number
+
+marks3 %>% 
+  filter(year >= FIRST_YEAR &
+           !year %in% NO_MARK_SRV) %>% 
+  mutate(all_observed = ifelse(
+    !grepl(c("Missing|missing|Missed|missed|eastern|Eastern|not counted|
+             Did not observe|did not observe|dressed|Dressed"), comments) & 
+      observed_flag == "Yes", "Yes", "No"),
+    mean_weight = ifelse(all_observed == "Yes", whole_kg/total_obs, NA),
+    year_trip = paste0(year, "_", trip_no)) -> marks3
+nrow(marks3)
+
+#load fsh_bio: line ~658 in MR code
+left_join(marks3, fsh_bio, by = c("date", "trip_no")) %>% 
+  mutate(mean_weight = ifelse(!is.na(mean_weight_bios), mean_weight_bios, mean_weight)) %>% 
+  select(-mean_weight_bios) -> marks3
+
+##!! Thru here should be the same as Jane's "mark" through line ~ 696
+marks3<-marks
+#load fsh_cpue: line ~699 in Jane's.  Modified here to include Stat so we get
+# CPUE by trip and stat area....
+read_csv(paste0("data/fishery/fishery_cpue_2022reboot_1997_", YEAR,".csv"),
+         guess_max = 50000) %>% 
+  filter(Spp_cde == "710") %>% 
+  mutate(sable_kg_set = sable_lbs_set * 0.45359237, # conversion lb to kg
+         std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (0.0254 * hook_space))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
+         # kg sablefish/1000 hooks, following Mueter 2007
+         WPUE = sable_kg_set / (std_hooks / 1000)) %>% 
+  filter(!is.na(date) & 
+           !is.na(sable_lbs_set) &
+           # omit special projects before/after fishery
+           julian_day > 226 & julian_day < 322) %>% 
+  group_by(year, trip_no, Stat) %>% 
+  dplyr::summarize(WPUE = mean(WPUE)) -> fsh_cpue_stat
+
+left_join(marks3, fsh_cpue_stat, by = c("year", "trip_no")) %>% 
+  mutate(year_trip_stat = paste0(year, "_", trip_no,"_",Stat))-> marks4
+
+#at this point we have stat*trip specific WCPUE, but whole_kg is only trip specific...?
+
+recoveries %>% 
+  filter(year_trip %in% marks$year_trip & Project_cde == "02") %>%  
+  mutate(year_trip_stat=paste0(year_trip,"_",Stat)) %>%
+  group_by(year_trip_stat) %>% 
+  dplyr::summarize(tags_from_fishery = n_distinct(tag_no)) %>% 
+  right_join(marks4, by = "year_trip_stat") -> marks5
+
+#still same with spec wpue but biomass is only trip specific... 
+
+anti_join(recoveries %>% 
+            filter(!trip_no %in% c(1, 2, 3) &  # pot and longline surveys
+                     !is.na(trip_no) & 
+                     Project_cde == "02"), 
+          marks4, by = "year_trip") %>% 
+  group_by(year_trip, Mgmt_area, date) %>% 
+  dplyr::summarize(tags_from_fishery = n_distinct(tag_no)) -> no_match3
+
+#get stat areas by trip number ... but... this doesn't work because some trips
+# cover more than on stat area... see 2005_106 for example...
+
+#line 810 gets N numbers frm weight data... 
+marks5 %>% 
+  # padr::pad fills in missing dates with NAs, grouping by years.
+  pad(group = "year") %>% 
+  group_by(year, date) %>% 
+  dplyr::summarize(whole_kg = sum(whole_kg),
+                   total_obs = sum(total_obs),
+                   total_marked = sum(marked),
+                   tags_from_fishery = sum(tags_from_fishery),
+                   mean_weight = mean(mean_weight),
+                   mean_wpue = mean(WPUE)) %>% 
+  # interpolate mean_weight column to get npue from wpue (some trips have wpue
+  # data but no bio data)
+  mutate(interp_mean = zoo::na.approx(mean_weight, maxgap = 20, rule = 2),
+         mean_npue = mean_wpue / interp_mean) %>%    #<-weight to n
+  # padr::fill_ replaces NAs with 0 for specified cols
+  fill_by_value(whole_kg, total_obs, total_marked, tags_from_fishery, value = 0) %>% 
+  group_by(year) %>% 
+  mutate(cum_whole_kg = cumsum(whole_kg), #cumsum makes vector
+         cum_obs = cumsum(total_obs),
+         cum_marks = cumsum(total_marked),
+         julian_day = yday(date)) -> daily_marks3
+view(daily_marks3)
+view(daily_marks)
+#test run/development
+marks3_05<-marks3[marks3$year == 2005,]
+
 e1.chi<-data.frame()
 i<-1
 for (a in as){
   m2<-move5[move5$recaptures == a,]
   e1.chi[i,1]<-sum(m2$Freq) #recaptured m2
+  n2<-marks3_05[marks3_05$Stat == a,]
   e1.chi[i,2]<-56565 -e1.chi[i,1]#unmarked (n2-m2) #!!!need number of fish examined 
                                               #in each area!!! 
 }
 
+#------------------------------------------------------------------------------
 #3 Test of equal prob of capture 2nd Event
 
 #==================================================================================
