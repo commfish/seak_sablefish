@@ -1,9 +1,12 @@
 # Northern Southeast Inside Waters (NSEI) sablefish (*Anoplopoma fimbria*) stock assessment
 
 Please direct any questions to: 
-Jane Sullivan (jane.sullivan1@alaska.gov, ummjane@gmail.com) or Rhea Ehresmann (rhea.ehresmann@alaska.gov)
+Phil Joy (philip.joy@alaska.gov, ummjane@gmail.com) or Rhea Ehresmann (rhea.ehresmann@alaska.gov)
 
-Last updated: June 2020
+This fork represents Phil's takeover of the project from Jane Sullivan, now at NOAA.
+Jane's orginal code left as original copy in commfish/seak_sablefish:NSEI...
+
+Last updated: March 2022
 
 ## Reports
 
