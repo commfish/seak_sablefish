@@ -10,8 +10,8 @@ source("r/functions.r")
 # if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
 # Most recent year of data
-YEAR <- 2020
-
+YEAR <- 2021
+lyr<-2021
 # Logbook/CPUE data  ----
 
 # Read in data, standardize cpue, etc.
@@ -228,7 +228,8 @@ fsh_bio %>%
   summarize(ecdf = (ecdf(length)(59))) %>% 
   group_by(Source) %>% 
   mutate(std = (ecdf - mean(ecdf)) / sd(ecdf),
-         mean = mean(ecdf)) %>% print(n=Inf)
+         mean = mean(ecdf)) %>% #print(n=Inf)
+
   ggplot(aes(x = year, y = ecdf,col = Source, shape = Source)) +
   # ggplot(aes(x = year, y = std,lty = Source)) +
   # geom_hline(yintercept = 0, lty = 2, col = "grey") +
@@ -244,7 +245,7 @@ fsh_bio %>%
   theme(axis.title.y = element_text(angle=0, vjust = 0.5),
         legend.position = c(.2,.8))
 
-ggsave("figures/small_fish_2020.png", width = 8, height = 4, dpi = 400, units = "in")
+ggsave("figures/small_fish_2021.png", width = 8, height = 4, dpi = 400, units = "in")
 
 # Fishery
 fsh_bio %>% 
@@ -270,7 +271,7 @@ fsh_bio %>%
   # labs(x = NULL, y = NULL) +
   labs(x = NULL, y = "Percent <= 6 yrs old")
 
-ggsave("figures/small_fish_age_2002.png", width = 8, height = 3.5, dpi = 400, units = "in")
+ggsave("figures/small_fish_age_2021.png", width = 8, height = 3.5, dpi = 400, units = "in")
 
 fsh_bio %>% 
   filter(!is.na(length)) %>% 
