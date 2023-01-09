@@ -278,6 +278,7 @@ catch %>%
   # Board implemented Equal Quota Share in 1994
   # geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  scale_x_continuous(breaks = seq(1975,2021,5), labels = seq(1975,2021,5)) +
   scale_y_continuous(labels = scales::comma) + 
   expand_limits(y = 0) +
   labs(x = "", y = "\n\nCatch\n(round mt)") +
@@ -293,7 +294,8 @@ ggplot(fsh_cpue) +
   # geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
   # Board implemented Equal Quota Share in 1994
   geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
-  scale_x_continuous(limits = c(syr,lyr)) + #, breaks = axis$breaks, labels = axis$labels) +
+  #scale_x_continuous(limits = c(syr,lyr)) + #, breaks = axis$breaks, labels = axis$labels) +
+  scale_x_continuous(breaks = seq(1975,2021,5), labels = seq(1975,2021,5)) +
   # scale_y_continuous(limits = c(0, ))
   expand_limits(y = 0) +
   labs(x = "", y = "\n\nFishery CPUE\n(round lb/hook)") +
@@ -305,7 +307,8 @@ ggplot(data = srv_cpue) +
   geom_line(aes(year, srv_cpue)) +
   geom_ribbon(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue),
               alpha = 0.2, fill = "black", colour = NA) +
-  scale_x_continuous(limits = c(syr,lyr)) + #, breaks = axis$breaks, labels = axis$labels) + 
+ # scale_x_continuous(limits = c(syr,lyr)) + #, breaks = axis$breaks, labels = axis$labels) + 
+  scale_x_continuous(breaks = seq(1975,2021,5), labels = seq(1975,2021,5),limits = c(syr,lyr)) +
   expand_limits(y = 0) +
   labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL) +
   theme(axis.title.y = element_text(angle=0)) -> srv_cpue_plot
@@ -327,8 +330,9 @@ mr %>%
               alpha = 0.2, fill = "black", colour = NA) +
   geom_point(aes(x = year, y = N)) +
   geom_line(aes(x = year, y = N, group = Abundance)) +
-  scale_x_continuous(limits = c(syr,lyr)) +#, breaks = axis$breaks, 
+ # scale_x_continuous(limits = c(syr,lyr)) +#, breaks = axis$breaks, 
                      # labels = axis$labels) +
+  scale_x_continuous(breaks = seq(1975,2021,5), labels = seq(1975,2021,5),limits = c(syr,lyr)) +
   expand_limits(y = c(0, 5)) +
   labs(x = "", y = "\n\nAbundance\n(millions)") +
   theme(axis.title.y = element_text(angle=0)) -> mr_plot
@@ -338,7 +342,7 @@ plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = '
           labels = c('(A)', '(B)', '(C)', '(D)'))
 # plot_grid(fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv')
 
-ggsave(paste0("figures/tmb/abd_indices_", YEAR, ".png"),
+ggsave(paste0("figures/tmb/abd_indices_", YEAR, "V2.png"),
        dpi=300, height=10, width=7.7, units="in")
 
 full_join(catch, fsh_cpue) %>% 

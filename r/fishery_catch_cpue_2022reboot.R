@@ -72,6 +72,7 @@ ggplot(sum_catch %>%
   geom_line(group=1) +
   geom_point() +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  scale_x_continuous(breaks = seq(1985,2022,5), labels = seq(1985,2022,5)) + 
   scale_y_continuous(breaks = seq(0, 6, 1), limits = c(0, 6), labels = seq(0, 6, 1)) +
   # add a line for EQS starting in 1994 (1997 in the SSEI).
   geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
@@ -110,14 +111,15 @@ ggplot(port_catch, aes(x = year, y = pounds/1e6, colour = Port, group = Port)) +
 ggplot(port_catch, aes(x = year, y = perc, fill = Port)) +
   geom_bar(stat = "identity", width = 1, colour = "black") +
   scale_fill_grey(start = 0.15, end = 1) +
+  scale_x_continuous(breaks = seq(1985,2022,5), labels = seq(1985,2022,5)) +
   # add a line for EQS starting in 1994 (1997 in the SSEI).
   # geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  theme(legend.position = c(0.87,0.8),
+  theme(legend.position = c(0.8,0.8),
         legend.background = element_rect(color = "black", 
                                          fill = "white", 
                                          linetype = "solid")) +
-  labs(x = NULL, y = "Percent", fill = NULL) -> port 
+  labs(x = NULL, y = "Percent landings by port", fill = NULL) -> port 
 
 plot_grid(catch, port, ncol = 1, align = 'hv')
 
@@ -132,6 +134,7 @@ exvessel <- ggplot(exvessel_value, aes(x = year, y = exvessel_mil_usd)) +
   # add a line for EQS starting in 1994 (1997 in the SSEI).
   # geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  scale_x_continuous(breaks = seq(1985,2022,5), labels = seq(1985,2022,5)) +
   labs(x = NULL, y = "Ex-vessel value (million USD)\n") +
   ylim(c(0, 12.5))
 exvessel
@@ -140,7 +143,7 @@ ggsave(paste0("figures/exvessel_value_1985_", YEAR, ".png"),
 
 plot_grid(catch, port, exvessel, ncol = 1)#, align = 'hv')
 
-ggsave(paste0("figures/catch_exvesselvalue_", YEAR, ".png"),
+ggsave(paste0("figures/catch_exvesselvalue_", YEAR, "v3.png"),
        dpi=300, height=10, width=7, units="in")
 # View(port_catch)
 
