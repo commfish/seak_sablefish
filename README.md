@@ -5,7 +5,8 @@ Phil Joy (philip.joy@alaska.gov, ummjane@gmail.com) or Rhea Ehresmann (rhea.ehre
 
 Phil Joy took over this position and assessment in 2022 from Jane Sullivan, now at NOAA.
 This fork will contain all assessments of NSEI sablefish from 2022 until otherwise stated.
-Jane's orginal model and code has been left unaltered as she left it in 2021.  
+Jane's orginal model and code has been left unaltered as she left it in 2021.  It is in 
+the branch labelled "seak_sablefish_thru2021_original_JS".  
 The 2022 assessment changed little from the 2021 assessment as done by Jane.
 
 Last updated: January 2023
