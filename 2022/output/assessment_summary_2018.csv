@@ -1,0 +1,14 @@
+year,N_current,q025,q975,abundance_age2plus,abc_round_lbs,biomass_round_lbs_age4plus,harvest_policy,notes,source
+2005,1756181.2021121536,1510212.1853009132,2046179.0740021672,1948450,2255115,18612498,F_40%,NA,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2
+"
+2006,2240172.8625106895,1846589.0223033938,2722079.859669097,2427828,1340350,13330466,F_40%,NA,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2 
+"
+2007,2718918.127460481,2211636.7416763413,3344313.4346982907,2333684,1623219,16750915,F_40%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
+2008,1779044.9017280594,1486990.927553086,2130050.338936431,1939648,1623219,16750915,F_40%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals; no forecast conducted for 2008, Dressel assumed biomass values equal to previous year",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
+2009,2456764.445475069,2041188.3248920785,2977947.9128002636,2145395,1290868,13775900,F_45%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
+2010,2210349.0076250383,1853567.0054166573,2636243.888935728,2051250,1250961,17133162,F_50%,NA,2013 NSEI Memo Van Kirk
+2012,1863019.87917594,1588820.0378336245,2187461.904032694,1967917,1160674,17018748,F_50%,NA,2013 NSEI Memo Van Kirk
+2013,1841930.606645053,1575948.8198821805,2160733.7391978544,1905712,1049391,1049391,F_50%,"Kirk started using survey weight-at-age to apportion biomass , selected for mgt",2013 NSEI Memo Van Kirk
+2015,1750370.707911362,1466086.7311184183,2086688.0342835053,1766525,986481,15212730,F_50%,NA,2015 NSEI assessment Van Kirk
+2017,2108325.1308760867,1746895.4674190031,2551636.4744148715,1927382,850113,16265597,F_50%,"hindcast, not used for mgt",2018 NSEI assessment Sullivan (ABC from 2017 NSEI assessment Van Kirk)
+2018,2702393.734695131,2254475.5605579535,3234291.671119012,1931191,965354,16454232,F_50%,forecast,2018 NSEI assessment Sullivan
