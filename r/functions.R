@@ -291,7 +291,7 @@ coda_df <- function(coda.object, parameters = NULL) {
 # MR Jags ----
 
 # Run same (or multiple) models over full time series, exporting posterior
-# distributions, deviance information criterion, and convergance diagnostics all
+# distributions, deviance information criterion, and convergence diagnostics all
 # in one
 
 mr_jags <- function(
@@ -568,7 +568,7 @@ build_data <- function(
     nyr_mr = n_distinct(mr, mr),
     yrs_mr = mr %>% distinct(index) %>% pull(),
     data_mr = pull(mr, mr),
-    sigma_mr = rep(0.05, n_distinct(mr, mr)), #mr %>% pull(sigma_mr), 
+    sigma_mr = rep(0.08, n_distinct(mr, mr)), #mr %>% pull(sigma_mr), 
     
     # Fishery CPUE
     nyr_fsh_cpue = fsh_cpue %>% n_distinct(fsh_cpue),

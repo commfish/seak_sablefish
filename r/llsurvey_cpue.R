@@ -16,8 +16,9 @@
 source("r/helper.r")
 source("r/functions.r")
 if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
+library("AICcmodavg")
 
-YEAR <- 2020 # most recent year of data
+YEAR <- 2021 # most recent year of data
 
 # VERSION 2 (2020): ----
 
@@ -33,18 +34,40 @@ srv_cpue <- read_csv(paste0("data/survey/llsrv_cpue_v2_1985_", YEAR, ".csv"),
 
 # Checks
 srv_cpue %>% filter(skate_condition_cde != "02") %>% 
-  distinct(skate_comments) #%>% View() # any red flags?
+  distinct(skate_comments) #%>% View() # any red flags? #2021: Yes, maybe... lets look
 
+#Phil's checks 2021...
+valid<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
+  distinct(skate_comments) #%>% View() # any red flags? #2021: Yes, maybe... lets look
+sharks<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
+  filter(grepl("shark",skate_comments)) %>% View()
+snarl<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
+  filter(grepl("snarl",skate_comments)) %>% View()
+valid2<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
+  distinct(skate_comments) %>%
+  filter(!grepl("shark",skate_comments)) %>% 
+  filter(!grepl("snarl",skate_comments))
+
+nrow(sharks)
+nrow(snarl)
+nrow(valid2)
+nrow(valid)
+
+#Jane's check
 srv_cpue %>% filter(skate_condition_cde != "02") %>% 
-  distinct(set_comments) #%>% View() # any red flags?
+  distinct(set_comments) %>% View() # any red flags?
 
 srv_cpue %>% filter(no_hooks < 0)
 srv_cpue %>% filter(year >= 1997 & c(is.na(no_hooks) | no_hooks == 0)) # there should be none
 
+#Phil's 2021 checks...
+sharks2<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
+  filter(grepl("shark",set_comments)) %>% View()
+
 # This should be none. these are data entry errors I used a hard code fix, sent
 # error to Rhea and Aaron 20200205 to fix in database. As of 2021 it was still
 # an issue.
-srv_cpue %>% filter(end_lon > 0 | start_lon > 0) #View() 
+srv_cpue %>% filter(end_lon > 0 | start_lon > 0) # %>% View() 
 srv_cpue <- srv_cpue %>%  mutate(end_lon = ifelse(end_lon > 0, -1 * end_lon, end_lon))
 
 # There should be none, sent error to Rhea and Aaron 20200205 to fix in database
@@ -86,7 +109,7 @@ srv_cpue  %>%
          # documented in the comments
          clotheslined = ifelse(grepl("clotheslined|Clotheslined", skate_comments) | 
                                  grepl("clotheslined|Clotheslined", set_comments), 1, 0),
-         shark = ifelse(grepl("sleeper|Sleeper|shark|sharks", skate_comments) | 
+         shark = ifelse(grepl("sleeper|Sleeper|shark|sharks|slleepers", skate_comments) | 
                           grepl("sleeper|Sleepershark|sharks", set_comments), 1, 
                         ifelse(sleeper_shark > 0, 1, 0))) %>% 
   rename(shortspine_thornyhead = idiot) -> srv_cpue
@@ -124,7 +147,7 @@ srv_cpue %>%
          cpue = mean(set_cpue),
          sd = round(sd(set_cpue), 4),
          se = round(sd / sqrt(n_set), 4)) -> srv_cpue
-  
+#  view(srv_cpue)
 # Sablefish-specific dataframe for analysis
 sable <- srv_cpue %>% 
   filter(hook_accounting == "sablefish") %>% 
@@ -140,7 +163,7 @@ srv_cpue %>%
   ungroup() %>% 
   filter(hook_accounting == "sablefish") %>% 
   distinct(year, std_cpue = cpue, sd, se) %>% 
-  arrange(year) -> srv_sum
+  arrange(year) -> srv_sum #; view(srv_sum)
 
 srv_sum %>% print(n = Inf)
 write_csv(srv_sum, paste0("output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
@@ -226,17 +249,19 @@ ggplot() +
 ggsave(paste0("figures/npue_llsrv_stat_", YEAR, ".png"), 
        dpi=300, height=10, width=8, units="in")
 
+#=================================================================================
 # VAST exploration ----
-
+# SKIP 2022: Use code from VAST_extra_pj.R to get VAST models
+{
 # Careful! VAST adds a lot of files to the root of the project
 if(!require("TMB"))   install.packages("TMB") 
 if(!require("VAST"))   install.packages("VAST") 
 
-sampling_data <- sable %>% 
+sampling_data <- sable %>%    #could include sope, depth, soak as covariates...? 
   ungroup() %>% 
   distinct(set_cpue, year, Adfg, end_lat, end_lon) %>% 
   select(Catch_KG = set_cpue, Year = year, Vessel = Adfg, Lat = end_lat, Lon = end_lon) %>% 
-  mutate(AreaSwept_km2 = 1) %>% 
+  mutate(AreaSwept_km2 = 1) %>%   #areaswept = 1 because its longline (i.e., not trawl survey)
   as.data.frame()
 
 strata.limits <- data.frame(STRATA = "All_areas")
@@ -245,12 +270,23 @@ example <- list(sampling_data = sampling_data,
                   Region = "other",
                   strata.limits = strata.limits)
 
-settings = make_settings(n_x = 100, # number of knots
-                         ObsModel = c(1, 3), 
+settings = make_settings(n_x = 100, # number of knots; set at 100 by JANE
+                         ObsModel = c(1, 3), #distribution for data and link-func for linear predictors; [1]=1=lognormal
+                                             # c("PosDist"=[Make Choice], "Link"=0); ObsMode[1]<-PDF
+                                             # ObsModel[2] set to 3 small # years with 100% encounter rate... 
+                                             #VAST checks species-years combos with 100%
+                                             #fixes corresponding intercepts for enc prob to a very high value
+                                             #why not ObsModel_ez
                          FieldConfig = c("Omega1" = 0, "Epsilon1" = 0, "Omega2"=1, "Epsilon2"=1),
+                         RhoConfig = c("Beta1"=0, "Beta2"=0, "Epsilon1"=0, "Epsilon2"=0), #default is 0's for all
+                         #Omega= spatial, eps=spat-temp
+                         #1 and 2 are linear predictors
+                         #so Jane ignores linear predictor 1... which is..?
                          Region = example$Region, 
-                         purpose = "index", 
+                         purpose = "index2", #make an index for a stock assessment
+                                            #2021 author recomends changing index to index2
                          strata.limits = example$strata.limits, 
+                         fine_scale = TRUE,
                          bias.correct = TRUE)
 
 # Run model
@@ -259,19 +295,34 @@ fit = fit_model( "settings" = settings,
                  "Lon_i" = example$sampling_data[, 'Lon'], 
                  "observations_LL" = example$sampling_data[, c('Lat', 'Lon')],
                  "t_i" = example$sampling_data[, 'Year'],
-                 "c_i" = rep(0, nrow(example$sampling_data)), 
+                 "c_i" = rep(0, nrow(example$sampling_data)), #???category... so just one for this
                  "b_i" = example$sampling_data[, 'Catch_KG'], 
                  "a_i" = example$sampling_data[, 'AreaSwept_km2'], 
-                 "v_i" = example$sampling_data[, 'Vessel'],
+                 "v_i" = example$sampling_data[, 'Vessel'],    #vessel effect; overdispersion...
                  "projargs" = "+proj=utm +zone=4 +units=km",
                  "newtonsteps" = 0 # prevent final newton step to decrease mgc score
 )
 
 plot(fit)
+Index<-read.csv("Index.csv")
+
+##lack of convergence and construction of model kind of indicates that VAST may not be best approach
+## to Chatham Sablefish.  Survey is set up to catch fish at all stations, so not really a random
+## survey because it targets the fishery... 
 
 ?fit_model
 ?make_settings
+?VAST::make_data
 
+str(fit)
+fit$parameter_estimates
+fit$extrapolation_list
+fit$spatial_list
+fit$Report
+fit$ParHat
+}
+
+#=================================================================================
 # GAM CPUE standardization explorations ----
 
 if(!require("GGally"))   install.packages("GGally") 
@@ -284,7 +335,7 @@ sable %>%
 
 sable %>%
   ggplot()+
-  geom_point(aes(x = end_lon,  y = end_lat, color = set_cpue), alpha = 0.2)+
+  geom_point(aes(x = end_lon,  y = end_lat, color = set_cpue), alpha = 0.3)+
   scale_color_gradientn(colours = terrain.colors(10))+
   labs(y = "Latitude", x = "Longitude", color = "CPUE")
 
@@ -299,12 +350,14 @@ sable %>% filter(set_cpue == 0) # there should be no zero values
 
 # bait = better than Clotheslined; also highly correlated with bare (so bare has
 # been removed to avoid confounding)
+#JANE's Models... 
+{
 mod0 <- bam(set_cpue ~ s(soak, k = 4) + s(depth, k = 4) + s(slope, k = 4) + 
               s(bait, k = 4) + 
               te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
             data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE,
             subset = soak < 10 & slope < 300 & bait < 900)
-
+       #s = smooth; te = ??
 summary(mod0)
 anova(mod0)
 print(plot(getViz(mod0), allTerms = TRUE) + l_fitRaster() + l_fitContour() + 
@@ -313,6 +366,7 @@ print(plot(getViz(mod0), allTerms = TRUE) + l_fitRaster() + l_fitContour() +
 
 par(mfrow=c(2, 2), cex=1.1); gam.check(mod0)
 
+predict.bam(mod0)
 # drop soak time
 mod1 <- bam(set_cpue ~ s(depth, k = 4) + s(slope, k = 4) + 
               s(bait, k = 4) +
@@ -334,6 +388,114 @@ mod2 <- bam(set_cpue ~ s(soak, k = 4) + s(depth, k = 4) +
 summary(mod2)
 BIC(mod0); BIC(mod2) # soak time significant
 par(mfrow=c(2, 2), cex=1.1); gam.check(mod2)
+}
+
+# 2022 Phil's models 
+# get rid of "bait"; correlated but seems like a wonky piece of data that should be correlated 
+# with CPUE but is the RESULT of CPUE dynamics...
+sable<-sable[sable$soak <10 & sable$slope < 300 & sable$bait < 900,]
+sable<-sable[complete.cases(sable),]
+
+mod0<-bam(set_cpue ~  
+             te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
+           data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE)
+
+mod.global<-bam(set_cpue ~ s(soak, k = 4) + s(depth, k = 4) + s(slope, k = 4) + 
+             te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
+           data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE)
+
+mod.soak<-bam(set_cpue ~ s(soak, k = 4) +  
+            te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
+          data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE)
+
+mod.depth<-bam(set_cpue ~ s(depth, k = 4) + 
+            te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
+          data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE)
+
+mod.slope<-bam(set_cpue ~ s(slope, k = 4) + 
+            te(end_lon, end_lat) + Year + s(Adfg, bs='re') + 1, 
+          data = sable, gamma=1.4, family=Gamma(link=log), select = TRUE)
+
+BIC(mod0); BIC(mod.global); BIC(mod.soak); BIC(mod.depth); BIC(mod.slope)
+AICc(mod0); AICc(mod.global); AICc(mod.soak); AICc(mod.depth); AICc(mod.slope)
+#global model noticeably better
+
+print(plot(getViz(mod0), allTerms = TRUE) + l_fitRaster() + l_fitContour() + 
+        l_points(color = "grey60", size = 0.5)+ l_fitLine() + l_ciLine() +
+        l_ciBar(linetype = 2) + l_fitPoints(size = 1), pages = 8)
+
+#add predicted cpue to sable and recalc yearly CPUE index for each model
+model.add<-function(mod,dat,colhead){  #mod<-mod.global; dat<-sable; colhead<-"global"
+  preds<-predict.bam(mod, type="response", se.fit=T)
+  name<-paste0("cpue.",colhead)
+  name.sd<-paste0("sd.cpue.",colhead)
+  sable[,name]<-preds$fit
+}
+
+model.add(mod=mod.global,dat=sable,"global")
+plot(sable$cpue.global~sable$set_cpue)
+
+head(sable)
+sable_cpue <- sable %>% 
+  #filter(hook_accounting == "sablefish") %>% 
+  distinct(year, Adfg, Station_no, set_cpue, depth, end_lon, end_lat, 
+           soak, slope, bare, bait, clotheslined, shark,
+           cpue.global) %>%
+  #ungroup() %>% 
+  group_by(year) %>%
+  mutate(Station_no = factor(Station_no),
+         Year = factor(year),
+         Clotheslined = factor(clotheslined),
+         Shark = factor(shark), 
+         n_set = length(unique(Station_no)),
+         raw.cpue = mean(set_cpue),
+         raw.sd = round(sd(set_cpue), 4),
+         raw.se = round(raw.sd / sqrt(n_set), 4),
+         gam.cpue = mean(cpue.global),           ##Change if different model used
+         gam.sd = round(sd(cpue.global), 4),     ##Change if different model used
+         gam.se = round(gam.sd / sqrt(n_set), 4)
+         )
+head(sable_cpue); plot(sable_cpue$set_cpue ~ sable_cpue$year)
+
+sable_cpue %>% 
+  ungroup() %>% 
+  #filter(hook_accounting == "sablefish") %>% 
+  distinct(year, std_cpue = raw.cpue, raw.sd, raw.se, gam.cpue, gam.sd, gam.se) %>% 
+  arrange(year) -> sable_sum; view(sable_sum)
+
+#retrieve VAST model results for comp...
+V.base<-read.csv("VAST_out/basePlots/Index.csv")
+V.q<-read.csv("VAST_out/qPlots/Index.csv")
+V.cov<-read.csv("VAST_out/covPlots/Index.csv")
+V.qcov<-read.csv("VAST_out/qcovPlots/Index.csv")
+
+plot(sable_sum$std_cpue ~ sable_sum$year, type="b")
+points(sable_sum$gam.cpue ~ sable_sum$year, col="forestgreen",type="b", pch=18)
+par(new=TRUE)
+plot(V.base$Estimate~V.base$Time,axes=FALSE,bty = "n", xlab = "", ylab = "",
+     col="red" , type="l", pch=18, 
+     ylim=c(min(V.q$Estimate),1.2*max(V.base$Estimate)))
+points(V.q$Estimate~V.q$Time, col="darkred", type="l", pch=17)
+points(V.cov$Estimate~V.cov$Time, col="purple", type="l", pch=16)
+points(V.qcov$Estimate~V.qcov$Time, col="violet", type="l", pch=19)
+axis(side=4, at = pretty(range(V.base$Estimate)))
+mtext("z", side=4, line=3)
+
+summary(lm(V.base$Estimate ~ V.q$Estimate))
+plot(V.base$Estimate ~ V.q$Estimate, ylim=c(0,270))
+abline(lm(V.base$Estimate ~ V.q$Estimate))
+
+summary(lm(V.base$Estimate ~ sable_sum$std_cpue))
+par(new=TRUE)
+plot(V.base$Estimate ~ sable_sum$std_cpue, col="blue", axes=FALSE, bty="n",
+     xlab = "", ylab = "")
+abline(lm(V.base$Estimate ~ sable_sum$std_cpue), col="blue")
+
+summary(lm(V.q$Estimate ~ sable_sum$std_cpue))
+points(V.q$Estimate ~ sable_sum$std_cpue, col="darkcyan")
+abline(lm(V.q$Estimate ~ sable_sum$std_cpue), col="darkcyan")
+#tight correlation of CPUE no matter how you model it... (this is good!)
+#VAST  models seem to smooth things out to a minor degree...
 
 # VERSION 1 (2017-2019): ----
 
@@ -460,3 +622,4 @@ ggplot(hk_stand, aes(x = no_hooks, y = std_hooks, col = factor(hook_space))) +
   scale_x_continuous(breaks = seq(0, 15000, by = 1000)) +
   scale_y_continuous(breaks = seq(0, 15000, by = 1000)) +
   geom_abline(slope = 1, col = "red", linetype = 2) 
+

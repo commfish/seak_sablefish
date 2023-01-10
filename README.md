@@ -1,11 +1,19 @@
 # Northern Southeast Inside Waters (NSEI) sablefish (*Anoplopoma fimbria*) stock assessment
 
 Please direct any questions to: 
-Jane Sullivan (jane.sullivan1@alaska.gov, ummjane@gmail.com) or Rhea Ehresmann (rhea.ehresmann@alaska.gov)
+Phil Joy (philip.joy@alaska.gov, ummjane@gmail.com) or Rhea Ehresmann (rhea.ehresmann@alaska.gov)
 
-Last updated: June 2020
+Phil Joy took over this position and assessment in 2022 from Jane Sullivan, now at NOAA.
+This fork will contain all assessments of NSEI sablefish from 2022 until otherwise stated.
+Jane's orginal model and code has been left unaltered as she left it in 2021.  
+The 2022 assessment changed little from the 2021 assessment as done by Jane.
+
+Last updated: January 2023
 
 ## Reports
+2022 forecast: http://www.adfg.alaska.gov/FedAidPDFs/RIR.1J.2022.19.pdf
+
+2021 forecast: http://www.adfg.alaska.gov/FedAidPDFs/RIR.1J.2021.13.pdf
 
 2020 forecast: http://www.adfg.alaska.gov/FedAidPDFs/RIR.5J.2020.05.pdf.
 

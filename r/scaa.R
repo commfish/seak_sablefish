@@ -25,26 +25,27 @@
 # These must be checked or updated annually!
 
 # most recent year of data (YEAR+1 should be the forecast year)
-YEAR <- 2020
+{
+YEAR <- 2021
 
 # Last years ABC, mortality from discards, and F_ABC values - manually input
 # from previous assessment! Double check these values with the summary table.
 # Note that in years when the recommended ABC = maxABC, there will be repeats
 # (previous years values commented out for reference/check)
-LYR_maxABC <- 1280406 #1058037 # maxABC for YEAR (ABC under F50)
-LYR_recABC <- 1216743 #1058037 # recommended ABC for YEAR
-LYR_wastage <- 57716 #19142 # wastage for YEAR (this is only defined under maxABC b/c it's included in the calculation of maxABC for the 2020 forecast and beyond)
-LYR_maxF_ABC <- 0.0765 #0.0632 # F50 for YEAR
-LYR_F_ABC <- 0.0659 #0.0632 # F under the recommended ABC
+LYR_maxABC <- 1255056 #pj22; 1280406 #1058037 # maxABC for YEAR (ABC under F50)
+LYR_recABC <- 1255056 #pj22 1216743 #1058037 # recommended ABC for YEAR
+LYR_wastage <- 59017 #pj22; 57716 #19142 # wastage for YEAR (this is only defined under maxABC b/c it's included in the calculation of maxABC for the 2020 forecast and beyond)
+LYR_maxF_ABC <- 0.0611 #pjj22 (same as Rec ABC in 21 report?) ;  0.0765 #0.0632 # F50 for YEAR
+LYR_F_ABC <- 0.0611 #pj22, 0.0659 #0.0632 # F under the recommended ABC
 
 # Last years projected biomass and SPR - the old assessment framework didn't
 # report these. They are reported in 2020 and will be reported for
 # comparison moving forward similar to federal assessment. These values are
 # reported in assessment summary table
-LYR_proj_age2plus <- 48513401 # projected age-2+ biomass
-LYR_proj_fSSB <- 15679118 # projected female spawning biomass
-LYR_SB100 <- 24853774 # unfished equilibrium female spawning biomass (SPR = 100)
-LYR_SB50 <- 12426887 # equilibrium female spawning biomass under F50 (SPR = 50)
+LYR_proj_age2plus <- 43357877 #pj22; 48513401 # projected age-2+ biomass
+LYR_proj_fSSB <- 15278067 #pj22; 15679118 # projected female spawning biomass
+LYR_SB100 <- 26775615 #pj22; 24853774 # unfished equilibrium female spawning biomass (SPR = 100)
+LYR_SB50 <- 13387807 #pj22; 12426887 # equilibrium female spawning biomass under F50 (SPR = 50)
 
 # Set up ----
 
@@ -59,9 +60,9 @@ source("r/helper.r")
 source("r/functions.r")
 
 library(TMB) 
-
+}
 # Load prepped data from scaa_dataprep.R
-ts <- read_csv(paste0(tmb_dat, "/abd_indices_", YEAR, ".csv"))        # time series
+ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv")) #"/abd_indices_", YEAR, ".csv"))       # time series
 age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
 len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
 # age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
@@ -78,7 +79,7 @@ ageing_error <- scan("data/tmb_inputs/ageing_error_fed.txt", sep = " ") %>% matr
 rowSums(ageing_error) # should be 1
 
 # Age-length key from D. Hanselman 2019-04-18. On To DO list to develop one for
-# ADFG (will need separate onces for fishery and survey). See
+# ADFG (will need separate ones for fishery and survey). See
 # ageing_error_matrix.R for KVK's code, which may be a good start.  Proportion
 # at length given age. Row = age, Column = length bin
 agelen_key_m <- scan("data/tmb_inputs/agelen_key_male.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
@@ -88,12 +89,12 @@ rowSums(agelen_key_f)
 
 # Starting values for YEAR == 2019 - delete for the 2020 assessment and
 # uncomment out the next chunk of code
-if(YEAR == 2019) {
-  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
-  rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
-  rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
-  Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
-}
+#if(YEAR == 2019) {
+#  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
+#  rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
+#  rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
+#  Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
+#}
 
 # Starting values for YEAR >= 2020 - uncomment the following chunk for 2021
 # forecast:
@@ -144,9 +145,22 @@ rec_devs_inits <- tmp_inits %>% pull(rec_devs_inits)
 Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
 
 # TMB set up ----
+ts$fsh_cpue
+ts$fsh_cpue_22rb
+ts$fsh_cpue_base_gam
+ts$fsh_cpue_boot_gam
 
 # User-defined fxns in functions.R
-data <- build_data(ts = ts)
+data <- build_data(ts = ts); str(data)  #see this function to change weights and 
+                                        # some other things
+str(data$data_fsh_cpue)
+
+#=====================================
+# *** Checking sensitivity to fishery CPUE data versions
+VER<-"base_22rb" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
+data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
+#==================================================
+
 parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 random_vars <- build_random_vars() # random effects still in development
 
@@ -165,10 +179,12 @@ setwd(tmb_path)
 # to build TMB object, map, and bounds
 # (4) Debug mode with debug = TRUE (will need to uncomment out obj_fun = dummy * dummy; )
 
+str(data)
+
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
                 model_name = "scaa_mod", phase = FALSE, 
-                newtonsteps = 3, # make this zero initially for faster run times
+                newtonsteps = 5, #3 make this zero initially for faster run times
                 debug = FALSE)
 
 obj <- out$obj # TMB model object
@@ -243,15 +259,16 @@ like_sum <- data.frame(like = c("Catch",
   select(-tot) %>% 
   rename(`Likelihood component` = like, Likelihood = value, `Percent of data likelihood` = perc)
 like_sum
-write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR, ".csv"))
+
+write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR,"_",VER, ".csv"))
 
 # MLE figs ----
 
 # Fits to abundance indices, derived time series, and F. Use units = "imperial" or
 # "metric" to switch between units. 
-plot_ts(ts = ts, save = TRUE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
-plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
-plot_F(save = TRUE)
+plot_ts(ts = ts, save = FALSE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
+plot_derived_ts(ts = ts, save = FALSE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
+plot_F(save = FALSE)
 
 # Recruitment estimates
 logrbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
@@ -264,10 +281,11 @@ rec <- rec %>%
 rec
 rec %>% filter(brood_year == 2014) %>% pull(rec)
 rec %>% filter(brood_year == 2015) %>% pull(rec)
+rec %>% filter(brood_year == 2016) %>% pull(rec)
 rec %>% filter(brood_year == 1978) %>% pull(rec)
 
 agecomps <- reshape_age()
-plot_sel(save = TRUE) # Selectivity, fixed at Federal values
+plot_sel(save = FALSE) # Selectivity, fixed at Federal values
 
 plot_age_resids() # Fits to age comps
 barplot_age("Survey")
@@ -310,7 +328,7 @@ wastage <- wastage %>%
     mutate(maxF_ABC = exp(Estimate)) %>% 
     pull(maxF_ABC))
 
-write_csv(ABC %>% left_join(wastage), paste0(tmbfigs, "/abc_wastage_", YEAR, ".csv"))
+write_csv(ABC %>% left_join(wastage), paste0(tmbfigs, "/abc_wastage_", YEAR,"_",VER, ".csv"))
 
 # Percent changes and differences for ABC and wastage (used in assessment text)
 round((maxABC_diff <- (maxABC - LYR_recABC) / LYR_recABC) * 100, 1)
@@ -331,12 +349,28 @@ round(recABC-LYR_recABC,0)
 
 # If the maxABC is within 15%, then F_ABC = maxF_ABC, otherwise calculate new F
 # for constrained ABC
+# PJ 2022: I think there is an error in here; value for F comes in above maxABC but
+# should be less since we are removing fewer fish.  This seems to calculate things
+# based on abundance, but should be biomass?  Not sure whats going on here... 
 if(recABC == maxABC) {
   (F_ABC <- maxF_ABC)
 } else {
   
   # Estimate recommended F_ABC using numerical methods
-  N <- obj$report()$N  
+  N <- obj$report()$N  #str(obj$report()) 
+  #Phil insert looking for how to do this on my own... 
+  #str(obj$report())
+  #obj$report()$Fxx
+  #obj$report()$fsh_slx
+  #obj$report()$sel_Fxx
+  #obj$report()$spr_Fxx  #not saved
+  #obj$report()$spr_fsh_slx #not saved
+  #obj$report()$Z_Fxx   #not saved in output...
+  #obj$report()$S_Fxx   #not saved in output...
+  #obj$report()$SBPR #SBPR at each fishing level, female biomass only
+  #obj$report()$SB   #equilibrium biomass at each fishing level, female biomass only
+  #obj$report()$fsh_slx
+  #back to Jane's code here... 
   N <- sum(N[nyr+1,,1]) + sum(N[nyr+1,,2]) # sum of projected abundance across age and sex
   
   nat_mort <- exp(parameters$log_M)
@@ -360,6 +394,8 @@ if(recABC == maxABC) {
   # F under recommended ABC
   (F_ABC <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = recABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
 }
+(F_ABCtest <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = maxABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
+#PJ22: this function is producing different F_ABC than that coming out of TMB code!!!
 
 (F_ABC - LYR_F_ABC) / LYR_F_ABC # Percent difference from Last year's F
 
@@ -372,7 +408,10 @@ obj$report(best)$tot_biom[nyr] * 2.20462
 # Projected total female spawning biomass
 (proj_fSSB <- obj$report(best)$tot_spawn_biom[nyr+1] * 2.20462)
 
-# Unfished/fished SSB
+# Unfished/fished SSB  str(obj$report(best))
+# *** Something f'ed up here... same call gives different results when you repeat...
+# *** gives different multiples of whats happening... DO NOT UNDERSTAND!!!
+
 SB <- as.data.frame(obj$report(best)$SB * 2.20462)
 names(SB) <- "SB"
 SB <- SB %>% 
@@ -443,12 +482,13 @@ ggsave(filename = paste0(tmbfigs, "/catch_ABC_Fspr_", YEAR, ".png"),
        dpi = 300, height = 4, width = 6, units = "in")
 
 # Write BRPs ----
-
+SB
 res <- c(paste0("STATISTICAL CATCH-AT-AGE MODEL RESULTS FOR NSEI SABLEFISH", "\n",
                 "\n",
                 "Report produced by scaa.R", "\n",
                 # Update as needed!
-                "Contact: jane.sullivan1@alaska.gov or ummjane@gmail.com or rhea.ehresmann@alaska.gov", "\n",
+                "Developed by Jane Sullivan, ummjane@gmail.com",
+                "Contact: philip.joy1@alaska.gov or rhea.ehresmann@alaska.gov", "\n",
                 "Report generated: ", paste0(Sys.Date()),  "\n",
                 "\n",
                 "Model diagnostics", "\n",
@@ -457,7 +497,7 @@ res <- c(paste0("STATISTICAL CATCH-AT-AGE MODEL RESULTS FOR NSEI SABLEFISH", "\n
                 "Maximum gradient component:,", "\n", max(rep$gradient.fixed), "\n", "\n", 
                 "ALL VARIABLES REPORTED IN ROUND LB UNLESS OTHERWISE SPECIFIED", "\n", "\n"))
 
-write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR, ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n")
+write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR,"_",VER, ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n")
 
 # Last years reference points
 res <- c(paste0("Summary of ", YEAR, " (last year's) Biological Reference Points", "\n",
@@ -489,7 +529,7 @@ res <- c(paste0("Summary of ", YEAR, " (last year's) Biological Reference Points
                 "F under recommended ABC: ", "\n",
                 LYR_F_ABC,  "\n"))
 
-write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR, ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
+write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR,"_",VER,  ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
 
 # Current estimated reference points
 res <- c(paste0("Summary of ", YEAR+1, " (current year's) Biological Reference Points", "\n",
@@ -521,7 +561,7 @@ res <- c(paste0("Summary of ", YEAR+1, " (current year's) Biological Reference P
                 "F under recommended ABC: ", "\n",
                 F_ABC, "\n"))
 
-write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR, ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
+write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR,"_",VER,  ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
 
 # Summary of raw and percent changes between last year and current years
 # reference points (used for text summaries)
@@ -567,7 +607,7 @@ res <- c(paste0("Summary of percent changes and differences between ", YEAR, " a
                 "Percent difference between recomended F_ABCs: ", "\n",
                 round((F_ABC - LYR_F_ABC) / LYR_F_ABC * 100, 1), "%", "\n")
 
-write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR, ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
+write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR,"_",VER,  ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
 
 # You could continue to append any variables of interest to the SCAA report.
 
