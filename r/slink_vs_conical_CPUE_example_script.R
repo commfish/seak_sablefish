@@ -294,7 +294,7 @@ tv<-t$statistic; pv<-t$p.value
 
 boot_slinky<-boot(CPUE_set$set_CPUE[CPUE_set$pot_type == "Slinky"],
                   statistic=meanfun, R=1000)
-bo_sl.ci<-boot.ci(boot_slinky, conf=0.95, type="bca")
+bo_sl.ci<-boot.ci(boot_slinky, conf=0.95, type="all")
 #bo_sl.ci$bca[4]; bo_sl.ci$bca[4]
 boot_cone<-boot(CPUE_set$set_CPUE[CPUE_set$pot_type == "Cone"],
                 statistic=meanfun, R=1000)
