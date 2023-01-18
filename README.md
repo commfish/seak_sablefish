@@ -98,27 +98,27 @@ Here is a summary of project codes in the data:
 
 ## Code
 
-The analyses underpinning the current stock assessment are found in the folder labelled with the most recent year.  Typically the assessment occurs between January and April and thus the most recent year will contain code and work that is in progress.  The helper and function files are contained in their own folder [`r_helper/`](https://github.com/commfish/seak_sablefish/tree/master/r_helper).  The rest of the scripts necessary to run the assessment are contained in the appropriate year folder, as well as the legacy folder, and are described below.  The scripts should be run in the order listed.  
+The analyses underpinning the current stock assessment are found in the folder labelled with the most recent year.  Typically the assessment occurs between January and April and thus the most recent year will contain code and work that is in progress during that time frame.  The helper and function files are contained in their own folder [`r_helper/`](https://github.com/commfish/seak_sablefish/tree/master/r_helper).  The rest of the scripts necessary to run the assessment are contained in the appropriate year folder, as well as the legacy folder, and are described below.  The scripts should be run in the order listed.  
 
 ![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/steps_to_run_assessment.jpg)
 
 **Description of R scripts:**  
 1.  [`r_helper/helper.r`](https://github.com/commfish/seak_sablefish/blob/master/r_helper/helper.R): Sourced by most other R scripts in this project, includes libraries/dependecies and ggplot themes;
 2.  [`r_helper/functions.r`](https://github.com/commfish/seak_sablefish/blob/master/r_helper/functions.R):  Sourced by most other R scripts in this project, includes user-defined functions; 
-3.  `r/0_querynclean_data.r`: Descriptions of the data, `SQL` queries, and subsequent manipulations to clean raw data;
-4.  [`llsurvey_cpue.r`](https://github.com/commfish/seak_sablefish/blob/master/r/llsurvey_cpue.R): ADFG longline survey CPUE analysis and a preliminary steps towards a CPUE standardization;
-5.  [`fishery_catch_cpue.r`](https://github.com/commfish/seak_sablefish/blob/master/r/fishery_catch_cpue.R): summarize harvest (1985-present) and fishery CPUE and a preliminary CPUE standardization anaylsis using a generalized additive model;
-6.  [`biological.r`](https://github.com/commfish/seak_sablefish/blob/master/r/biological.R): analysis of fishery and longline survey data, including modeling of growth, length-weight allometry, maturity, and sex ratios, as well as compilation of age and length compositions for stock assessment;
-7.  [`mark_recapture.r`](https://github.com/commfish/seak_sablefish/blob/master/r/mark_recapture.R): clean release and recapture data, evaluate assumptions for mark-recapture experiment, and conduct analysis and model selection for the mark-recapture analysis; mark-recapture abundance estimated using the Bayesian software `JAGS`;
-8.  [`scaa_dataprep.r`](https://github.com/commfish/seak_sablefish/blob/master/r/scaa_dataprep.R): compilation of catch, indices of relative and absolute abundace, age and length comps, biological data, and fishery retention probabilities for use in the SCAA model; also includes conversion tables for age-length-weight, which appears in an appendix in the 2020 assessment;
-9.  [`scaa.r`](https://github.com/commfish/seak_sablefish/blob/master/r/scaa_dataprep.R): run SCAA model, generate output, results, and figures for assessment; also includes prelim work to run the SCAA as a Bayesian model;
-10.  [`tune_comps.r`](https://github.com/commfish/seak_sablefish/blob/master/r/tune_comps.R): prelim work to estimate effective samples sizes for age/length comps using McAllister and Ianelli (1997) with harmonic mean; not currently implemented for assessment;
-11.  [`retrospective.r`](https://github.com/commfish/seak_sablefish/blob/master/r/retrospective.R): retrospective analysis to evaluate performance of SCAA model;
-12.  [`marking_survey_analysis.r`](https://github.com/commfish/seak_sablefish/blob/master/r/marking_survey_analysis.R): sensitivity analysis of marking survey/abundance estimate on SCAA results; impact of moving to a bi- or triennial stock assessment; appeared in 2020 forecast, does not need to be rerun annually;
-13.  [`ypr.r`](https://github.com/commfish/seak_sablefish/blob/master/r/ypr.R): run YPR stock assessment by partitioning mark-recapture abundance estimate into sex and age classes, estimating F50 YPR model, and calculating ABC;
-14.  [`ageing_error_matrix.r`](https://github.com/commfish/seak_sablefish/blob/master/r/ageing_error_matrix.R): old code from Kray Van Kirk (previous biometrician) that may be useful when developing an updated ageing error matrix.
+3.  `YEAR/r/0_querynclean_data.r`: Descriptions of the data, `SQL` queries, and subsequent manipulations to clean raw data;
+4.  `llsurvey_cpue.r`: ADFG longline survey CPUE analysis and a preliminary steps towards a CPUE standardization;
+5.  `fishery_catch_cpue.r`: summarize harvest (1985-present) and fishery CPUE and a preliminary CPUE standardization anaylsis using a generalized additive model;
+6.  `biological.r`: analysis of fishery and longline survey data, including modeling of growth, length-weight allometry, maturity, and sex ratios, as well as compilation of age and length compositions for stock assessment;
+7.  `mark_recapture.r`: clean release and recapture data, evaluate assumptions for mark-recapture experiment, and conduct analysis and model selection for the mark-recapture analysis; mark-recapture abundance estimated using the Bayesian software `JAGS`;
+8.  `scaa_dataprep.r`: compilation of catch, indices of relative and absolute abundace, age and length comps, biological data, and fishery retention probabilities for use in the SCAA model; also includes conversion tables for age-length-weight, which appears in an appendix in the 2020 assessment;
+9.  `scaa.r`: run SCAA model, generate output, results, and figures for assessment; also includes prelim work to run the SCAA as a Bayesian model;
+10.  `tune_comps.r`: prelim work to estimate effective samples sizes for age/length comps using McAllister and Ianelli (1997) with harmonic mean; not currently implemented for assessment;
+11.  `retrospective.r`: retrospective analysis to evaluate performance of SCAA model;
+12.  `marking_survey_analysis.r`: sensitivity analysis of marking survey/abundance estimate on SCAA results; impact of moving to a bi- or triennial stock assessment; appeared in 2020 forecast, does not need to be rerun annually;
+13.  `ypr.r`: run YPR stock assessment by partitioning mark-recapture abundance estimate into sex and age classes, estimating F50 YPR model, and calculating ABC;
+14.  `ageing_error_matrix.r`: old code from Kray Van Kirk (previous biometrician) that may be useful when developing an updated ageing error matrix.
 
-The [`.cpp file`](https://github.com/commfish/seak_sablefish/blob/master/tmb/scaa_mod.cpp) for the SCAA model is found in `tmb/` folder.
+The `.cpp file` for the SCAA model is found in `tmb/` folder.
 
 ## Session Info
 
