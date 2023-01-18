@@ -30,8 +30,8 @@ State managed fisheries currently occur in NSEI (Chatham Strait and Frederick So
 
 Sablefish have been historically managed with limitations on fishing seasons and harvest levels. Season limitations were first imposed in 1945 for the NSEI management area and in 1982 for the SSEI management area (Bracken 1983). Fishing seasons continued to be shortened in both areas as effort escalated in the 1970s and 1980s. Guideline Harvest Regulations (GHR) based on historic catches were established for both areas in 1980. In 1985, a limited entry program was implemented for both the NSEI and SSEI sablefish fisheries. However, the number of vessels and overall operating efficiency of the longline fleet increased significantly after the limited entry program was implemented. In order to stay within GHRs, the department continued to reduce the number of fishing days in both areas. In the NSEI area, the number of fishing days fell from 76 days in 1980 to one day in 1987. One-day openings continued in the NSEI area through 1993. In 1993, the NSEI fleet harvested 3,640,000 dressed lb, which was 2,140,000 dressed lb over the upper bound of the GHR (1,500,000 dressed lb). In an effort to improve management, the board adopted an equal quota share (EQS) system for the NSEI area in 1994.
 
-![alt text](https://github.com/commfish/seak_sablefish/blob/master/figures/readme/NSEI_map.jpg)
-![alt text](https://github.com/commfish/seak_sablefish/blob/master/figures/readme/fishery_harvest.jpg)
+![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/NSEI_map.jpg)
+![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/fishery_harvest.jpg)
 
 ## Stock assessment
 
@@ -43,13 +43,13 @@ Several factors motivated the development of a statistical catch-at-age (SCAA) m
 
 The annual schedule for stock assessments, survey, fishery, and data processing are as follows:
 
-![alt text](https://github.com/commfish/seak_sablefish/blob/master/figures/readme/assessment_timeline.jpg)
+![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/assessment_timeline.jpg)
 
 ## Data
 
 The SCAA model uses a combination of catch, longline survey and fishery CPUE, mark-recapture abundance estimates, length, and age data. Fisheries-independent data and inputs to the SCAA model are made available under [`data/`](https://github.com/commfish/seak_sablefish/tree/master/data) of this repository. Fisheries-dependent data are not made public to protect fishermen and processor confidentiality, but may be obtained through a formal data request to ADFG. Data are available for the following years:
 
-![alt text](https://github.com/commfish/seak_sablefish/blob/master/figures/readme/available_data.jpg)
+![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/available_data.jpg)
 
 The following product recovery rates for sablefish were used:
 
@@ -100,9 +100,9 @@ Here is a summary of project codes in the data:
 
 The analyses underpinning the current stock assessment are found in [`r/`](https://github.com/commfish/seak_sablefish/tree/master/r) of this repository. In order to reproduce the assessment results, the scripts should be run in the following order:
 
-![alt text](https://github.com/commfish/seak_sablefish/blob/master/figures/readme/steps_to_run_assessment.jpg)
+![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/steps_to_run_assessment.jpg)
 
-**Description of R scripts:**
+**Description of R scripts:**  
 1.  [`r/helper.r`](https://github.com/commfish/seak_sablefish/blob/master/r/helper.R): Sourced by most other R scripts in this project, includes libraries/dependecies and ggplot themes;
 2.  [`r/functions.r`](https://github.com/commfish/seak_sablefish/blob/master/r/functions.R):  Sourced by most other R scripts in this project, includes user-defined functions; 
 3.  [`r/0_querynclean_data.r`](https://github.com/commfish/seak_sablefish/blob/master/r/0_querynclean_data.R): Descriptions of the data, `SQL` queries, and subsequent manipulations to clean raw data;
@@ -122,122 +122,85 @@ The [`.cpp file`](https://github.com/commfish/seak_sablefish/blob/master/tmb/sca
 
 ## Session Info
 
-Last updated: June 2020
+Last updated: January 2023
 ```
-- Session info ---------------------------------------------------------------------------------------------------------------------------------------------------
- setting  value                       
- version  R version 3.6.3 (2020-02-29)
- os       Windows >= 8 x64            
- system   x86_64, mingw32             
- ui       RStudio                     
- language (EN)                        
- collate  English_United States.1252  
- ctype    English_United States.1252  
- tz       America/Anchorage           
- date     2020-06-05                  
+devtools::session_info()
+─ Session info ────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.2.1 (2022-06-23 ucrt)
+ os       Windows 10 x64 (build 19044)
+ system   x86_64, mingw32
+ ui       RStudio
+ language (EN)
+ collate  English_United States.utf8
+ ctype    English_United States.utf8
+ tz       America/Anchorage
+ date     2023-01-18
+ rstudio  2022.07.2+576 Spotted Wakerobin (desktop)
+ pandoc   NA
 
-- Packages -------------------------------------------------------------------------------------------------------------------------------------------------------
- ! package     * version  date       lib source        
-   assertthat    0.2.1    2019-03-21 [1] CRAN (R 3.6.3)
-   backports     1.1.6    2020-04-05 [1] CRAN (R 3.6.3)
-   broom       * 0.5.6    2020-04-20 [1] CRAN (R 3.6.3)
-   callr         3.4.3    2020-03-28 [1] CRAN (R 3.6.3)
-   captioner   * 2.2.3    2015-07-16 [1] CRAN (R 3.6.3)
-   cellranger    1.1.0    2016-07-27 [1] CRAN (R 3.6.3)
-   cli           2.0.2    2020-02-28 [1] CRAN (R 3.6.3)
-   coda          0.19-3   2019-07-05 [1] CRAN (R 3.6.3)
-   colorspace    1.4-1    2019-03-18 [1] CRAN (R 3.6.1)
-   cowplot     * 1.0.0    2019-07-11 [1] CRAN (R 3.6.3)
-   crayon        1.3.4    2017-09-16 [1] CRAN (R 3.6.3)
-   crosstalk     1.1.0.1  2020-03-13 [1] CRAN (R 3.6.3)
-   data.table  * 1.12.8   2019-12-09 [1] CRAN (R 3.6.3)
-   DBI         * 1.1.0    2019-12-15 [1] CRAN (R 3.6.3)
-   dbplyr        1.4.3    2020-04-19 [1] CRAN (R 3.6.3)
-   desc          1.2.0    2018-05-01 [1] CRAN (R 3.6.3)
-   devtools      2.3.0    2020-04-10 [1] CRAN (R 3.6.3)
-   digest        0.6.25   2020-02-23 [1] CRAN (R 3.6.3)
-   dplyr       * 0.8.5    2020-03-07 [1] CRAN (R 3.6.3)
-   ellipsis      0.3.0    2019-09-20 [1] CRAN (R 3.6.3)
-   fansi         0.4.1    2020-01-08 [1] CRAN (R 3.6.3)
-   farver        2.0.3    2020-01-16 [1] CRAN (R 3.6.3)
-   forcats     * 0.5.0    2020-03-01 [1] CRAN (R 3.6.3)
-   fs            1.4.1    2020-04-04 [1] CRAN (R 3.6.3)
-   generics      0.0.2    2018-11-29 [1] CRAN (R 3.6.3)
-   ggdendro      0.1-20   2016-04-27 [1] CRAN (R 3.6.3)
-   ggforce       0.3.1    2019-08-20 [1] CRAN (R 3.6.3)
-   ggformula   * 0.9.4    2020-03-04 [1] CRAN (R 3.6.3)
-   ggplot2     * 3.3.0    2020-03-05 [1] CRAN (R 3.6.3)
-   ggrepel       0.8.2    2020-03-08 [1] CRAN (R 3.6.3)
-   ggridges    * 0.5.2    2020-01-12 [1] CRAN (R 3.6.3)
-   ggstance    * 0.3.4    2020-04-02 [1] CRAN (R 3.6.3)
-   ggthemes    * 4.2.0    2019-05-13 [1] CRAN (R 3.6.3)
-   glue          1.4.0    2020-04-03 [1] CRAN (R 3.6.3)
-   gridExtra   * 2.3      2017-09-09 [1] CRAN (R 3.6.3)
-   gtable        0.3.0    2019-03-25 [1] CRAN (R 3.6.3)
-   haven         2.2.0    2019-11-08 [1] CRAN (R 3.6.3)
-   hms           0.5.3    2020-01-08 [1] CRAN (R 3.6.3)
-   htmltools     0.4.0    2019-10-04 [1] CRAN (R 3.6.3)
-   htmlwidgets   1.5.1    2019-10-08 [1] CRAN (R 3.6.3)
-   httr          1.4.1    2019-08-05 [1] CRAN (R 3.6.3)
-   jsonlite      1.6.1    2020-02-02 [1] CRAN (R 3.6.3)
-   knitr       * 1.28     2020-02-06 [1] CRAN (R 3.6.3)
-   lattice     * 0.20-38  2018-11-04 [2] CRAN (R 3.6.3)
-   lazyeval      0.2.2    2019-03-15 [1] CRAN (R 3.6.3)
-   leaflet       2.0.3    2019-11-16 [1] CRAN (R 3.6.3)
-   lifecycle     0.2.0    2020-03-06 [1] CRAN (R 3.6.3)
-   lubridate   * 1.7.8    2020-04-06 [1] CRAN (R 3.6.3)
-   magrittr      1.5      2014-11-22 [1] CRAN (R 3.6.3)
-   MASS          7.3-51.5 2019-12-20 [2] CRAN (R 3.6.3)
-   Matrix      * 1.2-18   2019-11-27 [2] CRAN (R 3.6.3)
-   memoise       1.1.0    2017-04-21 [1] CRAN (R 3.6.3)
-   mgcv        * 1.8-31   2019-11-09 [2] CRAN (R 3.6.3)
-   modelr        0.1.7    2020-04-30 [1] CRAN (R 3.6.3)
-   mosaic      * 1.7.0    2020-05-18 [1] CRAN (R 3.6.3)
-   mosaicCore    0.6.0    2018-06-24 [1] CRAN (R 3.6.3)
-   mosaicData  * 0.18.0   2020-05-15 [1] CRAN (R 3.6.3)
-   munsell       0.5.0    2018-06-12 [1] CRAN (R 3.6.3)
-   nlme        * 3.1-144  2020-02-06 [2] CRAN (R 3.6.3)
-   padr        * 0.5.2    2020-05-12 [1] CRAN (R 3.6.3)
-   pillar        1.4.3    2019-12-20 [1] CRAN (R 3.6.3)
-   pkgbuild      1.0.7    2020-04-25 [1] CRAN (R 3.6.3)
-   pkgconfig     2.0.3    2019-09-22 [1] CRAN (R 3.6.3)
-   pkgload       1.0.2    2018-10-29 [1] CRAN (R 3.6.3)
-   plyr          1.8.6    2020-03-03 [1] CRAN (R 3.6.3)
-   polyclip      1.10-0   2019-03-14 [1] CRAN (R 3.6.0)
-   prettyunits   1.1.1    2020-01-24 [1] CRAN (R 3.6.3)
-   processx      3.4.2    2020-02-09 [1] CRAN (R 3.6.3)
-   ps            1.3.2    2020-02-13 [1] CRAN (R 3.6.3)
-   purrr       * 0.3.4    2020-04-17 [1] CRAN (R 3.6.3)
-   R6            2.4.1    2019-11-12 [1] CRAN (R 3.6.3)
-   Rcpp          1.0.4.6  2020-04-09 [1] CRAN (R 3.6.3)
-   readr       * 1.3.1    2018-12-21 [1] CRAN (R 3.6.3)
-   readxl        1.3.1    2019-03-13 [1] CRAN (R 3.6.3)
-   remotes       2.1.1    2020-02-15 [1] CRAN (R 3.6.3)
-   reprex        0.3.0    2019-05-16 [1] CRAN (R 3.6.3)
-   rlang         0.4.5    2020-03-01 [1] CRAN (R 3.6.3)
-   ROracle     * 1.3-1    2016-10-26 [1] CRAN (R 3.6.3)
-   rprojroot     1.3-2    2018-01-03 [1] CRAN (R 3.6.3)
-   rstudioapi    0.11     2020-02-07 [1] CRAN (R 3.6.3)
-   rvest         0.3.5    2019-11-08 [1] CRAN (R 3.6.3)
-   scales        1.1.0    2019-11-18 [1] CRAN (R 3.6.3)
-   sessioninfo   1.1.1    2018-11-05 [1] CRAN (R 3.6.3)
-   stringi       1.4.6    2020-02-17 [1] CRAN (R 3.6.2)
-   stringr     * 1.4.0    2019-02-10 [1] CRAN (R 3.6.3)
-   testthat      2.3.2    2020-03-02 [1] CRAN (R 3.6.3)
-   tibble      * 3.0.1    2020-04-20 [1] CRAN (R 3.6.3)
-   tidyr       * 1.0.2    2020-01-24 [1] CRAN (R 3.6.3)
-   tidyselect    1.0.0    2020-01-27 [1] CRAN (R 3.6.3)
-   tidyverse   * 1.3.0    2019-11-21 [1] CRAN (R 3.6.3)
- D TMB         * 1.7.16   2020-01-15 [1] CRAN (R 3.6.3)
-   tweenr        1.0.1    2018-12-14 [1] CRAN (R 3.6.3)
-   usethis       1.6.1    2020-04-29 [1] CRAN (R 3.6.3)
-   vctrs         0.2.4    2020-03-10 [1] CRAN (R 3.6.3)
-   withr         2.2.0    2020-04-20 [1] CRAN (R 3.6.3)
-   xfun          0.13     2020-04-13 [1] CRAN (R 3.6.3)
-   xml2          1.3.2    2020-04-23 [1] CRAN (R 3.6.3)
-   yaml          2.2.1    2020-02-01 [1] CRAN (R 3.6.3)
-   zoo         * 1.8-8    2020-05-02 [1] CRAN (R 3.6.3)
+─ Packages ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ package      * version date (UTC) lib source
+ assertthat     0.2.1   2019-03-21 [1] CRAN (R 4.2.1)
+ cachem         1.0.6   2021-08-19 [1] CRAN (R 4.2.1)
+ callr          3.7.2   2022-08-22 [1] CRAN (R 4.2.1)
+ cli            3.3.0   2022-04-25 [1] CRAN (R 4.2.1)
+ colorspace     2.0-3   2022-02-21 [1] CRAN (R 4.2.1)
+ crayon         1.5.2   2022-09-29 [1] CRAN (R 4.2.1)
+ DBI            1.1.3   2022-06-18 [1] CRAN (R 4.2.1)
+ devtools       2.4.4   2022-07-20 [1] CRAN (R 4.2.1)
+ digest         0.6.29  2021-12-01 [1] CRAN (R 4.2.1)
+ dplyr          1.0.10  2022-09-01 [1] CRAN (R 4.2.1)
+ ellipsis       0.3.2   2021-04-29 [1] CRAN (R 4.2.1)
+ fansi          1.0.3   2022-03-24 [1] CRAN (R 4.2.1)
+ fastmap        1.1.0   2021-01-25 [1] CRAN (R 4.2.1)
+ fs             1.5.2   2021-12-08 [1] CRAN (R 4.2.1)
+ generics       0.1.3   2022-07-05 [1] CRAN (R 4.2.1)
+ GGally         2.1.2   2021-06-21 [1] CRAN (R 4.2.1)
+ ggplot2        3.3.6   2022-05-03 [1] CRAN (R 4.2.1)
+ ggrepel        0.9.1   2021-01-15 [1] CRAN (R 4.2.1)
+ glue           1.6.2   2022-02-24 [1] CRAN (R 4.2.1)
+ gtable         0.3.1   2022-09-01 [1] CRAN (R 4.2.1)
+ htmltools      0.5.3   2022-07-18 [1] CRAN (R 4.2.1)
+ htmlwidgets    1.5.4   2021-09-08 [1] CRAN (R 4.2.1)
+ httpuv         1.6.6   2022-09-08 [1] CRAN (R 4.2.1)
+ later          1.3.0   2021-08-18 [1] CRAN (R 4.2.1)
+ lifecycle      1.0.2   2022-09-09 [1] CRAN (R 4.2.1)
+ magrittr       2.0.3   2022-03-30 [1] CRAN (R 4.2.1)
+ memoise        2.0.1   2021-11-26 [1] CRAN (R 4.2.1)
+ mime           0.12    2021-09-28 [1] CRAN (R 4.2.0)
+ miniUI         0.1.1.1 2018-05-18 [1] CRAN (R 4.2.1)
+ munsell        0.5.0   2018-06-12 [1] CRAN (R 4.2.1)
+ pillar         1.8.1   2022-08-19 [1] CRAN (R 4.2.1)
+ pkgbuild       1.3.1   2021-12-20 [1] CRAN (R 4.2.1)
+ pkgconfig      2.0.3   2019-09-22 [1] CRAN (R 4.2.1)
+ pkgload        1.3.0   2022-06-27 [1] CRAN (R 4.2.1)
+ plyr           1.8.7   2022-03-24 [1] CRAN (R 4.2.1)
+ prettyunits    1.1.1   2020-01-24 [1] CRAN (R 4.2.1)
+ processx       3.7.0   2022-07-07 [1] CRAN (R 4.2.1)
+ profvis        0.3.7   2020-11-02 [1] CRAN (R 4.2.1)
+ promises       1.2.0.1 2021-02-11 [1] CRAN (R 4.2.1)
+ ps             1.7.1   2022-06-18 [1] CRAN (R 4.2.1)
+ purrr          0.3.4   2020-04-17 [1] CRAN (R 4.2.1)
+ R6             2.5.1   2021-08-19 [1] CRAN (R 4.2.1)
+ RColorBrewer   1.1-3   2022-04-03 [1] CRAN (R 4.2.0)
+ Rcpp           1.0.9   2022-07-08 [1] CRAN (R 4.2.1)
+ remotes        2.4.2   2021-11-30 [1] CRAN (R 4.2.1)
+ reshape        0.8.9   2022-04-12 [1] CRAN (R 4.2.1)
+ reshape2       1.4.4   2020-04-09 [1] CRAN (R 4.2.1)
+ rlang          1.0.6   2022-09-24 [1] CRAN (R 4.2.1)
+ rstudioapi     0.14    2022-08-22 [1] CRAN (R 4.2.1)
+ scales         1.2.1   2022-08-20 [1] CRAN (R 4.2.1)
+ sessioninfo    1.2.2   2021-12-06 [1] CRAN (R 4.2.1)
+ shiny          1.7.2   2022-07-19 [1] CRAN (R 4.2.1)
+ stringi        1.7.8   2022-07-11 [1] CRAN (R 4.2.1)
+ stringr        1.4.1   2022-08-20 [1] CRAN (R 4.2.1)
+ tibble         3.1.8   2022-07-22 [1] CRAN (R 4.2.1)
+ tidyselect     1.1.2   2022-02-21 [1] CRAN (R 4.2.1)
+ urlchecker     1.0.1   2021-11-30 [1] CRAN (R 4.2.1)
+ usethis        2.1.6   2022-05-25 [1] CRAN (R 4.2.1)
+ utf8           1.2.2   2021-07-24 [1] CRAN (R 4.2.1)
+ vctrs          0.4.2   2022-09-29 [1] CRAN (R 4.2.1)
+ xtable         1.8-4   2019-04-21 [1] CRAN (R 4.2.1)
 
-[1] C:/Users/jysullivan/Documents/R/win-library/3.6
-[2] C:/Program Files/R/R-3.6.3/library
 ```
