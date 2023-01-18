@@ -15,7 +15,7 @@ database.csv
 *.html
 *.png
 *.pptx
-*.jpg
+#*.jpg
 *.svg
 
 # Windows thumbnail cache files
