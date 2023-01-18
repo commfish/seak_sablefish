@@ -1,16 +1,46 @@
-year,N_current,q025,q975,abundance_age2plus,abc_round_lbs,harvest_policy,notes,source
-2005,1742634.2795598756,1483523.4131231096,2058330.0664009368,1948450,2255115,F_40%,NA,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2
+year,abundance_age2plus,abc_round_lbs,harvest_policy,notes,source
+1980,7817236,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-06
+1981,8926051,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-07
+1982,10309035,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-08
+1983,11204698,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-09
+1984,11493843,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-10
+1985,11481285,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-11
+1986,11063377,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-12
+1987,10408260,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-13
+1988,9702827,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-14
+1989,8915749,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-15
+1990,8176269,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-16
+1991,7494880,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-17
+1992,6756803,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-18
+1993,6077321,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-19
+1994,5375876,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-20
+1995,4868517,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-21
+1996,4394426,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-22
+1997,3954807,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-23
+1998,3578141,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-24
+1999,3264326,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-25
+2000,3169114,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-26; M:/SABLEFISH/CHATHAM/Copy of Exploitation Rates sheet from Tag recovery and release
+2001,3136161,NA,NA,"hindcast, not used for mgt",Sullivan used values from Mueter ASA Chatham sable 08-27
+2002,3026221,2324634,F_40%,NA,Sullivan used abundance from Mueter ASA Chatham sable 80-06; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
+2003,2774712,1892916,F_40%,NA,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2
 "
-2006,2193776.5443767346,1784907.946237973,2705548.028510326,2427828,1340350,F_40%,NA,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2 
+2004,2675118,2429851,F_40%,NA,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2
 "
-2007,2746317.854418169,2195706.837657582,3425102.6987444554,2333684,1623219,F_40%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
-2008,1771961.877821516,1485356.5778683866,2120573.5400672113,1939648,1623219,F_40%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals; no forecast conducted for 2008, Dressel assumed biomass values equal to previous year",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
-2009,2487625.8927635853,2027593.4026735409,3058174.20010239,2145395,1290868,F_45%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
-2010,2197806.8358304477,1842438.2822108907,2625849.7558866716,2051250,1250961,F_50%,NA,2013 NSEI Memo Van Kirk
-2012,1853514.6496837793,1561704.118939313,2215414.0833065268,1967917,1160674,F_50%,NA,2013 NSEI Memo Van Kirk
-2013,2012168.6245623974,1689541.3860001594,2399435.6858824003,1905712,1049391,F_50%,"Kirk started using survey weight-at-age to apportion biomass , selected for mgt",2013 NSEI Memo Van Kirk
-2015,1891841.6788818846,1548925.1790377228,2317207.593844036,1766525,986481,F_50%,NA,2015 NSEI assessment Van Kirk
-2017,2064628.7252366876,1676965.6618604346,2540411.9168301933,1927382,850113,F_50%,"hindcast, not used for mgt",2018 NSEI assessment Sullivan (ABC from 2017 NSEI assessment Van Kirk)
-2018,2947908.8295302927,2410113.0956677897,3603281.838994398,2060000,965354,F_50%,"estimate, abundance is MR abundance from 2020 forecast",2019 NSEI forecast Sullivan
-2019,3213890.8003262063,2575773.658305561,4007782.4114117343,3010000,1058037,F_50%,"forecast, abundance is MR abundance from 2020 forecast",2019 NSEI forecast Sullivan
-2020,3131028.6825924297,2515692.301540786,3894470.3059335984,3140000,1216743,F_50%,"forecast, abundance is MR abundance from 2020 forecast",2020 NSEI http://www.adfg.alaska.gov/FedAidPDFs/RIR.5J.2020.05.pdf
+2005,1948450,2255115,F_40%,NA,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2
+"
+2006,2427828,1340350,F_40%,NA,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2 
+"
+2007,2333684,1623219,F_40%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
+2008,1939648,1623219,F_40%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals; no forecast conducted for 2008, Dressel assumed biomass values equal to previous year",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
+2009,2145395,1290868,F_45%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
+2010,2051250,1250961,F_50%,NA,2013 NSEI Memo Van Kirk
+2011,2051250,1111948,F_50%,"no markrecap survey, Dressel assumed abundance in for 2011 was equal to 2010, then apportioned using 2011 fishery age comps",2013 NSEI Memo Van Kirk
+2012,1967917,1160674,F_50%,NA,2013 NSEI Memo Van Kirk
+2013,1905712,1049391,F_50%,"Kirk started using survey weight-at-age to apportion biomass , selected for mgt",2013 NSEI Memo Van Kirk
+2014,1783315,952538,F_50%,NA,2014 NSEI assessment Van Kirk
+2015,1766525,986481,F_50%,NA,2015 NSEI assessment Van Kirk
+2016,1445938,807559,F_50%,NA,2016 NSEI assessment Van Kirk
+2017,1927382,850113,F_50%,"hindcast, not used for mgt",2018 NSEI assessment Sullivan (ABC from 2017 NSEI assessment Van Kirk)
+2018,2060000,965354,F_50%,"estimate, abundance is MR abundance from 2020 forecast",2019 NSEI forecast Sullivan
+2019,3010000,1058037,F_50%,"forecast, abundance is MR abundance from 2020 forecast",2019 NSEI forecast Sullivan
+2020,3140000,1216743,F_50%,"forecast, abundance is MR abundance from 2020 forecast",2020 NSEI http://www.adfg.alaska.gov/FedAidPDFs/RIR.5J.2020.05.pdf

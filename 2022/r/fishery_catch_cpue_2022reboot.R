@@ -9,8 +9,8 @@
 # query was then rerun on '97-21 data.  This code examines fishery CPUE using that
 # new data set and code modified from fishery_catch_cpue
 
-source("r/helper.r")
-source("r/functions.r")
+source("r_helper/helper.r")
+source("r_helper/functions.r")
 
 # if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
@@ -27,13 +27,13 @@ YEAR <- 2021
 # that. The SCAA model relies on Carlile et al 2002 published estimates of NSEI
 # catch 1975-1984.
 
-catch_ifdb <- read_csv(paste0("data/fishery/nseiharvest_ifdb_1985_", YEAR,".csv"), 
+catch_ifdb <- read_csv(paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_1985_", YEAR,".csv"), 
                        guess_max = 50000) #%>% 
 
 #exvessel_value <- read.csv("data/exvessel_value.csv") # request from Aaron.baldwin@alaska.gov
 #update from OceanAK report for future standardization; 2022 onward will use this report...
 # link:
-exvessel_value <- read_csv("data/exvessel_value_22ud.csv") %>% 
+exvessel_value <- read_csv(paste0(YEAR+1,"/data/exvessel_value_22ud.csv")) %>% 
   mutate(year=Year_Landed, exvessel_mil_usd = CFEC_Value/1000000)
 #format like Jane's old for consistency with code... just year and value
 exvessel_value<-exvessel_value[,c(5,6)]
@@ -78,10 +78,10 @@ ggplot(sum_catch %>%
   geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
   labs(x = NULL, y = "Catch (million round lb)\n") -> catch
 
-write_csv(sum_catch, paste0("output/harvest_1985_", YEAR, ".csv"))
+write_csv(sum_catch, paste0(YEAR+1,"/output/harvest_1985_", YEAR, ".csv"))
 
 catch
-ggsave(paste0("figures/fishery_harvest_1985_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/fishery_harvest_1985_", YEAR, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
 
 # Catch by ports
@@ -123,7 +123,7 @@ ggplot(port_catch, aes(x = year, y = perc, fill = Port)) +
 
 plot_grid(catch, port, ncol = 1, align = 'hv')
 
-ggsave(paste0("figures/catch_byport_", YEAR, ".png"),
+ggsave(paste0(YEAR+1,"/figures/catch_byport_", YEAR, ".png"),
        dpi=300, height=10, width=7, units="in")
 
 # Exvessel value ----
@@ -138,12 +138,12 @@ exvessel <- ggplot(exvessel_value, aes(x = year, y = exvessel_mil_usd)) +
   labs(x = NULL, y = "Ex-vessel value (million USD)\n") +
   ylim(c(0, 12.5))
 exvessel
-ggsave(paste0("figures/exvessel_value_1985_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/exvessel_value_1985_", YEAR, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
 
 plot_grid(catch, port, exvessel, ncol = 1)#, align = 'hv')
 
-ggsave(paste0("figures/catch_exvesselvalue_", YEAR, "v3.png"),
+ggsave(paste0(YEAR+1,"/figures/catch_exvesselvalue_", YEAR, "v3.png"),
        dpi=300, height=10, width=7, units="in")
 # View(port_catch)
 
@@ -159,13 +159,13 @@ sum_catch %>%
   scale_colour_manual(values = c("red", "black"), guide = FALSE) +
   labs(x = "\nCatch (million round lb)", y = "Ex-vessel value (million USD)") 
 
-ggsave(paste0("figures/exvessel_catch_correlation_1985_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/exvessel_catch_correlation_1985_", YEAR, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
 
 # Logbook/CPUE data  ----
 
 # Read in data, standardize cpue, etc.
-read_csv(paste0("data/fishery/fishery_cpue_2022reboot_1997_", YEAR,".csv"), 
+read_csv(paste0(YEAR+1,"/data/fishery/fishery_cpue_2022reboot_1997_", YEAR,".csv"), 
          guess_max = 50000) %>% 
   filter(!is.na(date) & !is.na(hook_space) & !is.na(sable_lbs_set) &
            !is.na(start_lon) & !is.na(start_lon) & !is.na(soak) & !is.na(depth) &
@@ -230,7 +230,7 @@ fsh_cpue %>%
   labs(x = "", y = "") +
   ylim(0, NA) -> trips_vessels
 trips_vessels
-ggsave(plot = trips_vessels, paste0("figures/fishery_tripandvessel_trends_1997_", YEAR, ".png"), 
+ggsave(plot = trips_vessels, paste0(YEAR+1,"/figures/fishery_tripandvessel_trends_1997_", YEAR, ".png"), 
        dpi=300, height=6, width=5, units="in")
 
 # Bootstrap ----
@@ -252,7 +252,7 @@ ggplot(plot_boot) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
   lims(y = c(0, 1.1))
   
-ggsave(paste0("figures/fshcpue_bootCI_22reboot_1997_", YEAR, ".png"),
+ggsave(paste0(YEAR+1,"/figures/fshcpue_bootCI_22reboot_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
 
 # Prelim works towards CPUE analysis for NSEI, mirroring what was done by Jenny
@@ -289,7 +289,7 @@ ggplot(fsh_cpue %>%
                     guide = FALSE) +
   labs(x = NULL, y = "Fishery CPUE (round pounds per hook)\n")
 
-ggsave(paste0("figures/fshcpue_trendsbyStat_22reboot_",min(fsh_cpue$year), "_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/fshcpue_trendsbyStat_22reboot_",min(fsh_cpue$year), "_", YEAR, ".png"), 
        dpi=400, height=4, width=7.5, units="in")
 
 #2022: Note that 2020 and 2021 have some very high CPUE outliers with new query from Justin...
@@ -633,7 +633,7 @@ fsh_sum %>%
   theme(legend.position = c(0.8, 0.2)) +
   expand_limits(y = 0)
 
-ggsave(paste0("figures/compare_stdcpue_llfsh_2022reboot_", YEAR, ".png"), dpi=300, height=4, width=7, units="in")
+ggsave(paste0(YEAR+1,"/figures/compare_stdcpue_llfsh_2022reboot_", YEAR, ".png"), dpi=300, height=4, width=7, units="in")
 
 # Percent change in fishery nominal cpue compared to a ten year rolling average
 fsh_sum %>% 
@@ -660,7 +660,7 @@ perc_ch %>% mutate(perc_change_ly = (`this_year` - `last_year`) / `last_year` * 
 # data/legacy_fishery_cpue.csv. Similarly, I moved and renamed the same file as
 # data/fishery/legacy_fisherycpue_1980_1996.csv
 
-read_csv("data/fishery/legacy_fisherycpue_1980_1996.csv", 
+read_csv("legacy_data/legacy_fisherycpue_1980_1996.csv", 
            col_names = FALSE) %>% as.numeric() -> hist_cpue
 
 # Because the variance is easier to interpret and the point estimates from the
@@ -692,11 +692,11 @@ ggplot(cpue_ts_short) +
 #NOTE2022: much more variance in data now... could easily run a straight line
 # through error polygon = lack of information in this data!!! 
 
-ggsave(paste0("figures/fshcpue_1997_2022reboot_", YEAR, ".png"),
+ggsave(paste0(YEAR+1,"/figures/fshcpue_1997_2022reboot_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
 
 # Write to file
-write_csv(cpue_ts, paste0("output/fshcpue_", min(cpue_ts$year), "_", YEAR, "_base_nom.csv"))
+write_csv(cpue_ts, paste0(YEAR+1,"/output/fshcpue_", min(cpue_ts$year), "_", YEAR, "_base_nom.csv"))
 # write_csv(cpue_ts, paste0("output/nominalwpue_var_llfsh_", min(cpue_ts$year), "_", YEAR, ".csv"))
 
 #=================================================================================
@@ -750,11 +750,11 @@ ggplot(cpue_gam_short) +
   #lims(y = c(-0.5, 1.5)) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") 
 
-ggsave(paste0("figures/fshcpue_1997_2022reboot_", YEAR, "_base_gam.png"),
+ggsave(paste0(YEAR+1,"/figures/fshcpue_1997_2022reboot_", YEAR, "_base_gam.png"),
        dpi=300, height=4, width=7, units="in")
 
 # Write to file
-write_csv(cpue_gam, paste0("output/fshcpue_2022rb_", min(cpue_gam$year), "_", YEAR, "_base_gam.csv"))
+write_csv(cpue_gam, paste0(YEAR+1,"/output/fshcpue_2022rb_", min(cpue_gam$year), "_", YEAR, "_base_gam.csv"))
 
 #2) bootstrapped gam fit predictions... (oi)
 #2a) get predicted values for each data point... 
@@ -824,7 +824,7 @@ ggplot(plot_boot_gam) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
   lims(y = c(0, 1.1))
 
-ggsave(paste0("figures/fshcpue_bootCI_1997_22rb_", YEAR, "_boot_gam.png"),
+ggsave(paste0(YEAR+1,"/figures/fshcpue_bootCI_1997_22rb_", YEAR, "_boot_gam.png"),
        dpi=300, height=4, width=7, units="in")
 
 #2c) compare to other estimates
@@ -872,7 +872,7 @@ data.frame(year = 1980:1996,
   mutate(cpue = round(cpue, 3),
          var = round(var, 5)) -> cpue_gam_boot
 
-write_csv(cpue_gam_boot, paste0("output/fshcpue_22rb_", min(cpue_ts$year), "_", YEAR, "_boot_gam.csv"))
+write_csv(cpue_gam_boot, paste0(YEAR+1,"/output/fshcpue_22rb_", min(cpue_ts$year), "_", YEAR, "_boot_gam.csv"))
 
 #====scraps============
 sd = sd(std_cpue),

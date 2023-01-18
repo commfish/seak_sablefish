@@ -3,12 +3,12 @@
 # Contact: jane.sullivan@noaa.gov 
 # Last updated: Feb 2021
 
-source("r/helper.r")
-source("r/functions.r")
+source("r_helper/helper.r")
+source("r_helper/functions.r")
 
 if(!require("fishmethods"))   install.packages("fishmethods") # use this package for growth modeling
 
-YEAR <- 2021
+YEAR <- 2022
 rec_age <- 2
 plus_group <- 31
 
@@ -16,7 +16,7 @@ plus_group <- 31
 
 # survey biological  data
 
-read_csv(paste0("data/survey/llsrv_bio_1988_", YEAR,".csv"), 
+read_csv(paste0(YEAR+1,"/data/survey/llsrv_bio_1988_", YEAR,".csv"), 
          guess_max = 50000) %>% 
   mutate(Year = factor(year),
          Project_cde = factor(Project_cde),
@@ -34,11 +34,11 @@ read_csv(paste0("data/survey/llsrv_bio_1988_", YEAR,".csv"),
 # parameter estimates (length and weight) for comparison with estimates from the
 # survey. The coastwide parameters are still used for management, but Southeast
 # slope are informative.
-noaa_lvb <- read_csv("data/survey/noaa_lvb_params_hanselman2007.csv")
+noaa_lvb <- read_csv("legacy_data/noaa_lvb_params_hanselman2007.csv")
 str(noaa_lvb)
 
 # Fishery biological data
-read_csv(paste0("data/fishery/fishery_bio_2000_", YEAR,".csv"), 
+read_csv(paste0(YEAR+1,"/data/fishery/fishery_bio_2000_", YEAR,".csv"), 
          guess_max = 50000) %>%
   mutate(Year = factor(year),
          Project_cde = factor(Project_cde),
@@ -55,7 +55,7 @@ unique(fsh_bio$year)
 # Pot survey biological data
 #no pot survey 2021 because of stupid Covid, use data only through 2020
 #read_csv(paste0("data/survey/potsrv_bio_1981_", YEAR, ".csv"), 
-read_csv(paste0("data/survey/potsrv_bio_1981_", YEAR-1, ".csv"), 
+read_csv(paste0(YEAR+1,"/data/survey/potsrv_bio_1981_", YEAR-1, ".csv"), 
          guess_max = 50000) %>% 
   mutate(Year = factor(year),
          Project_cde = factor(Project_cde),
@@ -192,7 +192,7 @@ expand.grid(Source = unique(emp_waa$Source),
   group_by(Source, Sex) %>% 
   mutate(weight = zoo::na.approx(weight, maxgap = 20, rule = 2)) -> emp_waa
 
-write_csv(emp_waa, paste0("output/empircal_waa_", YEAR, ".csv"))
+write_csv(emp_waa, paste0(YEAR+1,"/output/empircal_waa_", YEAR, ".csv"))
 
 # Changes in weight-at-age
 
@@ -231,7 +231,7 @@ ggplot(df_cohort, aes(age, weight, colour = Cohort, group = Cohort)) +
   theme(legend.position = "bottom") #+
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels)# -> waa_cohort_plot
 
-ggsave("figures/waa_cohort.png", dpi = 300, height = 5, width = 7, units = "in")
+ggsave(YEAR+1,"/figures/waa_cohort.png", dpi = 300, height = 5, width = 7, units = "in")
 
 df %>% 
   filter(Age %in% c("2", "3", "4", "5")) %>% 
@@ -254,7 +254,7 @@ ggplot(df,
   guides(colour = guide_legend(nrow = 1))# +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels)
 
-ggsave("figures/waa_trends.png", dpi = 300, height = 5, width = 7, units = "in")
+ggsave(YEAR+1,"/figures/waa_trends.png", dpi = 300, height = 5, width = 7, units = "in")
 
 #=========================================================================================
 # Survey length-at-age -----
@@ -389,7 +389,7 @@ ggplot() +
   labs(x = "", y = "Scaled parameter estimates of Linf\n") +
   facet_wrap(~ Sex, ncol = 1)
 
-ggsave(paste0("figures/trends_Linf_1997_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/trends_Linf_1997_", YEAR, ".png"), 
        dpi=300, height=7, width=6, units="in")
 
 #==================================================================================
@@ -464,7 +464,7 @@ laa_preds <- age_pred %>%
                                  length = predict(lvb_m_fsh$vout, newdata = age_pred))) %>% 
               mutate(Source = "LL fishery") )
 
-write_csv(laa_preds, paste0("output/pred_laa_plsgrp", plus_group, "_", YEAR, ".csv"))
+write_csv(laa_preds, paste0(YEAR+1,"/output/pred_laa_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 # Weight-length allometry W = alpha * L ^ beta ----
 
@@ -529,7 +529,7 @@ ggplot(allom_sub, aes(length, weight, col = Sex, shape = Sex)) +
   # scale_colour_grey() +
   theme(legend.position = c(0.85, 0.2))
 
-ggsave(paste0("figures/allometry_chathamllsurvey_1997_", YEAR, ".png"),
+ggsave(paste0(YEAR+1,"/figures/allometry_chathamllsurvey_1997_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
 
 #===================================================================================================
@@ -737,7 +737,7 @@ waa_preds <- age_pred %>%
                                                   0.5 * (sigma(wvb_fsh$vout)^2)))) %>% 
               mutate(Source = "LL fishery") )
 
-write_csv(waa_preds, paste0("output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"))
+write_csv(waa_preds, paste0(YEAR+1,"/output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 # Compare empirical and predicted weight-at-age
 ggplot() +
@@ -749,7 +749,7 @@ ggplot() +
   # expand_limits(y = 0) +
   labs(x = "\nAge", y = "Weight (kg)\n", linetype = "Sex", shape = "Sex")
 
-ggsave(paste0("figures/compare_empirical_predicted_waa_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/compare_empirical_predicted_waa_", YEAR, ".png"), 
               dpi=300, height=4, width=6, units="in")
 
 # Compare growth results ----
@@ -760,7 +760,7 @@ ggsave(paste0("figures/compare_empirical_predicted_waa_", YEAR, ".png"),
 bind_rows(allom_pars, lvb_pars %>% rename(SE = `Std. Error`)) %>% 
       mutate(Notes = "seak_sablefish/code/biological.r") %>% 
   bind_rows(noaa_lvb %>% rename(Notes = Source) %>% rename(Source = Survey)) %>%
-  write_csv(., paste0("output/compare_vonb_adfg_noaa_", YEAR, ".csv"))
+  write_csv(., paste0(YEAR+1,"/output/compare_vonb_adfg_noaa_", YEAR, ".csv"))
 
 #===========================================================================================
 # Maturity ----
@@ -832,7 +832,7 @@ ggplot() +
   labs(x = "\nLength (cm)", y = "Probability\n", colour = "Year", lty = NULL) +
   theme(legend.position = c(.8, .4))
 
-ggsave(paste0("figures/maturity_atlength_byyear_srvfem_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/maturity_atlength_byyear_srvfem_", YEAR, ".png"), 
        dpi=300, height=4, width=6, units="in")
 
 # Parameter estimates by year
@@ -941,7 +941,7 @@ ggplot() +
   labs(x = "\nAge (yr)", y = "Probability\n", colour = "Year", lty = NULL) +
   theme(legend.position = c(.8, .4)) 
 
-ggsave(paste0("figures/maturity_atage_byyear_srvfem_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/maturity_atage_byyear_srvfem_", YEAR, ".png"), 
        dpi=300, height=4, width=6, units="in")
 
 # Comparison with age-based maturity curve
@@ -1000,7 +1000,7 @@ pred_simple %>%
          probability = round(zoo::na.approx(fitted, maxgap = 2, rule = 2), 4)) %>% 
   select(age, probability) %>% 
   # arrange(age) %>% 
-  write_csv(paste0("output/fem_maturityatage_llsrv_plsgrp", plus_group, "_", YEAR, ".csv"))
+  write_csv(paste0(YEAR+1,"/output/fem_maturityatage_llsrv_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 #Derive age at 50% maturity and kmat (slope of logistic curve)
 b0 <- fit_length$coefficients[1]
@@ -1017,7 +1017,7 @@ data.frame(year_updated = YEAR,
            L50 = L50,
            kmat = kmat,
            a50 = a50) %>% 
-  write_csv(paste0("output/maturity_param_", YEAR))  #should this be a csv file? 
+  write_csv(paste0(YEAR+1,"/output/maturity_param_", YEAR))  #should this be a csv file? 
 
 #if we wanted to update this to using coefficients from recent years
 b0r <- fit_length_year$coefficients[1]
@@ -1034,7 +1034,7 @@ data.frame(year_updated = YEAR,
            L50 = L50r,
            kmat = kmatr,
            a50 = a50r) %>% 
-  write_csv(paste0("output/maturity_param_recent_", YEAR))
+  write_csv(paste0(YEAR+1,"/output/maturity_param_recent_", YEAR))
 # # Equation text for plotting values of a_50 and kmat
 # a50_txt <- as.character(
 #   as.expression(substitute(
@@ -1158,7 +1158,7 @@ srv_bio_noOL %>%
 view(byyear)
 
 # Save output for YPR analysis
-write_csv(byyear, paste0("output/sexratio_byyear_plsgrp", plus_group, "_", YEAR, ".csv"))
+write_csv(byyear, paste0(YEAR+1,"/output/sexratio_byyear_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 # get generalized additive model fits and predictions
 # survey
@@ -1211,7 +1211,7 @@ ggplot(data = byyear, aes(x = year)) +
   theme(legend.position = "none") -> byyear_plot
 
 plot_grid(byage_plot, byyear_plot, align = c("h"), ncol = 1)
-ggsave(paste0("figures/sex_ratios_", YEAR, ".png"), dpi=300,  height=6, width=7, units="in")
+ggsave(paste0(YEAR+1,"/figures/sex_ratios_", YEAR, ".png"), dpi=300,  height=6, width=7, units="in")
 
 #===============================================================================================
 # Age compositions ----
@@ -1286,10 +1286,10 @@ agecomps %>%
   dplyr::summarize(n = sum(n)) %>% 
   arrange(year) %>% 
   pivot_wider(names_from = year, values_from = n, values_fill = list(n = 0)) %>% 
-  write_csv(paste0("output/n_agecomps_plsgrp", plus_group, "_", YEAR, ".csv"))
+  write_csv(paste0(YEAR+1,"/output/n_agecomps_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 # Age comp matrix
-agecomps %>% write_csv(paste0("output/agecomps_plsgrp", plus_group, "_", YEAR, ".csv"))
+agecomps %>% write_csv(paste0(YEAR+1,"/output/agecomps_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 # Bargraph for presentation
 agecomps %>% 
@@ -1305,7 +1305,7 @@ agecomps %>%
   labs(x = "\nAge", y = "Proportion\n") +
   theme(legend.position = c(0.9, 0.7))
 
-ggsave(paste0("figures/agecomp_bargraph_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/agecomp_bargraph_", YEAR, ".png"), 
               dpi=300, height=3, width=9, units="in")
 
 # All years smoothed by source
@@ -1323,7 +1323,7 @@ ggplot(aes(x = age, y = proportion, colour = Source, linetype = Source)) +
   ylab('Proportion\n') +
   theme(legend.position = c(0.8, 0.8))
 
-ggsave("figures/agecomp_bydatasource.png", 
+ggsave(YEAR+1,"/figures/agecomp_bydatasource.png", 
        dpi=300, height=5, width=5, units="in")
 
 # bubble plots filled circles
@@ -1349,7 +1349,7 @@ ggplot(data = agecompdat,
   # scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
   # scale_y_continuous(breaks = axisy$breaks, labels = axisy$labels)
 
-ggsave("figures/bubble_survey_agecomp_byyear.png", dpi=300, height=5, width=7.5, units="in")
+ggsave(paste0(YEAR+1,"/figures/bubble_survey_agecomp_byyear.png"), dpi=300, height=5, width=7.5, units="in")
 
 # fishery
 agecompdat <- agecomps %>% 
@@ -1372,7 +1372,7 @@ ggplot(data = agecompdat,
   # scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
   # scale_y_continuous(breaks = axisy$breaks, labels = axisy$labels)
 
-ggsave("figures/bubble_fishery_agecomp_byyear.png", 
+ggsave(paste0(YEAR+1,"/figures/bubble_fishery_agecomp_byyear.png"), 
        dpi=300, height=5, width=7.5, units="in")
 
 # Length compositions ----
@@ -1440,7 +1440,7 @@ lencomps %>%
   group_by(Source, Sex, year) %>% 
   summarise(sum(proportion)) %>% View()
 
-write_csv(lencomps, paste0("output/lengthcomps_", YEAR, ".csv"))
+write_csv(lencomps, paste0(YEAR+1,"/output/lengthcomps_", YEAR, ".csv"))
 
 lendat %>% 
   # Mean length comp for comparison
@@ -1485,7 +1485,7 @@ lendat %>%
   theme(legend.position = "none") + 
   facet_wrap(~ Source)
 
-ggsave(paste0("figures/lengthcomp_ggridges_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/lengthcomp_ggridges_", YEAR, ".png"), 
        dpi=300, height=8, width=10, units="in")
 
 # ggride plot for len dat by sex (for TMB inputs)
@@ -1503,7 +1503,7 @@ lendat %>%
   facet_wrap(~ Sex) +
   ggtitle("Survey")
 
-ggsave(paste0("figures/tmb/lencomp_srv_",YEAR,".png"), 
+ggsave(paste0(YEAR+1,"/figures/tmb/lencomp_srv_",YEAR,".png"), 
        dpi=300, height=8, width=10, units="in")
 
 # fishery
@@ -1520,7 +1520,7 @@ lendat %>%
   facet_wrap(~ Sex) +
   ggtitle("Fishery")
 
-ggsave(paste0("figures/tmb/lencomp_fsh_",YEAR,".png"), 
+ggsave(paste0(YEAR+1,"/figures/tmb/lencomp_fsh_",YEAR,".png"), 
        dpi=300, height=8, width=10, units="in")
 
 # All years smoothed by source
@@ -1542,7 +1542,7 @@ ggplot() +
   ylab('Proportion\n') +
   theme(legend.position = c(0.8, 0.8))
 
-ggsave("figures/lengthcomp_bydatasource.png", 
+ggsave(YEAR+1,"/figures/lengthcomp_bydatasource.png", 
        dpi=300, height=4.5, width=5, units="in")
 
 # length comp figs, requested by AJ Lindley 2018-09-07
@@ -1584,7 +1584,7 @@ ggplot(data = lencomps %>%
   labs(x = "\nFork length (cm)", y = "Proportion-at-length (longline survey)\n") +
   theme(strip.placement = "outside") 
 
-ggsave(paste0("figures/llsrv_lencomps_", YEAR-10, "_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/llsrv_lencomps_", YEAR-10, "_", YEAR, ".png"), 
        dpi=300, height=8, width=6.5, units="in")
 
 # For fishery
@@ -1618,7 +1618,7 @@ ggplot(data = lencomps %>%
   labs(x = "\nFork length (cm)", y = "Proportion-at-length (longline fishery)\n") +
   theme(strip.placement = "outside") 
 
-ggsave(paste0("figures/llfsh_lencomps_", YEAR-10, "_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/llfsh_lencomps_", YEAR-10, "_", YEAR, ".png"), 
        dpi=300, height=8, width=6.5, units="in")
 
 # Summary stats output for length comps (requested by AJ Linsley 20180907)
@@ -1674,13 +1674,13 @@ agesum %>%
 
 cowplot::plot_grid(l, a, axis = "lrtb", align = "hv", ncol = 1) -> compare_comp_sums
 compare_comp_sums
-ggsave("figures/compare_comp_summaries.png",
+ggsave(paste0(YEAR+1,"/figures/compare_comp_summaries.png"),
        plot = compare_comp_sums,
        # dpi=300, height=5.5, width=6.5, units="in")
        dpi=300, height=7, width=7, units="in")
 
 bind_rows(agesum, lensum) %>% 
-  write_csv("output/comps_summary.csv")
+  write_csv(paste0(YEAR+1, "/output/comps_summary.csv"))
 
 # survey length comps by stat area, requested by A Olson 2021-02-18
 srv_bio %>% 
@@ -1778,6 +1778,6 @@ statlen %>%
   scale_x_continuous(limits = c(40, 99)) +
   theme(legend.position = "top")
 
-ggsave(paste0("figures/lengthcomp_statarea_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/lengthcomp_statarea_", YEAR, ".png"), 
        dpi=300, height=8, width=10, units="in")
 

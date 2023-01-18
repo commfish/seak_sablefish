@@ -13,8 +13,8 @@
 # relationship.
 
 #load ----
-source("r/helper.r")
-source("r/functions.r")
+source("r_helper/helper.r")
+source("r_helper/functions.r")
 if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 library("AICcmodavg")
 
@@ -29,7 +29,7 @@ YEAR <- 2021 # most recent year of data
 # 02 = invalid
 # 05 = sperm whales present (but not depredating)
 
-srv_cpue <- read_csv(paste0("data/survey/llsrv_cpue_v2_1985_", YEAR, ".csv"), 
+srv_cpue <- read_csv(paste0(YEAR+1,"/data/survey/llsrv_cpue_v2_1985_", YEAR, ".csv"), 
                      guess_max = 500000)
 
 # Checks
@@ -166,7 +166,7 @@ srv_cpue %>%
   arrange(year) -> srv_sum #; view(srv_sum)
 
 srv_sum %>% print(n = Inf)
-write_csv(srv_sum, paste0("output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
+write_csv(srv_sum, paste0(YEAR+1,"/output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
 
 # Percent change in compared to a ten year rolling average
 srv_sum %>% 
@@ -204,7 +204,7 @@ ggplot(data = srv_sum) +
             size = 8) +
   labs(x = NULL, y = "Survey CPUE (number per hook)\n") 
 
-ggsave(paste0("figures/npue_llsrv_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/npue_llsrv_", YEAR, ".png"), 
        dpi=300, height=4, width=7, units="in")
 
 ggplot() +
@@ -220,7 +220,7 @@ ggplot() +
   expand_limits(y = 0) +
   labs(x = NULL, y = "Number per standardized hook") 
 
-ggsave(paste0("figures/npue_llsrv_allspp_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/npue_llsrv_allspp_", YEAR, ".png"), 
        dpi=300, height=8, width=10, units="in")
 
 # By stat area
@@ -246,7 +246,7 @@ ggplot() +
   facet_wrap(~ Stat, scales = "free_y", ncol = 1) +
   labs(x = NULL, y = "Number per standardized hook")
 
-ggsave(paste0("figures/npue_llsrv_stat_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/npue_llsrv_stat_", YEAR, ".png"), 
        dpi=300, height=10, width=8, units="in")
 
 #=================================================================================
@@ -435,6 +435,7 @@ model.add<-function(mod,dat,colhead){  #mod<-mod.global; dat<-sable; colhead<-"g
 model.add(mod=mod.global,dat=sable,"global")
 plot(sable$cpue.global~sable$set_cpue)
 
+colnames(sable)
 head(sable)
 sable_cpue <- sable %>% 
   #filter(hook_accounting == "sablefish") %>% 
@@ -464,10 +465,10 @@ sable_cpue %>%
   arrange(year) -> sable_sum; view(sable_sum)
 
 #retrieve VAST model results for comp...
-V.base<-read.csv("VAST_out/basePlots/Index.csv")
-V.q<-read.csv("VAST_out/qPlots/Index.csv")
-V.cov<-read.csv("VAST_out/covPlots/Index.csv")
-V.qcov<-read.csv("VAST_out/qcovPlots/Index.csv")
+V.base<-read.csv(paste0(YEAR+1,"/VAST_out/basePlots/Index.csv"))
+V.q<-read.csv(paste0(YEAR+1,"/VAST_out/qPlots/Index.csv"))
+V.cov<-read.csv(paste0(YEAR+1,"/VAST_out/covPlots/Index.csv"))
+V.qcov<-read.csv(paste0(YEAR+1,"/VAST_out/qcovPlots/Index.csv"))
 
 plot(sable_sum$std_cpue ~ sable_sum$year, type="b")
 points(sable_sum$gam.cpue ~ sable_sum$year, col="forestgreen",type="b", pch=18)

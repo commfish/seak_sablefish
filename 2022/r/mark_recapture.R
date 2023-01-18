@@ -31,8 +31,8 @@
 
 # Set up ----
 
-source("r/helper.r")
-source("r/functions.r")
+source("r_helper/helper.r")
+source("r_helper/functions.r")
 if(!require("rjags"))   install.packages("rjags") # run jags/bugs models
 if(!require("purrr"))   install.packages("purrr") # clean up posterior output
 
@@ -51,19 +51,19 @@ NO_MARK_SRV <- c(2011, 2014, 2016, 2021) # years without a marking survey
 # exploitable not total abundance... some abd are from MR estimates, others are
 # from an ASA model or the YPR/SPR model (lots of overturn in biometricians.  Currently I add this value manually
 # to the .csv until I can figure out a slicker way to update it each year.
-read_csv("data/chatham_sablefish_abd_index.csv") -> assessment_summary
+read_csv(paste0(YEAR+1,"/data/chatham_sablefish_abd_index.csv")) -> assessment_summary
 view(assessment_summary)
 
 unique(assessment_summary$year)
 # Past years of mark-recapture variables, summarized to best of my ability based
 # on going through old Excel files on the server. Used for comparison purposes.
-read_csv("data/fishery/raw_data/mr_variable_summary.csv") -> mr_summary
+read_csv(paste0(YEAR+1,"/data/fishery/raw_data/mr_variable_summary.csv")) -> mr_summary
 view(mr_summary)
 # Released tags ----
 
 # Released fish. Each year has a unique batch_no.
 
-read_csv(paste0("data/survey/tag_releases_2003_", YEAR-1, ".csv"), 
+read_csv(paste0(YEAR+1,"/data/survey/tag_releases_2003_", YEAR-1, ".csv"), 
 #read_csv(paste0("data/survey/tag_releases_2003_", YEAR, ".csv"), 
          guess_max = 50000) %>% 
   filter(year >= FIRST_YEAR) -> releases
@@ -88,7 +88,7 @@ releases %>%
 # Recaptured fish. Match up to the daily tag accounting (countback) data in the
 # fishery to determine dead tags, number caught in survey, etc.
 
-read_csv(paste0("data/fishery/tag_recoveries_2003_", YEAR, ".csv"), 
+read_csv(paste0(YEAR+1,"/data/fishery/tag_recoveries_2003_", YEAR, ".csv"), 
          guess_max = 50000) -> recoveries
 unique(recoveries$tag_batch_no)
 str(recoveries)
@@ -245,7 +245,7 @@ growth %>%
   select(-tmp) -> growth
 growth
 
-write_csv(growth, paste0("output/tag_estimated_growth_PJmeth_", min(rel_sel$year), 
+write_csv(growth, paste0(YEAR+1,"/output/tag_estimated_growth_PJmeth_", min(rel_sel$year), 
                          "_", max(rel_sel$year), ".csv"))
 
 # Add growth to released fish then recalculate the bins
@@ -289,7 +289,7 @@ rel_sel %>%
         legend.title = element_blank(),
         legend.text = element_text(size = 14))
 
-ggsave(paste0("figures/rel_rec_lengthcomps_", 
+ggsave(paste0(YEAR+1,"/figures/rel_rec_lengthcomps_", 
               FIRST_YEAR, "_", YEAR, ".png"), 
        dpi=300, height=8.5, width=7.5, units="in")
 
@@ -343,7 +343,7 @@ rel_sel %>%
         legend.title = element_blank(),
         legend.text = element_text(size = 14))
   
-ggsave(paste0("figures/rel_rec_cumproplength_", 
+ggsave(paste0(YEAR+1,"/figures/rel_rec_cumproplength_", 
               FIRST_YEAR, "_", YEAR, ".png"), 
        dpi=300, height=8.5, width=7.5, units="in")
 
@@ -540,7 +540,7 @@ ggplot(move, aes(x = releases, y = recaptures)) +
 # axis. Darker shades along the diagonal represent no movement between areas,
 # darker above means movement northward, darker below means movement southward.
 
-ggsave(paste0("figures/movement_matrix_", 
+ggsave(paste0(YEAR+1,"/figures/movement_matrix_", 
               FIRST_YEAR, "_", YEAR, ".png"), 
        dpi=300, height=8.5, width=7.5, units="in")
 
@@ -557,7 +557,7 @@ ggplot(move, aes(x = releases, y = recaptures)) +
                       name = "Proportion") +
   labs(x = "\nRelease Stat Area", y = "Recapture Stat Area\n", size = "No. of\ntagged fish")
 
-ggsave(paste0("figures/movement_matrix_with_N_", 
+ggsave(paste0(YEAR+1,"/figures/movement_matrix_with_N_", 
               FIRST_YEAR, "_", YEAR, ".png"), 
        dpi=300, height=8.5, width=7.5, units="in")
 # PJ22: mixing "looks" better when we use all the data (not just scientific samplers).  Still need
@@ -571,7 +571,7 @@ ggsave(paste0("figures/movement_matrix_with_N_",
 # Prior to the 2019 assessment, it was assumed all fish on the LL survey were
 # checked for marks. Only 2008 and 2010 surveys had countbacks. See Issue #39
 # for documentation.
-srv_count <- read_csv("data/survey/nsei_sable_llsurvey_countbacks.csv")
+srv_count <- read_csv(paste0(YEAR+1,"/data/survey/nsei_sable_llsurvey_countbacks.csv"))
 
 # !!! clarify which valid mark data frame you are using, raw or binned length culling...
 tag_summary<-tag_summary_bin  #tag_summary_raw
@@ -607,7 +607,7 @@ recoveries %>% filter(Project_cde != "03") -> recoveries
 
 # 3. LL survey catch in numbers (C.1)
 
-read_csv(paste0("data/survey/llsrv_by_condition_1988_", YEAR, ".csv"), guess_max = 50000) %>% 
+read_csv(paste0(YEAR+1,"/data/survey/llsrv_by_condition_1988_", YEAR, ".csv"), guess_max = 50000) %>% 
   filter(year >= FIRST_YEAR) %>% 
   mutate(sablefish_retained = ifelse(discard_status_cde == "01", hooks_sablefish, 0)) %>% 
   group_by(year) %>% 
@@ -618,7 +618,7 @@ read_csv(paste0("data/survey/llsrv_by_condition_1988_", YEAR, ".csv"), guess_max
 view(tag_summary)
 # 4. LL survey mean weight
 
-read_csv(paste0("data/survey/llsrv_bio_1988_", YEAR,".csv"), 
+read_csv(paste0(YEAR+1,"/data/survey/llsrv_bio_1988_", YEAR,".csv"), 
          guess_max = 50000) %>% 
   filter(year >= FIRST_YEAR & !is.na(weight)) %>% 
   group_by(year) %>% 
@@ -632,7 +632,7 @@ read_csv(paste0("data/survey/llsrv_bio_1988_", YEAR,".csv"),
 # From IFDB database. These will help us check the countback daily accounting
 # sheets and also account for fishing mortality in the LL survey.
 
-read_csv(paste0("data/fishery/nseiharvest_ifdb_1985_", YEAR,".csv"), 
+read_csv(paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_1985_", YEAR,".csv"), 
          guess_max = 50000) %>% 
   filter(year >= FIRST_YEAR) %>% 
   mutate(whole_kg = whole_pounds * 0.453592,
@@ -649,7 +649,7 @@ str(fsh_tx)
 
 #PJ22!! Note that no survey in '21 so YEAR-1 below; change after next abundance estimate
 #read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv")) -> marks
-read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR-1, ".csv")) -> marks  #marks = recaps
+read_csv(paste0(YEAR+1,"/data/fishery/nsei_daily_tag_accounting_2004_", YEAR-1, ".csv")) -> marks  #marks = recaps
 view(marks)
 marks$marked
 marks$unmarked
@@ -669,7 +669,7 @@ nrow(marks)
 # 3. Fishery mean weight
 
 # Biological data to get mean weight to get numbers estimated on unobserved catch. 
-read_csv(paste0("data/fishery/fishery_bio_2000_", YEAR,".csv"), 
+read_csv(paste0(YEAR+1,"/data/fishery/fishery_bio_2000_", YEAR,".csv"), 
          guess_max = 50000) %>%
   filter(!is.na(weight)) %>% 
   mutate(date = ymd(as.Date(date, "%m/%d/%Y"))) %>% 
@@ -710,7 +710,7 @@ nrow(marks[marks$all_observed == "Yes",])
 
 # CPUE data - use nominal CPUE for now
 #read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
-read_csv(paste0("data/fishery/fishery_cpue_2022reboot_1997_", YEAR,".csv"),
+read_csv(paste0(YEAR+1,"/data/fishery/fishery_cpue_2022reboot_1997_", YEAR,".csv"),
          guess_max = 50000) %>% 
   filter(Spp_cde == "710") %>% 
   mutate(sable_kg_set = sable_lbs_set * 0.45359237, # conversion lb to kg
@@ -1478,11 +1478,11 @@ save(list = c("dic_summary", "N_summary", "convergence_summary",
               "mod1_posterior_ls", "mod2_posterior_ls", 
               "mod3_posterior_ls", "mod4_posterior_ls",
               "data_ls", "data_df"),
-     file = paste0("output/mark_recap_model_selection_", YEAR, ".Rdata"))
+     file = paste0(YEAR+1,"/output/mark_recap_model_selection_", YEAR, ".Rdata"))
 
 # Model selection ----
 
-load(paste0("output/mark_recap_model_selection_", YEAR, ".Rdata"))
+load(paste0(YEAR+1,"/output/mark_recap_model_selection_", YEAR, ".Rdata"))
 
 convergence_summary %>% 
   mutate(mod_version = paste(year, model, P, sep = "_")) %>% 
@@ -1519,7 +1519,7 @@ bind_rows(mod1_posterior_ls[[5]] %>% select(N.avg, year, model, P),
             q975 = quantile(N.avg, 0.975)) -> N_summary 
 view(N_summary)
 
-N_summary %>% filter(model == "Model1") %>% write_csv(paste0("output/N_summary_tagsremoved_", YEAR, ".csv"))
+N_summary %>% filter(model == "Model1") %>% write_csv(paste0(YEAR+1,"/output/N_summary_tagsremoved_", YEAR, ".csv"))
 
 N_summary %>% 
   mutate(mod_version = paste(year, model, P, sep = "_"),
@@ -1543,7 +1543,7 @@ tag_summary %>%
   select(year, model, P, Estimate, q975, q025) %>% 
   filter(year == YEAR) %>% 
   full_join(top_models) %>% 
-  write_csv(paste0("output/top_models_", YEAR, ".csv"))
+  write_csv(paste0(YEAR+1,"/output/top_models_", YEAR, ".csv"))
 
 # ggplot() +
 #   geom_histogram(data = N_summary %>% 
@@ -1635,7 +1635,7 @@ bind_rows(
 results <- mod1_posterior_ls[[5]]
 model_years <- unique(tag_summary$year)
 
-write_csv(results, paste0("output/final_mod_posterior_", 
+write_csv(results, paste0(YEAR+1,"/output/final_mod_posterior_", 
                           min(results$year), "_", max(results$year), ".csv"))
 
 # Credibility intervals N and p, N by time period
@@ -1686,7 +1686,7 @@ ggplot(df) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   theme(legend.position = c(.7, .9))
 
-ggsave(paste0("figures/model1_N_retro_noforec_",
+ggsave(paste0(YEAR+1,"/figures/model1_N_retro_noforec_",
               FIRST_YEAR, "_", YEAR, ".png"),
        dpi=300, height=5, width=8, units="in")
 
@@ -1698,10 +1698,10 @@ results %>%
                    sd = sd(N.avg) / 1e6,
                    q025 = quantile(N.avg, 0.025) / 1e6,
                    q975 = quantile(N.avg, 0.975) / 1e6) %>% 
-  write_csv("output/mr_index_newsrvcountbackassumptions.csv")
+  write_csv(paste0(YEAR+1,"/output/mr_index_newsrvcountbackassumptions.csv"))
 
 # Compare new and old results for survey countback assumptions 
-assumptions <- read_csv("output/mr_index_newsrvcountbackassumptions.csv") %>% 
+assumptions <- read_csv(paste0(YEAR+1,"/output/mr_index_newsrvcountbackassumptions.csv")) %>% 
   mutate(`Assumptions for survey countbacks` = "New (fish only checked for marks in 2008 and 2010)") %>% 
   bind_rows(read_csv("output/mr_index.csv") %>% 
               mutate(`Assumptions for survey countbacks` = "Old (all fish checked for marks)"))
@@ -1714,7 +1714,7 @@ ggplot(assumptions, aes(x = factor(year), y = estimate, fill = `Assumptions for 
   theme(legend.position = "top") +
   guides(fill = guide_legend(nrow = 2, byrow=TRUE))
 
-ggsave(paste0("figures/llsrv_countback_assumptions_",
+ggsave(paste0(YEAR+1,"/figures/llsrv_countback_assumptions_",
               FIRST_YEAR, "_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
 
@@ -1725,7 +1725,7 @@ results %>%
                    sd = sd(N.avg) / 1e6,
                    q025 = quantile(N.avg, 0.025) / 1e6,
                    q975 = quantile(N.avg, 0.975) / 1e6) %>% 
-  write_csv(paste0("output/mr_index_", YEAR, ".csv"))
+  write_csv(paste0(YEAR+1,"/output/mr_index_", YEAR, ".csv"))
 
 # Posterior distributions from the last several years with MR data
 results %>% 
@@ -1752,7 +1752,7 @@ results %>%
                    q975 = quantile(N.avg, 0.975))  %>% 
   left_join(assessment_summary) -> assessment_summary
 
-write_csv(assessment_summary, paste0("output/assessment_summary_", YEAR, ".csv"))
+write_csv(assessment_summary, paste0(YEAR+1,"/output/assessment_summary_", YEAR, ".csv"))
 
 results %>% 
   group_by(year) %>% 
@@ -1773,7 +1773,7 @@ tag_summary %>%
   select(Year = year, `$K$` = K, `$K_0$` = K.0, `$D_0$` = D.0, 
          `$k_{srv}$` = k.1, `$n_{srv}$` = n.1, `$D_{srv}$` = D.1,
          `$k_{fsh}$` = k_fishery, `$n_{fsh}$` = n_fishery, `$D_{fsh}$` = D_fishery) %>% 
-  write_csv(paste0("output/tag_summary_report_", YEAR, ".csv"))
+  write_csv(paste0(YEAR+1,"/output/tag_summary_report_", YEAR, ".csv"))
 
 # Examination of other models ----
 
@@ -1810,7 +1810,7 @@ ggplot(post_sums %>% filter(variable == "N.avg" #&
   scale_linetype_manual(values = 1:4, "") +
   facet_wrap(~ year, ncol = 2, dir = "v")
 
-ggsave(paste0("figures/N_scaledwithin_2005_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/N_scaledwithin_2005_", YEAR, ".png"), 
        dpi=300, height=7, width=7, units="in")
 
 # Steep decreasing trend in variability with increasing P
@@ -1826,7 +1826,7 @@ ggplot(post_sums %>% filter(variable == "N.avg")) +
   labs(x = "\nNumber of time periods",
        y = "SD of abundance scaled within models\n")
 
-ggsave(paste0("figures/Nvar_scaledwithin.png"), 
+ggsave(paste0(YEAR+1,"/figures/Nvar_scaledwithin.png"), 
        dpi=300, height=4, width=4, units="in")
 
 # Examination of abundance (scaled between models) - trends with P are similar
@@ -1847,7 +1847,7 @@ ggplot(post_sums %>% filter(variable == "N.avg")) +
   scale_color_brewer(palette = "BrBG") +
   facet_wrap(~ year, ncol = 2, dir = "v")
 
-ggsave(paste0("figures/N_scaledbtwn_2005_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/N_scaledbtwn_2005_", YEAR, ".png"), 
        dpi=300, height=7, width=7, units="in")
 
 # All models show sd of abundance decreasing with P, but between model variation
@@ -1865,7 +1865,7 @@ ggplot(post_sums %>% filter(variable == "N.avg")) +
   labs(x = "\nNumber of time periods",
        y = "SD of abundance scaled between models\n")
 
-ggsave(paste0("figures/Nvar_scaledbtwn.png"), 
+ggsave(paste0(YEAR+1,"/figures/Nvar_scaledbtwn.png"), 
        dpi=300, height=4, width=4, units="in")
 
 # Examination of migration (r) (scaled within model) - trends with P between
@@ -1986,7 +1986,7 @@ results %>%
        y = "\nPosterior distribution") +
   xlim(c(-30, 40))
 
-ggsave(paste0("figures/net_migration_estimates", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/net_migration_estimates", YEAR, ".png"), 
        dpi=300, height=8.5, width=7.5, units="in")
 
 # N thru time ----
@@ -2011,7 +2011,7 @@ post_sums %>%
         strip.text.y = element_text(size = 12),
         legend.position="none")
 
-ggsave(paste0("figures/Nest_byP_2005_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/Nest_byP_2005_", YEAR, ".png"), 
        dpi=300, height=11, width=11, units="in")
 
 # Plot catchability and obs vs. fitted NPUE
@@ -2078,10 +2078,10 @@ ggplot() +
        y = "CPUE (sablefish per 1000 hooks)\n") +
   theme(legend.position = "none")
 
-ggsave(paste0("figures/NPUE_obsvsfitted_mod3_", YEAR, ".png"),
+ggsave(paste0(YEAR+1,"/figures/NPUE_obsvsfitted_mod3_", YEAR, ".png"),
        dpi=300, height=8.5, width=7.5, units="in")
 
-ggsave(paste0("figures/NPUE_obsvsfitted_mod4_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/NPUE_obsvsfitted_mod4_", YEAR, ".png"), 
        dpi=300, height=8.5, width=7.5, units="in")
                         
 # In 2018 the models with NPUE only fit the data well when migration was included:
@@ -2133,6 +2133,6 @@ ggplot() +
        y = "CPUE (sablefish per 1000 hooks)\n") +
   theme(legend.position = "none")
 
-ggsave(paste0("figures/NPUE_mod3_vs_mod4_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/NPUE_mod3_vs_mod4_", YEAR, ".png"), 
        dpi=300, height=4, width=6, units="in")
 
