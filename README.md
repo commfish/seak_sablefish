@@ -98,14 +98,14 @@ Here is a summary of project codes in the data:
 
 ## Code
 
-The analyses underpinning the current stock assessment are found in [`r/`](https://github.com/commfish/seak_sablefish/tree/master/r) of this repository. In order to reproduce the assessment results, the scripts should be run in the following order:
+The analyses underpinning the current stock assessment are found in the folder labelled with the most recent year.  Typically the assessment occurs between January and April and thus the most recent year will contain code and work that is in progress.  The helper and function files are contained in their own folder [`r_helper/`](https://github.com/commfish/seak_sablefish/tree/master/r_helper).  The rest of the scripts necessary to run the assessment are contained in the appropriate year folder, as well as the legacy folder, and are described below.  The scripts should be run in the order listed.  
 
 ![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/steps_to_run_assessment.jpg)
 
 **Description of R scripts:**  
-1.  [`r/helper.r`](https://github.com/commfish/seak_sablefish/blob/master/r/helper.R): Sourced by most other R scripts in this project, includes libraries/dependecies and ggplot themes;
-2.  [`r/functions.r`](https://github.com/commfish/seak_sablefish/blob/master/r/functions.R):  Sourced by most other R scripts in this project, includes user-defined functions; 
-3.  [`r/0_querynclean_data.r`](https://github.com/commfish/seak_sablefish/blob/master/r/0_querynclean_data.R): Descriptions of the data, `SQL` queries, and subsequent manipulations to clean raw data;
+1.  [`r_helper/helper.r`](https://github.com/commfish/seak_sablefish/blob/master/r_helper/helper.R): Sourced by most other R scripts in this project, includes libraries/dependecies and ggplot themes;
+2.  [`r_helper/functions.r`](https://github.com/commfish/seak_sablefish/blob/master/r_helper/functions.R):  Sourced by most other R scripts in this project, includes user-defined functions; 
+3.  `r/0_querynclean_data.r`: Descriptions of the data, `SQL` queries, and subsequent manipulations to clean raw data;
 4.  [`llsurvey_cpue.r`](https://github.com/commfish/seak_sablefish/blob/master/r/llsurvey_cpue.R): ADFG longline survey CPUE analysis and a preliminary steps towards a CPUE standardization;
 5.  [`fishery_catch_cpue.r`](https://github.com/commfish/seak_sablefish/blob/master/r/fishery_catch_cpue.R): summarize harvest (1985-present) and fishery CPUE and a preliminary CPUE standardization anaylsis using a generalized additive model;
 6.  [`biological.r`](https://github.com/commfish/seak_sablefish/blob/master/r/biological.R): analysis of fishery and longline survey data, including modeling of growth, length-weight allometry, maturity, and sex ratios, as well as compilation of age and length compositions for stock assessment;
