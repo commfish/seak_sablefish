@@ -33,7 +33,7 @@
 # catch - varies between whole_pounds or whole_kg depending on what its being used for
 
 # most recent year of data
-YEAR <- 2021
+YEAR <- 2022
 
 # Load ----
 source("r_helper/helper.r")
@@ -69,7 +69,7 @@ read_csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
          Harvest_cde = as.character(Harvest_cde)) -> ifdb_catch
 }
 #PHIL's CODE 2021
-Dat<-read.csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
+Dat<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/nseiharvest_ifdb_",
                      YEAR, ".csv"))
 ifdb_catch<-Dat %>% 
   mutate(date = ymd(parse_date_time(CATCH_DATE, c("%Y-%m-%d %H:%M:%S"))), #ISO 8601 format
@@ -86,7 +86,7 @@ ifdb_catch<-Dat %>%
 
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
-read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"),
+read_csv(paste0("legacy_data/data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"),
          guess_max = 50000) -> past_catch
 #PJ patch2021
 ifdb_catch$Adfg<-as.character(ifdb_catch$Adfg)
@@ -95,12 +95,18 @@ ifdb_catch$Delivery_cde<-as.character(ifdb_catch$Delivery_cde)
 bind_rows(past_catch, ifdb_catch) -> ifdb_catch
 unique(ifdb_catch$year)
 #save full '69 through this year for SCAA
-write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
+write_csv(ifdb_catch, paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_",
+                             min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
+
+write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
                              min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
 
 # only use this for year >= 1985 (see fishery_catch_cpue.R for more documentation)
 ifdb_catch <- ifdb_catch %>% filter(year >= 1985)
-write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
+write_csv(ifdb_catch, paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_",
+                             min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
+
+write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
                              min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
 
 #======================================================================================
@@ -133,7 +139,7 @@ write_csv(ifdb_catch, paste0("data/fishery/nseiharvest_ifdb_",
 # information on sets designated as halibut targets. Note that it is missing
 # effort_no's (effort_no's = individual sets).
 
-#A) This code is for adding both 2020 and 20201 data at once since 2020 was skipped last year
+#A) This code is for adding both 2020 and 2021 data at once since 2020 was skipped last year
 rbind(read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
                           #                 max(fsh_eff$YEAR), ".csv"), 
                           YEAR-1, ".csv"), 
@@ -161,7 +167,7 @@ rbind(read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
 
 #code for adding just one year.  Use in '23 for '22 analysis (hopefully)
 {
- read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
+ read_csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_cpue_",
 #                 max(fsh_eff$YEAR), ".csv"), 
                  YEAR, ".csv"), 
           guess_max = 50000) %>% 
@@ -186,7 +192,7 @@ unique(fsh_eff$year)
 # # Data quieried before (that way you're using the same data that was used for
 # # the assessment, starting in 2017)
 # read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR-1, ".csv"), 
- read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR-2, ".csv"), 
+ read_csv(paste0("legacy_data/data/fishery/fishery_cpue_1997_", YEAR-2, ".csv"), 
           guess_max = 50000) %>% 
    mutate(Size = as.character(Size)) -> past_fsh_eff
  
@@ -194,14 +200,16 @@ unique(fsh_eff$year)
  
  unique(fsh_eff$year)
  
- write_csv(fsh_eff, paste0("data/fishery/fishery_cpue_",
+ write_csv(fsh_eff, paste0(YEAR+1,"/data/fishery/fishery_cpue_",
                     min(fsh_eff$year), "_", max(fsh_eff$year), ".csv"))
  
- #2b) Justin Daily ran new script on corrected logbook reentries for all data back through
- # 1997.  Here is that data for fishery CPUE... PJ checking it out February 2022
- # if looks good this will become historical data and we will bypass old data set titled
- # fishery_cpue_1997_2019.  Lets see!... 
- read_csv(paste0("data/fishery/raw_data/fishery_cpue_1997_2021_update2022.csv"), 
+#2b) Justin Daily ran new script on corrected logbook reentries for all data back through
+# 1997.  Here is that data for fishery CPUE... PJ checking it out February 2022
+# if looks good this will become historical data and we will bypass old data set titled
+# fishery_cpue_1997_2019.  Lets see!... 
+ 
+ #2022 reboot done in 2022 and all data 1997-2021; in legacy_data folder
+ read_csv(paste0("legacy_data/data/fishery/raw_data/fishery_cpue_1997_2021_update2022.csv"), 
                 guess_max = 50000) %>% 
    #   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
    #   # hooks and cpue
@@ -223,13 +231,28 @@ unique(fsh_eff$year)
           sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
           start_lon = START_LONGITUDE_DECIMAL_DEGREE, target = SET_TARGET) -> fsh_eff_new22
  #note some of the dat time stuff will have warnings because of incomplete data
- # will have to deal with NA's in anaysis
+ # will have to deal with NA's in analysis
  
- #in 2023, will need to get new query for '22 data and then add it to the data described
+ #*** !!! in 2023, will need to get new query for '22 data and then add it to the data described
  # by fsh_eff_new22
-
- write_csv(fsh_eff_new22, paste0("data/fishery/fishery_cpue_2022reboot_",
-                           min(fsh_eff_new22$year), "_", max(fsh_eff_new22$year), ".csv"))
+ 
+ #Get new data from "this" and add
+ read.csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_CPUE_", YEAR, ".csv")) -> new_fish_cpue
+ 
+ #bind the old and new... 
+ bind_rows(fsh_eff_new22, new_fish_cpue) -> fsh_eff_thru_now
+ 
+ #save for 2023 assessment...
+ write_csv(fsh_eff_new22, paste0(YEAR+1,"/data/fishery/fishery_cpue_2022reboot_",
+                           min(fsh_eff_thru_now$year), "_", max(fsh_eff_thru_now$year), ".csv"))
+ 
+ #save for legacy for 2024 and forward
+ write_csv(fsh_eff_new22, paste0("legacy_data/data/fishery/fishery_cpue_2022reboot_",
+                                 min(fsh_eff_thru_now$year), "_", max(fsh_eff_thru_now$year), ".csv"))
+ 
+ #!!!*** In 2024 you will need to retrieve fishery_cpue_2022reboot_1997_2022.csv from legacy_data folder
+ # add 2023 to it and save.  You will not have to run code line 143-223 and should be able to start with line 240
+ # fingers crossed!! 
  
  unique(fsh_eff_new22$target)
  #=====================================================================================
@@ -267,7 +290,7 @@ read_csv(paste0("data/fishery/raw_data/fishery_bio_",
 }
 #PHIL's code:
 ##also stupid dates... had to go about it a bit different;y
-read_csv(paste0("data/fishery/raw_data/fishery_bio_", 
+read_csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_bio_", 
                 YEAR, ".csv"), 
          guess_max = 50000) %>% 
   mutate(date = as.Date(format(parse_date_time(SELL_DATE, c("%m/%d/%Y %H:%M")),"%Y-%m-%d")), #ISO 8601 format
@@ -280,7 +303,7 @@ read_csv(paste0("data/fishery/raw_data/fishery_bio_",
                                   .default = NA),
          PROJECT_CODE = "02",   #new format has code as 602, but older data and legacy code ref's 02, so change here from
                                 #2022 onward
-         Gear = derivedFactor(#"Pot" = PROJECT_CODE == "17",
+         Gear = derivedFactor(#"Pot" = PROJECT_CODE == "17", !!!***!!! <-add in in 2023 because now have pot gear out there!!! 
                               "Longline" = PROJECT_CODE == "02")) %>%  #, Should be 02 for Longline, 602 is for the survey
   select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, 
          Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
@@ -300,13 +323,15 @@ fsh_bio$Project_cde<-as.character(fsh_bio$Project_cde)
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017). This was updated again in 2019 due to the
 # age readability code issue.
-read_csv(paste0("data/fishery/fishery_bio_2000_", YEAR-1, ".csv"), 
+read_csv(paste0("legacy_data/data/fishery/fishery_bio_2000_", YEAR-1, ".csv"), 
          guess_max = 50000) %>% 
   mutate(Maturity = as.character(Maturity)) -> past_fsh_bio
 
 bind_rows(past_fsh_bio, fsh_bio) -> fsh_bio
 
-write_csv(fsh_bio, paste0("data/fishery/fishery_bio_", 
+write_csv(fsh_bio, paste0(YEAR+1,"/data/fishery/fishery_bio_", 
+                          min(fsh_bio$year), "_", max(fsh_bio$year), ".csv"))
+write_csv(fsh_bio, paste0("legacy_data/data/fishery/fishery_bio_", 
                           min(fsh_bio$year), "_", max(fsh_bio$year), ".csv"))
 
 #======================================================================================
@@ -367,7 +392,7 @@ read_csv(paste0("data/survey/raw_data/llsrv_cpue_v2_1985_",
          longnose_skate = SKATE_LONGNOSE, big_skate = SKATE_BIG, sleeper_shark = SLEEPER_SHARK) -> srv_eff
 }
 #PHIL's 2021 CODE
-read_csv(paste0("data/survey/raw_data/llsrv_cpue_v2_1985_",
+read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_cpue_v2_1985_",
                 YEAR, ".csv"), 
          guess_max = 50000) %>% 
   filter(YEAR <= YEAR) %>%
@@ -392,8 +417,11 @@ read_csv(paste0("data/survey/raw_data/llsrv_cpue_v2_1985_",
          shortraker = SHORTRAKER, rougheye = ROUGHEYE, skate_general = SKATE_GENERAL,
          longnose_skate = SKATE_LONGNOSE, big_skate = SKATE_BIG, sleeper_shark = SLEEPER_SHARK) -> srv_eff
 
-write_csv(srv_eff, paste0("data/survey/llsrv_cpue_v2_", min(srv_eff$year), "_",
+write_csv(srv_eff, paste0(YEAR+1,"/data/survey/llsrv_cpue_v2_", min(srv_eff$year), "_",
                           max(srv_eff$year), ".csv"))
+#write_csv(srv_eff, paste0("legacy_data/data/survey/llsrv_cpue_v2_", min(srv_eff$year), "_",
+#                          max(srv_eff$year), ".csv"))
+write_csv(srv_eff, paste0("legacy_data/data/survey/llsrv_cpue_v2_thru_latest.csv"))
 
 #=======================================================================================
 # 5. Longline survey catch ----
@@ -405,7 +433,7 @@ write_csv(srv_eff, paste0("data/survey/llsrv_cpue_v2_", min(srv_eff$year), "_",
 # survey.
 
 #JANE's 2020 with PHIL's 2021 MODCODE
-read_csv(paste0("data/survey/raw_data/llsrv_by_condition_1988_", YEAR, ".csv"), 
+read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_by_condition_1988_", YEAR, ".csv"), 
          guess_max = 50000) %>% 
   filter(YEAR <= YEAR) %>%
   mutate(date = as.Date(format(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d")),
@@ -418,8 +446,9 @@ read_csv(paste0("data/survey/raw_data/llsrv_by_condition_1988_", YEAR, ".csv"),
          hooks_bait = BAIT, hook_invalid = INVALID, hooks_sablefish = NUMBERS,
          discard_status_cde = DISCARD_STATUS_CODE, discard_status = DISCARD_STATUS) -> srv_eff
 
-write_csv(srv_eff, paste0("data/survey/llsrv_by_condition_",
+write_csv(srv_eff, paste0(YEAR+1,"/data/survey/llsrv_by_condition_",
                           min(srv_eff$year), "_", YEAR, ".csv"))
+write_csv(srv_eff, paste0(YEAR+1,"/data/survey/llsrv_by_condition_thru_latest.csv"))
 
 #==============================================================================================
 # 6. Longline survey biological ----
@@ -434,7 +463,7 @@ write_csv(srv_eff, paste0("data/survey/llsrv_by_condition_",
 # description above). Repulled all data in 2019 to strip out age readability
 # codes > 3.
 
-read_csv(paste0("data/survey/raw_data/llsrv_bio_", 
+read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_bio_", 
                 YEAR, ".csv"), 
          guess_max = 50000) %>% 
   mutate(date = date(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%Y-%m-%d %H:%M:%S"))), #ISO 8601 format
@@ -455,13 +484,15 @@ read_csv(paste0("data/survey/raw_data/llsrv_bio_",
          age_readability = AGE_READABILITY_CODE, otolith_condition = OTOLITH_CONDITION_CODE )  %>% 
   filter(Mgmt_area == 'NSEI') -> srv_bio
 
-read_csv(paste0("data/survey/llsrv_bio_1988_", YEAR-1, ".csv"), 
+read_csv(paste0("legacy_data/data/survey/llsrv_bio_1988_", YEAR-1, ".csv"), 
          guess_max = 50000) %>% 
   mutate(Maturity = as.character(Maturity)) -> past_srv_bio
 
 bind_rows(past_srv_bio, srv_bio) -> srv_bio
 
-write_csv(srv_bio, paste0("data/survey/llsrv_bio_",
+write_csv(srv_bio, paste0(YEAR+1,"/data/survey/llsrv_bio_",
+                          min(srv_bio$year), "_", max(srv_bio$year), ".csv"))
+write_csv(srv_bio, paste0("legacy_data/data/survey/llsrv_bio_",
                           min(srv_bio$year), "_", max(srv_bio$year), ".csv"))
 
 #================================================================================================
@@ -494,7 +525,7 @@ write_csv(srv_bio, paste0("data/survey/llsrv_bio_",
 #can skip whole section in 22 analysis of 21 data since 21 analysis of 20 data has everything processed
 #already in file: potsrv_bio_1981_2020
 {
-read_csv(paste0("data/survey/raw_data/potsrv_bio_", YEAR, ".csv"), 
+read_csv(paste0(YEAR+1,"/data/survey/raw_data/potsrv_bio_", YEAR, ".csv"), 
          guess_max = 50000) %>% #filter(!is.na(TIME_FIRST_BUOY_ONBOARD)) %>% pull(TIME_FIRST_BUOY_ONBOARD)
   mutate(date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
          julian_day = yday(date),
@@ -515,7 +546,7 @@ read_csv(paste0("data/survey/raw_data/potsrv_bio_", YEAR, ".csv"),
 
 
 #PJ NOTE: Date column corrupted.  Not used in analysis and just need year? 
-read_csv(paste0("data/survey/potsrv_bio_1981_", YEAR-1, ".csv"), 
+read_csv(paste0("legacy_data/data/survey/potsrv_bio_1981_", YEAR-1, ".csv"), 
          guess_max = 50000) %>% 
   mutate(Maturity = as.character(Maturity)) -> past_pot_bio
 
@@ -525,7 +556,9 @@ bind_rows(past_pot_bio, pot_bio) -> pot_bio   #no new data in 21 so skipped in 2
 # that aren't 01, 02, or 03 (same as llsrv and llfsh 20200124 #33)
 filter(pot_bio, is.na(age_readability) | age_readability %in% c('01', '02', '03')) -> pot_bio
 
-write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
+write_csv(pot_bio, paste0(YEAR+1,"/data/survey/potsrv_bio_",
+                          min(pot_bio$year), "_", max(pot_bio$year), ".csv"))
+write_csv(pot_bio, paste0("legacy_data/data/survey/potsrv_bio_",
                           min(pot_bio$year), "_", max(pot_bio$year), ".csv"))
 }
 
@@ -547,7 +580,7 @@ write_csv(pot_bio, paste0("data/survey/potsrv_bio_",
 #PJ: no new tag releases in 2021 so this step skipped in '22 analysis (thru '21 data)
 # open this up in 23 when new 22 data entered ... 
 {
-read_csv(paste0("data/survey/raw_data/tag_releases_",
+read_csv(paste0(YEAR+1,"/data/survey/raw_data/tag_releases_",
                        YEAR, ".csv"), 
          guess_max = 50000) %>% #pull(TIME_SECOND_ANCHOR_OVERBOARD)
  # may need to manually change date type in Excel depending on how it gets
@@ -562,17 +595,19 @@ read_csv(paste0("data/survey/raw_data/tag_releases_",
 }
 # Data queried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
-read_csv(paste0("data/survey/tag_releases_2003_", YEAR-1, ".csv"), 
+read_csv(paste0("legacy_data/data/survey/tag_releases_2003_", YEAR-1, ".csv"), 
          guess_max = 50000) -> past_releases
 #for 2022 analysis
 {
 bind_rows(past_releases, tag_releases) -> tag_releases
 
-write_csv(tag_releases, paste0("data/survey/tag_releases_",
+write_csv(tag_releases, paste0(YEAR+1,"/data/survey/tag_releases_",
+                               min(tag_releases$year), "_", max(tag_releases$year), ".csv"))
+write_csv(tag_releases, paste0("legacy_data/data/survey/tag_releases_",
                                min(tag_releases$year), "_", max(tag_releases$year), ".csv"))
 }
 #this line just for 22 analysis bc no new 21 data
-tag_releases<-past_releases
+#tag_releases<-past_releases
 
 # Exploratory total number of marks
 tag_releases %>% group_by(year, tag_batch_no) %>% dplyr::summarise(n_distinct(tag_no))
@@ -609,7 +644,7 @@ read_csv(paste0("data/fishery/raw_data/tag_recoveries_",
          comments = COMMENTS) -> tag_recoveries
 }
 #PHIL's 2022 CODE
-Dat<-read.csv(paste0("data/fishery/raw_data/tag_recoveries_",
+Dat<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/tag_recoveries_",
                      YEAR, ".csv"))
 tag_recoveries<-Dat %>%   
   mutate(landing_date = as.Date(format(parse_date_time(LANDING_DATE, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d")),
@@ -626,13 +661,15 @@ tag_recoveries$Project_cde<-as.character(tag_recoveries$Project_cde)
 
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
-read_csv(paste0("data/fishery/tag_recoveries_2003_", YEAR-1, ".csv"), 
+read_csv(paste0("legacy_data/data/fishery/tag_recoveries_2003_", YEAR-1, ".csv"), 
          guess_max = 50000) -> past_recoveries
 
 bind_rows(past_recoveries, tag_recoveries) -> tag_recoveries
 
-write_csv(tag_recoveries, paste0("data/fishery/tag_recoveries_",
+write_csv(tag_recoveries, paste0(YEAR+1,"/data/fishery/tag_recoveries_",
                                min(tag_recoveries$year), "_", max(tag_recoveries$year), ".csv"))
+write_csv(tag_recoveries, paste0("legacy_data/data/fishery/tag_recoveries_",
+                                 min(tag_recoveries$year), "_", max(tag_recoveries$year), ".csv"))
 
 tag_recoveries %>% 
   group_by(year, info_source) %>% 
@@ -667,10 +704,10 @@ tag_recoveries %>%
 # to 1997.
 
 # Now that these data are finalized, add on each year:
-# PJ22: no countbacks in 2021... need tocheck on this -pj22
-#not important for 2021 bc there was no marking survye
+# PJ22: no countbacks in 2021... need to check on this -pj22
+# not important for 2021 bc there was no marking survye
 # however, if open model is attempted this will be needed - pj22
-read_csv(paste0("data/fishery/raw_data/nsei_daily_tag_accounting_", YEAR, ".csv"),
+read_csv(paste0(YEAR+1,"/data/fishery/raw_data/nsei_daily_tag_accounting_", YEAR, ".csv"),
          guess_max = 50000) %>% 
     mutate(date = as.Date(date, "%m/%d/%Y"),
            year = year(date),
@@ -678,12 +715,13 @@ read_csv(paste0("data/fishery/raw_data/nsei_daily_tag_accounting_", YEAR, ".csv"
            total_obs = unmarked + marked,
            whole_kg = round_lbs * 0.453592) -> counts
 
-read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR-1, ".csv"),
+read_csv(paste0("legacy_data/data/fishery/nsei_daily_tag_accounting_2004_", YEAR-1, ".csv"),
          guess_max = 50000) -> past_counts
 
 bind_rows(counts, past_counts) -> counts
 
-write_csv(counts, paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
+write_csv(counts, paste0(YEAR+1,"/data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
+write_csv(counts, paste0("legacy_data/data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
 
 # Historical tagging ----
 

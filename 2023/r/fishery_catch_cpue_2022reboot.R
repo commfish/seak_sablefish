@@ -212,6 +212,7 @@ read_csv(paste0(YEAR+1,"/data/fishery/fishery_cpue_2022reboot_1997_", YEAR,".csv
     # Total unique trips per year
     total_trips = n_distinct(trip_no)) %>% 
   ungroup() -> fsh_cpue
+
 nrow(fsh_cpue)
 unique(fsh_cpue$target) #checking that these are sablefish targetting trips (710)
 # Consolidation of fishery - number of vessels fishing and total number of trips

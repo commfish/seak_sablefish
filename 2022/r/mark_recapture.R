@@ -1080,7 +1080,7 @@ for(j in 1:strats) {
   # Will look for a more efficient way to do this next year - maybe start here:
   # https://stackoverflow.com/questions/31561238/lapply-function-loops-on-list-of-lists-r
   
-  for(i in 1:length(model_years)){
+  for(i in 1:length(model_years)){  #i<-1
     
     sub <- jags_dat %>% filter(year == model_years[i])
     

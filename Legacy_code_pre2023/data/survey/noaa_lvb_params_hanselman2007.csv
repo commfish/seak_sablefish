@@ -1,0 +1,35 @@
+Survey,Years,Region,Function,Sex,Parameter,Estimate,SE,n,Source
+NOAA Longline,1981-1993,Coastwide,Length-based LVB,Male,l_inf,65.269,0.341,30,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1981-1993,Coastwide,Length-based LVB,Male,k,0.227,0.029,30,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1981-1993,Coastwide,Length-based LVB,Male,t0,-4.092,0.936,30,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Length-based LVB,Male,l_inf,67.774,0.127,4889,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Length-based LVB,Male,k,0.29,0.009,4889,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Length-based LVB,Male,t0,-2.273,0.171,4889,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1981-1993,Coastwide,Length-based LVB,Female,l_inf,75.568,0.46,31,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1981-1993,Coastwide,Length-based LVB,Female,k,0.208,0.018,31,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1981-1993,Coastwide,Length-based LVB,Female,t0,-3.629,0.523,31,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Length-based LVB,Female,l_inf,80.22,0.221,5767,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Length-based LVB,Female,k,0.222,0.005,5767,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Length-based LVB,Female,t0,-1.949,0.119,5767,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,Male,l_inf,70.818,,,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,Male,k,0.097,,,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,Male,t0,11.369,,,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,Male,l_inf,68.343,,605,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,Male,k,0.307,,605,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,Male,t0,-1.714,,605,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,Female,l_inf,78.854,,,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,Female,k,0.153,,,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,Female,t0,-5.348,,,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,Female,l_inf,80.919,,515,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,Female,k,0.268,,515,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,Female,t0,-0.854,,515,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Allometric,Male,a,1.24E-05,,4889,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Allometric,Male,b,2.96,,4889,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Allometric,Female,a,1.01E-05,,5767,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Allometric,Female,b,3.015,,5767,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Weight-based LVB,Male,w_inf,3.162,,4889,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Weight-based LVB,Male,k,0.356,,4889,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Weight-based LVB,Male,t0,-1.129,,4889,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Weight-based LVB,Female,w_inf,5.471,,5767,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Weight-based LVB,Female,k,0.238,,5767,Hanselman et al. 2007 Appendix 3C 
+NOAA Longline,1996-2004,Coastwide,Weight-based LVB,Female,t0,-1.387,,5767,Hanselman et al. 2007 Appendix 3C 

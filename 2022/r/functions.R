@@ -294,7 +294,7 @@ coda_df <- function(coda.object, parameters = NULL) {
 # distributions, deviance information criterion, and convergence diagnostics all
 # in one
 
-mr_jags <- function(
+mr_jags <- function(  #i<-1
   mod, # model formula (as a character string)
   mod_name, # what you want to name your model, keep them straight during model selection
   model_dat, # list of lists of model data 
@@ -313,10 +313,11 @@ mr_jags <- function(
     
     dat <- model_dat[[i]]
     
-    cat(mod, file = paste0(mod_name, "_", model_years[i], ".jag"))
-    
+    #cat(mod, file = paste0(mod_name, "_", model_years[i], ".jag"))
+    cat(mod, file = paste0(YEAR+1,"/mr_jagsout/",mod_name, "_", model_years[i], ".jag"))
     # initialize and run model
-    mod_init <- jags.model(paste0(mod_name, "_", model_years[i], ".jag"),
+    mod_init <- jags.model(paste0(YEAR+1,"/mr_jagsout/",mod_name, "_", model_years[i], ".jag"),
+    #mod_init <- jags.model(paste0(mod_name, "_", model_years[i], ".jag"),
                       data = dat,
                       n.chains = mchains,
                       # init = tst_inits,
