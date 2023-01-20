@@ -134,12 +134,13 @@ for (i in ys){
 }
 #===============================================================
 #2) Fishery cpue ----
-f21<-read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
+YEAR<-2021
+f21<-read_csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_cpue_",
                 #                 max(fsh_eff$YEAR), ".csv"), 
                 YEAR, ".csv"), 
          guess_max = 50000)
 
-f20<-read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
+f20<-read_csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_cpue_",
                 #                 max(fsh_eff$YEAR), ".csv"), 
                 YEAR-1, ".csv"), 
          guess_max = 50000)
