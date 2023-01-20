@@ -52,7 +52,7 @@ unique(com19$comments)
 #========================================================================
 #Line 836 is where daily_marks are figured out by extrapolating from landed biomass
 # here is code to do so just using accurate countback data
-# !! note - will still need Jane's code to account for tags beging removed
+# !! note - will still need Jane's code to account for tags being removed
 #play code looking at one day
 days<-unique(marks20$date)
 
@@ -407,7 +407,7 @@ ggplot(daily_marks,
 # will be inserted in here eventually... PJ March 22
 # Good code below for dealing with length/size bias
 # Still developing spatial exam - not sure how to Darroch this...
-# But code set up for temporal vairability already. (may provide structure for spatial question?)  
+# But code set up for temporal variability already. (may provide structure for spatial question?)  
 #===============================================================================================================
 #model prep
 
@@ -673,7 +673,7 @@ K[1] <- (K.0 - D.0) * exp(-M * t[1]) # number of marks at beginning of period 1 
 # D = Number of tags lost to fishery or longline survey
 # M = natural mortality (daily instantaneous mortality)
 
-for(i in 2:P) {    #for each period... calculates abundance
+for(i in 2:P) {    #for each fishing period, P, ... calculates abundance
                    #then mean N at end
                    #should be able to add extra loops for size strata
                    #and spatial strata.

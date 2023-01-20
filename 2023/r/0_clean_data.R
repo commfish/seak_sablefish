@@ -236,7 +236,7 @@ unique(fsh_eff$year)
  #*** !!! in 2023, will need to get new query for '22 data and then add it to the data described
  # by fsh_eff_new22
  
- #Get new data from "this" and add
+ #Get new data from "this" year and add
  read.csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_CPUE_", YEAR, ".csv")) -> new_fish_cpue
  
  #bind the old and new... 
