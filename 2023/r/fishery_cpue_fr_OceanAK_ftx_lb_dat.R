@@ -1,13 +1,13 @@
 # 2. Fishery cpue ---- 2023
 
-# This script will replace past (2022 and earlier) CPUE calculation that relied
-# on a long sql script that was not documented in written format.  When Rhea and 
-# staff reworked the logbook data that script became even more problematic and 
-# required programmer Justin Daily to run the scripts on the revamped logbook
-# data.  Rather than continue this undocumented and "black box" calculation of
-# CPUE this script will utilize data pulled directly from OceanAK.  
+# This script will replace past (2022 and earlier) CPUE calculations that relied
+# on a long and mysterious sql script that was not documented in written format.  
+# When Rhea and staff reworked the logbook data that script became even more 
+# problematic and required programmer Justin Daily to run the scripts on the 
+# revamped logbook data.  Rather than continue this undocumented and "black box" 
+# calculation of CPUE this script will utilize data pulled directly from OceanAK.  
 
-#-----HISTORY------------------------------------------------------------------
+#-----Pre-2023-HISTORY------------------------------------------------------------------
 # HISTORY details from Jane Sullivan's original 2021 analysis:
 # from JANE SULLIVAN in 2021 Current documentation: In 2020, Rhea Ehresmann 
 # and GF project staff worked
@@ -95,6 +95,443 @@ ll_lb<-ll_lb %>%
          HOOKS_PER_SKATE_2 = NA, NUMBER_OF_SKATES_2 = NA, NUMBER_OF_HOOKS_2 = NA)
 
 # 1) Split up ll_lb$Config.List into Target Species, Hook Size,Spacing, Hooks/Skate, Num Skates, Spacing
+# The column Config.List has all the information on hook size, spacing, # of skates
+# etc.  All in one clunky, inconsistent column.  A better coder could likey use 
+# dplyr::pivot_whatever to get this split out.  But not being a better coder
+# I would up witing a loop that takes the data frame apart line by line to separate
+# out all the data in that column.  It takes a couple of minutes to run (embarrassing) 
+# but that's what I have for now.  The loop is at least annotated and recorded now... 
+
+#Prep ll_lb to rip apart the Config.List column
+{n_col<-max(stringr::str_count(ll_lb$Config.List, ","))+1      #Config.List replaced Shit from development code
+n_precol<-max(stringr::str_count(ll_lb$Config.List, "---"))+1
+
+ll_lb %>% separate(Config.List, into = paste0("precol",1:n_precol),sep = "---") -> ll_lb #prestep
+n_col1<-max(stringr::str_count(ll_lb$precol1, ":"))+1
+n_col2<-max(stringr::str_count(ll_lb$precol2[!is.na(ll_lb$precol2)], ":"))+1
+
+ll_lb %>% mutate(junk1 = gsub(")","",sub(".","",precol1))) %>%   #junk1 and junk2
+  mutate(junk2 = gsub(")","",sub(".","",precol2))) %>%
+  mutate(junk2 = sub(".","",junk2)) %>%
+  select(-precol1, -precol2) -> ll_lb #prestep
+
+junk1cols<-max(stringr::str_count(ll_lb$junk1, ":"), na.rm=T)+1
+junk2cols<-max(stringr::str_count(ll_lb$junk2, ":"), na.rm=T)+1
+ 
+ll_lb %>%        
+  separate(junk1, into = paste0("col", 1:(junk1cols)),sep = ",") %>%
+  separate(junk2, into = paste0("col", (1+junk1cols):(1+junk1cols+junk2cols)),sep = ",") -> ll_lb}
+
+# This loop will pull apart the Config.List column and break it up into the different
+# pieces of longline gear info... 
+for (i in 1:nrow(ll_lb)) {  #i<-21
+  #1st Config list
+  vals<-vector()
+  #need to identify when it switches to second set of set configuration...???
+  #da<-Step0[i,]
+  da<-select(ll_lb[i,],contains("col"))
+  cats<-sub("(.*?)[\\.|:].*", "\\1", da)
+  targ_refs<-which(cats=="Target Species")  #column numbers 
+  
+  if (length(targ_refs) > 1) {
+    second.config <- targ_refs[2]
+  } else {
+    second.config <- length(cats[!is.na(cats)])+1
+  }
+  
+  #1st Gear Configuration Breakdown
+  for (j in 1:(second.config-1)){   #j<-3
+    val<-ll_lb[i,which(colnames(ll_lb)==paste0("col",j))]
+    vals[j]<-val
+    #val reference if it's just a number so we know where to add it... 
+    if (!is.na(as.numeric(val))) {
+      if (is.na(as.numeric(vals[j-1]))) {
+        ref<-sub("(.*?)[\\.|:].*", "\\1", vals[j-1])
+      } else {ref<-sub("(.*?)[\\.|:].*", "\\1", vals[j-2])}
+      
+    } else {ref<-NA}
+    
+    #Target
+    if (grepl("Target Species",val) & !is.na(val)) {
+      ll_lb[i,"CONFIG_TARGET_SP_CODE"] = as.numeric(gsub("[^0-9]","",val))
+    } else {}
+    
+    #Hook Size 
+    if (grepl("Hook Size",val) & !is.na(val)) {
+      ll_lb[i,"HOOK_SIZE"] = as.numeric(gsub("[^0-9]","",val))
+    } else {
+      if(!is.na(as.numeric(val)) & grepl("Hook Size",ref)) {
+        ll_lb[i,"HOOK_SIZE"] = paste0(ll_lb[i,"HOOK_SIZE"],",",val)
+      } else {}
+    }
+    
+    # Spacing
+    if (grepl("Spacing",val) & !is.na(val)) {
+      ll_lb[i,"HOOK_SPACING"] = as.numeric(gsub("[^0-9]","",val))
+    } else {
+      if(!is.na(as.numeric(val)) & grepl("Spacing",ref)) {
+        ll_lb[i,"HOOK_SPACING"] = paste0(ll_lb[i,"HOOK_SPACING"],",",val)
+      } else {}
+    }  
+    
+    #Hooks per skate
+    if (grepl("Hooks/Skate",val) & !is.na(val)) {
+      ll_lb[i,"HOOKS_PER_SKATE"] = as.numeric(gsub("[^0-9]","",val))
+    } else {
+      if(!is.na(as.numeric(val)) & grepl("Hooks/Skate",ref)) {
+        ll_lb[i,"HOOKS_PER_SKATE"] = paste0(ll_lb[i,"HOOKS_PER_SKATE"],",",val)
+      } else {}
+    } 
+    
+    #number of hooks
+    if (grepl("Num Hooks",val) & !is.na(val)) {
+      ll_lb[i,"NUMBER_OF_HOOKS"] = as.numeric(gsub("[^0-9]","",val))
+    } else {
+      if(!is.na(as.numeric(val)) & grepl("Num Skates",ref)) {
+        ll_lb[i,"NUMBER_OF_HOOKS"] = paste0(ll_lb[i,"NUMBER_OF_HOOKS"],",",val)
+      } else {}
+    }  
+    
+    #number of skates
+    if (grepl("Num Skates",val) & !is.na(val)) {
+      ll_lb[i,"NUMBER_OF_SKATES"] = as.numeric(gsub("[^0-9]","",val))
+    } else {
+      if(!is.na(as.numeric(val)) & grepl("Num Skates",ref)) {
+        ll_lb[i,"NUMBER_OF_SKATES"] = paste0(ll_lb[i,"NUMBER_OF_SKATES"],",",val)
+      } else {}
+    }   
+  }
+  
+  #2nd Gear Configuration list
+  if (length(targ_refs) > 1) {
+    for (j in second.config:(length(cats))){   #j<-1
+      val<-ll_lb[i,which(colnames(ll_lb)==paste0("col",j))]
+      vals[j]<-val
+      
+      if (!is.na(as.numeric(val))) {
+        if (is.na(as.numeric(vals[j-1]))) {
+          ref<-sub("(.*?)[\\.|:].*", "\\1", vals[j-1])
+        } else {ref<-sub("(.*?)[\\.|:].*", "\\1", vals[j-2])}
+        
+      } else {ref<-NA}
+      
+      #Target
+      if (grepl("Target Species",val) & !is.na(val)) {
+        ll_lb[i,"CONFIG_TARGET_SP_CODE_2"] = as.numeric(gsub("[^0-9]","",val))
+      } else {}
+      #Hook Size 
+      if (grepl("Hook Size",val) & !is.na(val)) {
+        ll_lb[i,"HOOK_SIZE_2"] = as.numeric(gsub("[^0-9]","",val))
+      } else {
+        if(!is.na(as.numeric(val)) & grepl("Hook Size",ref)) {
+          ll_lb[i,"HOOK_SIZE_2"] = paste0(ll_lb[i,"HOOK_SIZE_2"],",",val)
+        } else {}
+      }
+      
+      # Spacing
+      if (grepl("Spacing",val) & !is.na(val)) {
+        ll_lb[i,"HOOK_SPACING_2"] = as.numeric(gsub("[^0-9]","",val))
+      } else {
+        if(!is.na(as.numeric(val)) & grepl("Spacing",ref)) {
+          ll_lb[i,"HOOK_SPACING_2"] = paste0(ll_lb[i,"HOOK_SPACING_2"],",",val)
+        } else {}
+      }  
+      
+      #Hooks per skate
+      if (grepl("Hooks/Skate",val) & !is.na(val)) {
+        ll_lb[i,"HOOKS_PER_SKATE_2"] = as.numeric(gsub("[^0-9]","",val))
+      } else {
+        if(!is.na(as.numeric(val)) & grepl("Hooks/Skate",ref)) {
+          ll_lb[i,"HOOKS_PER_SKATE_2"] = paste0(ll_lb[i,"HOOKS_PER_SKATE_2"],",",val)
+        } else {}
+      } 
+      
+      #number of hooks
+      if (grepl("Num Hooks",val) & !is.na(val)) {
+        ll_lb[i,"NUMBER_OF_HOOKS2"] = as.numeric(gsub("[^0-9]","",val))
+      } else {
+        if(!is.na(as.numeric(val)) & grepl("Num Skates",ref)) {
+          ll_lb[i,"NUMBER_OF_HOOKS2"] = paste0(ll_lb[i,"NUMBER_OF_HOOKS2"],",",val)
+        } else {}
+      }  
+      
+      #number of skates
+      if (grepl("Num Skates",val) & !is.na(val)) {
+        ll_lb[i,"NUMBER_OF_SKATES_2"] = as.numeric(gsub("[^0-9]","",val))
+      } else {
+        if(!is.na(as.numeric(val)) & grepl("Num Skates",ref)) {
+          ll_lb[i,"NUMBER_OF_SKATES_2"] = paste0(ll_lb[i,"NUMBER_OF_SKATES_2"],",",val)
+        } else {}
+      }   
+    }
+  } else {}
+  
+}
+
+# examine some lines to see if this worked...
+ll_lb[24189,]
+
+grab10<-round(runif(10,1,nrow(ll_lb)))
+ll_lb[grab10,]
+
+doubles<-ll_lb[!is.na(ll_lb$CONFIG_TARGET_SP_CODE_2),]
+grab5<-round(runif(5,1,nrow(doubles)))
+doubles[grab5,]
+
+#Should save this ll_lb so that don't need to rerun this shitty loop... 
+colnames(ll_lb)
+
+#1) Whittle the data down to what's needed for RAW file
+ll_lb<-ll_lb %>% 
+  mutate(Date = as.Date(Time.Hauled),
+         Set_Length = Set.Length..mi.,
+         Sell_Date = as.Date(Sell.Date),
+         DATE_LEFT_PORT = as.Date(Date.Left.Port),
+         AVERAGE_DEPTH_METERS = 0.54680665*Average.Depth.Fathoms) %>% 
+  select(YEAR = Year, PROJECT_CODE = Project.Code, TRIP_NO = Trip.Number, 
+         ADFG_NO = ADFG.Number, LONGLINE_SYSTEM = Longline.System, 
+         DATE_LEFT_PORT,
+         SELL_DATE = Sell_Date, LONGLINE_SYSTEM_CODE = Longline.System.Code,
+         SOAK_TIME = Soak.Time.Hours,
+         
+         CONFIG_TARGET_SP_CODE,
+         HOOK_SIZE, HOOK_SPACING, HOOKS_PER_SKATE, 
+         NUMBER_OF_SKATES, NUMBER_OF_HOOKS, 
+         
+         CONFIG_TARGET_SP_CODE_2,
+         HOOK_SIZE_2, HOOK_SPACING_2, HOOKS_PER_SKATE_2, 
+         NUMBER_OF_SKATES_2, NUMBER_OF_HOOKS_2,
+         
+         AVERAGE_DEPTH_METERS, 
+         G_MANAGEMENT_AREA_CODE = Groundfish.Management.Area.Code,
+         G_STAT_AREA = Groundfish.Stat.Area, 
+         TRIP_TARGET = Trip.Primary.Target.Species,
+         TRIP_TARGET2 = Trip.Secondary.Target.Species,
+         SET_TARGET = Effort.Primary.Target.Species,
+         SET_TARGET2 = Effort.Secondary.Target.Species,
+         
+         TRIP_TARGET_CODE = Trip.Primary.Target.Species.Code,
+         TRIP_TARGET2_CODE = Trip.Secondary.Target.Species.Code,
+         SET_TARGET_CODE = Effort.Primary.Target.Species.Code,
+         SET_TARGET2_CODE = Effort.Secondary.Target.Species.Code,
+         
+         EFFORT_NO = Effort.Number, 
+         
+         SET_COMMENT = Effort.Comments, 
+         #TRIP_COMMENT = NA, 
+         TIME_SET = Time.Set,
+         TIME_HAULED = Time.Hauled,
+         START_LATITUDE_DECIMAL_DEGREES = Start.Latitude.Decimal.Degrees,
+         START_LONGITUDE_DECIMAL_DEGREE = Start.Longitude.Decimal.Degrees) 
+
+str(ll_lb)
+nrow(ll_lb)
+nrow(unique(ll_lb))
+#lots of duplicate entries... :( 
+ll_lb<-unique(ll_lb)
+#------------------------------------------------------------------------------
+# ftx
+str(ftx)
+unique(ftx$Trip.Number)
+unique(ftx$Gear.Code)
+unique(ftx$Gear.Name)
+
+
+nrow(ftx[is.na(ftx$Trip.Number),])/nrow(ftx)
+length(unique(ftx$Year.Office.BN))/nrow(ftx)
+length(unique(ftx$CFEC))/nrow(ftx)
+length(unique(ftx$Ticket.Count))/nrow(ftx)
+unique(ftx$Ticket.Count)
+length(unique(ftx$CFEC.1))/nrow(ftx)
+length(unique(ftx$Batch.Number))/nrow(ftx)
+length(unique(ftx$Trip.Number))/nrow(ftx)
+length(unique(ftx$Sequential.Number))/nrow(ftx)
+length(unique(ftx$Record.ID))/nrow(ftx)
+
+unique(ftx$Year)
+unique(ftx$Permit.Year)
+unique(ftx$CFEC.Fishery.Code)
+unique(ftx$Disposition.Name)
+unique(ftx$Delivery.Condition.Name)
+unique(ftx$Species.Name)
+unique(ftx$Harvest.Name)
+unique(ftx$Sold)
+unique(ftx$Discard.at.Sea)
+unique(ftx$Gear.Name)
+unique(ftx$Port)
+unique(ftx$Processor.Type.Name)
+unique(ftx$Office.Name)
+
+unique(ftx$Region)
+unique(ftx$Mgt.Area.District)
+unique(ftx$Regulation.Mgt.Area)
+unique(ftx$FMP.Area)
+unique(ftx$Stat.Area)
+
+colnames(ftx)
+
+eg<-ftx$Date.of.Landing..MM.DD.
+
+ll_ftx<-ftx %>% 
+  filter(Gear.Name == "Longline") %>%
+  mutate(DATE_FISHING_BEGAN = as.Date(Date.Fishing.Began),
+         DATE_LANDING = as.Date(Date.of.Landing),
+         PERMIT_START_DATE = as.Date(Start.Date),
+         PERMIT_END_DATE = as.Date(End.Date)
+         ) %>%
+  select(YEAR = Year,     #**Join
+         DATE_FISHING_BEGAN, DATE_LANDING,
+         PERMIT_START_DATE, PERMIT_END_DATE,
+         #PROJECT_CODE = NA,  #from lb
+         #identifiers:
+         TRIP_NO = Trip.Number, #**Join
+         ADFG_NO = ADFG,        #**Join
+         SEQU_NO = Sequential.Number,
+         RECORD_ID = Record.ID,
+         CFEC = CFEC,
+         CFEC_CODE = CFEC.Fishery.Code,
+         G_STAT_AREA = Stat.Area,
+         DATE_FISHING_BEGAN, DATE_LANDING,
+         
+         SPECIES = Species.Name,
+         SPECIES_CODE = Species.Code,
+         HARVEST_NAME = Harvest.Name,
+         HARVEST_CODE = Harvest.Code,
+         
+         DISPOSITION_NAME = Disposition.Name,
+         DISPOSITION_CODE = Disposition.Code,
+         
+         DELIVERY_COND = Delivery.Condition.Name,
+         DELIVERY_COND_CODE = Delivery.Condition.Code,
+         
+         DISCARD_AT_SEA = Discard.at.Sea,
+         
+         LANDED_WEIGHT_SUM_lbs = Landed.Weight..sum.,
+         WHOLE_WEIGHT_SUM_lbs = Whole.Weight..sum.,
+         NUMBER_OF_FISH = Number.of.Animals..sum.
+         )
+
+str(ll_ftx); str(ll_lb)
+unique(ll_ftx$SPECIES)
+
+##FLAG !! Need to get rid of longline survey data from fish tickets... (Test fishery, HARVEST_CODE = 43
+ll_ftx<-ll_ftx %>% filter(HARVEST_CODE != 43)
+
+#fish tickets broken down by Species
+sab_ll_ftx<-ll_ftx %>% filter (SPECIES_CODE == 710)
+hal_ll_ftx<-ll_ftx %>% filter(SPECIES_CODE == 200)
+
+#logbook broken down by TRIP TARGET
+sab_ll_lb<-ll_lb %>% filter(TRIP_TARGET_CODE == 710)
+hal_ll_lb<-ll_lb %>% filter(TRIP_TARGET_CODE == 200)
+#subset small chunk to play with joins...
+
+sa<-sample(unique(ll_lb$G_STAT_AREA),1)
+
+{Y<-sample(unique(ll_lb$YEAR),1) #2005
+an<-sample(unique(ll_lb$ADFG_NO[!is.na(ll_lb$ADFG_NO) & ll_lb$YEAR == Y]),1)
+
+tix_eg<-ll_ftx %>% filter (YEAR == Y & ADFG_NO == an); nrow(tix_eg)
+s_tix_eg<-sab_ll_ftx %>% filter (YEAR == Y & ADFG_NO == an); nrow(s_tix_eg)
+h_tix_eg<-hal_ll_ftx %>% filter (YEAR == Y & ADFG_NO == an); nrow(h_tix_eg)
+
+lb_eg<-ll_lb %>% filter (YEAR == Y & ADFG_NO == an); nrow(lb_eg)
+s_lb_eg<-sab_ll_lb %>% filter (YEAR == Y & ADFG_NO == an); nrow(s_lb_eg)
+h_lb_eg<-hal_ll_lb %>% filter (YEAR == Y & ADFG_NO == an); nrow(h_lb_eg)}
+
+head(tix_eg)
+#head(lb_eg)
+unique(lb_eg$TRIP_NO) #does the number of unique trips match the number of unique
+                      #landing dates
+length(unique(lb_eg$TRIP_NO)); length(unique(tix_eg$DATE_LANDING))
+length(unique(s_tix_eg$DATE_LANDING)); length(unique(h_tix_eg$DATE_LANDING))
+length(unique(s_lb_eg$TRIP_NO));length(unique(h_lb_eg$TRIP_NO))
+
+sort(unique(lb_eg$SELL_DATE)); sort(unique(tix_eg$DATE_LANDING))   #should match DATE_LANDING
+sort(unique(s_tix_eg$DATE_LANDING));sort(unique(h_tix_eg$DATE_LANDING))
+sort(unique(s_lb_eg$SELL_DATE));sort(unique(h_lb_eg$SELL_DATE))
+
+sort(unique(lb_eg$G_STAT_AREA)); sort(unique(tix_eg$G_STAT_AREA)) #do they match?
+sort(unique(s_tix_eg$G_STAT_AREA)); sort(unique(h_tix_eg$G_STAT_AREA))
+sort(unique(s_lb_eg$G_STAT_AREA)); sort(unique(h_lb_eg$G_STAT_AREA))
+
+unique(lb_eg$TRIP_TARGET)
+unique(lb_eg$TRIP_TARGET2)
+unique(lb_eg$SET_TARGET)
+unique(lb_eg$SET_TARGET2)
+unique(lb_eg$CONFIG_TARGET_SP_CODE)
+unique(lb_eg$CONFIG_TARGET_SP_CODE_2)
+
+tix_eg$SPECIES_CODE
+lb_eg$TRIP_TARGET_CODE
+lb_eg$TRIP_TARGET2_CODE
+lb_eg$SET_TARGET_CODE
+lb_eg$SET_TARGET2_CODE
+lb_eg$CONFIG_TARGET_SP_CODE
+lb_eg$CONFIG_TARGET_SP_CODE_2
+
+#OK... now to see how many sets per trip... 
+sort(unique(lb_eg$EFFORT_NO))
+
+lb_eg[lb_eg$EFFORT_NO]
+
+lb_eg$trip_effort<-paste0(lb_eg$TRIP_NO,"-",lb_eg$EFFORT_NO)
+unique(lb_eg[lb_eg$TRIP_NO == 4072,])
+
+unique(lb_eg)
+
+#-------------------------------------------------------------------------------
+# JOIN PLAN and NOTES...
+## I think we can leave ftx with sab and hal combined for now and then calculate
+## species specific stuff once they are joined... need to be careful about labels
+## and not getting things confused... 
+
+## OK, need to fish ticket species code = 710? do not want or need fish tickets from 
+## halibut landings... OR maybe not? 
+
+# Step 1) Split ftx up by SPECIES 
+# Step 2) rename split ftx columns to be species specific
+# Step 3) join both ftx into lb data frame... then you will have the amount landed
+#         for each species in each trip
+# Step 4) At that point it will be time to look at TARGET and relative numbers
+#         caught by species and make call on which to include in calculating
+#         CPUE statistics
+
+# So the Join outline:
+# 1) lb$SELL_DATE = ftx$DATE_LANDING
+# 2) lb$G_STAT_AREA = ftx$G_STAT_AREA
+# 
+
+#################################################################################
+#--------------------------------------------------------------------------------  
+  select(Date, Year, Trip.Number, Effort_no = Effort.Number, Ticket, CFEC.Permit.Number, ADFG.Number,
+         Set_Length, Depth = Average.Depth.Fathoms, Soak = Soak.Time.Hours,
+         Species, Species.Code, Groundfish.Stat.Area, Groundfish.Management.Area.Code, 
+         Disposition, Pounds, Numbers, 
+         Effort.Primary.Target.Species, Effort.Secondary.Target.Species, 
+         Sablefish.Discards, 
+         Depredation, Number.of.Skates.Impacted.by.Depredation, 
+         Sell_Date,
+         Port, Vessel.Name, 
+         Longline.System.Code, Longline.System, 
+         Gear.Code, Gear.Class.Code, Gear, 
+         Project, Project.Code, 
+         Start.Longitude.Decimal.Degrees, Start.Latitude.Decimal.Degrees,
+         End.Longitude.Decimal.Degrees, End.Latitude.Decimal.Degrees )
+
+str(ll_lb)
+
+eg<-ll_lb$Time.Set[1:4]
+
+as.
+
+
+##################################################################################
+## SCRAP
+##################################################################################
+# Code development for splitting apart gear configuration column
+
+# 1) Split up ll_lb$Config.List into Target Species, Hook Size,Spacing, Hooks/Skate, Num Skates, Spacing
 grab6<-round(runif(6,1,nrow(ll_lb)),0)
 sam<-as.data.frame(cbind(ll_lb$Year[c(grab6)],   #sam will get replaced by ll_lb
                          ll_lb$Config.List[c(grab6)]))
@@ -119,26 +556,31 @@ ridiculous12<-as.data.frame(cbind(ridiculous12$Year[c(1:2)],ridiculous12$Config.
 colnames(ridiculous12)<-c("Year","Shit")
 
 sam<-rbind(sam, ridiculous8,ridiculous9,ridiculous12)
+
+#for trouble shooting...
+ll_lb<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Longline logbook sable and halibut target 1997-now for CPUE.csv"))
+{sam<-ll_lb[24189,c("Year","Config.List")]
+colnames(sam)<-c("Year","junk")
 #Argh... need to divid up around "---" and deal with two configuration lists... 
 
-n_col<-max(stringr::str_count(sam$Shit, ","))+1
-n_precol<-max(stringr::str_count(sam$Shit, "---"))+1
+n_col<-max(stringr::str_count(sam$junk, ","))+1
+n_precol<-max(stringr::str_count(sam$junk, "---"))+1
 
-sam %>% separate(Shit, into = paste0("precol",1:n_precol),sep = "---") -> prestep
+sam %>% separate(junk, into = paste0("precol",1:n_precol),sep = "---") -> prestep
 n_col1<-max(stringr::str_count(prestep$precol1, ":"))+1
 n_col2<-max(stringr::str_count(prestep$precol2[!is.na(prestep$precol2)], ":"))+1
 
-prestep %>% mutate(Shit1 = gsub(")","",sub(".","",precol1))) %>%
-  mutate(Shit2 = gsub(")","",sub(".","",precol2))) %>%
-  mutate(Shit2 = sub(".","",Shit2)) %>%
-  select(Year, Shit1, Shit2) -> prestep
+prestep %>% mutate(junk1 = gsub(")","",sub(".","",precol1))) %>%
+  mutate(junk2 = gsub(")","",sub(".","",precol2))) %>%
+  mutate(junk2 = sub(".","",junk2)) %>%
+  select(Year, junk1, junk2) -> prestep
 
-Shit1cols<-max(stringr::str_count(prestep$Shit1, ":"), na.rm=T)+1
-Shit2cols<-max(stringr::str_count(prestep$Shit2, ":"), na.rm=T)+1
- 
+junk1cols<-max(stringr::str_count(prestep$junk1, ":"), na.rm=T)+1
+junk2cols<-max(stringr::str_count(prestep$junk2, ":"), na.rm=T)+1
+
 prestep %>%        
-  separate(Shit1, into = paste0("col", 1:(Shit1cols)),sep = ",") %>%
-  separate(Shit2, into = paste0("col", (1+Shit1cols):(1+Shit1cols+Shit2cols)),sep = ",") -> Step0
+  separate(junk1, into = paste0("col", 1:(junk1cols)),sep = ",") %>%
+  separate(junk2, into = paste0("col", (1+junk1cols):(1+junk1cols+junk2cols)),sep = ",") -> Step0
 #1-7 = first config
 #8-14 = second config
 #  mutate(across(everything(),~dplyr::na_if(.,""))) -> Step0 #%>%
@@ -148,6 +590,7 @@ Step0<-Step0 %>%
          HOOKS_PER_SKATE = NA, NUMBER_OF_SKATES = NA, NUMBER_OF_HOOKS = NA,
          CONFIG_TARGET_SP_CODE_2=NA, HOOK_SIZE_2=NA, HOOK_SPACING_2=NA, 
          HOOKS_PER_SKATE_2 = NA, NUMBER_OF_SKATES_2 = NA, NUMBER_OF_HOOKS_2 = NA)
+}
 
 for (i in 1:nrow(Step0)) {  #i<-21
   #1st Config list
@@ -229,8 +672,18 @@ for (i in 1:nrow(Step0)) {  #i<-21
   
   #2nd Gear Configuration list
   if (length(targ_refs) > 1) {
-    for (j in targ_refs:(length(cats))){   #j<-1
+    
+    for (j in second.config:(length(cats))){   #j<-second.config+2
+      
       val<-Step0[i,which(colnames(Step0)==paste0("col",j))]
+      vals[j]<-val
+      
+      if (!is.na(as.numeric(val))) {
+        if (is.na(as.numeric(vals[j-1]))) {
+          ref<-sub("(.*?)[\\.|:].*", "\\1", vals[j-1])
+        } else {ref<-sub("(.*?)[\\.|:].*", "\\1", vals[j-2])}
+        
+      } else {ref<-NA}
       #Target
       if (grepl("Target Species",val) & !is.na(val)) {
         Step0[i,"CONFIG_TARGET_SP_CODE_2"] = as.numeric(gsub("[^0-9]","",val))
@@ -285,122 +738,7 @@ for (i in 1:nrow(Step0)) {  #i<-21
 }
 
 
-
-#1) Whittle the data down to what's needed for RAW file
-ll_lb<-ll_lb %>% 
-  mutate(Date = as.Date(Time.Hauled),
-         Set_Length = Set.Length..mi.,
-         Sell_Date = as.Date(Sell.Date),
-         DATE_LEFT_PORT = as.Date(Date.Left.Port),
-         AVERAGE_DEPTH_METERS = 0.54680665*Average.Depth.Fathoms) %>% 
-  select(YEAR = Year, PROJECT_CODE = Project.Code, TRIP_NO = Trip.Number, 
-         ADFG_NO = ADFG.Number, LONGLINE_SYSTEM = Longline.System, 
-         DATE_LEFT_PORT,
-         SELL_DATE = Sell_Date, LONGLINE_SYSTEM_CODE = Longline.System.Code,
-         SOAK_TIME = Soak.Time.Hours,
-         
-         #HOOK_SIZE = NA, HOOK_SPACING = NA, HOOKS_PER_SKATE = NA, 
-         #NUMBER_OF_SKATES = NA, NUMBER_OF_HOOKS = NA, 
-         
-         AVERAGE_DEPTH_METERS, 
-         G_MANAGEMENT_AREA_CODE = Groundfish.Management.Area.Code,
-         G_STAT_AREA = Groundfish.Stat.Area, 
-         TRIP_TARGET = Trip.Primary.Target.Species,
-         TRIP_TARGET2 = Trip.Secondary.Target.Species,
-         SET_TARGET = Effort.Primary.Target.Species,
-         SET_TARGET2 = Effort.Secondary.Target.Species,
-         EFFORT_NO = Effort.Number, 
-         
-         #SABLE_LOG_LBS = ,
-         #SABLE_NUMBERS = ,
-         #SABLE_TKT_ROUND_LBS = ,
-         #SABLE_LBS_PER_SET = ,
-         #HALIBUT_LOG_LBS = ,
-         #HALIBUT_NUMBERS = ,
-         #HALIBUT_ROUND_LBS = ,
-         #HALIBUT_LBS_PER_SET = ,
-         
-         SET_COMMENT = Effort.Comments, 
-         #TRIP_COMMENT = NA, 
-         TIME_SET = Time.Set,
-         TIME_HAULED = Time.Hauled,
-         START_LATITUDE_DECIMAL_DEGREES = Start.Latitude.Decimal.Degrees,
-         START_LONGITUDE_DECIMAL_DEGREE = Start.Longitude.Decimal.Degrees) 
-
-str(ll_lb)
-
-str(ftx)
-unique(ftx$Trip.Number)
-unique(ftx$Gear.Code)
-unique(ftx$Gear.Name)
-
-ftx<-ftx %>% 
-  mutate() %>%
-  select(YEAR = Year,     #**Join
-         PROJECT_CODE = NA,
-         TRIP_NO = Trip.Number, #**Join
-         ADFG_NO = ADFG,        #**Join
-         LONGLINE_SYSTEM = NA, 
-         DATE_LEFT_PORT = NA,
-         SELL_DATE = Sell_Date, 
-         LONGLINE_SYSTEM_CODE = Longline.System.Code,
-         SOAK_TIME = Soak.Time.Hours,
-         
-         #HOOK_SIZE = NA, HOOK_SPACING = NA, HOOKS_PER_SKATE = NA, 
-         #NUMBER_OF_SKATES = NA, NUMBER_OF_HOOKS = NA, 
-         
-         AVERAGE_DEPTH_METERS, 
-         G_MANAGEMENT_AREA_CODE = Groundfish.Management.Area.Code,
-         G_STAT_AREA = Groundfish.Stat.Area, 
-         TRIP_TARGET = Trip.Primary.Target.Species,
-         TRIP_TARGET2 = Trip.Secondary.Target.Species,
-         SET_TARGET = Effort.Primary.Target.Species,
-         SET_TARGET2 = Effort.Secondary.Target.Species,
-         EFFORT_NO = Effort.Number, 
-         
-         #SABLE_LOG_LBS = ,
-         #SABLE_NUMBERS = ,
-         #SABLE_TKT_ROUND_LBS = ,
-         #SABLE_LBS_PER_SET = ,
-         #HALIBUT_LOG_LBS = ,
-         #HALIBUT_NUMBERS = ,
-         #HALIBUT_ROUND_LBS = ,
-         #HALIBUT_LBS_PER_SET = ,
-         
-         SET_COMMENT = Effort.Comments, 
-         #TRIP_COMMENT = NA, 
-         TIME_SET = Time.Set,
-         TIME_HAULED = Time.Hauled,
-         START_LATITUDE_DECIMAL_DEGREES = Start.Latitude.Decimal.Degrees,
-         START_LONGITUDE_DECIMAL_DEGREE = Start.Longitude.Decimal.Degrees)
-
-#--------------------------------------------------------------------------------  
-  select(Date, Year, Trip.Number, Effort_no = Effort.Number, Ticket, CFEC.Permit.Number, ADFG.Number,
-         Set_Length, Depth = Average.Depth.Fathoms, Soak = Soak.Time.Hours,
-         Species, Species.Code, Groundfish.Stat.Area, Groundfish.Management.Area.Code, 
-         Disposition, Pounds, Numbers, 
-         Effort.Primary.Target.Species, Effort.Secondary.Target.Species, 
-         Sablefish.Discards, 
-         Depredation, Number.of.Skates.Impacted.by.Depredation, 
-         Sell_Date,
-         Port, Vessel.Name, 
-         Longline.System.Code, Longline.System, 
-         Gear.Code, Gear.Class.Code, Gear, 
-         Project, Project.Code, 
-         Start.Longitude.Decimal.Degrees, Start.Latitude.Decimal.Degrees,
-         End.Longitude.Decimal.Degrees, End.Latitude.Decimal.Degrees )
-
-str(ll_lb)
-
-eg<-ll_lb$Time.Set[1:4]
-
-as.
-
-
-##################################################################################
-## SCRAP
-##################################################################################
-
+#--------------------------------------------------------------------------------
 grepl("Hook Size",Step0[i,which(colnames(Step0)==paste0("col",j))])
 
 
