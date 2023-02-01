@@ -117,15 +117,15 @@ ll_lb<-ll_lb %>% mutate(split_gf1 = gear_config1,
                                 as.numeric(gsub(".*?([0-9]+).*", "\\1", gear_target_1)),NA),
          gear_target_2 = ifelse(grepl("Target Species", gear_target_2, fixed = TRUE),
                                 as.numeric(gsub(".*?([0-9]+).*", "\\1", gear_target_2)),NA))
-colnames(ll_lb)
+#colnames(ll_lb)
 # 4) now, separate gear config column into multiple rows and get rid of rows with
 #    target species
 ll_lb <- separate_rows(ll_lb,"gear_config1",sep=", ") %>% 
   filter(!grepl("Target Species", gear_config1, fixed = TRUE)) 
 ll_lb <-  separate_rows(ll_lb,"gear_config2",sep=", ") %>%
   filter(!grepl("Target Species", gear_config2, fixed = TRUE))
-head(data.frame(ll_lb),20)
-unique(ll_lb$gear_config1)
+#(data.frame(ll_lb),20)
+#unique(ll_lb$gear_config1)
 # 5) separate the gear configuration columns...
 ll_lb<-ll_lb %>% separate(gear_config1,into = paste0(c("gear_sub1","gear_spec1"),""),sep = ":") %>%
   separate(gear_config2,into = paste0(c("gear_sub2","gear_spec2"),""),sep = ":") %>%
@@ -160,22 +160,183 @@ ll_lb <- ll_lb %>% group_by(Ticket, Year, ADFG.Number, Groundfish.Stat.Area) %>%
   mutate(set.count = n_distinct(Effort.Number))%>% ungroup()
 
 # 9) Get numbers of hooks when num_of_hooks not available...
-ll_lb <-ll_lb %>% mutate(num_of_hooks1 = ifelse(!is.na(num_of_hooks1),num_of_hooks1,
-                                                num_of_skates1*hooks_per_skate1))
-#FOR WEDNESDAY 2/1/23... pick up here...
-# Also need to do some work with two gear configuration logbook entries and how 
-# it interacts with the fishticket data... 
-# lets look into soak.time and set.length of longline... 
-#... so lbs/hook
-# lbs/hook/mile
-# lbs/hook/mile/hour
-samp<-sample(c(1:nrow(ll_lb)),10)
+# Lots of error warnings from this bit because of incomplete data series.  That's OK.  Its working
+ll_lb <-ll_lb %>% mutate(num_of_hooks1_calc = ifelse(!is.na(num_of_hooks1),num_of_hooks1,
+                                                     as.numeric(num_of_skates1)*as.numeric(hooks_per_skate1)),
+                         num_of_skates1_calc = ifelse(!is.na(num_of_skates1),num_of_skates1,
+                                                      as.numeric(num_of_hooks1)/as.numeric(hooks_per_skate1)),
+                         num_of_hooks2_calc = as.numeric(num_of_skates2)*as.numeric(hooks_per_skate2),
+                         set_length_km = 1.609344*Set.Length..mi.,
+                         soak_time_hrs = Soak.Time.Hours,
+                         Ticket_LB = Ticket,
+                         Species_LB = Species,
+                         Pounds_LB = Pounds,
+                         Numbers_LB = Numbers
+                         ) %>%
+  select(-Ticket,-Pounds,-Species,-Numbers)
+
+### If there are issues you can skip down below to section labelled:
+#   DEVELOPMENT CODE FOR FULL JOIN to see if you can resolve it... 
+#   Otherwise it's time to join the fish ticket and logbook data.
+
+# 10) Separate the logbook data out by halibut and sablefish
+hal_ll_lb<-ll_lb %>% filter(Species_LB == "Halibut")
+sable_ll_lb <- ll_lb %>% filter(Species_LB == "Sablefish")
+
+# 11) Separate the fish tickets out by fishery
+ftx<-ftx %>% filter(Harvest.Code != 43) %>% #get rid of survey fishtickets... 
+  mutate(Ticket_subref = str_remove(str_sub(Sequential.Number,nchar(Sequential.Number)-2,nchar(Sequential.Number)), "^0+"),
+         Trip.Number.FTX = Trip.Number)
+
+hal_ftx<-ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[2:4])
+sable_ftx<-ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[1])
+
+# 12) Join the sablefish fishticket and logbook data! 
+
+forCPUE<-full_join(sable_ll_lb, sable_ftx, by = c("Year", "ADFG.Number" = "ADFG",
+                                                   "Sell.Date" = "Date.of.Landing",
+                                                   "Groundfish.Stat.Area" = "Stat.Area",
+                                                   "Ticket_subref"),multiple="all") %>% filter(!is.na(Fishery.Name)) #%>% #this gets rid of logbook entries with no matching fish tickets
+
+# 13) Calculate CPUE for the logbook data
+
+forCPUE %>% group_by(Ticket_LB, Groundfish.Stat.Area, Effort.Number) %>% 
+  mutate(partial_soak_time = soak_time_hrs/n(),
+         partial_km_fished = set_length_km/n(),
+         partial_hook_count1 = as.numeric(num_of_hooks1_calc)/n(),
+         partial_hook_count2 = as.numeric(num_of_hooks2_calc)/n()) %>% ungroup %>%
+  group_by(Ticket_LB, Groundfish.Stat.Area) %>%
+  mutate(set.count = set.count,
+         catch = Whole.Weight..sum.,
+         pre.lbs_per_set = catch/set.count,
+         total_soak_time = sum(partial_soak_time),
+         total_km_fished = sum(partial_km_fished),
+         total_hook_count1 = sum(partial_hook_count1),
+         total_hook_count2 = sum(partial_hook_count2),
+         lbs_per_set = sum(unique(catch))/set.count,
+         lbs_per_set_per_km = sum(unique(catch))/set.count/total_km_fished,
+         lbs_per_set_per_hour = sum(unique(catch))/set.count/total_soak_time,
+         lbs_per_set_per_km_per_hour = sum(unique(catch))/set.count/total_km_fished/total_soak_time,
+         lbs_per_hook1 = sum(unique(catch))/total_hook_count1,
+         lbs_per_hook_per_km1 = sum(unique(catch))/total_hook_count1/total_km_fished,
+         lbs_per_hook_per_hour1 = sum(unique(catch))/total_hook_count1/total_soak_time,
+         lbs_per_hook_per_km_per_hour1 = sum(unique(catch))/total_hook_count1/total_km_fished/total_soak_time,
+         lbs_per_hook2 = sum(unique(catch))/total_hook_count2,
+         lbs_per_hook_per_km2 = sum(unique(catch))/total_hook_count2/total_km_fished,
+         lbs_per_hook_per_hour2 = sum(unique(catch))/total_hook_count2/total_soak_time,
+         lbs_per_hook_per_km_per_hour2 = sum(unique(catch))/total_hook_count2/total_km_fished/total_soak_time
+  ) ->Sable_CPUE  #don't change! This attaches to joined
+#Note regarding two gear configurations.  When calculating final CPUE in analysis
+# you will need to be mindful of gear_target_1 and _2.  When there are two sets of
+# gear targeting different species (halibut and sablefish) the CPUE will NOT be
+# useful for analysis because there is no way to separate out the catch by target 
+# if they are both on the same ticket. :(
+
+# 14) Spot checking to make sure things look good... 
+
+length(unique(Sable_CPUE$Year))
+year_check<-sample(length(unique(Sable_CPUE$Year)),1)
+year_check
+
+
+
+
+adfg_list<-unique(Sable_CPUE$ADFG.Number[which(Sable_CPUE$Year == unique(Sable_CPUE$Year)[year_check])])
+
+length(unique(Sable_CPUE$ADFG.Number[Sable_CPUE$Year == unique(Sable_CPUE$Year)[year_check]]))
+adfg_check<-sample(length(unique(Sable_CPUE$ADFG.Number[Sable_CPUE$Year == unique(Sable_CPUE$Year)[year_check]])),1)
+adfg_check
+
+tix_list<-
+  unique(sf_try$Ticket[which(sf_try$Year == unique(sf_try$Year)[year_check] & 
+                               sf_try$ADFG.Number == unique(sf_try$ADFG.Number)[adfg_check])])
+length(tix_list)
+tix_list
+tix_check<-tix_list[1]
+
+gsa_list<-
+  unique(sf_try$Groundfish.Stat.Area[which(sf_try$Year == unique(sf_try$Year)[year_check] & 
+                                             sf_try$ADFG.Number == unique(sf_try$ADFG.Number)[adfg_check] &
+                                             sf_try$Ticket == tix_check)])
+length(gsa_list)
+gsa_check<-gsa_list[1]
+
+
+#as.data.frame(sf_try %>% filter(Ticket == unique(sf_try$Ticket)[check],
+#                                Groundfish.Stat.Area == unique(sf_try$Groundfish.Stat.Area)[check2]))
+as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                  Groundfish.Stat.Area == gsa_check,
+                                  Year == unique(sf_cpue2$Year)[year_check],
+                                  ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))
+#THIS IS THE SABLEFISH CPUE FOR THIS TICKET!! 
+
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set_per_km)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set_per_hour)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set_per_km_per_hour)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook_per_km)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook_per_hour)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook_per_km_per_hour)
+
+
+##################################################################################
+##*****************************************************************************###
+##*   DEVELOPMENT CODE FOR FULL JOIN... This starts after Step 9 above... 
+##*  This code breaks out pieces of the logbook and fishticket data and 
+##*  walks through the process of joining them, calculating CPUE and making
+##*  sure everything makes sense.
+##******************************************************************************##
+#################################################################################
+
+colnames(ll_lb)
+
+unique(ll_lb$num_of_hooks1)
+nrow(ll_lb[is.na(ll_lb$num_of_hooks1),])/nrow(ll_lb)
+nrow(ll_lb[is.na(ll_lb$num_of_hooks2),])/nrow(ll_lb)
+nrow(ll_lb[is.na(ll_lb$num_of_skates1),])/nrow(ll_lb)
+
+nh_na<-which(is.na(ll_lb$num_of_hooks1))
+nh_num<-which(!is.na(ll_lb$num_of_hooks1))  
+
+samp<-c(sample(nh_na,10),sample(nh_num,10))
+
 eg<-ll_lb[samp,]
-as.data.frame(eg)
 
+eg1<-eg %>% mutate(num_of_hooks1_calc = ifelse(!is.na(num_of_hooks1),num_of_hooks1,
+                                     as.numeric(num_of_skates1)*as.numeric(hooks_per_skate1)),
+                   num_of_skates1_calc = ifelse(!is.na(num_of_skates1),num_of_skates1,
+                                                as.numeric(num_of_hooks1)/as.numeric(hooks_per_skate1)),
+                   num_of_hooks2_calc = as.numeric(num_of_skates2)*as.numeric(hooks_per_skate2))
 
-
-
+as.data.frame(eg1); 
+cbind(eg1$num_of_hooks1, eg1$num_of_hooks1_calc)
+cbind(cbind(eg1$num_of_skates1,eg1$hooks_per_skate1), cbind(eg1$num_of_hooks1,eg1$num_of_skates1_calc))
+cbind(eg1$num_of_hooks2, eg1$num_of_hooks2_calc)
 
 # examine some lines to see if this worked...
 nrow(ll_lb)
@@ -194,22 +355,35 @@ view(CFEC.exam %>% filter(Year == 2013))
 
 #Trials...
 Y <- sample(unique(ll_lb$Year),1)
-AN <- sample(unique(ll_lb$ADFG.Number[ll_lb$Year == Y]),1)
+AN <- sample(unique(ll_lb$ADFG.Number[ll_lb$Year == Y]),10)
+
+lb_samp<-ll_lb %>% filter(Year %in% Y & ADFG.Number %in% AN & Species == "Sablefish" |
+                          Year %in% Y & ADFG.Number %in% AN & Species == "Halibut")
+
+#examine when two gear configurations are specified... 
+{two_config<-which(!is.na(ll_lb$hook_size2)) 
+Y <- sample(unique(ll_lb$Year[two_config]),1)
+sub<- slice(ll_lb,two_config) %>% filter(Year == Y)
+ans<-unique(sub$ADFG.Number)
+if (length(ans < 2)) {ans <- rep(ans,2)} else {}
+AN<-sample(ans,1)}
 
 lb_samp<-ll_lb %>% filter(Year == Y & ADFG.Number == AN & Species == "Sablefish" |
-                          Year == Y & ADFG.Number == AN & Species == "Halibut")
+                            Year == Y & ADFG.Number == AN & Species == "Halibut")
+
 #SA<-sample(unique(lb_samp$Groundfish.Stat.Area),1)  
 
 #lb_samp<-ll_lb %>% filter(Year == Y & ADFG.Number == AN )
-colnames(lb_samp)
+#colnames(lb_samp)
 lb_sampx<-lb_samp %>% #filter(Groundfish.Stat.Area == SA) %>%
   #adding in set details to calculate other CPUE
   select(Year, Pounds, Species, Ticket_subref, 
          Groundfish.Stat.Area, Effort.Primary.Target.Species,
          Effort.Number, Trip.Primary.Target.Species, Port, Ticket, CFEC.Permit.Number,
          ADFG.Number,Sell.Date,Trip.Number.LB, gear_target_1, gear_target_2, 
-         hook_size1, spacing1, num_of_skates1, num_of_hooks1, hooks_per_skate1,
-         hook_size2, spacing2, num_of_skates2, num_of_hooks2, hooks_per_skate2, 
+         hook_size1, spacing1, num_of_skates1_calc, num_of_hooks1_calc, hooks_per_skate1, 
+         set_length_km, soak_time_hrs,
+         hook_size2, spacing2, num_of_skates2, num_of_hooks2_calc, hooks_per_skate2, 
          set.count)
 #nrow(unique(lb_sampx))
 as.data.frame(lb_sampx)
@@ -220,11 +394,10 @@ unique(lb_sampx$Ticket[lb_sampx$Species == "Halibut"])
 #unique(as.data.frame(ll_lb %>% filter(Year == Y, ADFG.Number == AN & Species == "Sablefish"))$Sell.Date)
 #colnames(ftx)
 #unique(ftx$Fishery.Name)
-ftx_samp<-ftx %>% filter(Year == Y & ADFG == AN & Harvest.Code != 43
+ftx_samp<-ftx %>% filter(Year %in% Y & ADFG %in% AN & Harvest.Code != 43
                          #& Stat.Area == SA
                          ) %>% 
-  mutate(#Ticket_subref = str_sub(Sequential.Number,nchar(Sequential.Number)-2,nchar(Sequential.Number)),
-         Ticket_subref = str_remove(str_sub(Sequential.Number,nchar(Sequential.Number)-2,nchar(Sequential.Number)), "^0+"),
+  mutate(Ticket_subref = str_remove(str_sub(Sequential.Number,nchar(Sequential.Number)-2,nchar(Sequential.Number)), "^0+"),
          Trip.Number.FTX = Trip.Number) %>%
   select(Year, Date.of.Landing, Stat.Area, Sequential.Number, Ticket_subref, CFEC, 
          Year.Office.BN,Whole.Weight..sum.,
@@ -272,11 +445,11 @@ sf_try<-full_join(lb_sampx_sf, ftx_samp_sf, by = c("Year", "ADFG.Number" = "ADFG
                                      "Sell.Date" = "Date.of.Landing",
                                      "Groundfish.Stat.Area" = "Stat.Area",
                                      #"Species" = "Species.Name",
-                                     "Ticket_subref")) %>% filter(!is.na(Fishery.Name)) #%>% #this gets rid of logbook entries with no matching fish tickets
+                                     "Ticket_subref"),multiple="all") %>% filter(!is.na(Fishery.Name)) #%>% #this gets rid of logbook entries with no matching fish tickets
   
 as.data.frame(sf_try[order(sf_try$Ticket),]) 
 unique(as.data.frame(sf_try[order(sf_try$Ticket),]))
-
+colnames(sf_try)
 #ftx with no logbook...
 #{nolb<-as.data.frame(sf_try[is.na(sf_try$Species),])
 #nrow(nolb)
@@ -295,24 +468,102 @@ unique(as.data.frame(sf_try[order(sf_try$Ticket),]))
 
 #CPUE try... 
 #a little tricky because need to add the overages to the allowable catch... 
-sf_try %>% group_by(Ticket, Groundfish.Stat.Area) %>% 
+sf_try %>% group_by(Ticket, Groundfish.Stat.Area, Effort.Number) %>% 
+  mutate(partial_soak_time = soak_time_hrs/n(),
+         partial_km_fished = set_length_km/n(),
+         partial_hook_count1 = as.numeric(num_of_hooks1_calc)/n(),
+         partial_hook_count2 = as.numeric(num_of_hooks2_calc)/n()) %>% ungroup %>%
+  group_by(Ticket, Groundfish.Stat.Area) %>%
   mutate(set.count = set.count,
             catch = Whole.Weight..sum.,
             pre.lbs_per_set = catch/set.count,
-         lbs_per_set = sum(unique(catch))/set.count) ->sf_cpue2  #don't change! This attaches to joined
-as.data.frame(unique(sf_cpue2))                
+         total_soak_time = sum(partial_soak_time),
+         total_km_fished = sum(partial_km_fished),
+         total_hook_count1 = sum(partial_hook_count1),
+         total_hook_count2 = sum(partial_hook_count2),
+         lbs_per_set = sum(unique(catch))/set.count,
+         lbs_per_set_per_km = sum(unique(catch))/set.count/total_km_fished,
+         lbs_per_set_per_hour = sum(unique(catch))/set.count/total_soak_time,
+         lbs_per_set_per_km_per_hour = sum(unique(catch))/set.count/total_km_fished/total_soak_time,
+         lbs_per_hook1 = sum(unique(catch))/total_hook_count1,
+         lbs_per_hook_per_km1 = sum(unique(catch))/total_hook_count1/total_km_fished,
+         lbs_per_hook_per_hour1 = sum(unique(catch))/total_hook_count1/total_soak_time,
+         lbs_per_hook_per_km_per_hour1 = sum(unique(catch))/total_hook_count1/total_km_fished/total_soak_time,
+         lbs_per_hook2 = sum(unique(catch))/total_hook_count2,
+         lbs_per_hook_per_km2 = sum(unique(catch))/total_hook_count2/total_km_fished,
+         lbs_per_hook_per_hour2 = sum(unique(catch))/total_hook_count2/total_soak_time,
+         lbs_per_hook_per_km_per_hour2 = sum(unique(catch))/total_hook_count2/total_km_fished/total_soak_time
+           ) ->sf_cpue2  #don't change! This attaches to joined
+#Note regarding two gear configurations.  When calculating final CPUE in analysis
+# you will need to be mindful of gear_target_1 and _2.  When there are two sets of
+# gear targeting different species (halibut and sablefish) the CPUE will NOT be
+# useful for analysis because there is no way to separate out the catch by target 
+# if they are both on the same ticket. :(
 
-length(unique(sf_try$Ticket))
-check<-1 
-length(unique(sf_try$Groundfish.Stat.Area))
-check2<-2
-as.data.frame(sf_try %>% filter(Ticket == unique(sf_try$Ticket)[check],
-                                Groundfish.Stat.Area == unique(sf_try$Groundfish.Stat.Area)[check2]))
-as.data.frame(sf_cpue2 %>% filter(Ticket == unique(sf_cpue2$Ticket)[check],
-                                  Groundfish.Stat.Area == unique(sf_try$Groundfish.Stat.Area)[check2]))
+as.data.frame(unique(sf_cpue2))                
+nrow(sf_cpue2)
+nrow(unique(sf_cpue2))
+
+length(unique(sf_try$Year))
+year_check<-1
+length(unique(sf_try$ADFG.Number))
+adfg_check<-3
+
+tix_list<-
+  unique(sf_try$Ticket[which(sf_try$Year == unique(sf_try$Year)[year_check] & 
+                               sf_try$ADFG.Number == unique(sf_try$ADFG.Number)[adfg_check])])
+length(tix_list)
+tix_list
+tix_check<-tix_list[1]
+
+gsa_list<-
+  unique(sf_try$Groundfish.Stat.Area[which(sf_try$Year == unique(sf_try$Year)[year_check] & 
+                               sf_try$ADFG.Number == unique(sf_try$ADFG.Number)[adfg_check] &
+                               sf_try$Ticket == tix_check)])
+length(gsa_list)
+gsa_check<-gsa_list[1]
+
+
+#as.data.frame(sf_try %>% filter(Ticket == unique(sf_try$Ticket)[check],
+#                                Groundfish.Stat.Area == unique(sf_try$Groundfish.Stat.Area)[check2]))
+as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                  Groundfish.Stat.Area == gsa_check,
+                                  Year == unique(sf_cpue2$Year)[year_check],
+                                  ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))
 #THIS IS THE SABLEFISH CPUE FOR THIS TICKET!! 
-unique(as.data.frame(sf_cpue2 %>% filter(Ticket == unique(sf_cpue2$Ticket)[check],
-                                         Groundfish.Stat.Area == unique(sf_try$Groundfish.Stat.Area)[check2]))$full.cpue)
+
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set_per_km)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set_per_hour)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set_per_km_per_hour)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook_per_km)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook_per_hour)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook_per_km_per_hour)
 
 ##Halibut CPUE in sablefish sets... 
 but_try<-full_join(lb_sampx_but, ftx_samp_but, by = c("Year", "ADFG.Number" = "ADFG",
@@ -322,29 +573,95 @@ but_try<-full_join(lb_sampx_but, ftx_samp_but, by = c("Year", "ADFG.Number" = "A
 as.data.frame(but_try[order(but_try$Ticket),]) 
 unique(as.data.frame(but_try[order(but_try$Ticket),]))
 
-but_try %>% group_by(Ticket, Groundfish.Stat.Area) %>% 
+but_try %>% group_by(Ticket, Groundfish.Stat.Area, Effort.Number) %>% 
+  mutate(partial_soak_time = soak_time_hrs/n(),
+         partial_km_fished = set_length_km/n(),
+         partial_hook_count1 = as.numeric(num_of_hooks1_calc)/n(),
+         partial_hook_count2 = as.numeric(num_of_hooks2_calc)/n()) %>% ungroup %>%
+  group_by(Ticket, Groundfish.Stat.Area) %>%
   mutate(set.count = set.count,
          catch = Whole.Weight..sum.,
          pre.lbs_per_set = catch/set.count,
-         lbs_per_set = sum(unique(catch))/set.count) ->but_cpue2  #don't change! This attaches to joined
+         total_soak_time = sum(partial_soak_time),
+         total_km_fished = sum(partial_km_fished),
+         total_hook_count1 = sum(partial_hook_count1),
+         total_hook_count2 = sum(partial_hook_count2),
+         lbs_per_set = sum(unique(catch))/set.count,
+         lbs_per_set_per_km = sum(unique(catch))/set.count/total_km_fished,
+         lbs_per_set_per_hour = sum(unique(catch))/set.count/total_soak_time,
+         lbs_per_set_per_km_per_hour = sum(unique(catch))/set.count/total_km_fished/total_soak_time,
+         lbs_per_hook1 = sum(unique(catch))/total_hook_count1,
+         lbs_per_hook_per_km1 = sum(unique(catch))/total_hook_count1/total_km_fished,
+         lbs_per_hook_per_hour1 = sum(unique(catch))/total_hook_count1/total_soak_time,
+         lbs_per_hook_per_km_per_hour1 = sum(unique(catch))/total_hook_count1/total_km_fished/total_soak_time,
+         lbs_per_hook2 = sum(unique(catch))/total_hook_count2,
+         lbs_per_hook_per_km2 = sum(unique(catch))/total_hook_count2/total_km_fished,
+         lbs_per_hook_per_hour2 = sum(unique(catch))/total_hook_count2/total_soak_time,
+         lbs_per_hook_per_km_per_hour2 = sum(unique(catch))/total_hook_count2/total_km_fished/total_soak_time
+  ) ->but_cpue2  #don't change! This attaches to joined
 as.data.frame(unique(but_cpue2)) 
 
-length(unique(but_try$Ticket))
-check<-1; 
-length(unique(but_try$Groundfish.Stat.Area))
-check2<-1
-as.data.frame(but_try %>% filter(Ticket == unique(but_try$Ticket)[check],
-                                Groundfish.Stat.Area == unique(but_try$Groundfish.Stat.Area)[check2]))
-as.data.frame(but_cpue2 %>% filter(Ticket == unique(but_cpue2$Ticket)[check],
-                                  Groundfish.Stat.Area == unique(but_try$Groundfish.Stat.Area)[check2]))
+length(unique(but_try$Year))
+year_check<-1
+length(unique(but_try$ADFG.Number))
+adfg_check<-1
+
+tix_list<-
+  unique(but_try$Ticket[which(but_try$Year == unique(but_try$Year)[year_check] & 
+                               but_try$ADFG.Number == unique(but_try$ADFG.Number)[adfg_check])])
+length(tix_list)
+tix_list
+tix_check<-tix_list[1]
+
+gsa_list<-
+  unique(but_try$Groundfish.Stat.Area[which(but_try$Year == unique(but_try$Year)[year_check] & 
+                                             but_try$ADFG.Number == unique(but_try$ADFG.Number)[adfg_check] &
+                                             but_try$Ticket == tix_check)])
+length(gsa_list)
+gsa_check<-gsa_list[1]
+
+
+#as.data.frame(but_try %>% filter(Ticket == unique(but_try$Ticket)[check],
+#                                Groundfish.Stat.Area == unique(but_try$Groundfish.Stat.Area)[check2]))
+as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                  Groundfish.Stat.Area == gsa_check,
+                                  Year == unique(sf_cpue2$Year)[year_check],
+                                  ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))
 #THIS IS THE SABLEFISH CPUE FOR THIS TICKET!! 
-unique(as.data.frame(but_cpue2 %>% filter(Ticket == unique(but_cpue2$Ticket)[check],
-                                         Groundfish.Stat.Area == unique(but_try$Groundfish.Stat.Area)[check2]))$full.cpue)
 
-
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set_per_km)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set_per_hour)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set_per_km_per_hour)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook_per_km)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook_per_hour)
+unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+                                         Groundfish.Stat.Area == gsa_check,
+                                         Year == unique(sf_cpue2$Year)[year_check],
+                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook_per_km_per_hour)
 #Do we need to check if there are sablefish harvests associated with halibut logbooks?
-
-
 
 #Shit example 1: so, on Sept 10, 2013 boat 65119 fishing in stat.area 345701 landed sablefish and
 # halibut on two tickets ...821 and ...823.  
@@ -354,6 +671,10 @@ unique(as.data.frame(but_cpue2 %>% filter(Ticket == unique(but_cpue2$Ticket)[che
 
 #Shit example 2: sometimes there is a fish ticket that is not matched by a logbook:
 # see ADFG.No 18402 in 1997 stat.area = 345631
+#
+#Shit example 3: sometimes there are apparent duplicate tickets that only vary in 
+# the amount of fish landed, but harvest.name does not specify an overage (although thats
+# what it looks like).  See Sequntial.Number 130451, in year 1998 boat ADFG 10127
 
 
 #7) Whittle the data down to what's needed for RAW file
