@@ -1,5 +1,5 @@
 # 2. Fishery cpue ---- 2023
-library(tidyverse)
+
 # This script will replace past (2022 and earlier) CPUE calculations that relied
 # on a long and mysterious sql script that was not documented in written format.  
 # When Rhea and staff reworked the logbook data that script became even more 
@@ -83,8 +83,8 @@ source("r_helper/functions.r")
 #             read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Longline_logbook_sable_and_halibut_target_2006-now_for_CPUE.csv")))
 
 ll_lb<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Longline logbook sable and halibut target 1997-now for CPUE.csv"))
-str(ll_lb)
-colnames(ll_lb)
+#str(ll_lb)
+#colnames(ll_lb)
 
 pot_lb<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Pot_logbook_sable_and_halibut_target_2006-now_for_CPUE.csv"))
 
@@ -104,19 +104,21 @@ unique(ll_lb$Config.List)
 gear_config<-max(stringr::str_count(ll_lb$Config.List, "---"))+1
 ll_lb %>% separate(Config.List, into = paste0("gear_config",1:gear_config),sep = "---") -> ll_lb
 #2) get rid of parenthesis...
-ll_lb %>% mutate(gear_config1 = gsub(")","",sub(".","",gear_config1))) %>%   #junk1 and junk2
+ll_lb %>% 
+  mutate(gear_config1 = gsub(")","",sub(".","",gear_config1))) %>%   #junk1 and junk2
   mutate(gear_config2 = gsub(")","",sub(".","",gear_config2))) %>%
   mutate(gear_config2 = sub(".","",gear_config2)) -> ll_lb
 #3) divide out target species into its own column before separating the rest of 
 #   the gear configuration into its own rows
-ll_lb<-ll_lb %>% mutate(split_gf1 = gear_config1,
+ll_lb<-ll_lb %>% 
+  mutate(split_gf1 = gear_config1,
                             split_gf2 = gear_config2) %>% 
   separate(split_gf1,into = paste0("gear_target_",1),sep = ",") %>%
   separate(split_gf2,into = paste0("gear_target_",2),sep = ",") %>%
   mutate(gear_target_1 = ifelse(grepl("Target Species", gear_target_1, fixed = TRUE),
                                 as.numeric(gsub(".*?([0-9]+).*", "\\1", gear_target_1)),NA),
          gear_target_2 = ifelse(grepl("Target Species", gear_target_2, fixed = TRUE),
-                                as.numeric(gsub(".*?([0-9]+).*", "\\1", gear_target_2)),NA))
+                                as.numeric(gsub(".*?([0-9]+).*", "\\1", gear_target_2)),NA)) #-> ll_lb
 #colnames(ll_lb)
 # 4) now, separate gear config column into multiple rows and get rid of rows with
 #    target species
@@ -196,7 +198,9 @@ sable_ftx<-ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[1])
 forCPUE<-full_join(sable_ll_lb, sable_ftx, by = c("Year", "ADFG.Number" = "ADFG",
                                                    "Sell.Date" = "Date.of.Landing",
                                                    "Groundfish.Stat.Area" = "Stat.Area",
-                                                   "Ticket_subref"),multiple="all") %>% filter(!is.na(Fishery.Name)) #%>% #this gets rid of logbook entries with no matching fish tickets
+                                                   "Ticket_subref"),
+                   multiple="all",
+                   suffix = c("_lb","_ftx")) %>% filter(!is.na(Fishery.Name)) #%>% #this gets rid of logbook entries with no matching fish tickets
 
 # 13) Calculate CPUE for the logbook data
 
@@ -233,75 +237,127 @@ forCPUE %>% group_by(Ticket_LB, Groundfish.Stat.Area, Effort.Number) %>%
 # if they are both on the same ticket. :(
 
 # 14) Spot checking to make sure things look good... 
+# This step will allow you to grab a random year and then grab a boat, logbook ticket, 
+# and management area to check that the calculations make sense.
 
 length(unique(Sable_CPUE$Year))
 year_check<-sample(length(unique(Sable_CPUE$Year)),1)
 year_check
 
-
-
-
 adfg_list<-unique(Sable_CPUE$ADFG.Number[which(Sable_CPUE$Year == unique(Sable_CPUE$Year)[year_check])])
-
-length(unique(Sable_CPUE$ADFG.Number[Sable_CPUE$Year == unique(Sable_CPUE$Year)[year_check]]))
-adfg_check<-sample(length(unique(Sable_CPUE$ADFG.Number[Sable_CPUE$Year == unique(Sable_CPUE$Year)[year_check]])),1)
-adfg_check
+length(adfg_list)
+adfg_list
+adfg_check<-adfg_list[1]
 
 tix_list<-
-  unique(sf_try$Ticket[which(sf_try$Year == unique(sf_try$Year)[year_check] & 
-                               sf_try$ADFG.Number == unique(sf_try$ADFG.Number)[adfg_check])])
+  unique(Sable_CPUE$Ticket_LB[which(Sable_CPUE$Year == unique(Sable_CPUE$Year)[year_check] & 
+                                      Sable_CPUE$ADFG.Number == adfg_check)])
 length(tix_list)
 tix_list
 tix_check<-tix_list[1]
 
 gsa_list<-
-  unique(sf_try$Groundfish.Stat.Area[which(sf_try$Year == unique(sf_try$Year)[year_check] & 
-                                             sf_try$ADFG.Number == unique(sf_try$ADFG.Number)[adfg_check] &
-                                             sf_try$Ticket == tix_check)])
+  unique(Sable_CPUE$Groundfish.Stat.Area[which(Sable_CPUE$Year == unique(Sable_CPUE$Year)[year_check] & 
+                                             Sable_CPUE$ADFG.Number == adfg_check &
+                                             Sable_CPUE$Ticket_LB == tix_check)])
 length(gsa_list)
 gsa_check<-gsa_list[1]
 
 
 #as.data.frame(sf_try %>% filter(Ticket == unique(sf_try$Ticket)[check],
 #                                Groundfish.Stat.Area == unique(sf_try$Groundfish.Stat.Area)[check2]))
-as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
                                   Groundfish.Stat.Area == gsa_check,
-                                  Year == unique(sf_cpue2$Year)[year_check],
-                                  ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))
+                                  Year == unique(Sable_CPUE$Year)[year_check],
+                                  ADFG.Number == adfg_check))
 #THIS IS THE SABLEFISH CPUE FOR THIS TICKET!! 
 
-unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
                                          Groundfish.Stat.Area == gsa_check,
-                                         Year == unique(sf_cpue2$Year)[year_check],
-                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set)
-unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
-                                         Groundfish.Stat.Area == gsa_check,
-                                         Year == unique(sf_cpue2$Year)[year_check],
-                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set_per_km)
-unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
-                                         Groundfish.Stat.Area == gsa_check,
-                                         Year == unique(sf_cpue2$Year)[year_check],
-                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set_per_hour)
-unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
-                                         Groundfish.Stat.Area == gsa_check,
-                                         Year == unique(sf_cpue2$Year)[year_check],
-                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_set_per_km_per_hour)
-unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
-                                         Groundfish.Stat.Area == gsa_check,
-                                         Year == unique(sf_cpue2$Year)[year_check],
-                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook)
-unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
-                                         Groundfish.Stat.Area == gsa_check,
-                                         Year == unique(sf_cpue2$Year)[year_check],
-                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook_per_km)
-unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
-                                         Groundfish.Stat.Area == gsa_check,
-                                         Year == unique(sf_cpue2$Year)[year_check],
-                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook_per_hour)
-unique(as.data.frame(sf_cpue2 %>% filter(Ticket == tix_check,
-                                         Groundfish.Stat.Area == gsa_check,
-                                         Year == unique(sf_cpue2$Year)[year_check],
-                                         ADFG.Number == unique(sf_cpue2$ADFG.Number)[adfg_check]))$lbs_per_hook_per_km_per_hour)
+                                         Year == unique(Sable_CPUE$Year)[year_check],
+                                         ADFG.Number == adfg_check))$lbs_per_set)
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+                                           Groundfish.Stat.Area == gsa_check,
+                                           Year == unique(Sable_CPUE$Year)[year_check],
+                                           ADFG.Number == adfg_check))$lbs_per_set_per_km)
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+                                           Groundfish.Stat.Area == gsa_check,
+                                           Year == unique(Sable_CPUE$Year)[year_check],
+                                           ADFG.Number == adfg_check))$lbs_per_set_per_hour)
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+                                           Groundfish.Stat.Area == gsa_check,
+                                           Year == unique(Sable_CPUE$Year)[year_check],
+                                           ADFG.Number == adfg_check))$lbs_per_set_per_km_per_hour)
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+                                           Groundfish.Stat.Area == gsa_check,
+                                           Year == unique(Sable_CPUE$Year)[year_check],
+                                           ADFG.Number == adfg_check))$lbs_per_hook1)
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+                                           Groundfish.Stat.Area == gsa_check,
+                                           Year == unique(Sable_CPUE$Year)[year_check],
+                                           ADFG.Number == adfg_check))$lbs_per_hook_per_km1)
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+                                           Groundfish.Stat.Area == gsa_check,
+                                           Year == unique(Sable_CPUE$Year)[year_check],
+                                           ADFG.Number == adfg_check))$lbs_per_hook_per_hour1)
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+                                           Groundfish.Stat.Area == gsa_check,
+                                           Year == unique(Sable_CPUE$Year)[year_check],
+                                           ADFG.Number == adfg_check))$lbs_per_hook_per_km_per_hour1)
+
+# 15) Save the raw data a
+# 2023 will save to legacy folder for use going forward
+# in 2024 you will pull the legacy data, add the new year to it and resave if you
+# choose to just pull the new year of data.  It may be better to just pull the same
+# OceanAK queries set up in my folder as they are set up to pull every year from 
+# 1997 until today...
+
+write_csv(Sable_CPUE, paste0("legacy_data/fishery/raw_data/fishery_ll_cpue_vers23_",
+                             min(Sable_CPUE$Year),"-",YEAR,".csv",sep=""))
+
+#check some final things out...
+colnames(Sable_CPUE)
+
+unique(Sable_CPUE$Disposition) #Logbook Data
+nrow(Sable_CPUE %>% filter (Disposition == "Released")) #955!!! 
+as.data.frame(head(Sable_CPUE %>% filter (Disposition == "Released"),10))  #CHECK!!
+
+unique(Sable_CPUE$Depredation)
+nrow(Sable_CPUE %>% filter (Depredation == "Orca"))
+as.data.frame(head(Sable_CPUE %>% filter (Depredation == "Orca"),10))  #OK ... but need to include to exclude for CPUE... 
+
+unique(Sable_CPUE$Sablefish.Discards)
+
+unique(Sable_CPUE$Longline.System)
+
+unique(Sable_CPUE$Gear)
+
+unique(Sable_CPUE$Disposition.Name) #Fish ticket data
+nrow(Sable_CPUE %>% filter (Disposition.Name == "Disc at sea"))  #CHECK
+nrow(Sable_CPUE %>% filter (Disposition.Name == "Disc dock"))  #CHECK
+
+unique(Sable_CPUE$Discard.at.Sea)
+nrow(Sable_CPUE %>% filter (Discard.at.Sea == "Yes")) #matches Disposition.Name == "Disc at sea"
+nrow(Sable_CPUE %>% filter (Discard.at.Sea == "No")) #matches Disposition.Name == "Disc at sea"
+as.data.frame(head(Sable_CPUE %>% filter (Discard.at.Sea == "Yes"),10)) 
+
+unique(Sable_CPUE$Harvest.Name)
+
+unique(Sable_CPUE$Fishery.Name)
+
+unique(Sable_CPUE$Depredation)
+nrow(Sable_CPUE %>% filter (Depredation == "Orca"))
+as.data.frame(head(Sable_CPUE %>% filter (Depredation == "Orca"),10)) 
+
+unique(Sable_CPUE$Depredation)
+nrow(Sable_CPUE %>% filter (Depredation == "Orca"))
+as.data.frame(head(Sable_CPUE %>% filter (Depredation == "Orca"),10)) 
+#################################################################################
+##*******************************************************************************
+##* POT CPUE
+##* *****************************************************************************
+#################################################################################
+
 
 
 ##################################################################################

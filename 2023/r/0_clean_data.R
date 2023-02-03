@@ -112,124 +112,64 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
 #======================================================================================
 # 2. Fishery cpue ----
 
-# The fishery CPUE index will not be available for 2020, and the following
-# documentation serves as a placeholder. The commented out code below can be
-# used to standardize future column names to maintain some consistency with
-# existing code.
+#For past iterations of the Fishery CPUE please see the 2022 folder or the original
+# analysis in the brand: seak_sablefish_thru2021_original_JS
 
-# Current documentation: In 2020, Rhea Ehresmann and GF project staff worked
-# with Karl Wood to create a new cpue data input application. As part, they
-# redefined how set targets are defined. This means Kallenburger's scripts that
-# match fish ticket poundage data to logbook data are likely depricated and will
-# need a revamp. If this is the case, my recommendation is to work with Justin
-# Daily and the new biometrician to develop new methods (ideally in R). In the
-# mean time, the statistical catch-at-age model will accept NULLS for this data
-# component. This part of the model likelihood receives a relatively low weight,
-# so I anticipate this will have little influence on model results. The full
-# time series will need to be redeveloped once this has happened.
+# Starting in 2023 we have set up the CPUE calculations and data using OceanAK queries
+# detailed in script: fishery_cpue_fr_OceanAK_ftx_lb_dat.R.  The query criteria
+# is described in that script and running that code will provide the CPUE data
+# for 1997 through today.  That data is stored in the legacy data folder and will be
+# pulled here and cleaned up for use in the assessment. 
 
-# Past documentation: Kamala Carroll pulls the IFDB view out_g_log_longline_c_e,
-# populates new columns effort_target_species_code and effort_comments, and
-# sends to Scott Johnson. Scott runs a series of Martina Kallenburger's sql
-# scripts (https://github.com/commfish/seak_sablefish/issues/7) that match fish
-# tickets pounds back to set based on Kamala's set target designation based on
-# some undocumented methodology (proportional to numbers/pounds in logbook?). It
-# lives in a view called sablefish_cpue_final_view in scottj's IFDB schema,
-# though he has made a public synonym for it. This output doesn't contain
-# information on sets designated as halibut targets. Note that it is missing
-# effort_no's (effort_no's = individual sets).
+#BELOW IN PROGESS 2-3-23!!!
 
-#A) This code is for adding both 2020 and 2021 data at once since 2020 was skipped last year
-rbind(read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
-                          #                 max(fsh_eff$YEAR), ".csv"), 
-                          YEAR-1, ".csv"), 
-                   guess_max = 50000),
-          read_csv(paste0("data/fishery/raw_data/fishery_cpue_",
-                          #                 max(fsh_eff$YEAR), ".csv"), 
-                          YEAR, ".csv"), 
-                   guess_max = 50000)) %>% 
-  #   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
-  #   # hooks and cpue
-  mutate(date = ymd(as.Date(TIME_SET)), #ISO 8601 format
-         julian_day = yday(date),
-         soak = as.numeric(difftime(TIME_HAULED, TIME_SET, units = "hours")),
-         Gear = factor(LONGLINE_SYSTEM_CODE),
-         Hook_size = as.character(HOOK_SIZE), 
-         hook_space = HOOK_SPACING, #*FLAG* - check that hook_space is in inches
-         Size = factor(as.numeric(gsub("[^0-9]", "", Hook_size))),
-         no_hooks = NUMBER_OF_HOOKS,
-         sable_lbs_set = SABLE_LBS_PER_SET) %>% 
-  select(year = YEAR, trip_no = TRIP_NO, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
-         soak, Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, 
-         hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
-         sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
-         start_lon = START_LONGITUDE_DECIMAL_DEGREE) -> fsh_eff
 
-#code for adding just one year.  Use in '23 for '22 analysis (hopefully)
-{
- read_csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_cpue_",
-#                 max(fsh_eff$YEAR), ".csv"), 
-                 YEAR, ".csv"), 
-          guess_max = 50000) %>% 
-#   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
-#   # hooks and cpue
-   mutate(date = ymd(as.Date(TIME_SET)), #ISO 8601 format
-          julian_day = yday(date),
-          soak = difftime(TIME_HAULED, TIME_SET, units = "hours"),
-          Gear = factor(LONGLINE_SYSTEM_CODE),
-          Hook_size = as.character(HOOK_SIZE), 
-          hook_space = HOOK_SPACING, #*FLAG* - check that hook_space is in inches
-          Size = factor(as.numeric(gsub("[^0-9]", "", Hook_size))),
-          no_hooks = NUMBER_OF_HOOKS,
-          sable_lbs_set = SABLE_LBS_PER_SET) %>% 
-   select(year = YEAR, trip_no = TRIP_NO, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
-          soak, Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, 
-          hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
-          sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
-          start_lon = START_LONGITUDE_DECIMAL_DEGREE) -> fsh_eff
- }
-unique(fsh_eff$year) 
-# # Data quieried before (that way you're using the same data that was used for
-# # the assessment, starting in 2017)
-# read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR-1, ".csv"), 
- read_csv(paste0("legacy_data/data/fishery/fishery_cpue_1997_", YEAR-2, ".csv"), 
-          guess_max = 50000) %>% 
-   mutate(Size = as.character(Size)) -> past_fsh_eff
- 
-  bind_rows(past_fsh_eff, fsh_eff) -> fsh_eff
- 
- unique(fsh_eff$year)
- 
- write_csv(fsh_eff, paste0(YEAR+1,"/data/fishery/fishery_cpue_",
-                    min(fsh_eff$year), "_", max(fsh_eff$year), ".csv"))
- 
-#2b) Justin Daily ran new script on corrected logbook reentries for all data back through
-# 1997.  Here is that data for fishery CPUE... PJ checking it out February 2022
-# if looks good this will become historical data and we will bypass old data set titled
-# fishery_cpue_1997_2019.  Lets see!... 
- 
- #2022 reboot done in 2022 and all data 1997-2021; in legacy_data folder
- read_csv(paste0("legacy_data/data/fishery/raw_data/fishery_cpue_1997_2021_update2022.csv"), 
+ read_csv(paste0("legacy_data/fishery/raw_data/fishery_ll_cpue_vers23_1997-",
+                 YEAR,".csv",sep=""), 
                 guess_max = 50000) %>% 
    #   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
    #   # hooks and cpue
-   mutate(year = YEAR,
-          date = as.Date(TIME_SET, c("%m/%d/%Y")), #ISO 8601 format
+   mutate(year = Year,
+          date = as.Date(Time.Set, c("%m/%d/%Y")), #ISO 8601 format
           julian_day = yday(date),
-          tm_hauled = parse_date_time(TIME_HAULED, c("%m/%d/%Y %H:%M %p")),
-          t_set = parse_date_time(TIME_SET, c("%m/%d/%Y %H:%M %p")),
-          soak = as.numeric(difftime(tm_hauled, t_set, units = "hours")),
-          Gear = factor(LONGLINE_SYSTEM_CODE),
-          Hook_size = as.character(HOOK_SIZE), 
-          hook_space = HOOK_SPACING, #*FLAG* - check that hook_space is in inches
-          Size = factor(as.numeric(gsub("[^0-9]", "", Hook_size))),
-          no_hooks = NUMBER_OF_HOOKS,
+          tm_hauled = parse_date_time(Time.Hauled, c("%m/%d/%Y %H:%M %p")),
+          t_set = parse_date_time(Time.Set, c("%m/%d/%Y %H:%M %p")),
+          set_soak = soak_time_hrs,
+          set_length = set_length_km,
+          
+          AVERAGE_DEPTH_METERS = 1.8288*Average.Depth.Fathoms,
+          
+          Gear = factor(Longline.System.Code),
+          Hook_size_1 = as.character(hook_size1), 
+          hook_space_1 = spacing1, #*FLAG* - check that hook_space is in inches
+          Size_1 = factor(as.numeric(gsub("[^0-9]", "", Hook_size_1))),
+          no_hooks_1 = num_of_hooks1_calc,
+          Hook_size_2 = as.character(hook_size2), 
+          hook_space_2 = spacing2, #*FLAG* - check that hook_space is in inches
+          Size_2 = factor(as.numeric(gsub("[^0-9]", "", Hook_size_2))),
+          no_hooks_2 = num_of_hooks2_calc,
+          
           sable_lbs_set = SABLE_LBS_PER_SET) %>% 
+  
    select(year = YEAR, trip_no = TRIP_NO, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
-          soak, Gear = LONGLINE_SYSTEM_CODE, Hook_size, Size, 
-          hook_space, Stat = G_STAT_AREA, no_hooks, depth = AVERAGE_DEPTH_METERS, 
-          sets = EFFORT_NO, sable_lbs_set, start_lat = START_LATITUDE_DECIMAL_DEGREES,
-          start_lon = START_LONGITUDE_DECIMAL_DEGREE, target = SET_TARGET) -> fsh_eff_new22
+          soak, 
+          set_length, Gear, 
+          Hook_size, Size, 
+          hook_space, no_hooks, 
+          Stat = G_STAT_AREA, 
+          depth = AVERAGE_DEPTH_METERS, 
+          sets = Effort.Number, 
+          sable_lbs_set, 
+          
+          start_lat = Start.Latitude.Decimal.Degrees,
+          start_lon = Start.Longitude.Decimal.Degrees, 
+          set_target = Effort.Primary.Target.Species,
+          set_target_2 = Effort.Secondary.Target.Species,
+          trip_target = Trip.Primary.Target.Species,
+          trip_target_2 = Trip.Secondary.Target.Species) -> fsh_eff_new22
+
+
+
  #note some of the dat time stuff will have warnings because of incomplete data
  # will have to deal with NA's in analysis
  
