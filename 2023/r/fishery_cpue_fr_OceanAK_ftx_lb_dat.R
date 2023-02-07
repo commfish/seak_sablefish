@@ -79,14 +79,14 @@ source("r_helper/functions.r")
 #    See same example of Year = 2013 and ADFG_No = 65119
 
 
-#ll_lb<-rbind(read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Longline_logbook_sable_and_halibut_target_1997-2005_for_CPUE.csv")),
+#ll_log<-rbind(read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Longline_logbook_sable_and_halibut_target_1997-2005_for_CPUE.csv")),
 #             read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Longline_logbook_sable_and_halibut_target_2006-now_for_CPUE.csv")))
 
-ll_lb<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Longline logbook sable and halibut target 1997-now for CPUE.csv"))
-#str(ll_lb)
-#colnames(ll_lb)
+ll_log<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Longline logbook sable and halibut target 1997-now for CPUE.csv"))
+#str(ll_log)
+#colnames(ll_log)
 
-pot_lb<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Pot_logbook_sable_and_halibut_target_2006-now_for_CPUE.csv"))
+pot_log<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Pot_logbook_sable_and_halibut_target_2006-now_for_CPUE.csv"))
 
 ftx<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/NSEI_ftx_sablefish_halibut_pot_longline_1997-now.csv"))
 str(ftx)
@@ -95,41 +95,41 @@ byc.ftx<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/NSEI_ftx_bycatch_pot_lon
 
 alltx<-rbind(ftx,byc.ftx)
 #----------------------------------------------------------------------------------
-str(ll_lb)
-unique(ll_lb$Gear)
-unique(ll_lb$Longline.System)
-unique(ll_lb$Config.List)
+str(ll_log)
+unique(ll_log$Gear)
+unique(ll_log$Longline.System)
+unique(ll_log$Config.List)
 
 #1) separate out multiple gear configurations
-gear_config<-max(stringr::str_count(ll_lb$Config.List, "---"))+1
-ll_lb %>% separate(Config.List, into = paste0("gear_config",1:gear_config),sep = "---") -> ll_lb
+gear_config<-max(stringr::str_count(ll_log$Config.List, "---"))+1
+ll_log %>% separate(Config.List, into = paste0("gear_config",1:gear_config),sep = "---") -> ll_log
 #2) get rid of parenthesis...
-ll_lb %>% 
+ll_log %>% 
   mutate(gear_config1 = gsub(")","",sub(".","",gear_config1))) %>%   #junk1 and junk2
   mutate(gear_config2 = gsub(")","",sub(".","",gear_config2))) %>%
-  mutate(gear_config2 = sub(".","",gear_config2)) -> ll_lb
+  mutate(gear_config2 = sub(".","",gear_config2)) -> ll_log
 #3) divide out target species into its own column before separating the rest of 
 #   the gear configuration into its own rows
-ll_lb<-ll_lb %>% 
+ll_log<-ll_log %>% 
   mutate(split_gf1 = gear_config1,
-                            split_gf2 = gear_config2) %>% 
+         split_gf2 = gear_config2) %>% 
   separate(split_gf1,into = paste0("gear_target_",1),sep = ",") %>%
   separate(split_gf2,into = paste0("gear_target_",2),sep = ",") %>%
   mutate(gear_target_1 = ifelse(grepl("Target Species", gear_target_1, fixed = TRUE),
                                 as.numeric(gsub(".*?([0-9]+).*", "\\1", gear_target_1)),NA),
          gear_target_2 = ifelse(grepl("Target Species", gear_target_2, fixed = TRUE),
-                                as.numeric(gsub(".*?([0-9]+).*", "\\1", gear_target_2)),NA)) #-> ll_lb
-#colnames(ll_lb)
+                                as.numeric(gsub(".*?([0-9]+).*", "\\1", gear_target_2)),NA)) #-> ll_log
+#colnames(ll_log)
 # 4) now, separate gear config column into multiple rows and get rid of rows with
 #    target species
-ll_lb <- separate_rows(ll_lb,"gear_config1",sep=", ") %>% 
+ll_log <- separate_rows(ll_log,"gear_config1",sep=", ") %>% 
   filter(!grepl("Target Species", gear_config1, fixed = TRUE)) 
-ll_lb <-  separate_rows(ll_lb,"gear_config2",sep=", ") %>%
+ll_log <-  separate_rows(ll_log,"gear_config2",sep=", ") %>%
   filter(!grepl("Target Species", gear_config2, fixed = TRUE))
-#(data.frame(ll_lb),20)
-#unique(ll_lb$gear_config1)
+#(data.frame(ll_log),20)
+#unique(ll_log$gear_config1)
 # 5) separate the gear configuration columns...
-ll_lb<-ll_lb %>% separate(gear_config1,into = paste0(c("gear_sub1","gear_spec1"),""),sep = ":") %>%
+ll_log<-ll_log %>% separate(gear_config1,into = paste0(c("gear_sub1","gear_spec1"),""),sep = ":") %>%
   separate(gear_config2,into = paste0(c("gear_sub2","gear_spec2"),""),sep = ":") %>%
   mutate(gear_sub1 = str_replace(gear_sub1, " ","_"),
          gear_sub1 = str_replace(gear_sub1, "/","_per_"),
@@ -151,39 +151,72 @@ ll_lb<-ll_lb %>% separate(gear_config1,into = paste0(c("gear_sub1","gear_spec1")
   select(-Hook_Size,-Spacing,-Hooks_per_Skate,-Num_Skates,-Num_Hooks) # %>% #,Num_Hooks)
 
 #6) #Separate out multiple tickets
-ll_lb <- separate_rows(ll_lb,"Ticket",sep=", ") 
+ll_log <- separate_rows(ll_log,"Ticket",sep=", ") 
 
 #7) Take a piece of the "Ticket" that might match sequential number in fish ticket data base
-ll_lb <- ll_lb %>% mutate(Ticket_subref = str_remove(str_sub(Ticket,nchar(Ticket)-2,nchar(Ticket)), "^0+"),
-                          Trip.Number.LB = Trip.Number)
+ll_log <- ll_log %>% mutate(Ticket_subref = str_remove(str_sub(Ticket,nchar(Ticket)-2,nchar(Ticket)), "^0+"),
+                          Trip.Number.log = Trip.Number)
 
 # 8) Get number of sets for each ticket...
-ll_lb <- ll_lb %>% group_by(Ticket, Year, ADFG.Number, Groundfish.Stat.Area) %>%
+ll_log <- ll_log %>% group_by(Ticket, Year, ADFG.Number, Groundfish.Stat.Area) %>%
   mutate(set.count = n_distinct(Effort.Number))%>% ungroup()
 
 # 9) Get numbers of hooks when num_of_hooks not available...
 # Lots of error warnings from this bit because of incomplete data series.  That's OK.  Its working
-ll_lb <-ll_lb %>% mutate(num_of_hooks1_calc = ifelse(!is.na(num_of_hooks1),num_of_hooks1,
+pre9<-ll_log
+ll_log<-pre9
+ll_log <-ll_log %>% 
+  mutate(num_of_hooks1_calc = ifelse(!is.na(num_of_hooks1),num_of_hooks1,
                                                      as.numeric(num_of_skates1)*as.numeric(hooks_per_skate1)),
-                         num_of_skates1_calc = ifelse(!is.na(num_of_skates1),num_of_skates1,
-                                                      as.numeric(num_of_hooks1)/as.numeric(hooks_per_skate1)),
-                         num_of_hooks2_calc = as.numeric(num_of_skates2)*as.numeric(hooks_per_skate2),
-                         set_length_km = 1.609344*Set.Length..mi.,
-                         soak_time_hrs = Soak.Time.Hours,
-                         Ticket_LB = Ticket,
-                         Species_LB = Species,
-                         Pounds_LB = Pounds,
-                         Numbers_LB = Numbers
+         num_of_skates1_calc = ifelse(!is.na(num_of_skates1),num_of_skates1,
+                                 as.numeric(num_of_hooks1)/as.numeric(hooks_per_skate1)), 
+         num_of_hooks2_calc = as.numeric(num_of_skates2)*as.numeric(hooks_per_skate2),
+         set_length_km = 1.609344*Set.Length..mi.,
+         soak_time_hrs = Soak.Time.Hours,
+         Ticket_log = Ticket,
+         Species_log = Species,
+         Pounds_log = Pounds,
+         Numbers_log = Numbers
                          ) %>%
+  mutate(num_of_skates1_tst = ifelse(!is.na(num_of_skates1),num_of_skates1,
+                                     ifelse(is.numeric(hooks_per_skate1),as.numeric(num_of_hooks1)/as.numeric(hooks_per_skate1),
+                                            as.numeric(num_of_hooks1)/mean(c(as.numeric(strsplit(hooks_per_skate1,",")[[1]][1]),
+                                                                             as.numeric(strsplit(hooks_per_skate1,",")[[1]][2]))))),
+         num_of_hooks1_tst = ifelse(is.na(num_of_hooks1_calc),
+                                    ifelse(is.numeric(hooks_per_skate1),
+                                           as.numeric(num_of_skates1_calc)*as.numeric(hooks_per_skate1),
+                                           mean(c(as.numeric(strsplit(hooks_per_skate1,",")[[1]][1]),
+                                                  as.numeric(strsplit(hooks_per_skate1,",")[[1]][2])),na.rm=T)*as.numeric(num_of_skates1_calc)),
+                                    num_of_hooks1_calc),
+         num_of_skates1_tst2 = ifelse(!is.na(num_of_skates1),num_of_skates1,
+                                     ifelse(is.numeric(hooks_per_skate1),as.numeric(num_of_hooks1)/as.numeric(hooks_per_skate1),
+                                            as.numeric(num_of_hooks1)/mean(c(as.numeric(strsplit(hooks_per_skate1,",")[[1]][1]),
+                                                                             as.numeric(strsplit(hooks_per_skate1,",")[[1]][2]))))),
+         num_of_hooks1_tst3 = ifelse(!is.na(num_of_hooks1_calc),"nonsense",
+                                     ifelse(is.numeric(hooks_per_skate1),"more_nonsense",
+                                            #mean(c(1,6),na.rm=T)
+                                            #hooks_per_skate1
+                                            as.character(factor(spacing1))
+                                            #hook_size1
+                                            #as.numeric(soak_time_hrs) 
+                                            #unique(Trip.Number)
+                                            )),
+         num_of_hooks1_tst2 = ifelse(!is.na(num_of_hooks1_calc),num_of_hooks1_calc,
+                                    ifelse(is.numeric(hooks_per_skate1),as.numeric(num_of_skates1_calc)*as.numeric(hooks_per_skate1),
+                                           mean(c(as.numeric(strsplit(hooks_per_skate1,",")[[1]][1]),
+                                                  as.numeric(strsplit(hooks_per_skate1,",")[[1]][2])),na.rm=T)*as.numeric(num_of_skates1_calc)))) %>%
   select(-Ticket,-Pounds,-Species,-Numbers)
 
+as.data.frame(ll_log %>% filter (ll_log$Numbers_log == 196))
+which(ll_log$spacing1 == "42")
+which(ll_log$Vessel.Name == "Ingot")
 ### If there are issues you can skip down below to section labelled:
 #   DEVELOPMENT CODE FOR FULL JOIN to see if you can resolve it... 
 #   Otherwise it's time to join the fish ticket and logbook data.
 
 # 10) Separate the logbook data out by halibut and sablefish
-hal_ll_lb<-ll_lb %>% filter(Species_LB == "Halibut")
-sable_ll_lb <- ll_lb %>% filter(Species_LB == "Sablefish")
+hal_ll_log<-ll_log %>% filter(Species_log == "Halibut")
+sable_ll_log <- ll_log %>% filter(Species_log == "Sablefish")
 
 # 11) Separate the fish tickets out by fishery
 ftx<-ftx %>% filter(Harvest.Code != 43) %>% #get rid of survey fishtickets... 
@@ -195,23 +228,27 @@ sable_ftx<-ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[1])
 
 # 12) Join the sablefish fishticket and logbook data! 
 
-forCPUE<-full_join(sable_ll_lb, sable_ftx, by = c("Year", "ADFG.Number" = "ADFG",
+forCPUE<-full_join(sable_ll_log, sable_ftx, by = c("Year", "ADFG.Number" = "ADFG",
                                                    "Sell.Date" = "Date.of.Landing",
                                                    "Groundfish.Stat.Area" = "Stat.Area",
                                                    "Ticket_subref"),
                    multiple="all",
-                   suffix = c("_lb","_ftx")) %>% filter(!is.na(Fishery.Name)) #%>% #this gets rid of logbook entries with no matching fish tickets
+                   suffix = c("_log","_ftx")) %>% filter(!is.na(Fishery.Name)) #%>% #this gets rid of logbook entries with no matching fish tickets
 
 # 13) Calculate CPUE for the logbook data
 
-forCPUE %>% group_by(Ticket_LB, Groundfish.Stat.Area, Effort.Number) %>% 
+forCPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Effort.Number) %>%
+#forCPUE %>% group_by(Ticket_log, Groundfish.Stat.Area, Effort.Number) %>% 
   mutate(partial_soak_time = soak_time_hrs/n(),
          partial_km_fished = set_length_km/n(),
          partial_hook_count1 = as.numeric(num_of_hooks1_calc)/n(),
          partial_hook_count2 = as.numeric(num_of_hooks2_calc)/n()) %>% ungroup %>%
-  group_by(Ticket_LB, Groundfish.Stat.Area) %>%
+  group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area) %>%
+ # group_by(Ticket_log, Groundfish.Stat.Area) %>%
   mutate(set.count = set.count,
-         catch = Whole.Weight..sum.,
+         #catch = Whole.Weight..sum.,
+         tix.ref.catch = Whole.Weight..sum.,
+         catch = sum(unique(Whole.Weight..sum.)),
          pre.lbs_per_set = catch/set.count,
          total_soak_time = sum(partial_soak_time),
          total_km_fished = sum(partial_km_fished),
@@ -229,17 +266,22 @@ forCPUE %>% group_by(Ticket_LB, Groundfish.Stat.Area, Effort.Number) %>%
          lbs_per_hook_per_km2 = sum(unique(catch))/total_hook_count2/total_km_fished,
          lbs_per_hook_per_hour2 = sum(unique(catch))/total_hook_count2/total_soak_time,
          lbs_per_hook_per_km_per_hour2 = sum(unique(catch))/total_hook_count2/total_km_fished/total_soak_time
-  ) ->Sable_CPUE  #don't change! This attaches to joined
+  ) -> Sable_CPUE  #don't change! This attaches to joined
 #Note regarding two gear configurations.  When calculating final CPUE in analysis
 # you will need to be mindful of gear_target_1 and _2.  When there are two sets of
 # gear targeting different species (halibut and sablefish) the CPUE will NOT be
 # useful for analysis because there is no way to separate out the catch by target 
 # if they are both on the same ticket. :(
 
+# Will also need to be mindful of disposition.  Releases are recorded in some logbooks.
+# When this happens looking up a particular landing will show two entries; one retained
+# and one released (or some combo depending on sets).  Catch will reflect the landin
+# but release data on the Release logbook may be in numbers of lbs.  
+
 # 14) Spot checking to make sure things look good... 
 # This step will allow you to grab a random year and then grab a boat, logbook ticket, 
 # and management area to check that the calculations make sense.
-
+{
 length(unique(Sable_CPUE$Year))
 year_check<-sample(length(unique(Sable_CPUE$Year)),1)
 year_check
@@ -247,60 +289,72 @@ year_check
 adfg_list<-unique(Sable_CPUE$ADFG.Number[which(Sable_CPUE$Year == unique(Sable_CPUE$Year)[year_check])])
 length(adfg_list)
 adfg_list
-adfg_check<-adfg_list[1]
+adfg_check<-adfg_list[sample(length(adfg_list),1)]
 
-tix_list<-
-  unique(Sable_CPUE$Ticket_LB[which(Sable_CPUE$Year == unique(Sable_CPUE$Year)[year_check] & 
+#tix_list<-
+#  unique(Sable_CPUE$Ticket_log[which(Sable_CPUE$Year == unique(Sable_CPUE$Year)[year_check] & 
+#                                      Sable_CPUE$ADFG.Number == adfg_check)])
+#length(tix_list)
+#tix_list
+#tix_check<-tix_list[1]
+
+sd_list<-
+  unique(Sable_CPUE$Sell.Date[which(Sable_CPUE$Year == unique(Sable_CPUE$Year)[year_check] & 
                                       Sable_CPUE$ADFG.Number == adfg_check)])
-length(tix_list)
-tix_list
-tix_check<-tix_list[1]
+length(sd_list)
+sd_list
+sd_check<-sd_list[sample(length(sd_list),1)]
 
 gsa_list<-
   unique(Sable_CPUE$Groundfish.Stat.Area[which(Sable_CPUE$Year == unique(Sable_CPUE$Year)[year_check] & 
                                              Sable_CPUE$ADFG.Number == adfg_check &
-                                             Sable_CPUE$Ticket_LB == tix_check)])
+                                             Sable_CPUE$Sell.Date == sd_check)])
 length(gsa_list)
-gsa_check<-gsa_list[1]
+gsa_check<-gsa_list[sample(length(gsa_list),1)]
+}
 
-
+#colnames(Sable_CPUE)
 #as.data.frame(sf_try %>% filter(Ticket == unique(sf_try$Ticket)[check],
 #                                Groundfish.Stat.Area == unique(sf_try$Groundfish.Stat.Area)[check2]))
-as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+check<-as.data.frame(Sable_CPUE %>% filter(Sell.Date == sd_check,
                                   Groundfish.Stat.Area == gsa_check,
                                   Year == unique(Sable_CPUE$Year)[year_check],
-                                  ADFG.Number == adfg_check))
+                                  ADFG.Number == adfg_check)); check
 #THIS IS THE SABLEFISH CPUE FOR THIS TICKET!! 
-
-unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+#arg<-as.data.frame(ll_log %>% filter(Year == 2008 & Groundfish.Stat.Area == 345701 & ADFG.Number == 26017 &
+#                                      Sell.Date == "2008-09-06 00:00:00"))
+#unique(arg$Effort.Number)
+#unique(check$Effort.Number)
+#-----
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_log == tix_check,
                                          Groundfish.Stat.Area == gsa_check,
                                          Year == unique(Sable_CPUE$Year)[year_check],
                                          ADFG.Number == adfg_check))$lbs_per_set)
-unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_log == tix_check,
                                            Groundfish.Stat.Area == gsa_check,
                                            Year == unique(Sable_CPUE$Year)[year_check],
                                            ADFG.Number == adfg_check))$lbs_per_set_per_km)
-unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_log == tix_check,
                                            Groundfish.Stat.Area == gsa_check,
                                            Year == unique(Sable_CPUE$Year)[year_check],
                                            ADFG.Number == adfg_check))$lbs_per_set_per_hour)
-unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_log == tix_check,
                                            Groundfish.Stat.Area == gsa_check,
                                            Year == unique(Sable_CPUE$Year)[year_check],
                                            ADFG.Number == adfg_check))$lbs_per_set_per_km_per_hour)
-unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_log == tix_check,
                                            Groundfish.Stat.Area == gsa_check,
                                            Year == unique(Sable_CPUE$Year)[year_check],
                                            ADFG.Number == adfg_check))$lbs_per_hook1)
-unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_log == tix_check,
                                            Groundfish.Stat.Area == gsa_check,
                                            Year == unique(Sable_CPUE$Year)[year_check],
                                            ADFG.Number == adfg_check))$lbs_per_hook_per_km1)
-unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_log == tix_check,
                                            Groundfish.Stat.Area == gsa_check,
                                            Year == unique(Sable_CPUE$Year)[year_check],
                                            ADFG.Number == adfg_check))$lbs_per_hook_per_hour1)
-unique(as.data.frame(Sable_CPUE %>% filter(Ticket_LB == tix_check,
+unique(as.data.frame(Sable_CPUE %>% filter(Ticket_log == tix_check,
                                            Groundfish.Stat.Area == gsa_check,
                                            Year == unique(Sable_CPUE$Year)[year_check],
                                            ADFG.Number == adfg_check))$lbs_per_hook_per_km_per_hour1)
@@ -368,7 +422,7 @@ as.data.frame(head(Sable_CPUE %>% filter (Depredation == "Orca"),10))
 ##*  sure everything makes sense.
 ##******************************************************************************##
 #################################################################################
-
+ll_lb<-ll_log
 colnames(ll_lb)
 
 unique(ll_lb$num_of_hooks1)
@@ -380,6 +434,10 @@ nh_na<-which(is.na(ll_lb$num_of_hooks1))
 nh_num<-which(!is.na(ll_lb$num_of_hooks1))  
 
 samp<-c(sample(nh_na,10),sample(nh_num,10))
+
+str(forCPUE)
+str(sable_ll_lb)
+unique(ll_lb$Disposition)
 
 eg<-ll_lb[samp,]
 
