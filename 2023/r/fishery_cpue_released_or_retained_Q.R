@@ -302,3 +302,105 @@ missing_tix<-ftx %>%
          Ticket.Count, Harvest.Code, Harvest.Name,
          Port, ADFG, Fishery.Name, Expanded.Fishery.Code,
          CFEC.1, Office.Code, Batch.Number, Trip.Number.FTX)
+
+
+
+
+
+
+
+check<-check %>% mutate(multi = ifelse(!is.na(num_of_hooks1),num_of_hooks1,
+                                       ifelse(is.numeric(hooks_per_skate1),as.numeric(num_of_skates1)*as.numeric(hooks_per_skate1),
+                                              mean(c(as.numeric(strsplit(hooks_per_skate1,",")[[1]][1]),
+                                                     as.numeric(strsplit(hooks_per_skate1,",")[[1]][2])))*as.numeric(num_of_skates1))),
+                        NS_test = ifelse(!is.na(num_of_skates1),num_of_skates1,
+                                                     as.numeric(num_of_hooks1)/as.numeric(hooks_per_skate1)),     
+                        NH_test = ifelse(!is.na(num_of_hooks1),num_of_hooks1,
+                                                    ifelse(is.numeric(hooks_per_skate1),as.numeric(num_of_skates1_calc)*as.numeric(hooks_per_skate1),
+                                                           mean(c(as.numeric(strsplit(hooks_per_skate1,",")[[1]][1]),
+                                                                  as.numeric(strsplit(hooks_per_skate1,",")[[1]][2])))*as.numeric(num_of_skates1_calc))))
+check$multi
+check$num_of_skates1
+check$hooks_per_skate1
+mean(check$hooks_per_skate1)
+is.numeric(check$hooks_per_skate1)
+
+as.numeric(gsub(".*?([0-9]+).*", "\\1", check$hooks_per_skate1))
+
+as.numeric(gsub(",",".*?([0-9]+).*",  check$hooks_per_skate1))
+
+as.numeric(gsub(".*?([0-9]+).*", "\\", check$hooks_per_skate1))
+
+a<-as.vector(strsplit(check$hooks_per_skate1[1],","))
+a<-strsplit(check$hooks_per_skate1[1],",")
+str(a)
+as.numeric(a[[1]])
+str(a[[1]])
+mean(c(as.numeric(a[[1]][1]),as.numeric(a[[1]][2])))
+
+mean(c(as.numeric(strsplit(check$hooks_per_skate1[1],",")[[1]][1]),
+       as.numeric(strsplit(check$hooks_per_skate1[1],",")[[1]][2])))
+
+
+library(qdapRegex)
+rm_number(check$hooks_per_skate1)
+
+qdapRegex::as_numeric2(gsub(",", "", check$hooks_per_skate1))
+
+as_numeric2((ex_number(check$hooks_per_skate1)))
+
+as_numeric2((ex_number(check$hooks_per_skate1)))
+
+ex_number(check$hooks_per_skate1)
+separate(check$hooks_per_skate1,into= paste0("blec_",1),sep = ",")
+separate(split_gf1,into = paste0("gear_target_",1),sep = ",")
+
+rm_number(check$hooks_per_skate1)
+
+sd_check<-"2000-10-03 00:00:00"
+gsa_check<-345631
+year_check<-4
+adfg_check<-61667
+
+log9check<-as.data.frame(ll_log %>% filter(Sell.Date == sd_check,
+                                           Groundfish.Stat.Area == gsa_check,
+                                           Year == unique(ll_log$Year)[year_check],
+                                           ADFG.Number == adfg_check)); log9check
+
+log9check <-log9check %>% 
+  mutate(#num_of_hooks1_calc = ifelse(!is.na(num_of_hooks1),num_of_hooks1,
+    #                                             as.numeric(num_of_skates1)*as.numeric(hooks_per_skate1)),
+    num_of_hooks1_calc = ifelse(!is.na(num_of_hooks1),num_of_hooks1,
+                                as.numeric(num_of_skates1)*as.numeric(hooks_per_skate1)),
+    num_of_skates1_calc = ifelse(!is.na(num_of_skates1),num_of_skates1,
+                                 as.numeric(num_of_hooks1)/as.numeric(hooks_per_skate1)), 
+    num_of_skates1_tst = ifelse(!is.na(num_of_skates1),num_of_skates1,
+                                ifelse(is.numeric(hooks_per_skate1),as.numeric(num_of_hooks1)/as.numeric(hooks_per_skate1),
+                                       as.numeric(num_of_hooks1)/mean(c(as.numeric(strsplit(hooks_per_skate1,",")[[1]][1]),
+                                                                        as.numeric(strsplit(hooks_per_skate1,",")[[1]][2]))))),
+    num_of_hooks1_tst = ifelse(!is.na(num_of_hooks1),num_of_hooks1,
+                               ifelse(is.numeric(hooks_per_skate1),as.numeric(num_of_skates1_calc)*as.numeric(hooks_per_skate1),
+                                      mean(c(as.numeric(strsplit(hooks_per_skate1,",")[[1]][1]),
+                                             as.numeric(strsplit(hooks_per_skate1,",")[[1]][2])))*as.numeric(num_of_skates1_calc))),                             
+    num_of_hooks2_test = as.numeric(num_of_skates2)*as.numeric(hooks_per_skate2),
+    set_length_km = 1.609344*Set.Length..mi.,
+    soak_time_hrs = Soak.Time.Hours,
+    #Ticket_log = Ticket,
+    #Species_log = Species,
+    #Pounds_log = Pounds,
+    #Numbers_log = Numbers
+  ) 
+
+!is.na(log9check$num_of_hooks1_calc)
+is.numeric(log9check$num_of_hooks1_calc[1])
+is.numeric(log9check$hooks_per_skate1)
+
+mean(c(as.numeric(strsplit(log9check$hooks_per_skate1,",")[[1]][1]),
+       as.numeric(strsplit(log9check$hooks_per_skate1,",")[[1]][2])))
+
+as.numeric(strsplit(log9check$hooks_per_skate1,",")[[]][1])
+
+as.numeric(log9check$num_of_skates1_test)
+
+try<-log9check$hooks_per_skate1[1]
+as.numeric(strsplit(try,",")[[1]][2])

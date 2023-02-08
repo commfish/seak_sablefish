@@ -163,11 +163,20 @@ ll_log <- ll_log %>% group_by(Ticket, Year, ADFG.Number, Groundfish.Stat.Area) %
 
 # 9) Get numbers of hooks when num_of_hooks not available...
 # Lots of error warnings from this bit because of incomplete data series.  That's OK.  Its working
-pre9<-ll_log
-ll_log<-pre9
+hps<-max(stringr::str_count(ll_log$hooks_per_skate1, ","),na.rm=T)+1
+
 ll_log <-ll_log %>% 
+  mutate(hps_orig = hooks_per_skate1) %>%
+  separate(hps_orig, into = paste0("hps_",1:hps),sep = ",") %>%
+  mutate(hps_1 = as.numeric(hps_1),
+         hps_2 = as.numeric(hps_2),
+         hps_3 = as.numeric(hps_3)) %>% 
+  rowwise() %>%
+  mutate(mean_hps = mean(c(hps_1,hps_2,hps_3),na.rm=TRUE)) %>% data.frame() %>%
   mutate(num_of_hooks1_calc = ifelse(!is.na(num_of_hooks1),num_of_hooks1,
                                                      as.numeric(num_of_skates1)*as.numeric(hooks_per_skate1)),
+         num_of_hooks1_calc2 = mean_hps*as.numeric(num_of_skates1),
+         num_hooks_cpue = ifelse(!is.na(num_of_hooks1_calc),num_of_hooks1_calc,num_of_hooks1_calc2),
          num_of_skates1_calc = ifelse(!is.na(num_of_skates1),num_of_skates1,
                                  as.numeric(num_of_hooks1)/as.numeric(hooks_per_skate1)), 
          num_of_hooks2_calc = as.numeric(num_of_skates2)*as.numeric(hooks_per_skate2),
@@ -176,40 +185,10 @@ ll_log <-ll_log %>%
          Ticket_log = Ticket,
          Species_log = Species,
          Pounds_log = Pounds,
-         Numbers_log = Numbers
-                         ) %>%
-  mutate(num_of_skates1_tst = ifelse(!is.na(num_of_skates1),num_of_skates1,
-                                     ifelse(is.numeric(hooks_per_skate1),as.numeric(num_of_hooks1)/as.numeric(hooks_per_skate1),
-                                            as.numeric(num_of_hooks1)/mean(c(as.numeric(strsplit(hooks_per_skate1,",")[[1]][1]),
-                                                                             as.numeric(strsplit(hooks_per_skate1,",")[[1]][2]))))),
-         num_of_hooks1_tst = ifelse(is.na(num_of_hooks1_calc),
-                                    ifelse(is.numeric(hooks_per_skate1),
-                                           as.numeric(num_of_skates1_calc)*as.numeric(hooks_per_skate1),
-                                           mean(c(as.numeric(strsplit(hooks_per_skate1,",")[[1]][1]),
-                                                  as.numeric(strsplit(hooks_per_skate1,",")[[1]][2])),na.rm=T)*as.numeric(num_of_skates1_calc)),
-                                    num_of_hooks1_calc),
-         num_of_skates1_tst2 = ifelse(!is.na(num_of_skates1),num_of_skates1,
-                                     ifelse(is.numeric(hooks_per_skate1),as.numeric(num_of_hooks1)/as.numeric(hooks_per_skate1),
-                                            as.numeric(num_of_hooks1)/mean(c(as.numeric(strsplit(hooks_per_skate1,",")[[1]][1]),
-                                                                             as.numeric(strsplit(hooks_per_skate1,",")[[1]][2]))))),
-         num_of_hooks1_tst3 = ifelse(!is.na(num_of_hooks1_calc),"nonsense",
-                                     ifelse(is.numeric(hooks_per_skate1),"more_nonsense",
-                                            #mean(c(1,6),na.rm=T)
-                                            #hooks_per_skate1
-                                            as.character(factor(spacing1))
-                                            #hook_size1
-                                            #as.numeric(soak_time_hrs) 
-                                            #unique(Trip.Number)
-                                            )),
-         num_of_hooks1_tst2 = ifelse(!is.na(num_of_hooks1_calc),num_of_hooks1_calc,
-                                    ifelse(is.numeric(hooks_per_skate1),as.numeric(num_of_skates1_calc)*as.numeric(hooks_per_skate1),
-                                           mean(c(as.numeric(strsplit(hooks_per_skate1,",")[[1]][1]),
-                                                  as.numeric(strsplit(hooks_per_skate1,",")[[1]][2])),na.rm=T)*as.numeric(num_of_skates1_calc)))) %>%
-  select(-Ticket,-Pounds,-Species,-Numbers)
+         Numbers_log = Numbers) %>%
+   select(-Ticket,-Pounds,-Species,-Numbers,-hps_1,-hps_2,-hps_3,)
 
-as.data.frame(ll_log %>% filter (ll_log$Numbers_log == 196))
-which(ll_log$spacing1 == "42")
-which(ll_log$Vessel.Name == "Ingot")
+
 ### If there are issues you can skip down below to section labelled:
 #   DEVELOPMENT CODE FOR FULL JOIN to see if you can resolve it... 
 #   Otherwise it's time to join the fish ticket and logbook data.
@@ -237,12 +216,22 @@ forCPUE<-full_join(sable_ll_log, sable_ftx, by = c("Year", "ADFG.Number" = "ADFG
 
 # 13) Calculate CPUE for the logbook data
 
+#****** !!! FLAG !!!! 2-7-23 need to deal with different targets on the same ticket??? 
+#* so, on a sablefish trip where some sets targeted halibut there does not appear
+#* to be a way to differentiate the landed sablefish by set.  
+#* So.. do we dump mixed trips for calculating CPUE?
+#* Or, create a sub-category for mixed trips? 
+#* on 2-8 will need to come up with label for trips that only targeted sablefish
+#* and those that targeted both sablefish and halibut... 
+
 forCPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Effort.Number) %>%
 #forCPUE %>% group_by(Ticket_log, Groundfish.Stat.Area, Effort.Number) %>% 
   mutate(partial_soak_time = soak_time_hrs/n(),
          partial_km_fished = set_length_km/n(),
-         partial_hook_count1 = as.numeric(num_of_hooks1_calc)/n(),
-         partial_hook_count2 = as.numeric(num_of_hooks2_calc)/n()) %>% ungroup %>%
+         partial_hook_count1 = as.numeric(num_hooks_cpue)/n(),
+         partial_hook_count2 = as.numeric(num_hooks_cpue)/n()) %>% ungroup %>%
+         #partial_hook_count1 = as.numeric(num_of_hooks1_calc)/n(),
+         #partial_hook_count2 = as.numeric(num_of_hooks2_calc)/n()) %>% ungroup %>%
   group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area) %>%
  # group_by(Ticket_log, Groundfish.Stat.Area) %>%
   mutate(set.count = set.count,
@@ -267,7 +256,33 @@ forCPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Effort.
          lbs_per_hook_per_hour2 = sum(unique(catch))/total_hook_count2/total_soak_time,
          lbs_per_hook_per_km_per_hour2 = sum(unique(catch))/total_hook_count2/total_km_fished/total_soak_time
   ) -> Sable_CPUE  #don't change! This attaches to joined
-#Note regarding two gear configurations.  When calculating final CPUE in analysis
+
+#Quick look
+QL<- Sable_CPUE %>% select(Year, Species_log, Species_tx = Species.Name,
+                           Disposition, Groundfish.Stat.Area, Effort.Primary.Target.Species,
+                           Set.Length..mi.,Average.Depth.Fathoms, Soak.Time.Hours,
+                           Effort.Number,Trip.Primary.Target.Species,Port.Code,ADFG.Number,
+                           CFEC.Permit.Number,CFEC_tix=CFEC,
+                           Sell.Date,
+                           Trip.Number_log, gear_target_1, gear_target_2, hook_size1,
+                           spacing1, hooks_per_skate1, num_of_skates1, num_of_hooks1,
+                           hook_size2, spacing2, hooks_per_skate2, num_of_skates2,
+                           Ticket_subref, Trip.Number.log, set.count, mean_hps,
+                           num_of_hooks1_calc, num_of_hooks1_calc2, num_hooks_cpue, num_of_skates1_calc,
+                           num_of_hooks2_calc, set_length_km, soak_time_hrs, Ticket_log,
+                           Species_log, Pounds_log, Numbers_log,
+                           Whole.Weight..sum.,Disposition.Name, 
+                           Harvest.Name, Fishery.Name,
+                           partial_soak_time, partial_km_fished, partial_hook_count1,
+                           partial_hook_count2, tix.ref.catch,   catch, pre.lbs_per_set,
+                           total_soak_time, total_km_fished, total_hook_count1,
+                           total_hook_count2, lbs_per_set, lbs_per_set_per_km,
+                           lbs_per_set_per_hour, lbs_per_set_per_km_per_hour, lbs_per_hook1,
+                           lbs_per_hook_per_km1, lbs_per_hook_per_hour1, lbs_per_hook_per_km_per_hour1,
+                           lbs_per_hook2, lbs_per_hook_per_km2, lbs_per_hook_per_hour2,
+                           lbs_per_hook_per_km_per_hour2)
+
+# Note regarding two gear configurations.  When calculating final CPUE in analysis
 # you will need to be mindful of gear_target_1 and _2.  When there are two sets of
 # gear targeting different species (halibut and sablefish) the CPUE will NOT be
 # useful for analysis because there is no way to separate out the catch by target 
@@ -313,13 +328,21 @@ length(gsa_list)
 gsa_check<-gsa_list[sample(length(gsa_list),1)]
 }
 
+#To start on 2-8-23 use:
+{year_check<-12
+adfg_check<-55900
+sd_check<-"2008-09-29 00:00:00"
+gsa_check<-345701}
+
 #colnames(Sable_CPUE)
 #as.data.frame(sf_try %>% filter(Ticket == unique(sf_try$Ticket)[check],
 #                                Groundfish.Stat.Area == unique(sf_try$Groundfish.Stat.Area)[check2]))
-check<-as.data.frame(Sable_CPUE %>% filter(Sell.Date == sd_check,
+check<-as.data.frame(QL %>% filter(Sell.Date == sd_check,
                                   Groundfish.Stat.Area == gsa_check,
                                   Year == unique(Sable_CPUE$Year)[year_check],
                                   ADFG.Number == adfg_check)); check
+unique(check$Effort.Number)
+unique(check$Effort.Primary.Target.Species)
 #THIS IS THE SABLEFISH CPUE FOR THIS TICKET!! 
 #arg<-as.data.frame(ll_log %>% filter(Year == 2008 & Groundfish.Stat.Area == 345701 & ADFG.Number == 26017 &
 #                                      Sell.Date == "2008-09-06 00:00:00"))
