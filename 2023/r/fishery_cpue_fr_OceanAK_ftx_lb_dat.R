@@ -88,11 +88,11 @@ ll_log<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Longline logbook sable an
 pot_log<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Pot_logbook_sable_and_halibut_target_2006-now_for_CPUE.csv"))
 
 ftx<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/NSEI_ftx_sablefish_halibut_pot_longline_1997-now.csv"))
-str(ftx)
+#str(ftx)
 
-byc.ftx<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/NSEI_ftx_bycatch_pot_longline_1997-now.csv"))
+#byc.ftx<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/NSEI_ftx_bycatch_pot_longline_1997-now.csv"))
 
-alltx<-rbind(ftx,byc.ftx)
+#alltx<-rbind(ftx,byc.ftx)
 #----------------------------------------------------------------------------------
 
 #1) separate out multiple gear configurations
@@ -193,73 +193,76 @@ hal_ll_log<-ll_log %>% filter(Species_log == "Halibut")
 sable_ll_log <- ll_log %>% filter(Species_log == "Sablefish")
 
 # 11) Separate the fish tickets out by fishery
-ftx<-ftx %>% filter(Harvest.Code != 43) %>% #get rid of survey fishtickets... 
+ll_ftx<-ftx %>% filter(Harvest.Code != 43,
+                       Gear.Name == "Longline") %>% #get rid of survey fishtickets... 
   mutate(Ticket_subref = str_remove(str_sub(Sequential.Number,nchar(Sequential.Number)-2,nchar(Sequential.Number)), "^0+"),
          Trip.Number.FTX = Trip.Number)
 
-hal_ftx<-ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[2:4])
-sable_ftx<-ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[1])
+
+hal_ll_ftx<-ll_ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[2:4])
+sable_ll_ftx<-ll_ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[1])
 
 # 12) Join the sablefish fishticket and logbook data! 
 # 99% of the joins work using step 1, but 1% the sell and landing don't match so 
 # ??? need two joins
 #   12.Step1: Join using sell and landing date
-forCPUE<-full_join(sable_ll_log, sable_ftx, by = c("Year", "ADFG.Number" = "ADFG",
+for_ll_CPUE<-full_join(sable_ll_log, sable_ll_ftx, by = c("Year", "ADFG.Number" = "ADFG",
                                                    "Sell.Date" = "Date.of.Landing",
                                                    "Groundfish.Stat.Area" = "Stat.Area"),
                    multiple="all",
                    suffix = c("_log","_ftx")) %>% filter(!is.na(Fishery.Name)) #%>% #this gets rid of logbook entries with no matching fish tickets
 
-nrow(forCPUE)
+nrow(for_ll_CPUE)
 
 # identify fish ticket data with no matching logbooks.  Means that sell and landing dates don't match
 # or there is just missing or misentered data f@!#$g this s$%t up... 
-missing_lb<-forCPUE %>% filter(is.na(Species_log)); nrow(missing_lb)
-ftx_not_in_ll_logs <- missing_lb %>% select(Year, Sell.Date, Species.Code_ftx,Harvest.Code,Harvest.Name,
+missing_ll_lb<-for_ll_CPUE %>% filter(is.na(Species_log)); nrow(missing_ll_lb)
+
+ftx_not_in_ll_logs <- missing_ll_lb %>% select(Year, Sell.Date, Species.Code_ftx,Harvest.Code,Harvest.Name,
                                             Whole.Weight..detail.,Gear.Name,Port.Name,
                                             Fishery.Name,Batch.Number,Trip.Number_ftx,
                                             Sequential.Number,Record.ID, Ticket_subref_ftx,                       
                                             Trip.Number.FTX)
 # 12.Step2: get the unmatched tickets...
-unlogged_tix<-sable_ftx %>% filter(#Ticket_subref %in% missing_lb$Ticket_subref_ftx,
-                                   Year %in% missing_lb$Year,
-                                   ADFG %in% missing_lb$ADFG,
-                                   Stat.Area %in% missing_lb$Groundfish.Stat.Area)
+unlogged_tix<-sable_ll_ftx %>% filter(#Ticket_subref %in% missing_lb$Ticket_subref_ftx,
+                                   Year %in% missing_ll_lb$Year,
+                                   ADFG %in% missing_ll_lb$ADFG,
+                                   Stat.Area %in% missing_ll_lb$Groundfish.Stat.Area)
 nrow(unlogged_tix)
 # ...and join the unmatched tickets to the logbook data again using the 
 #   Ticket_subref INSTEAD of sell and landing date
-forCPUE_aux<-full_join(sable_ll_log, unlogged_tix, by = c("Year", "ADFG.Number" = "ADFG",
+for_ll_CPUE_aux<-full_join(sable_ll_log, unlogged_tix, by = c("Year", "ADFG.Number" = "ADFG",
                                                        "Groundfish.Stat.Area" = "Stat.Area",
                                                        "Ticket_subref"),
                        multiple="all",
                        suffix = c("_log","_ftx")) #%>% filter(!is.na(Fishery.Name))
 
-nrow(forCPUE_aux) #; colnames(forCPUE_aux)
+nrow(for_ll_CPUE_aux) #; colnames(for_ll_CPUE_aux)
 
 #get rid of logbooks with no matching tickets in this one
-forCPUE_aux<-forCPUE_aux %>% filter(!is.na(Species.Code_ftx)); nrow(forCPUE_aux)
+for_ll_CPUE_aux<-for_ll_CPUE_aux %>% filter(!is.na(Species.Code_ftx)); nrow(for_ll_CPUE_aux)
 
-unique(forCPUE_aux$Species.Code_ftx)
+#unique(for_ll_CPUE_aux$Species.Code_ftx)
 
 #are there still fish ticket data missing logbooks? 
-missing_lb2<-forCPUE_aux %>% filter(is.na(Species_log)); nrow(missing_lb2)
+missing_ll_lb2<-for_ll_CPUE_aux %>% filter(is.na(Species_log)); nrow(missing_ll_lb2)
 # of f$%&^*g course there are! 
-missing_lb2$LD<-as.Date(missing_lb2$Date.of.Landing)
-missing_lb2$land_jday<-as.POSIXlt(missing_lb2$LD)$yday
-hist(missing_lb2$land_jday, breaks=20)
+missing_ll_lb2$LD<-as.Date(missing_ll_lb2$Date.of.Landing)
+missing_ll_lb2$land_jday<-as.POSIXlt(missing_ll_lb2$LD)$yday
+hist(missing_ll_lb2$land_jday, breaks=20)
 abline(v=as.POSIXlt("2000-08-01")$yday, col="red")
 
-hist(missing_lb2$Year)
+hist(missing_ll_lb2$Year)
 
-eg<-missing_lb2[sample(nrow(missing_lb2),1),]  #eg1 is row148 with no logbook anywhere...
+eg<-missing_ll_lb2[sample(nrow(missing_ll_lb2),1),]  #eg1 is row148 with no logbook anywhere...
                                                 #row 257 with no logbook
 eg
 #is the missing record dealt with in the first join?
-forCPUE %>% filter(!is.na(Species.Code_log),
+for_ll_CPUE %>% filter(!is.na(Species.Code_log),
                    Sell.Date == eg$Date.of.Landing, Year == eg$Year, 
                    ADFG.Number == eg$ADFG.Number, 
                    Groundfish.Stat.Area == eg$Groundfish.Stat.Area)
-forCPUE %>% filter(!is.na(Species.Code_log),
+for_ll_CPUE %>% filter(!is.na(Species.Code_log),
                    Ticket_subref_ftx == eg$Ticket_subref, 
                    Year == eg$Year, 
                    ADFG.Number == eg$ADFG.Number, 
@@ -282,22 +285,22 @@ sable_ll_log %>% filter(Year == eg$Year, ADFG.Number == eg$ADFG.Number)
 
 # 12.Step3: Lets try binding the two join data sets, get rid of duplicates and move
 #           on to CPUE calculations... 
-setdiff(colnames(forCPUE),colnames(forCPUE_aux))
+setdiff(colnames(for_ll_CPUE),colnames(for_ll_CPUE_aux))
 
-forCPUE_aux %>% rename(Ticket_subref_log = Ticket_subref) %>%  #this works because aux join based on Ticket_subref
-  mutate(Ticket_subref_ftx = Ticket_subref_log) -> forCPUE_aux
+for_ll_CPUE_aux %>% rename(Ticket_subref_log = Ticket_subref) %>%  #this works because aux join based on Ticket_subref
+  mutate(Ticket_subref_ftx = Ticket_subref_log) -> for_ll_CPUE_aux
 
-forCPUE %>% mutate(Date.of.Landing = Sell.Date)-> forCPUE  #
+for_ll_CPUE %>% mutate(Date.of.Landing = Sell.Date)-> for_ll_CPUE  #
 
-ncol(forCPUE); ncol(forCPUE_aux)
-setdiff(colnames(forCPUE),colnames(forCPUE_aux))
-setdiff(colnames(forCPUE_aux),colnames(forCPUE))
+ncol(for_ll_CPUE); ncol(for_ll_CPUE_aux)
+setdiff(colnames(for_ll_CPUE),colnames(for_ll_CPUE_aux))
+setdiff(colnames(for_ll_CPUE_aux),colnames(for_ll_CPUE))
 
-forCPUE<-unique(rbind(forCPUE,forCPUE_aux))
-nrow(forCPUE)
+for_ll_CPUE<-unique(rbind(for_ll_CPUE,for_ll_CPUE_aux))
+nrow(for_ll_CPUE)
 # 13) Calculate CPUE for the logbook data
 
-forCPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Effort.Number) %>% 
+for_ll_CPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Effort.Number) %>% 
   mutate(uniques = n(),
          partial_soak_time = soak_time_hrs/n(),
          partial_km_fished = set_length_km/n(),
@@ -356,11 +359,11 @@ forCPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Effort.
          lbs_p_hk_km_exact2 = sum(unique(catch))/total_hooks_exact2/total_km_fished,
          lbs_p_hk_hr_exact2 = sum(unique(catch))/total_hooks_exact2/total_soak_time,
          lbs_p_hk_km_hr_exact2 = sum(unique(catch))/total_hooks_exact2/total_km_fished/total_soak_time,
-  ) -> Sable_CPUE  #don't change! This attaches to joined
+  ) -> Sable_ll_CPUE  #don't change! This attaches to joined
 
-colnames(Sable_CPUE)
+colnames(Sable_ll_CPUE)
 #Quick look
-QL<- Sable_CPUE %>% select(Ticket_subref_log,Ticket_subref_ftx,
+QL<- Sable_ll_CPUE %>% select(Ticket_subref_log,Ticket_subref_ftx,
                            uniques,Year, Species_log, Species_tx = Species.Name,
                            Disposition, trip_recorded_releases,
                            Groundfish.Stat.Area, Effort.Primary.Target.Species,
@@ -414,7 +417,7 @@ QL<- Sable_CPUE %>% select(Ticket_subref_log,Ticket_subref_ftx,
 
 #function to grab random year, stat area, ADFG.no and sell date... 
 random_check<-function(data){ #data<-mixed_targets
-  #length(unique(Sable_CPUE$Year))
+  #length(unique(Sable_ll_CPUE$Year))
   data<-data
   
   year_list<-unique(data$Year)
@@ -450,12 +453,12 @@ releases<-QL %>% filter(Disposition == "Released"); nrow(releases)
 mixed_targets<-QL %>% filter(trip_set_targets == "hal_&_sable_mix"); nrow(mixed_targets)
 
 #Get random landing and check it out... 
-rands<-random_check(data=mixed_targets) #can run this on QL, Sable_CPUE, missing_lb, releases, etc... 
+rands<-random_check(data=QL) #can run this on QL, Sable_ll_CPUE, missing_lb, releases, etc... 
 #saverands<-rands #if you want to save a particular set to come back to
 
 check<-as.data.frame(QL %>% filter(Sell.Date == rands[[3]][1],
                                   Groundfish.Stat.Area == rands[[4]][1],
-                                  Year == rands[[1]][1], #unique(Sable_CPUE$Year)[rands[[1]][1]],
+                                  Year == rands[[1]][1], #unique(Sable_ll_CPUE$Year)[rands[[1]][1]],
                                   ADFG.Number == rands[[2]][1])); check
 check %>% select(Effort.Number,total_km_fished,set_length_km,
                  total_soak_time,soak_time_hrs,
@@ -489,35 +492,35 @@ ll_log %>% filter(ADFG.Number==20105, Year == 2002, Groundfish.Stat.Area == 3456
 #THIS IS THE SABLEFISH CPUE FOR THIS TICKET!! 
 # This is how things will be grouped in the analysis to get specific CPUE values
 #-----
-unique(as.data.frame(Sable_CPUE %>% filter(Sell.Date == rands[[3]][1],
+unique(as.data.frame(Sable_ll_CPUE %>% filter(Sell.Date == rands[[3]][1],
                                            Groundfish.Stat.Area == rands[[4]][1],
                                            Year == rands[[1]][1],
                                            ADFG.Number == rands[[2]][1]))$lbs_p_set)
-unique(as.data.frame(Sable_CPUE %>% filter(Sell.Date == rands[[3]][1],
+unique(as.data.frame(Sable_ll_CPUE %>% filter(Sell.Date == rands[[3]][1],
                                            Groundfish.Stat.Area == rands[[4]][1],
                                            Year == rands[[1]][1],
                                            ADFG.Number == rands[[2]][1]))$lbs_p_set_km)
-unique(as.data.frame(Sable_CPUE %>% filter(Sell.Date == rands[[3]][1],
+unique(as.data.frame(Sable_ll_CPUE %>% filter(Sell.Date == rands[[3]][1],
                                            Groundfish.Stat.Area == rands[[4]][1],
                                            Year == rands[[1]][1],
                                            ADFG.Number == rands[[2]][1]))$lbs_p_set_hr)
-unique(as.data.frame(Sable_CPUE %>% filter(Sell.Date == rands[[3]][1],
+unique(as.data.frame(Sable_ll_CPUE %>% filter(Sell.Date == rands[[3]][1],
                                            Groundfish.Stat.Area == rands[[4]][1],
                                            Year == rands[[1]][1],
                                            ADFG.Number == rands[[2]][1]))$lbs_p_set_km_hr)
-unique(as.data.frame(Sable_CPUE %>% filter(Sell.Date == rands[[3]][1],
+unique(as.data.frame(Sable_ll_CPUE %>% filter(Sell.Date == rands[[3]][1],
                                            Groundfish.Stat.Area == rands[[4]][1],
                                            Year == rands[[1]][1],
                                            ADFG.Number == rands[[2]][1]))$lbs_p_hk_exact)
-unique(as.data.frame(Sable_CPUE %>% filter(Sell.Date == rands[[3]][1],
+unique(as.data.frame(Sable_ll_CPUE %>% filter(Sell.Date == rands[[3]][1],
                                            Groundfish.Stat.Area == rands[[4]][1],
                                            Year == rands[[1]][1],
                                            ADFG.Number == rands[[2]][1]))$lbs_p_hk_km_exact)
-unique(as.data.frame(Sable_CPUE %>% filter(Sell.Date == rands[[3]][1],
+unique(as.data.frame(Sable_ll_CPUE %>% filter(Sell.Date == rands[[3]][1],
                                            Groundfish.Stat.Area == rands[[4]][1],
                                            Year == rands[[1]][1],
                                            ADFG.Number == rands[[2]][1]))$lbs_p_hk_hr_exact)
-unique(as.data.frame(Sable_CPUE %>% filter(Sell.Date == rands[[3]][1],
+unique(as.data.frame(Sable_ll_CPUE %>% filter(Sell.Date == rands[[3]][1],
                                            Groundfish.Stat.Area == rands[[4]][1],
                                            Year == rands[[1]][1],
                                            ADFG.Number == rands[[2]][1]))$lbs_p_hk_km_hr_exact)
@@ -529,53 +532,53 @@ unique(as.data.frame(Sable_CPUE %>% filter(Sell.Date == rands[[3]][1],
 # OceanAK queries set up in my folder as they are set up to pull every year from 
 # 1997 until today...
 
-write_csv(Sable_CPUE, paste0("legacy_data/fishery/raw_data/fishery_ll_cpue_vers23_",
-                             min(Sable_CPUE$Year),"-",YEAR,".csv",sep=""))
+write_csv(Sable_ll_CPUE, paste0("legacy_data/fishery/raw_data/fishery_ll_cpue_vers23_",
+                             min(Sable_ll_CPUE$Year),"-",YEAR,".csv",sep=""))
 
 #check some final things out...
-{colnames(Sable_CPUE)
+{colnames(Sable_ll_CPUE)
 
-unique(Sable_CPUE$Disposition) #Logbook Data
-nrow(Sable_CPUE %>% filter (Disposition == "Released")) #955!!! 
-as.data.frame(head(Sable_CPUE %>% filter (Disposition == "Released"),10))  #CHECK!!
+unique(Sable_ll_CPUE$Disposition) #Logbook Data
+nrow(Sable_ll_CPUE %>% filter (Disposition == "Released")) #955!!! 
+as.data.frame(head(Sable_ll_CPUE %>% filter (Disposition == "Released"),10))  #CHECK!!
 
-unique(Sable_CPUE$Depredation)
-nrow(Sable_CPUE %>% filter (Depredation == "Orca"))
-as.data.frame(head(Sable_CPUE %>% filter (Depredation == "Orca"),10))  #OK ... but need to include to exclude for CPUE... 
+unique(Sable_ll_CPUE$Depredation)
+nrow(Sable_ll_CPUE %>% filter (Depredation == "Orca"))
+as.data.frame(head(Sable_ll_CPUE %>% filter (Depredation == "Orca"),10))  #OK ... but need to include to exclude for CPUE... 
 
-unique(Sable_CPUE$Sablefish.Discards)
+unique(Sable_ll_CPUE$Sablefish.Discards)
 
-unique(Sable_CPUE$Longline.System)
+unique(Sable_ll_CPUE$Longline.System)
 
-unique(Sable_CPUE$Gear)
+unique(Sable_ll_CPUE$Gear)
 
-unique(Sable_CPUE$Disposition.Name) #Fish ticket data
-nrow(Sable_CPUE %>% filter (Disposition.Name == "Disc at sea"))  #CHECK
-nrow(Sable_CPUE %>% filter (Disposition.Name == "Disc dock"))  #CHECK
+unique(Sable_ll_CPUE$Disposition.Name) #Fish ticket data
+nrow(Sable_ll_CPUE %>% filter (Disposition.Name == "Disc at sea"))  #CHECK
+nrow(Sable_ll_CPUE %>% filter (Disposition.Name == "Disc dock"))  #CHECK
 
-unique(Sable_CPUE$Discard.at.Sea)
-nrow(Sable_CPUE %>% filter (Discard.at.Sea == "Yes")) #matches Disposition.Name == "Disc at sea"
-nrow(Sable_CPUE %>% filter (Discard.at.Sea == "No")) #matches Disposition.Name == "Disc at sea"
-as.data.frame(head(Sable_CPUE %>% filter (Discard.at.Sea == "Yes"),10)) 
+unique(Sable_ll_CPUE$Discard.at.Sea)
+nrow(Sable_ll_CPUE %>% filter (Discard.at.Sea == "Yes")) #matches Disposition.Name == "Disc at sea"
+nrow(Sable_ll_CPUE %>% filter (Discard.at.Sea == "No")) #matches Disposition.Name == "Disc at sea"
+as.data.frame(head(Sable_ll_CPUE %>% filter (Discard.at.Sea == "Yes"),10)) 
 
-unique(Sable_CPUE$Harvest.Name)
+unique(Sable_ll_CPUE$Harvest.Name)
 
-unique(Sable_CPUE$Fishery.Name)
+unique(Sable_ll_CPUE$Fishery.Name)
 
-unique(Sable_CPUE$Depredation)
-nrow(Sable_CPUE %>% filter (Depredation == "Orca"))
-as.data.frame(head(Sable_CPUE %>% filter (Depredation == "Orca"),10)) 
+unique(Sable_ll_CPUE$Depredation)
+nrow(Sable_ll_CPUE %>% filter (Depredation == "Orca"))
+as.data.frame(head(Sable_ll_CPUE %>% filter (Depredation == "Orca"),10)) 
 
-unique(Sable_CPUE$Depredation)
-nrow(Sable_CPUE %>% filter (Depredation == "Orca"))
-as.data.frame(head(Sable_CPUE %>% filter (Depredation == "Orca"),10)) }
+unique(Sable_ll_CPUE$Depredation)
+nrow(Sable_ll_CPUE %>% filter (Depredation == "Orca"))
+as.data.frame(head(Sable_ll_CPUE %>% filter (Depredation == "Orca"),10)) }
 #################################################################################
 ##*******************************************************************************
 ##* POT CPUE
 ##* *****************************************************************************
 #################################################################################
 str(pot_log)
-unique(pot_log$Pot.Dimensions)[1]
+unique(pot_log$Pot.Dimensions) #[1]
 unique(pot_log$Pot.Type)
 unique(pot_log$Number.of.Pots)
 unique(pot_log$Pot.Spacing.Feet)
@@ -590,7 +593,9 @@ pot_log <- separate_rows(pot_log,"All.Tickets",sep=", ")
 
 #2) Take a piece of the "Ticket" that might match sequential number in fish ticket data base
 pot_log <- pot_log %>% mutate(Ticket_subref = str_remove(str_sub(All.Tickets,nchar(All.Tickets)-2,nchar(All.Tickets)), "^0+"),
-                            Trip.Number.log = Trip.Number)
+                            Trip.Number.log = Trip.Number,
+                            mixed_flag = ifelse(grepl("Mixed Gear Trip", Trip.Comments, ignore.case = TRUE),
+                                                "MIXED_GEAR!","no_flag"))
 
 # 3) Get number of sets for each ticket...
 pot_log <- pot_log %>% group_by(All.Tickets, Year, ADFG.Number, Groundfish.Stat.Area) %>%
@@ -607,29 +612,27 @@ pot_log <-pot_log %>%
          Numbers_log = Numbers) %>%
   select(-All.Tickets,-Pounds,-Species,-Numbers)
 
-### If there are issues you can skip down below to section labelled:
-#   DEVELOPMENT CODE FOR FULL JOIN to see if you can resolve it... 
-#   Otherwise it's time to join the fish ticket and logbook data.
-
 # 5) Separate the logbook data out by halibut and sablefish
 hal_pot_log<-pot_log %>% filter(Species_log == "Halibut")
 sable_pot_log <- pot_log %>% filter(Species_log == "Sablefish")
 
 # 6) Separate the fish tickets out by fishery
-ftx<-ftx %>% filter(Harvest.Code != 43) %>% #get rid of survey fishtickets... 
+pot_ftx<-ftx %>% filter(Harvest.Code != 43,
+                        Gear.Name == "Pot") %>% #get rid of survey fishtickets... 
   mutate(Ticket_subref = str_remove(str_sub(Sequential.Number,nchar(Sequential.Number)-2,nchar(Sequential.Number)), "^0+"),
          Trip.Number.FTX = Trip.Number)
+
 
 unique(ftx$Fishery.Name)  #FLAG!!! There is no sablefish pot gear in fishery name!!!!!! only long line!!! 
 # 2-8-23 going to start by using all the fish tickets and see whay it looks like... 
 
-hal_ftx<-ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[2:4])
-sable_ftx<-ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[1])
+hal_pot_ftx<-pot_ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[2:4])
+sable_pot_ftx<-pot_ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[1])
 
 # 7) Join the sablefish fishticket and logbook data! 
 
-#   12.Step1: Join using sell and landing date
-for_pot_CPUE<-full_join(sable_pot_log, ftx, by = c("Year", "ADFG.Number" = "ADFG",
+#   7.Step1: Join using sell and landing date
+for_pot_CPUE<-full_join(sable_pot_log, pot_ftx, by = c("Year", "ADFG.Number" = "ADFG",
                                                    "Sell.Date" = "Date.of.Landing",
                                                    "Groundfish.Stat.Area" = "Stat.Area"),
                    multiple="all",
@@ -637,11 +640,12 @@ for_pot_CPUE<-full_join(sable_pot_log, ftx, by = c("Year", "ADFG.Number" = "ADFG
 
 nrow(for_pot_CPUE)
 
-# identify fish ticket data with no matching logbooks.  Means that sell and landing dates don't match
-# or there is just missing or misentered data f@!#$g this s$%t up... or...
-# .... wait for it....
-# are these the fishtickets that were missing from the longline logbooks?   
-missing_lb<-for_pot_CPUE %>% filter(is.na(Species_log)); nrow(missing_lb)
+# identify fish ticket data with no matching logbooks.  
+missing_pot_lb<-for_pot_CPUE %>% filter(is.na(Species_log)); nrow(missing_pot_lb)  
+
+"https://media1.tenor.com/images/e986f3cda38e718a181ce57cfad77fe4/tenor.gif?itemid=4953579"
+
+#!!! FLAG!!!!! 0 unmatched tickets!!! wow!! Way to go Rhea and groundfish team!!!! 
 
 complete_pot<-for_pot_CPUE %>% filter(!is.na(Species_log)); nrow(complete_pot)
 
@@ -655,91 +659,428 @@ intersect_all <- function(a,b,...){
 }
 
 intersect_all(pot_sn,ll_missing_sn)
-intersect_all(ll_missing_sn,pot_sn)
 
-setdiff(intersect_all(pot_sn,ll_missing_sn),intersect_all(ll_missing_sn,pot_sn))
-#looks like some of the missing logbooks from the longline exam are in the pot logbooks
-#... but not all... 
+#looks like 2 of the missing logbooks from the longline exam are in the pot logbooks
+#... but not all... Just some of the missing 2022 data... 
+pot_rid<-unique(complete_pot$Record.ID)
+ll_missing_rid<- unique(ftx_not_in_ll_logs$Record.ID)
 
+intersect_all(pot_rid,ll_missing_rid)
 
+head(as.data.frame(for_pot_CPUE))
 
-
-# 12.Step2: get the unmatched tickets...
-unlogged_tix<-sable_ftx %>% filter(#Ticket_subref %in% missing_lb$Ticket_subref_ftx,
-  Year %in% missing_lb$Year,
-  ADFG %in% missing_lb$ADFG,
-  Stat.Area %in% missing_lb$Groundfish.Stat.Area)
-nrow(unlogged_tix)
+# 7.Step2: get the unmatched tickets...
+# Since the groundfish team crushed it in 2022 and there are no unmatched pot fish tickets
+# we can skip this step.Keep it up in '23!!! <<thmbs up emoji>>
+{colnames(missing_pot_lb)
+unlogged_pot_tix<-sable_ftx %>% filter(#Ticket_subref %in% missing_lb$Ticket_subref_ftx,
+  Year %in% missing_pot_lb$Year,
+  ADFG %in% missing_pot_lb$ADFG.Number,
+  Stat.Area %in% missing_pot_lb$Groundfish.Stat.Area)
+nrow(unlogged_pot_tix)
 # ...and join the unmatched tickets to the logbook data again using the 
 #   Ticket_subref INSTEAD of sell and landing date
-forCPUE_aux<-full_join(sable_ll_log, unlogged_tix, by = c("Year", "ADFG.Number" = "ADFG",
+forpotCPUE_aux<-full_join(sable_pot_log, unlogged_pot_tix, by = c("Year", "ADFG.Number" = "ADFG",
                                                           "Groundfish.Stat.Area" = "Stat.Area",
                                                           "Ticket_subref"),
                        multiple="all",
                        suffix = c("_log","_ftx")) #%>% filter(!is.na(Fishery.Name))
 
-nrow(forCPUE_aux) #; colnames(forCPUE_aux)
+nrow(forpotCPUE_aux) #; colnames(for_ll_CPUE_aux)
 
 #get rid of logbooks with no matching tickets in this one
-forCPUE_aux<-forCPUE_aux %>% filter(!is.na(Species.Code_ftx)); nrow(forCPUE_aux)
+forpotCPUE_aux<-forpotCPUE_aux %>% filter(!is.na(Species.Code_ftx)); nrow(forpotCPUE_aux)
 
-unique(forCPUE_aux$Species.Code_ftx)
+unique(forpotCPUE_aux$Species.Code_ftx)
 
 #are there still fish ticket data missing logbooks? 
-missing_lb2<-forCPUE_aux %>% filter(is.na(Species_log)); nrow(missing_lb2)
-# of f$%&^*g course there are! 
-missing_lb2$LD<-as.Date(missing_lb2$Date.of.Landing)
-missing_lb2$land_jday<-as.POSIXlt(missing_lb2$LD)$yday
-hist(missing_lb2$land_jday, breaks=20)
+missing_pot_lb2<-forpotCPUE_aux %>% filter(is.na(Species_log)); nrow(missing_pot_lb2)
+# of course there are! 
+missing_pot_lb2$LD<-as.Date(missing_pot_lb2$Date.of.Landing)
+missing_pot_lb2$land_jday<-as.POSIXlt(missing_pot_lb2$LD)$yday
+hist(missing_pot_lb2$land_jday, breaks=20)
 abline(v=as.POSIXlt("2000-08-01")$yday, col="red")
 
-hist(missing_lb2$Year)
+hist(missing_pot_lb2$Year)
 
-eg<-missing_lb2[sample(nrow(missing_lb2),1),]  #eg1 is row148 with no logbook anywhere...
-#row 257 with no logbook
-eg
-#is the missing record dealt with in the first join?
-forCPUE %>% filter(!is.na(Species.Code_log),
-                   Sell.Date == eg$Date.of.Landing, Year == eg$Year, 
-                   ADFG.Number == eg$ADFG.Number, 
-                   Groundfish.Stat.Area == eg$Groundfish.Stat.Area)
-forCPUE %>% filter(!is.na(Species.Code_log),
-                   Ticket_subref_ftx == eg$Ticket_subref, 
-                   Year == eg$Year, 
-                   ADFG.Number == eg$ADFG.Number, 
-                   Groundfish.Stat.Area == eg$Groundfish.Stat.Area)
-#no? is it anywhere in the logbook data
-ll_log %>% filter(Sell.Date == eg$Date.of.Landing, 
-                  Groundfish.Stat.Area == eg$Groundfish.Stat.Area,
-                  ADFG.Number == eg$ADFG.Number)
-ll_log %>% filter(Ticket_subref == eg$Ticket_subref)
-ll_log %>% filter(Year == eg$Year, ADFG.Number == eg$ADFG.Number, Groundfish.Stat.Area == eg$Groundfish.Stat.Area)
-sable_ll_log %>% filter(Year == eg$Year, ADFG.Number == eg$ADFG.Number)
-#row number list of checking missing_lb2 that had no associated logbook data...
-#148, 257, 96, 207, 
-#row 156 was landed on 7-26-2015 which is prior to the sablefish fishery???  survey trip that wasn't properly recorded?
-
-#******FLAG!!! Giving up on the missing/mismatched.  Groundfish biologists can try
-#* to identify where this missing data is.  This represents <1% of the records as
-#* far as I can tell.  Better quality control on data entry, storage and curration
-#* would go a long way to alleviating these issue. -PJ
-
-# 12.Step3: Lets try binding the two join data sets, get rid of duplicates and move
+# 7.Step3: Lets try binding the two join data sets, get rid of duplicates and move
 #           on to CPUE calculations... 
-setdiff(colnames(forCPUE),colnames(forCPUE_aux))
+setdiff(colnames(for_pot_CPUE),colnames(forpotCPUE_aux))
 
-forCPUE_aux %>% rename(Ticket_subref_log = Ticket_subref) %>%  #this works because aux join based on Ticket_subref
-  mutate(Ticket_subref_ftx = Ticket_subref_log) -> forCPUE_aux
+forpotCPUE_aux %>% rename(Ticket_subref_log = Ticket_subref) %>%  #this works because aux join based on Ticket_subref
+  mutate(Ticket_subref_ftx = Ticket_subref_log) -> forpotCPUE_aux
 
-forCPUE %>% mutate(Date.of.Landing = Sell.Date)-> forCPUE  #
+for_pot_CPUE %>% mutate(Date.of.Landing = Sell.Date)-> for_pot_CPUE  #
 
-ncol(forCPUE); ncol(forCPUE_aux)
-setdiff(colnames(forCPUE),colnames(forCPUE_aux))
-setdiff(colnames(forCPUE_aux),colnames(forCPUE))
+ncol(for_pot_CPUE); ncol(forpotCPUE_aux)
+setdiff(colnames(for_pot_CPUE),colnames(forpotCPUE_aux))
+setdiff(colnames(forpotCPUE_aux),colnames(for_pot_CPUE))
 
-forCPUE<-unique(rbind(forCPUE,forCPUE_aux))
-nrow(forCPUE)
-# 13) Calculate CPUE for the logbook data
+for_pot_CPUE<-unique(rbind(for_pot_CPUE,forpotCPUE_aux))
+nrow(for_pot_CPUE)
+
+#lots of unmatched tickets, mostly because its all fish ticket data and pot fishing
+# just started in 2022
+
+for_pot_CPUE %>% filter(!is.na(Species.Code_log)) -> for_pot_CPUE
+nrow(for_pot_CPUE)
+}
+
+# 8) Calculate CPUE for the logbook data
+
+# **** FLAG **** at some point we need to factor in boats that fished both longline
+#                and pot gear in the same trip. First I'm just going to run the pot 
+#                CPUE estimates blindly to and then go through again and combine the
+#                2022 longline and pot trips to identify mixed gear trips... 
+colnames(for_pot_CPUE)
+
+for_pot_CPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Effort.Number) %>% 
+  mutate(uniques = n(),
+         partial_soak_time = soak_time_hrs/n(),
+         partial_km_fished = set_length_km/n(),
+         partial_pot_count = as.numeric(Number.of.Pots)/n()) %>% 
+  ungroup %>%
+  group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area) %>%
+  mutate(set.count = set.count,  #for_pot_CPUE$set.count
+         trip_set_targets = ifelse(length(unique(Effort.Primary.Target.Species))>1,  #column that can use to filter for multiple targets in a trip
+                                   "hal_&_sable_mix",
+                                   paste0("all_",unique(Effort.Primary.Target.Species))),
+         trip_recorded_releases = ifelse(length(unique(Disposition))>1,             #column for identifying when skippers recorded their releases
+                                         paste0(unique(Disposition)[1],"_&_",unique(Disposition)[2]),
+                                         paste0("all_",unique(Disposition))),
+         
+         mean_trip_depth_fm = mean(Average.Depth.Fathoms),
+         
+         tix.ref.catch = Whole.Weight..sum.,
+         catch = sum(unique(Whole.Weight..sum.)),
+         pre.lbs_per_set = catch/set.count,
+         
+         total_soak_time = sum(partial_soak_time),
+         total_km_fished = sum(partial_km_fished),
+         
+         total_pots = sum(partial_pot_count),
+         
+         lbs_p_set = sum(unique(catch))/set.count,
+         lbs_p_set_km = sum(unique(catch))/set.count/total_km_fished,
+         lbs_p_set_hr = sum(unique(catch))/set.count/total_soak_time,
+         lbs_p_set_km_hr = sum(unique(catch))/set.count/total_km_fished/total_soak_time,
+         
+         lbs_p_pot = sum(unique(catch))/total_pots,
+         lbs_p_pot_km = sum(unique(catch))/total_pots/total_km_fished,
+         lbs_p_pot_hr = sum(unique(catch))/total_pots/total_soak_time,
+         lbs_p_pot_km_hr = sum(unique(catch))/total_pots/total_km_fished/total_soak_time,
+         
+  ) -> Sable_pot_CPUE  #don't change! This attaches to joined
+
+colnames(Sable_pot_CPUE)
+colnames(pot_log)
+#Quick look
+QL<- Sable_pot_CPUE %>% select(Ticket_subref_log,Ticket_subref_ftx,
+                           uniques,Year, Species_log, Species_tx = Species.Name,
+                           Disposition, trip_recorded_releases,
+                           Groundfish.Stat.Area, Effort.Primary.Target.Species,
+                           Trip.Target.Species, trip_set_targets,
+                           
+                           Set.Length..mi.,set_length_km,
+                           Average.Depth.Fathoms, mean_trip_depth_fm,
+                           Soak.Time.Hours,
+                           Effort.Number,
+                           Port.Code,ADFG.Number,
+                           CFEC.Permit.Number,CFEC_tix=CFEC,
+                           Sell.Date,
+                           Trip.Number_log, 
+                           
+                           Pot.Dimensions, Pot.Type, Number.of.Pots,                      
+                           
+                           Trip.Number.log, set.count, soak_time_hrs, Ticket_log,
+                           Species_log, Pounds_log, Numbers_log,
+                           Whole.Weight..sum.,Disposition.Name, 
+                           Harvest.Name, Fishery.Name,
+                           partial_soak_time, partial_km_fished, 
+                           
+                           partial_pot_count, catch, pre.lbs_per_set,
+                           total_soak_time, total_km_fished,
+                           total_pots,
+                           lbs_p_set, lbs_p_set_km, lbs_p_set_hr, lbs_p_set_km_hr,
+                           lbs_p_pot, lbs_p_pot_km, lbs_p_pot_hr, lbs_p_pot_km_hr
+)
+
+# Note regarding two gear configurations.  When calculating final CPUE in analysis
+# you will need to be mindful of gear_target_1 and _2.  When there are two sets of
+# gear targeting different species (halibut and sablefish) the CPUE will NOT be
+# useful for analysis because there is no way to separate out the catch by target 
+# if they are both on the same ticket. :(  Filter out multi_gear_config = "multi_config"
+
+# Will also need to be mindful of disposition.  Releases are recorded in some logbooks.
+# When this happens looking up a particular landing will show two entries; one retained
+# and one released (or some combo depending on sets).  Catch will reflect the landing
+# but release data on the Release logbook may be in Pounds_log and Numbers_log,  
+
+# 14) Spot checking to make sure things look good... 
+# This step will allow you to grab a random year and then grab a boat, logbook ticket, 
+# and management area to check that the calculations make sense.
+
+#function to grab random year, stat area, ADFG.no and sell date... 
+random_check<-function(data){ #data<-QL
+  #length(unique(Sable_ll_CPUE$Year))
+  data<-data
+  
+  year_list<-unique(data$Year)
+  year_check<-sample(c(year_list,year_list),1)
+  
+  data<-data %>% filter(Year == year_check)
+  
+  adfg_list<-unique(data$ADFG.Number)
+  adfg_check<-adfg_list[sample(length(adfg_list),1)]
+  
+  data<-data %>% filter(ADFG.Number == adfg_check)
+  
+  sd_list<-unique(data$Sell.Date)
+  sd_check<-sd_list[sample(length(sd_list),1)]
+  
+  data<-data %>% filter(Sell.Date == sd_check)
+  
+  gsa_list<-unique(data$Groundfish.Stat.Area)
+  gsa_check<-gsa_list[sample(length(gsa_list),1)]
+  
+  return<-list(year_check,adfg_check,sd_check,gsa_check) #rands<-return
+}
+
+#missing logbooks... 
+nrow(QL)
+nrow(QL %>% filter(is.na(Species_log)))  
+missing_lb<-QL %>% filter(is.na(Species_log))
+
+#released records
+releases<-QL %>% filter(Disposition == "Released"); nrow(releases)
+
+#mixed trips
+mixed_targets<-QL %>% filter(trip_set_targets == "hal_&_sable_mix"); nrow(mixed_targets)
+
+#Get random landing and check it out... 
+rands<-random_check(data=QL) #can run this on QL, Sable_ll_CPUE, missing_lb, releases, etc... 
+#saverands<-rands #if you want to save a particular set to come back to
+
+check<-as.data.frame(QL %>% filter(Sell.Date == rands[[3]][1],
+                                   Groundfish.Stat.Area == rands[[4]][1],
+                                   Year == rands[[1]][1], #unique(Sable_ll_CPUE$Year)[rands[[1]][1]],
+                                   ADFG.Number == rands[[2]][1])); check
+unique(check)
+check %>% select(Effort.Number, set.count,
+                 total_km_fished,set_length_km,
+                 total_soak_time,soak_time_hrs,
+                 total_pots)
+
+unique(check$Effort.Number)
+unique(check$total_km_fished)
+unique(check$set_length_km)
+check$Set.Length..mi.
+sum(unique(check$set_length_km)) #this check won't always match if skipper recorded same
+# trip length on different sets.  
+
+unique(check$total_soak_time)
+unique(check$soak_time_hrs)
+sum(unique(check$soak_time_hrs)) #may not match if skipper recorded same soak times on multiple sets... 
+
+unique(check$Number.of.Pots) #wont match because same number of hooks on multiple sets
+unique(check$total_pots)
+
+
+{ll_log %>% filter(ADFG.Number==20105, Year == 2002, Groundfish.Stat.Area == 345631,
+                  Sell.Date == "2002-09-14 00:00:00")
+ll_log %>% filter(ADFG.Number==20105, Year == 2002, Groundfish.Stat.Area == 345631,
+                  Sell.Date == "2002-09-15 00:00:00")
+
+ftx %>% filter(ADFG == 20105, Year == 2002, Stat.Area == 345631)
+missing_tix<-ftx %>% filter(ADFG == 20105, Year == 2002, Stat.Area == 345631, Date.of.Landing == "2002-09-14 00:00:00")
+
+ll_log %>% filter(ADFG.Number==20105, Year == 2002, Groundfish.Stat.Area == 345631,
+                  Ticket_subref == missing_tix$Ticket_subref)}
+#THIS IS THE SABLEFISH CPUE FOR THIS TICKET!! 
+# This is how things will be grouped in the analysis to get specific CPUE values
+#-----
+unique(as.data.frame(Sable_pot_CPUE %>% filter(Sell.Date == rands[[3]][1],
+                                           Groundfish.Stat.Area == rands[[4]][1],
+                                           Year == rands[[1]][1],
+                                           ADFG.Number == rands[[2]][1]))$lbs_p_set)
+unique(as.data.frame(Sable_pot_CPUE %>% filter(Sell.Date == rands[[3]][1],
+                                           Groundfish.Stat.Area == rands[[4]][1],
+                                           Year == rands[[1]][1],
+                                           ADFG.Number == rands[[2]][1]))$lbs_p_set_km)
+unique(as.data.frame(Sable_pot_CPUE %>% filter(Sell.Date == rands[[3]][1],
+                                           Groundfish.Stat.Area == rands[[4]][1],
+                                           Year == rands[[1]][1],
+                                           ADFG.Number == rands[[2]][1]))$lbs_p_set_hr)
+unique(as.data.frame(Sable_pot_CPUE %>% filter(Sell.Date == rands[[3]][1],
+                                           Groundfish.Stat.Area == rands[[4]][1],
+                                           Year == rands[[1]][1],
+                                           ADFG.Number == rands[[2]][1]))$lbs_p_set_km_hr)
+unique(as.data.frame(Sable_pot_CPUE %>% filter(Sell.Date == rands[[3]][1],
+                                           Groundfish.Stat.Area == rands[[4]][1],
+                                           Year == rands[[1]][1],
+                                           ADFG.Number == rands[[2]][1]))$lbs_p_pot)
+unique(as.data.frame(Sable_pot_CPUE %>% filter(Sell.Date == rands[[3]][1],
+                                           Groundfish.Stat.Area == rands[[4]][1],
+                                           Year == rands[[1]][1],
+                                           ADFG.Number == rands[[2]][1]))$lbs_p_pot_km)
+unique(as.data.frame(Sable_pot_CPUE %>% filter(Sell.Date == rands[[3]][1],
+                                           Groundfish.Stat.Area == rands[[4]][1],
+                                           Year == rands[[1]][1],
+                                           ADFG.Number == rands[[2]][1]))$lbs_p_pot_hr)
+unique(as.data.frame(Sable_pot_CPUE %>% filter(Sell.Date == rands[[3]][1],
+                                           Groundfish.Stat.Area == rands[[4]][1],
+                                           Year == rands[[1]][1],
+                                           ADFG.Number == rands[[2]][1]))$lbs_p_pot_km_hr)
+
+# 15) Save the raw data a
+# 2023 will save to legacy folder for use going forward
+# in 2024 you will pull the legacy data, add the new year to it and resave if you
+# choose to just pull the new year of data.  It may be better to just pull the same
+# OceanAK queries set up in my folder as they are set up to pull every year from 
+# 1997 until today...
+
+write_csv(Sable_pot_CPUE, paste0("legacy_data/fishery/raw_data/fishery_pot_cpue_vers23_",
+                             min(Sable_pot_CPUE$Year),"-",YEAR,".csv",sep=""))
+
+##################################################################################
+#*********************************************************************************
+#* Pot fishing for sablefish started in 2022 and some skippers fished both pot and
+#*  longline gear on the same trips.  Because landings are not separated by gear
+#*  we will need to identify those trips that fished mixed gear and remove them 
+#*  from both the Sable_ll_CPUE and Sable_pot_CPUE data frames and resave.  
+#*  Then we will need to create a new data frame called Sable_mix_CPUE for the
+#*  mixed gear trips
+#*  *****************************************************************************
+
+
+colnames(ll_log)
+sable_ll_log %>% filter (Year >= 2022) -> ll_log_22on
+sable_pot_log %>% filter (Year >= 2022)  -> pot_log_22on 
+
+rbind(sable_ll_ftx %>% filter (Year >= 2022),
+      sable_pot_ftx %>% filter (Year >=2022)) -> sable_ftx_22on
+
+#get a sample row from the pot ll book
+pot_samp<-sample(pot_log_22on,1)
+saved_pot_samp<-pot_samp
+
+#get all matching rows from that sample
+pot_samp<-pot_log_22on %>% filter(ADFG.Number == pot_samp$ADFG.Number,
+                             Sell.Date == pot_samp$Sell.Date,
+                             Groundfish.Stat.Area == pot_samp$Groundfish.Stat.Area)
+
+data.frame(pot_samp)
+#is there a match for this one in the ll logs?
+ll_samp <- ll_log_22on %>% filter(ADFG.Number %in% pot_samp$ADFG.Number,
+                            Sell.Date %in% pot_samp$Sell.Date,
+                            Groundfish.Stat.Area %in% pot_samp$Groundfish.Stat.Area)
+data.frame(ll_samp)
+
+pot_samp$Effort.Number; pot_samp$set.count
+ll_samp$Effort.Number; ll_samp$set.count
+
+tx_samp <- sable_ftx_22on %>% filter(ADFG %in% pot_samp$ADFG.Number,
+                                     Date.of.Landing %in% pot_samp$Sell.Date,
+                                     Stat.Area %in% pot_samp$Groundfish.Stat.Area)
+ tx_samp
+ tx_samp$Gear.Name
+ #Example 1: ADFG 45454, stat area 345702 landed on "2022-10-13 00:00:00" - main target with ll was halibut
+ #     and fished a 5 pot sets
+ 
+ #!!! Effort number are continuous... this might be useful in joining or binding... 
+ #Lets look at the ticket for this one...
+ #Woohoo!!! two tickets ... on with pot and one with longline!!!  Of course, in this instant the 
+ # longline landings were bycatch from halibut targets... 
+ 
+ ## Some test driving seems to indicate that the trip comments in the pot longline book
+ ## may be enough to find the mixed trips
+ # So... lets see if there are any matches for pot_logs that aren't flagged as a 
+ # mixed gear trip...
+ 
+ purepot <-pot_log_22on %>% filter(mixed_flag == "no_flag")
+ 
+ nrow(purepot)
+ 
+ ll_samp <- ll_log_22on %>% filter(ADFG.Number %in% purepot$ADFG.Number &
+                                   Sell.Date %in% purepot$Sell.Date &
+                                   Groundfish.Stat.Area %in% purepot$Groundfish.Stat.Area)
+ data.frame(ll_samp)  #get 32 records that match so the flags from the comments aren't perfect... 
+ 
+ for (i in 1:nrow(ll_samp)) {
+   potcheck<- purepot %>% filter (ADFG.Number %in% ll_samp$ADFG.Number[i] &
+                                    Sell.Date %in% ll_samp$Sell.Date[i] &
+                                    Groundfish.Stat.Area %in% ll_samp$Groundfish.Stat.Area[i])
+   ll_match <- ll_samp %>% filter(ADFG.Number %in% ll_samp$ADFG.Number[i] &
+                                    Sell.Date %in% ll_samp$Sell.Date[i] &
+                                    Groundfish.Stat.Area %in% ll_samp$Groundfish.Stat.Area[i])
+   tx_samp <- sable_ftx_22on %>% filter(ADFG %in% ll_match$ADFG.Number,
+                                        Date.of.Landing %in% ll_match$Sell.Date,
+                                        Stat.Area %in% ll_match$Groundfish.Stat.Area)
+   print(paste0(i," ",tx_samp$Gear.Name))
+ }
+ 
+ rec<-10
+ potcheck<- purepot %>% filter (ADFG.Number %in% ll_samp$ADFG.Number[rec] &
+                                  Sell.Date %in% ll_samp$Sell.Date[rec] &
+                                  Groundfish.Stat.Area %in% ll_samp$Groundfish.Stat.Area[rec])
+ 
+data.frame(potcheck)            
+ll_samp[rec,]
+
+ll_match <- ll_samp %>% filter(ADFG.Number %in% ll_samp$ADFG.Number[rec] &
+                                    Sell.Date %in% ll_samp$Sell.Date[rec] &
+                                    Groundfish.Stat.Area %in% ll_samp$Groundfish.Stat.Area[rec])
+ll_match
+
+tx_samp <- sable_ftx_22on %>% filter(ADFG %in% ll_match$ADFG.Number,
+                                     Date.of.Landing %in% ll_match$Sell.Date,
+                                     Stat.Area %in% ll_match$Groundfish.Stat.Area)
+tx_samp
+tx_samp$Gear.Name
+ 
+#however, after looking through this I don't seem any evidence that landings weren't
+#separated by gear.  So no need to have a mixed_gear_CPUE.  The mixed trips are of
+# corse dependent on skippers making an honest effort to wuantify what theyve landed 
+# from the different gear type, but thats the best we can do.  
+
+# For analysis it might be worthwhile to separate the one-gear trips from multi-gear trips
+# which will, of course, be a pain in the ass. :(
+colnames(Sable_ll_CPUE)
+colnames(Sable_pot_CPUE)
+
+sable_ll_ftx %>% filter(Trip.Number.FTX == 6511920220290,
+                        Date.of.Landing == "2022-10-01 00:00:00")  #nope, has multipple landing dates... 
+sable_pot_ftx %>% filter(Trip.Number.FTX == 6511920220290,
+                         Date.of.Landing == "2022-10-01 00:00:00")
+
+Sable_ll_CPUE %>% 
+  rowwise() %>% 
+  mutate(multigear_trip = ifelse(nrow(as.data.frame(Sable_pot_CPUE[Sable_pot_CPUE$Trip.Number.FTX == Trip.Number.FTX &
+                                                  Sable_pot_CPUE$Sell.Date == Sell.Date,]))>0,
+                                 "pot_&_ll_trip","ll_trip")) %>%
+  data.frame()
+
+###FLAG for 2-10!!! make sure this worked!!! and then do it for the pot gear and resave those csv files.!!! 
+
+ex<-Sable_ll_CPUE %>% filter(Year == 1997,ADFG.Number == 7317, 
+                             Sell.Date == "1997-09-04 00:00:00",
+                             Groundfish.Stat.Area == 345701)
+ex<-ex[c(1:3),]
+
+nrow(Sable_pot_CPUE %>% filter(Trip.Number.FTX == ex$Trip.Number.FTX &
+                            Sell.Date == ex$Sell.Date))
+
+ex<-ex %>% 
+  rowwise() %>%
+  mutate(multigear_trip = ifelse(nrow(as.data.frame(Sable_pot_CPUE[Sable_pot_CPUE$Trip.Number.FTX == Trip.Number.FTX &
+                                                                     Sable_pot_CPUE$Sell.Date == Sell.Date,]))>0,
+                                 "pot_&_ll_trip","ll_trip")) %>%
+  data.frame()
+
+data.frame(ex)
+ex
+Sable_pot_CPUE[Sable_pot_CPUE$Trip.Number.FTX == ex$Trip.Number.FTX &
+                 Sable_pot_CPUE$Sell.Date == ex$Sell.Date,]
 ##################################################################################
 ##*****************************************************************************###
 ##*   DEVELOPMENT CODE FOR FULL JOIN... This starts after Step 9 above... 
@@ -761,7 +1102,7 @@ nh_num<-which(!is.na(ll_lb$num_of_hooks1))
 
 samp<-c(sample(nh_na,10),sample(nh_num,10))
 
-str(forCPUE)
+str(for_ll_CPUE)
 str(sable_ll_lb)
 unique(ll_lb$Disposition)
 
