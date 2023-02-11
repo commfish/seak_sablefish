@@ -120,9 +120,25 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
 # is described in that script and running that code will provide the CPUE data
 # for 1997 through today.  That data is stored in the legacy data folder and will be
 # pulled here and cleaned up for use in the assessment. 
+#
+# This new CPUE calculation has replaced the CPUE data that was being used prior to 
+# 2021 and involved an undocumented series of transformations that was meant to deal
+# with inaccurate recording of what fishermen were targetting (halibut and sablefish).
+# This system ascribed target based on relative catch of species.  Rhea Ehresmann (groundfish 
+# biologist) reorked ad entered the logbooks to accurately ascribe target so we should
+# have a much clearer and accurate description of fishery CPUE that will also allow
+# for a more detailed analysis to be completed in 2023.  For more information please
+# see the notes at the head of fishery_cpue_fr_OceanAK_ftx_lb_dat.R.
+#
+# There are also now two CPUE files to work with and examined: 
+# 2.a will be the longline data and these CPUE values are used in the model
+# 2.b will be the pot data.  2022 was the first year boats were allowed to fish this
+#     gear, so just looking at it in 2023 for comparison purposes.
+#     As the fleet transitions to pot gear (as it's expected to do) there will be 
+#     a need to use a conversion and create a single Fishery CPUE time series.
+#     This will also be necessary if the ADF&G surveys also transition to pot surveys.
 
-#BELOW IN PROGESS 2-3-23!!!
-
+# 2.a Longline Fishery CPUE 
 
  read_csv(paste0("legacy_data/fishery/raw_data/fishery_ll_cpue_vers23_1997-",
                  YEAR,".csv",sep=""), 
@@ -173,10 +189,7 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
  #note some of the dat time stuff will have warnings because of incomplete data
  # will have to deal with NA's in analysis
  
- #*** !!! in 2023, will need to get new query for '22 data and then add it to the data described
- # by fsh_eff_new22
- 
- #Get new data from "this" year and add
+  #Get new data from "this" year and add
  read.csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_CPUE_", YEAR, ".csv")) -> new_fish_cpue
  
  #bind the old and new... 
@@ -194,7 +207,73 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
  # add 2023 to it and save.  You will not have to run code line 143-223 and should be able to start with line 240
  # fingers crossed!! 
  
- unique(fsh_eff_new22$target)
+ # 2.b Pot Fishery CPUE 
+ 
+ read_csv(paste0("legacy_data/fishery/raw_data/fishery_pot_cpue_vers23_2022-",
+                 YEAR,".csv",sep=""), 
+          guess_max = 50000) %>% 
+   #   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
+   #   # hooks and cpue
+   mutate(year = Year,
+          date = as.Date(Time.Set, c("%m/%d/%Y")), #ISO 8601 format
+          julian_day = yday(date),
+          tm_hauled = parse_date_time(Time.Hauled, c("%m/%d/%Y %H:%M %p")),
+          t_set = parse_date_time(Time.Set, c("%m/%d/%Y %H:%M %p")),
+          set_soak = soak_time_hrs,
+          set_length = set_length_km,
+          
+          AVERAGE_DEPTH_METERS = 1.8288*Average.Depth.Fathoms,
+          
+          Gear = factor(Longline.System.Code),
+          Hook_size_1 = as.character(hook_size1), 
+          hook_space_1 = spacing1, #*FLAG* - check that hook_space is in inches
+          Size_1 = factor(as.numeric(gsub("[^0-9]", "", Hook_size_1))),
+          no_hooks_1 = num_of_hooks1_calc,
+          Hook_size_2 = as.character(hook_size2), 
+          hook_space_2 = spacing2, #*FLAG* - check that hook_space is in inches
+          Size_2 = factor(as.numeric(gsub("[^0-9]", "", Hook_size_2))),
+          no_hooks_2 = num_of_hooks2_calc,
+          
+          sable_lbs_set = SABLE_LBS_PER_SET) %>% 
+   
+   select(year = YEAR, trip_no = TRIP_NO, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
+          soak, 
+          set_length, Gear, 
+          Hook_size, Size, 
+          hook_space, no_hooks, 
+          Stat = G_STAT_AREA, 
+          depth = AVERAGE_DEPTH_METERS, 
+          sets = Effort.Number, 
+          sable_lbs_set, 
+          
+          start_lat = Start.Latitude.Decimal.Degrees,
+          start_lon = Start.Longitude.Decimal.Degrees, 
+          set_target = Effort.Primary.Target.Species,
+          set_target_2 = Effort.Secondary.Target.Species,
+          trip_target = Trip.Primary.Target.Species,
+          trip_target_2 = Trip.Secondary.Target.Species) -> fsh_eff_new22
+ 
+ 
+ 
+ #note some of the dat time stuff will have warnings because of incomplete data
+ # will have to deal with NA's in analysis
+ 
+ #*** !!! in 2023, will need to get new query for '22 data and then add it to the data described
+ # by fsh_eff_new22
+ 
+ #Get new data from "this" year and add
+ read.csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_CPUE_", YEAR, ".csv")) -> new_fish_cpue
+ 
+ #bind the old and new... 
+ bind_rows(fsh_eff_new22, new_fish_cpue) -> fsh_eff_thru_now
+ 
+ #save for 2023 assessment...
+ write_csv(fsh_eff_new22, paste0(YEAR+1,"/data/fishery/fishery_cpue_2022reboot_",
+                                 min(fsh_eff_thru_now$year), "_", max(fsh_eff_thru_now$year), ".csv"))
+ 
+ #save for legacy for 2024 and forward
+ write_csv(fsh_eff_new22, paste0("legacy_data/data/fishery/fishery_cpue_2022reboot_",
+                                 min(fsh_eff_thru_now$year), "_", max(fsh_eff_thru_now$year), ".csv"))
  #=====================================================================================
 # 3. Fishery biological ----
 
