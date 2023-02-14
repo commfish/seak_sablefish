@@ -112,28 +112,29 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
 #======================================================================================
 # 2. Fishery cpue ----
 
-#For past iterations of the Fishery CPUE please see the 2022 folder or the original
-# analysis in the brand: seak_sablefish_thru2021_original_JS
+# For past iterations of the Fishery CPUE please see the 2022 folder or the original
+# analysis in branch: seak_sablefish_thru2021_original_JS
 
-# Starting in 2023 we have set up the CPUE calculations and data using OceanAK queries
+# Starting in 2023 we set up the CPUE calculations and data using OceanAK queries
 # detailed in script: fishery_cpue_fr_OceanAK_ftx_lb_dat.R.  The query criteria
 # is described in that script and running that code will provide the CPUE data
 # for 1997 through today.  That data is stored in the legacy data folder and will be
 # pulled here and cleaned up for use in the assessment. 
 #
-# This new CPUE calculation has replaced the CPUE data that was being used prior to 
+# This CPUE calculation has replaced the CPUE data that was being used prior to 
 # 2021 and involved an undocumented series of transformations that was meant to deal
-# with inaccurate recording of what fishermen were targetting (halibut and sablefish).
-# This system ascribed target based on relative catch of species.  Rhea Ehresmann (groundfish 
-# biologist) reorked ad entered the logbooks to accurately ascribe target so we should
-# have a much clearer and accurate description of fishery CPUE that will also allow
-# for a more detailed analysis to be completed in 2023.  For more information please
-# see the notes at the head of fishery_cpue_fr_OceanAK_ftx_lb_dat.R.
+# with inaccurate recording of what fishermen were targeting (halibut and sablefish).
+# The old methods ascribed target based on relative catch of species.  Rhea Ehresmann 
+# (groundfish biologist) reworked ad entered the logbooks to accurately ascribe 
+# target so the new methods should provide a clearer and more accurate description 
+# of fishery CPUE that will also allow for a more detailed analysis in 2023 and 
+# going forward as the fishery transitions from longline to pots.  For more 
+# information please see the notes at the head of fishery_cpue_fr_OceanAK_ftx_lb_dat.R.
 #
-# There are also now two CPUE files to work with and examined: 
+# There are now two CPUE files to work with and examine: 
 # 2.a will be the longline data and these CPUE values are used in the model
 # 2.b will be the pot data.  2022 was the first year boats were allowed to fish this
-#     gear, so just looking at it in 2023 for comparison purposes.
+#     gear, so 2023 will be a "first look" and comparison with longline gear.
 #     As the fleet transitions to pot gear (as it's expected to do) there will be 
 #     a need to use a conversion and create a single Fishery CPUE time series.
 #     This will also be necessary if the ADF&G surveys also transition to pot surveys.
@@ -143,137 +144,175 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
  read_csv(paste0("legacy_data/fishery/raw_data/fishery_ll_cpue_vers23_1997-",
                  YEAR,".csv",sep=""), 
                 guess_max = 50000) %>% 
+#colnames(new_ll_cpue) unique(new_ll_cpue$trip_set_targets)
+#str(new_ll_cpue)
+#unique(new_ll_cpue$hook_size1)
+#with(new_ll_cpue, table(hook_size1)); with(new_ll_cpue, table(mean_hook_size))
    #   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
    #   # hooks and cpue
+#new_ll_cpue %>%
    mutate(year = Year,
-          date = as.Date(Time.Set, c("%m/%d/%Y")), #ISO 8601 format
+          date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"), #ISO 8601 format
           julian_day = yday(date),
-          tm_hauled = parse_date_time(Time.Hauled, c("%m/%d/%Y %H:%M %p")),
-          t_set = parse_date_time(Time.Set, c("%m/%d/%Y %H:%M %p")),
+          tm_hauled = parse_date_time(Time.Hauled, c("%Y-%m-%d %H:%M:%S")),
+          t_set = parse_date_time(Time.Set, c("%Y-%m-%d %H:%M:%S")),
           set_soak = soak_time_hrs,
           set_length = set_length_km,
           
-          AVERAGE_DEPTH_METERS = 1.8288*Average.Depth.Fathoms,
+          trip_recorded_releases = ifelse(grepl("Released", trip_recorded_releases, ignore.case = TRUE),
+                                          "logged_releases","no_logged_releases"),
           
-          Gear = factor(Longline.System.Code),
-          Hook_size_1 = as.character(hook_size1), 
-          hook_space_1 = spacing1, #*FLAG* - check that hook_space is in inches
-          Size_1 = factor(as.numeric(gsub("[^0-9]", "", Hook_size_1))),
-          no_hooks_1 = num_of_hooks1_calc,
-          Hook_size_2 = as.character(hook_size2), 
+          avg_depth_m = 1.8288*Average.Depth.Fathoms,
+          
+          gear = factor(Longline.System.Code),
+          gear_name = factor(Gear),
+          
+          #primary configuration
+          hook_size = as.character(hook_size1), 
+          mean_hook_size = as.numeric(mean_hook_size),
+          hook_space = spacing1, #*FLAG* - check that hook_space is in inches
+          size = factor(as.numeric(gsub("[^0-9]", "", hook_size1))),
+          mean_size = mean_hook_size,
+          no_hooks_fished_on_trip = total_hooks_all,
+          no_hooks_exact = total_hooks_exact,
+          no_hooks_est = total_hooks_est,
+          no_hooks_p_set = total_hooks_all/set.count,
+          
+          #secondary configuration
+          hook_size_2 = as.character(hook_size2), 
           hook_space_2 = spacing2, #*FLAG* - check that hook_space is in inches
-          Size_2 = factor(as.numeric(gsub("[^0-9]", "", Hook_size_2))),
-          no_hooks_2 = num_of_hooks2_calc,
+          size_2 = factor(as.numeric(gsub("[^0-9]", "", hook_size_2))),
+          no_hooks_2 = total_hooks_est,
           
-          sable_lbs_set = SABLE_LBS_PER_SET) %>% 
-  
-   select(year = YEAR, trip_no = TRIP_NO, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
-          soak, 
-          set_length, Gear, 
-          Hook_size, Size, 
-          hook_space, no_hooks, 
-          Stat = G_STAT_AREA, 
-          depth = AVERAGE_DEPTH_METERS, 
-          sets = Effort.Number, 
-          sable_lbs_set, 
+          sable_lbs_set = lbs_p_set,
+          sable_lbs_hook = lbs_p_hk_all,
+          sable_lbs_hook_exact = lbs_p_hk_exact,
+          sable_lbs_hook_est = lbs_p_hk_est) %>% 
+   select(year, sell_date = Sell.Date, 
+          trip_no = Trip.Number.log,  #or Trip.Number_ftx?? 
+          Adfg = ADFG.Number, Spp_cde = Trip.Primary.Target.Species.Code, date, julian_day, 
+          set_soak, trip_soak = total_soak_time,
+          set_length, total_km_fished, 
+          gear, gear_name,
+          hook_size, mean_hook_size, 
+          hook_space, 
+          mean_hook_spacing,
+          size, mean_size,
+          no_hooks_fished_on_trip, no_hooks_exact, no_hooks_est,
+          no_hooks_p_set,
+          hook_size_2, hook_space_2, size_2, no_hooks_2,
+          Stat = Groundfish.Stat.Area, 
+          depth = avg_depth_m, 
+          set_no = Effort.Number, 
+          no_sets = set.count, 
+          multigear_trip,
+          trip_set_targets, trip_recorded_releases, multi_gear_config, 
+          disposition = Disposition, depredation = Depredation, 
+          catch,
+          logged_no = Numbers_log, 
+          logged_lbs = Pounds_log,
+          
+          sable_lbs_set, sable_lbs_hook, sable_lbs_hook_exact, sable_lbs_hook_est,
+          lbs_p_set_km, lbs_p_set_hr, lbs_p_set_km_hr, 
+          lbs_p_hk_exact, lbs_p_hk_km_exact,lbs_p_hk_hr_exact,                        
+          lbs_p_hk_km_hr_exact, lbs_p_hk_est, lbs_p_hk_km_est, lbs_p_hk_hr_est, 
+          lbs_p_hk_km_hr_est, lbs_p_hk_all, lbs_p_hk_km_all, lbs_p_hk_hr_all, 
+          lbs_p_hk_km_hr_all, lbs_p_hk_exact2, lbs_p_hk_km_exact2, lbs_p_hk_hr_exact2, 
+          lbs_p_hk_km_hr_exact2, 
           
           start_lat = Start.Latitude.Decimal.Degrees,
           start_lon = Start.Longitude.Decimal.Degrees, 
           set_target = Effort.Primary.Target.Species,
           set_target_2 = Effort.Secondary.Target.Species,
           trip_target = Trip.Primary.Target.Species,
-          trip_target_2 = Trip.Secondary.Target.Species) -> fsh_eff_new22
-
-
+          trip_target_2 = Trip.Secondary.Target.Species) -> ll_eff
 
  #note some of the dat time stuff will have warnings because of incomplete data
  # will have to deal with NA's in analysis
  
   #Get new data from "this" year and add
- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_CPUE_", YEAR, ".csv")) -> new_fish_cpue
+ #read.csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_CPUE_", YEAR, ".csv")) -> new_fish_cpue
  
  #bind the old and new... 
- bind_rows(fsh_eff_new22, new_fish_cpue) -> fsh_eff_thru_now
+ #bind_rows(fsh_eff_new22, new_fish_cpue) -> fsh_eff_thru_now
  
  #save for 2023 assessment...
- write_csv(fsh_eff_new22, paste0(YEAR+1,"/data/fishery/fishery_cpue_2022reboot_",
-                           min(fsh_eff_thru_now$year), "_", max(fsh_eff_thru_now$year), ".csv"))
+ write_csv(ll_eff, paste0(YEAR+1,"/data/fishery/fishery_ll_cpue_",
+                           min(ll_eff$year), "_", max(ll_eff$year), ".csv"))
  
  #save for legacy for 2024 and forward
- write_csv(fsh_eff_new22, paste0("legacy_data/data/fishery/fishery_cpue_2022reboot_",
-                                 min(fsh_eff_thru_now$year), "_", max(fsh_eff_thru_now$year), ".csv"))
- 
- #!!!*** In 2024 you will need to retrieve fishery_cpue_2022reboot_1997_2022.csv from legacy_data folder
- # add 2023 to it and save.  You will not have to run code line 143-223 and should be able to start with line 240
- # fingers crossed!! 
+ write_csv(ll_eff, paste0("legacy_data/fishery/fishery_ll_cpue_",
+                                 min(ll_eff$year), "_", max(ll_eff$year), ".csv"))
  
  # 2.b Pot Fishery CPUE 
  
  read_csv(paste0("legacy_data/fishery/raw_data/fishery_pot_cpue_vers23_2022-",
                  YEAR,".csv",sep=""), 
           guess_max = 50000) %>% 
-   #   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
-   #   # hooks and cpue
    mutate(year = Year,
-          date = as.Date(Time.Set, c("%m/%d/%Y")), #ISO 8601 format
-          julian_day = yday(date),
-          tm_hauled = parse_date_time(Time.Hauled, c("%m/%d/%Y %H:%M %p")),
-          t_set = parse_date_time(Time.Set, c("%m/%d/%Y %H:%M %p")),
-          set_soak = soak_time_hrs,
-          set_length = set_length_km,
+        date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"), #ISO 8601 format
+        julian_day = yday(date),
+        tm_hauled = parse_date_time(Time.Hauled, c("%Y-%m-%d %H:%M:%S")),
+        t_set = parse_date_time(Time.Set, c("%Y-%m-%d %H:%M:%S")),
+        set_soak = soak_time_hrs,
+        set_length = set_length_km,
+        
+        avg_depth_m = 1.8288*Average.Depth.Fathoms,
+        
+        #gear = factor(Longline.System.Code),
+        gear_name = factor(Gear),
+        
+        #primary configuration
+        pot_space = 0.3048*Pot.Spacing.Feet,  #(convert to meters)
+        line_diam = 2.54*Groundline.Diameter.Inches, # (convert to cm)
+        pot_dim = factor(Pot.Dimensions),
+        pot_type = factor(Pot.Type),
+        
+        no_pots = total_pots,
+        
+        sable_lbs_set = lbs_p_set,
+        sable_lbs_pot = lbs_p_pot) %>% 
+   select(year, 
+          trip_no = Trip.Number.log,  #or Trip.Number_ftx?? 
+          Adfg = ADFG.Number, 
+          Spp_cde = Trip.Target.Species.Code, date, julian_day, 
+          set_soak, trip_soak = total_soak_time,
+          set_length, total_km_fished, 
+          #gear, 
+          gear_name,
+          pot_space, line_diam, pot_dim, pot_type, 
+          Stat = Groundfish.Stat.Area, 
+          depth = avg_depth_m, 
+          set_no = Effort.Number, 
+          no_sets = set.count, 
+          multigear_trip,
+          trip_set_targets, trip_recorded_releases,  
+          disposition = Disposition, # depredation = Depredation, 
+          catch,
           
-          AVERAGE_DEPTH_METERS = 1.8288*Average.Depth.Fathoms,
-          
-          Gear = factor(Longline.System.Code),
-          Hook_size_1 = as.character(hook_size1), 
-          hook_space_1 = spacing1, #*FLAG* - check that hook_space is in inches
-          Size_1 = factor(as.numeric(gsub("[^0-9]", "", Hook_size_1))),
-          no_hooks_1 = num_of_hooks1_calc,
-          Hook_size_2 = as.character(hook_size2), 
-          hook_space_2 = spacing2, #*FLAG* - check that hook_space is in inches
-          Size_2 = factor(as.numeric(gsub("[^0-9]", "", Hook_size_2))),
-          no_hooks_2 = num_of_hooks2_calc,
-          
-          sable_lbs_set = SABLE_LBS_PER_SET) %>% 
-   
-   select(year = YEAR, trip_no = TRIP_NO, Adfg = ADFG_NO, Spp_cde = TRIP_TARGET, date, julian_day, 
-          soak, 
-          set_length, Gear, 
-          Hook_size, Size, 
-          hook_space, no_hooks, 
-          Stat = G_STAT_AREA, 
-          depth = AVERAGE_DEPTH_METERS, 
-          sets = Effort.Number, 
-          sable_lbs_set, 
+          sable_lbs_set, sable_lbs_pot, 
+          lbs_p_set_km, lbs_p_set_hr, lbs_p_set_km_hr, 
+          lbs_p_pot, lbs_p_pot_km,lbs_p_pot_hr,                        
+          lbs_p_pot_km_hr, 
           
           start_lat = Start.Latitude.Decimal.Degrees,
           start_lon = Start.Longitude.Decimal.Degrees, 
           set_target = Effort.Primary.Target.Species,
-          set_target_2 = Effort.Secondary.Target.Species,
-          trip_target = Trip.Primary.Target.Species,
-          trip_target_2 = Trip.Secondary.Target.Species) -> fsh_eff_new22
+          trip_target = Trip.Target.Species) -> pot_eff
  
- 
- 
- #note some of the dat time stuff will have warnings because of incomplete data
- # will have to deal with NA's in analysis
- 
- #*** !!! in 2023, will need to get new query for '22 data and then add it to the data described
- # by fsh_eff_new22
- 
- #Get new data from "this" year and add
- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_CPUE_", YEAR, ".csv")) -> new_fish_cpue
+#Get new data from "this" year and add
+ #read.csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_CPUE_", YEAR, ".csv")) -> new_fish_cpue
  
  #bind the old and new... 
- bind_rows(fsh_eff_new22, new_fish_cpue) -> fsh_eff_thru_now
+ #bind_rows(fsh_eff_new22, new_fish_cpue) -> fsh_eff_thru_now
  
  #save for 2023 assessment...
- write_csv(fsh_eff_new22, paste0(YEAR+1,"/data/fishery/fishery_cpue_2022reboot_",
-                                 min(fsh_eff_thru_now$year), "_", max(fsh_eff_thru_now$year), ".csv"))
+ write_csv(pot_eff, paste0(YEAR+1,"/data/fishery/fishery_pot_cpue_",
+                                 min(pot_eff$year), "_", max(pot_eff$year), ".csv"))
  
  #save for legacy for 2024 and forward
- write_csv(fsh_eff_new22, paste0("legacy_data/data/fishery/fishery_cpue_2022reboot_",
-                                 min(fsh_eff_thru_now$year), "_", max(fsh_eff_thru_now$year), ".csv"))
+ write_csv(pot_eff, paste0("legacy_data/fishery/fishery_pot_cpue_",
+                                 min(pot_eff$year), "_", max(pot_eff$year), ".csv"))
  #=====================================================================================
 # 3. Fishery biological ----
 

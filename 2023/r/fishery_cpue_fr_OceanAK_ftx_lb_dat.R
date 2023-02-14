@@ -120,7 +120,7 @@ ll_log<-ll_log %>%
 ll_log <- separate_rows(ll_log,"gear_config1",sep=", ") %>% 
   filter(!grepl("Target Species", gear_config1, fixed = TRUE)) 
 ll_log <-  separate_rows(ll_log,"gear_config2",sep=", ") %>%
-  filter(!grepl("Target Species", gear_config2, fixed = TRUE))
+  filter(!grepl("Target Species", gear_config2, fixed = TRUE)) 
 
 # 5) separate the gear configuration columns...
 ll_log<-ll_log %>% separate(gear_config1,into = paste0(c("gear_sub1","gear_spec1"),""),sep = ":") %>%
@@ -142,6 +142,10 @@ ll_log<-ll_log %>% separate(gear_config1,into = paste0(c("gear_sub1","gear_spec1
          hooks_per_skate2 = gsub("[ (]","",Hooks_per_Skate),
          num_of_skates2 = gsub("[ (]","",Num_Skates),
          num_of_hooks1 = gsub("[ (]","",Num_Hooks)) %>%
+  mutate(hook_size1 = ifelse(hook_size1 == "15/16","15,16",
+                             ifelse(hook_size1 == "4-7","varies",
+                                    ifelse(hook_size1 == "VARIES" | hook_size1 =="Varies", 
+                                           "varies", hook_size1)))) %>% 
   select(-Hook_Size,-Spacing,-Hooks_per_Skate,-Num_Skates,-Num_Hooks) # %>% #,Num_Hooks)
 
 #6) #Separate out multiple tickets
@@ -156,20 +160,35 @@ ll_log <- ll_log %>% group_by(Ticket, Year, ADFG.Number, Groundfish.Stat.Area) %
   mutate(set.count = n_distinct(Effort.Number))%>% ungroup()
 
 # 9) Get numbers of hooks when num_of_hooks not available...
+#    Also calculate mean hook size for multiple hook size listings (not sure if this will be useful, but...)
 # Lots of error warnings from this bit because of incomplete data series.  That's OK.  Its working
 hps<-max(stringr::str_count(ll_log$hooks_per_skate1, ","),na.rm=T)+1 #<-separate out multiple hooks-per-skate 
+hs<-max(stringr::str_count(ll_log$hook_size1, ","),na.rm=T)+1
+hspacing<-max(stringr::str_count(ll_log$spacing1, ","),na.rm=T)+1
 
 ll_log <-ll_log %>% 
-  mutate(hps_orig = hooks_per_skate1) %>%
+  mutate(hps_orig = hooks_per_skate1,
+         hs_orig = hook_size1,
+         hspacing_orig = spacing1) %>%
   separate(hps_orig, into = paste0("hps_",1:hps),sep = ",") %>%
   mutate(hps_1 = as.numeric(hps_1),
          hps_2 = as.numeric(hps_2),
          hps_3 = as.numeric(hps_3)) %>% 
+  separate(hs_orig, into = paste0("hs_",1:hs),sep = ",") %>%
+  mutate(hs_1 = as.numeric(hs_1),
+         hs_2 = as.numeric(hs_2),
+         hs_3 = as.numeric(hs_3)) %>%
+  separate(hspacing_orig, into = paste0("hsp_",1:hs),sep = ",") %>%
+  mutate(hsp_1 = as.numeric(hsp_1),
+         hsp_2 = as.numeric(hsp_2),
+         hsp_3 = as.numeric(hsp_3)) %>%
   rowwise() %>%
-  mutate(mean_hps = mean(c(hps_1,hps_2,hps_3),na.rm=TRUE)) %>% data.frame() %>%
+  mutate(mean_hook_p_skate = mean(c(hps_1,hps_2,hps_3),na.rm=TRUE),
+         mean_hook_size = mean(c(hs_1,hs_2,hs_3),na.rm=TRUE),
+         mean_hook_spacing = mean(c(hsp_1,hsp_2,hsp_3),na.rm=T)) %>% data.frame() %>%
   mutate(num_of_hooks1_exact = ifelse(!is.na(num_of_hooks1),num_of_hooks1,
                                                      as.numeric(num_of_skates1)*as.numeric(hooks_per_skate1)),
-         num_of_hooks1_est = mean_hps*as.numeric(num_of_skates1),
+         num_of_hooks1_est = mean_hook_p_skate*as.numeric(num_of_skates1),
          num_hooks_cpue = ifelse(!is.na(num_of_hooks1_exact),num_of_hooks1_exact,num_of_hooks1_est),
          hook_count_qual = ifelse(!is.na(num_of_hooks1_exact),"exact",
                                   ifelse(!is.na(num_of_hooks1_est),"estimated","not_available")),
@@ -182,7 +201,8 @@ ll_log <-ll_log %>%
          Species_log = Species,
          Pounds_log = Pounds,
          Numbers_log = Numbers) %>%
-   select(-Ticket,-Pounds,-Species,-Numbers,-hps_1,-hps_2,-hps_3,)
+   select(-Ticket,-Pounds,-Species,-Numbers,-hps_1,-hps_2,-hps_3,-hs_1,-hs_2,-hs_3,
+          -hsp_1,-hsp_2,-hsp_3)
 
 ### If there are issues you can skip down below to section labelled:
 #   DEVELOPMENT CODE FOR FULL JOIN to see if you can resolve it... 
@@ -250,7 +270,10 @@ missing_ll_lb2<-for_ll_CPUE_aux %>% filter(is.na(Species_log)); nrow(missing_ll_
 missing_ll_lb2$LD<-as.Date(missing_ll_lb2$Date.of.Landing)
 missing_ll_lb2$land_jday<-as.POSIXlt(missing_ll_lb2$LD)$yday
 hist(missing_ll_lb2$land_jday, breaks=20)
+abline(v=226, col="blue") #looks like a lot of the missing tickets are from the survey... that's good
 abline(v=as.POSIXlt("2000-08-01")$yday, col="red")
+
+nrow(missing_ll_lb2 %>% filter(land_jday > 226))
 
 hist(missing_ll_lb2$Year)
 
@@ -302,6 +325,9 @@ nrow(for_ll_CPUE)
 # 12.Step4: final tally of missing logbooks after the double join... 
 
 missing_ll_lb<-for_ll_CPUE %>% filter(is.na(Species_log)); nrow(missing_ll_lb)
+missing_ll_lb$LD<-as.Date(missing_ll_lb$Date.of.Landing)
+missing_ll_lb$land_jday<-as.POSIXlt(missing_ll_lb$LD)$yday
+nrow(missing_ll_lb %>% filter(land_jday > 226))  #OK, so ~296 tickets wthout matching logbooks that occured during the fishery dates...
 
 ftx_not_in_ll_logs <- missing_ll_lb %>% select(Year, Sell.Date, Species.Code_ftx,Harvest.Code,Harvest.Name,
                                                Whole.Weight..detail.,Gear.Name,Port.Name,
@@ -370,7 +396,7 @@ for_ll_CPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Eff
          lbs_p_hk_km_exact2 = sum(unique(catch))/total_hooks_exact2/total_km_fished,
          lbs_p_hk_hr_exact2 = sum(unique(catch))/total_hooks_exact2/total_soak_time,
          lbs_p_hk_km_hr_exact2 = sum(unique(catch))/total_hooks_exact2/total_km_fished/total_soak_time,
-  ) -> Sable_ll_CPUE  #don't change! This attaches to joined
+  ) -> Sable_ll_CPUE  
 
 colnames(Sable_ll_CPUE)
 #Quick look
@@ -386,11 +412,13 @@ QL<- Sable_ll_CPUE %>% select(Ticket_subref_log,Ticket_subref_ftx,
                            Port.Code,ADFG.Number,
                            CFEC.Permit.Number,CFEC_tix=CFEC,
                            Sell.Date,
-                           Trip.Number_log, gear_target_1, gear_target_2, hook_size1,
-                           spacing1, hooks_per_skate1, num_of_skates1, num_of_hooks1,
+                           Trip.Number_log, gear_target_1, gear_target_2, 
+                           hook_size1, hs_1,hs_2,hs_3,mean_hook_size,
+                           spacing1, hooks_per_skate1, mean_hook_p_skate,
+                           num_of_skates1, num_of_hooks1,
                            hook_size2, spacing2, hooks_per_skate2, num_of_skates2,
                             
-                           Trip.Number.log, set.count, mean_hps,
+                           Trip.Number.log, set.count, 
                            num_of_hooks1_exact, num_of_hooks1_est, num_hooks_cpue, hook_count_qual,
                            num_of_skates1_calc,
                            num_of_hooks2_calc, set_length_km, soak_time_hrs, Ticket_log,
