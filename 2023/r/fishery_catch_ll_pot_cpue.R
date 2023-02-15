@@ -200,14 +200,25 @@ read_csv(paste0(YEAR+1,"/data/fishery/fishery_LL_cpue_1997_", YEAR,".csv"),
          guess_max = 50000) -> ll_cpue #%>% 
 ll_cpue<-unique(ll_cpue)
 random_check(ll_cpue)
+unique(ll_cpue$depredation)
 #data will still be stratified by set and some other variables so need to consolidate
-# data by 
+# data by year, sell_date, Adfg, Stat, 
+
+ll_cpue_logged <-ll_cpue
+
+# 1) Look at cpue based on fish ticket landings... 
+ll_cpue_ftx <- unique(ll_cpue %>% 
+  group_by(year, sell_date, Adfg, Stat) %>% 
+  select(-set_date,-julian_day_set,-set_soak,-set_length,-set_depth,-set_no,
+         -logged_no,-logged_lbs,-disposition,-set_depredation,-start_lat,-start_lon))
+random_check(ll_cpue_ftx)
+histogram(ll_cpue_ftx$p_sets_depredated[ll_cpue_ftx$p_sets_depredated > 0])
+
+unique(ll_cpue_ftx$trip_set_targets)
 
 colnames(ll_cpue)
 nrow(ll_cpue)
 nrow(unique(ll_cpue))
-
-
 
 unique(ll_cpue$Stat); with(ll_cpue, table(Stat))
 unique(ll_cpue$multi_gear_config); with(ll_cpue, table(multi_gear_config))
@@ -226,15 +237,24 @@ nrow(ll_cpue)
 table(ll_cpue$hook_space)
 hist(ll_cpue$mea)
 
-ll_cpue %>% 
-  filter(depredation == "No depredation" | is.na(depredation)) %>% 
-  filter(multi_gear_config== "single_config",
-                   !is.na(date) & !is.na(hook_space) & !is.na(sable_lbs_set) &
-           !is.na(start_lon) & !is.na(start_lon) & 
-           !is.na(trip_soak) & !is.na(depth) &
-           !is.na(hook_size) & hook_size != "MIX" &
+colnames(ll_cpue_ftx)
+unique(ll_cpue_ftx$multi_gear_config)
+
+nrow(ll_cpue_ftx %>% filter(Stat == "345803"))
+
+ll_cpue_ftx %>% 
+  #filter(depredation == "No depredation" | is.na(depredation)) %>% 
+  filter(multi_gear_config == "single_config" &   #get rid of trips that reported 2 gear configurations
+         #trip_set_targets == "all_Sablefish",   # only use trips that were dedicated to sablefish... but not yet...
+           !is.na(sell_date) & 
+           !is.na(mean_hook_spacing) & #!is.na(hook_space) & 
+           !is.na(sable_lbs_set) &
+          # !is.na(start_lon) & !is.na(start_lon) & #remove this because this is at the set level... 
+           !is.na(trip_soak) & !is.na(trip_depth) &
+           !is.na(mean_hook_size) &   #!is.na(hook_size) &
+           hook_size != "MIX" &
              trip_soak > 0 & !is.na(trip_soak) & # soak time in hrs
-           julian_day > 226 & # if there were special projects before the fishery opened
+           julian_day_sell > 226 & # if there were special projects before the fishery opened
            no_hooks_p_set < 15000 & # 15000 in Kray's scripts - 14370 is the 75th percentile
            # limit analysis to Chatham Strait and Frederick Sounds where the
            # majority of fishing occurs
@@ -245,16 +265,24 @@ ll_cpue %>%
   mutate(Year = factor(year), 
          Gear = factor(gear),
          Adfg = factor(Adfg),
-         Stat = fct_relevel(factor(Stat),
-                            "345702", "335701", # Frederick Sound
+         Stat = factor(Stat),
+         Stat = fct_relevel(Stat,
+                            c("345702", "335701", # Frederick Sound
                             # Chatham south to north
-                            "345603", "345631", "345701", "345731", "345803"),
-         
+                            "345603", "345631", "345701", "345731", "345803")),
+         Depr_sum = ifelse(p_sets_depredated == 0, "none",
+                           ifelse(p_sets_depredated == 1, "all sets", 
+                                  ifelse(p_sets_depredated > 0 & p_sets_depredated <= 0.25,
+                                         "0-25% of sets",
+                                         ifelse(p_sets_depredated > 0.25 & p_sets_depredated <= 0.5,
+                                                "25-50% of sets",
+                                                ifelse(p_sets_depredated > 0.5 & p_sets_depredated <= 0.75,
+                                                       "50-75% of sets","75-100%"))))),
          # 01=Conventional, 02=Snap On, 05=Mixed, 06=Autobaiter -> 01, 02, 05
          # show no strong differences. main difference with autobaiters, which
          # have lwr cpue than conventional gear
-         Gear = derivedFactor("AB" = gear == "6",
-                              "CS" = gear %in% c("1","2","5")),
+         Gear = derivedFactor("AB" = Gear == "6",
+                              "CS" = Gear %in% c("1","2","5")),
          Hook_size = factor(hook_size),  #might be worth treating as numeric? 
          Mean_hook_size = mean_size, 
          # standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
@@ -278,7 +306,7 @@ ll_cpue %>%
     total_vessels = n_distinct(Adfg),
     # Total unique trips per year
     total_trips = n_distinct(trip_no)) %>% 
-  ungroup() -> ll_cpue
+  ungroup() -> ll_cpue_ftx
 
 nrow(ll_cpue)
 unique(fsh_cpue$target) #checking that these are sablefish targetting trips (710)
@@ -286,7 +314,7 @@ unique(fsh_cpue$target) #checking that these are sablefish targetting trips (710
 # in Chatham over time
 # axis <- tickr(fsh_cpue, year, 5)
 
-ll_cpue %>% 
+ll_cpue_ftx %>% 
   select(year, Vessels = total_vessels, Trips = total_trips) %>% 
   gather(Variable, Count, -year) %>% 
   distinct() %>%
@@ -308,48 +336,113 @@ ggsave(plot = trips_vessels, paste0(YEAR+1,"/figures/fishery_tripandvessel_trend
 
 # Simple bootstrap confidence intervals (smean.cl.boot from rms) ??rms
 library(rms)
-ll_cpue %>%
-  group_by(year) %>%
-  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot
+ll_cpue_ftx %>%
+  group_by(year,trip_set_targets) %>%
+  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot1
 
-ggplot(plot_boot) +
-  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper), 
-              alpha = 0.1, fill = "grey55") +
-  geom_point(aes(x = year, y = Mean), size = 1) +
-  geom_line(aes(x = year, y = Mean)) +
+ggplot(plot_boot1) +
+  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper, fill = trip_set_targets), 
+ #             alpha = 0.1, fill = "grey55") +
+              alpha = 0.1) +
+  geom_point(aes(x = year, y = Mean, col = trip_set_targets), size = 1) +
+  geom_line(aes(x = year, y = Mean, col = trip_set_targets)) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  lims(y = c(0, 1.5)); view(plot_boot1)
+  
+ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_bytarget_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=7, units="in")
+#----
+ll_cpue_ftx %>%
+  filter(trip_set_targets == "all_Sablefish") %>%
+  group_by(year,trip_recorded_releases) %>%
+  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot2 #view(plot_boot2)
+
+ggplot(plot_boot2) +
+  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper, fill = trip_recorded_releases), 
+              #             alpha = 0.1, fill = "grey55") +
+              alpha = 0.1) +
+  geom_point(aes(x = year, y = Mean, col = trip_recorded_releases), size = 1) +
+  geom_line(aes(x = year, y = Mean, col = trip_recorded_releases)) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  lims(y = c(0, 2))
+
+ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_byrelease_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=7, units="in")
+
+#---- 
+depr_eff<-lm(data=ll_cpue_ftx, std_cpue ~ p_sets_depredated)
+summary(depr_eff); plot(depr_eff)
+plot(data=ll_cpue_ftx, std_cpue ~ p_sets_depredated)
+abline(depr_eff)
+
+ll_cpue_ftx %>%
+  filter(trip_set_targets == "all_Sablefish") %>%
+  group_by(year,Depr_sum) %>%
+  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot3 #view(plot_boot2)
+
+ggplot(plot_boot3) +
+  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper, fill = Depr_sum), 
+              #             alpha = 0.1, fill = "grey55") +
+              alpha = 0.1) +
+  geom_point(aes(x = year, y = Mean, col = Depr_sum), size = 1) +
+  geom_line(aes(x = year, y = Mean, col = Depr_sum)) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  lims(y = c(0, 2))
+
+ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_byrelease_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=7, units="in")
+
+ll_cpue_ftx %>%
+  filter(trip_set_targets == "all_Sablefish") %>%
+  group_by(year,multigear_trip) %>%
+  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot4 #view(plot_boot4)
+
+ggplot(plot_boot4) +
+  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper, fill = multigear_trip), 
+              #             alpha = 0.1, fill = "grey55") +
+              alpha = 0.1) +
+  geom_point(aes(x = year, y = Mean, col = multigear_trip), size = 1) +
+  geom_line(aes(x = year, y = Mean, col = multigear_trip)) +
+  geom_errorbar(aes(x=year, y=Mean,ymin=Lower,ymax=Upper, col = multigear_trip),
+                position=position_dodge(width=0), width=1, size=0.2) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
   lims(y = c(0, 3))
-  
-ggsave(paste0(YEAR+1,"/figures/fshcpue_bootCI_22reboot_1997_", YEAR, ".png"),
-       dpi=300, height=4, width=7, units="in")
 
+ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_byrelease_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=7, units="in")
 # Prelim works towards CPUE analysis for NSEI, mirroring what was done by Jenny
 # Stahl and Ben Williams in SSEI
 
+#--------------------------------------------------------------------------------
 # Normality
-
+ll_cpue_ftx_clean <-ll_cpue_ftx %>% 
+  filter(trip_set_targets == "all_Sablefish",
+         Depr_sum == "none")
 # Long right tail
-ggplot(ll_cpue, aes(std_cpue)) + geom_density(alpha = 0.4, fill = 4)
+ggplot(ll_cpue_ftx_clean, aes(std_cpue)) + geom_density(alpha = 0.4, fill = 4)
 
 # Better, but still not normal with log transformation
-ggplot(ll_cpue, aes(log(std_cpue + 1))) + geom_density(alpha = 0.4, fill = 4)
+ggplot(ll_cpue_ftx_clean, aes(log(std_cpue + 1))) + geom_density(alpha = 0.4, fill = 4)
 
 # Following Jenny Stahl and Ben Williams' work in the SSEI, increase CPUE by 10%
 # of the mean per Cambell et al 1996 and Cambell 2004. Back-transform with
 # exp(cpue - mean(fsh_cpue$std_cpue) * 0.1)
-ll_cpue %>% 
-  mutate(cpue = log(std_cpue + (mean(ll_cpue$std_cpue, na.rm=T) * 0.1))) -> ll_cpue
+ll_cpue_ftx_clean %>% 
+  mutate(cpue = log(std_cpue + (mean(ll_cpue_ftx_clean$std_cpue, na.rm=T) * 0.1))) -> ll_cpue_ftx_clean
 
-ggplot(ll_cpue, aes(cpue)) + geom_density(alpha = 0.4, fill = 4)
+ggplot(ll_cpue_ftx_clean, aes(cpue)) + geom_density(alpha = 0.4, fill = 4)
 
 # EDA for GAM 
 
 # Trends over time
-ggplot(ll_cpue, aes(Year, std_cpue)) + geom_boxplot()
+ggplot(ll_cpue_ftx_clean, aes(Year, std_cpue)) + geom_boxplot()
 
 # Trends over time by area
-ggplot(ll_cpue %>% 
+ggplot(ll_cpue_ftx_clean %>% 
          filter(Stat %in% c("345603", "345631", "345701", "345731")), aes(Stat, std_cpue, fill = Year)) + 
   geom_boxplot() +
   scale_fill_manual(values = rev(colorspace::sequential_hcl(c = 0, l = c(30, 90), 
@@ -370,28 +463,28 @@ ggsave(paste0(YEAR+1,"/figures/fshcpue_trendsbyStat_22reboot_",min(ll_cpue$year)
 # seems to be OK... 
 
 # No one fished in Fred. Sound in 2018, 2 in 2019, 4 in 2021
-ll_cpue %>% filter(Stat %in% c("345702", "335701") & year == YEAR) %>% distinct(Adfg)
+ll_cpue_ftx_clean %>% filter(Stat %in% c("345702", "335701") & year == YEAR) %>% distinct(Adfg)
 # Activity in N Chatham 
-ll_cpue %>% filter(Stat %in% c("345731", "345803") & year == YEAR) %>% distinct(Adfg)
+ll_cpue_ftx_clean %>% filter(Stat %in% c("345731", "345803") & year == YEAR) %>% distinct(Adfg)
 # Activity in S Chatham
-ll_cpue %>% filter(Stat %in% c("345603")) %>% group_by(year) %>%  dplyr::summarize(n_distinct(Adfg)) %>% View()
-ll_cpue %>% filter(Stat %in% c("335701")) %>% group_by(year) %>%  dplyr::summarize(n_distinct(Adfg)) %>% View()
+ll_cpue_ftx_clean %>% filter(Stat %in% c("345603")) %>% group_by(year) %>%  dplyr::summarize(n_distinct(Adfg)) %>% View()
+ll_cpue_ftx_clean %>% filter(Stat %in% c("335701")) %>% group_by(year) %>%  dplyr::summarize(n_distinct(Adfg)) %>% View()
 
-ll_cpue %>% 
+ll_cpue_ftx_clean %>% 
   group_by(year, Stat) %>% 
   dplyr::summarize(trips = n_distinct(trip_no),
             vessels = n_distinct(trip_no)) -> stat_sum
 
 # Gear performance by Stat
-ggplot(ll_cpue, aes(Stat, cpue, fill = Gear)) + geom_boxplot()
+ggplot(ll_cpue_ftx_clean, aes(Stat, cpue, fill = Gear)) + geom_boxplot()
 
 # Gear performance over time
-ggplot(ll_cpue, aes(Year, cpue, fill = Gear)) + geom_boxplot() +
+ggplot(ll_cpue_ftx_clean, aes(Year, cpue, fill = Gear)) + geom_boxplot() +
   theme(axis.text.x = element_text(size = 14, angle = 90, h = 1)) +
   labs(x = "", y = "Fishery CPUE\n")
 
 # Only a handful of vessels with autobaiter gear
-ggplot(ll_cpue, aes(Adfg, cpue, color = Gear)) + geom_jitter(alpha=.4) +
+ggplot(ll_cpue_ftx_clean, aes(Adfg, cpue, color = Gear)) + geom_jitter(alpha=.4) +
   theme(axis.text.x = element_text(colour = "white"))
 
 # Hook size performance - hook size 11 should be removed due to sample size and

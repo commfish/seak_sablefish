@@ -338,23 +338,42 @@ ftx_not_in_ll_logs <- missing_ll_lb %>% select(Year, Sell.Date, Species.Code_ftx
 # 13) Calculate CPUE for the logbook data
 
 for_ll_CPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Effort.Number) %>% 
+  mutate(dep_shar_count = sum(Depredation == "Sleeper shark")/n(),
+            dep_lion_count = sum(Depredation == "Sea lion")/n(),
+            dep_orca_count = sum(Depredation == "Orca")/n(),
+            dep_whale_count = sum(Depredation == "Sperm whale")/n(),
+            dep_unk_count = sum(Depredation == "Unknown species")/n()) %>%
   mutate(uniques = n(),
          partial_soak_time = soak_time_hrs/n(),
          partial_km_fished = set_length_km/n(),
          partial_hook_count_exact = as.numeric(num_of_hooks1_exact)/n(),
          partial_hook_count_est = as.numeric(num_of_hooks1_est)/n(),
          partial_hook_count_best_available = as.numeric(num_hooks_cpue)/n(),
-         partial_hook_count2 = as.numeric(num_of_hooks2_calc)/n()) %>% 
+         partial_hook_count2 = as.numeric(num_of_hooks2_calc)/n(),
+         partial_depr_count = dep_shar_count+dep_lion_count+dep_orca_count+dep_whale_count+dep_unk_count) %>% 
+  
   ungroup %>%
   group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area) %>%
   mutate(set.count = set.count,
+         Depredation = ifelse(is.na(Depredation),"No depredation",Depredation),
+         Depredation = ifelse(Depredation == "","No depredation",Depredation),
          trip_set_targets = ifelse(length(unique(Effort.Primary.Target.Species))>1,  #column that can use to filter for multiple targets in a trip
                                "hal_&_sable_mix",
                                paste0("all_",unique(Effort.Primary.Target.Species))),
          trip_recorded_releases = ifelse(length(unique(Disposition))>1,             #column for identifying when skippers recorded their releases
                                          paste0(unique(Disposition)[1],"_&_",unique(Disposition)[2]),
                                          paste0("all_",unique(Disposition))),
+         p_sets_depr = sum(partial_depr_count)/n(),
+         trip_depr_desc = ifelse(length(unique(Depredation))>1,             #column for identifying when skippers recorded their releases
+                             paste0("some ",unique(Depredation[Depredation != ""] ), collapse =", "),
+                             paste0(unique(Depredation)," all sets")),
          
+         trip_depr_desc = ifelse(grepl("some No depredation, ", trip_depr_desc, ignore.case = TRUE),
+                                 gsub("some No depredation, ","",trip_depr_desc),
+                                 ifelse(grepl(", some No depredation", trip_depr_desc, ignore.case = TRUE),
+                                        gsub(", some No depredation","",trip_depr_desc),
+                                        trip_depr_desc)),
+
          multi_gear_config = ifelse(is.na(gear_target_2),"single_config","multi_config"), #column to flag when more than one gear configuration
                                                                                           #for analyzing CPUE versus things like hook size will want
                                                                                           #to filter out multi_config
@@ -396,13 +415,16 @@ for_ll_CPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Eff
          lbs_p_hk_km_exact2 = sum(unique(catch))/total_hooks_exact2/total_km_fished,
          lbs_p_hk_hr_exact2 = sum(unique(catch))/total_hooks_exact2/total_soak_time,
          lbs_p_hk_km_hr_exact2 = sum(unique(catch))/total_hooks_exact2/total_km_fished/total_soak_time,
-  ) -> Sable_ll_CPUE  
+  ) -> Sable_ll_CPUE 
 
+ unique(Sable_ll_CPUE$partial_depr_count)
 colnames(Sable_ll_CPUE)
 #Quick look
 QL<- Sable_ll_CPUE %>% select(Ticket_subref_log,Ticket_subref_ftx,
                            uniques,Year, Species_log, Species_tx = Species.Name,
-                           Disposition, trip_recorded_releases,
+                           Disposition, trip_recorded_releases, 
+                           Depredation, trip_depr_desc, 
+                           p_sets_depr,partial_depr_count,
                            Groundfish.Stat.Area, Effort.Primary.Target.Species,
                            Trip.Primary.Target.Species, trip_set_targets,
                            multi_gear_config,
@@ -413,7 +435,7 @@ QL<- Sable_ll_CPUE %>% select(Ticket_subref_log,Ticket_subref_ftx,
                            CFEC.Permit.Number,CFEC_tix=CFEC,
                            Sell.Date,
                            Trip.Number_log, gear_target_1, gear_target_2, 
-                           hook_size1, hs_1,hs_2,hs_3,mean_hook_size,
+                           hook_size1, mean_hook_size,
                            spacing1, hooks_per_skate1, mean_hook_p_skate,
                            num_of_skates1, num_of_hooks1,
                            hook_size2, spacing2, hooks_per_skate2, num_of_skates2,
@@ -459,10 +481,11 @@ QL<- Sable_ll_CPUE %>% select(Ticket_subref_log,Ticket_subref_ftx,
 #function to grab random year, stat area, ADFG.no and sell date... 
 random_check<-function(data){ #data<-mixed_targets
   #length(unique(Sable_ll_CPUE$Year))
-  data<-data
+  data<-data  #data<-whaled
   
   year_list<-unique(data$Year)
-  year_check<-sample(year_list,1)
+  #year_check<-sample(year_list,1)
+  year_check<-year_list[sample(length(year_list),1)]
   
   data<-data %>% filter(Year == year_check)
   
@@ -490,17 +513,24 @@ missing_lb<-QL %>% filter(is.na(Species_log))
 #released records
 releases<-QL %>% filter(Disposition == "Released"); nrow(releases)
 
+#derpredations
+unique(QL$trip_depr_desc)
+table(QL$trip_depr_desc)
+whaled<-QL %>% filter(trip_depr_desc == "some Sea lion, some No depredation"); nrow(whaled)
+
+
 #mixed trips
 mixed_targets<-QL %>% filter(trip_set_targets == "hal_&_sable_mix"); nrow(mixed_targets)
 
 #Get random landing and check it out... 
-rands<-random_check(data=QL) #can run this on QL, Sable_ll_CPUE, missing_lb, releases, etc... 
+rands<-random_check(whaled) #can run this on QL, Sable_ll_CPUE, missing_lb, releases, etc... 
 #saverands<-rands #if you want to save a particular set to come back to
 
 check<-as.data.frame(QL %>% filter(Sell.Date == rands[[3]][1],
                                   Groundfish.Stat.Area == rands[[4]][1],
                                   Year == rands[[1]][1], #unique(Sable_ll_CPUE$Year)[rands[[1]][1]],
                                   ADFG.Number == rands[[2]][1])); check
+unique(check$depr_desc); unique(check$Depredation)
 check %>% select(Effort.Number,total_km_fished,set_length_km,
                  total_soak_time,soak_time_hrs,
                  total_hooks_exact,num_of_hooks1_exact)

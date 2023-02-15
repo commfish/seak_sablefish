@@ -143,17 +143,14 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
 
  read_csv(paste0("legacy_data/fishery/raw_data/fishery_ll_cpue_vers23_1997-",
                  YEAR,".csv",sep=""), 
-                guess_max = 50000) %>% 
-#colnames(new_ll_cpue) unique(new_ll_cpue$trip_set_targets)
-#str(new_ll_cpue)
-#unique(new_ll_cpue$hook_size1)
-#with(new_ll_cpue, table(hook_size1)); with(new_ll_cpue, table(mean_hook_size))
-   #   # rename, define factors, remove mixed hook sizes; calculate stanardized no. of 
-   #   # hooks and cpue
-#new_ll_cpue %>%
+                guess_max = 50000)  %>% 
+#colnames(ugh)
+
    mutate(year = Year,
-          date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"), #ISO 8601 format
-          julian_day = yday(date),
+          set_date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"), #ISO 8601 format
+          sell_date = as.Date(Sell.Date, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"),
+          julian_day_set = yday(set_date),
+          julian_day_sell = yday(sell_date),
           tm_hauled = parse_date_time(Time.Hauled, c("%Y-%m-%d %H:%M:%S")),
           t_set = parse_date_time(Time.Set, c("%Y-%m-%d %H:%M:%S")),
           set_soak = soak_time_hrs,
@@ -162,7 +159,8 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
           trip_recorded_releases = ifelse(grepl("Released", trip_recorded_releases, ignore.case = TRUE),
                                           "logged_releases","no_logged_releases"),
           
-          avg_depth_m = 1.8288*Average.Depth.Fathoms,
+          avg_set_depth_m = 1.8288*Average.Depth.Fathoms,
+          avg_trip_depth_m = 1.8288*mean_trip_depth_fm,
           
           gear = factor(Longline.System.Code),
           gear_name = factor(Gear),
@@ -188,9 +186,9 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
           sable_lbs_hook = lbs_p_hk_all,
           sable_lbs_hook_exact = lbs_p_hk_exact,
           sable_lbs_hook_est = lbs_p_hk_est) %>% 
-   select(year, sell_date = Sell.Date, 
+   select(year, sell_date, set_date, julian_day_set, julian_day_sell,
           trip_no = Trip.Number.log,  #or Trip.Number_ftx?? 
-          Adfg = ADFG.Number, Spp_cde = Trip.Primary.Target.Species.Code, date, julian_day, 
+          Adfg = ADFG.Number, Spp_cde = Trip.Primary.Target.Species.Code, 
           set_soak, trip_soak = total_soak_time,
           set_length, total_km_fished, 
           gear, gear_name,
@@ -202,12 +200,18 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
           no_hooks_p_set,
           hook_size_2, hook_space_2, size_2, no_hooks_2,
           Stat = Groundfish.Stat.Area, 
-          depth = avg_depth_m, 
+          
+          set_depth = avg_set_depth_m,
+          trip_depth = avg_trip_depth_m,
+          
+          mean_trip_depth_fm,
           set_no = Effort.Number, 
           no_sets = set.count, 
           multigear_trip,
           trip_set_targets, trip_recorded_releases, multi_gear_config, 
-          disposition = Disposition, depredation = Depredation, 
+          disposition = Disposition, set_depredation = Depredation, 
+          trip_depredation = trip_depr_desc,
+          p_sets_depredated = p_sets_depr, 
           catch,
           logged_no = Numbers_log, 
           logged_lbs = Pounds_log,
@@ -233,6 +237,8 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
   #Get new data from "this" year and add
  #read.csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_CPUE_", YEAR, ".csv")) -> new_fish_cpue
  
+head(ll_eff)
+
  #bind the old and new... 
  #bind_rows(fsh_eff_new22, new_fish_cpue) -> fsh_eff_thru_now
  
