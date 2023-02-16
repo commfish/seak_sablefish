@@ -165,6 +165,9 @@ ggsave(paste0(YEAR+1,"/figures/exvessel_catch_correlation_1985_", YEAR, ".png"),
        dpi=300,  height=4, width=7,  units="in")
 
 #------------------------------------------------------------------------------
+#_______________________________________________________________________________
+#-------------------------------------------------------------------------------
+
 # LONGLINE Logbook/CPUE data  ----
 random_check<-function(data){ #data<-mixed_targets
   #length(unique(Sable_ll_CPUE$Year))
@@ -200,18 +203,18 @@ read_csv(paste0(YEAR+1,"/data/fishery/fishery_LL_cpue_1997_", YEAR,".csv"),
          guess_max = 50000) -> ll_cpue #%>% 
 ll_cpue<-unique(ll_cpue)
 random_check(ll_cpue)
+
+length(is.na(ll_cpue$no_hooks_set))
 unique(ll_cpue$depredation)
 #data will still be stratified by set and some other variables so need to consolidate
 # data by year, sell_date, Adfg, Stat, 
-
-ll_cpue_logged <-ll_cpue
 
 # 1) Look at cpue based on fish ticket landings... 
 ll_cpue_ftx <- unique(ll_cpue %>% 
   group_by(year, sell_date, Adfg, Stat) %>% 
   select(-set_date,-julian_day_set,-set_soak,-set_length,-set_depth,-set_no,
          -logged_no,-logged_lbs,-disposition,-set_depredation,-start_lat,-start_lon))
-random_check(ll_cpue_ftx)
+random_check(ll_cpue_ftx) #should just be one row for each trip... 
 histogram(ll_cpue_ftx$p_sets_depredated[ll_cpue_ftx$p_sets_depredated > 0])
 
 unique(ll_cpue_ftx$trip_set_targets)
@@ -392,7 +395,7 @@ ggplot(plot_boot3) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
   lims(y = c(0, 2))
 
-ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_byrelease_1997_", YEAR, ".png"),
+ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_bydepr_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
 
 ll_cpue_ftx %>%
@@ -412,13 +415,16 @@ ggplot(plot_boot4) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
   lims(y = c(0, 3))
 
-ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_byrelease_1997_", YEAR, ".png"),
+ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_bygeartrip_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
 # Prelim works towards CPUE analysis for NSEI, mirroring what was done by Jenny
 # Stahl and Ben Williams in SSEI
 
 #--------------------------------------------------------------------------------
 # Normality
+
+#for analysis we will use CPUE from trips that targetted only sablefish and that
+# experienced no depredation... 
 ll_cpue_ftx_clean <-ll_cpue_ftx %>% 
   filter(trip_set_targets == "all_Sablefish",
          Depr_sum == "none")
@@ -487,7 +493,303 @@ ggplot(ll_cpue_ftx_clean, aes(Year, cpue, fill = Gear)) + geom_boxplot() +
 ggplot(ll_cpue_ftx_clean, aes(Adfg, cpue, color = Gear)) + geom_jitter(alpha=.4) +
   theme(axis.text.x = element_text(colour = "white"))
 
-# Hook size performance - hook size 11 should be removed due to sample size and
+#--------------------------------------------------------------------------------
+# lets do the same thing again, but use the lbs/hook calculated from the raw data 
+
+# 1) Look at cpue based on fish ticket landings... 
+ll_cpue_ftx2 <- unique(ll_cpue %>% 
+                        group_by(year, sell_date, Adfg, Stat) %>% 
+                        select(-set_date,-julian_day_set,-set_soak,-set_length,-set_depth,-set_no,
+                               -logged_no,-logged_lbs,-disposition,-set_depredation,-start_lat,-start_lon))
+random_check(ll_cpue_ftx2) #should just be one row for each trip... 
+colnames(ll_cpue_ftx2)
+
+ll_cpue_ftx2 %>% 
+  #filter(depredation == "No depredation" | is.na(depredation)) %>% 
+  filter(multi_gear_config == "single_config" &   #get rid of trips that reported 2 gear configurations
+           #trip_set_targets == "all_Sablefish",   # only use trips that were dedicated to sablefish... but not yet...
+           !is.na(sell_date) & 
+           !is.na(mean_hook_spacing) & #!is.na(hook_space) & 
+           !is.na(sable_lbs_set) &
+           # !is.na(start_lon) & !is.na(start_lon) & #remove this because this is at the set level... 
+           !is.na(trip_soak) & !is.na(trip_depth) &
+           !is.na(mean_hook_size) &   #!is.na(hook_size) &
+           hook_size != "MIX" &
+           trip_soak > 0 & !is.na(trip_soak) & # soak time in hrs
+           julian_day_sell > 226 & # if there were special projects before the fishery opened
+           no_hooks_p_set < 15000 & # 15000 in Kray's scripts - 14370 is the 75th percentile
+           # limit analysis to Chatham Strait and Frederick Sounds where the
+           # majority of fishing occurs
+           # target = 710 &
+           Stat %in% c("345603", "345631", "345702",
+                       "335701", "345701", "345731", "345803")) %>% 
+  
+  mutate(Year = factor(year), 
+         Gear = factor(gear),
+         Adfg = factor(Adfg),
+         Stat = factor(Stat),
+         Stat = fct_relevel(Stat,
+                            c("345702", "335701", # Frederick Sound
+                              # Chatham south to north
+                              "345603", "345631", "345701", "345731", "345803")),
+         Depr_sum = ifelse(p_sets_depredated == 0, "none",
+                           ifelse(p_sets_depredated == 1, "all sets", 
+                                  ifelse(p_sets_depredated > 0 & p_sets_depredated <= 0.25,
+                                         "0-25% of sets",
+                                         ifelse(p_sets_depredated > 0.25 & p_sets_depredated <= 0.5,
+                                                "25-50% of sets",
+                                                ifelse(p_sets_depredated > 0.5 & p_sets_depredated <= 0.75,
+                                                       "50-75% of sets","75-100%"))))),
+         # 01=Conventional, 02=Snap On, 05=Mixed, 06=Autobaiter -> 01, 02, 05
+         # show no strong differences. main difference with autobaiters, which
+         # have lwr cpue than conventional gear
+         Gear = derivedFactor("AB" = Gear == "6",
+                              "CS" = Gear %in% c("1","2","5")),
+         Hook_size = factor(hook_size),  #might be worth treating as numeric? 
+         Mean_hook_size = mean_size, 
+         # standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
+         #std_hooks = 2.2 * no_hooks_p_set * (1 - exp(-0.57 * (hook_space / 39.37))), 
+         
+         std_hooks = 2.2 * no_hooks_p_set * (1 - exp(-0.57 * (mean_hook_spacing / 39.37))),  
+         std_cpue_no = logged_no / std_hooks,
+         std_cpue_lbs = logged_lbs / std_hooks,
+         # dummy varbs, for prediction with random effects
+         dum = 1, 
+         dumstat = 1) %>% 
+  #"sets" (aka effort_no) is the set identifier. Currently Martina's scripts
+  #filter out sets that Kamala identifies as halibut target sets. Create a new
+  #column that is the total number of sablefish target sets in a trip (trip_no's
+  #only unique within a year)
+  #group_by(year, trip_no) %>%              # XXX!!! already done in raw processing... 
+  #mutate(no_sets = n_distinct(sets)) %>% 
+  group_by(year) %>% 
+  mutate(
+    #The number of vessels participating in the fishery has descreased by 50% from
+    #1997-2015. create new column is the total number of active vessels
+    #participating in a given year
+    total_vessels = n_distinct(Adfg),
+    # Total unique trips per year
+    total_trips = n_distinct(trip_no)) %>% 
+  ungroup() -> ll_cpue_ftx2
+
+# Bootstrap ----
+
+# Simple bootstrap confidence intervals (smean.cl.boot from rms) ??rms
+
+rbind(ll_cpue_ftx2 %>%
+        group_by(year,trip_set_targets) %>%
+        do(data.frame(rbind(smean.cl.boot(.$std_cpue_all)))) %>%
+        mutate(hook_cpue_spec = "std_cpue_all"),
+      ll_cpue_ftx2 %>%
+        group_by(year,trip_set_targets) %>%
+        do(data.frame(rbind(smean.cl.boot(.$std_cpue_exact)))) %>%
+        mutate(hook_cpue_spec = "std_cpue_exact"),
+      ll_cpue_ftx2 %>%
+        group_by(year,trip_set_targets) %>%
+        do(data.frame(rbind(smean.cl.boot(.$lbs_p_hk_all)))) %>%
+        mutate(hook_cpue_spec = "cpue_all"),
+      ll_cpue_ftx2 %>%
+        group_by(year,trip_set_targets) %>%
+        do(data.frame(rbind(smean.cl.boot(.$lbs_p_hk_exact)))) %>%
+        mutate(hook_cpue_spec = "cpue_exact")
+      ) -> plot_boot5
+
+ggplot(plot_boot5) +
+  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper, fill = trip_set_targets), 
+              #             alpha = 0.1, fill = "grey55") +
+              alpha = 0.1) +
+  geom_point(aes(x = year, y = Mean, col = trip_set_targets), size = 1) +
+  geom_line(aes(x = year, y = Mean, col = trip_set_targets)) +
+  facet_wrap(~hook_cpue_spec) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  lims(y = c(0, 1.5)); view(plot_boot5)
+
+ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx2_bootCI_bytarget_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=7, units="in")
+
+
+ggplot(plot_boot5 %>% filter(trip_set_targets == "all_Sablefish")) +
+  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper, fill = hook_cpue_spec), 
+              #             alpha = 0.1, fill = "grey55") +
+              alpha = 0.1) +
+  geom_point(aes(x = year, y = Mean, col = hook_cpue_spec), size = 1) +
+  geom_line(aes(x = year, y = Mean, col = hook_cpue_spec)) +
+  #facet_wrap(~hook_cpue_spec) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  lims(y = c(0, 1.5)); view(plot_boot5)
+
+ggplot(rbind(plot_boot5 %>% filter(trip_set_targets == "all_Sablefish"),
+       plot_boot1 %>% filter(trip_set_targets == "all_Sablefish") %>%
+         mutate(hook_cpue_spec = "from_lbs_per_set"))) +
+  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper, fill = hook_cpue_spec), 
+              #             alpha = 0.1, fill = "grey55") +
+              alpha = 0.1) +
+  geom_point(aes(x = year, y = Mean, col = hook_cpue_spec), size = 1) +
+  geom_line(aes(x = year, y = Mean, col = hook_cpue_spec)) +
+  #facet_wrap(~hook_cpue_spec) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  lims(y = c(0, 1.5)); view(plot_boot5)
+## Pretty cool... we get to the same CPUE weather from raw lbs/hook or through lbs/set... 
+# Can skip the rest of this because we're getting the same ansers
+# Also, including the estimated number of hooks (i.e, when multiple configurations are present
+# and we used the average and such...) doesn't produce anything different... very minor
+# discrependies in the point estimates.
+
+#--------------------------------------------------------------------------------
+# CPUE based on skipper's logbook data...
+# Fishticket data is at the trip level and thus averages out the set specific performance.
+# This is generally necessary because logbook entries are estimates 
+ll_cpue_logged <-ll_cpue
+nrow(ll_cpue_logged)
+colnames(ll_cpue_logged)
+
+nrow(ll_cpue_logged %>% filter (!is.na(logged_no)))
+nrow(ll_cpue_logged %>% filter (!is.na(logged_lbs)))
+
+releases<-ll_cpue_logged %>% filter(trip_recorded_releases == "logged_releases")
+random_check(releases)
+unique(ll_cpue_logged$disposition)
+
+old <- Sys.time()
+ll_cpue_logged %>% group_by(year, sell_date, Adfg, Stat, disposition) %>%
+  #filter (disposition == "no_logged_releases" | is.na(disposition)) %>% #need to exclude the releases... will look at later?
+  mutate(logged_and_landed = case_when((disposition == "Retained"| is.na(disposition)) ~ sum(logged_lbs)),
+         logged_and_landed_nos = case_when((disposition == "Retained"| is.na(disposition)) ~ sum(logged_no)),
+         logged_and_released = case_when((disposition == "Released (Quota Limit)"| disposition == "Released") ~ sum(logged_lbs)),
+         logged_and_released_nos = case_when((disposition == "Released (Quota Limit)"| disposition == "Released") ~ sum(logged_no))) %>%
+  #mutate(logged_and_landed = if((disposition == "Retained"| is.na(disposition)) sum(logged_lbs))) %>% 
+  ungroup () %>% 
+  group_by(year, sell_date, Adfg, Stat) %>%
+  mutate(adj_logged_lbs = case_when((disposition == "Retained"| is.na(disposition)) ~ 
+                                      (logged_lbs/logged_and_landed)*catch),
+         est_released_lbs = case_when((disposition == "Released (Quota Limit)"| disposition == "Released") ~ 
+                                      (logged_lbs/sum(unique(logged_and_landed), na.rm=T))*unique(catch)),
+         #skipper_bias_byset = ,
+         skipper_bias_bytrip = sum(unique(logged_and_landed_nos), na.rm=T)-unique(catch), 
+         adj_logged_nos = case_when((disposition == "Retained"| is.na(disposition)) ~ 
+                                      (logged_no/logged_and_landed_nos)*catch),
+         est_rel_lbs_nos = case_when((disposition == "Released (Quota Limit)"| disposition == "Released") ~ 
+                                      (logged_no/sum(unique(logged_and_landed_nos), na.rm=T))*unique(catch))
+         ) %>% 
+  ungroup() -> test; Sys.time() - old #%>%  #12 minutes for this piece!!!
+
+
+old <- Sys.time()
+test %>% group_by(year, sell_date, Adfg, Stat, set_no) %>%
+  
+  filter(multi_gear_config == "single_config" &   #get rid of trips that reported 2 gear configurations
+           trip_set_targets == "all_Sablefish",   # only use trips that were dedicated to sablefish... above anlysis says this is smart
+           !is.na(sell_date) & 
+           !is.na(mean_hook_spacing) & #!is.na(hook_space) & 
+           !is.na(sable_lbs_set) &
+           # !is.na(start_lon) & !is.na(start_lon) & #remove this because this is at the set level... 
+           !is.na(trip_soak) & !is.na(trip_depth) &
+           !is.na(mean_hook_size) &   #!is.na(hook_size) &
+           hook_size != "MIX" &
+           trip_soak > 0 & !is.na(trip_soak) & # soak time in hrs
+           julian_day_sell > 226 & # if there were special projects before the fishery opened
+           no_hooks_p_set < 15000 & # 15000 in Kray's scripts - 14370 is the 75th percentile
+           Stat %in% c("345603", "345631", "345702",
+                       "335701", "345701", "345731", "345803")) %>% 
+  
+  mutate(Year = factor(year), 
+         Gear = factor(gear),
+         Adfg = factor(Adfg),
+         Stat = factor(Stat),
+         Stat = fct_relevel(Stat,
+                            c("345702", "335701", # Frederick Sound
+                              # Chatham south to north
+                              "345603", "345631", "345701", "345731", "345803")),
+         Depr_sum = ifelse(p_sets_depredated == 0, "none",
+                           ifelse(p_sets_depredated == 1, "all sets", 
+                                  ifelse(p_sets_depredated > 0 & p_sets_depredated <= 0.25,
+                                         "0-25% of sets",
+                                         ifelse(p_sets_depredated > 0.25 & p_sets_depredated <= 0.5,
+                                                "25-50% of sets",
+                                                ifelse(p_sets_depredated > 0.5 & p_sets_depredated <= 0.75,
+                                                       "50-75% of sets","75-100%"))))),
+         # 01=Conventional, 02=Snap On, 05=Mixed, 06=Autobaiter -> 01, 02, 05
+         # show no strong differences. main difference with autobaiters, which
+         # have lwr cpue than conventional gear
+         Gear = derivedFactor("AB" = Gear == "6",
+                              "CS" = Gear %in% c("1","2","5")),
+         Hook_size = factor(hook_size),  #might be worth treating as numeric? 
+         Mean_hook_size = mean_size, 
+         #Need to calculate corrected set landing and flag those sets where skippers
+         #recorded releases and retentions in different formats (ie, numbers for one 
+         # lbs for the other)
+         set_catch_flag = ifelse(Inf %in% est_released_lbs,
+                                 "CPUE underestimated",
+                                 ifelse(Inf %in% est_rel_lbs_nos,
+                                 "CPUE underestimated",
+                                 "good")),
+         
+         log_data = "fuckitfornow",
+         #log_data = ifelse(unique(is.na(logged_no)),
+        #                   ifelse(unique(!is.na(logged_lbs)),
+        #                          "lbs","mixed"
+        #                          ),"nos"
+        #                   ),
+                               
+         set_catch_no_releases = sum(adj_logged_lbs, na.rm=TRUE)+sum(adj_logged_nos, na.rm=TRUE),
+         set_catch_w_releases = sum(adj_logged_lbs, na.rm=TRUE)+sum(adj_logged_nos, na.rm=TRUE) +
+                              sum(est_released_lbs, na.rm=TRUE)+sum(est_rel_lbs_nos, na.rm=TRUE),
+         set_catch = ifelse("good" %in% set_catch_flag,
+                            ifelse(trip_recorded_releases == "no_logged_releases",
+                                   as.numeric(set_catch_no_releases),
+                                 as.numeric(set_catch_w_releases)),
+                            as.numeric(set_catch_w_releases)),
+         set_releases = set_catch_w_releases - set_catch_no_releases,
+         
+         # standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
+         #std_hooks = 2.2 * no_hooks_p_set * (1 - exp(-0.57 * (hook_space / 39.37))), 
+         std_hooks = 2.2 * no_hooks_p_set * (1 - exp(-0.57 * (mean_hook_spacing / 39.37))),
+         std_cpue = set_catch / std_hooks,
+         # dummy varbs, for prediction with random effects
+         dum = 1, 
+         dumstat = 1) %>% 
+  
+  ungroup() %>%
+  
+  group_by(year) %>% 
+  mutate(
+    #The number of vessels participating in the fishery has descreased by 50% from
+    #1997-2015. create new column is the total number of active vessels
+    #participating in a given year
+    total_vessels = n_distinct(Adfg),
+    # Total unique trips per year
+    total_trips = n_distinct(trip_no)) %>% 
+  ungroup() %>% 
+  select(Year, sell_date, set_date, julian_day_set, julian_day_sell, trip_no, 
+         Adfg, Spp_cde, set_soak, set_length, Gear, gear_name, hook_size, mean_hook_size, 
+         hook_space, mean_hook_spacing, size, mean_size, no_hooks_exact, no_hooks_est,
+         no_hooks_p_set, Stat, set_depth, set_no, no_sets, multigear_trip,
+         trip_set_targets, trip_recorded_releases, multi_gear_config, disposition,
+         set_depredation, trip_depredation, p_sets_depredated, catch, logged_no,
+         logged_lbs, sable_lbs_set, start_lat, start_lon, set_target, set_target_2,
+         trip_target, trip_target_2, logged_and_landed, logged_and_landed_nos,
+         logged_and_released, logged_and_released_nos, adj_logged_lbs, est_released_lbs,
+         adj_logged_nos, est_rel_lbs_nos, Depr_sum, Hook_size, Mean_hook_size,
+         set_catch_flag, log_data, set_catch_no_releases, set_catch_w_releases,
+         set_catch, set_releases, std_hooks, std_cpue, dum, dumstat, total_vessels, total_trips) -> ll_cpue_log; Sys.time() - old
+
+#need to colapse duplicate columns with release data now that its captured
+
+sel<-sample(nrow(ll_cpue_log),1)
+as.data.frame(ll_cpue_log[ll_cpue_log$sell_date == ll_cpue_log$sell_date[sel] &
+              ll_cpue_log$Adfg == ll_cpue_log$Adfg[sel],])
+
+
+#--------------------------------------------------------------------------------
+# RELEASE analysis
+# now that we've looked at logbook data, lets see what we can glean about release
+# behavior from the skippers who were good about recording that data... 
+
+#--------------------------------------------------------------------------------
+# HOOK SIZE performance - hook size 11 should be removed due to sample size and
 # infrequency of use. Probably size 7 too - 4 vessels fished size 7 hooks in
 # 1997, and only 1 vessel fished it until 2004
 # 2022: also size 6 hooks ... half as many as size 7

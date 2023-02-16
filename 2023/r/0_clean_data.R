@@ -143,8 +143,9 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
 
  read_csv(paste0("legacy_data/fishery/raw_data/fishery_ll_cpue_vers23_1997-",
                  YEAR,".csv",sep=""), 
-                guess_max = 50000)  %>% 
+                guess_max = 50000) -> ugh # %>% 
 #colnames(ugh)
+length(is.na(ugh$num_of_hooks1))
 
    mutate(year = Year,
           set_date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"), #ISO 8601 format
@@ -158,7 +159,6 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
           
           trip_recorded_releases = ifelse(grepl("Released", trip_recorded_releases, ignore.case = TRUE),
                                           "logged_releases","no_logged_releases"),
-          
           avg_set_depth_m = 1.8288*Average.Depth.Fathoms,
           avg_trip_depth_m = 1.8288*mean_trip_depth_fm,
           
@@ -196,6 +196,7 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
           hook_space, 
           mean_hook_spacing,
           size, mean_size,
+          no_hooks_set = num_of_hooks1,
           no_hooks_fished_on_trip, no_hooks_exact, no_hooks_est,
           no_hooks_p_set,
           hook_size_2, hook_space_2, size_2, no_hooks_2,
