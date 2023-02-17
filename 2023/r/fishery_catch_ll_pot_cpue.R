@@ -410,7 +410,7 @@ ggplot(plot_boot4) +
   geom_point(aes(x = year, y = Mean, col = multigear_trip), size = 1) +
   geom_line(aes(x = year, y = Mean, col = multigear_trip)) +
   geom_errorbar(aes(x=year, y=Mean,ymin=Lower,ymax=Upper, col = multigear_trip),
-                position=position_dodge(width=0), width=1, size=0.2) +
+                position=position_dodge(width=0), width=0.5, size=0.2) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
   lims(y = c(0, 3))
@@ -550,18 +550,15 @@ ll_cpue_ftx2 %>%
          # standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
          #std_hooks = 2.2 * no_hooks_p_set * (1 - exp(-0.57 * (hook_space / 39.37))), 
          
-         std_hooks = 2.2 * no_hooks_p_set * (1 - exp(-0.57 * (mean_hook_spacing / 39.37))),  
-         std_cpue_no = logged_no / std_hooks,
-         std_cpue_lbs = logged_lbs / std_hooks,
+         std_hooks = 2.2 *  (1 - exp(-0.57 * (mean_hook_spacing / 39.37))),  
+         std_cpue_all = lbs_p_hk_all / std_hooks,
+         std_cpue_exact = lbs_p_hk_exact / std_hooks,
+         cpue_all = lbs_p_hk_all,
+         cpue_exact = lbs_p_hk_exact,
          # dummy varbs, for prediction with random effects
          dum = 1, 
          dumstat = 1) %>% 
-  #"sets" (aka effort_no) is the set identifier. Currently Martina's scripts
-  #filter out sets that Kamala identifies as halibut target sets. Create a new
-  #column that is the total number of sablefish target sets in a trip (trip_no's
-  #only unique within a year)
-  #group_by(year, trip_no) %>%              # XXX!!! already done in raw processing... 
-  #mutate(no_sets = n_distinct(sets)) %>% 
+  
   group_by(year) %>% 
   mutate(
     #The number of vessels participating in the fishery has descreased by 50% from
@@ -667,8 +664,8 @@ ll_cpue_logged %>% group_by(year, sell_date, Adfg, Stat, disposition) %>%
                                       (logged_lbs/logged_and_landed)*catch),
          est_released_lbs = case_when((disposition == "Released (Quota Limit)"| disposition == "Released") ~ 
                                       (logged_lbs/sum(unique(logged_and_landed), na.rm=T))*unique(catch)),
-         #skipper_bias_byset = ,
-         skipper_bias_bytrip = sum(unique(logged_and_landed_nos), na.rm=T)-unique(catch), 
+         #skipper_bias_bytrip = ,
+         #skipper_bias_bytrip = sum(unique(logged_and_landed_nos), na.rm=T)-unique(catch), 
          adj_logged_nos = case_when((disposition == "Retained"| is.na(disposition)) ~ 
                                       (logged_no/logged_and_landed_nos)*catch),
          est_rel_lbs_nos = case_when((disposition == "Released (Quota Limit)"| disposition == "Released") ~ 
@@ -727,27 +724,31 @@ test %>% group_by(year, sell_date, Adfg, Stat, set_no) %>%
                                  "CPUE underestimated",
                                  "good")),
          
-         log_data = "fuckitfornow",
-         #log_data = ifelse(unique(is.na(logged_no)),
-        #                   ifelse(unique(!is.na(logged_lbs)),
-        #                          "lbs","mixed"
-        #                          ),"nos"
-        #                   ),
+         #log_data = "fuckitfornow",
+         log_data_form = ifelse(length(unique(is.na(logged_no))) > 1,
+                           "mixed",
+                           ifelse(unique(is.na(logged_no)),"lbs","nos")),
+         #log_data = ifelse(unique(is.na(logged_no)) & length(unique(is.na(logged_no))) == 1,
+          #                 "nos",
+          #                 ifelse(unique(is.na(logged_lbs)) & length(unique(is.na(logged_lbs))) == 1,
+          #                        "lbs","mixed")),
                                
          set_catch_no_releases = sum(adj_logged_lbs, na.rm=TRUE)+sum(adj_logged_nos, na.rm=TRUE),
          set_catch_w_releases = sum(adj_logged_lbs, na.rm=TRUE)+sum(adj_logged_nos, na.rm=TRUE) +
                               sum(est_released_lbs, na.rm=TRUE)+sum(est_rel_lbs_nos, na.rm=TRUE),
-         set_catch = ifelse("good" %in% set_catch_flag,
-                            ifelse(trip_recorded_releases == "no_logged_releases",
-                                   as.numeric(set_catch_no_releases),
-                                 as.numeric(set_catch_w_releases)),
-                            as.numeric(set_catch_w_releases)),
+         set_catch = set_catch_w_releases, # ifelse("good" %in% set_catch_flag,
+                          #  ifelse(trip_recorded_releases == "no_logged_releases",
+                          #         as.numeric(set_catch_no_releases),
+                          #       as.numeric(set_catch_w_releases)),
+                          #  as.numeric(set_catch_w_releases)),
          set_releases = set_catch_w_releases - set_catch_no_releases,
-         
+         prop_released = set_releases/(set_catch),
+         skipper_bias_bytrip = 100*(logged_and_landed - catch)/catch,
          # standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
          #std_hooks = 2.2 * no_hooks_p_set * (1 - exp(-0.57 * (hook_space / 39.37))), 
          std_hooks = 2.2 * no_hooks_p_set * (1 - exp(-0.57 * (mean_hook_spacing / 39.37))),
          std_cpue = set_catch / std_hooks,
+         
          # dummy varbs, for prediction with random effects
          dum = 1, 
          dumstat = 1) %>% 
@@ -763,7 +764,7 @@ test %>% group_by(year, sell_date, Adfg, Stat, set_no) %>%
     # Total unique trips per year
     total_trips = n_distinct(trip_no)) %>% 
   ungroup() %>% 
-  select(Year, sell_date, set_date, julian_day_set, julian_day_sell, trip_no, 
+  select(year = Year, sell_date, set_date, julian_day_set, julian_day_sell, trip_no, 
          Adfg, Spp_cde, set_soak, set_length, Gear, gear_name, hook_size, mean_hook_size, 
          hook_space, mean_hook_spacing, size, mean_size, no_hooks_exact, no_hooks_est,
          no_hooks_p_set, Stat, set_depth, set_no, no_sets, multigear_trip,
@@ -773,21 +774,265 @@ test %>% group_by(year, sell_date, Adfg, Stat, set_no) %>%
          trip_target, trip_target_2, logged_and_landed, logged_and_landed_nos,
          logged_and_released, logged_and_released_nos, adj_logged_lbs, est_released_lbs,
          adj_logged_nos, est_rel_lbs_nos, Depr_sum, Hook_size, Mean_hook_size,
-         set_catch_flag, log_data, set_catch_no_releases, set_catch_w_releases,
-         set_catch, set_releases, std_hooks, std_cpue, dum, dumstat, total_vessels, total_trips) -> ll_cpue_log; Sys.time() - old
+         set_catch_flag, log_data_form, 
+         set_landings = set_catch_no_releases, 
+         total_set_catch = set_catch_w_releases,
+         set_releases, prop_released,
+         std_hooks, std_cpue,skipper_bias_bytrip, dum, dumstat, total_vessels, total_trips) %>%
+  filter(disposition == "Retained", #release info now in columns so can get rid of those records
+         total_set_catch != Inf) -> ll_cpue_log #getting rid of those mixed (no/lbs) logbook entries... 
 
+sel<-sample(nrow(ll_cpue_log),1)# eg16473
+eg<-as.data.frame(ll_cpue_log[ll_cpue_log$sell_date == ll_cpue_log$sell_date[sel] &
+                            ll_cpue_log$Adfg == ll_cpue_log$Adfg[sel],])
 #need to colapse duplicate columns with release data now that its captured
+eg
+eg %>% filter(disposition == "Retained")
+unique(eg %>% filter(disposition == "Retained"))
 
-sel<-sample(nrow(ll_cpue_log),1)
-as.data.frame(ll_cpue_log[ll_cpue_log$sell_date == ll_cpue_log$sell_date[sel] &
-              ll_cpue_log$Adfg == ll_cpue_log$Adfg[sel],])
+#--------------------------------------------------------------------------------
+colnames(ll_cpue_log)
+unique(ll_cpue_log$trip_set_targets)
+
+ll_cpue_log %>% filter(trip_target == "Sablefish") %>%
+  group_by(year) %>%
+  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot6
+
+rbind(as.data.frame(plot_boot1 %>% filter(trip_set_targets == "all_Sablefish") %>%
+        mutate(Calc = "fish tickets")),
+      as.data.frame(plot_boot6 %>% mutate(Calc = "adj. log books",
+                            trip_set_targets = NA) %>%
+        select(year, trip_set_targets, Mean, Lower, Upper, Calc))) -> plot_boot6
+
+ggplot(plot_boot6) +
+  geom_ribbon(aes(x = as.numeric(year), ymin = Lower, ymax = Upper, fill=Calc), 
+  #                         alpha = 0.1, fill = "grey55") +
+              alpha = 0.1) +
+  geom_point(aes(x = as.numeric(year), y = Mean, col=Calc), size = 1) +
+  geom_line(aes(x = as.numeric(year), y = Mean, col=Calc)) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  lims(y = c(0, 1.5)); view(plot_boot6)
+
+ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_bytarget_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=7, units="in")
+#----
+ll_cpue_log %>% filter(trip_target == "Sablefish") %>%
+  group_by(year,trip_recorded_releases) %>%
+  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot7 #view(plot_boot7)
+
+ggplot(plot_boot7) +
+  geom_ribbon(aes(x = as.numeric(year), ymin = Lower, ymax = Upper, fill = trip_recorded_releases), 
+              #             alpha = 0.1, fill = "grey55") +
+              alpha = 0.1) +
+  geom_point(aes(x = as.numeric(year), y = Mean, col = trip_recorded_releases), size = 1) +
+  geom_line(aes(x = as.numeric(year), y = Mean, col = trip_recorded_releases)) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  lims(y = c(0, 2))
+
+ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_byrelease_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=7, units="in")
+
+#---- 
+depr_eff<-lm(data=ll_cpue_ftx, std_cpue ~ p_sets_depredated)
+summary(depr_eff); plot(depr_eff)
+plot(data=ll_cpue_ftx, std_cpue ~ p_sets_depredated)
+abline(depr_eff)
+
+ll_cpue_log %>% filter(trip_target == "Sablefish") %>%
+  group_by(year,set_depredation) %>%
+  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot8 #view(plot_boot2)
+
+ggplot(plot_boot8) +
+  geom_ribbon(aes(x = as.numeric(year), ymin = Lower, ymax = Upper, fill = set_depredation), 
+              #             alpha = 0.1, fill = "grey55") +
+              alpha = 0.1) +
+  geom_point(aes(x = as.numeric(year), y = Mean, col = set_depredation), size = 1) +
+  geom_line(aes(x = as.numeric(year), y = Mean, col = set_depredation)) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  lims(y = c(0, 2))
+
+ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_bydepr_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=7, units="in")
+
+ll_cpue_log %>% filter(trip_target == "Sablefish") %>%
+  group_by(year,multigear_trip) %>%
+  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot9 #view(plot_boot4)
+
+ggplot(plot_boot9) +
+  geom_ribbon(aes(x = as.numeric(year), ymin = Lower, ymax = Upper, fill = multigear_trip), 
+              #             alpha = 0.1, fill = "grey55") +
+              alpha = 0.1) +
+  geom_point(aes(x = as.numeric(year), y = Mean, col = multigear_trip), size = 1) +
+  geom_line(aes(x = as.numeric(year), y = Mean, col = multigear_trip)) +
+  geom_errorbar(aes(x=as.numeric(year), y=Mean,ymin=Lower,ymax=Upper, col = multigear_trip),
+                position=position_dodge(width=0), width=0.5, size=0.2) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  lims(y = c(0, 3))
+
+ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_bygeartrip_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=7, units="in")
+
+# Normality
+
+#for analysis we will use CPUE from trips that targetted only sablefish and that
+# experienced no depredation... 
+ll_cpue_log_clean <-ll_cpue_log %>% 
+  filter(trip_set_targets == "all_Sablefish",
+         set_depredation == "No depredation")
+# Long right tail
+ggplot(ll_cpue_log_clean, aes(std_cpue)) + geom_density(alpha = 0.4, fill = 4)
+
+# Better, but still not normal with log transformation
+ggplot(ll_cpue_log_clean, aes(log(std_cpue + 1))) + geom_density(alpha = 0.4, fill = 4)
+
+# Following Jenny Stahl and Ben Williams' work in the SSEI, increase CPUE by 10%
+# of the mean per Cambell et al 1996 and Cambell 2004. Back-transform with
+# exp(cpue - mean(fsh_cpue$std_cpue) * 0.1)
+ll_cpue_log_clean %>% 
+  mutate(cpue = log(std_cpue + (mean(ll_cpue_log_clean$std_cpue, na.rm=T) * 0.1))) -> ll_cpue_log_clean
+
+ggplot(ll_cpue_log_clean, aes(cpue)) + geom_density(alpha = 0.4, fill = 4)
+
+# EDA for GAM 
+
+# Trends over time
+ggplot(ll_cpue_log_clean, aes(year, std_cpue)) + geom_boxplot()
+
+# Trends over time by area
+ggplot(ll_cpue_log_clean %>% 
+         filter(Stat %in% c("345603", "345631", "345701", "345731")), aes(Stat, std_cpue, fill = year)) + 
+  geom_boxplot() +
+  scale_fill_manual(values = rev(colorspace::sequential_hcl(c = 0, l = c(30, 90), 
+                                                            power = c(1/5, 1.3), 
+                                                            n_distinct(ll_cpue$year))),
+                    guide = FALSE) +
+  labs(x = NULL, y = "Fishery CPUE (round pounds per hook)\n")
+
+ggsave(paste0(YEAR+1,"/figures/fshcpue_trendsbyStat_22reboot_",min(ll_cpue$year), "_", YEAR, ".png"), 
+       dpi=400, height=4, width=7.5, units="in")
+
+#2022: Note that 2020 and 2021 have some very high CPUE outliers with new query from Justin...
+#or... with recruitment of '13-'16 year classes there is far more variability based on discard
+# behavior as some fisherman clean up on small fish (but most opt not to); could check the outlier
+# vessel if there were lengths... but just poundage... 
+# after review and conversation, outliers belonged to 2nd gen knowledgable and "honest" fisherman
+# and data is considered legit.  Furthermore, 2022 reboot shows high cpues in the past now so
+# seems to be OK... 
+
+# No one fished in Fred. Sound in 2018, 2 in 2019, 4 in 2021
+ll_cpue_log_clean %>% filter(Stat %in% c("345702", "335701") & year == YEAR) %>% distinct(Adfg)
+# Activity in N Chatham 
+ll_cpue_log_clean %>% filter(Stat %in% c("345731", "345803") & year == YEAR) %>% distinct(Adfg)
+# Activity in S Chatham
+ll_cpue_log_clean %>% filter(Stat %in% c("345603")) %>% group_by(year) %>%  dplyr::summarize(n_distinct(Adfg)) %>% View()
+ll_cpue_log_clean %>% filter(Stat %in% c("335701")) %>% group_by(year) %>%  dplyr::summarize(n_distinct(Adfg)) %>% View()
+
+ll_cpue_log_clean %>% 
+  group_by(year, Stat) %>% 
+  dplyr::summarize(trips = n_distinct(trip_no),
+                   vessels = n_distinct(trip_no)) -> stat_sum
+
+# Gear performance by Stat
+ggplot(ll_cpue_log_clean, aes(Stat, cpue, fill = Gear)) + geom_boxplot()
+
+# Gear performance over time
+ggplot(ll_cpue_log_clean, aes(year, cpue, fill = Gear)) + geom_boxplot() +
+  theme(axis.text.x = element_text(size = 14, angle = 90, h = 1)) +
+  labs(x = "", y = "Fishery CPUE\n")
+
+# Only a handful of vessels with autobaiter gear
+ggplot(ll_cpue_log_clean, aes(Adfg, cpue, color = Gear)) + geom_jitter(alpha=.4) +
+  theme(axis.text.x = element_text(colour = "white"))
 
 
 #--------------------------------------------------------------------------------
 # RELEASE analysis
 # now that we've looked at logbook data, lets see what we can glean about release
 # behavior from the skippers who were good about recording that data... 
+colnames(ll_cpue_log_clean)
 
+#release trends
+ll_cpue_log_clean %>% filter(trip_target == "Sablefish") %>%
+  group_by(year) %>%
+  do(data.frame(rbind(smean.cl.boot(.$set_releases)))) -> plot_boot10 #view(plot_boot7)
+
+plot_boot10 <-as.data.frame(plot_boot10)
+ggplot(plot_boot10) +
+  geom_ribbon(aes(x = as.numeric(year), ymin = Lower, ymax = Upper), 
+                           alpha = 0.1, fill = "grey55") +
+              #alpha = 0.1) +
+  geom_point(aes(x = as.numeric(year), y = Mean), size = 1) +
+  geom_line(aes(x = as.numeric(year), y = Mean)) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "mean fishery logged and inferred releases (lbs)\n") +
+  lims(y = c(0, max(plot_boot10$Upper)))
+
+ll_cpue_log_clean %>% filter(trip_target == "Sablefish") %>%
+  group_by(year) %>%
+  do(data.frame(rbind(smean.cl.boot(.$prop_released)))) -> plot_boot11 #view(plot_boot7)
+
+ggplot(plot_boot11) +
+  geom_ribbon(aes(x = as.numeric(year), ymin = Lower, ymax = Upper), 
+                           alpha = 0.1, fill = "grey55") +
+              #alpha = 0.1) +
+  geom_point(aes(x = as.numeric(year), y = Mean), size = 1) +
+  geom_line(aes(x = as.numeric(year), y = Mean)) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Proportion of catch released") +
+  lims(y = c(0, 0.05))
+
+ggplot(ll_cpue_log_clean, aes(year, set_releases)) + geom_boxplot()
+
+# Trends over time by area
+ggplot(ll_cpue_log_clean %>% 
+         filter(Stat %in% c("345603", "345631", "345701", "345731")), aes(Stat, set_releases, fill = year)) + 
+  geom_boxplot() +
+  scale_fill_manual(values = rev(colorspace::sequential_hcl(c = 0, l = c(30, 90), 
+                                                            power = c(1/5, 1.3), 
+                                                            n_distinct(ll_cpue$year))),
+                    guide = FALSE) +
+  labs(x = NULL, y = "Fishery releases (lbs)\n")
+
+#numbers
+#proportions relative to landings
+#proportions of sets that recorded releases
+
+ll_cpue_log_clean %>% group_by (year) %>%
+  dplyr::summarise(by = "sets",
+                   n_no_releases = sum(set_releases == 0),
+                   Tot_n = n(),
+                   n_releases = sum(set_releases > 0),
+                   prop_w_releases = n_releases/n(),
+                   sd_prop = sqrt(prop_w_releases*(1-prop_w_releases)/n()))  -> sets_by_year
+
+#proportions of trips that recorded releases
+ll_cpue_ftx_clean %>% group_by (year) %>%
+  dplyr::summarise(by = "trips",
+    n_no_releases = sum(trip_recorded_releases == "no_logged_releases"),
+    Tot_n = n(),
+    n_releases = sum(trip_recorded_releases == "logged_releases"),
+    prop_w_releases = n_releases/n(),
+    sd_prop = sqrt(prop_w_releases*(1-prop_w_releases)/n()))  -> trips_by_year
+
+releases_by_year<-rbind(sets_by_year,trips_by_year)
+unique(releases_by_year$by)
+
+ggplot(releases_by_year) +
+  geom_ribbon(aes(x = as.numeric(as.character(year)), 
+                  ymin = prop_w_releases-1.96*sd_prop, 
+                  ymax = prop_w_releases+1.96*sd_prop,
+                  fill = by), 
+              alpha = 0.1) +
+  geom_point(aes(x=as.numeric(as.character(year)),y = prop_w_releases, col = by), size = 1) +
+  geom_line(aes(x=as.numeric(as.character(year)),y = prop_w_releases, col=by)) +
+  #scale_x_continuous() +
+  labs(x = "", y = "Proportion of trips/sets that recorded releases") +
+  lims(y = c(0, 0.5)) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 #--------------------------------------------------------------------------------
 # HOOK SIZE performance - hook size 11 should be removed due to sample size and
 # infrequency of use. Probably size 7 too - 4 vessels fished size 7 hooks in
