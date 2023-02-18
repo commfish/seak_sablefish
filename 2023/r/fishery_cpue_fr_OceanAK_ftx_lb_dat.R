@@ -93,6 +93,43 @@ ftx<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/NSEI_ftx_sablefish_halibut_p
 #byc.ftx<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/NSEI_ftx_bycatch_pot_longline_1997-now.csv"))
 
 #alltx<-rbind(ftx,byc.ftx)
+
+#---------------------------------------------------------------------------------
+# TROUBLE SHOOTING EXAMPLES FOR RHEA AND LAURA TO WORK ON  - Phil :)
+#
+# 1) CFEC codes in logbooks are (pg version) not good.  For example, on September 10, 2013
+#    boat ADFG.no 65119 fishing in stat area 345701 landed sablefish and halibut on two tickets; 
+#    ...821 and ...823.  The logbook allocates both species to 30000821 and 300823.  The
+#    associated fish ticket recognized permits C61A and B06B but the logbook only has
+#    B06B permits listed.
+# 2) Sometimes there are apparent duplicate tickets that only vary in the amount 
+#    of fish landed, but harvest.name does not specify and overage or personal use 
+#    (although that's what it looks like).  
+#    example 1: sequential.no = 130451 in 1998, ADFG.no = 10127
+#    example 2: Year 2000, sell date = 10-26-2000, stat area = 345701, ADFG.no = 55900
+# 3) Sometimes a fish ticket is not matched by a logbook.  I showed you where the list
+#    of all missing data is down below, but a couple of examples I came across early
+#    on are 
+#    example 1) ADFG = 18402 in 1997 in stat area 345631
+#    example 2) ADFG = 20105 in 2002 in stat area 345631 on 2002-09-14.  In my notes
+#               I had this as one where the sell and landing dates may not match up
+#    These examples may be moot at this point though... I would use the list in the code.
+# 4) So my Ticket_subref dealio that I tried to use as a join condition (I still do
+#    in the second join) failed because of different ticket numbers with regard to 
+#    disposition and releases.  This is why I used landing and sell date.  Here's 
+#    an illustrative example:
+#         2021, ADFG = 45454 (even I know the name of this boat now), landing/sell = 10-21-2021
+#         One of the logbook entries is for releases.
+#         Two fish tickets match, one with the Ticket_subref number that matches
+#         and shows a large landing (seq.no = 1090) and one that has a small landing (1089).
+#         So, joining using the Ticket_subref won't work because it leaves one out.
+#         Examining further, when we add in the "missing" logbook we see that this
+#         trip entailed 7 sets and fish were both retained and released.
+#         1089 is linked to the large landing and 1090 linked to the small landing. 
+#         In my notes I have some curse words, but its a good illustration of us
+#         not having a single, good reference number to link the logbook and fish ticket
+#         data.  
+#
 #----------------------------------------------------------------------------------
 
 #1) separate out multiple gear configurations
