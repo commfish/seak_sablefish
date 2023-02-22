@@ -312,7 +312,7 @@ ll_cpue_ftx %>%
   ungroup() -> ll_cpue_ftx
 
 nrow(ll_cpue)
-unique(fsh_cpue$target) #checking that these are sablefish targetting trips (710)
+unique(ll_cpue$target) #checking that these are sablefish targetting trips (710)
 # Consolidation of fishery - number of vessels fishing and total number of trips
 # in Chatham over time
 # axis <- tickr(fsh_cpue, year, 5)
@@ -413,7 +413,7 @@ ggplot(plot_boot4) +
                 position=position_dodge(width=0), width=0.5, size=0.2) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
-  lims(y = c(0, 3))
+  lims(y = c(0, 1.5))
 
 ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_bygeartrip_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
@@ -457,7 +457,7 @@ ggplot(ll_cpue_ftx_clean %>%
                     guide = FALSE) +
   labs(x = NULL, y = "Fishery CPUE (round pounds per hook)\n")
 
-ggsave(paste0(YEAR+1,"/figures/fshcpue_trendsbyStat_22reboot_",min(ll_cpue$year), "_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/fshcpue_trendsbyStat_",min(ll_cpue$year), "_", YEAR, ".png"), 
        dpi=400, height=4, width=7.5, units="in")
 
 #2022: Note that 2020 and 2021 have some very high CPUE outliers with new query from Justin...
@@ -629,11 +629,27 @@ ggplot(rbind(plot_boot5 %>% filter(trip_set_targets == "all_Sablefish"),
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
   lims(y = c(0, 1.5)); view(plot_boot5)
+
+ggplot(rbind(plot_boot5 %>% filter(trip_set_targets == "all_Sablefish", 
+                                   hook_cpue_spec == "std_cpue_all") %>%
+               mutate(hook_cpue_spec = "lbs per hook derivation"),
+             plot_boot1 %>% filter(trip_set_targets == "all_Sablefish") %>%
+               mutate(hook_cpue_spec = "lbs per set derivation"))) +
+  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper, 
+                  fill = hook_cpue_spec, col = hook_cpue_spec), 
+              #             alpha = 0.1, fill = "grey55") +
+              alpha = 0.1) +
+  geom_point(aes(x = year, y = Mean, col = hook_cpue_spec), size = 1) +
+  geom_line(aes(x = year, y = Mean, col = hook_cpue_spec)) +
+  #facet_wrap(~hook_cpue_spec) +
+  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  lims(y = c(0, 1.5)); view(plot_boot5)
 ## Pretty cool... we get to the same CPUE weather from raw lbs/hook or through lbs/set... 
-# Can skip the rest of this because we're getting the same ansers
+# Can skip the rest of this because we're getting the same answers
 # Also, including the estimated number of hooks (i.e, when multiple configurations are present
 # and we used the average and such...) doesn't produce anything different... very minor
-# discrependies in the point estimates.
+# discrepencies in the point estimates.
 
 #--------------------------------------------------------------------------------
 # CPUE based on skipper's logbook data...
@@ -799,17 +815,17 @@ ll_cpue_log %>% filter(trip_target == "Sablefish") %>%
   do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot6
 
 rbind(as.data.frame(plot_boot1 %>% filter(trip_set_targets == "all_Sablefish") %>%
-        mutate(Calc = "fish tickets")),
-      as.data.frame(plot_boot6 %>% mutate(Calc = "adj. log books",
+        mutate(CPUE_calc_derivation = "fish tickets")),
+      as.data.frame(plot_boot6 %>% mutate(CPUE_calc_derivation = "adj. log books",
                             trip_set_targets = NA) %>%
-        select(year, trip_set_targets, Mean, Lower, Upper, Calc))) -> plot_boot6
+        select(year, trip_set_targets, Mean, Lower, Upper, CPUE_calc_derivation))) -> plot_boot6
 
 ggplot(plot_boot6) +
-  geom_ribbon(aes(x = as.numeric(year), ymin = Lower, ymax = Upper, fill=Calc), 
+  geom_ribbon(aes(x = as.numeric(year), ymin = Lower, ymax = Upper, fill=CPUE_calc_derivation), 
   #                         alpha = 0.1, fill = "grey55") +
               alpha = 0.1) +
-  geom_point(aes(x = as.numeric(year), y = Mean, col=Calc), size = 1) +
-  geom_line(aes(x = as.numeric(year), y = Mean, col=Calc)) +
+  geom_point(aes(x = as.numeric(year), y = Mean, col=CPUE_calc_derivation), size = 1) +
+  geom_line(aes(x = as.numeric(year), y = Mean, col=CPUE_calc_derivation)) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
   lims(y = c(0, 1.5)); view(plot_boot6)
@@ -821,12 +837,18 @@ ll_cpue_log %>% filter(trip_target == "Sablefish") %>%
   group_by(year,trip_recorded_releases) %>%
   do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot7 #view(plot_boot7)
 
+rbind(as.data.frame(plot_boot2 %>% #filter(trip_set_targets == "all_Sablefish") %>%
+                      mutate(CPUE_calc_derivation = "fish tickets")),
+      as.data.frame(plot_boot7 %>% mutate(CPUE_calc_derivation = "adj. log books") %>%
+                      select(year, Mean, Lower, Upper, trip_recorded_releases, CPUE_calc_derivation))) -> plot_boot7
+
 ggplot(plot_boot7) +
-  geom_ribbon(aes(x = as.numeric(year), ymin = Lower, ymax = Upper, fill = trip_recorded_releases), 
+  geom_ribbon(aes(x = as.numeric(year), ymin = Lower, ymax = Upper, fill = CPUE_calc_derivation), 
               #             alpha = 0.1, fill = "grey55") +
               alpha = 0.1) +
-  geom_point(aes(x = as.numeric(year), y = Mean, col = trip_recorded_releases), size = 1) +
-  geom_line(aes(x = as.numeric(year), y = Mean, col = trip_recorded_releases)) +
+  geom_point(aes(x = as.numeric(year), y = Mean, col = CPUE_calc_derivation), size = 1) +
+  geom_line(aes(x = as.numeric(year), y = Mean, col = CPUE_calc_derivation)) +
+  facet_wrap(~trip_recorded_releases) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
   lims(y = c(0, 2))
@@ -871,7 +893,7 @@ ggplot(plot_boot9) +
                 position=position_dodge(width=0), width=0.5, size=0.2) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
-  lims(y = c(0, 3))
+  lims(y = c(0, 1.5))
 
 ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_bygeartrip_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
@@ -962,11 +984,11 @@ ll_cpue_log_clean %>% filter(trip_target == "Sablefish") %>%
 
 plot_boot10 <-as.data.frame(plot_boot10)
 ggplot(plot_boot10) +
-  geom_ribbon(aes(x = as.numeric(year), ymin = Lower, ymax = Upper), 
+  geom_ribbon(aes(x = as.numeric(as.character(year)), ymin = Lower, ymax = Upper), 
                            alpha = 0.1, fill = "grey55") +
               #alpha = 0.1) +
-  geom_point(aes(x = as.numeric(year), y = Mean), size = 1) +
-  geom_line(aes(x = as.numeric(year), y = Mean)) +
+  geom_point(aes(x = as.numeric(as.character(year)), y = Mean), size = 1) +
+  geom_line(aes(x = as.numeric(as.character(year)), y = Mean)) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "mean fishery logged and inferred releases (lbs)\n") +
   lims(y = c(0, max(plot_boot10$Upper)))
@@ -976,13 +998,13 @@ ll_cpue_log_clean %>% filter(trip_target == "Sablefish") %>%
   do(data.frame(rbind(smean.cl.boot(.$prop_released)))) -> plot_boot11 #view(plot_boot7)
 
 ggplot(plot_boot11) +
-  geom_ribbon(aes(x = as.numeric(year), ymin = Lower, ymax = Upper), 
+  geom_ribbon(aes(x = as.numeric(as.character(year)), ymin = Lower, ymax = Upper), 
                            alpha = 0.1, fill = "grey55") +
               #alpha = 0.1) +
-  geom_point(aes(x = as.numeric(year), y = Mean), size = 1) +
-  geom_line(aes(x = as.numeric(year), y = Mean)) +
+  geom_point(aes(x = as.numeric(as.character(year)), y = Mean), size = 1) +
+  geom_line(aes(x = as.numeric(as.character(year)), y = Mean)) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
-  labs(x = "", y = "Proportion of catch released") +
+  labs(x = "", y = "Proportion of catch recorded as released") +
   lims(y = c(0, 0.05))
 
 ggplot(ll_cpue_log_clean, aes(year, set_releases)) + geom_boxplot()
@@ -1030,20 +1052,68 @@ ggplot(releases_by_year) +
   geom_point(aes(x=as.numeric(as.character(year)),y = prop_w_releases, col = by), size = 1) +
   geom_line(aes(x=as.numeric(as.character(year)),y = prop_w_releases, col=by)) +
   #scale_x_continuous() +
-  labs(x = "", y = "Proportion of trips/sets that recorded releases") +
+  labs(x = "", y = "Proportion of trips or sets that recorded releases") +
   lims(y = c(0, 0.5)) + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+#I think that will suffice for understanding release behaviour for now
+# Spike in 2019 was the result in regulatory changes that required more accurate
+# logging of release behaviour. 
+
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+# At this junction I think we will stick with using standardized CPUE calculated
+# from the fish ticket data. 
+colnames(ll_cpue_ftx_clean)
+
+ll_cpue_ftx_clean %>%
+  #filter(trip_set_targets == "all_Sablefish") %>%
+  group_by(year) %>%
+  do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> for_comp
+
+# Lets make a plot comparing the old CPUE calcs to our new methods...
+
+old_cpue<-read_csv("2022/output/fshcpue_1980_2021_base_nom.csv", 
+         guess_max = 50000) 
+
+#not sure if this is correct... but will figure it out as we walk through the rest
+# of the processing... But, for now...
+cpue_comp<-rbind(for_comp %>% mutate(data_calc = "New"),
+                 old_cpue %>% 
+                   mutate(Mean = fsh_cpue, Lower = fsh_cpue-1.96*(var^2), Upper = fsh_cpue+1.96*(var^2),
+                          data_calc = "Old") %>%
+                   select(year, Mean, Lower, Upper, data_calc))
+
+ggplot(cpue_comp) +
+  geom_ribbon(aes(x = as.numeric(as.character(year)), 
+                  ymin = Lower, 
+                  ymax = Upper,
+                  fill = data_calc), 
+              alpha = 0.1) +
+  geom_point(aes(x=as.numeric(as.character(year)),y = Mean, col = data_calc), size = 1) +
+  geom_line(aes(x=as.numeric(as.character(year)),y = Mean, col=data_calc)) +
+  #scale_x_continuous() +
+  labs(x = "", y = "") +
+  #lims(y = c(0, 0.5)) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+#**** !!! Error bars off on old.  Will figure it out as we go through rest of this... 
+
 #--------------------------------------------------------------------------------
 # HOOK SIZE performance - hook size 11 should be removed due to sample size and
 # infrequency of use. Probably size 7 too - 4 vessels fished size 7 hooks in
 # 1997, and only 1 vessel fished it until 2004
 # 2022: also size 6 hooks ... half as many as size 7
+fsh_cpue<-ll_cpue_ftx_clean
 
 table(fsh_cpue$Hook_size)
 #new filter includes mixed hook size sets... need to cull those for analysis if
 # hook size is included... 
+str(fsh_cpue$Hook_size)
 fsh_cpue_hooks<-fsh_cpue %>% 
-  filter(Hook_size %in% c("6","7","11","12","13","14","15","16"))
+  filter(Hook_size %in% c("6","7","11","12","13","14","15","16")) %>%
+  mutate(Hook_size = fct_relevel(Hook_size,c("6","7","11","12","13","14","15","16")))
+
 nrow(fsh_cpue); nrow(fsh_cpue_hooks)
 table(fsh_cpue_hooks$Hook_size)
 
@@ -1071,27 +1141,34 @@ fsh_cpue %>% filter(Hook_size == "6") %>% distinct(Adfg, cpue)
 # (even if model fits better)
 
 fsh_cpue_cl<-fsh_cpue_hooks %>%
-  filter(!Hook_size %in% c("6","7","11"))
+  filter(!Hook_size %in% c("6","7","11")) %>%
+  mutate(soak_p_set = trip_soak/no_sets)
 nrow(fsh_cpue); nrow(fsh_cpue_hooks); nrow(fsh_cpue_cl)
 
 # Depth - clear increasing trend, asymptotes ~ 450 m
-ggplot(fsh_cpue_cl, aes(depth, cpue)) + geom_point(shape = 20) + 
+ggplot(fsh_cpue_cl, aes(trip_depth, cpue)) + geom_point(shape = 20) + 
   geom_smooth(size = 2, se = FALSE) 
 
 # Soak time - cut off at 40 hrs b/c it looks like there's a slight outlier
 # effect
 # hmmm ... debatable.  Outliers, but legit?  probably long soaks do to weather or other issues?
-ggplot(fsh_cpue_cl, aes(soak, cpue)) + geom_point(shape = 20) + 
+
+ggplot(fsh_cpue_cl, aes(soak_p_set, cpue)) + geom_point(shape = 20) + 
   geom_smooth(size = 2, se = FALSE) 
 fsh_cpue_cl %>% filter(soak < 40) -> fsh_cpue_cl
 
-# Inconsistent and very slight latitudinal effect
+# Inconsistent and very slight latitudinal effect #!!! NEED TO GET LAT LONG DATA  ???
 ggplot(fsh_cpue_cl, aes(start_lat, cpue, group = Year, colour = Year)) +
   geom_smooth(method = 'loess', span = 1, se = FALSE) 
 
 # Inconsistent and very slight seasonal effect
-ggplot(fsh_cpue_cl, aes(julian_day, cpue, group = Year, colour = Year)) +
+ggplot(fsh_cpue_cl, aes(julian_day_sell, cpue, group = Year, colour = Year)) +
   geom_smooth(method = 'loess', span = 1, se = FALSE) 
+
+# By state area... 
+
+ggplot(fsh_cpue_cl, aes(Stat, cpue)) + geom_boxplot()+
+  labs(x = "\nStat area", y = "Fishery CPUE\n")
 
 # GAM cpue ----
 
@@ -1099,7 +1176,7 @@ ggplot(fsh_cpue_cl, aes(julian_day, cpue, group = Year, colour = Year)) +
 # Year effect):
 # depth - increase in CPUE up to ~ 450 m, then asymptote. Very clear and
 # consistent trend between years
-# julian_day - decrease twoards the end of the season? EDA suggested there is no
+# julian_day - decrease towards the end of the season? EDA suggested there is no
 # consistent seasonal trend. If there is a trend, its slightly decreasing over
 # the season.  pj22: I agree with slight decreasing trend through season
 # Adfg - vessel effect, some are better fishermen than others. Routinely
@@ -1115,15 +1192,15 @@ ggplot(fsh_cpue_cl, aes(julian_day, cpue, group = Year, colour = Year)) +
 # start_lat/start_lon - spatial autocorrelation  (need to check on this - pj22)
 
 # Determine if random variables should be included (Stat and Adfg)
-m1 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) + 
+m1 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) + 
             s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m1a <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + #hook size removed
+m1a <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set, k=4) + #hook size removed
             s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m2 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) + 
+m2 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) + 
             s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m3 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) +
+m3 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) +
             s(Stat, bs='re', by=dumstat), data=fsh_cpue_cl, gamma=1.4)
-m4 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4), 
+m4 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4), 
           data=fsh_cpue_cl, gamma=1.4)
 
 summary(m1); summary(m1a) 
@@ -1147,11 +1224,11 @@ not_outliers <- which(fitted(m1) >= -1.5)
 fsh_cpue_cl <- fsh_cpue_cl %>% 
   slice(not_outliers)
 
-m1 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m1a <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m2 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) + s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m3 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4) +s(Stat, bs='re', by=dumstat), data=fsh_cpue_cl, gamma=1.4)
-m4 <- bam(cpue ~ Year + Gear + Hook_size + s(depth, k=4) + s(soak, k=4), data=fsh_cpue_cl, gamma=1.4)
+m1 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
+m1a <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set, k=4) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
+m2 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) + s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
+m3 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) +s(Stat, bs='re', by=dumstat), data=fsh_cpue_cl, gamma=1.4)
+m4 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4), data=fsh_cpue_cl, gamma=1.4)
 
 AIC(m1, m1a, m2, m3, m4)
 
@@ -1162,6 +1239,9 @@ abline(h = 0, col = "red", lty = 2)
 plot(m1, page = 1, shade = TRUE, resid = TRUE, all = TRUE)
 summary(m1)
 
+plot(m3, page = 1, shade = TRUE, resid = TRUE, all = TRUE)
+summary(m3)
+
 # CPUE increases with depth, then asymptotes ~ 450 m. CPUE is constant and then
 # drops off ~ 10 hr soak time, but the overall effect is weaker than depth
 # Conventional gear performs slightly better than autobaiter gear.
@@ -1170,13 +1250,13 @@ summary(m1)
 # PJ22: not crazy about hook size as a random effect - it should always be a fixed affect because
 # it would directly affect cpue... as opposed to year or vessel random effect where there is 
 # random noise associated with the variable, hook size has a plausible effect on the response variable?
-m5 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) +    #no hook size
+m5 <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set, k=4) +    #no hook size
             s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m6 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) +    #hook size as a random variable
+m6 <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set, k=4) +    #hook size as a random variable
             s(Hook_size, bs='re', by=dum) + s(Stat, bs='re', by=dumstat)+ 
             s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
 
-AIC(m1, m5, m6)
+AIC(m1, m3, m4, m5, m6)
 
 plot(m6, page = 1, shade = TRUE, resid = TRUE, all = TRUE)
 summary(m5)
@@ -1192,13 +1272,16 @@ summary(m6)
 #       but am disinclined to treat it as a random effect.  HS is not a random category
 #       or group... there is an effect of HS on catchability.... 
 #       I will carry model 1 forward instead of model 6.
-
+# 2023: Now that we are just using fishticket data it probably doesn't make sense
+#       to schwag the lat-long data into this and just use the stat area as our 
+#       spatial variable.  For now models m7-m10 will be blocked out... 
+{
 #Determine whether to include lat and long
-m7 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
+m7 <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set, k=4) + 
             Hook_size + #s(Hook_size, bs='re', by=dum) + 
             s(Stat, bs='re', by=dumstat) + 
             s(Adfg, bs='re', by=dum) + te(start_lon, start_lat), data=fsh_cpue_cl, gamma=1.4)
-m8 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
+m8 <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set) + 
             Hook_size + #s(Hook_size, bs='re', by=dum) + 
             s(Stat, bs='re', by=dumstat) + 
             s(Adfg, bs='re', by=dum) + s(start_lon), data=fsh_cpue_cl, gamma=1.4)
@@ -1232,21 +1315,69 @@ plot(m10, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
 # change "too.far" values to change what shows on graph. Highest cpue in the
 # north, south and central chatham
 vis.gam(m7, c('start_lon','start_lat'), type='response', plot.type='contour', color='topo', too.far=0.1)
-
+}
 # The inclusion of a seasonal effect  improves model fit - there is a
 # slightly decreasing trend in cpue on average over the course of the season.
-m11 <- bam(cpue ~ Year + Gear + s(julian_day, k=4) + s(depth, k=4) + 
-             s(soak, k=4) + s(start_lat) + 
+m11 <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4) + s(trip_depth, k=4) + 
+             s(soak_p_set, k=4) + #s(start_lat) + 
              Hook_size + #s(Hook_size, bs='re', by=dum) + 
              s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-AIC(m7, m9, m11)
+AIC(m1, m11) #AIC(m1, m7, m9, m11)
 summary(m11)
 plot(m11, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
 
 # # Relationship between depth and soak time - highest cpue in > 450 m
 # # and ~ 10 hr soak time
-vis.gam(m11, c('depth', 'soak'), plot.type='contour', type='response', color='topo', too.far=0.1)
+vis.gam(m11, c('trip_depth', 'soak_p_set'), plot.type='contour', type='response', color='topo', too.far=0.1)
 
+#In 2023 we also want to see if the total km fished makes a difference... 
+m12 <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4) + s(trip_depth, k=4) + 
+             s(soak_p_set, k=4) + s(total_km_fished) + 
+             Hook_size + #s(Hook_size, bs='re', by=dum) + 
+             s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
+m13 <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4) + s(trip_depth, k=4) + 
+             s(soak_p_set, k=4) + s(total_km_fished) + 
+             Hook_size + #s(Hook_size, bs='re', by=dum) + 
+             s(Stat, bs='re', by=dumstat) , data=fsh_cpue_cl, gamma=1.4)
+
+AIC(m1, m11, m12, m13) #AIC(m1, m7, m9, m11)
+sort(c(AIC(m1,m2,m3,m4,m5,m6,m11,m12)))
+AIC(m1,m2,m3,m4,m5,m6,m11,m12)
+
+summary(m12)
+plot(m12, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
+
+vis.gam(m12, c('trip_depth', 'total_km_fished'), plot.type='contour', type='response', color='topo', too.far=0.1)
+
+#check without the outlier total kilometer fished
+m12star <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4) + s(trip_depth, k=4) + 
+             s(soak_p_set, k=4) + s(total_km_fished) + 
+             Hook_size + #s(Hook_size, bs='re', by=dum) + 
+             s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum), 
+           data=fsh_cpue_cl %>% filter(total_km_fished < 600), 
+           gamma=1.4)
+plot(m12star, page = 1, shade = TRUE, all = TRUE)
+vis.gam(m12star, c('trip_depth', 'total_km_fished'), plot.type='contour', type='response', color='topo', too.far=0.1)
+
+str(summary(m12))
+summary(m12)$dev.expl
+summary(m12)$r.sq
+AIC(m12)
+
+model.list<-list(m1,m2,m3,m4,m5,m6,m11,m12)
+names(model.list)<-c("m1","m2","m3","m4","m5","m6","m11","m12")
+names(model.list[1])
+modsum<-data.frame(); j<-1
+for (i in model.list) {
+  #mod<-i
+  modsum[j,"model"]<-names(model.list[j])
+  modsum[j,"aic"]<-AIC(i)
+  modsum[j,"dev"]<-summary(i)$dev.expl
+  modsum[j,"rsq"]<-summary(i)$r.sq
+  j<-j+1
+}
+
+sort(modsum,modsum$aic)
 # GAM summary ----
 
 # Final model structure (m11) (* = random effect):
@@ -1272,8 +1403,7 @@ vis.gam(m11, c('depth', 'soak'), plot.type='contour', type='response', color='to
 # Predictions ----
 
 #Create standard dataset to get standardized CPUE for each year
-# a little cnfused here... go through all this modelling and then producing 
-# predicted values from average values for each year?  
+
 std_dat <- expand.grid(year = unique(fsh_cpue$year),
                        Gear = 'CS',
                        depth = mean(fsh_cpue$depth), 
