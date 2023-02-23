@@ -611,6 +611,8 @@ fsh_cpue_cl %>%
             upper = fsh_cpue + (2 * se),
             lower = fsh_cpue - (2 * se)) -> fsh_sum 
 
+#save to compare to new stuff in 2023... 
+write_csv(fsh_sum, paste0(YEAR+1,"/output/fshcpue_", min(fsh_sum$year), "_", YEAR, "_nominal_for_fut.csv"))
 # Compare predicted cpue from gam to nominal cpue
 fsh_sum %>%
   select(year, cpue = fsh_cpue, upper, lower) %>% 
