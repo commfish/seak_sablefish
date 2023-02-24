@@ -227,23 +227,19 @@ unique(ll_cpue$Stat); with(ll_cpue, table(Stat))
 unique(ll_cpue$multi_gear_config); with(ll_cpue, table(multi_gear_config))
 unique(ll_cpue$multigear_trip)
 unique(ll_cpue$trip_recorded_releases); with(ll_cpue, table(year, trip_recorded_releases))
-unique(ll_cpue$depredation)
+unique(ll_cpue$set_depredation); unique(ll_cpue$trip_depredation)
 unique(ll_cpue$no_hooks_p_set)
 unique(ll_cpue$gear); str(ll_cpue$gear)
 
 with(ll_cpue, table(hook_size)); nrow(ll_cpue %>% filter (is.na(trip_soak)))
 with(ll_cpue, table(Stat))
-hist(ll_cpue$julian_day); abline(v=226, col="red")
+hist(ll_cpue$julian_day_sell); abline(v=226, col="red")
 hist(ll_cpue$no_hooks_fished_on_trip); abline(v=15000, col="blue")
 hist(ll_cpue$no_hooks_p_set); abline(v=15000, col="blue")
-nrow(ll_cpue)
 table(ll_cpue$hook_space)
-hist(ll_cpue$mea)
 
 colnames(ll_cpue_ftx)
 unique(ll_cpue_ftx$multi_gear_config)
-
-nrow(ll_cpue_ftx %>% filter(Stat == "345803"))
 
 ll_cpue_ftx %>% 
   #filter(depredation == "No depredation" | is.na(depredation)) %>% 
@@ -311,12 +307,6 @@ ll_cpue_ftx %>%
     total_trips = n_distinct(trip_no)) %>% 
   ungroup() -> ll_cpue_ftx
 
-nrow(ll_cpue)
-unique(ll_cpue$target) #checking that these are sablefish targetting trips (710)
-# Consolidation of fishery - number of vessels fishing and total number of trips
-# in Chatham over time
-# axis <- tickr(fsh_cpue, year, 5)
-
 ll_cpue_ftx %>% 
   select(year, Vessels = total_vessels, Trips = total_trips) %>% 
   gather(Variable, Count, -year) %>% 
@@ -342,15 +332,13 @@ library(rms); library(viridis)
 ll_cpue_ftx %>%
   group_by(year,trip_set_targets) %>%
   do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot1
-view(plot_boot1)
+#view(plot_boot1)
 
 ggplot(plot_boot1) +
   geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper, fill = trip_set_targets), 
- #             alpha = 0.1, fill = "grey55") +
-              alpha = 0.1) +
+               alpha = 0.1) +
   geom_point(aes(x = year, y = Mean, col = trip_set_targets), size = 1) +
   geom_line(aes(x = year, y = Mean, col = trip_set_targets)) +
-  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Sablefish CPUE (round lb per hook)\n") +
   lims(y = c(0, 1.25))  + 
   scale_color_viridis_d(name = "Set targets of trip",
@@ -371,11 +359,9 @@ ll_cpue_ftx %>%
 
 ggplot(plot_boot2) +
   geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper, fill = trip_recorded_releases), 
-              #             alpha = 0.1, fill = "grey55") +
               alpha = 0.1) +
   geom_point(aes(x = year, y = Mean, col = trip_recorded_releases), size = 1) +
   geom_line(aes(x = year, y = Mean, col = trip_recorded_releases)) +
-  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Sablefish CPUE (round lb per hook)\n") +
   lims(y = c(0, 2)) + 
   scale_color_viridis_d(name = "",
@@ -634,8 +620,6 @@ ggplot(plot_boot5 %>% filter(trip_set_targets == "all_Sablefish")) +
               alpha = 0.1) +
   geom_point(aes(x = year, y = Mean, col = hook_cpue_spec), size = 1) +
   geom_line(aes(x = year, y = Mean, col = hook_cpue_spec)) +
-  #facet_wrap(~hook_cpue_spec) +
-  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
   lims(y = c(0, 1.5)); view(plot_boot5)
 
@@ -698,16 +682,13 @@ ggsave(paste0(YEAR+1,"/figures/llcpue_by_derivation_1997_", YEAR, ".png"),
 fsh_cpue_ll_ft<-ll_cpue_ftx_clean
 fsh_cpue_ll_lb<-ll_cpue_log_clean
 
-table(fsh_cpue$Hook_size)
+table(fsh_cpue_ll_ft$Hook_size)
 #new filter includes mixed hook size sets... need to cull those for analysis if
 # hook size is included... 
 str(fsh_cpue_ll_ft$Hook_size)
 fsh_cpue_hooks<-fsh_cpue_ll_ft %>% 
   filter(Hook_size %in% c("6","7","11","12","13","14","15","16")) %>%
   mutate(Hook_size = fct_relevel(Hook_size,c("6","7","11","12","13","14","15","16")))
-
-nrow(fsh_cpue); nrow(fsh_cpue_hooks)
-table(fsh_cpue_hooks$Hook_size)
 
 fsh_cpue_hooks %>% filter(Hook_size == "7") %>% distinct(Adfg, Stat, Year)
 fsh_cpue_hooks %>% filter(Hook_size == "6") %>% distinct(Adfg, Stat, Year)
@@ -735,7 +716,6 @@ fsh_cpue %>% filter(Hook_size == "6") %>% distinct(Adfg, cpue)
 fsh_cpue_cl<-fsh_cpue_hooks %>%
   filter(!Hook_size %in% c("6","7","11")) %>%
   mutate(soak_p_set = trip_soak/no_sets)
-nrow(fsh_cpue); nrow(fsh_cpue_hooks); nrow(fsh_cpue_cl)
 
 # Depth - clear increasing trend, asymptotes ~ 450 m
 ggplot(fsh_cpue_cl, aes(trip_depth, cpue)) + geom_point(shape = 20) + 
@@ -752,7 +732,7 @@ fsh_cpue_cl %>% filter(soak < 40) -> fsh_cpue_cl
 #Total km fished 
 ggplot(fsh_cpue_cl, aes(total_km_fished, cpue)) + geom_point(shape = 20) + 
   geom_smooth(size = 2, se = FALSE)
-fsh_cpue_cl %>% filter(total_km_fished < 200) -> fsh_cpue_cl
+fsh_cpue_cl %>% filter(total_km_fished < 200 & total_km_fished > 0) -> fsh_cpue_cl
 ggplot(fsh_cpue_cl, aes(total_km_fished, cpue)) + geom_point(shape = 20) + 
   geom_smooth(size = 2, se = FALSE)
 # similar to soak time trends... Jane is right about the scavengers down there! 
@@ -792,46 +772,108 @@ ggplot(fsh_cpue_cl, aes(Stat, cpue)) + geom_boxplot()+
 # be decreasing with latitude. There was no spatial autocorrelation detected (done in previous analysis).
 # start_lat/start_lon - spatial autocorrelation  (need to check on this - pj22)
 
-# Determine if random variables should be included (Stat and Adfg)
-m1 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) + 
-            s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m1a <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set, k=4) + #hook size removed
-            s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m2 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) + 
-            s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m3 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) +
-            s(Stat, bs='re', by=dumstat), data=fsh_cpue_cl, gamma=1.4)
-m4 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4), 
-          data=fsh_cpue_cl, gamma=1.4)
+m0 <- bam(cpue ~ Year + Gear, data=fsh_cpue_cl, gamma=1.4)
+m0.hook <- bam(cpue ~ Year + Gear + Hook_size, data=fsh_cpue_cl, gamma=1.4)
+m0.depth <- bam(cpue ~ Year + Gear + s(trip_depth, k=4), data=fsh_cpue_cl, gamma=1.4)
+m0.soak <- bam(cpue ~ Year + Gear + s(soak_p_set, k=4) , data=fsh_cpue_cl, gamma=1.4)
+m0.stat <- bam(cpue ~ Year + Gear + s(Stat, bs='re', by=dumstat), data=fsh_cpue_cl, gamma=1.4)
+m0.adfg <- bam(cpue ~ Year + Gear + s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
+#m0.lat_lon <- bam(cpue ~ Year + Gear + te(start_lon, start_lat), data=fsh_cpue_cl, gamma=1.4)
+#m0.lat <- bam(cpue ~ Year + Gear + s(start_lat), data=fsh_cpue_cl, gamma=1.4)
+#m0.lon <- bam(cpue ~ Year + Gear + s(start_lon), data=fsh_cpue_cl, gamma=1.4)
+m0.jday <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4), data=fsh_cpue_cl, gamma=1.4)
+m0.length <- bam(cpue ~ Year + Gear + s(total_km_fished), data=fsh_cpue_cl, gamma=1.4)
 
-summary(m1); summary(m1a) 
-summary(m2)
-summary(m3)
-summary(m4)
+model.list<-list(m0,m0.hook,m0.depth,m0.soak,m0.stat,m0.adfg,
+                 #0.lat_lon, m0.lat,m0.lon,
+                 m0.jday,m0.length)
+names(model.list)<-c("m0","hook","depth","soak","stat","adfg",#"lat_lon",
+                     #"lat","lon",
+                     "jday","length")
+modsum0<-data.frame(); j<-1
+for (i in model.list) {
+  #mod<-i
+  modsum0[j,"model"]<-names(model.list[j])
+  modsum0[j,"aic"]<-AIC(i)
+  modsum0[j,"dev"]<-summary(i)$dev.expl
+  modsum0[j,"rsq"]<-summary(i)$r.sq
+  modsum0[j,"dev_exp"]<-summary(i)$dev.expl-summary(m0)$dev.expl
+  j<-j+1
+}
 
-AIC(m1,m1a, m2,m3, m4)
+modsum0 %>% arrange(aic)  
+modsum0 %>% arrange(-dev)  
+modsum0 %>% arrange(-rsq) 
 
-# The model with the lowest AIC and highest deviance explained includes a random
-# effect for vessel and area. #same in 2022-pj
-# 2022 NOTE hook size is significant... oi... 
+# 2023: dominant variable is adfg followed by depth and then stat
+# but all variables better than the null... 
+
+global<-bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) + 
+              s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+              s(julian_day_sell, k=4) + s(total_km_fished),
+            data=fsh_cpue_cl, gamma=1.4)
+
+AIC(global) #way better than simple models
+
+plot(global, page = 1, shade = TRUE, resid = TRUE, all = TRUE)
+summary(global)
 
 # No residual patterns, but may be some outliers
-plot(fitted(m1), resid(m1))
+plot(fitted(global), resid(global))
 abline(h = 0, col = "red", lty = 2)
 
 # 14 outliers, get rid of them and refit models with new data set
-which(fitted(m1) < -1.5)   #6 outliers in 2023
-not_outliers <- which(fitted(m1) >= -1.5)
+which(fitted(global) < -1.5)   #6 outliers in 2023
+not_outliers <- which(fitted(global) >= -1.5)
 fsh_cpue_cl <- fsh_cpue_cl %>% 
   slice(not_outliers)
 
+vcov.gam(global)
+
+# Determine if random variables should be included (Stat and Adfg)
+#try some multimodel inference with glms...  
+library(lme4)
+library(arm)
+library(plyr)
+library(MuMIn)   #r.squaredGLMM(object)
+
+library(glmulti)
+library(AICcmodavg)
+
+
+lmer.glmulti <- function (formula, data, random = "", ...) {
+  lmer(paste(deparse(formula), random), data = data, REML=F, ...)
+}
+
+setMethod('getfit', 'merMod', function(object, ...) {
+  summ<-summary(object)$coef
+  summ1<-summ[,1:2]
+  if (length(dimnames(summ)[[1]])==1) {
+    summ1<-matrix(summ1, nr=1, dimnames=list(c("(Intercept)"),c("Estimate","Std.Error")))
+  }
+  cbind(summ1, df=rep(10000,length(fixef(object))))
+})
+
+old<-Sys.time()
+runmodels_ftx<-glmulti(cpue~Year*Gear*Hook_size*set_depth*set_soak*julian_day_sell*set_length,#s(set_depth, k=4), 
+                   data=fsh_cpue_cl,
+                   method="h",imm=0.5, sexrate=0.1, crit=aicc , deltaM=0.01, 
+                   conseq=20, marginality=T, maxsize=7, confsetsize=100, 
+                   level=2, fitfunc=lmer.glmulti, random="+(1|Stat)+(1|Adfg)"); Sys.time() - old
+coef.glmulti(runmodels)
+plot(runmodels,type="s")
+
+##--------
+#OK, back to more appropriate additive models.. 
+
+# Determine if random variables should be included (Stat and Adfg)
+
 m1 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m1a <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set, k=4) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
 m2 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) + s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
 m3 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) +s(Stat, bs='re', by=dumstat), data=fsh_cpue_cl, gamma=1.4)
 m4 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4), data=fsh_cpue_cl, gamma=1.4)
 
-AIC(m1, m1a, m2, m3, m4)
+AIC(m1, m2, m3, m4)
 
 # Better, AIC still likes hook size in there...
 plot(fitted(m1), resid(m1))
@@ -923,7 +965,7 @@ m11 <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4) + s(trip_depth, k=4) +
              s(soak_p_set, k=4) + #s(start_lat) + 
              Hook_size + #s(Hook_size, bs='re', by=dum) + 
              s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-AIC(m1, m11) #AIC(m1, m7, m9, m11)
+AIC(global,m1, m11) #AIC(m1, m7, m9, m11)
 summary(m11)
 plot(m11, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
 
@@ -931,29 +973,25 @@ plot(m11, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
 # # and ~ 10 hr soak time
 vis.gam(m11, c('trip_depth', 'soak_p_set'), plot.type='contour', type='response', color='topo', too.far=0.1)
 
-#In 2023 we also want to see if the total km fished makes a difference... 
-m12 <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4) + s(trip_depth, k=4) + 
-             s(soak_p_set, k=4) + s(total_km_fished) + 
-             Hook_size + #s(Hook_size, bs='re', by=dum) + 
-             s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m13 <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4) + s(trip_depth, k=4) + 
-             s(soak_p_set, k=4) + s(total_km_fished) + 
-             Hook_size + #s(Hook_size, bs='re', by=dum) + 
-             s(Stat, bs='re', by=dumstat) , data=fsh_cpue_cl, gamma=1.4)
+global<-bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + 
+              s(soak_p_set, k=4) + s(total_km_fished) + 
+              s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+              s(julian_day_sell, k=4) ,
+            data=fsh_cpue_cl, gamma=1.4)
 
-AIC(m1, m11, m12, m13) #AIC(m1, m7, m9, m11)
-sort(c(AIC(m1,m2,m3,m4,m5,m6,m11,m12)))
-AIC(m1,m2,m3,m4,m5,m6,m11,m12)
+AIC(global, m1, m11) #AIC(m1, m7, m9, m11)
 
-summary(m12)
-plot(m12, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
+AIC(global, m1,m2,m3,m4,m5,m6,m11)
 
-vis.gam(m12, c('trip_depth', 'total_km_fished'), plot.type='contour', type='response', color='topo', too.far=0.1)
-vis.gam(m12, c('soak_p_set', 'total_km_fished'), plot.type='contour', type='response', color='topo', too.far=0.1)
+summary(global)
+plot(global, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
 
-plot.gam(m12)
+vis.gam(global, c('trip_depth', 'total_km_fished'), plot.type='contour', type='response', color='topo', too.far=0.1)
+vis.gam(global, c('soak_p_set', 'total_km_fished'), plot.type='contour', type='response', color='topo', too.far=0.1)
 
-str(diag(vcov.gam(m12)))
+plot.gam(global)
+
+str(diag(vcov.gam(global)))
 
 str(summary(m12))
 summary(m12)$dev.expl
@@ -962,9 +1000,8 @@ AIC(m12)
 
 m0.1 <- bam(cpue ~ Year + Gear, data=fsh_cpue_cl, gamma=1.4)
 
-
-model.list<-list(m0.1,m1,m2,m3,m4,m5,m6,m11,m12)
-names(model.list)<-c("m0.1","m1","m2","m3","m4","m5","m6","m11","m12")
+model.list<-list(global,m1,m2,m3,m4,m5,m6,m11)
+names(model.list)<-c("global","m1","m2","m3","m4","m5","m6","m11")
 names(model.list[1])
 modsum<-data.frame(); j<-1
 for (i in model.list) {
@@ -988,9 +1025,9 @@ modsum %>% arrange(-rsq)
 #        Hook_size + 
 #  s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum)
 
-# 36.7% deviance explained
+# 36.7% deviance explained in 2021
 # 33.9% in 2022 with pj mods.  With Jane's original code get 34.9%
-# 44.1% in 2023
+# 44.9% in 2023
 
 # CPUE decreases throughout the season. CPUE increases with depth, then
 # asymptotes ~ 450 m. CPUE is constant and then drops off ~ 10 hr soak time,
@@ -1016,10 +1053,10 @@ std_dat <- expand.grid(year = unique(fsh_cpue_cl$year),
                        dumstat = 0) %>% 
   mutate(Year = factor(year))
 
-pred_cpue <- predict(m12, std_dat, type = "link", se = TRUE)
+pred_cpue <- predict(global, std_dat, type = "link", se = TRUE)
 
 #checking my code with Jane's... checks out :)
-preds<-predict.bam(m12, type="response", std_dat, se = TRUE)
+preds<-predict.bam(global, type="response", std_dat, se = TRUE)
 str(preds); head(preds)
 
 #Put the standardized CPUE and SE into the data frame and convert to
@@ -1055,7 +1092,7 @@ fsh_sum %>%
   mutate(CPUE = "Nominal") %>% 
   bind_rows(std_dat %>% 
               select(year, cpue = bt_cpue, upper = bt_upper, lower = bt_lower) %>% 
-              mutate(CPUE = "GAM")) %>% 
+              mutate(CPUE = "Fully Standardized")) %>% 
   ggplot() +
   geom_ribbon(aes(year, ymin = lower, ymax = upper, fill = CPUE), 
               colour = "white", alpha = 0.2) +
@@ -1083,13 +1120,13 @@ fsh_sum %>%
   mutate(CPUE = "Nominal") %>% 
   bind_rows(std_dat %>% 
               select(year, cpue = bt_cpue, upper = bt_upper, lower = bt_lower) %>% 
-              mutate(CPUE = "GAM")) %>% 
+              mutate(CPUE = "Fully Standardized")) %>% 
   bind_rows(old_cpue %>% 
               select(year, cpue = fsh_cpue, upper, lower) %>% 
               mutate(CPUE = "Pre-2023 Nominal")) %>%
   ggplot() +
   geom_ribbon(aes(year, ymin = lower, ymax = upper, fill = CPUE), 
-              colour = "white", alpha = 0.2) +
+              colour = NA, alpha = 0.2) +
   geom_point(aes(year, cpue, colour = CPUE, shape = CPUE), size = 2) +
   geom_line(aes(year, cpue, colour = CPUE, group = CPUE), size = 1) +
   # scale_colour_grey(name = "Standardized CPUE") +
@@ -1110,16 +1147,28 @@ fsh_sum %>%
   mutate(lt_mean = mean(fsh_cpue),
          perc_change_lt = (fsh_cpue - lt_mean) / lt_mean * 100) 
 
+std_dat %>% 
+  filter(year > YEAR - 10) %>% 
+  mutate(lt_mean = mean(bt_cpue),
+         perc_change_lt = (bt_cpue - lt_mean) / lt_mean * 100) 
+
 # Percent change in fishery nominal cpue from last year
 #not relevant since no CPUE in 2020 due to stupid covid
 fsh_sum %>% 
   filter(year >= YEAR - 1) %>%
   select(year, fsh_cpue) %>% 
-  reshape2::dcast("fsh_cpue" ~ year) -> perc_ch
+  reshape2::dcast("fsh_cpue" ~ year) -> perc_ch; as.numeric(100*(perc_ch[3]-perc_ch[2])/perc_ch[2])
+
+std_dat %>% 
+  filter(year >= YEAR - 1) %>%
+  select(year, bt_cpue) %>% 
+  reshape2::dcast("bt_cpue" ~ year) -> std_perc_ch; as.numeric(100*(std_perc_ch[3]-std_perc_ch[2])/std_perc_ch[2])
 
 names(perc_ch) <- c("cpue", "last_year", "this_year") 
 perc_ch %>% mutate(perc_change_ly = (`this_year` - `last_year`) / `last_year` * 100)
 
+names(std_perc_ch) <- c("cpue", "last_year", "this_year") 
+std_perc_ch %>% mutate(perc_change_ly = (`this_year` - `last_year`) / `last_year` * 100)
 # Historical CPUE ----
 
 # From KVK: Logbooks were not included in IFDB until 1997. Commercial fishery
@@ -1155,35 +1204,32 @@ data.frame(year = 1980:1996,
          se = mean(std_dat$bt_se),
          upper = hist_cpue+(2*se),
          lower = hist_cpue-(2*se),
-         CPUE = "GAM") %>% 
+         CPUE = "Fully Standardized") %>% 
   bind_rows(std_dat %>% 
               mutate(var = sqrt(bt_se)) %>% 
               select(year, fsh_cpue = bt_cpue, se = bt_se, var,
                      upper = bt_upper, lower = bt_lower) %>% 
-              mutate(CPUE = "GAM")) %>% 
+              mutate(CPUE = "Fully Standardized")) %>% 
   mutate(cpue = round(fsh_cpue, 3),
-         var = round(var, 3)) %>% data.frame() -> m12_cpue_ts
+         var = round(var, 3)) %>% data.frame() -> glob_cpue_ts
 
-cpue_ts_multi<-rbind(nom_cpue_ts,m12_cpue_ts)
+cpue_ts_multi<-rbind(nom_cpue_ts,glob_cpue_ts)
 
-cpue_ts_short <- nom_cpue_ts %>% 
+cpue_ts_short <- glob_cpue_ts %>% 
          filter(year >= 1997)
 
 ggplot(nom_cpue_ts) +
   geom_point(aes(year, cpue)) +
   geom_line(aes(year, cpue)) +
-  geom_ribbon(aes(year, ymin = cpue - sqrt(var), ymax = cpue + sqrt(var)),
+  geom_ribbon(aes(year, ymin = cpue - sqrt(var), ymax = cpue + sqrt(var)),  #CI's for data
               alpha = 0.2,  fill = "grey") +
-  geom_ribbon(aes(year, ymin = lower, ymax = upper),
+  geom_ribbon(aes(year, ymin = lower, ymax = upper),  #CI's for the mean
   # geom_ribbon(aes(year, ymin = cpue - var, ymax = cpue + var),
               alpha = 0.4,  fill = "grey") +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   #lims(y = c(0, 1.5)) +
   #lims(y = c(-0.5, 1.5)) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") 
-
-#NOTE2022: much more variance in data now... could easily run a straight line
-# through error polygon = lack of information in this data!!! 
 
 ggsave(paste0(YEAR+1,"/figures/ll_cpue_nom_1980_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
@@ -1209,18 +1255,23 @@ ggsave(paste0(YEAR+1,"/figures/ll_cpue_nom_m12_1980_", YEAR, ".png"),
 # Write to file
 write_csv(nom_cpue_ts, paste0(YEAR+1,"/output/ll_cpue_nom_", min(nom_cpue_ts$year), "_", YEAR, ".csv"))
 
-m12_cpue_ts<-as.matrix(m12_cpue_ts)
-m12_cpue_ts[,c(1,2,3,4,5,6,8)]<-as.numeric(m12_cpue_ts[,c(1,2,3,4,5,6,8)])
-m12_cpue_ts<-as.data.frame(m12_cpue_ts)
+glob_cpue_ts<-as.matrix(m12_cpue_ts)
+glob_cpue_ts[,c(1,2,3,4,5,6,8)]<-as.numeric(glob_cpue_ts[,c(1,2,3,4,5,6,8)])
+glob_cpue_ts<-as.data.frame(m12_cpue_ts)
 
-write_csv(m12_cpue_ts, paste0(YEAR+1,"/output/ll_cpue_m12_", min(nom_cpue_ts$year), "_", YEAR, ".csv"))
+write_csv(glob_cpue_ts, paste0(YEAR+1,"/output/ll_cpue_m12_", min(nom_cpue_ts$year), "_", YEAR, ".csv"))
+
 
 #=================================================================================
-# lets look at the logbooks via the same route and see what we come up with... 
+#=================================================================================
+# lets look at the LOGBOOKS via the same route and see what we come up with... 
 #--------------------------------------------------------------------------------
-# CPUE based on skipper's logbook data...
+#==================================================================================
+
+# CPUE based on skipper's LOGBOOK data...
 # Fishticket data is at the trip level and thus averages out the set specific performance.
 # This is generally necessary because logbook entries are estimates 
+
 ll_cpue_logged <-ll_cpue
 nrow(ll_cpue_logged)
 colnames(ll_cpue_logged)
@@ -1254,9 +1305,13 @@ ll_cpue_logged %>% group_by(year, sell_date, Adfg, Stat, disposition, trip_no) %
                                        (logged_no/sum(unique(logged_and_landed_nos), na.rm=T))*unique(catch))
   ) %>% 
   ungroup() -> test; Sys.time() - old #%>%  #12 minutes for this piece!!!
+#since this takes a long time to run, lets save it in case we need to restart our
+# computer because of a f%@#$^#g IT update...
+write_csv(test, paste0(YEAR+1,"/output/temp_logbook_trans_", min(nom_cpue_ts$year), "_", YEAR, ".csv"))
 
-#releases<-test %>% filter(trip_recorded_releases == "logged_releases")
-#random_check(releases); colnames(test)
+read_csv(paste0(YEAR+1,"/output/temp_logbook_trans_", min(nom_cpue_ts$year), "_", YEAR, ".csv"), 
+         col_names = FALSE) %>% as.numeric() -> test
+
 test %>% group_by(year, sell_date, Adfg, Stat, set_no) %>%
   
   filter(multi_gear_config == "single_config" &   #get rid of trips that reported 2 gear configurations
@@ -1370,7 +1425,6 @@ nrow(ll_cpue_log)
 ll_cpue_log <- ll_cpue_log %>% filter(std_cpue > min(ll_cpue_log$std_cpue))
 nrow(ll_cpue_log)
 
-
 sel<-sample(nrow(ll_cpue_log),1)# eg16473
 eg<-as.data.frame(ll_cpue_log[ll_cpue_log$sell_date == ll_cpue_log$sell_date[sel] &
                                 ll_cpue_log$Adfg == ll_cpue_log$Adfg[sel],])
@@ -1447,7 +1501,7 @@ ggsave(paste0(YEAR+1,"/figures/llcpue_byrelease_and_datasource_1997_", YEAR, ".p
        dpi=300, height=4, width=7, units="in")
 
 #---- 
-depr_eff<-lm(data=ll_cpue_ftx, std_cpue ~ p_sets_depredated)
+depr_eff<-lm(data=ll_cpue_log, std_cpue ~ p_sets_depredated)
 summary(depr_eff); plot(depr_eff)
 plot(data=ll_cpue_ftx, std_cpue ~ p_sets_depredated)
 abline(depr_eff)
@@ -1466,7 +1520,7 @@ ggplot(plot_boot8) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
   lims(y = c(0, 2))
 
-ggsave(paste0(YEAR+1,"/figures/llcpue_ftx_bootCI_bydepr_1997_", YEAR, ".png"),
+ggsave(paste0(YEAR+1,"/figures/llcpue_log_bootCI_bydepr_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
 
 ll_cpue_log %>% filter(trip_target == "Sablefish") %>%
@@ -1485,7 +1539,7 @@ ggplot(plot_boot9) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
   lims(y = c(0, 1.5))
 
-ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_bygeartrip_1997_", YEAR, ".png"),
+ggsave(paste0(YEAR+1,"/figures/fshcpue_log_bootCI_bygeartrip_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
 
 # Normality
@@ -1508,7 +1562,6 @@ ll_cpue_log_clean %>%
   mutate(cpue = log(std_cpue + (mean(ll_cpue_log_clean$std_cpue, na.rm=T) * 0.1))) -> ll_cpue_log_clean
 
 ggplot(ll_cpue_log_clean, aes(cpue)) + geom_density(alpha = 0.4, fill = 4)
-
 
 # EDA for GAM 
 
@@ -1763,7 +1816,7 @@ ggplot(fsh_cpue_lb %>% filter(!(set_soak <= 0)),
   geom_smooth(size = 2, se = FALSE) 
 fsh_cpue_lb %>% filter(set_soak < 40 & set_soak > 0) -> fsh_cpue_lb
 
-#Total km fished 
+#km fished per set
 ggplot(fsh_cpue_lb, aes(set_length, cpue)) + geom_point(shape = 20) + 
   geom_smooth(size = 2, se = FALSE)
 ggplot(fsh_cpue_lb %>% filter(set_length > 0), aes(set_length, cpue)) + geom_point(shape = 20) + 
@@ -1792,11 +1845,11 @@ ggplot(fsh_cpue_lb_good, aes(start_lat, cpue, group = year, colour = year)) +
 ggplot(fsh_cpue_lb_good, aes(julian_day_sell, cpue, group = year, colour = year)) +
   geom_smooth(method = 'loess', span = 1, se = FALSE) 
 
-# By state area... 
+# By stat area... 
 ggplot(fsh_cpue_lb_good, aes(Stat, cpue)) + geom_boxplot()+
   labs(x = "\nStat area", y = "Fishery CPUE\n")
 
-# GAM cpue ---- pick uop on 2-23...
+# GAM cpue ---
 
 # Potential variables influencing CPUE (ultimately interested in estimating a
 # Year effect):
@@ -1818,46 +1871,125 @@ ggplot(fsh_cpue_lb_good, aes(Stat, cpue)) + geom_boxplot()+
 # be decreasing with latitude. There was no spatial autocorrelation detected (done in previous analysis).
 # start_lat/start_lon - spatial autocorrelation  (need to check on this - pj22)
 
-# Determine if random variables should be included (Stat and Adfg)
-m1 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) + 
-            s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m1a <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set, k=4) + #hook size removed
-             s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m2 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) + 
-            s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m3 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) +
-            s(Stat, bs='re', by=dumstat), data=fsh_cpue_cl, gamma=1.4)
-m4 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4), 
-          data=fsh_cpue_cl, gamma=1.4)
+fsh_cpue_lb_good <- fsh_cpue_lb_good %>% mutate(Year = year)
 
-summary(m1); summary(m1a) 
-summary(m2)
-summary(m3)
-summary(m4)
+# So we know we like year (duh) and gear (autobaiters clearly suck).
+# lets start by adding each of the other variables by themselves
 
-AIC(m1,m1a, m2,m3, m4)
+m0 <- bam(cpue ~ Year + Gear, data=fsh_cpue_lb_good, gamma=1.4)
+m0.hook <- bam(cpue ~ Year + Gear + Hook_size, data=fsh_cpue_lb_good, gamma=1.4)
+m0.depth <- bam(cpue ~ Year + Gear + s(set_depth, k=4), data=fsh_cpue_lb_good, gamma=1.4)
+m0.soak <- bam(cpue ~ Year + Gear + s(set_soak, k=4) , data=fsh_cpue_lb_good, gamma=1.4)
+m0.stat <- bam(cpue ~ Year + Gear + s(Stat, bs='re', by=dumstat), data=fsh_cpue_lb_good, gamma=1.4)
+m0.adfg <- bam(cpue ~ Year + Gear + s(Adfg, bs='re', by=dum), data=fsh_cpue_lb_good, gamma=1.4)
+m0.lat_lon <- bam(cpue ~ Year + Gear + te(start_lon, start_lat), data=fsh_cpue_lb_good, gamma=1.4)
+m0.lat <- bam(cpue ~ Year + Gear + s(start_lat), data=fsh_cpue_lb_good, gamma=1.4)
+m0.lon <- bam(cpue ~ Year + Gear + s(start_lon), data=fsh_cpue_lb_good, gamma=1.4)
+m0.jday <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4), data=fsh_cpue_lb_good, gamma=1.4)
+m0.length <- bam(cpue ~ Year + Gear + s(set_length), data=fsh_cpue_lb_good, gamma=1.4)
 
-# The model with the lowest AIC and highest deviance explained includes a random
-# effect for vessel and area. #same in 2022-pj
-# 2022 NOTE hook size is significant... oi... 
+model.list<-list(m0,m0.hook,m0.depth,m0.soak,m0.stat,m0.adfg,m0.lat_lon,
+                 m0.lat,m0.lon,m0.jday,m0.length)
+names(model.list)<-c("m0","hook","depth","soak","stat","adfg","lat_lon",
+                     "lat","lon","jday","length")
+modsum0<-data.frame(); j<-1
+for (i in model.list) {
+  #mod<-i
+  modsum0[j,"model"]<-names(model.list[j])
+  modsum0[j,"aic"]<-AIC(i)
+  modsum0[j,"dev"]<-summary(i)$dev.expl
+  modsum0[j,"rsq"]<-summary(i)$r.sq
+  modsum0[j,"dev_exp"]<-summary(i)$dev.expl  - summary(m0)$dev.expl
+  j<-j+1
+}
+
+modsum0 %>% arrange(aic)  
+modsum0 %>% arrange(-dev)  
+modsum0 %>% arrange(-rsq) 
+modsum0 %>% arrange(-dev_exp) 
+
+# 2023: dominant variable is adfg followed by depth and then lat_long, long and stat
+# spatial variability thus at the top... 3-d when you think about depth... 
+# but all variables better than the null... 
+
+global<-bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + 
+              s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+              + te(start_lon, start_lat) + s(julian_day_sell, k=4) + s(set_length),
+            data=fsh_cpue_lb_good, gamma=1.4)
+global_lat<-bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + 
+              s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+              + s(start_lat) + s(julian_day_sell, k=4) + s(set_length),
+            data=fsh_cpue_lb_good, gamma=1.4)
+global_lon<-bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + 
+              s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+              + s(start_lon) + s(julian_day_sell, k=4) + s(set_length),
+            data=fsh_cpue_lb_good, gamma=1.4)
+AIC(global,global_lat,global_lon) #way better than simple models
+
+plot(global, page = 1, shade = TRUE, resid = TRUE, all = TRUE)
+summary(global)
 
 # No residual patterns, but may be some outliers
-plot(fitted(m1), resid(m1))
+plot(fitted(global), resid(global))
 abline(h = 0, col = "red", lty = 2)
 
 # 14 outliers, get rid of them and refit models with new data set
-which(fitted(m1) < -1.5)   #6 outliers in 2023
-not_outliers <- which(fitted(m1) >= -1.5)
-fsh_cpue_cl <- fsh_cpue_cl %>% 
+which(fitted(global) < -1.5)   
+length(which(fitted(global) < -1.5)) #32 outliers in 2023
+not_outliers <- which(fitted(global) >= -1.5)
+fsh_cpue_lb_good <- fsh_cpue_lb_good %>% 
   slice(not_outliers)
 
-m1 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m1a <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set, k=4) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m2 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) + s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m3 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4) +s(Stat, bs='re', by=dumstat), data=fsh_cpue_cl, gamma=1.4)
-m4 <- bam(cpue ~ Year + Gear + Hook_size + s(trip_depth, k=4) + s(soak_p_set, k=4), data=fsh_cpue_cl, gamma=1.4)
+vcov.gam(global)
 
-AIC(m1, m1a, m2, m3, m4)
+# Determine if random variables should be included (Stat and Adfg)
+#try some multimodel inference with glms...  
+library(lme4)
+library(arm)
+library(plyr)
+library(MuMIn)   #r.squaredGLMM(object)
+
+library(glmulti)
+library(AICcmodavg)
+
+
+lmer.glmulti <- function (formula, data, random = "", ...) {
+  lmer(paste(deparse(formula), random), data = data, REML=F, ...)
+}
+
+setMethod('getfit', 'merMod', function(object, ...) {
+  summ<-summary(object)$coef
+  summ1<-summ[,1:2]
+  if (length(dimnames(summ)[[1]])==1) {
+    summ1<-matrix(summ1, nr=1, dimnames=list(c("(Intercept)"),c("Estimate","Std.Error")))
+  }
+  cbind(summ1, df=rep(10000,length(fixef(object))))
+})
+
+old<-Sys.time()  ##!!! 4 hours
+runmodels<-glmulti(cpue~Year*Gear*Hook_size*set_depth*set_soak*start_lon*start_lat*julian_day_sell*set_length,#s(set_depth, k=4), 
+             data=fsh_cpue_lb_good,
+             method="h",imm=0.5, sexrate=0.1, crit=aicc , deltaM=0.01, 
+             conseq=20, marginality=T, maxsize=7, confsetsize=100, includeobjects = TRUE, 
+             level=2, fitfunc=lmer.glmulti, random="+(1|Stat)+(1|Adfg)"); Sys.time() - old
+coef.glmulti(runmodels)
+plot(runmodels,type="s")
+plot(runmodels,type="w")
+plot(runmodels,type="p")
+plot(runmodels,type="r")
+
+#So... the glm exercise show year, jday, gear and depth interaction as most important factors
+# glm sees everything else as just noise... 
+
+##--------
+#OK, back to more appropriate additive models.. 
+
+m1 <- bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_lb_good, gamma=1.4)
+m2 <- bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + s(Adfg, bs='re', by=dum), data=fsh_cpue_lb_good, gamma=1.4)
+m3 <- bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) +s(Stat, bs='re', by=dumstat), data=fsh_cpue_lb_good, gamma=1.4)
+m4 <- bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4), data=fsh_cpue_lb_good, gamma=1.4)
+
+AIC(m1, m2, m3, m4)
 
 # Better, AIC still likes hook size in there...
 plot(fitted(m1), resid(m1))
@@ -1877,13 +2009,13 @@ summary(m3)
 # PJ22: not crazy about hook size as a random effect - it should always be a fixed affect because
 # it would directly affect cpue... as opposed to year or vessel random effect where there is 
 # random noise associated with the variable, hook size has a plausible effect on the response variable?
-m5 <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set, k=4) +    #no hook size
-            s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m6 <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set, k=4) +    #hook size as a random variable
+m5 <- bam(cpue ~ Year + Gear + s(set_depth, k=4) + s(set_soak, k=4) +    #no hook size
+            s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum), data=fsh_cpue_lb_good, gamma=1.4)
+m6 <- bam(cpue ~ Year + Gear + s(set_depth, k=4) + s(set_soak, k=4) +    #hook size as a random variable
             s(Hook_size, bs='re', by=dum) + s(Stat, bs='re', by=dumstat)+ 
-            s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
+            s(Adfg, bs='re', by=dum), data=fsh_cpue_lb_good, gamma=1.4)
 
-AIC(m1, m3, m4, m5, m6)
+AIC(m1, m2, m3, m4, m5, m6)
 
 plot(m6, page = 1, shade = TRUE, resid = TRUE, all = TRUE)
 summary(m5)
@@ -1899,23 +2031,21 @@ summary(m6)
 #       but am disinclined to treat it as a random effect.  HS is not a random category
 #       or group... there is an effect of HS on catchability.... 
 #       I will carry model 1 forward instead of model 6.
-# 2023: Now that we are just using fishticket data it probably doesn't make sense
-#       to schwag the lat-long data into this and just use the stat area as our 
-#       spatial variable.  For now models m7-m10 will be blocked out... 
+ 
 {
   #Determine whether to include lat and long
-  m7 <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set, k=4) + 
+  m7 <- bam(cpue ~ Year + Gear + s(set_depth, k=4) + s(set_soak, k=4) + 
               Hook_size + #s(Hook_size, bs='re', by=dum) + 
               s(Stat, bs='re', by=dumstat) + 
-              s(Adfg, bs='re', by=dum) + te(start_lon, start_lat), data=fsh_cpue_cl, gamma=1.4)
-  m8 <- bam(cpue ~ Year + Gear + s(trip_depth, k=4) + s(soak_p_set) + 
+              s(Adfg, bs='re', by=dum) + te(start_lon, start_lat), data=fsh_cpue_lb_good, gamma=1.4)
+  m8 <- bam(cpue ~ Year + Gear + s(set_depth, k=4) + s(set_soak) + 
               Hook_size + #s(Hook_size, bs='re', by=dum) + 
               s(Stat, bs='re', by=dumstat) + 
-              s(Adfg, bs='re', by=dum) + s(start_lon), data=fsh_cpue_cl, gamma=1.4)
-  m9 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
+              s(Adfg, bs='re', by=dum) + s(start_lon), data=fsh_cpue_lb_good, gamma=1.4)
+  m9 <- bam(cpue ~ Year + Gear + s(set_depth, k=4) + s(set_soak, k=4) + 
               Hook_size + #s(Hook_size, bs='re', by=dum) + 
               s(Stat, bs='re', by=dumstat) + 
-              s(Adfg, bs='re', by=dum) + s(start_lat), data=fsh_cpue_cl, gamma=1.4)
+              s(Adfg, bs='re', by=dum) + s(start_lat), data=fsh_cpue_lb_good, gamma=1.4)
   
   AIC(m1, m6, m7, m8, m9) #AIC(m6, m7, m8, m9)
   
@@ -1929,9 +2059,9 @@ summary(m6)
   # Phil note: knots = k
   # Phil note; tensor smoother allows integration of two variables (lat and lon here)
   # same in 2022
-  m10 <- bam(cpue ~ Year + Gear + s(depth, k=4) + s(soak, k=4) + 
+  m10 <- bam(cpue ~ Year + Gear + s(set_depth, k=4) + s(set_soak, k=4) + 
                s(Hook_size, bs='re', by=dum) + s(Stat, bs='re', by=dumstat) + 
-               s(Adfg, bs='re', by=dum) + s(start_lat, k=6), data=fsh_cpue_cl, gamma=1.4)
+               s(Adfg, bs='re', by=dum) + s(start_lat, k=6), data=fsh_cpue_lb_good, gamma=1.4)
   AIC(m1, m6, m7, m8, m9, m10)
   
   plot(m9, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
@@ -1945,67 +2075,152 @@ summary(m6)
 }
 # The inclusion of a seasonal effect  improves model fit - there is a
 # slightly decreasing trend in cpue on average over the course of the season.
-m11 <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4) + s(trip_depth, k=4) + 
-             s(soak_p_set, k=4) + #s(start_lat) + 
+m11 <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4) + s(set_depth, k=4) + 
+             s(set_soak, k=4) + #s(start_lat) + 
              Hook_size + #s(Hook_size, bs='re', by=dum) + 
-             s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
+             s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum), data=fsh_cpue_lb_good, gamma=1.4)
 AIC(m1, m11) #AIC(m1, m7, m9, m11)
 summary(m11)
 plot(m11, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
 
 # # Relationship between depth and soak time - highest cpue in > 450 m
 # # and ~ 10 hr soak time
-vis.gam(m11, c('trip_depth', 'soak_p_set'), plot.type='contour', type='response', color='topo', too.far=0.1)
+vis.gam(m11, c('set_depth', 'set_soak'), plot.type='contour', type='response', color='topo', too.far=0.1)
 
 #In 2023 we also want to see if the total km fished makes a difference... 
-m12 <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4) + s(trip_depth, k=4) + 
-             s(soak_p_set, k=4) + s(total_km_fished) + 
+m12 <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4) + s(set_depth, k=4) + 
+             s(set_soak, k=4) + s(set_length) + 
              Hook_size + #s(Hook_size, bs='re', by=dum) + 
-             s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum), data=fsh_cpue_cl, gamma=1.4)
-m13 <- bam(cpue ~ Year + Gear + s(julian_day_sell, k=4) + s(trip_depth, k=4) + 
-             s(soak_p_set, k=4) + s(total_km_fished) + 
-             Hook_size + #s(Hook_size, bs='re', by=dum) + 
-             s(Stat, bs='re', by=dumstat) , data=fsh_cpue_cl, gamma=1.4)
+             s(Stat, bs='re', by=dumstat) + s(Adfg, bs='re', by=dum), data=fsh_cpue_lb_good, gamma=1.4)
 
-AIC(m1, m11, m12, m13) #AIC(m1, m7, m9, m11)
+AIC(m1, m9, m11, m12) #AIC(m1, m7, m9, m11)
 sort(c(AIC(m1,m2,m3,m4,m5,m6,m11,m12)))
 AIC(m1,m2,m3,m4,m5,m6,m11,m12)
 
 summary(m12)
 plot(m12, page = 1, shade = TRUE, all = TRUE) #resid = TRUE,
 
-vis.gam(m12, c('trip_depth', 'total_km_fished'), plot.type='contour', type='response', color='topo', too.far=0.1)
-vis.gam(m12, c('soak_p_set', 'total_km_fished'), plot.type='contour', type='response', color='topo', too.far=0.1)
+vis.gam(m12, c('set_depth', 'set_length'), plot.type='contour', type='response', color='topo', too.far=0.1)
+vis.gam(m12, c('set_soak', 'set_length'), plot.type='contour', type='response', color='topo', too.far=0.1)
 
 plot.gam(m12)
 
 str(diag(vcov.gam(m12)))
 
-str(summary(m12))
-summary(m12)$dev.expl
-summary(m12)$r.sq
-AIC(m12)
+#more complex models to finish the exam
 
-m0.1 <- bam(cpue ~ Year + Gear, data=fsh_cpue_cl, gamma=1.4)
+glob_drop_length<-bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + 
+              s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+              + te(start_lon, start_lat) + s(julian_day_sell, k=4) ,
+            data=fsh_cpue_lb_good, gamma=1.4)
+globlat_drop_length<-bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + 
+                  s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+                  + s(start_lat) + s(julian_day_sell, k=4) ,
+                data=fsh_cpue_lb_good, gamma=1.4)
+globlon_drop_length<-bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + 
+                  s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+                  + s(start_lon) + s(julian_day_sell, k=4) ,
+                data=fsh_cpue_lb_good, gamma=1.4)
+glob_drop_jday<-bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + 
+              s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+              + te(start_lon, start_lat)  + s(set_length),
+            data=fsh_cpue_lb_good, gamma=1.4)
+globlat_drop_jday<-bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + 
+                  s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+                  + s(start_lat)  + s(set_length),
+                data=fsh_cpue_lb_good, gamma=1.4)
+globlon_drop_jday<-bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + 
+                  s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+                  + s(start_lon)  + s(set_length),
+                data=fsh_cpue_lb_good, gamma=1.4)
+glob_drop_hook<-bam(cpue ~ Year + Gear + s(set_depth, k=4) + s(set_soak, k=4) + 
+              s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+              + te(start_lon, start_lat) + s(julian_day_sell, k=4) + s(set_length),
+            data=fsh_cpue_lb_good, gamma=1.4)
+glob_drop_depth<-bam(cpue ~ Year + Gear + Hook_size + s(set_soak, k=4) + 
+              s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+              + te(start_lon, start_lat) + s(julian_day_sell, k=4) + s(set_length),
+            data=fsh_cpue_lb_good, gamma=1.4)
+glob_drop_soak<-bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) +  
+              s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+              + te(start_lon, start_lat) + s(julian_day_sell, k=4) + s(set_length),
+            data=fsh_cpue_lb_good, gamma=1.4)
+glob_drop_stat<-bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + 
+               s(Adfg, bs='re', by=dum) +
+              + te(start_lon, start_lat) + s(julian_day_sell, k=4) + s(set_length),
+            data=fsh_cpue_lb_good, gamma=1.4)
+glob_drop_adfg<-bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + 
+              s(Stat, bs='re', by=dumstat)+ 
+              + te(start_lon, start_lat) + s(julian_day_sell, k=4) + s(set_length),
+            data=fsh_cpue_lb_good, gamma=1.4)
+glob_drop_latlon<-bam(cpue ~ Year + Gear + Hook_size + s(set_depth, k=4) + s(set_soak, k=4) + 
+              s(Stat, bs='re', by=dumstat)+ s(Adfg, bs='re', by=dum) +
+               s(julian_day_sell, k=4) + s(set_length),
+            data=fsh_cpue_lb_good, gamma=1.4)
 
-
-model.list<-list(m0.1,m1,m2,m3,m4,m5,m6,m11,m12)
-names(model.list)<-c("m0.1","m1","m2","m3","m4","m5","m6","m11","m12")
+model.list<-list(global,global_lat,global_lon,
+                 m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12,
+                 glob_drop_length,globlat_drop_length,globlon_drop_length,
+                 glob_drop_jday,globlat_drop_jday,globlon_drop_jday,
+                 glob_drop_hook,glob_drop_depth,glob_drop_soak,
+                 glob_drop_stat,glob_drop_adfg,glob_drop_latlon)
+names(model.list)<-c("global","global_lat","global_lon",
+                     "m1","m2","m3","m4","m5","m6",
+                     "m7","m8","m9","m10","m11","m12",
+                     "glob_drop_length","globlat_drop_length","globlon_drop_length",
+                     "glob_drop_jday","globlat_drop_jday","globlon_drop_jday",
+                     "glob_drop_hook","glob_drop_depth","glob_drop_soak",
+                     "glob_drop_stat","glob_drop_adfg","glob_drop_latlon")
 names(model.list[1])
 modsum<-data.frame(); j<-1
 for (i in model.list) {
   #mod<-i
   modsum[j,"model"]<-names(model.list[j])
   modsum[j,"aic"]<-AIC(i)
+  modsum[j,"delta_aic"]<-AIC(global)-AIC(i)
   modsum[j,"dev"]<-summary(i)$dev.expl
   modsum[j,"rsq"]<-summary(i)$r.sq
+  modsum[j,"dev_exp"]<-summary(global)$dev.expl  - summary(i)$dev.expl
   j<-j+1
 }
 
 modsum %>% arrange(aic)  
 modsum %>% arrange(-dev)  
 modsum %>% arrange(-rsq) 
+modsum %>% 
+  filter (model %in% c("global","glob_drop_length","globlat_drop_length","globlon_drop_length",
+                       "glob_drop_jday","globlat_drop_jday","globlon_drop_jday",
+                       "glob_drop_hook","glob_drop_depth","glob_drop_soak",
+                       "glob_drop_stat","glob_drop_adfg","glob_drop_latlon")) %>% 
+  arrange(-dev_exp) #dropping adfg, depth and set length results in drop in deviance explained... 
 
+modsum0 %>% arrange(aic) #adfg, depth and spatial variables from this direction... 
+
+plot(glob_drop_stat, page = 1, shade = TRUE, all = TRUE)
+plot(global, page = 1, shade = TRUE, all = TRUE)
+plot(global_lat, page = 1, shade = TRUE, all = TRUE)
+
+## Model likes a lot of variables... Ochum's razor suggests maybe eliminating some
+#  of the minor effects? hook, soak time, sell date and 
+#  and keeping one? spatial variable? lat, long, lat_long or stat... 
+#  Bottum up suggests lat_lon
+#  top down suggests ???
+modsum %>% 
+  filter (model %in% c("global","global_lat","global_lon",
+                       "glob_drop_latlon","glob_drop_stat")) %>%
+  arrange(aic)
+# seems like most of the variability in Stat is contained in lat_long 
+
+# "best" model according to ochum would be ...
+occam<-bam(cpue ~ Year + Gear + s(set_depth, k=4) +  
+                    s(Adfg, bs='re', by=dum) +
+                    + te(start_lon, start_lat) + s(set_length),
+                  data=fsh_cpue_lb_good, gamma=1.4)
+AIC(occam); summary(occam)$dev.expl
+
+#fully standardized would be glob_drop_stat... 
+full<-glob_drop_stat
+AIC(full); summary(full)$dev.expl
 # GAM summary ----
 
 # Final model structure (m12) (* = random effect):
@@ -2016,7 +2231,7 @@ modsum %>% arrange(-rsq)
 
 # 36.7% deviance explained
 # 33.9% in 2022 with pj mods.  With Jane's original code get 34.9%
-# 44.1% in 2023
+# 44.1% in 2023 for fish tickets and ~36% for logbooks... 
 
 # CPUE decreases throughout the season. CPUE increases with depth, then
 # asymptotes ~ 450 m. CPUE is constant and then drops off ~ 10 hr soak time,
@@ -2028,13 +2243,14 @@ modsum %>% arrange(-rsq)
 
 #Create standard dataset to get standardized CPUE for each year
 
-std_dat <- expand.grid(year = unique(fsh_cpue_cl$year),
+std_dat_log <- expand.grid(year = unique(fsh_cpue_lb_good$year),
                        Gear = 'CS',
-                       trip_depth = mean(fsh_cpue_cl$trip_depth), 
-                       soak_p_set = 10, 
-                       julian_day_sell = median(fsh_cpue_cl$julian_day_sell),
-                       #start_lat = mean(fsh_cpue$start_lat),
-                       total_km_fished = median(fsh_cpue_cl$total_km_fished),
+                       set_depth = mean(fsh_cpue_lb_good$set_depth), 
+                       set_soak = 10, 
+                       julian_day_sell = median(fsh_cpue_lb_good$julian_day_sell),
+                       start_lat = mean(fsh_cpue_lb_good$start_lat),
+                       start_lon = mean(fsh_cpue_lb_good$start_lon),
+                       set_length = median(fsh_cpue_lb_good$set_length),
                        Stat = "345701",
                        Hook_size = "14",
                        Adfg = "35491",
@@ -2042,17 +2258,17 @@ std_dat <- expand.grid(year = unique(fsh_cpue_cl$year),
                        dumstat = 0) %>% 
   mutate(Year = factor(year))
 
-pred_cpue <- predict(m12, std_dat, type = "link", se = TRUE)
-
+pred_cpue_occam <- predict(occam, std_dat_log, type = "link", se = TRUE)
+pred_cpue_full <- predict(full, std_dat_log, type = "link", se = TRUE)
 #checking my code with Jane's... checks out :)
-preds<-predict.bam(m12, type="response", std_dat, se = TRUE)
-str(preds); head(preds)
+preds_occam<-predict.bam(occam, type="response", std_dat_log, se = TRUE)
+preds_full<-predict.bam(full, type="response", std_dat_log, se = TRUE)
 
 #Put the standardized CPUE and SE into the data frame and convert to
 #backtransformed (bt) CPUE
-std_dat %>% 
-  mutate(fit = pred_cpue$fit,
-         se = pred_cpue$se.fit,
+std_dat_log %>% 
+  mutate(fit = pred_cpue_occam$fit,
+         se = pred_cpue_occam$se.fit,
          upper = fit + (2 * se),
          lower = fit - (2 * se),
          bt_cpue = exp(fit) - (mean(fsh_cpue_cl$std_cpue) * 0.1),
@@ -2060,11 +2276,23 @@ std_dat %>%
          bt_lower = exp(lower) - (mean(fsh_cpue_cl$std_cpue) * 0.1),
          bt_se = (bt_upper - bt_cpue) / 2  #,
          #bt_cv = bt_se/bt_cpue
-  ) -> std_dat
+  ) -> std_dat_log_occam
+
+std_dat_log %>% 
+  mutate(fit = pred_cpue_full$fit,
+         se = pred_cpue_full$se.fit,
+         upper = fit + (2 * se),
+         lower = fit - (2 * se),
+         bt_cpue = exp(fit) - (mean(fsh_cpue_cl$std_cpue) * 0.1),
+         bt_upper = exp(upper) - (mean(fsh_cpue_cl$std_cpue) * 0.1),
+         bt_lower = exp(lower) - (mean(fsh_cpue_cl$std_cpue) * 0.1),
+         bt_se = (bt_upper - bt_cpue) / 2  #,
+         #bt_cv = bt_se/bt_cpue
+  ) -> std_dat_log_full
 
 # Nominal CPUE ----
 
-fsh_cpue_cl %>% 
+fsh_cpue_lb_good %>% 
   group_by(year) %>% 
   dplyr::summarise(fsh_cpue = mean(std_cpue),
                    sd = sd(std_cpue),
@@ -2073,78 +2301,139 @@ fsh_cpue_cl %>%
                    var = var(std_cpue),
                    cv = sd / fsh_cpue,
                    upper = fsh_cpue + (2 * se),
-                   lower = fsh_cpue - (2 * se)) -> fsh_sum 
+                   lower = fsh_cpue - (2 * se)) -> fsh_sum_log 
 
 # Compare predicted cpue from gam to nominal cpue
-fsh_sum %>%
-  select(year, cpue = fsh_cpue, upper, lower) %>% 
-  mutate(CPUE = "Nominal") %>% 
-  bind_rows(std_dat %>% 
-              select(year, cpue = bt_cpue, upper = bt_upper, lower = bt_lower) %>% 
-              mutate(CPUE = "GAM")) %>% 
+fsh_sum_log %>%
+  dplyr::select(year, cpue = fsh_cpue, upper, lower) %>% 
+  mutate(CPUE = "Nominal", year = as.numeric(as.character(year))) %>% 
+  bind_rows(std_dat_log_occam %>% 
+              dplyr::select(year, cpue = bt_cpue, upper = bt_upper, lower = bt_lower) %>% 
+              mutate(CPUE = "Occam Standardization",
+                     year = as.numeric(as.character(year)))) %>% 
+  bind_rows(std_dat_log_full %>% 
+              dplyr::select(year, cpue = bt_cpue, upper = bt_upper, lower = bt_lower) %>% 
+              mutate(CPUE = "Fully Standardized",
+                     year = as.numeric(as.character(year)))) %>% 
   ggplot() +
   geom_ribbon(aes(year, ymin = lower, ymax = upper, fill = CPUE), 
-              colour = "white", alpha = 0.2) +
+              colour = NA, alpha = 0.2) +
   geom_point(aes(year, cpue, colour = CPUE, shape = CPUE), size = 2) +
   geom_line(aes(year, cpue, colour = CPUE, group = CPUE), size = 1) +
-  # scale_colour_grey(name = "Standardized CPUE") +
-  # scale_fill_grey(name = "Standardized CPUE") +
-  scale_colour_manual(values = c("darkcyan", "goldenrod"), name = "Standardized CPUE") +
-  scale_fill_manual(values = c("darkcyan", "goldenrod"), name = "Standardized CPUE") +
-  scale_shape_manual(values = c(19, 17), name = "Standardized CPUE") +
+  scale_color_viridis_d(option = "E", begin=0.2,end=0.8) +
+  scale_fill_viridis_d(option = "E", begin=0.2,end=0.8) +
+  scale_shape_manual(values = c(19, 17,18)) +
   #scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   labs(x = "", y = "Fishery CPUE (round lb/hook)\n") +
-  theme(legend.position = c(0.8, 0.2)) +
+  theme(legend.position = c(0.8, 0.2)) #+ 
+  #scale_x_discrete(breaks=c(1997:YEAR))
   expand_limits(y = 0)
 
-ggsave(paste0(YEAR+1,"/figures/compare_stdcpue_llfsh_", YEAR, ".png"), dpi=300, height=4, width=7, units="in")
+ggsave(paste0(YEAR+1,"/figures/compare_stdcpue_lllog_", YEAR, ".png"), dpi=300, height=4, width=7, units="in")
 
 #compare to the old methods... 
 
 old_cpue<-read_csv("2022/output/fshcpue_1997_2021_nominal_for_fut.csv", 
                    guess_max = 50000) 
 
-fsh_sum %>%
-  select(year, cpue = fsh_cpue, upper, lower) %>% 
-  mutate(CPUE = "Nominal") %>% 
-  bind_rows(std_dat %>% 
-              select(year, cpue = bt_cpue, upper = bt_upper, lower = bt_lower) %>% 
-              mutate(CPUE = "GAM")) %>% 
-  bind_rows(old_cpue %>% 
+fsh_sum_log %>%
+  dplyr::select(year, cpue = fsh_cpue, upper, lower) %>% 
+  mutate(CPUE = "Nominal", year = as.numeric(as.character(year))) %>% 
+  bind_rows(std_dat_log_occam %>% 
+              dplyr::select(year, cpue = bt_cpue, upper = bt_upper, lower = bt_lower) %>% 
+              mutate(CPUE = "Occam Standardization",
+                     year = as.numeric(as.character(year)))) %>% 
+  bind_rows(std_dat_log_full %>% 
+              dplyr::select(year, cpue = bt_cpue, upper = bt_upper, lower = bt_lower) %>% 
+              mutate(CPUE = "Fully Standardized",
+                     year = as.numeric(as.character(year)))) %>% 
+  bind_rows(old_cpue %>% mutate(year = as.factor(year)) %>%
               select(year, cpue = fsh_cpue, upper, lower) %>% 
-              mutate(CPUE = "Pre-2023 Nominal")) %>%
+              mutate(CPUE = "Pre-2023 Nominal",
+                     year = as.numeric(as.character(year)))) %>%
   ggplot() +
   geom_ribbon(aes(year, ymin = lower, ymax = upper, fill = CPUE), 
-              colour = "white", alpha = 0.2) +
+              colour = NA, alpha = 0.2) +
   geom_point(aes(year, cpue, colour = CPUE, shape = CPUE), size = 2) +
   geom_line(aes(year, cpue, colour = CPUE, group = CPUE), size = 1) +
   # scale_colour_grey(name = "Standardized CPUE") +
   # scale_fill_grey(name = "Standardized CPUE") +
-  scale_colour_manual(values = c("darkcyan", "goldenrod", "coral"), name = "Standardized CPUE") +
-  scale_fill_manual(values = c("darkcyan", "goldenrod", "coral"), name = "Standardized CPUE") +
-  scale_shape_manual(values = c(19, 17, 19), name = "Standardized CPUE") +
+  scale_color_viridis_d(option = "C", begin=0,end=0.85) +
+  scale_fill_viridis_d(option = "C", begin=0,end=0.85) +
+  scale_shape_manual(values = c(19, 17, 19, 18)) +
   #scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   labs(x = "", y = "Fishery CPUE (round lb/hook)\n") +
-  theme(legend.position = c(0.8, 0.2)) +
+  theme(legend.position = c(0.8, 0.2)) + ylim(0,1.2)
   expand_limits(y = 0)
 
-ggsave(paste0(YEAR+1,"/figures/compare_OLD_stdcpue_llfsh_", YEAR, ".png"), dpi=300, height=4, width=7, units="in")
+ggsave(paste0(YEAR+1,"/figures/compare_OLD_stdcpue_lllog_", YEAR, ".png"), dpi=300, height=4, width=7, units="in")
 
 # Percent change in fishery nominal cpue compared to a ten year rolling average
-fsh_sum %>% 
+fsh_sum_log %>% 
+  mutate(year = as.numeric(as.character(year))) %>% 
   filter(year > YEAR - 10) %>% 
   mutate(lt_mean = mean(fsh_cpue),
          perc_change_lt = (fsh_cpue - lt_mean) / lt_mean * 100) 
 
 # Percent change in fishery nominal cpue from last year
 #not relevant since no CPUE in 2020 due to stupid covid
-fsh_sum %>% 
+fsh_sum_log %>% 
+  mutate(year = as.numeric(as.character(year))) %>% 
   filter(year >= YEAR - 1) %>%
   select(year, fsh_cpue) %>% 
-  reshape2::dcast("fsh_cpue" ~ year) -> perc_ch
+  reshape2::dcast("fsh_cpue" ~ year) -> perc_ch_log
 
-names(perc_ch) <- c("cpue", "last_year", "this_year") 
-perc_ch %>% mutate(perc_change_ly = (`this_year` - `last_year`) / `last_year` * 100)
+names(perc_ch_log) <- c("cpue", "last_year", "this_year") 
+perc_ch_log %>% mutate(perc_change_ly = (`this_year` - `last_year`) / `last_year` * 100)
+
+std_dat_log_full %>% 
+  mutate(year = as.numeric(as.character(year))) %>% 
+  filter(year >= YEAR - 1) %>%
+  select(year, fsh_cpue = bt_cpue) %>% 
+  reshape2::dcast("fsh_cpue" ~ year) -> perc_ch_log_full
+
+names(perc_ch_log_full) <- c("cpue", "last_year", "this_year") 
+perc_ch_log_full %>% mutate(perc_change_ly = (`this_year` - `last_year`) / `last_year` * 100)
+
+#compare logbooks to fish tickets!
+
+fsh_sum_log %>%
+  dplyr::select(year, cpue = fsh_cpue, upper, lower) %>% 
+  mutate(CPUE = "Nominal", 
+         Source = "Logbooks",
+         year = as.numeric(as.character(year))) %>% 
+  bind_rows(fsh_sum %>% 
+              dplyr::select(year, cpue = fsh_cpue, upper = upper, lower = lower) %>% 
+              mutate(CPUE = "Nominal",
+                     Source = "Fish Tickets",
+                     year = as.numeric(as.character(year)))) %>%
+  bind_rows(std_dat %>% 
+              dplyr::select(year, cpue = bt_cpue, upper = bt_upper, lower = bt_lower) %>% 
+              mutate(CPUE = "Fully Standardized",
+                     Source = "Fish Tickets",
+                     year = as.numeric(as.character(year)))) %>%
+  bind_rows(std_dat_log_full %>% 
+              dplyr::select(year, cpue = bt_cpue, upper = bt_upper, lower = bt_lower) %>% 
+              mutate(CPUE = "Fully Standardized",
+                     Source = "Logbooks",
+                     year = as.numeric(as.character(year))))  %>%
+  ggplot() +
+  geom_ribbon(aes(year, ymin = lower, ymax = upper, fill = Source), 
+              colour = NA, alpha = 0.2) +
+  geom_point(aes(year, cpue, colour = Source, shape = Source), size = 2) +
+  geom_line(aes(year, cpue, colour = Source, group = Source), size = 1) +
+  facet_wrap(~ CPUE) +
+  # scale_fill_grey(name = "Standardized CPUE") +
+  scale_color_viridis_d(option = "C", begin=0.2,end=0.75) +
+  scale_fill_viridis_d(option = "C", begin=0.2,end=0.75) +
+  scale_shape_manual(values = c(19, 17, 19, 18)) +
+  #scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+  labs(x = "", y = "Fishery CPUE (round lb/hook)\n") +
+  theme(legend.position = c(0.8, 0.2)) + ylim(0,1.25)
+#expand_limits(y = 0)
+
+ggsave(paste0(YEAR+1,"/figures/compare_llcpue_LOG_vs_FTX_", YEAR, ".png"), dpi=300, height=5, width=8, units="in")
+
 
 # Historical CPUE ----
 
@@ -2170,10 +2459,11 @@ data.frame(year = 1980:1996,
          upper = hist_cpue+(2*se),
          lower = hist_cpue-(2*se),
          CPUE = "Nominal") %>% 
-  bind_rows(fsh_sum %>% mutate(CPUE = "Nominal") %>%
-              select(year, fsh_cpue, var, se, upper, lower, CPUE)) %>% 
+  bind_rows(fsh_sum_log %>% mutate(CPUE = "Nominal") %>%
+              select(year, fsh_cpue, var, se, upper, lower, CPUE) %>%
+              mutate(year = as.numeric(as.character(year)))) %>% 
   mutate(cpue = round(fsh_cpue, 3),
-         var = round(var, 3)) -> nom_cpue_ts
+         var = round(var, 3)) -> nom_cpue_log_ts
 
 data.frame(year = 1980:1996,
            fsh_cpue = hist_cpue) %>% 
@@ -2181,21 +2471,22 @@ data.frame(year = 1980:1996,
          se = mean(std_dat$bt_se),
          upper = hist_cpue+(2*se),
          lower = hist_cpue-(2*se),
-         CPUE = "GAM") %>% 
-  bind_rows(std_dat %>% 
+         CPUE = "Nominal") %>% 
+  bind_rows(std_dat_log_full %>% 
               mutate(var = sqrt(bt_se)) %>% 
               select(year, fsh_cpue = bt_cpue, se = bt_se, var,
                      upper = bt_upper, lower = bt_lower) %>% 
-              mutate(CPUE = "GAM")) %>% 
+              mutate(CPUE = "Fully Standardized",
+                     year = as.numeric(as.character(year)))) %>% 
   mutate(cpue = round(fsh_cpue, 3),
-         var = round(var, 3)) %>% data.frame() -> m12_cpue_ts
+         var = round(var, 3)) %>% data.frame() -> log_full_cpue_ts
 
-cpue_ts_multi<-rbind(nom_cpue_ts,m12_cpue_ts)
+cpue_ts_log<-rbind(nom_cpue_log_ts,log_full_cpue_ts %>% filter(year>1996))
 
 cpue_ts_short <- nom_cpue_ts %>% 
   filter(year >= 1997)
 
-ggplot(nom_cpue_ts) +
+ggplot(nom_cpue_log_ts) +
   geom_point(aes(year, cpue)) +
   geom_line(aes(year, cpue)) +
   geom_ribbon(aes(year, ymin = cpue - sqrt(var), ymax = cpue + sqrt(var)),
@@ -2211,10 +2502,10 @@ ggplot(nom_cpue_ts) +
 #NOTE2022: much more variance in data now... could easily run a straight line
 # through error polygon = lack of information in this data!!! 
 
-ggsave(paste0(YEAR+1,"/figures/ll_cpue_nom_1980_", YEAR, ".png"),
+ggsave(paste0(YEAR+1,"/figures/ll_cpue_log_nom_1980_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
 
-ggplot(cpue_ts_multi) +
+ggplot(cpue_ts_log) +
   geom_point(aes(year, cpue, col = CPUE)) +
   geom_line(aes(year, cpue, col=CPUE)) +
   geom_ribbon(aes(year, ymin = cpue - sqrt(var), ymax = cpue + sqrt(var), fill = CPUE),
@@ -2222,24 +2513,28 @@ ggplot(cpue_ts_multi) +
   geom_ribbon(aes(year, ymin = lower, ymax = upper, fill = CPUE),
               # geom_ribbon(aes(year, ymin = cpue - var, ymax = cpue + var),
               alpha = 0.4) +
-  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  #lims(y = c(0, 1.5)) +
-  #lims(y = c(-0.5, 1.5)) +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") 
 
 #NOTE2022: much more variance in data now... could easily run a straight line
 # through error polygon = lack of information in this data!!! 
 
-ggsave(paste0(YEAR+1,"/figures/ll_cpue_nom_m12_1980_", YEAR, ".png"),
+ggsave(paste0(YEAR+1,"/figures/ll_cpue__log_fullstand_1980_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
+
+#compare logbooks to fish tickets!
+
+
+
 # Write to file
-write_csv(nom_cpue_ts, paste0(YEAR+1,"/output/ll_cpue_nom_", min(nom_cpue_ts$year), "_", YEAR, ".csv"))
+write_csv(nom_cpue_log_ts, paste0(YEAR+1,"/output/ll_cpue_log_nom_", 
+                                  min(nom_cpue_log_ts$year), "_", YEAR, ".csv"))
 
-m12_cpue_ts<-as.matrix(m12_cpue_ts)
-m12_cpue_ts[,c(1,2,3,4,5,6,8)]<-as.numeric(m12_cpue_ts[,c(1,2,3,4,5,6,8)])
-m12_cpue_ts<-as.data.frame(m12_cpue_ts)
+log_full_cpue_ts<-as.matrix(log_full_cpue_ts)
+log_full_cpue_ts[,c(1,2,3,4,5,6,8)]<-as.numeric(log_full_cpue_ts[,c(1,2,3,4,5,6,8)])
+log_full_cpue_ts<-as.data.frame(log_full_cpue_ts)
 
-write_csv(m12_cpue_ts, paste0(YEAR+1,"/output/ll_cpue_m12_", min(nom_cpue_ts$year), "_", YEAR, ".csv"))
+write_csv(log_full_cpue_ts, paste0(YEAR+1,"/output/ll_cpue_log_fullstand_", 
+                                   min(log_full_cpue_ts$year), "_", YEAR, ".csv"))
 
 #=================================================================================
 
