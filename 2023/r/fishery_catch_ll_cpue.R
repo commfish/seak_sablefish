@@ -1361,7 +1361,6 @@ test %>% group_by(year, sell_date, Adfg, Stat, set_no) %>%
                                         "CPUE underestimated",
                                         "good")),
          
-         #log_data = "fuckitfornow",
          log_data_form = ifelse(length(unique(is.na(logged_no))) > 1,
                                 "mixed",
                                 ifelse(unique(is.na(logged_no)),"lbs","nos")),

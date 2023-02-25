@@ -677,9 +677,13 @@ as.data.frame(head(Sable_ll_CPUE %>% filter (Depredation == "Orca"),10)) }
 ##* POT CPUE
 ##* *****************************************************************************
 #################################################################################
-
+#library(strex)
 # Pot gear configuration looks MUCH EASIER than longline configurations!!! Hallelujah!
 # can skip to step 6 equivalent of longline logbook shitshow...
+#0) check on pot types and dimensions.  In 2023 each boat fished one size pot.  This
+#   is likely to be an evolving situation as the fleet transitions.
+unique(pot_log$Pot.Dimensions); table(pot_log$Pot.Dimensions)
+
 #1) #Separate out multiple tickets
 pot_log <- separate_rows(pot_log,"All.Tickets",sep=", ") 
 
@@ -693,7 +697,15 @@ pot_log <- pot_log %>% mutate(Ticket_subref = str_remove(str_sub(All.Tickets,nch
 pot_log <- pot_log %>% group_by(All.Tickets, Year, ADFG.Number, Groundfish.Stat.Area) %>%
   mutate(set.count = n_distinct(Effort.Number))%>% ungroup()
 
-# 4) A little light cleaning...
+# 4) separate out the pot dimensions and calculate pot volume when possible... 
+pot_log <-pot_log %>% mutate(pot_data_status = ifelse(grepl("x", Pot.Dimensions, fixed = TRUE),
+                                              "rad_x_length","unconforming"),
+                             Pot.Dimensions.raw = Pot.Dimensions) %>%
+  extract(Pot.Dimensions, c("pot_diam", "pot_len"), "([\\d.]+)[^\\d.]+([\\d.]+)", convert = TRUE) %>%
+  mutate(Pot_Volume_m3 = 0.00001639*pi*pot_len*((0.5*pot_diam)^2)) ##!! assuming pot dimensions are in inches and converted here to cubic meters... 
+#histogram(pot_log$Pot_Volume_m3)
+
+# 5) A little light cleaning...
 
 pot_log <-pot_log %>% 
   mutate(set_length_km = 1.609344*Set.Length..mi.,
@@ -704,11 +716,11 @@ pot_log <-pot_log %>%
          Numbers_log = Numbers) %>%
   select(-All.Tickets,-Pounds,-Species,-Numbers)
 
-# 5) Separate the logbook data out by halibut and sablefish
+# 6) Separate the logbook data out by halibut and sablefish
 hal_pot_log<-pot_log %>% filter(Species_log == "Halibut")
 sable_pot_log <- pot_log %>% filter(Species_log == "Sablefish")
 
-# 6) Separate the fish tickets out by fishery
+# 7) Separate the fish tickets out by fishery
 pot_ftx<-ftx %>% filter(Harvest.Code != 43,
                         Gear.Name == "Pot") %>% #get rid of survey fishtickets... 
   mutate(Ticket_subref = str_remove(str_sub(Sequential.Number,nchar(Sequential.Number)-2,nchar(Sequential.Number)), "^0+"),
@@ -721,7 +733,7 @@ unique(ftx$Fishery.Name)  #FLAG!!! There is no sablefish pot gear in fishery nam
 hal_pot_ftx<-pot_ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[2:4])
 sable_pot_ftx<-pot_ftx %>% filter(Fishery.Name %in% unique(ftx$Fishery.Name)[1])
 
-# 7) Join the sablefish fishticket and logbook data! 
+# 8) Join the sablefish fishticket and logbook data! 
 
 #   7.Step1: Join using sell and landing date
 for_pot_CPUE<-full_join(sable_pot_log, pot_ftx, by = c("Year", "ADFG.Number" = "ADFG",
