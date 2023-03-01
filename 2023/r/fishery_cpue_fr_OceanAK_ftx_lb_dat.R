@@ -202,6 +202,8 @@ ll_log <- ll_log %>% group_by(Ticket, Year, ADFG.Number, Groundfish.Stat.Area) %
 hps<-max(stringr::str_count(ll_log$hooks_per_skate1, ","),na.rm=T)+1 #<-separate out multiple hooks-per-skate 
 hs<-max(stringr::str_count(ll_log$hook_size1, ","),na.rm=T)+1
 hspacing<-max(stringr::str_count(ll_log$spacing1, ","),na.rm=T)+1
+unique(ll_log$num_of_skates1)
+unique(ll_log$num_of_hooks1)
 
 ll_log <-ll_log %>% 
   mutate(hps_orig = hooks_per_skate1,
@@ -383,6 +385,7 @@ for_ll_CPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Eff
   mutate(uniques = n(),
          partial_soak_time = soak_time_hrs/n(),
          partial_km_fished = set_length_km/n(),
+         partial_skate_count = as.numeric(num_of_skates1)/n(),
          partial_hook_count_exact = as.numeric(num_of_hooks1_exact)/n(),
          partial_hook_count_est = as.numeric(num_of_hooks1_est)/n(),
          partial_hook_count_best_available = as.numeric(num_hooks_cpue)/n(),
@@ -428,6 +431,8 @@ for_ll_CPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Eff
          total_hooks_all = sum(partial_hook_count_best_available),
          total_hooks_exact2 = sum(partial_hook_count2),
          
+         total_skate_count = sum(partial_skate_count),
+         
          lbs_p_set = sum(unique(catch))/set.count,
          lbs_p_set_km = sum(unique(catch))/set.count/total_km_fished,
          lbs_p_set_hr = sum(unique(catch))/set.count/total_soak_time,
@@ -453,6 +458,8 @@ for_ll_CPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Eff
          lbs_p_hk_hr_exact2 = sum(unique(catch))/total_hooks_exact2/total_soak_time,
          lbs_p_hk_km_hr_exact2 = sum(unique(catch))/total_hooks_exact2/total_km_fished/total_soak_time,
   ) -> Sable_ll_CPUE 
+
+nrow(Sable_ll_CPUE); nrow(unique(Sable_ll_CPUE))
 
  unique(Sable_ll_CPUE$partial_depr_count)
 colnames(Sable_ll_CPUE)
@@ -683,7 +690,7 @@ as.data.frame(head(Sable_ll_CPUE %>% filter (Depredation == "Orca"),10)) }
 #0) check on pot types and dimensions.  In 2023 each boat fished one size pot.  This
 #   is likely to be an evolving situation as the fleet transitions.
 unique(pot_log$Pot.Dimensions); table(pot_log$Pot.Dimensions)
-
+colnames(pot_log)
 #1) #Separate out multiple tickets
 pot_log <- separate_rows(pot_log,"All.Tickets",sep=", ") 
 
@@ -865,6 +872,9 @@ for_pot_CPUE %>% group_by(Year, ADFG.Number, Sell.Date, Groundfish.Stat.Area, Ef
          
   ) -> Sable_pot_CPUE  #don't change! This attaches to joined
 
+nrow(Sable_pot_CPUE); nrow(unique(Sable_pot_CPUE))
+
+colnames(Sable_pot_CPUE)
 #Quick look
 QL<- Sable_pot_CPUE %>% select(Ticket_subref_log,Ticket_subref_ftx,
                            uniques,Year, Species_log, Species_tx = Species.Name,
@@ -1049,7 +1059,7 @@ Sable_pot_CPUE %>%
                                  "pot_&_ll_trip","pot_trip")) %>%
   data.frame() %>%
   filter(!is.na(Effort.Number)) -> Sable_pot_CPUE
-
+nrow(Sable_pot_CPUE); nrow(unique(Sable_pot_CPUE)) 
 ################################################################################
 ### SAVE the DATA for ANALYSIS!!!! 
 # 15) Save the raw data a

@@ -9,12 +9,16 @@
 # R version 4.0.2 (2020-06-22) 
 # Platform: x86_64-w64-mingw32/x64 (64-bit)
 
-# There are two 0_ scripts: This one is used if data is queried externally
-# from R. It (should) produce the same files in the same locations. Queries
-# stored in seak_sablefish/sql/chatham_sablefish_queries_20210121.sql (these are
-# the same (or very similar) to the queries in 0_querynclean_data.R). The few
-# differences between the queries include some sql joins to simplify the
-# queries.
+# In 2022 and 2023 we moved to querying data directly from OceanAK.  In 2022 I (phil)
+# reworked code and was provided the data by Justin Dailt and based on Jane's querries.
+# In 2023 Justin set up the OceanAK querries so that the user (me) has 
+# access and can modify (update year) and download.  This should vastly speed up
+# this whole process.  
+
+# OceanAK: Chatham Sablefish Assessment
+# https://oceanak.dfg.alaska.local/analytics/saw.dll?Dashboard&PortalPath=%2Fshared%2FCommercial%20Fisheries%2FRegion%20I%2FGroundFish%2FUser%20Reports%2FQueries%20for%20Chatham%20Sablefish%20Assessment%2FDDR%2FChatham%20Sablefish%20Assessment&page=page%201
+# This will match up with data pulls for every section below EXCEPT #2 which we
+# developed our own OceanAK querry and script to deal with.  See details below.
 
 # Note 20210127: I had to modify code to bring date/time fields in, i.e.
 # ymd(parse_date_time(CATCH_DATE, c("%m/%d/%Y %H:%M:%S %p"))). If this ever
@@ -44,53 +48,28 @@ source("r_helper/functions.r")
 # Harvest from IFDB - what managers are using. This only includes directed NSEI
 # harvest (harvest_code = 43 is test fish)
 
-#JANE's CODE
-{
-read_csv(paste0("data/fishery/raw_data/nseiharvest_ifdb_",
-                YEAR, ".csv"), 
-         guess_max = 500000) %>% 
-  mutate(date = ymd(parse_date_time(CATCH_DATE, c("%m/%d/%Y %H:%M:%S %p"))), #ISO 8601 format
-         julian_day = yday(date),
-         sell_date = ymd(parse_date_time(SELL_DATE, c("%m/%d/%Y %H:%M:%S %p"))), #ISO 8601 format
-         # BEWARE: Landings are always entered as POUNDS and then converted to
-         # WHOLE_POUNDS using a conversion factor related to the disposition code.
-         # Prior to 1985 there was no disposition code for landings, which is why
-         # WHOLE_POUNDS is not populated prior to 1985. Here we assume fish were
-         # delivered whole prior to 1985, because that's the best we have.
-         whole_pounds = ifelse(ROUND_POUNDS == 0, POUNDS, ROUND_POUNDS)) %>% 
-  select(year = ï..YEAR, #YEAR, 
-         date, julian_day, Mgmt_area = G_MANAGEMENT_AREA_CODE, Stat = G_STAT_AREA,
-         Adfg = ADFG_NO, trip_no = TRIP_NO, sell_date, Vessel = VESSEL_NAME, Port = PORT_CODE,  
-         Cfec_permit = G_CFEC_FISHERY, Delivery_cde = DELIVERY_CODE, 
-         Harvest = HARVEST, Harvest_cde = HARVEST_CODE, Spp_cde = SPECIES_CODE, 
-         whole_pounds, 
-         pounds = POUNDS) %>% 
-  mutate(Stat = as.character(Stat),
-         Harvest_cde = as.character(Harvest_cde)) -> ifdb_catch
-}
-#PHIL's CODE 2021
-Dat<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/nseiharvest_ifdb_",
-                     YEAR, ".csv"))
-ifdb_catch<-Dat %>% 
+read.csv(paste0(YEAR+1,"/data/fishery/raw_data/nseiharvest_ifdb_",
+                     YEAR, ".csv")) %>%
+#str(Dat)
+#ifdb_catch<-Dat %>% 
   mutate(date = ymd(parse_date_time(CATCH_DATE, c("%Y-%m-%d %H:%M:%S"))), #ISO 8601 format
          julian_day = yday(date),
          sell_date = ymd(parse_date_time(SELL_DATE, c("%Y-%m-%d %H:%M:%S"))),
          whole_pounds = ifelse(ROUND_POUNDS == 0, POUNDS, ROUND_POUNDS)) %>% 
-  select(year = ï..YEAR, date, julian_day, Mgmt_area = G_MANAGEMENT_AREA_CODE, Stat = G_STAT_AREA,
+  select(year = YEAR, date, julian_day, Mgmt_area = G_MANAGEMENT_AREA_CODE, Stat = G_STAT_AREA,
          Adfg = ADFG_NO, trip_no = TRIP_NO, sell_date, Vessel = VESSEL_NAME, Port = PORT_CODE,  
          Cfec_permit = G_CFEC_FISHERY, Delivery_cde = DELIVERY_CODE, 
          Harvest = HARVEST, Harvest_cde = HARVEST_CODE, Spp_cde = SPECIES_CODE, 
          whole_pounds, pounds = POUNDS) %>% 
   mutate(Stat = as.character(Stat),
-         Harvest_cde = as.character(Harvest_cde))
+         Harvest_cde = as.character(Harvest_cde),
+         Adfg = as.character(Adfg),
+         Delivery_cde = as.character(Delivery_cde)) -> ifdb_catch
 
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
-read_csv(paste0("legacy_data/data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"),
+read_csv(paste0("legacy_data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"),
          guess_max = 50000) -> past_catch
-#PJ patch2021
-ifdb_catch$Adfg<-as.character(ifdb_catch$Adfg)
-ifdb_catch$Delivery_cde<-as.character(ifdb_catch$Delivery_cde)
 
 bind_rows(past_catch, ifdb_catch) -> ifdb_catch
 unique(ifdb_catch$year)
@@ -98,7 +77,7 @@ unique(ifdb_catch$year)
 write_csv(ifdb_catch, paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_",
                              min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
 
-write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
+write_csv(ifdb_catch, paste0("legacy_data/fishery/nseiharvest_ifdb_",
                              min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
 
 # only use this for year >= 1985 (see fishery_catch_cpue.R for more documentation)
@@ -106,7 +85,7 @@ ifdb_catch <- ifdb_catch %>% filter(year >= 1985)
 write_csv(ifdb_catch, paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_",
                              min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
 
-write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
+write_csv(ifdb_catch, paste0("legacy_data/fishery/nseiharvest_ifdb_",
                              min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
 
 #======================================================================================
@@ -143,10 +122,7 @@ write_csv(ifdb_catch, paste0("legacy_data/data/fishery/nseiharvest_ifdb_",
 
  read_csv(paste0("legacy_data/fishery/raw_data/fishery_ll_cpue_vers23_1997-",
                  YEAR,".csv",sep=""), 
-                guess_max = 50000) -> ugh # %>% 
-#colnames(ugh)
-length(is.na(ugh$num_of_hooks1))
-
+                guess_max = 50000) %>% #nrow(unique(ugh))
    mutate(year = Year,
           set_date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"), #ISO 8601 format
           sell_date = as.Date(Sell.Date, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"),
@@ -176,6 +152,8 @@ length(is.na(ugh$num_of_hooks1))
           no_hooks_est = total_hooks_est,
           no_hooks_p_set = total_hooks_all/set.count,
           
+          no_skates_fished_on_trip = total_skate_count,
+          
           #secondary configuration
           hook_size_2 = as.character(hook_size2), 
           hook_space_2 = spacing2, #*FLAG* - check that hook_space is in inches
@@ -200,6 +178,9 @@ length(is.na(ugh$num_of_hooks1))
           no_hooks_fished_on_trip, no_hooks_exact, no_hooks_est,
           no_hooks_p_set,
           hook_size_2, hook_space_2, size_2, no_hooks_2,
+          no_skates_fished_on_trip,
+          #no_skates_exact = num_of_skates1,
+          #no_skates_est = num_of_skates1_calc,
           Stat = Groundfish.Stat.Area, 
           
           set_depth = avg_set_depth_m,
@@ -232,6 +213,8 @@ length(is.na(ugh$num_of_hooks1))
           trip_target = Trip.Primary.Target.Species,
           trip_target_2 = Trip.Secondary.Target.Species) -> ll_eff
 
+ll_eff<-unique(ll_eff)
+
  #note some of the dat time stuff will have warnings because of incomplete data
  # will have to deal with NA's in analysis
  
@@ -256,47 +239,61 @@ head(ll_eff)
  read_csv(paste0("legacy_data/fishery/raw_data/fishery_pot_cpue_vers23_2022-",
                  YEAR,".csv",sep=""), 
           guess_max = 50000) %>% 
-   mutate(year = Year,
+    mutate(year = Year,
+           set_date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"), #ISO 8601 format
+           sell_date = as.Date(Sell.Date, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"),
+           julian_day_set = yday(set_date),
+           julian_day_sell = yday(sell_date),
+           tm_hauled = parse_date_time(Time.Hauled, c("%Y-%m-%d %H:%M:%S")),
+           t_set = parse_date_time(Time.Set, c("%Y-%m-%d %H:%M:%S")),
         date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"), #ISO 8601 format
-        julian_day = yday(date),
+        #julian_day = yday(date),
         tm_hauled = parse_date_time(Time.Hauled, c("%Y-%m-%d %H:%M:%S")),
         t_set = parse_date_time(Time.Set, c("%Y-%m-%d %H:%M:%S")),
+        
         set_soak = soak_time_hrs,
         set_length = set_length_km,
         
-        avg_depth_m = 1.8288*Average.Depth.Fathoms,
-        
+        #avg_depth_m = 1.8288*Average.Depth.Fathoms,
+        avg_set_depth_m = 1.8288*Average.Depth.Fathoms,
+        avg_trip_depth_m = 1.8288*mean_trip_depth_fm,
         #gear = factor(Longline.System.Code),
         gear_name = factor(Gear),
         
         #primary configuration
         pot_space = 0.3048*Pot.Spacing.Feet,  #(convert to meters)
         line_diam = 2.54*Groundline.Diameter.Inches, # (convert to cm)
-        pot_dim = factor(Pot.Dimensions),
+        pot_dim = factor(Pot.Dimensions.raw),
         pot_type = factor(Pot.Type),
         
-        no_pots = total_pots,
+        no_pots_fished_on_trip = total_pots,
+        no_pots_p_set = total_pots/set.count,
         
         sable_lbs_set = lbs_p_set,
         sable_lbs_pot = lbs_p_pot) %>% 
-   select(year, 
+   select(year, sell_date, set_date, julian_day_set, julian_day_sell,
           trip_no = Trip.Number.log,  #or Trip.Number_ftx?? 
           Adfg = ADFG.Number, 
-          Spp_cde = Trip.Target.Species.Code, date, julian_day, 
+          Spp_cde = Trip.Target.Species.Code, #date, #julian_day, 
           set_soak, trip_soak = total_soak_time,
           set_length, total_km_fished, 
           #gear, 
-          gear_name,
+          gear_name, pot_data = pot_data_status,
           pot_space, line_diam, pot_dim, pot_type, 
+          pot_len, pot_diam, pot_volume_m3 = Pot_Volume_m3,
+          no_pots_fished_on_trip,
+          no_pots_p_set,
           Stat = Groundfish.Stat.Area, 
-          depth = avg_depth_m, 
+          set_depth = avg_set_depth_m,
+          trip_depth = avg_trip_depth_m,
           set_no = Effort.Number, 
           no_sets = set.count, 
           multigear_trip,
           trip_set_targets, trip_recorded_releases,  
           disposition = Disposition, # depredation = Depredation, 
           catch,
-          
+          logged_no = Numbers_log, 
+          logged_lbs = Pounds_log,
           sable_lbs_set, sable_lbs_pot, 
           lbs_p_set_km, lbs_p_set_hr, lbs_p_set_km_hr, 
           lbs_p_pot, lbs_p_pot_km,lbs_p_pot_hr,                        
@@ -307,12 +304,11 @@ head(ll_eff)
           set_target = Effort.Primary.Target.Species,
           trip_target = Trip.Target.Species) -> pot_eff
  
-#Get new data from "this" year and add
- #read.csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_CPUE_", YEAR, ".csv")) -> new_fish_cpue
+ nrow(pot_eff)
+ nrow(unique(pot_eff))
  
- #bind the old and new... 
- #bind_rows(fsh_eff_new22, new_fish_cpue) -> fsh_eff_thru_now
- 
+pot_eff<-unique(pot_eff)
+
  #save for 2023 assessment...
  write_csv(pot_eff, paste0(YEAR+1,"/data/fishery/fishery_pot_cpue_",
                                  min(pot_eff$year), "_", max(pot_eff$year), ".csv"))
@@ -330,35 +326,16 @@ head(ll_eff)
 # codes > 3. I repulled all the data in 2019. Kevin McNeel (Age Determination
 # Unit) 20190116: only code 1-3 should be used for analyses (see Issue #33)
 
-#JANES' Code: 
-{
-read_csv(paste0("data/fishery/raw_data/fishery_bio_", 
-                YEAR, ".csv"), 
-         guess_max = 50000) %>% 
-  mutate(date = ymd(parse_date_time(SELL_DATE, c("%m/%d/%Y %H:%M:%S %p"))), #ISO 8601 format
-         julian_day = yday(date),
-         Sex = derivedFactor("Male" = SEX_CODE == "01",
-                             "Female" = SEX_CODE == "02",
-                             .default = NA),
-         Maturity = derivedFactor("0" = MATURITY_CODE %in% c("01", "02"), 
-                                  "1" = MATURITY_CODE %in% c("03", "04", "05", "06", "07"),
-                                  .default = NA),
-         Gear = derivedFactor("Pot" = PROJECT_CODE == "17",
-                              "Longline" = PROJECT_CODE == "02")) %>% 
-  select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, 
-         Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
-         Stat = G_STAT_AREA, Mgmt_area = G_MANAGEMENT_AREA_CODE,
-         Sample_type = SAMPLE_TYPE, Spp_cde = SPECIES_CODE, 
-         length = LENGTH, weight = WEIGHT_KILOGRAMS,
-         age = AGE, Sex, Maturity) %>% 
-  mutate(Adfg = as.character(Adfg)) -> fsh_bio
-}
-#PHIL's code:
-##also stupid dates... had to go about it a bit different;y
+##also stupid dates... had to go about it a bit differently
+# OceanAK current stupidery is that exporting the file to a csv imprints a UTC time
+# stamp on the date and so it thinks its in another time zone.  "Lie" to R and use
+# UTC.  
+
 read_csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_bio_", 
                 YEAR, ".csv"), 
          guess_max = 50000) %>% 
-  mutate(date = as.Date(format(parse_date_time(SELL_DATE, c("%m/%d/%Y %H:%M")),"%Y-%m-%d")), #ISO 8601 format
+  mutate(#date = as.Date(format(parse_date_time(SELL_DATE, c("%m/%d/%Y %H:%M")),"%Y-%m-%d")), #ISO 8601 format
+         date = as.Date(SELL_DATE, c("%Y-%m-%d"), tz="UTC"), #, tz="America/Anchorage"),
          julian_day = yday(date),
          Sex = derivedFactor("Male" = SEX_CODE == "1",#"01",
                              "Female" = SEX_CODE == "2",#"02",
@@ -376,19 +353,18 @@ read_csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_bio_",
          Sample_type = SAMPLE_TYPE, Spp_cde = SPECIES_CODE, 
          length = LENGTH, weight = WEIGHT_KILOGRAMS,
          age = AGE, Sex, Maturity) %>%   #note; Jane not factoring gear into this piece of data... 
-  mutate(Adfg = as.character(Adfg)) -> fsh_bio
+  mutate(Adfg = as.character(Adfg),
+         Sex = as.character(Sex),
+         Maturity = as.character(Maturity),
+         Project_cde = as.character(Project_cde)) -> fsh_bio
 
-unique(fsh_bio$Sex)
-unique(fsh_bio$Project_cde)
-#fsh_bio$date<-as.Date(fsh_bio$date)
-fsh_bio$Sex<-as.character(fsh_bio$Sex)
-fsh_bio$Maturity<-as.character(fsh_bio$Maturity)
-fsh_bio$Project_cde<-as.character(fsh_bio$Project_cde)
-
+oi$SELL_DATE[1]  
+as.Date(oi$SELL_DATE[1], c("%Y-%m-%d"), tz="America/Anchorage") 
+as.Date(oi$SELL_DATE[1], c("%Y-%m-%d"), tz="UTC")
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017). This was updated again in 2019 due to the
 # age readability code issue.
-read_csv(paste0("legacy_data/data/fishery/fishery_bio_2000_", YEAR-1, ".csv"), 
+read_csv(paste0("legacy_data/fishery/fishery_bio_2000_", YEAR-1, ".csv"), 
          guess_max = 50000) %>% 
   mutate(Maturity = as.character(Maturity)) -> past_fsh_bio
 
@@ -396,7 +372,7 @@ bind_rows(past_fsh_bio, fsh_bio) -> fsh_bio
 
 write_csv(fsh_bio, paste0(YEAR+1,"/data/fishery/fishery_bio_", 
                           min(fsh_bio$year), "_", max(fsh_bio$year), ".csv"))
-write_csv(fsh_bio, paste0("legacy_data/data/fishery/fishery_bio_", 
+write_csv(fsh_bio, paste0("legacy_data/fishery/fishery_bio_", 
                           min(fsh_bio$year), "_", max(fsh_bio$year), ".csv"))
 
 #======================================================================================
@@ -429,35 +405,7 @@ write_csv(fsh_bio, paste0("legacy_data/data/fishery/fishery_bio_",
 # number_hooks, bare, bait, invalid, sablefish, 
 # subset_condition_code, trip_comments, trip_design_comment, effort_comment, subset_comments
 
-#JANE's 2020 CODE
-{
-read_csv(paste0("data/survey/raw_data/llsrv_cpue_v2_1985_",
-                          YEAR, ".csv"), 
-         guess_max = 50000) %>% 
-  filter(YEAR <= YEAR) %>%
-  mutate(date = ymd(as.Date(parse_date_time(TIME_SECOND_ANCHOR_OVERBOARD, c("%m/%d/%y %H:%M:%S %p")))), #ISO 8601 format
-         julian_day = yday(date),
-         time1 = ymd_hms(parse_date_time(TIME_FIRST_ANCHOR_ONBOARD, c("%m/%d/%y %H:%M:%S %p"))),
-         time2 = ymd_hms(parse_date_time(TIME_SECOND_ANCHOR_OVERBOARD, c("%m/%d/%y %H:%M:%S %p"))),
-         soak = difftime(time1, time2,
-                         units = "hours"),
-         slope = abs(START_DEPTH_FATHOMS - END_DEPTH_FATHOMS) * 1.8288, # slope of the set
-         depth = AVG_DEPTH_FATHOMS * 1.8288) %>% # depth in meters
-  select(year = YEAR, Project_cde = PROJECT_CODE, Adfg = ADFG_NO, Vessel = VESSEL_NAME, 
-         Station_no = STATION_NO, trip_no = TRIP_NO, set = EFFORT_NO, skate = SUBSET_NO,
-         date, julian_day, soak, depth, slope,
-         Stat = G_STAT_AREA, area_description = AREA_DESCRIPTION,
-         start_lat = START_LATITUDE_DECIMAL_DEGREES, start_lon = START_LONGITUDE_DECIMAL_DEGREE, 
-         end_lat = END_LATITUDE_DECIMAL_DEGREES, end_lon = END_LONGITUDE_DECIMAL_DEGREES,
-         skate_condition_cde = SUBSET_CONDITION_CODE, bait_cde = BAIT_CODE, 
-         trip_comments = TRIP_COMMENTS, set_comments = EFFORT_COMMENT, skate_comments = SUBSET_COMMENTS,
-         no_hooks = NUMBER_HOOKS, bare = BARE, bait = BAIT, invalid = INVALID, 
-         sablefish = SABLEFISH, halibut = HALIBUT, idiot = IDIOT, 
-         shortraker = SHORTRAKER, rougheye = ROUGHEYE, skate_general = SKATE_GENERAL,
-         longnose_skate = SKATE_LONGNOSE, big_skate = SKATE_BIG, sleeper_shark = SLEEPER_SHARK) -> srv_eff
-}
-#PHIL's 2021 CODE
-read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_cpue_v2_1985_",
+read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_cpue_1985_",
                 YEAR, ".csv"), 
          guess_max = 50000) %>% 
   filter(YEAR <= YEAR) %>%
@@ -482,11 +430,14 @@ read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_cpue_v2_1985_",
          shortraker = SHORTRAKER, rougheye = ROUGHEYE, skate_general = SKATE_GENERAL,
          longnose_skate = SKATE_LONGNOSE, big_skate = SKATE_BIG, sleeper_shark = SLEEPER_SHARK) -> srv_eff
 
-write_csv(srv_eff, paste0(YEAR+1,"/data/survey/llsrv_cpue_v2_", min(srv_eff$year), "_",
+str(srv_eff)
+
+write_csv(srv_eff, paste0(YEAR+1,"/data/survey/llsrv_cpue_", min(srv_eff$year), "_",
                           max(srv_eff$year), ".csv"))
 #write_csv(srv_eff, paste0("legacy_data/data/survey/llsrv_cpue_v2_", min(srv_eff$year), "_",
 #                          max(srv_eff$year), ".csv"))
-write_csv(srv_eff, paste0("legacy_data/data/survey/llsrv_cpue_v2_thru_latest.csv"))
+write_csv(srv_eff, paste0("legacy_data/survey/llsrv_cpue_", min(srv_eff$year), "_",
+                          max(srv_eff$year), ".csv"))
 
 #=======================================================================================
 # 5. Longline survey catch ----
@@ -509,11 +460,12 @@ read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_by_condition_1988_", YEAR, "
          julian_day, Stat = STAT, Spp_cde = SPECIES_CODE, 
          set = EFFORT_NO, no_hooks = NUMBER_HOOKS, hooks_bare = BARE,
          hooks_bait = BAIT, hook_invalid = INVALID, hooks_sablefish = NUMBERS,
-         discard_status_cde = DISCARD_STATUS_CODE, discard_status = DISCARD_STATUS) -> srv_eff
+         discard_status_cde = DISCARD_STATUS_CODE, discard_status = DISCARD_STATUS) -> srv_ctc
 
-write_csv(srv_eff, paste0(YEAR+1,"/data/survey/llsrv_by_condition_",
+write_csv(srv_ctc, paste0(YEAR+1,"/data/survey/llsrv_by_condition_",
                           min(srv_eff$year), "_", YEAR, ".csv"))
-write_csv(srv_eff, paste0(YEAR+1,"/data/survey/llsrv_by_condition_thru_latest.csv"))
+write_csv(srv_ctc, paste0("legacy_data/survey/llsrv_by_condition_", min(srv_ctc$year), "_",
+                          max(srv_ctc$year), ".csv"))
 
 #==============================================================================================
 # 6. Longline survey biological ----
@@ -549,7 +501,7 @@ read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_bio_",
          age_readability = AGE_READABILITY_CODE, otolith_condition = OTOLITH_CONDITION_CODE )  %>% 
   filter(Mgmt_area == 'NSEI') -> srv_bio
 
-read_csv(paste0("legacy_data/data/survey/llsrv_bio_1988_", YEAR-1, ".csv"), 
+read_csv(paste0("legacy_data/survey/llsrv_bio_1988_", YEAR-1, ".csv"), 
          guess_max = 50000) %>% 
   mutate(Maturity = as.character(Maturity)) -> past_srv_bio
 
@@ -557,7 +509,7 @@ bind_rows(past_srv_bio, srv_bio) -> srv_bio
 
 write_csv(srv_bio, paste0(YEAR+1,"/data/survey/llsrv_bio_",
                           min(srv_bio$year), "_", max(srv_bio$year), ".csv"))
-write_csv(srv_bio, paste0("legacy_data/data/survey/llsrv_bio_",
+write_csv(srv_bio, paste0("legacy_data/survey/llsrv_bio_",
                           min(srv_bio$year), "_", max(srv_bio$year), ".csv"))
 
 #================================================================================================
@@ -585,11 +537,9 @@ write_csv(srv_bio, paste0("legacy_data/data/survey/llsrv_bio_",
 
 #Codes
 
-#PJ: No new pot survey in 21 so skip the new file here and just pull the '20 file
-# UNBLOCK THIS CODE IN 2023 when adding 2022 data! 
-#can skip whole section in 22 analysis of 21 data since 21 analysis of 20 data has everything processed
-#already in file: potsrv_bio_1981_2020
-{
+#PJ 2023: Some of the date data was corrupted so we repulled all the pot survey data
+#         from OceanAK.  Will compare to the archived data when its time to analyse... 
+
 read_csv(paste0(YEAR+1,"/data/survey/raw_data/potsrv_bio_", YEAR, ".csv"), 
          guess_max = 50000) %>% #filter(!is.na(TIME_FIRST_BUOY_ONBOARD)) %>% pull(TIME_FIRST_BUOY_ONBOARD)
   mutate(date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
@@ -597,6 +547,42 @@ read_csv(paste0(YEAR+1,"/data/survey/raw_data/potsrv_bio_", YEAR, ".csv"),
          Sex = derivedFactor("Male" = SEX_CODE == "01",
                                                      "Female" = SEX_CODE == "02",
                                                      .default = NA),
+         Maturity = derivedFactor("0" = MATURITY_CODE %in% c("01", "02"), 
+                                  "1" = MATURITY_CODE %in% c("03", "04", "05", "06", "07"),
+                                  .default = NA),
+         tag_no = as.character(TAG_NO)) %>% 
+  select(year = YEAR, Mgmt_area = MANAGEMENT_AREA, Project_cde = PROJECT_CODE, 
+         trip_no = TRIP_NO, Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
+         Stat = STAT, Spp_cde = SPECIES_CODE, set = EFFORT_NO, 
+         start_lat = START_LAT, start_lon = START_LON, end_lat = END_LAT,
+         end_lon = END_LON, depth = DEPTH_METERS, length = LENGTH, weight = WEIGHT, 
+         age = AGE, Sex, Maturity, age_type_code = AGE_TYPE_CODE, 
+         age_readability = AGE_READABILITY_CODE, tag_no, 
+         discard_status = DISCARD_STATUS, release_condition_cde = RELEASE_CONDITION_CODE )  -> pot_bio
+str(pot_bio)
+unique(as.numeric(pot_bio$year))  
+
+#PJ NOTE: Date column corrupted.  Not used in analysis and just need year? 
+read_csv(paste0("legacy_data/survey/potsrv_bio_1981_", YEAR-2, ".csv"), 
+         guess_max = 50000) %>% 
+  mutate(#Maturity = as.character(Maturity),
+         date = ymd(as.Date(date)),
+         Sex = as.factor(Sex),
+         Maturity = as.factor(Maturity),
+         age_type_code = as.logical(age_type_code),
+         age_readability = as.logical(age_readability)) -> past_pot_bio_archived
+
+str(past_pot_bio_archived)
+#Given the corruption of the past data, tried pulling the old data from OceanAK
+{read_csv(paste0(YEAR+1,"/data/survey/raw_data/potsrv_bio_1981_2020.csv"), 
+         guess_max = 50000) %>%  #filter(!is.na(TIME_FIRST_BUOY_ONBOARD)) %>% pull(TIME_FIRST_BUOY_ONBOARD)
+  filter(is.numeric(YEAR)) %>% 
+  mutate(year = as.numeric(year),
+         date = ymd(as.Date(TIME_FIRST_BUOY_ONBOARD)), #ISO 8601 format
+         julian_day = yday(date),
+         Sex = derivedFactor("Male" = SEX_CODE == "01",
+                             "Female" = SEX_CODE == "02",
+                             .default = NA),
          Maturity = derivedFactor("0" = MATURITY_CODE %in% c("01", "02"), 
                                   "1" = MATURITY_CODE %in% c("03", "04", "05", "06", "07"),
                                   .default = NA)) %>% 
@@ -607,15 +593,17 @@ read_csv(paste0(YEAR+1,"/data/survey/raw_data/potsrv_bio_", YEAR, ".csv"),
          end_lon = END_LON, depth = DEPTH_METERS, length = LENGTH, weight = WEIGHT, 
          age = AGE, Sex, Maturity, age_type_code = AGE_TYPE_CODE, 
          age_readability = AGE_READABILITY_CODE, tag_no = TAG_NO, 
-         discard_status = DISCARD_STATUS, release_condition_cde = RELEASE_CONDITION_CODE )  -> pot_bio
+         discard_status = DISCARD_STATUS, release_condition_cde = RELEASE_CONDITION_CODE )  -> past_pot_bio_OAk
 
+unique(past_pot_bio_OAk$year) 
 
-#PJ NOTE: Date column corrupted.  Not used in analysis and just need year? 
-read_csv(paste0("legacy_data/data/survey/potsrv_bio_1981_", YEAR-1, ".csv"), 
-         guess_max = 50000) %>% 
-  mutate(Maturity = as.character(Maturity)) -> past_pot_bio
+past_pot_bio_OAk<-past_pot_bio_OAk %>% 
+  filter(!(year %in% c(unique(past_pot_bio_OAk$year)[15:21])))
+unique(past_pot_bio_OAk$year)
+unique(past_pot_bio_archived$year)}
+#Something wrong in data querry and many years missing.  Stick with the archived data.  
 
-bind_rows(past_pot_bio, pot_bio) -> pot_bio   #no new data in 21 so skipped in 22 analysis; unblock in 23 when new 22 data
+bind_rows(past_pot_bio_archived, pot_bio) -> pot_bio   #no new data in 21 so skipped in 22 analysis; unblock in 23 when new 22 data
 
 # Ages for the pot data are sparse anyway but remove any age readability codes
 # that aren't 01, 02, or 03 (same as llsrv and llfsh 20200124 #33)
@@ -623,9 +611,9 @@ filter(pot_bio, is.na(age_readability) | age_readability %in% c('01', '02', '03'
 
 write_csv(pot_bio, paste0(YEAR+1,"/data/survey/potsrv_bio_",
                           min(pot_bio$year), "_", max(pot_bio$year), ".csv"))
-write_csv(pot_bio, paste0("legacy_data/data/survey/potsrv_bio_",
+write_csv(pot_bio, paste0("legacy_data/survey/potsrv_bio_",
                           min(pot_bio$year), "_", max(pot_bio$year), ".csv"))
-}
+
 
 #===================================================================================================
 # 8. Tag releases ----
@@ -644,33 +632,38 @@ write_csv(pot_bio, paste0("legacy_data/data/survey/potsrv_bio_",
 
 #PJ: no new tag releases in 2021 so this step skipped in '22 analysis (thru '21 data)
 # open this up in 23 when new 22 data entered ... 
-{
+
 read_csv(paste0(YEAR+1,"/data/survey/raw_data/tag_releases_",
                        YEAR, ".csv"), 
-         guess_max = 50000) %>% #pull(TIME_SECOND_ANCHOR_OVERBOARD)
+         guess_max = 50000)  %>%
+  clean_names() %>% 
  # may need to manually change date type in Excel depending on how it gets
  # exported from database
-  mutate(date = ymd(as.Date(parse_date_time(TIME_SECOND_ANCHOR_OVERBOARD, c("%m/%d/%Y")))), # ISO 8601 format
+  mutate(date = ymd(as.Date(time_second_anchor_onboard)), # ISO 8601 format
          #date = ymd(as.Date(TIME_SECOND_ANCHOR_OVERBOARD)), #ISO 8601 format
-         julian_day = yday(date)) %>% 
-  select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, date, julian_day,
-         Stat = STAT, Mgmt_area = MANAGEMENT_AREA, length = LENGTH, tag_no = TAG_NO, tag_batch_no = TAG_BATCH_NO, 
-         release_condition_cde = RELEASE_CONDITION_CODE, discard_status = DISCARD_STATUS,
-         comments = COMMENTS) -> tag_releases
-}
+         julian_day = yday(date),
+         tag_number = as.character(tag_number)) %>% 
+  select(year , Project_cde = project_code, trip_no = trip_number, date, julian_day,
+         Stat = groundfish_stat_area, Mgmt_area = groundfish_management_area_code, 
+         length = length_millimeters, tag_no = tag_number, tag_batch_no = tag_batch_number, 
+         release_condition_cde = release_condition_code, discard_status = discard_status,
+         comments = specimen_comments) -> tag_releases
+
+
 # Data queried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
-read_csv(paste0("legacy_data/data/survey/tag_releases_2003_", YEAR-1, ".csv"), 
+str(past_releases); str(tag_releases)
+read_csv(paste0("legacy_data/survey/tag_releases_2003_", YEAR-1, ".csv"), 
          guess_max = 50000) -> past_releases
 #for 2022 analysis
-{
+
 bind_rows(past_releases, tag_releases) -> tag_releases
 
 write_csv(tag_releases, paste0(YEAR+1,"/data/survey/tag_releases_",
                                min(tag_releases$year), "_", max(tag_releases$year), ".csv"))
-write_csv(tag_releases, paste0("legacy_data/data/survey/tag_releases_",
+write_csv(tag_releases, paste0("legacy_data/survey/tag_releases_",
                                min(tag_releases$year), "_", max(tag_releases$year), ".csv"))
-}
+
 #this line just for 22 analysis bc no new 21 data
 #tag_releases<-past_releases
 

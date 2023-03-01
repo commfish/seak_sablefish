@@ -30,6 +30,7 @@ if(!require("zoo"))   install.packages("zoo") # interpolation
 if(!require("ggridges"))   install.packages("ggridges") # used to visualize length comps
 if(!require("ggthemes"))   install.packages("ggthemes") # color palettes, ggthemes
 if(!require("viridis"))   install.packages("viridis") # color palettes, ggthemes
+if(!require("janitor"))   install.packages("janitor") # color palettes, ggthemes
 # install.packages("devtools")
 # devtools::install_github("ben-williams/FNGr")
 # library("FNGr")
