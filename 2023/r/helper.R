@@ -31,6 +31,19 @@ if(!require("ggridges"))   install.packages("ggridges") # used to visualize leng
 if(!require("ggthemes"))   install.packages("ggthemes") # color palettes, ggthemes
 if(!require("viridis"))   install.packages("viridis") # color palettes, ggthemes
 if(!require("janitor"))   install.packages("janitor") # color palettes, ggthemes
+if(!require("GGally"))   install.packages("GGally") 
+if(!require("mgcViz"))   install.packages("mgcViz") 
+if(!require("mgcv"))   install.packages("mgcv") 
+
+#if(!require("VAST"))   install_github("james-thorson/VAST@main", INSTALL_opts="--no-staged-install")
+if(!require("splines"))   install.packages("splines") 
+if(!require("effects"))   install.packages("effects") 
+if(!require("pdp"))   install.packages("pdp")
+
+
+# Load package
+#library(devtools)
+  # 
 # install.packages("devtools")
 # devtools::install_github("ben-williams/FNGr")
 # library("FNGr")

@@ -772,6 +772,15 @@ ggplot(fsh_cpue_cl, aes(Stat, cpue)) + geom_boxplot()+
 # be decreasing with latitude. There was no spatial autocorrelation detected (done in previous analysis).
 # start_lat/start_lon - spatial autocorrelation  (need to check on this - pj22)
 
+if(!require("GGally"))   install.packages("GGally") 
+if(!require("mgcViz"))   install.packages("mgcViz") 
+if(!require("mgcv"))   install.packages("mgcv") 
+
+sable %>% 
+  select(fsh_cpue_cl, Gear, Hook_size, trip_depth, soak_p_set, Stat, Adfg, 
+         julian_day_sell, total_km_fished) %>% 
+  GGally::ggpairs() # cut off anything with a correlation less than 0.05 (just shark flag)
+
 m0 <- bam(cpue ~ Year + Gear, data=fsh_cpue_cl, gamma=1.4)
 m0.hook <- bam(cpue ~ Year + Gear + Hook_size, data=fsh_cpue_cl, gamma=1.4)
 m0.depth <- bam(cpue ~ Year + Gear + s(trip_depth, k=4), data=fsh_cpue_cl, gamma=1.4)

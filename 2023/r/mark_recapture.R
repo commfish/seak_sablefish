@@ -649,7 +649,7 @@ str(fsh_tx)
 
 #PJ22!! Note that no survey in '21 so YEAR-1 below; change after next abundance estimate
 #read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv")) -> marks
-read_csv(paste0(YEAR+1,"/data/fishery/nsei_daily_tag_accounting_2004_", YEAR-1, ".csv")) -> marks  #marks = recaps
+read_csv(paste0(YEAR+1,"/data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv")) -> marks  #marks = recaps
 view(marks)
 marks$marked
 marks$unmarked

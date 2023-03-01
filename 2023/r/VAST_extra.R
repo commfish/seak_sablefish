@@ -5,11 +5,28 @@
 ## and RPN's have a covariate of depth and slope
 ## Bam models demonstrate soak effect (intuitive)
 ## Save out put of models to compare CPUE estimates for SCAA
+##
+## This script takes off after line 251 of llsurvey_cpue.R
 #####################################################################################
+# most recent year of data
+YEAR <- 2022
+
+# Load ----
+source("r_helper/helper.r")
+source("r_helper/functions.r")
+
+library(devtools)
+
+#devtools::install_local(path='C\R_4.2.1\FishStatsUtils-2.12.1.zip', dependencies=FALSE)
+
+#install_github("james-thorson/VAST@main", INSTALL_opts="--no-staged-install")
 
 library(VAST)
 library(splines)  # Used to include basis-splines
 library(effects)  # 
+
+#if(!require("TMB"))   install.packages("TMB") 
+#if(!require("VAST"))   install.packages("VAST") 
 
 #Jane's code gets rid of these data .. assumed outlier/data entry error? 
 sable<-sable[sable$soak <10 & sable$slope < 300 & sable$bait < 900,]
@@ -65,7 +82,6 @@ example.qx<-list(sampling_data = sampling_data,
                 catchability_data = catchability_data,
                 Region = "other",
                 strata.limits = strata.limits)
-
 
 
 settings = make_settings(n_x = 100, # number of knots; set at 100 by JANE

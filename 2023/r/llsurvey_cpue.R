@@ -29,7 +29,7 @@ YEAR <- 2022 # most recent year of data
 # 02 = invalid
 # 05 = sperm whales present (but not depredating)
 
-srv_cpue <- read_csv(paste0(YEAR+1,"/data/survey/llsrv_cpue_v2_1985_", YEAR, ".csv"), 
+srv_cpue <- read_csv(paste0(YEAR+1,"/data/survey/llsrv_cpue_1985_", YEAR, ".csv"), 
                      guess_max = 500000)
 
 # Checks
@@ -166,6 +166,8 @@ srv_cpue %>%
   arrange(year) -> srv_sum #; view(srv_sum)
 
 srv_sum %>% print(n = Inf)
+
+#$ DATA FOR TMB MODEL
 write_csv(srv_sum, paste0(YEAR+1,"/output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
 
 # Percent change in compared to a ten year rolling average
@@ -175,7 +177,7 @@ srv_sum %>%
   mutate(lt_mean = mean(srv_cpue),
          perc_change_lt = (srv_cpue - lt_mean) / lt_mean * 100,
          eval_lt = ifelse(perc_change_lt < 0, "decrease", "increase")) %>% 
-  filter(year == YEAR) -> srv_lt
+  filter(year == YEAR) -> srv_lt; srv_lt
 
 # Percent change from last year
 srv_sum %>% 
@@ -185,7 +187,7 @@ srv_sum %>%
   mutate(year2 = ifelse(year == YEAR, "thisyr", "lastyr")) %>% 
   reshape2::dcast("srv_cpue" ~ year2, value.var = "srv_cpue") %>% 
   mutate(perc_change_ly = (thisyr - lastyr) / lastyr * 100,
-         eval_ly = ifelse(perc_change_ly < 0, "decreased", "increased")) -> srv_ly
+         eval_ly = ifelse(perc_change_ly < 0, "decreased", "increased")) -> srv_ly; srv_ly
 
 # figures
 # axis <- tickr(data = srv_sum, var = year, to = 3)
@@ -252,6 +254,9 @@ ggsave(paste0(YEAR+1,"/figures/npue_llsrv_stat_", YEAR, ".png"),
 #=================================================================================
 # VAST exploration ----
 # SKIP 2022: Use code from VAST_extra_pj.R to get VAST models
+# SKIP 2023: USe code from VAST_extra.R to get VAST model. I did not put too much
+# into this in 2023... notes from 2022 showed that VAST models were VERY similar
+# to simpler options.  This may be worth exploring when and if time allows... 
 {
 # Careful! VAST adds a lot of files to the root of the project
 if(!require("TMB"))   install.packages("TMB") 
@@ -386,14 +391,14 @@ mod2 <- bam(set_cpue ~ s(soak, k = 4) + s(depth, k = 4) +
             subset = soak < 10 & slope < 300 & bait < 900)
 
 summary(mod2)
-BIC(mod0); BIC(mod2) # soak time significant
+BIC(mod0); BIC(mod2) # slope significant in 2023
 par(mfrow=c(2, 2), cex=1.1); gam.check(mod2)
 }
 
 # 2022 Phil's models 
 # get rid of "bait"; correlated but seems like a wonky piece of data that should be correlated 
 # with CPUE but is the RESULT of CPUE dynamics...
-sable<-sable[sable$soak <10 & sable$slope < 300 & sable$bait < 900,]
+sable<-sable[sable$soak <10 & sable$soak > 0 & sable$slope < 300 & sable$bait < 900,]
 sable<-sable[complete.cases(sable),]
 
 mod0<-bam(set_cpue ~  
@@ -420,12 +425,14 @@ BIC(mod0); BIC(mod.global); BIC(mod.soak); BIC(mod.depth); BIC(mod.slope)
 AICc(mod0); AICc(mod.global); AICc(mod.soak); AICc(mod.depth); AICc(mod.slope)
 #global model noticeably better
 
-print(plot(getViz(mod0), allTerms = TRUE) + l_fitRaster() + l_fitContour() + 
+print(plot(getViz(mod.global), allTerms = TRUE) + l_fitRaster() + l_fitContour() + 
         l_points(color = "grey60", size = 0.5)+ l_fitLine() + l_ciLine() +
         l_ciBar(linetype = 2) + l_fitPoints(size = 1), pages = 8)
 
 #add predicted cpue to sable and recalc yearly CPUE index for each model
-## Jan-17-23; this function did not work on rerun of '22 check.  HAd to manually crank the function... 
+## Jan-17-23; this function did not work on rerun of '22 check.  Had to manually crank the function... 
+
+
 model.add<-function(mod,dat,colhead){  #mod<-mod.global; dat<-sable; colhead<-"global"
   preds<-predict.bam(mod, type="response", se.fit=T)
   name<-paste0("cpue.",colhead)
@@ -433,7 +440,7 @@ model.add<-function(mod,dat,colhead){  #mod<-mod.global; dat<-sable; colhead<-"g
   sable[,name]<-preds$fit
 }
 
-model.add(mod=mod.global,dat=sable,"global")
+model.add(mod=mod.global,dat=sable,colhead = "global")
 plot(sable$cpue.global~sable$set_cpue)
 
 head(sable)
@@ -463,6 +470,31 @@ sable_cpue %>%
   #filter(hook_accounting == "sablefish") %>% 
   distinct(year, std_cpue = raw.cpue, raw.sd, raw.se, gam.cpue, gam.sd, gam.se) %>% 
   arrange(year) -> sable_sum; view(sable_sum)
+
+sable_sum_plot<-rbind(sable_sum %>% select(year, cpue=std_cpue, sd = raw.sd) %>%
+                        mutate(calc = "Nominal"),
+                      sable_sum %>% select(year, cpue=gam.cpue, sd = gam.sd) %>% 
+                        mutate(calc = "Standardized"))
+
+ggplot(sable_sum_plot) +
+  geom_ribbon(aes(x = year, ymin = cpue-1.96*sd, ymax = cpue+1.96*sd, 
+                  fill = calc), 
+              alpha = 0.1) +
+  geom_point(aes(x = year, y = cpue, col = calc), size = 1) +
+  geom_line(aes(x = year, y = cpue, col = calc)) +
+  labs(x = "", y = "Sablefish CPUE (numbers per hook)\n") +
+  #lims(y = c(0, 1.25))  + 
+  scale_color_viridis_d(name = "CPUE derivation",
+                        labels = c("Nominal","Fully Standardized"),
+                        option = "C", begin=0,end=0.85) +
+  scale_fill_viridis_d(name = "CPUE derivation",
+                       labels = c("Nominal","Fully Standardized"),
+                       option = "C", begin=0,end=0.85) +
+  theme(legend.position = "bottom") #, + #c(0.2,0.8),
+
+ggsave(paste0(YEAR+1,"/figures/survcpue_nom_vs_stand_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=7, units="in")
+##***
 
 #retrieve VAST model results for comp...
 V.base<-read.csv(paste0(YEAR+1,"/VAST_out/basePlots/Index.csv"))

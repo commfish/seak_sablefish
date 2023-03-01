@@ -1,7 +1,7 @@
 # Work up of survey and fishery biological data
 # Author: Jane Sullivan
-# Contact: jane.sullivan@noaa.gov 
-# Last updated: Feb 2021
+# Contact:philip.joy@alaska.gov;   jane.sullivan@noaa.gov 
+# Last updated: March  2023
 
 source("r_helper/helper.r")
 source("r_helper/functions.r")
@@ -55,7 +55,7 @@ unique(fsh_bio$year)
 # Pot survey biological data
 #no pot survey 2021 because of stupid Covid, use data only through 2020
 #read_csv(paste0("data/survey/potsrv_bio_1981_", YEAR, ".csv"), 
-read_csv(paste0(YEAR+1,"/data/survey/potsrv_bio_1981_", YEAR-1, ".csv"), 
+read_csv(paste0(YEAR+1,"/data/survey/potsrv_bio_1981_", YEAR, ".csv"), 
          guess_max = 50000) %>% 
   mutate(Year = factor(year),
          Project_cde = factor(Project_cde),
@@ -757,10 +757,18 @@ ggsave(paste0(YEAR+1,"/figures/compare_empirical_predicted_waa_", YEAR, ".png"),
 # Comparison of Hanselman et al. 2007 values with the Chatham Strait longline
 # survey. Units: length (cm), weight (kg), and age (yrs)
 
+# for MArch 2 2023 pick up here... 
+
 bind_rows(allom_pars, lvb_pars %>% rename(SE = `Std. Error`)) %>% 
       mutate(Notes = "seak_sablefish/code/biological.r") %>% 
-  bind_rows(noaa_lvb %>% rename(Notes = Source) %>% rename(Source = Survey)) %>%
-  write_csv(., paste0(YEAR+1,"/output/compare_vonb_adfg_noaa_", YEAR, ".csv"))
+  bind_rows(noaa_lvb %>% rename(Notes = Source) %>% rename(Source = Survey)) -> lvb_comp
+
+write_csv(lvb_comp, paste0(YEAR+1,"/output/compare_vonb_adfg_noaa_", YEAR, ".csv"))
+
+fem_Waa_pred_comps<- cbind(seq(2,max(fsh_waa_f$age),1),rep("Female",length(seq(2,max(fsh_waa_f$age),1))))
+mal_Waa_pred_comps<- cbind(seq(2,max(fsh_waa_m$age),1),rep("Male",length(seq(2,max(fsh_waa_m$age),1))))
+
+
 
 #===========================================================================================
 # Maturity ----

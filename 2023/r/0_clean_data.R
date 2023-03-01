@@ -358,9 +358,6 @@ read_csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_bio_",
          Maturity = as.character(Maturity),
          Project_cde = as.character(Project_cde)) -> fsh_bio
 
-oi$SELL_DATE[1]  
-as.Date(oi$SELL_DATE[1], c("%Y-%m-%d"), tz="America/Anchorage") 
-as.Date(oi$SELL_DATE[1], c("%Y-%m-%d"), tz="UTC")
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017). This was updated again in 2019 due to the
 # age readability code issue.
@@ -632,7 +629,7 @@ write_csv(pot_bio, paste0("legacy_data/survey/potsrv_bio_",
 
 #PJ: no new tag releases in 2021 so this step skipped in '22 analysis (thru '21 data)
 # open this up in 23 when new 22 data entered ... 
-
+library(janitor)
 read_csv(paste0(YEAR+1,"/data/survey/raw_data/tag_releases_",
                        YEAR, ".csv"), 
          guess_max = 50000)  %>%
@@ -685,48 +682,29 @@ tag_releases %>% group_by(year, discard_status) %>% dplyr::summarise(n_distinct(
 # batch_no's to the tag_releases. Also includes recapture lengths (careful to
 # only use sampler lengths)
 
-#JANE's 2021 Code... data not working with NA's in 2022 so see Phil's code below
-{
-read_csv(paste0("data/fishery/raw_data/tag_recoveries_",
-                YEAR, ".csv"), 
-         guess_max = 50000) %>% #pull(CATCH_DATE)
-  mutate(landing_date = date(parse_date_time(LANDING_DATE, c("%m/%d/%y"))), #ISO 8601 format 
-         landing_julian_day = yday(landing_date),
-         catch_date = date(parse_date_time(CATCH_DATE, c("%m/%d/%y"))), #ISO 8601 format 
-         # catch_date = ymd(as.Date(CATCH_DATE)), #ISO 8601 format
-         catch_julian_day = yday(catch_date)) %>%
-  select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, landing_date, landing_julian_day,
-         catch_date, catch_julian_day, Stat = G_STAT_AREA, Mgmt_area = G_MANAGEMENT_AREA_CODE,
-         Stat = G_STAT_AREA, length = LENGTH, tag_no = TAG_NO, tag_batch_no = TAG_BATCH_NO, 
-         measurer_type = MEASURER_TYPE, info_source = INFORMATION_SOURCE, returned_by = TAG_RETURNED_BY_TYPE,
-         comments = COMMENTS) -> tag_recoveries
-}
-#PHIL's 2022 CODE
 Dat<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/tag_recoveries_",
-                     YEAR, ".csv"))
-tag_recoveries<-Dat %>%   
+                     YEAR, ".csv")) %>%   
   mutate(landing_date = as.Date(format(parse_date_time(LANDING_DATE, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d")),
          landing_julian_day = yday(landing_date),
          catch_date = as.Date(format(parse_date_time(CATCH_DATE, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d")), #ISO 8601 format 
          catch_julian_day = yday(catch_date),
-         TAG_NO=ï..TAG_NO)%>%
+         PROJECT_CODE = as.character(PROJECT_CODE))%>%
   select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, landing_date, landing_julian_day,
          catch_date, catch_julian_day, Stat = G_STAT_AREA, Mgmt_area = G_MANAGEMENT_AREA_CODE,
          Stat = G_STAT_AREA, length = LENGTH, tag_no = TAG_NO, tag_batch_no = TAG_BATCH_NO, 
          measurer_type = MEASURER_TYPE, info_source = INFORMATION_SOURCE, returned_by = TAG_RETURNED_BY_TYPE,
          comments = COMMENTS)
-tag_recoveries$Project_cde<-as.character(tag_recoveries$Project_cde)
 
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
-read_csv(paste0("legacy_data/data/fishery/tag_recoveries_2003_", YEAR-1, ".csv"), 
+read_csv(paste0("legacy_data/fishery/tag_recoveries_2003_", YEAR-1, ".csv"), 
          guess_max = 50000) -> past_recoveries
 
 bind_rows(past_recoveries, tag_recoveries) -> tag_recoveries
 
 write_csv(tag_recoveries, paste0(YEAR+1,"/data/fishery/tag_recoveries_",
                                min(tag_recoveries$year), "_", max(tag_recoveries$year), ".csv"))
-write_csv(tag_recoveries, paste0("legacy_data/data/fishery/tag_recoveries_",
+write_csv(tag_recoveries, paste0("legacy_data/fishery/tag_recoveries_",
                                  min(tag_recoveries$year), "_", max(tag_recoveries$year), ".csv"))
 
 tag_recoveries %>% 
@@ -763,23 +741,48 @@ tag_recoveries %>%
 
 # Now that these data are finalized, add on each year:
 # PJ22: no countbacks in 2021... need to check on this -pj22
-# not important for 2021 bc there was no marking survye
-# however, if open model is attempted this will be needed - pj22
+
+# For 2023 will get this data from Groundfish staff in a xlxs worksheet called
+# "YEAR NSEI Daily Accounting Form by port_FINAL.xlsx" or on the shared drive
+# M:\SABLEFISH\CHATHAM\2022\Port Sampling\22 NSEI Daily Accounting Form by port_FINAL.xlsx
+# Will need to make scv files that match below...
+
+
 read_csv(paste0(YEAR+1,"/data/fishery/raw_data/nsei_daily_tag_accounting_", YEAR, ".csv"),
          guess_max = 50000) %>% 
-    mutate(date = as.Date(date, "%m/%d/%Y"),
+    mutate(unmarked = as.numeric(unmarked),
+           marked = as.numeric(marked),
+           trip_no = as.character(trip_no),
+           tags_recovered = as.numeric(tags_recovered),
+           date = as.Date(date, "%m/%d/%Y"),
            year = year(date),
            julian_day = yday(date),
            total_obs = unmarked + marked,
-           whole_kg = round_lbs * 0.453592) -> counts
+           whole_kg = round_lbs * 0.453592) -> fsh_counts
 
-read_csv(paste0("legacy_data/data/fishery/nsei_daily_tag_accounting_2004_", YEAR-1, ".csv"),
-         guess_max = 50000) -> past_counts
+read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsurv_daily_tag_accounting_", YEAR, ".csv"),
+         guess_max = 50000) %>% 
+  mutate(unmarked = as.numeric(unmarked),
+         marked = as.numeric(marked),
+         trip_no = as.character(trip_no),
+         tags_recovered = as.numeric(tags_recovered),
+         date = as.Date(date, "%m/%d/%Y"),
+         year = year(date),
+         julian_day = yday(date),
+         total_obs = unmarked + marked,
+         whole_kg = round_lbs * 0.453592) -> srv_counts
 
-bind_rows(counts, past_counts) -> counts
+read_csv(paste0("legacy_data/fishery/nsei_daily_tag_accounting_2004_", YEAR-2, ".csv"),
+         guess_max = 50000) %>% 
+  mutate(tags_recovered = NA,
+         trip_no = as.character(trip_no)) -> past_counts
+
+str(fsh_counts); str(srv_counts)
+
+bind_rows(fsh_counts, srv_counts, past_counts) -> counts
 
 write_csv(counts, paste0(YEAR+1,"/data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
-write_csv(counts, paste0("legacy_data/data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
+write_csv(counts, paste0("legacy_data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
 
 # Historical tagging ----
 

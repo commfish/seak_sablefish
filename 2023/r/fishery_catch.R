@@ -31,12 +31,38 @@ catch_ifdb <- read_csv(paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_1985_", YEA
 #exvessel_value <- read.csv("data/exvessel_value.csv") # request from Aaron.baldwin@alaska.gov
 #update from OceanAK report for future standardization; 2022 onward will use this report...
 # link:
-exvessel_value <- read_csv(paste0(YEAR+1,"/data/exvessel_value_22ud.csv")) %>% 
+
+exvessel_value <- read_csv(paste0("legacy_data/exvessel_value_",
+                YEAR,".csv",sep="")) %>% 
   mutate(year=Year_Landed, exvessel_mil_usd = CFEC_Value/1000000)
+
+#exvessel_value <- read_csv(paste0(YEAR+1,"/data/exvessel_value_22ud.csv")) %>% 
+#  mutate(year=Year_Landed, exvessel_mil_usd = CFEC_Value/1000000)
 #format like Jane's old for consistency with code... just year and value
+
+#Add 2021 do n 2023 only.  Should not be necessary next year!!!
+exvessel_value[nrow(exvessel_value)+1,]<-list(2021,NA,NA, NA, 2021, 2.821949)
+
+#Add new year
+#OceanAK for 2022 exvessel: https://oceanak.dfg.alaska.local/analytics/saw.dll?PortalGo&Action=prompt&path=%2Fshared%2FCommercial%20Fisheries%2FRegion%20I%2FGroundFish%2FUser%20Reports%2FPhil%27s%20Sablefish%2FExvessel%20value%20for%202022%20estimated%20from%20fish%20ticket%20data
+
+exves_new <- read_csv(paste0(YEAR+1,"/data/fishery/raw_data/Exvessel_value_for_2022_estimated_from_fish_ticket_data.csv")) %>% 
+  data.frame()
+
+exvessel_value[nrow(exvessel_value)+1,]<-list(YEAR,
+                                              sum(exves_new$Whole.Weight..lbs.),
+                                              length(unique(exves_new$CFEC)), 
+                                              sum(exves_new$Exvessel.value), 
+                                              YEAR, 
+                                              sum(exves_new$Exvessel.value)/1000000)
+#save for next year
+write_csv(exvessel_value, paste0("legacy_data/exvessel_value_",
+                          YEAR+1, ".csv"))
+
 exvessel_value<-exvessel_value[,c(5,6)]
-#if new year not available, add in best est. from Aaron and groundfish crew.... 
-exvessel_value[nrow(exvessel_value)+1,]<-list(YEAR,2.821949)
+#if new year not available, add in best est. from Aaron and groundfish crew....
+#2021 exvessel value ... add in manually and
+
 view(exvessel_value)
 
 catch_ifdb %>% 
@@ -144,6 +170,8 @@ plot_grid(catch, port, exvessel, ncol = 1)#, align = 'hv')
 ggsave(paste0(YEAR+1,"/figures/catch_exvesselvalue_", YEAR, "v3.png"),
        dpi=300, height=10, width=7, units="in")
 # View(port_catch)
+
+data.frame(exvessel_value)
 
 # Relationship between ex-vessel price and catch
 if(!require("ggrepel"))   install.packages("ggrepel") 
