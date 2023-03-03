@@ -85,7 +85,7 @@ ll_log<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Longline logbook sable an
 #str(ll_log)
 #colnames(ll_log)
 
-pot_log<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Pot_logbook_sable_and_halibut_target_2006-now_for_CPUE.csv"))
+pot_log<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/Pot logbook sable and halibut target 2006-now for CPUE.csv"))
 
 ftx<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/NSEI_ftx_sablefish_halibut_pot_longline_1997-now.csv"))
 #str(ftx)

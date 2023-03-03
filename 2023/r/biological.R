@@ -67,10 +67,20 @@ str(potsrv_bio)
 #==============================================================================================
 ###OULIER REMOVAL STEP for too fat and too skinny sablefish... usually weighing error
 unique(fsh_bio$year)
-new<-fsh_bio[fsh_bio$year == 2021,]; nrow(new)
+new<-fsh_bio[fsh_bio$year == 2022,]; nrow(new)
 new$length
 new$weight
 new$Sex
+
+str(srv_bio)
+histogram(srv_bio$weight)
+histogram(srv_bio$weight_mu)
+histogram(srv_bio$length)
+histogram(srv_bio$length_mu)
+
+plot(srv_bio$weight ~ srv_bio$length)
+
+nrow(fsh_bio %>% filter(year == 2022 & Sex == "Male"))
 
 srv_bio %>% 
   filter(Sex %in% c("Female", "Male") &
@@ -79,6 +89,7 @@ srv_bio %>%
            !is.na(weight)) %>% 
   droplevels() -> srv_bio_mod
 unique(srv_bio_mod$year)
+plot(srv_bio_mod$weight ~ srv_bio_mod$length)
 
 # length-weight relationship
 lw_allometry <- function(length, a, b) {a * length ^ b}
@@ -99,7 +110,7 @@ beta_m <- tidy(male_fit)$estimate[2]
 beta_f <- tidy(fem_fit)$estimate[2]
 beta_a <- tidy(all_fit)$estimate[2]
 
-srv_bio_noOL<-bind_rows(srv_bio_mod %>% filter(Sex %in% "Male") %>% 
+srv_bio_mod<-bind_rows(srv_bio_mod %>% filter(Sex %in% "Male") %>% 
                             mutate(Condition = weight/(length^beta_m),
                                    Quantile = ntile(Condition,1000)/1000),
                         srv_bio_mod %>% filter(Sex %in% "Female") %>% 
@@ -108,11 +119,83 @@ srv_bio_noOL<-bind_rows(srv_bio_mod %>% filter(Sex %in% "Male") %>%
 
 nrow(srv_bio_noOL)
 #remove fat and skinny fish in 99.9 and 0.1 percentiles
-srv_bio_noOL<-srv_bio_noOL[srv_bio_noOL$Quantile > 0.0005 & srv_bio_noOL$Quantile < 0.9995, ]
+srv_bio_noOL<-srv_bio_mod[srv_bio_mod$Quantile > 0.0005 & srv_bio_mod$Quantile < 0.9995, ]
 nrow(srv_bio_noOL)
 nrow(srv_bio_mod)
 
 ### #cull outliers from fishery ?  
+histogram(fsh_bio$length, breaks = 100)
+max(srv_bio_mod$length, na.rm=T); max(fsh_bio$length, na.rm=T)
+plot(fsh_bio$weight ~ fsh_bio$length)
+## FIXED! Report from Ocean AK was problematic but fixed so can skip this chunk 
+## worth examining every year though
+{
+histogram(fsh_bio$length, breaks = 100)
+max(srv_bio_mod$length, na.rm=T); max(fsh_bio$length, na.rm=T)
+histogram(fsh_bio$length[fsh_bio$length>100 & !is.na(fsh_bio$length)], breaks=100)
+length(fsh_bio$length[fsh_bio$length>100 & !is.na(fsh_bio$length)] )
+unique(fsh_bio$year[fsh_bio$length>100])
+length(srv_bio_mod$length[srv_bio_mod$length>110])
+
+h1<-hist(fsh_bio$length,plot=FALSE, breaks=100)
+h2<-hist(srv_bio_mod$length,plot=FALSE, breaks=100)
+plot (h1, col = rgb(1,0,0,0.4),xlab = 'Observations',freq = FALSE, 
+      main = 'Survey vs Fishery lengths')
+plot (h2, xaxt = 'n', yaxt = 'n',col = rgb(0,0,1,0.4), add = TRUE, freq = FALSE)
+
+l_break<-max(srv_bio_mod$length, na.rm=TRUE)+0.1*max(srv_bio_mod$length, na.rm=TRUE)
+h1<-hist(fsh_bio$length[fsh_bio$length < l_break],
+         plot=FALSE, breaks=100)
+h2<-hist(srv_bio_mod$length,plot=FALSE, breaks=100)
+h3<-hist(fsh_bio$length[fsh_bio$length > l_break]/10,
+         plot=FALSE, breaks=100)
+plot (h1, col = rgb(1,0,0,0.4),xlab = 'Observations',freq = FALSE, 
+      main = 'Survey vs Fishery lengths', xlim=c(10,120))
+plot (h2, xaxt = 'n', yaxt = 'n',col = rgb(0,0,1,0.4), add = TRUE, freq = FALSE)
+plot (h3, xaxt = 'n', yaxt = 'n',col = rgb(0,1,0,0.4), add = TRUE, freq = FALSE)
+
+badlengths<-fsh_bio[fsh_bio$length > l_break & !is.na(fsh_bio$length),]
+#badlengths<-badlengths[badlengths$year == 2022,]
+nrow(badlengths); unique(badlengths$year)
+#all in 2022... argh
+nrow(badlengths %>% filter(year == 2022))
+nrow(badlengths %>% filter(year == 2022))
+nrow(fsh_bio %>% filter(!is.na(length) & year == 2022))
+
+nrow(badlengths %>% filter(year == 2019))
+colnames(fsh_bio)
+unique(fsh_bio$Spp_cde)
+
+## check weight data now...
+w_break<-max(fsh_bio$weight, na.rm=T)
+w_break; max(srv_bio_mod$weight)
+w_break<-max(srv_bio_mod$weight, na.rm=T)+0.1*max(srv_bio_mod$weight, na.rm=T)
+histogram(fsh_bio$weight, breaks = 100)
+h1<-hist(fsh_bio$weight[fsh_bio$weight < w_break & !is.na(fsh_bio$weight)],
+         plot=FALSE, breaks=100)
+h2<-hist(srv_bio_mod$weight,plot=FALSE, breaks=100)
+h3<-hist(fsh_bio$weight[fsh_bio$weight > w_break & !is.na(fsh_bio$weight)]/10,
+         plot=FALSE, breaks=100)
+plot (h1, col = rgb(1,0,0,0.4),xlab = 'Observations',freq = FALSE, 
+      main = 'Survey vs Fishery weights', xlim=c(0,w_break+1))
+plot (h2, xaxt = 'n', yaxt = 'n',col = rgb(0,0,1,0.4), add = TRUE, freq = FALSE)
+plot (h3, xaxt = 'n', yaxt = 'n',col = rgb(0,1,0,0.4), add = TRUE, freq = FALSE)
+
+badweights<-fsh_bio[fsh_bio$weight > w_break & !is.na(fsh_bio$weight),]
+#badweights<-badweights[badweights$year == 2022,]
+nrow(badweights); unique(badweights$year)
+#all in 2022... argh
+nrow(fsh_bio %>% filter(year == 2022))
+nrow(badweights %>% filter(year == 2022))
+nrow(fsh_bio %>% filter(!is.na(weight) & year == 2022))
+
+##FLAG!!!! Some shit fisheries data in 2022 that need to be culled.  For now 
+## getting rid of every length and weight that is greater than 10% above the max
+## seen in all years of the survey.
+
+fsh_bio <- fsh_bio %>% filter(length < l_break & !is.na(length) &
+                                weight < w_break & !is.na(weight))
+}
 fsh_bio %>% 
   filter(Sex %in% c("Female", "Male") &
            year >= 2002 & # *FLAG* advent of "modern" survey
@@ -122,6 +205,16 @@ fsh_bio %>%
 nrow(fsh_bio_mod)
 
 plot(fsh_bio_mod$weight ~ fsh_bio_mod$length)
+
+plot(fsh_bio$weight ~ fsh_bio$length)
+# still some true shit in here...need to cull out unrealistic fish that are 
+# evident in these plots... 
+{
+fsh_bio_mod1<-fsh_bio_mod %>% filter(!(length > 100 & weight < 6)) %>% data.frame()
+plot(fsh_bio_mod$weight ~ fsh_bio_mod$length)
+points(fsh_bio_mod1$weight ~ fsh_bio_mod1$length, col="blue")
+
+fsh_bio_mod<-fsh_bio_mod1}
 
 # length-weight relationship
 fem_fit_fsh <- nls(weight ~ lw_allometry(length = length, a, b), 
@@ -138,24 +231,23 @@ beta_m_fsh <- tidy(male_fit_fsh)$estimate[2]
 beta_f_fsh <- tidy(fem_fit_fsh)$estimate[2]
 beta_a_fsh <- tidy(all_fit_fsh)$estimate[2]
 
-fsh_bio_noOL<-bind_rows(fsh_bio_mod %>% filter(Sex %in% "Male") %>% 
-                          mutate(Condition = weight/(length^beta_m),
+fsh_bio_mod<-bind_rows(fsh_bio_mod %>% filter(Sex %in% "Male") %>% 
+                          mutate(Condition = weight/(length^beta_m_fsh),
                                  Quantile = ntile(Condition,1000)/1000),
                         fsh_bio_mod %>% filter(Sex %in% "Female") %>% 
-                          mutate(Condition = weight/(length^beta_f),
+                          mutate(Condition = weight/(length^beta_f_fsh),
                                  Quantile = ntile(Condition,1000)/1000))
-min(fsh_bio_noOL$Quantile); max(fsh_bio_noOL$Quantile); hist(fsh_bio_noOL$Condition, breaks=200)
-nrow(fsh_bio_noOL)
 #remove fat and skinny fish in 99.9 and 0.1 percentiles
-fsh_bio_noOL<-fsh_bio_noOL[fsh_bio_noOL$Quantile > 0.0005 & fsh_bio_noOL$Quantile < 0.9995, ]
-nrow(fsh_bio_noOL); points(fsh_bio_noOL$weight ~ fsh_bio_noOL$length, col="blue")
+fsh_bio_noOL<-fsh_bio_mod[fsh_bio_mod$Quantile > 0.00099 & fsh_bio_mod$Quantile < 0.9995, ]
+plot(fsh_bio_mod$weight ~ fsh_bio_mod$length); points(fsh_bio_noOL$weight ~ fsh_bio_noOL$length, col="green")
+nrow(fsh_bio_noOL)
 nrow(fsh_bio_mod)
+
 unique(fsh_bio$year); unique(fsh_bio_mod$year)
 #================================================================================================
 # Empirical weight-at-age ---- outliers left in for this piece
 
 # All years combined
-
 bind_rows(
   srv_bio_noOL %>% 
     select(year, Project_cde, Sex, age, weight) %>% 
@@ -254,7 +346,7 @@ ggplot(df,
   guides(colour = guide_legend(nrow = 1))# +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels)
 
-ggsave(YEAR+1,"/figures/waa_trends.png", dpi = 300, height = 5, width = 7, units = "in")
+ggsave(paste0(YEAR+1,"/figures/waa_trends.png"), dpi = 300, height = 5, width = 7, units = "in")
 
 #=========================================================================================
 # Survey length-at-age -----
@@ -765,10 +857,6 @@ bind_rows(allom_pars, lvb_pars %>% rename(SE = `Std. Error`)) %>%
 
 write_csv(lvb_comp, paste0(YEAR+1,"/output/compare_vonb_adfg_noaa_", YEAR, ".csv"))
 
-fem_Waa_pred_comps<- cbind(seq(2,max(fsh_waa_f$age),1),rep("Female",length(seq(2,max(fsh_waa_f$age),1))))
-mal_Waa_pred_comps<- cbind(seq(2,max(fsh_waa_m$age),1),rep("Male",length(seq(2,max(fsh_waa_m$age),1))))
-
-
 
 #===========================================================================================
 # Maturity ----
@@ -800,8 +888,11 @@ len <- seq(0, 120, 0.05)
 (L50 <- round(- coef(fit_length)[1]/coef(fit_length)[2],1))
 (kmat <- round(((coef(fit_length)[1] + coef(fit_length)[2]*len) / (len - L50))[1], 2))
 
+plot(data = len_f, Mature ~ length)
+plot(fit_length)
 # by year, for comparison
 fit_length_year <- glm(Mature ~ length * Year, data = len_f, family = binomial)
+plot(fit_length_year)
 
 summary(fit_length_year)
 AIC(fit_length, fit_length_year)
@@ -848,6 +939,7 @@ broom::tidy(fit_length_year) %>%
   select(param = term,
          est = estimate) -> mature_results
 view(mature_results)
+
 # Note on glm() output b/c I can never remember
 # (Intercept) = intercept for Year1997 (or first level of factor) on logit scale
 # length = slope for Year1997 on logit scale
@@ -923,7 +1015,7 @@ merge(mature_results %>%
   distinct() %>% ungroup() %>% 
   mutate(mu_a_50 = mean(a_50),
          mu_l_50 = mean(l_50)) -> mat_50_year
-
+data.frame(mat_50_year)
 # trends in L50 and a50 by year
 ggplot(mat_50_year, aes(x = year, y = l_50)) +
   geom_point() +
@@ -938,7 +1030,7 @@ ggplot(mat_50_year, aes(x = year, y = a_50)) +
 merge(pred %>% mutate(year = Year), mat_50_year, by = "year") -> pred
 
 # Age-based maturity curves estimated from length-based maturity and vonB growth
-# curve (light blue lines are annual mean preditions, dark blue is the mean)
+# curve (light blue lines are annual mean predictions, dark blue is the mean)
 ggplot() +
   geom_line(data = pred, aes(x = age, y = fitted, group = Year, colour = as.numeric(as.character(Year)))) +  
   geom_line(data = pred_simple, aes(x = age, y = fitted, lty = "All years combined"),
@@ -992,8 +1084,9 @@ ggplot() +
 # Length-based (translated to age; aka the blue one) is more realistic than
 # age-based (the red one). Also there is no clear reason to choose the more
 # complicated model (fit_length_year) over the simpler model (fit_length)
-###hmmm 2022pj: data through 2021 shows a pretty drastic decline in A50 and L50
-### should we use latest est.?  Maybe worth sensitivity testing... 
+### pj2023: trend of earlier maturity continues in last two years with the influx
+#           of those young year-classes that are dominating the biomass.  
+#           Something to try/consider is year specific maturity curves...?
 
 # Maturity at age for YPR and SCAA models
 pred_simple %>%  
@@ -1027,22 +1120,56 @@ data.frame(year_updated = YEAR,
            a50 = a50) %>% 
   write_csv(paste0(YEAR+1,"/output/maturity_param_", YEAR))  #should this be a csv file? 
 
-#if we wanted to update this to using coefficients from recent years
+#if we wanted to update this to using year specific maturity curves... 
+fit_length_year <- glm(Mature ~ length * Year, data = len_f, family = binomial)
+
 b0r <- fit_length_year$coefficients[1]
 b1r <- fit_length_year$coefficients[2]
-(L50r <- round(-b0r/b1r, 1))
-(a50r <- age_pred %>% 
-    right_join(data.frame(length = L50r)) %>% 
-    group_by(length) %>% 
-    dplyr::summarise(a50r = round(mean(age), 1)) %>% 
-    pull(a50r))
-(kmatr <- round(((coef(fit_length_year)[1] + coef(fit_length_year)[2]*len) / (len - L50r))[1], 2))
+b2r <- c(0,fit_length_year$coefficients[c(3:(2+(YEAR-1997)))])#Year effect
+b3r <- c(0,fit_length_year$coefficients[c((3+(YEAR-1997)):(length(fit_length_year$coefficients)))]) #year * length interaction
 
-data.frame(year_updated = YEAR,
+#need to rerun and round for predicted values... 
+new_len_f2 <- data.frame(length = rep(seq(0, 120, 0.0005), n_distinct(len_f$year)),
+                         Year = factor(sort(rep(unique(len_f$year), length(seq(0, 120, 0.0005))), decreasing = FALSE)))
+broom::augment(x = fit_length_year, 
+               newdata = new_len_f2, 
+               type.predict = "response") %>% 
+  select(Year, length, fitted = .fitted) -> pred2
+pred2$length = round(pred2$length,3)
+pred2 <- merge(pred2, age_pred, by = "length") 
+merge(pred2 %>% mutate(year = Year), mat_50_year, by = "year") -> pred2
+
+
+round(-(b0r+b2r[1])/(b1r+ b3r[1]), 1) #1997
+round(-(b0r+b2r[2])/(b1r+ b3r[2]), 1) 
+round(-(b0r+b2r[3])/(b1r+ b3r[3]), 1) 
+round(-(b0r+b2r[24])/(b1r+ b3r[24]), 1)
+round(-(b0r+b2r[25])/(b1r+ b3r[25]), 1)
+round(-(b0r+b2r[26])/(b1r+ b3r[26]), 1) #2022
+
+L50r <- round(-(b0r+b2r)/(b1r+ b3r), 1) #all years
+
+L50df<-data.frame(length = L50r,
+                  year = as.factor(replace_na(as.numeric(gsub("[^0-9]","",names(L50r))),1997)))
+
+a50r <- pred2 %>% 
+  right_join(data.frame(L50df)) %>% 
+  group_by(year,length) %>% 
+  dplyr::summarise(a50r = round(mean(age), 1)) %>% 
+  pull(a50r)
+#******* Need to check if katr1 is correctly calculated? 
+kmatr <- round(((b0r + b2r + b3r+ (b1r)*len_r) / (len_r - L50r))[c(1:length(L50r))], 2)
+#kmatr2 <- round(((b0r + b2r + b3r* (b1r)*len_r) / (len_r - L50r))[c(1:length(L50r))], 2)
+#kmatr3 <- round(((b0r + b2r + (b3r*b1r)*len_r) / (len_r - L50r))[c(1:length(L50r))], 2)
+
+data.frame(year = seq(1997,YEAR,1),
+           year_updated = YEAR,
            L50 = L50r,
            kmat = kmatr,
            a50 = a50r) %>% 
-  write_csv(paste0(YEAR+1,"/output/maturity_param_recent_", YEAR))
+  write_csv(paste0(YEAR+1,"/output/maturity_param_byyear_", YEAR))
+
+
 # # Equation text for plotting values of a_50 and kmat
 # a50_txt <- as.character(
 #   as.expression(substitute(
@@ -1311,7 +1438,7 @@ agecomps %>%
   scale_x_continuous(breaks = seq(min(agecomps$age), max(agecomps$age), 4), 
                      labels =  seq(min(agecomps$age), max(agecomps$age), 4)) +
   labs(x = "\nAge", y = "Proportion\n") +
-  theme(legend.position = c(0.9, 0.7))
+  theme(legend.position = c(0.7, 0.9))
 
 ggsave(paste0(YEAR+1,"/figures/agecomp_bargraph_", YEAR, ".png"), 
               dpi=300, height=3, width=9, units="in")
@@ -1331,7 +1458,7 @@ ggplot(aes(x = age, y = proportion, colour = Source, linetype = Source)) +
   ylab('Proportion\n') +
   theme(legend.position = c(0.8, 0.8))
 
-ggsave(YEAR+1,"/figures/agecomp_bydatasource.png", 
+ggsave(paste0(YEAR+1,"/figures/agecomp_bydatasource.png"), 
        dpi=300, height=5, width=5, units="in")
 
 # bubble plots filled circles
@@ -1436,7 +1563,7 @@ expand.grid(year = unique(lencomps$year),
   full_join(lencomps) %>%
   fill_by_value(n, proportion, value = 0) %>% 
   mutate(#length_bin = factor(length_bin),
-         proportion = round(proportion, 4)) %>%
+         proportion = round(proportion, 6)) %>%
   # Keep only relevant years for each Source
   filter(c(Source == "LL fishery" & year >= 2002) |
            c(Source == "LL survey" & year >= 1997) #|
@@ -1450,13 +1577,14 @@ lencomps %>%
 
 write_csv(lencomps, paste0(YEAR+1,"/output/lengthcomps_", YEAR, ".csv"))
 
+str(lendat)
 lendat %>% 
   # Mean length comp for comparison
   count(Source, Sex, length_bin) %>%
   group_by(Source, Sex) %>% 
   mutate(proportion = round( n / sum(n), 4)) %>% 
-  arrange(Source, Sex, length_bin) %>% 
-  # Fill in the blanks with 0's
+  arrange(Source, Sex, length_bin)  %>% 
+  data.frame() %>%  
   complete(Source, length_bin,
            fill = list(n = 0, proportion = 0)) %>% 
   bind_rows(lendat %>% # Sexes combined

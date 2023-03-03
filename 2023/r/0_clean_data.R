@@ -333,12 +333,12 @@ pot_eff<-unique(pot_eff)
 
 read_csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_bio_", 
                 YEAR, ".csv"), 
-         guess_max = 50000) %>% 
+         guess_max = 50000)  %>% 
   mutate(#date = as.Date(format(parse_date_time(SELL_DATE, c("%m/%d/%Y %H:%M")),"%Y-%m-%d")), #ISO 8601 format
          date = as.Date(SELL_DATE, c("%Y-%m-%d"), tz="UTC"), #, tz="America/Anchorage"),
          julian_day = yday(date),
-         Sex = derivedFactor("Male" = SEX_CODE == "1",#"01",
-                             "Female" = SEX_CODE == "2",#"02",
+         Sex = derivedFactor("Male" = SEX_CODE == "01",#"01",
+                             "Female" = SEX_CODE == "02",#"02",
                              .default = NA),
          Maturity = derivedFactor("0" = MATURITY_CODE %in% c("01", "02"), 
                                   "1" = MATURITY_CODE %in% c("03", "04", "05", "06", "07"),
@@ -358,6 +358,9 @@ read_csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_bio_",
          Maturity = as.character(Maturity),
          Project_cde = as.character(Project_cde)) -> fsh_bio
 
+ histogram(fsh_bio$length, breaks=50)
+ histogram(fsh_bio$length[fsh_bio$length<120], breaks=50)
+ 
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017). This was updated again in 2019 due to the
 # age readability code issue.
