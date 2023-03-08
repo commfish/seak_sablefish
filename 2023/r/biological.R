@@ -50,11 +50,10 @@ read_csv(paste0(YEAR+1,"/data/fishery/fishery_bio_2000_", YEAR,".csv"),
          length_mu = mean(length, na.rm = TRUE),
          weight_mu = mean(weight, na.rm = TRUE)) %>% 
   ungroup() -> fsh_bio
-unique(fsh_bio$year)
+unique(fsh_bio$Gear)
 
 # Pot survey biological data
-#no pot survey 2021 because of stupid Covid, use data only through 2020
-#read_csv(paste0("data/survey/potsrv_bio_1981_", YEAR, ".csv"), 
+
 read_csv(paste0(YEAR+1,"/data/survey/potsrv_bio_1981_", YEAR, ".csv"), 
          guess_max = 50000) %>% 
   mutate(Year = factor(year),
@@ -207,16 +206,28 @@ nrow(fsh_bio_mod)
 plot(fsh_bio_mod$weight ~ fsh_bio_mod$length)
 
 plot(fsh_bio$weight ~ fsh_bio$length)
-# still some true shit in here...need to cull out unrealistic fish that are 
-# evident in these plots... 
-{
-fsh_bio_mod1<-fsh_bio_mod %>% filter(!(length > 100 & weight < 6)) %>% data.frame()
-plot(fsh_bio_mod$weight ~ fsh_bio_mod$length)
-points(fsh_bio_mod1$weight ~ fsh_bio_mod1$length, col="blue")
 
-fsh_bio_mod<-fsh_bio_mod1}
+# lets compare LW of pot and longline gear since pot fishery started in 2022
+ggplot(fsh_bio %>% filter(year >= 2022),
+       aes(x=length, fill=Gear, col=Gear)) + 
+  #geom_histogram(binwidth=1,aes(y = ..density..,col=Gear)) +
+  geom_density(alpha=0.25, aes(fill = Gear))
 
-# length-weight relationship
+ggsave(paste0(YEAR+1,"/figures/fsh_ll_vs_pot_lengths.png"), dpi = 300, height = 3, width = 4, units = "in")
+  
+ks.test(fsh_bio$length[fsh_bio$year >= 2022 & fsh_bio$Gear == "Longline"],
+        fsh_bio$length[fsh_bio$year >= 2022 & fsh_bio$Gear == "Pot"])
+#results show that the length distributions are significantly different! (P value < 0.05)
+
+#lets plot the cumulative distribution functions of the data 
+cdf1<-ecdf(fsh_bio$length[fsh_bio$year >= 2022 & fsh_bio$Gear == "Longline"])
+cdf2<-ecdf(fsh_bio$length[fsh_bio$year >= 2022 & fsh_bio$Gear == "Pot"]) 
+plot(cdf1, verticals=TRUE, do.points=FALSE, main="cdf", xlab="length")
+plot(cdf2, verticals=TRUE, do.points=FALSE, add=TRUE, col="blue")
+
+#longline catching bigger fish... 
+
+# length-weight relationship of all fishery samples... 
 fem_fit_fsh <- nls(weight ~ lw_allometry(length = length, a, b), 
                data = filter(fsh_bio_mod, Sex == "Female"), start = START)
 
@@ -256,8 +267,8 @@ bind_rows(
     select(year, Project_cde, Sex, age, weight) %>% 
     filter(year >= 2002)) %>% 
   filter(!is.na(weight) & !is.na(age) & !is.na(Sex)) %>% 
-  mutate(Source = derivedFactor('LL survey' = Project_cde == "603",
-                                'LL fishery' = Project_cde == "02",
+  mutate(Source = derivedFactor('LL survey' = Project_cde %in% c("03","603"),
+                                'LL fishery' = Project_cde %in% c("02","602"),
                                 method = "unique")) %>% 
   filter(year <= YEAR & age >= rec_age & age <= plus_group) -> waa
 
@@ -323,7 +334,7 @@ ggplot(df_cohort, aes(age, weight, colour = Cohort, group = Cohort)) +
   theme(legend.position = "bottom") #+
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels)# -> waa_cohort_plot
 
-ggsave(YEAR+1,"/figures/waa_cohort.png", dpi = 300, height = 5, width = 7, units = "in")
+ggsave(paste0(YEAR+1,"/figures/waa_cohort.png"), dpi = 300, height = 5, width = 7, units = "in")
 
 df %>% 
   filter(Age %in% c("2", "3", "4", "5")) %>% 
@@ -487,7 +498,7 @@ ggsave(paste0(YEAR+1,"/figures/trends_Linf_1997_", YEAR, ".png"),
 #==================================================================================
 # Fishery length-at-age ----
 
-# Note that current port sampling protocals were implemented in 2002
+# Note that current port sampling protocols were implemented in 2002
 
 # subsets by length, age, sex
 fsh_bio_noOL %>% 
@@ -613,6 +624,104 @@ ggplot(allom_sub, aes(length, weight, col = Sex, shape = Sex)) +
   geom_jitter(alpha =0.8) + 
   stat_function(fun = lw_allometry, 
                 args = as.list(tidy(fem_fit)$estimate),
+                col = "#F8766D") + 
+  stat_function(fun = lw_allometry, 
+                args = as.list(tidy(male_fit)$estimate),
+                col = "#00BFC4", lty = 2) + 
+  labs(x = "Fork length (cm)", y = "Round weight (kg)", alpha = NULL) +
+  # scale_colour_grey() +
+  theme(legend.position = c(0.85, 0.2))
+
+ggsave(paste0(YEAR+1,"/figures/allometry_chathamllsurvey_1997_", YEAR, ".png"),
+       dpi=300, height=4, width=6, units="in")
+
+#===== We should see if this differs between gears... 
+
+# subsets by length, age, sex, and gear
+fsh_laa_f %>% filter(year >=2022 & Gear == "Longline") -> ll_laa_f
+fsh_laa_f %>% filter(year >=2022 & Gear == "Pot") -> pot_laa_f
+fsh_laa_m %>% filter(year >=2022 & Gear == "Longline") -> ll_laa_m
+fsh_laa_m %>% filter(year >=2022 & Gear == "Pot") -> pot_laa_m
+
+# females
+lvb_f_ll <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                 size = ll_laa_f$length, age = ll_laa_f$age,
+                                 error = 1, # additive (2 = multiplicative)
+                                 # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
+                                 Sinf = 70, K = 0.22, t0 = -1.9)
+lvb_f_pot <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                size = pot_laa_f$length, age = pot_laa_f$age,
+                                error = 1, # additive (2 = multiplicative)
+                                # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
+                                Sinf = 70, K = 0.22, t0 = -1.9)
+
+# males
+lvb_m_ll <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                size = ll_laa_m$length, age = ll_laa_m$age,
+                                error = 1, # additive (2 = multiplicative)
+                                # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
+                                Sinf = 70, K = 0.22, t0 = -1.9)
+lvb_m_pot <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                 size = pot_laa_m$length, age = pot_laa_m$age,
+                                 error = 1, # additive (2 = multiplicative)
+                                 # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
+                                 Sinf = 70, K = 0.22, t0 = -1.9)
+#not much data after just one year of fishing in 2022... But this will be good as fishery develops... 
+# subsets by weight, age, sex
+fsh_bio_noOL %>% 
+  filter(Sex %in% c("Female", "Male") &
+           year >= 2022 & #advent of slinky pot fishery
+           !is.na(length) &
+           !is.na(weight)) %>% 
+  droplevels() -> allom_sub_fsh22
+colnames(allom_sub_fsh22)
+# length-weight relationship
+lw_allometry <- function(length, a, b) {a * length ^ b}
+
+START <- c(a = 1e-5, b = 3) #Starting values close to Hanselman et al. 2007
+
+ll_fem_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+               data = filter(allom_sub_fsh22, Sex == "Female", Gear == "Longline"), start = START)
+pot_fem_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+                  data = filter(allom_sub_fsh22, Sex == "Female", Gear == "Pot"), start = START)
+ll_male_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+                  data = filter(allom_sub_fsh22, Sex == "Male", Gear == "Longline"), start = START)
+pot_male_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+                   data = filter(allom_sub_fsh22, Sex == "Male", Gear == "Pot"), start = START)
+
+# parameter estimates and plot fit 
+beta_m_ll <- tidy(ll_male_fit)$estimate[2]
+beta_m_pot <- tidy(pot_male_fit)$estimate[2]
+beta_f_ll <- tidy(ll_fem_fit)$estimate[2]
+beta_f_pot <- tidy(pot_fem_fit)$estimate[2]
+
+unique(allom_sub$Sex)
+
+bind_rows(tidy(ll_fem_fit) %>% mutate(Sex = "Female",
+                                      Gear = "Longline"),     
+          tidy(pot_fem_fit) %>% mutate(Sex = "Female",
+                                       Gear = "Pot"),
+          tidy(ll_male_fit) %>% mutate(Sex = "Male",
+                                       Gear = "Longline"),     
+          tidy(pot_male_fit) %>% mutate(Sex = "Male",
+                                        Gear = "Pot")) %>% 
+  #bind_rows(tidy(all_fit) %>% mutate(Sex = "Combined")) %>% 
+  dplyr::select(Parameter = term, Estimate = estimate, SE = std.error, Sex, Gear) %>% 
+  mutate(Source = "Chatham longline and pot fishery",
+         Years = paste0(min(allom_sub_fsh22$year), "-", max(allom_sub_fsh22$year)),
+         Region = "Chatham Strait",
+         Function = "Allometric - NLS") %>% 
+  full_join(allom_sub_fsh22 %>% 
+              group_by(Sex, Gear) %>% 
+              summarise(n = n()))  -> allom_pars_fsh_gear
+
+ggplot(allom_sub_fsh22, aes(length, weight, col = Gear, shape = Gear)) +
+  facet_grid(~Sex) +
+  geom_jitter(alpha =0.8) + 
+  
+  #pick up on 3-8-23
+#  stat_function(fun = lw_allometry, 
+                args = as.list(tidy(ll_fem_fit)$estimate),
                 col = "#F8766D") + 
   stat_function(fun = lw_allometry, 
                 args = as.list(tidy(male_fit)$estimate),

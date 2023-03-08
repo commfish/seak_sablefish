@@ -124,8 +124,8 @@ write_csv(ifdb_catch, paste0("legacy_data/fishery/nseiharvest_ifdb_",
                  YEAR,".csv",sep=""), 
                 guess_max = 50000) %>% #nrow(unique(ugh))
    mutate(year = Year,
-          set_date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"), #ISO 8601 format
-          sell_date = as.Date(Sell.Date, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"),
+          set_date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="UTC"), #ISO 8601 format; tz="America/Anchorage"
+          sell_date = as.Date(Sell.Date, c("%Y-%m-%d %H:%M:%S"), tz="UTC"),
           julian_day_set = yday(set_date),
           julian_day_sell = yday(sell_date),
           tm_hauled = parse_date_time(Time.Hauled, c("%Y-%m-%d %H:%M:%S")),
@@ -240,8 +240,8 @@ head(ll_eff)
                  YEAR,".csv",sep=""), 
           guess_max = 50000) %>% 
     mutate(year = Year,
-           set_date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"), #ISO 8601 format
-           sell_date = as.Date(Sell.Date, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"),
+           set_date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="UTC"), #ISO 8601 format
+           sell_date = as.Date(Sell.Date, c("%Y-%m-%d %H:%M:%S"), tz="UTC"),
            julian_day_set = yday(set_date),
            julian_day_sell = yday(sell_date),
            tm_hauled = parse_date_time(Time.Hauled, c("%Y-%m-%d %H:%M:%S")),
@@ -345,9 +345,9 @@ read_csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_bio_",
                                   .default = NA),
          PROJECT_CODE = "02",   #new format has code as 602, but older data and legacy code ref's 02, so change here from
                                 #2022 onward
-         Gear = derivedFactor(#"Pot" = PROJECT_CODE == "17", !!!***!!! <-add in in 2023 because now have pot gear out there!!! 
-                              "Longline" = PROJECT_CODE == "02")) %>%  #, Should be 02 for Longline, 602 is for the survey
-  select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, 
+         Gear = as.factor(GEAR)) %>% #derivedFactor(#"Pot" = PROJECT_CODE == "17", !!!***!!! <-add in in 2023 because now have pot gear out there!!! 
+                      #        "Longline" = PROJECT_CODE == "02")) %>%  #, Should be 02 for Longline, 602 is for the survey
+  select(year = YEAR, Project_cde = PROJECT_CODE, trip_no = TRIP_NO, Gear,
          Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, julian_day,
          Stat = G_STAT_AREA, Mgmt_area = G_MANAGEMENT_AREA_CODE,
          Sample_type = SAMPLE_TYPE, Spp_cde = SPECIES_CODE, 
@@ -366,7 +366,9 @@ read_csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_bio_",
 # age readability code issue.
 read_csv(paste0("legacy_data/fishery/fishery_bio_2000_", YEAR-1, ".csv"), 
          guess_max = 50000) %>% 
-  mutate(Maturity = as.character(Maturity)) -> past_fsh_bio
+  mutate(Maturity = as.character(Maturity),
+         #Gear = "Longline"   #Cross this out in 2024 because data will already be formatted with mixed gear in 2023
+         ) -> past_fsh_bio
 
 bind_rows(past_fsh_bio, fsh_bio) -> fsh_bio
 
@@ -462,8 +464,11 @@ read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_by_condition_1988_", YEAR, "
          hooks_bait = BAIT, hook_invalid = INVALID, hooks_sablefish = NUMBERS,
          discard_status_cde = DISCARD_STATUS_CODE, discard_status = DISCARD_STATUS) -> srv_ctc
 
+max(srv_ctc$year); unique(srv_ctc$year)
+view(srv_ctc %>% filter(year == 2022))
+ 
 write_csv(srv_ctc, paste0(YEAR+1,"/data/survey/llsrv_by_condition_",
-                          min(srv_eff$year), "_", YEAR, ".csv"))
+                          min(srv_ctc$year), "_", YEAR, ".csv"))
 write_csv(srv_ctc, paste0("legacy_data/survey/llsrv_by_condition_", min(srv_ctc$year), "_",
                           max(srv_ctc$year), ".csv"))
 
@@ -641,11 +646,12 @@ read_csv(paste0(YEAR+1,"/data/survey/raw_data/tag_releases_",
  # exported from database
   mutate(date = ymd(as.Date(time_second_anchor_onboard)), # ISO 8601 format
          #date = ymd(as.Date(TIME_SECOND_ANCHOR_OVERBOARD)), #ISO 8601 format
+         length = length_millimeters/10, #beginning in 2022 lengths in this query are recorded in mm...
          julian_day = yday(date),
          tag_number = as.character(tag_number)) %>% 
   select(year , Project_cde = project_code, trip_no = trip_number, date, julian_day,
          Stat = groundfish_stat_area, Mgmt_area = groundfish_management_area_code, 
-         length = length_millimeters, tag_no = tag_number, tag_batch_no = tag_batch_number, 
+         length, tag_no = tag_number, tag_batch_no = tag_batch_number, 
          release_condition_cde = release_condition_code, discard_status = discard_status,
          comments = specimen_comments) -> tag_releases
 
@@ -653,7 +659,11 @@ read_csv(paste0(YEAR+1,"/data/survey/raw_data/tag_releases_",
 # Data queried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
 str(past_releases); str(tag_releases)
-read_csv(paste0("legacy_data/survey/tag_releases_2003_", YEAR-1, ".csv"), 
+
+#when was last marking survey?  In 2022 it was two years age
+last_surv <- 2
+
+read_csv(paste0("legacy_data/survey/tag_releases_2003_", YEAR-last_surv, ".csv"), 
          guess_max = 50000) -> past_releases
 #for 2022 analysis
 
@@ -762,6 +772,14 @@ read_csv(paste0(YEAR+1,"/data/fishery/raw_data/nsei_daily_tag_accounting_", YEAR
            julian_day = yday(date),
            total_obs = unmarked + marked,
            whole_kg = round_lbs * 0.453592) -> fsh_counts
+#view(fsh_counts)
+
+#fsh_counts %>% filter(stringr::str_count(trip_no, "/") == 1) -> dangit
+#view(dangit)
+
+#fsh_bio %>% filter(trip_no %in% c(dangit$trip_no))
+#unique(fsh_bio$trip_no[year(fsh_bio$date) == 2022])
+#unique(dangit$trip_no)
 
 read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsurv_daily_tag_accounting_", YEAR, ".csv"),
          guess_max = 50000) %>% 
@@ -778,7 +796,9 @@ read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsurv_daily_tag_accounting_", YEA
 read_csv(paste0("legacy_data/fishery/nsei_daily_tag_accounting_2004_", YEAR-2, ".csv"),
          guess_max = 50000) %>% 
   mutate(tags_recovered = NA,
-         trip_no = as.character(trip_no)) -> past_counts
+         trip_no = as.character(trip_no),
+         gear = "LL"   #turn this off in 2024 because archived data will be set... 
+         ) -> past_counts
 
 str(fsh_counts); str(srv_counts)
 
@@ -786,6 +806,21 @@ bind_rows(fsh_counts, srv_counts, past_counts) -> counts
 
 write_csv(counts, paste0(YEAR+1,"/data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
 write_csv(counts, paste0("legacy_data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv"))
+
+Project_cde %in% c("03" , "603")#while we're add it, lets take care of the survey countback data... 
+srv_marks<-counts %>% filter (date < "2022-08-15" & year == YEAR) %>% 
+   select(year,number_unmarked = unmarked, number_marked = marked, 
+          fully_observed = observed_flag, gear, comments)
+view(srv_marks)
+
+#read_csv(paste0(YEAR+1,"/data/survey/nsei_sable_llsurvey_countbacks.csv")) -> past_srv_marks
+read_csv(paste0("legacy_data/survey/nsei_sable_llsurvey_countbacks_thru_",YEAR-1,".csv")) %>%
+  mutate(gear = "LL")-> past_srv_marks
+
+bind_rows(past_srv_marks, srv_marks) -> srv_marks
+
+write_csv(srv_marks, paste0(YEAR+1,"/data/survey/nsei_sable_llsurvey_countbacks_thru_", YEAR, ".csv"))
+write_csv(srv_marks, paste0("legacy_data/survey/nsei_sable_llsurvey_countbacks_thru_", YEAR, ".csv"))
 
 # Historical tagging ----
 

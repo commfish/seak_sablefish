@@ -2464,3 +2464,30 @@ plot_sel <- function(save = TRUE, path = tmbfigs) {
   
 }
 
+hist_comp<-function(h1,h2){ #h1<-releases$length; h2<-rel_sel$rel_len
+  p1<-hist(h1,plot=FALSE, breaks=100)
+  p2<-hist(h2,plot=FALSE, breaks=100)
+  plot (p1, col = rgb(1,0,0,0.4),xlab = 'lengths',freq = FALSE, 
+        #main = paste0(colnames(h1)," vs ",names(h2)),
+        xlim = c(min(c(h1,h2),na.rm=T),
+                 max(c(h1,h2),na.rm=T)))
+  plot (p2, xaxt = 'n', yaxt = 'n',col = rgb(0,0,1,0.4), add = TRUE, freq = FALSE)
+}
+
+
+intersect_all <- function(a,b,...){
+  Reduce(intersect, list(a,b,...))
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

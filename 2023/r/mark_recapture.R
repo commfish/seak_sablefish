@@ -48,22 +48,22 @@ NO_MARK_SRV <- c(2011, 2014, 2016, 2021) # years WITHOUT a marking survey
 # abundance_age2plus to help inform the prior of the starting abundance (it will
 # still be vague - see Priors and starting values section). Note that these
 # values aren't very consistent because the MR age2plus abundance is actually
-# exploitable not total abundance... some abd are from MR estimates, others are
+# exploitable, not total, abundance... some abd are from MR estimates, others are
 # from an ASA model or the YPR/SPR model (lots of overturn in biometricians.  Currently I add this value manually
 # to the .csv until I can figure out a slicker way to update it each year.
-read_csv(paste0(YEAR+1,"/data/chatham_sablefish_abd_index.csv")) -> assessment_summary
+read_csv(paste0("legacy_data/chatham_sablefish_abd_index.csv")) -> assessment_summary
 view(assessment_summary)
 
 unique(assessment_summary$year)
 # Past years of mark-recapture variables, summarized to best of my ability based
 # on going through old Excel files on the server. Used for comparison purposes.
-read_csv(paste0(YEAR+1,"/data/fishery/raw_data/mr_variable_summary.csv")) -> mr_summary
+read_csv(paste0("legacy_data/mr_variable_summary.csv")) -> mr_summary
 view(mr_summary)
 # Released tags ----
 
 # Released fish. Each year has a unique batch_no.
 
-read_csv(paste0(YEAR+1,"/data/survey/tag_releases_2003_", YEAR-1, ".csv"), 
+read_csv(paste0(YEAR+1,"/data/survey/tag_releases_2003_", YEAR, ".csv"), 
 #read_csv(paste0("data/survey/tag_releases_2003_", YEAR, ".csv"), 
          guess_max = 50000) %>% 
   filter(year >= FIRST_YEAR) -> releases
@@ -73,15 +73,17 @@ str(releases)
 # bunch of "retained", "retained; bio sample", and "released; already tagged by
 # ADFG" are in the 2020 data. I'm especially confused by the retained tags...
 releases %>% filter(year < YEAR) %>% group_by(discard_status) %>% dplyr::summarise(n_distinct(tag_no)) 
-releases %>% filter(year == 2020) %>% group_by(discard_status) %>% dplyr::summarise(n_distinct(tag_no)) 
+releases %>% filter(year == YEAR) %>% group_by(discard_status) %>% dplyr::summarise(n_distinct(tag_no)) 
+
 # releases %>% filter(discard_status %in% c("Retained", "Retained; Bio. sample")) %>% write_csv("tag_release_errors_2020.csv") # sent to A Baldwin 20210224
 releases <- releases %>% filter(discard_status != "Released; already tagged by ADFG")
-
+releases <- releases %>% filter(discard_status == "Tagged and released")
 # Lookup table for year and tag batch no combos
+
 releases %>% 
   mutate(year_batch = paste0(year, "_", tag_batch_no)) %>% 
   filter(year >= FIRST_YEAR) %>% 
-  distinct(year_batch) -> tag_summary
+  distinct(year_batch) -> tag_summary; data.frame(tag_summary)
 
 # Recovered tags ----
 
@@ -92,13 +94,30 @@ read_csv(paste0(YEAR+1,"/data/fishery/tag_recoveries_2003_", YEAR, ".csv"),
          guess_max = 50000) -> recoveries
 unique(recoveries$tag_batch_no)
 str(recoveries)
-head(recoveries, 10)
+head(as.data.frame(recoveries), 10)
 
+unique(recoveries %>% filter (year == 2022) %>% select(Project_cde))
+
+srv_recoveries <- recoveries %>% filter(Project_cde %in% c("03" , "603"))
+fsh_recoveries <- recoveries %>% filter(!(Project_cde %in% c("03" , "603"))) 
+
+unique(srv_recoveries$year)
 #matrix of recoveries over the years... for open pop model
 with(recoveries, table(tag_batch_no, year))
 
-par(mfrow=c(3,1))
-hist(recoveries$length); hist(releases$length)
+#this year
+releases$length[releases$year < YEAR]
+hist_comp(recoveries$length[recoveries$year == YEAR],releases$length[releases$year == YEAR])
+
+plot (h2, col = rgb(1,0,0,0.4),xlab = 'lengths',freq = FALSE, 
+      main = 'mark vs recapture lengths',
+      xlim = c(min(c(recoveries$length,releases$length),na.rm=T),
+               max(c(recoveries$length,releases$length),na.rm=T)))
+
+#all years
+hist_comp(recoveries$length[recoveries$year < YEAR],releases$length[releases$year < YEAR])
+
+
 # project codes: query zprod: "select new_project_code, project_code, project from
 # lookup.project_conversion where category_code = 'g'"
 
@@ -120,7 +139,10 @@ recoveries %>%
          # use landing_date (same as the countbacks - see section below), otherwise catch_date
          date = as.Date(ifelse(is.na(landing_date), catch_date, landing_date))) %>% 
   filter(year >= FIRST_YEAR & year_batch %in% tag_summary$year_batch) -> recoveries
-nrow(recoveries[recoveries$year == 2020,])
+
+with(recoveries, table(tag_batch_no, year))
+
+nrow(recoveries[recoveries$year == YEAR,])
 
 # Check for Project_cde NAs and if there are any check with A. Baldwin or
 # whoever is leading the tagging project. In the past there have been occasional
@@ -135,7 +157,7 @@ recoveries %>%
   mutate(Project_cde = ifelse(is.na(Project_cde) &
                                 grepl(c("Personal Use|subsistance|sport"), comments), 
                               "27", Project_cde)) -> recoveries
-nrow(recoveries[recoveries$year == 2020,])
+nrow(recoveries[recoveries$year == 2022,])
 # Size selectivity differences ----
 
 # Check range of data
@@ -165,8 +187,9 @@ releases %>%
                           labels = paste(seq(35, 115, 5)))) %>% 
   select(year, rel_date = date, rel_stat = Stat, tag_no, tag_batch_no, rel_len = length, 
          rel_bin = length_bin) -> rel_sel
-par(mfrow=c(2,1))
-hist(releases$length); hist(rel_sel$rel_len)
+par(mfrow=c(1,1))
+hist_comp(releases$length,rel_sel$rel_len)
+
 nrow(releases); nrow(rel_sel)
 
 # Same for recoveries, only use measurements from scientific staff
@@ -179,10 +202,11 @@ recoveries %>%
                           labels = paste(seq(35, 115, 5)))) %>% 
   select(year, rec_date = date, rec_stat = Stat, tag_no, tag_batch_no, rec_len = length, 
          rec_bin = length_bin) -> rec_sel
-hist(recoveries$length); hist(rec_sel$rec_len)
+hist_comp(recoveries$length,rec_sel$rec_len)
+
 nrow(recoveries); nrow(rec_sel)
 
-#make similar data frame but keep in other measurements where we're examinng non-length
+#make similar data frame but keep in other measurements where we're examining non-length
 #based assumptions... 
 recoveries %>% 
   filter(!is.na(length) & !is.na(Stat)) %>% 
@@ -201,7 +225,7 @@ growth[1:10,]
 
 # Lots of unrealistic outliers, omit growth over 5 cm
 # PJ2022, just checking trends... would argue the %increase is better culling metric?
-hist(growth$growth, breaks=50)
+hist(growth$growth, breaks=50); plot(density(growth$growth))
 quantile(growth$growth, c(0.001,0.01,0.05,0.95,0.99,0.999))
 plot(growth$growth~growth$rel_len)
 growth$perc_inc<-growth$growth/growth$rel_len
@@ -214,13 +238,18 @@ growth <-growth %>%
          growth3 = rec_length3 - rel_length3,
          perc_inc3 = growth3/rel_length3); growth[1,]
 quantile(growth$perc_inc3, c(0.001,0.01,0.05,0.95,0.99,0.999))
-hist(growth$perc_inc3, breaks=100)
+
+par(mfrow=c(1,1))
+hist_comp(growth$perc_inc3,growth$perc_inc)
+
+abline(v=quantile(growth$perc_inc3, c(0.95,0.99,0.999)),lty=3)
+abline(v=0.25,lty=4,col="blue")
 
 growth %>% 
-  filter(growth < 5) %>% 
-#  filter(perc_inc3 < 0.25) %>%    #PJ2022 - alternative culling based on % increase in schwaggy mass of over 10%
+#  filter(growth < 5) %>% 
+  filter(perc_inc3 < 0.25) %>%    #PJ2022 - alternative culling based on % increase in schwaggy mass of over 10%
                                   # gives quite different answers... max growth in larger age size
-                                  #thinking this is more realistic/appropriate... 
+                                  # in 2023 adopting this approach...  
   arrange(year, rel_bin) %>% 
   group_by(rel_bin) %>% 
   dplyr::summarize(n = length(tag_no),
@@ -413,12 +442,13 @@ dat$rec_bin<-as.numeric(as.character(dat$rec_bin))
 dat2<-growth_sel[growth_sel$year == i,]
 dat2$growth_bin<-as.numeric(as.character(dat2$growth_bin))
 par(mfrow=c(2,1))
-hist(dat$rec_len); min(dat$rec_len)
-#co<-min(as.numeric(as.character(dat$rec_bin)))
-hist(dat2$growth_len)
+
+hist_comp(dat$rec_len,dat2$growth_len)
+
 length(dat2$growth_len[dat2$growth_len < min(dat$rec_len)]) #hmmm...need to go back and check how rec_len and growth_len derived...
-hist(dat$rec_bin); min(dat$rec_bin)
-hist(dat2$growth_bin)
+hist_comp(dat$rec_bin,dat2$growth_bin)
+ min(dat$rec_bin)
+
 length(dat2$growth_bin[dat2$growth_bin < min(dat$rec_bin)])
 
 dat3<-rec_sel[rec_sel$tag_no != "T-089116" & rec_sel$year == i,]
@@ -470,7 +500,7 @@ releases %>%
             # during this period.
             potsrv_middle = (potsrv_end - potsrv_beg) / 2 + potsrv_beg) %>% 
   mutate(year_batch = paste0(year, "_", tag_batch_no)) -> tag_summary
-
+view(tag_summary)
 # Remove tags that fall below the cutoff value to account for size-selectivity 
 # reviewed 2-21-22.  Getting rid of too small tags good; Phil approved! 
 releases %>%  filter(!tag_no %in% throw_out$tag_no) -> releases_bin
@@ -485,13 +515,13 @@ releases_bin %>%
 releases_raw %>% 
   group_by(year, tag_batch_no) %>% 
   dplyr::summarize(K.0 = n_distinct(tag_no)) %>% left_join(tag_summary) -> tag_summary_raw
-
+view(tag_summary_bin); view(tag_summary_raw)
 #-------------------------------------------------------------------------------
 # Movement in Chatham ----
 merge(rel_sel, 
 #      rec_sel %>%  #nrow(rec_sel)   #why used culled recoveries here???
         #these are culled based on who measured them, but does that effect the movement 
-        #piece of the puzzle
+        #piece of the puzzle?
      rec_mvt %>% 
         filter(!is.na(rec_stat)) %>% 
         mutate(rec_stat = ifelse(rec_stat %in% distinct(rel_sel, rel_stat)$rel_stat, 
@@ -571,11 +601,13 @@ ggsave(paste0(YEAR+1,"/figures/movement_matrix_with_N_",
 # Prior to the 2019 assessment, it was assumed all fish on the LL survey were
 # checked for marks. Only 2008 and 2010 surveys had countbacks. See Issue #39
 # for documentation.
-srv_count <- read_csv(paste0(YEAR+1,"/data/survey/nsei_sable_llsurvey_countbacks.csv"))
-
+# 2023: Heroic efforts from the groundfish team in 2022 resulted in full countbacks
+#       for 2022 survey!  
+srv_count <- read_csv(paste0(YEAR+1,"/data/survey/nsei_sable_llsurvey_countbacks_thru_", YEAR, ".csv"))
+view(srv_count)
 # !!! clarify which valid mark data frame you are using, raw or binned length culling...
 tag_summary<-tag_summary_bin  #tag_summary_raw
-
+view(tag_summary)
 # Expand grid, sum within years, and apply 0s for NAs
 srv_count %>% 
   group_by(year) %>% 
@@ -584,14 +616,18 @@ srv_count %>%
   right_join(data.frame(year = FIRST_YEAR:YEAR)) %>% 
   mutate(n.1 = ifelse(is.na(n.1), 0, n.1),
          k.1 = ifelse(is.na(k.1), 0, k.1)) %>% 
-  right_join(tag_summary, by = "year") -> tag_summary  
+  right_join(tag_summary, by = "year") -> tag_summary; view(tag_summary)
 
 # 2. Recovered tags in LL survey
 
 # Add LL survey recoveries to the summary (survey is time period i = 1)
-head(recoveries)
+head(data.frame(recoveries))
+unique(recoveries$Project_cde)
+recoveries[recoveries$Project_cde == "603",]
+data.frame(unique(recoveries %>% filter(year == 2008) %>% select(landing_date)))
+
 recoveries %>% 
-  filter(Project_cde == "03") %>% 
+  filter(Project_cde %in% c("03","603")) %>% 
   group_by(year, tag_batch_no) %>%
   dplyr::summarize(D.1 = n_distinct(tag_no)) %>% # number of tags to remove before fishery starts = tags removed in ll survey
   left_join(tag_summary, by = c("year", "tag_batch_no")) -> tag_summary
@@ -600,13 +636,13 @@ view(tag_summary)
 # pj22: Jane does this at each step of accounting for recaptures.
 #save recoveries for diagnostics before we start stripping this data away
 all_recoveries<-recoveries
+
 # Remove tags recovered in the survey from the releases df so they don't get
 # double-counted by accident.
-recoveries %>% filter(Project_cde != "03") -> recoveries
-
+recoveries %>% filter(!(Project_cde %in% c("03","603"))) -> recoveries
+unique(recoveries$Project_cde)
 
 # 3. LL survey catch in numbers (C.1)
-
 read_csv(paste0(YEAR+1,"/data/survey/llsrv_by_condition_1988_", YEAR, ".csv"), guess_max = 50000) %>% 
   filter(year >= FIRST_YEAR) %>% 
   mutate(sablefish_retained = ifelse(discard_status_cde == "01", hooks_sablefish, 0)) %>% 
@@ -616,6 +652,7 @@ read_csv(paste0(YEAR+1,"/data/survey/llsrv_by_condition_1988_", YEAR, ".csv"), g
             C.1 = sum(hooks_sablefish)) %>% # catch in numbers
   right_join(tag_summary, by = "year") -> tag_summary   
 view(tag_summary)
+unique(tag_summary$year)
 # 4. LL survey mean weight
 
 read_csv(paste0(YEAR+1,"/data/survey/llsrv_bio_1988_", YEAR,".csv"), 
@@ -647,13 +684,24 @@ str(fsh_tx)
 # counted, did not observe. There is no difference between dressed and round fish for
 # detecting marks, but we shouldn't be using it for estimating weight.
 
-#PJ22!! Note that no survey in '21 so YEAR-1 below; change after next abundance estimate
-#read_csv(paste0("data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv")) -> marks
-read_csv(paste0(YEAR+1,"/data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv")) -> marks  #marks = recaps
+# but don't need to observe all fish for mark count as long as number observed is accurate pj23
+
+read_csv(paste0(YEAR+1,"/data/fishery/nsei_daily_tag_accounting_2004_", YEAR, ".csv")) %>%
+  mutate(gear = ifelse(gear =="LL","Longline",
+                       ifelse(gear == "POT","Pot","Mixed"))) -> marks  #marks = recaps
 view(marks)
-marks$marked
-marks$unmarked
-unique(marks$comments)
+
+marks %>% filter(year >= FIRST_YEAR &
+                   !year %in% NO_MARK_SRV,
+                 grepl(c("Missing|missing|Missed|missed|eastern|Eastern|not counted|
+             Did not observe|did not observe|dressed|Dressed"), comments)) -> questionable
+view(questionable)
+
+marks %>% filter(year >= FIRST_YEAR &
+                   !year %in% NO_MARK_SRV,
+                 observed_flag == "No",
+                 !is.na(unmarked)) -> obs_no
+view(obs_no)
 
 marks %>% 
   filter(year >= FIRST_YEAR &
@@ -665,28 +713,83 @@ marks %>%
     mean_weight = ifelse(all_observed == "Yes", whole_kg/total_obs, NA),
     year_trip = paste0(year, "_", trip_no)) -> marks
 nrow(marks)
+nrow(marks)
+colnames(marks)
 
+max(stringr::str_count(fsh_bio$trip_no[marks$year == 2022], "/"),na.rm=T)
+marks
 # 3. Fishery mean weight
 
 # Biological data to get mean weight to get numbers estimated on unobserved catch. 
 read_csv(paste0(YEAR+1,"/data/fishery/fishery_bio_2000_", YEAR,".csv"), 
          guess_max = 50000) %>%
   filter(!is.na(weight)) %>% 
-  mutate(date = ymd(as.Date(date, "%m/%d/%Y"))) %>% 
-  select(date, trip_no, weight) %>% 
-  group_by(date, trip_no) %>% 
-  dplyr::summarize(mean_weight_bios = mean(weight)) -> fsh_bio
-view(fsh_bio)
+  mutate(date = ymd(as.Date(date, "%m/%d/%Y")),
+         year = year(date),
+         trip_no = as.character(trip_no),
+         gear = Gear) %>% 
+  select(date, year, trip_no, gear, weight) %>% 
+  group_by(date, trip_no, gear) %>% 
+  dplyr::summarize(mean_weight_bios = mean(weight),
+                   n = n()) %>% 
+  mutate(year = year(date)) -> fsh_bio
+
+colnames(fsh_bio)
+
+histogram(fsh_bio$n); mean(fsh_bio$n); median(fsh_bio$n)
+
+ggplot(fsh_bio, aes(x=as.factor(date),y=n)) + geom_boxplot()
+
+# 2023 Note: sample sizes for mean weights using the bio samples for the day are quite
+# low... most are less than fifty and half less than 26.  Yikes.  I think this 
+# is no bueno... 
 
 # Join the mark sampling with the biological sampling. If random bio samples
 # were taken, use those as the mean weight, if not use the estimated mean weight
 # from the total weight of the catch and the number of fish sampled
-left_join(marks, fsh_bio, by = c("date", "trip_no")) %>% 
-  mutate(mean_weight = ifelse(!is.na(mean_weight_bios), mean_weight_bios, mean_weight)) %>% 
-  select(-mean_weight_bios) -> marks
 
-head(marks, 10)
+# but first (and new in 2022!), we need to see if there are landings with multiple 
+# trip numbers and how to deal with biological samples that may or may not match... 
+{str(fsh_bio)
+unique(fsh_bio$year)
+data.frame(unique(fsh_bio %>% filter(year == YEAR) %>% select(trip_no)))
 
+fsh_bio %>% data.frame() %>% filter(year == YEAR) %>% select(trip_no)  -> trip_nos_this_year
+
+data.frame(unique(marks %>% filter(year == YEAR) %>% select(trip_no)))
+data.frame(unique(marks %>% filter(year == YEAR,
+                                   stringr::str_count(year_trip, "/") == 1) %>% 
+                    select(trip_no))) %>%
+  separate(trip_no, into = paste0("trip_no_",1:2),sep = "/")-> multi_landing
+
+setdiff(trip_nos_this_year %>% mutate(trip_no_1 = trip_no) %>% select(trip_no_1),
+        multi_landing %>% select(trip_no_1))
+
+intersect(trip_nos_this_year %>% mutate(trip_no_1 = trip_no) %>% select(trip_no_1),
+        multi_landing %>% select(trip_no_1)) %>% data.frame() -> b1 
+
+intersect(trip_nos_this_year %>% mutate(trip_no_2 = trip_no) %>% select(trip_no_2),
+          multi_landing %>% select(trip_no_2)) %>% data.frame() -> b2 
+
+logged_trip_nos <- c(unique(b1$trip_no_1),unique(b2$trip_no_2)); logged_trip_nos
+
+#in 2022 one of the multi trip landings has a trip_no logged in biological data... 2601 but not 2503.   
+fsh_bio %>% filter(trip_no == logged_trip_nos)
+marks %>% filter(trip_no == logged_trip_nos)
+#make sure no "other" of that trip number in marks data frame
+marks %>% filter(trip_no == logged_trip_nos)  #OK, not hiding anywhere else... 
+data.frame(unique(marks %>% filter(year == YEAR,
+                                   stringr::str_count(year_trip, "/") == 1)))}
+#OK... that trip is also labelled as illegal but sampled anyways.  Lets just leave
+# as is and thus culled from analysis
+
+#Jane's original... this prioritizes the bios_weights, but I've modified this to 
+# limit the use of bio samples to 
+left_join(marks, fsh_bio, by = c("date", "trip_no","gear")) %>% 
+  mutate(mean_weight = ifelse(!is.na(mean_weight_bios) & n > 49, mean_weight_bios, mean_weight),
+         year = year.x) %>% 
+  select(-year.y,-year.x) -> marks
+view(marks)
 #hmmm... looks like if there are marks there are unmarked... 
 nrow(marks)
 nrow(marks[!is.na(marks$marked) & is.na(marks$unmarked),])
@@ -695,7 +798,7 @@ nrow(marks[is.na(marks$unmarked),])
 nrow(marks[marks$observed_flag == "No",])
 nrow(marks[marks$all_observed == "No",])
 nrow(marks[marks$all_observed == "Yes",])
-866+557
+
 # 4. Fishery CPUE
 
 # FLAG! Starting with 2020 data, you will get an error here. In 2020, the
@@ -708,33 +811,43 @@ nrow(marks[marks$all_observed == "Yes",])
 # uses this index doesn't end up getting used for management, so again this is
 # low priority.
 
-# CPUE data - use nominal CPUE for now
-#read_csv(paste0("data/fishery/fishery_cpue_1997_", YEAR,".csv"), 
-read_csv(paste0(YEAR+1,"/data/fishery/fishery_cpue_2022reboot_1997_", YEAR,".csv"),
-         guess_max = 50000) %>% 
-  filter(Spp_cde == "710") %>% 
-  mutate(sable_kg_set = sable_lbs_set * 0.45359237, # conversion lb to kg
-         std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (0.0254 * hook_space))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
-         # kg sablefish/1000 hooks, following Mueter 2007
-         WPUE = sable_kg_set / (std_hooks / 1000)) %>% 
-  filter(!is.na(date) & 
-           !is.na(sable_lbs_set) &
-           # omit special projects before/after fishery
-           julian_day > 226 & julian_day < 322) %>% 
-  group_by(year, trip_no) %>% 
-  dplyr::summarize(WPUE = mean(WPUE)) -> fsh_cpue # legacy code, 
-#PJ2022: Fixed and good to go!  
-str(fsh_cpue)
-unique(fsh_cpue$year) # !FLAG! Received from Justin 1/31/22 
-                      #once have that data can get rid of code below 
+# 2023 Update: The new scripts have been developed.  But now we have longline and 
+# pot cpue... so, lets see how this is going to go... 
+oldform<-read_csv(paste0(YEAR+1,"/data/fishery/fishery_cpue_2022reboot_1997_", 2021,".csv"),
+                  guess_max = 50000)
+newform<-read_csv(paste0(YEAR+1,"/data/fishery/fishery_ll_cpue_1997_", YEAR,".csv"),
+                  guess_max = 50000)
+newpots<-read_csv(paste0(YEAR+1,"/data/fishery/fishery_pot_cpue_2022_", YEAR,".csv"),
+               guess_max = 50000)
 
-# Stop gap: use long term (1997-2019) mean for interim years (2020-whenever
-# fishery CPUE project is finished). Remove the following code chunks once the
-# new fishery CPUE index is developed:
-#read_csv(paste0("data/fishery/fishery_cpue_1997_2019.csv"), 
+# Note '23: remember that we get NPUE estimates for each time period which is derived
+# from WPUE estimated dependent on available data.  NPUE is used to estimate a q 
+# for the fishery so we "should" be able to modify the models to incorporate 2 q's.
+
+#quick look at pot and longline tags in 2022
+ll_tns<-unique(newform$trip_no[newform$year == 2022])
+pot_tns<-unique(newpots$trip_no)
+
+intersect(ll_tns,pot_tns)  
+
+marks %>% filter(trip_no %in% intersect(ll_tns,pot_tns),
+                 year == 2022) %>% data.frame()
+
+newform %>% filter(trip_no %in% intersect(ll_tns,pot_tns),
+                   year == 2022) %>% data.frame()
+newpots %>% filter(trip_no %in% intersect(ll_tns,pot_tns),
+                   year == 2022) %>% data.frame()
+#******FLAG!!!! trip_no not identifying same trips... same trip number used on pot and
+#* longline trips so need to get that sorted out before joiing with marks... ???  
+
+# CPUE data - use nominal CPUE for now
+# 2023 lets use the standardized cpue since we think its mo' better?  
+
+#read_csv(paste0(YEAR+1,"/data/fishery/fishery_cpue_2022reboot_1997_", 2021,".csv"),
 #         guess_max = 50000) %>% 
 #  filter(Spp_cde == "710") %>% 
-#  mutate(sable_kg_set = sable_lbs_set * 0.45359237, # conversion lb to kg
+#  mutate(trip_no = as.character(trip_no),
+#         sable_kg_set = sable_lbs_set * 0.45359237, # conversion lb to kg
 #         std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (0.0254 * hook_space))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
          # kg sablefish/1000 hooks, following Mueter 2007
 #         WPUE = sable_kg_set / (std_hooks / 1000)) %>% 
@@ -743,24 +856,86 @@ unique(fsh_cpue$year) # !FLAG! Received from Justin 1/31/22
            # omit special projects before/after fishery
 #           julian_day > 226 & julian_day < 322) %>% 
 #  group_by(year, trip_no) %>% 
-#  dplyr::summarize(WPUE = mean(WPUE)) -> fsh_cpue #
+#  dplyr::summarize(WPUE = mean(WPUE)) -> fsh_cpue_old # legacy code, 
+#PJ2022: Fixed and good to go!  
+#str(fsh_cpue_old)
+#unique(fsh_cpue$year) 
 
-# here I fill in all trips in 2020 (or later) with the long-term fishery CPUE
-# mean. this will need to be deleted at some point!
-#fsh_cpue <- marks %>% 
-#  filter(date > 2020-01-01) %>% 
-#  mutate(year = year(date)) %>% 
-#  select(year, trip_no) %>% 
-#  mutate(WPUE = mean(fsh_cpue$WPUE, na.rm = TRUE)) %>% 
-#  bind_rows(fsh_cpue) %>% 
-#  arrange(year)
-  
+
+read_csv(paste0(YEAR+1,"/data/fishery/fishery_ll_cpue_1997_", YEAR,".csv"),
+         guess_max = 50000) -> check # %>% 
+check %>% filter(trip_no == "4019" & year == 2022) %>% data.frame
+#unique(check$gear_name)
+  #filter(Spp_cde == "710") %>%  #do we need this filter with new cpue structure?... sablefish landings in halibut trips count in the MR... 
+check %>%
+  mutate(trip_no = as.character(trip_no),
+         sable_kg_set = sable_lbs_set * 0.45359237, # conversion lb to kg
+         std_hooks = 2.2 * no_hooks_p_set * (1 - exp(-0.57 * (0.0254 * mean_hook_spacing))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
+         # kg sablefish/1000 hooks, following Mueter 2007
+         WPUE = sable_kg_set / (std_hooks / 1000),
+         trip_gear = "ll",
+         gear_cde = gear,
+         gear = "Longline") %>% 
+  filter(!is.na(date) & 
+           !is.na(sable_lbs_set) &
+           # omit special projects before/after fishery
+           julian_day_sell > 226 & julian_day_sell < 322) %>% 
+  group_by(year, trip_no, gear, trip_target) %>% 
+  dplyr::summarize(WPUE = mean(WPUE),
+                   mean_kg_set = mean(sable_kg_set)) -> fsh_cpue_ll # legacy code, 
+#PJ2022: Fixed and good to go!  
+str(fsh_cpue_ll)  
+
+read_csv(paste0(YEAR+1,"/data/fishery/fishery_pot_cpue_2022_", YEAR,".csv"),
+         guess_max = 50000) %>% 
+  filter(Spp_cde == "710") %>% 
+  mutate(trip_no = as.character(trip_no),
+         sable_kg_set = sable_lbs_set * 0.45359237, # conversion lb to kg
+         #std_pots = ?? 2.2 * no_pots_p_set * (1 - exp(-0.57 * (0.0254 * mean_hook_spacing))), #standardize hook spacing (Sigler & Lunsford 2001, CJFAS)
+         # kg sablefish/1000 hooks, following Mueter 2007
+         WPUE = sable_kg_set / no_pots_p_set,
+         trip_gear = "pot",
+         gear = "Pot") %>% 
+  filter(!is.na(date) & 
+           !is.na(sable_lbs_set) &
+           # omit special projects before/after fishery
+           julian_day_sell > 226 & julian_day_sell < 322) %>% 
+  group_by(year, trip_no,gear, trip_target) %>% 
+  dplyr::summarize(WPUE = mean(WPUE),
+                   mean_kg_set = mean(sable_kg_set)) -> fsh_cpue_pot 
+
+ggplot(fsh_cpue_ll,aes(x=as.factor(year), y = WPUE)) + geom_boxplot()
+ggplot(fsh_cpue_pot,aes(x=as.factor(year), y = WPUE)) + geom_boxplot()
+par(mfrow=c(1,1))
+
+rbind(fsh_cpue_ll,fsh_cpue_pot) -> fsh_cpue
+left_join(marks, fsh_cpue, by = c("year", "trip_no", "gear")) -> marks_new_all
+
+view(marks_new_all)
+marks_new_all %>% filter(year == 2022 & trip_no == "4020") %>% data.frame()
+marks_new_all %>% filter(year == 2022 & trip_no == "4019") %>% data.frame()
+
+fsh_cpue %>% filter(year == 2022 & trip_no == "4020")
+fsh_cpue %>% filter(year == 2022 & trip_no == "4019")
+
+fsh_cpue_pot %>% filter(trip_no == "4019" & year == 2022)
+fsh_cpue_ll %>% filter(trip_no == "4019" & year == 2022)
+
+unique(fsh_cpue_ll %>% filter(year == 2022) %>% select(trip_no) %>% data.frame())
+
+
+#oldnewcomp<-rbind(marks_old %>% filter(year == 2015) %>% mutate(data = "old",
+#                                                                trip_gear = "ll"),
+#                  marks_new %>% filter(year == 2015) %>% mutate(data = "new"))
+
+#ggplot(oldnewcomp,aes(x=as.factor(date),y=WPUE,fill = data)) + geom_boxplot()
+
 # Join the mark sampling with the fishery cpue - add wpue column
-head(marks,20)
-left_join(marks, fsh_cpue, by = c("year", "trip_no")) -> marks
+
+marks<-marks_new_all
 
 # 5. Timing of the fishery
-#marks<-marks2
+
 marks %>% 
   group_by(year) %>% 
   dplyr::summarize(fishery_beg = min(date),
@@ -769,6 +944,8 @@ marks %>%
   # See earlier notes on changes in methods from Franz Mueter in the Released
   # tags section - number of days to incur natural mortality
   mutate(t.1 = as.numeric((fishery_beg - 1) - potsrv_middle)) -> tag_summary
+
+view(tag_summary)
 
 unique(tag_summary$year)
 # 6. Tags from fishery
@@ -781,12 +958,17 @@ unique(recoveries$Project_cde)
 #!!!FLAG - in coming years make sure 602 accounted for, new standard.  Set up code
 # currently keep 602 -> 02 to keep consistent with Jane's code.  But something to 
 # be mindful of in coming years
-
+view(marks)
 recoveries %>% 
-  filter(year_trip %in% marks$year_trip & Project_cde == "02") %>%  
+  filter(year_trip %in% marks$year_trip & Project_cde %in% c("02","602")) %>%  
   group_by(year_trip) %>% 
   dplyr::summarize(tags_from_fishery = n_distinct(tag_no)) %>% 
-  right_join(marks, by = "year_trip") -> marks
+  right_join(marks, by = "year_trip") -> marks; view(marks)
+
+view(marks_t %>% filter(year == 2022))
+
+head(data.frame(marks_t))
+unique(marks_t$Project_cde)
 
 unique(recoveries$year)
 unique(marks$year)
@@ -794,7 +976,7 @@ unique(marks$year)
 # pj22 - same as other removal; Jane says releases df, but its not in here??? 
 # from recoveries data frame, remove as you go ... 
 nrow(recoveries)
-recoveries %>% filter(!c(year_trip %in% marks$year_trip & Project_cde == "02")) -> recoveries
+recoveries %>% filter(!c(year_trip %in% marks$year_trip & Project_cde %in% c("02","602"))) -> recoveries
 str(recoveries)
 view(recoveries)
 
@@ -811,11 +993,14 @@ view(recoveries)
 anti_join(recoveries %>% 
             filter(!trip_no %in% c(1, 2, 3) &  # pot and longline surveys
                      !is.na(trip_no) & 
-                     Project_cde == "02"), 
+                     Project_cde %in% c("602","02")), 
           marks, by = "year_trip") %>% 
   group_by(year_trip, Mgmt_area, date) %>% 
   dplyr::summarize(tags_from_fishery = n_distinct(tag_no)) -> no_match 
-# 7 trips from 2008, all in the NSEI; 3 from 2018; 1 trips in 2020... 2020_116
+
+# 2023 analysis looks good... fixing project code to include 602 helped resolve.. 
+
+# 7 trips from 2008, all in the NSEI; 3 from 2018; 1 trips in 2020, 0 trips in 2022
 # was part a tendered delivery, so no surprise it was weird.
 
 #--------------------------------------------------------------------------------
@@ -828,6 +1013,13 @@ anti_join(recoveries %>%
 
 view(marks)
 
+
+ hist(marks %>% filter(gear == "Pot") %>% select(mean_kg_set) %>% data.frame(),breaks=6)
+ hist(marks %>% filter(gear == "Longline") %>% select(mean_kg_set) %>% data.frame(),breaks=100) 
+ 
+hist_comp(marks %>% filter(gear == "Pot") %>% select(mean_kg_set) %>% data.frame(),
+          marks %>% filter(gear == "Longline") %>% select(mean_kg_set) %>% data.frame())
+
 marks %>% 
   # padr::pad fills in missing dates with NAs, grouping by years.
   #PJ22 - fixed error in code with na.rm=TRUE...!!!! 3-17-22
@@ -838,11 +1030,13 @@ marks %>%
             total_marked = sum(marked, na.rm=TRUE), #number marks in countback ... here including incomplete countbacks
             tags_from_fishery = sum(tags_from_fishery, na.rm=TRUE),  #using marks from recoveries, which don't agree with count_back data!
             mean_weight = mean(mean_weight, na.rm=TRUE),
-            mean_wpue = mean(WPUE, na.rm=TRUE)) %>% 
+            mean_wpue = mean(WPUE, na.rm=TRUE),
+            mean_wpue_set = mean(mean_kg_set, na.rm=TRUE)) %>% 
   # interpolate mean_weight column to get npue from wpue (some trips have wpue
   # data but no bio data)
   mutate(interp_mean = zoo::na.approx(mean_weight, maxgap = 20, rule = 2),
-         mean_npue = mean_wpue / interp_mean) %>%    #<-weight to n
+         mean_npue = mean_wpue / interp_mean,
+         mean_npue_set = mean_wpue_set/interp_mean) %>%    #<-weight to n
   # padr::fill_ replaces NAs with 0 for specified cols
   fill_by_value(whole_kg, total_obs, total_marked, tags_from_fishery, value = 0) %>% 
   group_by(year) %>% 
@@ -963,7 +1157,19 @@ ggplot(daily_marks,
   labs(x = "Julian Day", y = "Number sablefish per 1000 hooks\n")
 
 #*** If doing PJ diagnostics here is where you go to MR_exam_code_pj22.R
+ggplot(daily_marks,
+       aes(x = julian_day, y = mean_wpue_set)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_wrap(~ year, dir = "v") +
+  labs(x = "Julian Day", y = "Mean weight by set (kg)")
 
+ggplot(daily_marks,
+       aes(x = julian_day, y = mean_npue_set)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_wrap(~ year, scales = "free", ncol = 2, dir = "v") +
+  labs(x = "Julian Day", y = "Number sablefish per set\n")
 #===============================================================================================================
 #model prep
 tag_summary<-tag_summary_JS   #go back to this so don't have to change code... 
@@ -1003,9 +1209,18 @@ pb <- txtProgressBar(min = 0, max = strats, style = 3)
 #============================================================================================
 # Modelling loop
 
+#2023 FLAG!!!!!! -> for simplicity sakes we are changing NPUE to npue_by_set so that
+# we don't need to complicate the model with two gear types
+# in the future we will need to compicate the models to reflect the two gear types
+# Will attempt it in 2023 if I have time to perform the year-by-year mark recapture
+# analysis.  Goal is to ultimately go year by year and generate as unbiased abundance
+# estimates as is possible and then save those results so that future assessments
+# only need to concern themselves with the most recent MR experiment.  Hopefully
+# get those results in a publication so it's on record... 
+
 for(j in 1:strats) {
   
-  # j = 8
+  # j = 3
   #j=3
   # Base strata on percentiles of cumulative catch. Could also use number of marks
   # observed or some other variable. STRATA_NUM is the dynamic variable specifying
@@ -1029,14 +1244,16 @@ for(j in 1:strats) {
               n = sum(total_obs),
               k = sum(total_marked),
               D = sum(fishery_D),
-              NPUE = mean(mean_npue, na.rm = TRUE) %>% round(1),
+              #FLAG!!!!! changing NPUE here... 
+              NPUE = mean(mean_npue_set, na.rm = TRUE),
+              #NPUE = mean(mean_npue, na.rm = TRUE) %>% round(1),
               # Use the interpolated mean weight here so it doesn't break at large
               # STRATA_NUMs
               mean_weight = mean(interp_mean, na.rm = TRUE)) %>% 
     mutate(C = (catch_kg / mean_weight) %>% round(0)) -> strata_sum   #!!FLAG!! conversion from biomass to C
   # Running Chapman estimator
   strata_sum %>% 
-    left_join(tag_summary %>% select(year, K.0), by = "year") %>% 
+    left_join(tag_summary %>% select(year, D.0, K.0), by = "year") %>% 
     # cumulative marked and observed
     group_by(year) %>% 
     mutate(cumn = cumsum(n),
@@ -1068,6 +1285,9 @@ for(j in 1:strats) {
     filter(year >= FIRST_YEAR & !year %in% NO_MARK_SRV) %>% 
     select(year, mu.N = abundance_age2plus) -> abd_est
   
+  abd_est[nrow(abd_est)+1,"year"] <- YEAR
+  abd_est[nrow(abd_est),"mu.N"] <- abd_est[nrow(abd_est)-1,"mu.N"]
+  
   left_join(jags_dat, abd_est, by = "year") -> jags_dat
   
   # Length of unique years to run model
@@ -1080,7 +1300,7 @@ for(j in 1:strats) {
   # Will look for a more efficient way to do this next year - maybe start here:
   # https://stackoverflow.com/questions/31561238/lapply-function-loops-on-list-of-lists-r
   
-  for(i in 1:length(model_years)){
+  for(i in 1:length(model_years)){  #i<-1
     
     sub <- jags_dat %>% filter(year == model_years[i])
     
@@ -1468,6 +1688,7 @@ setTxtProgressBar(pb, j)
 
 #Calls rbind on each list item to convert the list of dfs into one long df
 N_summary <- do.call("rbind", N_summary_ls); view(N_summary)
+with(N_summary,table(year,P))
 dic_summary <- do.call("rbind", dic_ls)
 convergence_summary <- do.call("rbind", converge_ls)
 
@@ -1497,7 +1718,7 @@ not_converged %>% distinct(model, P) # do not include models that estimate q unl
 # Models with P>=6
 dic_summary %>% 
 #  filter(P >= 6 & year == YEAR) %>% 
-  filter(P >= 6 & year == YEAR-1) %>%
+  filter(P >= 6 & year == YEAR) %>%
   group_by(year) %>% 
   mutate(min_DIC = min(DIC)) %>% 
   ungroup() %>% 
@@ -1632,6 +1853,8 @@ bind_rows(
 # for more details on model selection. This can be revisited periodically but to
 # streamline the assessment process, I've put the code to output Model 1 P=6 up
 # front.
+
+#2023 analysis reveals that in 2022 the best model is model_2
 results <- mod1_posterior_ls[[5]]
 model_years <- unique(tag_summary$year)
 
@@ -1680,7 +1903,7 @@ ggplot(df) +
              aes(x = year, y = est),
              shape = 8, size = 1.5, colour = "grey") +
   scale_colour_grey() +
-  ylim(c(1, 4.5)) +
+  ylim(c(1, 5)) +
   labs(x = "", y = "Number of sablefish (millions)\n",
        colour = NULL, shape = NULL, linetype = NULL) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
@@ -1702,8 +1925,8 @@ results %>%
 
 # Compare new and old results for survey countback assumptions 
 assumptions <- read_csv(paste0(YEAR+1,"/output/mr_index_newsrvcountbackassumptions.csv")) %>% 
-  mutate(`Assumptions for survey countbacks` = "New (fish only checked for marks in 2008 and 2010)") %>% 
-  bind_rows(read_csv("output/mr_index.csv") %>% 
+  mutate(`Assumptions for survey countbacks` = "New (fish only checked for marks in 2008, 2010 & 2022)") %>% 
+  bind_rows(read_csv(paste0(YEAR+1,"/output/mr_index.csv")) %>% 
               mutate(`Assumptions for survey countbacks` = "Old (all fish checked for marks)"))
 
 ggplot(assumptions, aes(x = factor(year), y = estimate, fill = `Assumptions for survey countbacks`)) +
@@ -2032,7 +2255,7 @@ results %>%
   facet_wrap(~ year, ncol = 2, dir = "v") +
   labs(x = "Catchability (q)",
        y = "Posterior distribution") +
-  xlim(c(0.00002, 0.00009))
+  xlim(c(0.00002, 0.0003))
 
 results %>% 
   group_by(year) %>% 
@@ -2088,8 +2311,8 @@ ggsave(paste0(YEAR+1,"/figures/NPUE_obsvsfitted_mod4_", YEAR, ".png"),
 
 #NPUE <- mod3_posterior_ls[[5]] %>% filter(year == YEAR) %>% 
 #  bind_rows(mod4_posterior_ls[[5]] %>% filter(year == YEAR)) %>% 
-NPUE <- mod3_posterior_ls[[5]] %>% filter(year == YEAR-1) %>% 
-  bind_rows(mod4_posterior_ls[[5]] %>% filter(year == YEAR-1)) %>% 
+NPUE <- mod3_posterior_ls[[5]] %>% filter(year == YEAR) %>% 
+  bind_rows(mod4_posterior_ls[[5]] %>% filter(year == YEAR)) %>% 
   select(model, year, P, contains("npue.hat")) %>% 
   reshape2::melt(id.vars = c("model", "year", "P")) %>% 
   group_by(model, year, variable) %>% 
@@ -2115,7 +2338,7 @@ NPUE <- mod3_posterior_ls[[5]] %>% filter(year == YEAR-1) %>%
 
 NPUE_dat <- data_df[[5]] %>% 
 #  filter(year == YEAR) %>% 
-  filter(year == YEAR-1) %>%   #YEAR-1 for Phil's 2022 review
+  filter(year == YEAR) %>%   #YEAR-1 for Phil's 2022 review
   select(P = catch_strata, NPUE)
 
 ggplot() +
