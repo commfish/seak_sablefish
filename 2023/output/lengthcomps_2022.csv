@@ -30,7 +30,7 @@ year,Source,Sex,length_bin,n,proportion
 2009,LL survey,Female,41,0,0
 2010,LL survey,Female,41,0,0
 2011,LL survey,Female,41,0,0
-2012,LL survey,Female,41,1,0.0025
+2012,LL survey,Female,41,1,0.002469
 2013,LL survey,Female,41,0,0
 2014,LL survey,Female,41,0,0
 2015,LL survey,Female,41,0,0
@@ -46,6 +46,7 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Female,41,0,0
 2000,LL survey,Female,41,0,0
 2001,LL survey,Female,41,0,0
+2022,Pot fishery,Female,41,0,0
 2002,LL fishery,Male,41,0,0
 2003,LL fishery,Male,41,0,0
 2004,LL fishery,Male,41,0,0
@@ -93,6 +94,7 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Male,41,0,0
 2000,LL survey,Male,41,0,0
 2001,LL survey,Male,41,0,0
+2022,Pot fishery,Male,41,0,0
 2002,LL fishery,Sex combined,41,0,0
 2003,LL fishery,Sex combined,41,0,0
 2004,LL fishery,Sex combined,41,0,0
@@ -140,6 +142,7 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,41,0,0
 2000,LL survey,Sex combined,41,0,0
 2001,LL survey,Sex combined,41,0,0
+2022,Pot fishery,Sex combined,41,0,0
 2002,LL fishery,Female,43,0,0
 2003,LL fishery,Female,43,0,0
 2004,LL fishery,Female,43,0,0
@@ -176,17 +179,18 @@ year,Source,Sex,length_bin,n,proportion
 2014,LL survey,Female,43,0,0
 2015,LL survey,Female,43,0,0
 2016,LL survey,Female,43,0,0
-2017,LL survey,Female,43,1,0.0029
-2018,LL survey,Female,43,1,0.0029
+2017,LL survey,Female,43,1,0.002882
+2018,LL survey,Female,43,1,0.002882
 2019,LL survey,Female,43,0,0
 2020,LL survey,Female,43,0,0
 2021,LL survey,Female,43,0,0
 2022,LL survey,Female,43,2,0.0059
 1997,LL survey,Female,43,0,0
-1998,LL survey,Female,43,1,0.0051
+1998,LL survey,Female,43,1,0.005102
 1999,LL survey,Female,43,0,0
 2000,LL survey,Female,43,0,0
 2001,LL survey,Female,43,0,0
+2022,Pot fishery,Female,43,0,0
 2002,LL fishery,Male,43,0,0
 2003,LL fishery,Male,43,0,0
 2004,LL fishery,Male,43,0,0
@@ -201,7 +205,7 @@ year,Source,Sex,length_bin,n,proportion
 2013,LL fishery,Male,43,0,0
 2014,LL fishery,Male,43,0,0
 2015,LL fishery,Male,43,0,0
-2016,LL fishery,Male,43,1,0.0019
+2016,LL fishery,Male,43,1,0.001931
 2017,LL fishery,Male,43,0,0
 2018,LL fishery,Male,43,0,0
 2019,LL fishery,Male,43,0,0
@@ -222,18 +226,19 @@ year,Source,Sex,length_bin,n,proportion
 2013,LL survey,Male,43,0,0
 2014,LL survey,Male,43,0,0
 2015,LL survey,Male,43,0,0
-2016,LL survey,Male,43,1,0.0042
+2016,LL survey,Male,43,1,0.004219
 2017,LL survey,Male,43,0,0
 2018,LL survey,Male,43,0,0
 2019,LL survey,Male,43,0,0
 2020,LL survey,Male,43,0,0
 2021,LL survey,Male,43,0,0
 2022,LL survey,Male,43,0,0
-1997,LL survey,Male,43,1,0.0037
+1997,LL survey,Male,43,1,0.003717
 1998,LL survey,Male,43,0,0
 1999,LL survey,Male,43,0,0
 2000,LL survey,Male,43,0,0
 2001,LL survey,Male,43,0,0
+2022,Pot fishery,Male,43,0,0
 2002,LL fishery,Sex combined,43,0,0
 2003,LL fishery,Sex combined,43,0,0
 2004,LL fishery,Sex combined,43,0,0
@@ -281,6 +286,7 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,43,0,0
 2000,LL survey,Sex combined,43,0,0
 2001,LL survey,Sex combined,43,0,0
+2022,Pot fishery,Sex combined,43,0,0
 2002,LL fishery,Female,45,0,0
 2003,LL fishery,Female,45,0,0
 2004,LL fishery,Female,45,0,0
@@ -317,17 +323,18 @@ year,Source,Sex,length_bin,n,proportion
 2014,LL survey,Female,45,0,0
 2015,LL survey,Female,45,0,0
 2016,LL survey,Female,45,0,0
-2017,LL survey,Female,45,4,0.0115
-2018,LL survey,Female,45,4,0.0115
-2019,LL survey,Female,45,2,0.0074
+2017,LL survey,Female,45,4,0.011527
+2018,LL survey,Female,45,4,0.011527
+2019,LL survey,Female,45,2,0.007435
 2020,LL survey,Female,45,0,0
-2021,LL survey,Female,45,1,0.0027
+2021,LL survey,Female,45,1,0.00271
 2022,LL survey,Female,45,0,0
 1997,LL survey,Female,45,0,0
 1998,LL survey,Female,45,0,0
-1999,LL survey,Female,45,1,0.0078
-2000,LL survey,Female,45,1,0.0049
+1999,LL survey,Female,45,1,0.007752
+2000,LL survey,Female,45,1,0.004854
 2001,LL survey,Female,45,0,0
+2022,Pot fishery,Female,45,0,0
 2002,LL fishery,Male,45,0,0
 2003,LL fishery,Male,45,0,0
 2004,LL fishery,Male,45,0,0
@@ -342,15 +349,15 @@ year,Source,Sex,length_bin,n,proportion
 2013,LL fishery,Male,45,0,0
 2014,LL fishery,Male,45,0,0
 2015,LL fishery,Male,45,0,0
-2016,LL fishery,Male,45,1,0.0019
+2016,LL fishery,Male,45,1,0.001931
 2017,LL fishery,Male,45,0,0
 2018,LL fishery,Male,45,0,0
 2019,LL fishery,Male,45,0,0
 2020,LL fishery,Male,45,0,0
 2021,LL fishery,Male,45,0,0
 2022,LL fishery,Male,45,0,0
-2002,LL survey,Male,45,1,0.0029
-2003,LL survey,Male,45,1,0.0025
+2002,LL survey,Male,45,1,0.002907
+2003,LL survey,Male,45,1,0.002538
 2004,LL survey,Male,45,0,0
 2005,LL survey,Male,45,0,0
 2006,LL survey,Male,45,0,0
@@ -359,22 +366,23 @@ year,Source,Sex,length_bin,n,proportion
 2009,LL survey,Male,45,0,0
 2010,LL survey,Male,45,0,0
 2011,LL survey,Male,45,0,0
-2012,LL survey,Male,45,2,0.0063
+2012,LL survey,Male,45,2,0.00627
 2013,LL survey,Male,45,0,0
-2014,LL survey,Male,45,1,0.0036
-2015,LL survey,Male,45,1,0.005
-2016,LL survey,Male,45,2,0.0084
+2014,LL survey,Male,45,1,0.003636
+2015,LL survey,Male,45,1,0.004975
+2016,LL survey,Male,45,2,0.008439
 2017,LL survey,Male,45,5,0.02
-2018,LL survey,Male,45,3,0.014
-2019,LL survey,Male,45,1,0.0051
+2018,LL survey,Male,45,3,0.013953
+2019,LL survey,Male,45,1,0.005051
 2020,LL survey,Male,45,0,0
-2021,LL survey,Male,45,1,0.0036
-2022,LL survey,Male,45,1,0.0032
-1997,LL survey,Male,45,1,0.0037
+2021,LL survey,Male,45,1,0.003636
+2022,LL survey,Male,45,1,0.003236
+1997,LL survey,Male,45,1,0.003717
 1998,LL survey,Male,45,0,0
-1999,LL survey,Male,45,1,0.0069
-2000,LL survey,Male,45,2,0.0115
-2001,LL survey,Male,45,1,0.0038
+1999,LL survey,Male,45,1,0.006944
+2000,LL survey,Male,45,2,0.011494
+2001,LL survey,Male,45,1,0.003831
+2022,Pot fishery,Male,45,0,0
 2002,LL fishery,Sex combined,45,0,0
 2003,LL fishery,Sex combined,45,0,0
 2004,LL fishery,Sex combined,45,0,0
@@ -422,6 +430,7 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,45,2,0.0073
 2000,LL survey,Sex combined,45,3,0.0079
 2001,LL survey,Sex combined,45,1,0.0023
+2022,Pot fishery,Sex combined,45,0,0
 2002,LL fishery,Female,47,0,0
 2003,LL fishery,Female,47,0,0
 2004,LL fishery,Female,47,0,0
@@ -435,41 +444,42 @@ year,Source,Sex,length_bin,n,proportion
 2012,LL fishery,Female,47,0,0
 2013,LL fishery,Female,47,0,0
 2014,LL fishery,Female,47,0,0
-2015,LL fishery,Female,47,1,0.0013
-2016,LL fishery,Female,47,1,0.0011
-2017,LL fishery,Female,47,1,0.0012
+2015,LL fishery,Female,47,1,0.001319
+2016,LL fishery,Female,47,1,0.001075
+2017,LL fishery,Female,47,1,0.00119
 2018,LL fishery,Female,47,0,0
 2019,LL fishery,Female,47,0,0
 2020,LL fishery,Female,47,0,0
 2021,LL fishery,Female,47,0,0
-2022,LL fishery,Female,47,1,9e-4
-2002,LL survey,Female,47,2,0.0068
-2003,LL survey,Female,47,2,0.0052
+2022,LL fishery,Female,47,1,0.001222
+2002,LL survey,Female,47,2,0.006803
+2003,LL survey,Female,47,2,0.005181
 2004,LL survey,Female,47,0,0
-2005,LL survey,Female,47,1,0.002
+2005,LL survey,Female,47,1,0.001992
 2006,LL survey,Female,47,0,0
 2007,LL survey,Female,47,0,0
 2008,LL survey,Female,47,0,0
-2009,LL survey,Female,47,2,0.0055
+2009,LL survey,Female,47,2,0.005479
 2010,LL survey,Female,47,0,0
 2011,LL survey,Female,47,0,0
-2012,LL survey,Female,47,1,0.0025
+2012,LL survey,Female,47,1,0.002469
 2013,LL survey,Female,47,0,0
 2014,LL survey,Female,47,0,0
-2015,LL survey,Female,47,1,0.0034
-2016,LL survey,Female,47,4,0.0127
-2017,LL survey,Female,47,10,0.0288
-2018,LL survey,Female,47,5,0.0144
-2019,LL survey,Female,47,9,0.0335
-2020,LL survey,Female,47,1,0.0027
+2015,LL survey,Female,47,1,0.003448
+2016,LL survey,Female,47,4,0.012698
+2017,LL survey,Female,47,10,0.028818
+2018,LL survey,Female,47,5,0.014409
+2019,LL survey,Female,47,9,0.033457
+2020,LL survey,Female,47,1,0.002667
 2021,LL survey,Female,47,0,0
-2022,LL survey,Female,47,3,0.0088
-1997,LL survey,Female,47,1,0.004
+2022,LL survey,Female,47,3,0.00885
+1997,LL survey,Female,47,1,0.003953
 1998,LL survey,Female,47,0,0
-1999,LL survey,Female,47,4,0.031
-2000,LL survey,Female,47,3,0.0146
-2001,LL survey,Female,47,2,0.011
-2002,LL fishery,Male,47,1,0.001
+1999,LL survey,Female,47,4,0.031008
+2000,LL survey,Female,47,3,0.014563
+2001,LL survey,Female,47,2,0.01105
+2022,Pot fishery,Female,47,0,0
+2002,LL fishery,Male,47,1,9.8e-4
 2003,LL fishery,Male,47,0,0
 2004,LL fishery,Male,47,0,0
 2005,LL fishery,Male,47,0,0
@@ -484,38 +494,39 @@ year,Source,Sex,length_bin,n,proportion
 2014,LL fishery,Male,47,0,0
 2015,LL fishery,Male,47,0,0
 2016,LL fishery,Male,47,0,0
-2017,LL fishery,Male,47,3,0.005
+2017,LL fishery,Male,47,3,0.004983
 2018,LL fishery,Male,47,0,0
-2019,LL fishery,Male,47,1,0.0019
+2019,LL fishery,Male,47,1,0.001949
 2020,LL fishery,Male,47,0,0
 2021,LL fishery,Male,47,0,0
 2022,LL fishery,Male,47,0,0
-2002,LL survey,Male,47,2,0.0058
-2003,LL survey,Male,47,2,0.0051
+2002,LL survey,Male,47,2,0.005814
+2003,LL survey,Male,47,2,0.005076
 2004,LL survey,Male,47,0,0
 2005,LL survey,Male,47,0,0
 2006,LL survey,Male,47,0,0
 2007,LL survey,Male,47,0,0
 2008,LL survey,Male,47,0,0
 2009,LL survey,Male,47,0,0
-2010,LL survey,Male,47,4,0.014
-2011,LL survey,Male,47,2,0.0064
-2012,LL survey,Male,47,2,0.0063
+2010,LL survey,Male,47,4,0.014035
+2011,LL survey,Male,47,2,0.006431
+2012,LL survey,Male,47,2,0.00627
 2013,LL survey,Male,47,0,0
 2014,LL survey,Male,47,0,0
-2015,LL survey,Male,47,1,0.005
-2016,LL survey,Male,47,3,0.0127
+2015,LL survey,Male,47,1,0.004975
+2016,LL survey,Male,47,3,0.012658
 2017,LL survey,Male,47,2,0.008
-2018,LL survey,Male,47,3,0.014
-2019,LL survey,Male,47,4,0.0202
+2018,LL survey,Male,47,3,0.013953
+2019,LL survey,Male,47,4,0.020202
 2020,LL survey,Male,47,0,0
-2021,LL survey,Male,47,3,0.0109
-2022,LL survey,Male,47,4,0.0129
+2021,LL survey,Male,47,3,0.010909
+2022,LL survey,Male,47,4,0.012945
 1997,LL survey,Male,47,0,0
-1998,LL survey,Male,47,2,0.0131
-1999,LL survey,Male,47,7,0.0486
-2000,LL survey,Male,47,5,0.0287
-2001,LL survey,Male,47,1,0.0038
+1998,LL survey,Male,47,2,0.013072
+1999,LL survey,Male,47,7,0.048611
+2000,LL survey,Male,47,5,0.028736
+2001,LL survey,Male,47,1,0.003831
+2022,Pot fishery,Male,47,0,0
 2002,LL fishery,Sex combined,47,1,4e-4
 2003,LL fishery,Sex combined,47,0,0
 2004,LL fishery,Sex combined,47,0,0
@@ -536,7 +547,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,47,1,7e-4
 2020,LL fishery,Sex combined,47,0,0
 2021,LL fishery,Sex combined,47,0,0
-2022,LL fishery,Sex combined,47,1,7e-4
+2022,LL fishery,Sex combined,47,1,9e-4
 2002,LL survey,Sex combined,47,4,0.0063
 2003,LL survey,Sex combined,47,4,0.0051
 2004,LL survey,Sex combined,47,0,0
@@ -563,8 +574,9 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,47,11,0.0403
 2000,LL survey,Sex combined,47,8,0.0211
 2001,LL survey,Sex combined,47,3,0.0068
-2002,LL fishery,Female,49,1,8e-4
-2003,LL fishery,Female,49,1,0.001
+2022,Pot fishery,Sex combined,47,0,0
+2002,LL fishery,Female,49,1,8.02e-4
+2003,LL fishery,Female,49,1,9.78e-4
 2004,LL fishery,Female,49,0,0
 2005,LL fishery,Female,49,0,0
 2006,LL fishery,Female,49,0,0
@@ -575,88 +587,90 @@ year,Source,Sex,length_bin,n,proportion
 2011,LL fishery,Female,49,0,0
 2012,LL fishery,Female,49,0,0
 2013,LL fishery,Female,49,0,0
-2014,LL fishery,Female,49,1,0.0013
+2014,LL fishery,Female,49,1,0.001272
 2015,LL fishery,Female,49,0,0
 2016,LL fishery,Female,49,0,0
-2017,LL fishery,Female,49,2,0.0024
+2017,LL fishery,Female,49,2,0.002381
 2018,LL fishery,Female,49,0,0
 2019,LL fishery,Female,49,0,0
 2020,LL fishery,Female,49,0,0
-2021,LL fishery,Female,49,1,0.002
-2022,LL fishery,Female,49,1,9e-4
-2002,LL survey,Female,49,3,0.0102
-2003,LL survey,Female,49,2,0.0052
-2004,LL survey,Female,49,1,0.0025
+2021,LL fishery,Female,49,1,0.002008
+2022,LL fishery,Female,49,1,0.001222
+2002,LL survey,Female,49,3,0.010204
+2003,LL survey,Female,49,2,0.005181
+2004,LL survey,Female,49,1,0.002532
 2005,LL survey,Female,49,0,0
 2006,LL survey,Female,49,0,0
-2007,LL survey,Female,49,2,0.0049
-2008,LL survey,Female,49,1,0.003
+2007,LL survey,Female,49,2,0.004902
+2008,LL survey,Female,49,1,0.002976
 2009,LL survey,Female,49,0,0
-2010,LL survey,Female,49,3,0.0094
-2011,LL survey,Female,49,3,0.0082
+2010,LL survey,Female,49,3,0.009375
+2011,LL survey,Female,49,3,0.008219
 2012,LL survey,Female,49,0,0
-2013,LL survey,Female,49,2,0.0078
+2013,LL survey,Female,49,2,0.007843
 2014,LL survey,Female,49,0,0
-2015,LL survey,Female,49,1,0.0034
-2016,LL survey,Female,49,12,0.0381
-2017,LL survey,Female,49,5,0.0144
-2018,LL survey,Female,49,9,0.0259
-2019,LL survey,Female,49,8,0.0297
+2015,LL survey,Female,49,1,0.003448
+2016,LL survey,Female,49,12,0.038095
+2017,LL survey,Female,49,5,0.014409
+2018,LL survey,Female,49,9,0.025937
+2019,LL survey,Female,49,8,0.02974
 2020,LL survey,Female,49,3,0.008
-2021,LL survey,Female,49,2,0.0054
-2022,LL survey,Female,49,6,0.0177
-1997,LL survey,Female,49,1,0.004
+2021,LL survey,Female,49,2,0.00542
+2022,LL survey,Female,49,6,0.017699
+1997,LL survey,Female,49,1,0.003953
 1998,LL survey,Female,49,0,0
-1999,LL survey,Female,49,5,0.0388
-2000,LL survey,Female,49,5,0.0243
-2001,LL survey,Female,49,3,0.0166
-2002,LL fishery,Male,49,4,0.0039
+1999,LL survey,Female,49,5,0.03876
+2000,LL survey,Female,49,5,0.024272
+2001,LL survey,Female,49,3,0.016575
+2022,Pot fishery,Female,49,0,0
+2002,LL fishery,Male,49,4,0.003922
 2003,LL fishery,Male,49,0,0
-2004,LL fishery,Male,49,2,0.0026
+2004,LL fishery,Male,49,2,0.002618
 2005,LL fishery,Male,49,0,0
 2006,LL fishery,Male,49,0,0
 2007,LL fishery,Male,49,0,0
 2008,LL fishery,Male,49,0,0
 2009,LL fishery,Male,49,0,0
-2010,LL fishery,Male,49,1,0.0018
+2010,LL fishery,Male,49,1,0.001818
 2011,LL fishery,Male,49,0,0
 2012,LL fishery,Male,49,0,0
-2013,LL fishery,Male,49,1,0.0015
+2013,LL fishery,Male,49,1,0.001466
 2014,LL fishery,Male,49,0,0
 2015,LL fishery,Male,49,0,0
 2016,LL fishery,Male,49,0,0
-2017,LL fishery,Male,49,1,0.0017
+2017,LL fishery,Male,49,1,0.001661
 2018,LL fishery,Male,49,0,0
-2019,LL fishery,Male,49,1,0.0019
+2019,LL fishery,Male,49,1,0.001949
 2020,LL fishery,Male,49,0,0
 2021,LL fishery,Male,49,0,0
 2022,LL fishery,Male,49,0,0
-2002,LL survey,Male,49,2,0.0058
-2003,LL survey,Male,49,9,0.0228
-2004,LL survey,Male,49,1,0.0029
+2002,LL survey,Male,49,2,0.005814
+2003,LL survey,Male,49,9,0.022843
+2004,LL survey,Male,49,1,0.002924
 2005,LL survey,Male,49,0,0
-2006,LL survey,Male,49,2,0.0063
-2007,LL survey,Male,49,5,0.0152
-2008,LL survey,Male,49,1,0.0037
-2009,LL survey,Male,49,1,0.004
-2010,LL survey,Male,49,3,0.0105
-2011,LL survey,Male,49,3,0.0096
-2012,LL survey,Male,49,2,0.0063
-2013,LL survey,Male,49,1,0.0036
+2006,LL survey,Male,49,2,0.006329
+2007,LL survey,Male,49,5,0.015198
+2008,LL survey,Male,49,1,0.003704
+2009,LL survey,Male,49,1,0.003953
+2010,LL survey,Male,49,3,0.010526
+2011,LL survey,Male,49,3,0.009646
+2012,LL survey,Male,49,2,0.00627
+2013,LL survey,Male,49,1,0.003571
 2014,LL survey,Male,49,0,0
-2015,LL survey,Male,49,5,0.0249
-2016,LL survey,Male,49,9,0.038
+2015,LL survey,Male,49,5,0.024876
+2016,LL survey,Male,49,9,0.037975
 2017,LL survey,Male,49,5,0.02
-2018,LL survey,Male,49,5,0.0233
-2019,LL survey,Male,49,12,0.0606
-2020,LL survey,Male,49,2,0.0084
-2021,LL survey,Male,49,7,0.0255
-2022,LL survey,Male,49,6,0.0194
-1997,LL survey,Male,49,2,0.0074
-1998,LL survey,Male,49,2,0.0131
-1999,LL survey,Male,49,4,0.0278
-2000,LL survey,Male,49,10,0.0575
-2001,LL survey,Male,49,2,0.0077
+2018,LL survey,Male,49,5,0.023256
+2019,LL survey,Male,49,12,0.060606
+2020,LL survey,Male,49,2,0.008368
+2021,LL survey,Male,49,7,0.025455
+2022,LL survey,Male,49,6,0.019417
+1997,LL survey,Male,49,2,0.007435
+1998,LL survey,Male,49,2,0.013072
+1999,LL survey,Male,49,4,0.027778
+2000,LL survey,Male,49,10,0.057471
+2001,LL survey,Male,49,2,0.007663
+2022,Pot fishery,Male,49,0,0
 2002,LL fishery,Sex combined,49,5,0.0022
 2003,LL fishery,Sex combined,49,1,6e-4
 2004,LL fishery,Sex combined,49,2,9e-4
@@ -677,7 +691,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,49,1,7e-4
 2020,LL fishery,Sex combined,49,0,0
 2021,LL fishery,Sex combined,49,1,0.0014
-2022,LL fishery,Sex combined,49,1,7e-4
+2022,LL fishery,Sex combined,49,1,9e-4
 2002,LL survey,Sex combined,49,5,0.0078
 2003,LL survey,Sex combined,49,11,0.0141
 2004,LL survey,Sex combined,49,2,0.0027
@@ -704,57 +718,59 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,49,9,0.033
 2000,LL survey,Sex combined,49,15,0.0395
 2001,LL survey,Sex combined,49,5,0.0113
-2002,LL fishery,Female,51,7,0.0056
-2003,LL fishery,Female,51,4,0.0039
-2004,LL fishery,Female,51,6,0.0038
-2005,LL fishery,Female,51,1,8e-4
-2006,LL fishery,Female,51,1,9e-4
-2007,LL fishery,Female,51,2,0.002
+2022,Pot fishery,Sex combined,49,0,0
+2002,LL fishery,Female,51,7,0.005613
+2003,LL fishery,Female,51,4,0.003914
+2004,LL fishery,Female,51,6,0.003844
+2005,LL fishery,Female,51,1,7.94e-4
+2006,LL fishery,Female,51,1,0.00093000000000000005
+2007,LL fishery,Female,51,2,0.002008
 2008,LL fishery,Female,51,0,0
-2009,LL fishery,Female,51,2,0.0019
+2009,LL fishery,Female,51,2,0.00191
 2010,LL fishery,Female,51,0,0
 2011,LL fishery,Female,51,0,0
 2012,LL fishery,Female,51,0,0
-2013,LL fishery,Female,51,1,0.0014
-2014,LL fishery,Female,51,1,0.0013
-2015,LL fishery,Female,51,2,0.0026
+2013,LL fishery,Female,51,1,0.001395
+2014,LL fishery,Female,51,1,0.001272
+2015,LL fishery,Female,51,2,0.002639
 2016,LL fishery,Female,51,0,0
-2017,LL fishery,Female,51,5,0.006
-2018,LL fishery,Female,51,4,0.0049
-2019,LL fishery,Female,51,1,0.0012
-2020,LL fishery,Female,51,1,0.0013
-2021,LL fishery,Female,51,1,0.002
-2022,LL fishery,Female,51,3,0.0028
-2002,LL survey,Female,51,2,0.0068
-2003,LL survey,Female,51,15,0.0389
-2004,LL survey,Female,51,12,0.0304
+2017,LL fishery,Female,51,5,0.005952
+2018,LL fishery,Female,51,4,0.004914
+2019,LL fishery,Female,51,1,0.001208
+2020,LL fishery,Female,51,1,0.001276
+2021,LL fishery,Female,51,1,0.002008
+2022,LL fishery,Female,51,3,0.003667
+2002,LL survey,Female,51,2,0.006803
+2003,LL survey,Female,51,15,0.03886
+2004,LL survey,Female,51,12,0.03038
 2005,LL survey,Female,51,0,0
-2006,LL survey,Female,51,3,0.0072
-2007,LL survey,Female,51,3,0.0074
-2008,LL survey,Female,51,2,0.006
-2009,LL survey,Female,51,3,0.0082
-2010,LL survey,Female,51,3,0.0094
-2011,LL survey,Female,51,9,0.0247
-2012,LL survey,Female,51,4,0.0099
-2013,LL survey,Female,51,3,0.0118
-2014,LL survey,Female,51,2,0.007
-2015,LL survey,Female,51,6,0.0207
-2016,LL survey,Female,51,10,0.0317
-2017,LL survey,Female,51,9,0.0259
+2006,LL survey,Female,51,3,0.007212
+2007,LL survey,Female,51,3,0.007353
+2008,LL survey,Female,51,2,0.005952
+2009,LL survey,Female,51,3,0.008219
+2010,LL survey,Female,51,3,0.009375
+2011,LL survey,Female,51,9,0.024658
+2012,LL survey,Female,51,4,0.009877
+2013,LL survey,Female,51,3,0.011765
+2014,LL survey,Female,51,2,0.007018
+2015,LL survey,Female,51,6,0.02069
+2016,LL survey,Female,51,10,0.031746
+2017,LL survey,Female,51,9,0.025937
 2018,LL survey,Female,51,11,0.0317
-2019,LL survey,Female,51,15,0.0558
-2020,LL survey,Female,51,13,0.0347
-2021,LL survey,Female,51,3,0.0081
-2022,LL survey,Female,51,5,0.0147
+2019,LL survey,Female,51,15,0.055762
+2020,LL survey,Female,51,13,0.034667
+2021,LL survey,Female,51,3,0.00813
+2022,LL survey,Female,51,5,0.014749
 1997,LL survey,Female,51,0,0
-1998,LL survey,Female,51,4,0.0204
-1999,LL survey,Female,51,4,0.031
-2000,LL survey,Female,51,13,0.0631
-2001,LL survey,Female,51,5,0.0276
-2002,LL fishery,Male,51,9,0.0088
-2003,LL fishery,Male,51,9,0.0118
-2004,LL fishery,Male,51,2,0.0026
-2005,LL fishery,Male,51,1,0.002
+1998,LL survey,Female,51,4,0.020408
+1999,LL survey,Female,51,4,0.031008
+2000,LL survey,Female,51,13,0.063107
+2001,LL survey,Female,51,5,0.027624
+2022,Pot fishery,Female,51,0,0
+2002,LL fishery,Male,51,9,0.008824
+2003,LL fishery,Male,51,9,0.011796
+2004,LL fishery,Male,51,2,0.002618
+2005,LL fishery,Male,51,1,0.001976
 2006,LL fishery,Male,51,0,0
 2007,LL fishery,Male,51,0,0
 2008,LL fishery,Male,51,0,0
@@ -762,42 +778,43 @@ year,Source,Sex,length_bin,n,proportion
 2010,LL fishery,Male,51,0,0
 2011,LL fishery,Male,51,0,0
 2012,LL fishery,Male,51,0,0
-2013,LL fishery,Male,51,3,0.0044
+2013,LL fishery,Male,51,3,0.004399
 2014,LL fishery,Male,51,0,0
-2015,LL fishery,Male,51,1,0.0022
-2016,LL fishery,Male,51,7,0.0135
-2017,LL fishery,Male,51,1,0.0017
-2018,LL fishery,Male,51,1,0.002
+2015,LL fishery,Male,51,1,0.002217
+2016,LL fishery,Male,51,7,0.013514
+2017,LL fishery,Male,51,1,0.001661
+2018,LL fishery,Male,51,1,0.001976
 2019,LL fishery,Male,51,0,0
-2020,LL fishery,Male,51,2,0.0039
-2021,LL fishery,Male,51,2,0.0084
-2022,LL fishery,Male,51,1,0.0025
-2002,LL survey,Male,51,8,0.0233
-2003,LL survey,Male,51,12,0.0305
-2004,LL survey,Male,51,8,0.0234
+2020,LL fishery,Male,51,2,0.003914
+2021,LL fishery,Male,51,2,0.008368
+2022,LL fishery,Male,51,1,0.003155
+2002,LL survey,Male,51,8,0.023256
+2003,LL survey,Male,51,12,0.030457
+2004,LL survey,Male,51,8,0.023392
 2005,LL survey,Male,51,0,0
-2006,LL survey,Male,51,3,0.0095
-2007,LL survey,Male,51,6,0.0182
+2006,LL survey,Male,51,3,0.009494
+2007,LL survey,Male,51,6,0.018237
 2008,LL survey,Male,51,0,0
-2009,LL survey,Male,51,2,0.0079
-2010,LL survey,Male,51,2,0.007
-2011,LL survey,Male,51,10,0.0322
-2012,LL survey,Male,51,5,0.0157
-2013,LL survey,Male,51,2,0.0071
+2009,LL survey,Male,51,2,0.007905
+2010,LL survey,Male,51,2,0.007018
+2011,LL survey,Male,51,10,0.032154
+2012,LL survey,Male,51,5,0.015674
+2013,LL survey,Male,51,2,0.007143
 2014,LL survey,Male,51,0,0
-2015,LL survey,Male,51,11,0.0547
-2016,LL survey,Male,51,3,0.0127
+2015,LL survey,Male,51,11,0.054726
+2016,LL survey,Male,51,3,0.012658
 2017,LL survey,Male,51,9,0.036
-2018,LL survey,Male,51,10,0.0465
-2019,LL survey,Male,51,14,0.0707
-2020,LL survey,Male,51,13,0.0544
+2018,LL survey,Male,51,10,0.046512
+2019,LL survey,Male,51,14,0.070707
+2020,LL survey,Male,51,13,0.054393
 2021,LL survey,Male,51,11,0.04
-2022,LL survey,Male,51,13,0.0421
-1997,LL survey,Male,51,1,0.0037
-1998,LL survey,Male,51,2,0.0131
-1999,LL survey,Male,51,2,0.0139
-2000,LL survey,Male,51,8,0.046
-2001,LL survey,Male,51,15,0.0575
+2022,LL survey,Male,51,13,0.042071
+1997,LL survey,Male,51,1,0.003717
+1998,LL survey,Male,51,2,0.013072
+1999,LL survey,Male,51,2,0.013889
+2000,LL survey,Male,51,8,0.045977
+2001,LL survey,Male,51,15,0.057471
+2022,Pot fishery,Male,51,0,0
 2002,LL fishery,Sex combined,51,16,0.0071
 2003,LL fishery,Sex combined,51,13,0.0073
 2004,LL fishery,Sex combined,51,8,0.0034
@@ -818,7 +835,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,51,1,7e-4
 2020,LL fishery,Sex combined,51,3,0.0023
 2021,LL fishery,Sex combined,51,3,0.0041
-2022,LL fishery,Sex combined,51,4,0.0027
+2022,LL fishery,Sex combined,51,4,0.0035
 2002,LL survey,Sex combined,51,10,0.0157
 2003,LL survey,Sex combined,51,27,0.0346
 2004,LL survey,Sex combined,51,20,0.0271
@@ -845,100 +862,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,51,6,0.022
 2000,LL survey,Sex combined,51,21,0.0553
 2001,LL survey,Sex combined,51,20,0.0452
-2002,LL fishery,Female,53,15,0.012
-2003,LL fishery,Female,53,12,0.0117
-2004,LL fishery,Female,53,2,0.0013
-2005,LL fishery,Female,53,1,8e-4
-2006,LL fishery,Female,53,4,0.0037
-2007,LL fishery,Female,53,2,0.002
+2022,Pot fishery,Sex combined,51,0,0
+2002,LL fishery,Female,53,15,0.012029
+2003,LL fishery,Female,53,12,0.011742
+2004,LL fishery,Female,53,2,0.001281
+2005,LL fishery,Female,53,1,7.94e-4
+2006,LL fishery,Female,53,4,0.003721
+2007,LL fishery,Female,53,2,0.002008
 2008,LL fishery,Female,53,0,0
 2009,LL fishery,Female,53,0,0
-2010,LL fishery,Female,53,2,0.002
+2010,LL fishery,Female,53,2,0.00201
 2011,LL fishery,Female,53,0,0
 2012,LL fishery,Female,53,0,0
-2013,LL fishery,Female,53,1,0.0014
-2014,LL fishery,Female,53,1,0.0013
-2015,LL fishery,Female,53,8,0.0106
-2016,LL fishery,Female,53,3,0.0032
-2017,LL fishery,Female,53,10,0.0119
-2018,LL fishery,Female,53,6,0.0074
-2019,LL fishery,Female,53,6,0.0072
-2020,LL fishery,Female,53,10,0.0128
-2021,LL fishery,Female,53,4,0.008
-2022,LL fishery,Female,53,3,0.0028
-2002,LL survey,Female,53,7,0.0238
-2003,LL survey,Female,53,11,0.0285
-2004,LL survey,Female,53,6,0.0152
-2005,LL survey,Female,53,5,0.01
-2006,LL survey,Female,53,2,0.0048
-2007,LL survey,Female,53,3,0.0074
-2008,LL survey,Female,53,5,0.0149
-2009,LL survey,Female,53,2,0.0055
-2010,LL survey,Female,53,3,0.0094
-2011,LL survey,Female,53,16,0.0438
-2012,LL survey,Female,53,8,0.0198
-2013,LL survey,Female,53,3,0.0118
-2014,LL survey,Female,53,1,0.0035
-2015,LL survey,Female,53,5,0.0172
-2016,LL survey,Female,53,12,0.0381
-2017,LL survey,Female,53,19,0.0548
-2018,LL survey,Female,53,19,0.0548
-2019,LL survey,Female,53,14,0.052
+2013,LL fishery,Female,53,1,0.001395
+2014,LL fishery,Female,53,1,0.001272
+2015,LL fishery,Female,53,8,0.010554
+2016,LL fishery,Female,53,3,0.003226
+2017,LL fishery,Female,53,10,0.011905
+2018,LL fishery,Female,53,6,0.007371
+2019,LL fishery,Female,53,6,0.007246
+2020,LL fishery,Female,53,10,0.012755
+2021,LL fishery,Female,53,4,0.008032
+2022,LL fishery,Female,53,3,0.003667
+2002,LL survey,Female,53,7,0.02381
+2003,LL survey,Female,53,11,0.028497
+2004,LL survey,Female,53,6,0.01519
+2005,LL survey,Female,53,5,0.00996
+2006,LL survey,Female,53,2,0.004808
+2007,LL survey,Female,53,3,0.007353
+2008,LL survey,Female,53,5,0.014881
+2009,LL survey,Female,53,2,0.005479
+2010,LL survey,Female,53,3,0.009375
+2011,LL survey,Female,53,16,0.043836
+2012,LL survey,Female,53,8,0.019753
+2013,LL survey,Female,53,3,0.011765
+2014,LL survey,Female,53,1,0.003509
+2015,LL survey,Female,53,5,0.017241
+2016,LL survey,Female,53,12,0.038095
+2017,LL survey,Female,53,19,0.054755
+2018,LL survey,Female,53,19,0.054755
+2019,LL survey,Female,53,14,0.052045
 2020,LL survey,Female,53,30,0.08
-2021,LL survey,Female,53,16,0.0434
-2022,LL survey,Female,53,12,0.0354
-1997,LL survey,Female,53,2,0.0079
-1998,LL survey,Female,53,5,0.0255
-1999,LL survey,Female,53,4,0.031
-2000,LL survey,Female,53,9,0.0437
-2001,LL survey,Female,53,10,0.0552
-2002,LL fishery,Male,53,17,0.0167
-2003,LL fishery,Male,53,7,0.0092
-2004,LL fishery,Male,53,3,0.0039
-2005,LL fishery,Male,53,5,0.0099
-2006,LL fishery,Male,53,2,0.0033
-2007,LL fishery,Male,53,1,0.0019
+2021,LL survey,Female,53,16,0.04336
+2022,LL survey,Female,53,12,0.035398
+1997,LL survey,Female,53,2,0.007905
+1998,LL survey,Female,53,5,0.02551
+1999,LL survey,Female,53,4,0.031008
+2000,LL survey,Female,53,9,0.043689
+2001,LL survey,Female,53,10,0.055249
+2022,Pot fishery,Female,53,0,0
+2002,LL fishery,Male,53,17,0.016667
+2003,LL fishery,Male,53,7,0.009174
+2004,LL fishery,Male,53,3,0.003927
+2005,LL fishery,Male,53,5,0.009881
+2006,LL fishery,Male,53,2,0.003284
+2007,LL fishery,Male,53,1,0.001942
 2008,LL fishery,Male,53,0,0
 2009,LL fishery,Male,53,0,0
-2010,LL fishery,Male,53,1,0.0018
-2011,LL fishery,Male,53,2,0.0036
-2012,LL fishery,Male,53,2,0.0033
-2013,LL fishery,Male,53,6,0.0088
-2014,LL fishery,Male,53,1,0.0018
-2015,LL fishery,Male,53,1,0.0022
-2016,LL fishery,Male,53,3,0.0058
-2017,LL fishery,Male,53,7,0.0116
-2018,LL fishery,Male,53,9,0.0178
-2019,LL fishery,Male,53,2,0.0039
-2020,LL fishery,Male,53,3,0.0059
-2021,LL fishery,Male,53,4,0.0167
-2022,LL fishery,Male,53,5,0.0127
-2002,LL survey,Male,53,12,0.0349
-2003,LL survey,Male,53,10,0.0254
-2004,LL survey,Male,53,12,0.0351
-2005,LL survey,Male,53,10,0.0273
+2010,LL fishery,Male,53,1,0.001818
+2011,LL fishery,Male,53,2,0.003636
+2012,LL fishery,Male,53,2,0.003306
+2013,LL fishery,Male,53,6,0.008798
+2014,LL fishery,Male,53,1,0.001757
+2015,LL fishery,Male,53,1,0.002217
+2016,LL fishery,Male,53,3,0.005792
+2017,LL fishery,Male,53,7,0.011628
+2018,LL fishery,Male,53,9,0.017787
+2019,LL fishery,Male,53,2,0.003899
+2020,LL fishery,Male,53,3,0.005871
+2021,LL fishery,Male,53,4,0.016736
+2022,LL fishery,Male,53,5,0.015773
+2002,LL survey,Male,53,12,0.034884
+2003,LL survey,Male,53,10,0.025381
+2004,LL survey,Male,53,12,0.035088
+2005,LL survey,Male,53,10,0.027322
 2006,LL survey,Male,53,0,0
-2007,LL survey,Male,53,6,0.0182
-2008,LL survey,Male,53,7,0.0259
-2009,LL survey,Male,53,3,0.0119
-2010,LL survey,Male,53,6,0.0211
-2011,LL survey,Male,53,12,0.0386
-2012,LL survey,Male,53,9,0.0282
-2013,LL survey,Male,53,6,0.0214
-2014,LL survey,Male,53,3,0.0109
+2007,LL survey,Male,53,6,0.018237
+2008,LL survey,Male,53,7,0.025926
+2009,LL survey,Male,53,3,0.011858
+2010,LL survey,Male,53,6,0.021053
+2011,LL survey,Male,53,12,0.038585
+2012,LL survey,Male,53,9,0.028213
+2013,LL survey,Male,53,6,0.021429
+2014,LL survey,Male,53,3,0.010909
 2015,LL survey,Male,53,4,0.0199
-2016,LL survey,Male,53,9,0.038
+2016,LL survey,Male,53,9,0.037975
 2017,LL survey,Male,53,14,0.056
-2018,LL survey,Male,53,13,0.0605
-2019,LL survey,Male,53,9,0.0455
-2020,LL survey,Male,53,24,0.1004
-2021,LL survey,Male,53,34,0.1236
-2022,LL survey,Male,53,25,0.0809
-1997,LL survey,Male,53,2,0.0074
-1998,LL survey,Male,53,5,0.0327
-1999,LL survey,Male,53,11,0.0764
-2000,LL survey,Male,53,5,0.0287
-2001,LL survey,Male,53,11,0.0421
+2018,LL survey,Male,53,13,0.060465
+2019,LL survey,Male,53,9,0.045455
+2020,LL survey,Male,53,24,0.100418
+2021,LL survey,Male,53,34,0.123636
+2022,LL survey,Male,53,25,0.080906
+1997,LL survey,Male,53,2,0.007435
+1998,LL survey,Male,53,5,0.03268
+1999,LL survey,Male,53,11,0.076389
+2000,LL survey,Male,53,5,0.028736
+2001,LL survey,Male,53,11,0.042146
+2022,Pot fishery,Male,53,0,0
 2002,LL fishery,Sex combined,53,32,0.0141
 2003,LL fishery,Sex combined,53,19,0.0106
 2004,LL fishery,Sex combined,53,5,0.0022
@@ -959,7 +979,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,53,8,0.006
 2020,LL fishery,Sex combined,53,13,0.01
 2021,LL fishery,Sex combined,53,8,0.0109
-2022,LL fishery,Sex combined,53,8,0.0054
+2022,LL fishery,Sex combined,53,8,0.007
 2002,LL survey,Sex combined,53,19,0.0298
 2003,LL survey,Sex combined,53,21,0.0269
 2004,LL survey,Sex combined,53,18,0.0244
@@ -986,100 +1006,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,53,15,0.0549
 2000,LL survey,Sex combined,53,14,0.0368
 2001,LL survey,Sex combined,53,21,0.0475
-2002,LL fishery,Female,55,25,0.02
-2003,LL fishery,Female,55,8,0.0078
-2004,LL fishery,Female,55,10,0.0064
-2005,LL fishery,Female,55,3,0.0024
-2006,LL fishery,Female,55,4,0.0037
-2007,LL fishery,Female,55,2,0.002
-2008,LL fishery,Female,55,2,0.0019
-2009,LL fishery,Female,55,1,0.001
-2010,LL fishery,Female,55,1,0.001
-2011,LL fishery,Female,55,7,0.0076
-2012,LL fishery,Female,55,7,0.0075
-2013,LL fishery,Female,55,7,0.0098
-2014,LL fishery,Female,55,6,0.0076
-2015,LL fishery,Female,55,3,0.004
-2016,LL fishery,Female,55,5,0.0054
-2017,LL fishery,Female,55,12,0.0143
-2018,LL fishery,Female,55,6,0.0074
-2019,LL fishery,Female,55,5,0.006
-2020,LL fishery,Female,55,18,0.023
-2021,LL fishery,Female,55,10,0.0201
-2022,LL fishery,Female,55,12,0.0111
-2002,LL survey,Female,55,21,0.0714
-2003,LL survey,Female,55,13,0.0337
-2004,LL survey,Female,55,14,0.0354
-2005,LL survey,Female,55,5,0.01
-2006,LL survey,Female,55,6,0.0144
-2007,LL survey,Female,55,11,0.027
-2008,LL survey,Female,55,3,0.0089
-2009,LL survey,Female,55,3,0.0082
-2010,LL survey,Female,55,2,0.0063
-2011,LL survey,Female,55,17,0.0466
-2012,LL survey,Female,55,13,0.0321
-2013,LL survey,Female,55,6,0.0235
-2014,LL survey,Female,55,4,0.014
-2015,LL survey,Female,55,7,0.0241
-2016,LL survey,Female,55,10,0.0317
-2017,LL survey,Female,55,16,0.0461
-2018,LL survey,Female,55,21,0.0605
-2019,LL survey,Female,55,13,0.0483
-2020,LL survey,Female,55,32,0.0853
-2021,LL survey,Female,55,24,0.065
-2022,LL survey,Female,55,16,0.0472
-1997,LL survey,Female,55,8,0.0316
-1998,LL survey,Female,55,6,0.0306
-1999,LL survey,Female,55,9,0.0698
-2000,LL survey,Female,55,9,0.0437
-2001,LL survey,Female,55,3,0.0166
-2002,LL fishery,Male,55,31,0.0304
-2003,LL fishery,Male,55,19,0.0249
-2004,LL fishery,Male,55,12,0.0157
-2005,LL fishery,Male,55,4,0.0079
-2006,LL fishery,Male,55,7,0.0115
-2007,LL fishery,Male,55,4,0.0078
-2008,LL fishery,Male,55,4,0.0076
+2022,Pot fishery,Sex combined,53,0,0
+2002,LL fishery,Female,55,25,0.020048
+2003,LL fishery,Female,55,8,0.007828
+2004,LL fishery,Female,55,10,0.006406
+2005,LL fishery,Female,55,3,0.002383
+2006,LL fishery,Female,55,4,0.003721
+2007,LL fishery,Female,55,2,0.002008
+2008,LL fishery,Female,55,2,0.001949
+2009,LL fishery,Female,55,1,9.55e-4
+2010,LL fishery,Female,55,1,0.001005
+2011,LL fishery,Female,55,7,0.007576
+2012,LL fishery,Female,55,7,0.007511
+2013,LL fishery,Female,55,7,0.009763
+2014,LL fishery,Female,55,6,0.007634
+2015,LL fishery,Female,55,3,0.003958
+2016,LL fishery,Female,55,5,0.005376
+2017,LL fishery,Female,55,12,0.014286
+2018,LL fishery,Female,55,6,0.007371
+2019,LL fishery,Female,55,5,0.006039
+2020,LL fishery,Female,55,18,0.022959
+2021,LL fishery,Female,55,10,0.02008
+2022,LL fishery,Female,55,11,0.013447
+2002,LL survey,Female,55,21,0.071429
+2003,LL survey,Female,55,13,0.033679
+2004,LL survey,Female,55,14,0.035443
+2005,LL survey,Female,55,5,0.00996
+2006,LL survey,Female,55,6,0.014423
+2007,LL survey,Female,55,11,0.026961
+2008,LL survey,Female,55,3,0.008929
+2009,LL survey,Female,55,3,0.008219
+2010,LL survey,Female,55,2,0.00625
+2011,LL survey,Female,55,17,0.046575
+2012,LL survey,Female,55,13,0.032099
+2013,LL survey,Female,55,6,0.023529
+2014,LL survey,Female,55,4,0.014035
+2015,LL survey,Female,55,7,0.024138
+2016,LL survey,Female,55,10,0.031746
+2017,LL survey,Female,55,16,0.04611
+2018,LL survey,Female,55,21,0.060519
+2019,LL survey,Female,55,13,0.048327
+2020,LL survey,Female,55,32,0.085333
+2021,LL survey,Female,55,24,0.065041
+2022,LL survey,Female,55,16,0.047198
+1997,LL survey,Female,55,8,0.031621
+1998,LL survey,Female,55,6,0.030612
+1999,LL survey,Female,55,9,0.069767
+2000,LL survey,Female,55,9,0.043689
+2001,LL survey,Female,55,3,0.016575
+2022,Pot fishery,Female,55,1,0.003861
+2002,LL fishery,Male,55,31,0.030392
+2003,LL fishery,Male,55,19,0.024902
+2004,LL fishery,Male,55,12,0.015707
+2005,LL fishery,Male,55,4,0.007905
+2006,LL fishery,Male,55,7,0.011494
+2007,LL fishery,Male,55,4,0.007767
+2008,LL fishery,Male,55,4,0.007619
 2009,LL fishery,Male,55,0,0
-2010,LL fishery,Male,55,5,0.0091
-2011,LL fishery,Male,55,3,0.0055
-2012,LL fishery,Male,55,6,0.0099
-2013,LL fishery,Male,55,15,0.022
-2014,LL fishery,Male,55,2,0.0035
-2015,LL fishery,Male,55,2,0.0044
-2016,LL fishery,Male,55,8,0.0154
-2017,LL fishery,Male,55,13,0.0216
-2018,LL fishery,Male,55,8,0.0158
-2019,LL fishery,Male,55,5,0.0097
-2020,LL fishery,Male,55,5,0.0098
-2021,LL fishery,Male,55,9,0.0377
-2022,LL fishery,Male,55,12,0.0304
-2002,LL survey,Male,55,12,0.0349
-2003,LL survey,Male,55,24,0.0609
-2004,LL survey,Male,55,13,0.038
-2005,LL survey,Male,55,10,0.0273
-2006,LL survey,Male,55,4,0.0127
-2007,LL survey,Male,55,12,0.0365
-2008,LL survey,Male,55,3,0.0111
-2009,LL survey,Male,55,6,0.0237
-2010,LL survey,Male,55,7,0.0246
-2011,LL survey,Male,55,7,0.0225
-2012,LL survey,Male,55,14,0.0439
-2013,LL survey,Male,55,15,0.0536
-2014,LL survey,Male,55,9,0.0327
-2015,LL survey,Male,55,5,0.0249
-2016,LL survey,Male,55,14,0.0591
+2010,LL fishery,Male,55,5,0.009091
+2011,LL fishery,Male,55,3,0.005455
+2012,LL fishery,Male,55,6,0.009917
+2013,LL fishery,Male,55,15,0.021994
+2014,LL fishery,Male,55,2,0.003515
+2015,LL fishery,Male,55,2,0.004435
+2016,LL fishery,Male,55,8,0.015444
+2017,LL fishery,Male,55,13,0.021595
+2018,LL fishery,Male,55,8,0.01581
+2019,LL fishery,Male,55,5,0.009747
+2020,LL fishery,Male,55,5,0.009785
+2021,LL fishery,Male,55,9,0.037657
+2022,LL fishery,Male,55,7,0.022082
+2002,LL survey,Male,55,12,0.034884
+2003,LL survey,Male,55,24,0.060914
+2004,LL survey,Male,55,13,0.038012
+2005,LL survey,Male,55,10,0.027322
+2006,LL survey,Male,55,4,0.012658
+2007,LL survey,Male,55,12,0.036474
+2008,LL survey,Male,55,3,0.011111
+2009,LL survey,Male,55,6,0.023715
+2010,LL survey,Male,55,7,0.024561
+2011,LL survey,Male,55,7,0.022508
+2012,LL survey,Male,55,14,0.043887
+2013,LL survey,Male,55,15,0.053571
+2014,LL survey,Male,55,9,0.032727
+2015,LL survey,Male,55,5,0.024876
+2016,LL survey,Male,55,14,0.059072
 2017,LL survey,Male,55,16,0.064
-2018,LL survey,Male,55,10,0.0465
-2019,LL survey,Male,55,15,0.0758
-2020,LL survey,Male,55,25,0.1046
-2021,LL survey,Male,55,36,0.1309
-2022,LL survey,Male,55,36,0.1165
-1997,LL survey,Male,55,1,0.0037
-1998,LL survey,Male,55,4,0.0261
-1999,LL survey,Male,55,6,0.0417
-2000,LL survey,Male,55,8,0.046
-2001,LL survey,Male,55,8,0.0307
+2018,LL survey,Male,55,10,0.046512
+2019,LL survey,Male,55,15,0.075758
+2020,LL survey,Male,55,25,0.104603
+2021,LL survey,Male,55,36,0.130909
+2022,LL survey,Male,55,36,0.116505
+1997,LL survey,Male,55,1,0.003717
+1998,LL survey,Male,55,4,0.026144
+1999,LL survey,Male,55,6,0.041667
+2000,LL survey,Male,55,8,0.045977
+2001,LL survey,Male,55,8,0.030651
+2022,Pot fishery,Male,55,5,0.064103
 2002,LL fishery,Sex combined,55,56,0.0247
 2003,LL fishery,Sex combined,55,27,0.0151
 2004,LL fishery,Sex combined,55,22,0.0095
@@ -1100,7 +1123,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,55,10,0.0075
 2020,LL fishery,Sex combined,55,23,0.0178
 2021,LL fishery,Sex combined,55,19,0.0258
-2022,LL fishery,Sex combined,55,24,0.0163
+2022,LL fishery,Sex combined,55,18,0.0159
 2002,LL survey,Sex combined,55,33,0.0517
 2003,LL survey,Sex combined,55,37,0.0474
 2004,LL survey,Sex combined,55,27,0.0366
@@ -1127,100 +1150,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,55,15,0.0549
 2000,LL survey,Sex combined,55,17,0.0447
 2001,LL survey,Sex combined,55,11,0.0249
-2002,LL fishery,Female,57,49,0.0393
-2003,LL fishery,Female,57,23,0.0225
-2004,LL fishery,Female,57,11,0.007
-2005,LL fishery,Female,57,9,0.0071
-2006,LL fishery,Female,57,12,0.0112
-2007,LL fishery,Female,57,8,0.008
-2008,LL fishery,Female,57,3,0.0029
-2009,LL fishery,Female,57,5,0.0048
-2010,LL fishery,Female,57,3,0.003
-2011,LL fishery,Female,57,4,0.0043
-2012,LL fishery,Female,57,5,0.0054
-2013,LL fishery,Female,57,12,0.0167
-2014,LL fishery,Female,57,6,0.0076
-2015,LL fishery,Female,57,9,0.0119
-2016,LL fishery,Female,57,4,0.0043
-2017,LL fishery,Female,57,23,0.0274
-2018,LL fishery,Female,57,14,0.0172
-2019,LL fishery,Female,57,19,0.0229
-2020,LL fishery,Female,57,30,0.0383
-2021,LL fishery,Female,57,20,0.0402
-2022,LL fishery,Female,57,24,0.0223
-2002,LL survey,Female,57,19,0.0646
-2003,LL survey,Female,57,24,0.0622
-2004,LL survey,Female,57,19,0.0481
-2005,LL survey,Female,57,7,0.0139
-2006,LL survey,Female,57,8,0.0192
-2007,LL survey,Female,57,7,0.0172
-2008,LL survey,Female,57,1,0.003
-2009,LL survey,Female,57,5,0.0137
-2010,LL survey,Female,57,1,0.0031
-2011,LL survey,Female,57,15,0.0411
-2012,LL survey,Female,57,20,0.0494
-2013,LL survey,Female,57,9,0.0353
-2014,LL survey,Female,57,4,0.014
-2015,LL survey,Female,57,9,0.031
-2016,LL survey,Female,57,17,0.054
-2017,LL survey,Female,57,24,0.0692
-2018,LL survey,Female,57,27,0.0778
-2019,LL survey,Female,57,14,0.052
-2020,LL survey,Female,57,35,0.0933
-2021,LL survey,Female,57,30,0.0813
-2022,LL survey,Female,57,27,0.0796
-1997,LL survey,Female,57,6,0.0237
-1998,LL survey,Female,57,5,0.0255
-1999,LL survey,Female,57,7,0.0543
-2000,LL survey,Female,57,5,0.0243
-2001,LL survey,Female,57,12,0.0663
-2002,LL fishery,Male,57,60,0.0588
-2003,LL fishery,Male,57,38,0.0498
-2004,LL fishery,Male,57,30,0.0393
-2005,LL fishery,Male,57,11,0.0217
-2006,LL fishery,Male,57,20,0.0328
-2007,LL fishery,Male,57,11,0.0214
-2008,LL fishery,Male,57,7,0.0133
-2009,LL fishery,Male,57,9,0.0173
-2010,LL fishery,Male,57,8,0.0145
-2011,LL fishery,Male,57,13,0.0236
-2012,LL fishery,Male,57,12,0.0198
-2013,LL fishery,Male,57,17,0.0249
-2014,LL fishery,Male,57,6,0.0105
-2015,LL fishery,Male,57,12,0.0266
-2016,LL fishery,Male,57,5,0.0097
-2017,LL fishery,Male,57,15,0.0249
-2018,LL fishery,Male,57,15,0.0296
-2019,LL fishery,Male,57,15,0.0292
-2020,LL fishery,Male,57,31,0.0607
-2021,LL fishery,Male,57,20,0.0837
-2022,LL fishery,Male,57,35,0.0886
-2002,LL survey,Male,57,24,0.0698
-2003,LL survey,Male,57,26,0.066
-2004,LL survey,Male,57,29,0.0848
-2005,LL survey,Male,57,14,0.0383
-2006,LL survey,Male,57,11,0.0348
-2007,LL survey,Male,57,19,0.0578
-2008,LL survey,Male,57,10,0.037
-2009,LL survey,Male,57,6,0.0237
-2010,LL survey,Male,57,8,0.0281
-2011,LL survey,Male,57,11,0.0354
-2012,LL survey,Male,57,19,0.0596
-2013,LL survey,Male,57,17,0.0607
-2014,LL survey,Male,57,17,0.0618
-2015,LL survey,Male,57,13,0.0647
-2016,LL survey,Male,57,17,0.0717
+2022,Pot fishery,Sex combined,55,6,0.0178
+2002,LL fishery,Female,57,49,0.039294
+2003,LL fishery,Female,57,23,0.022505
+2004,LL fishery,Female,57,11,0.007047
+2005,LL fishery,Female,57,9,0.007149
+2006,LL fishery,Female,57,12,0.011163
+2007,LL fishery,Female,57,8,0.008032
+2008,LL fishery,Female,57,3,0.002924
+2009,LL fishery,Female,57,5,0.004776
+2010,LL fishery,Female,57,3,0.003015
+2011,LL fishery,Female,57,4,0.004329
+2012,LL fishery,Female,57,5,0.005365
+2013,LL fishery,Female,57,12,0.016736
+2014,LL fishery,Female,57,6,0.007634
+2015,LL fishery,Female,57,9,0.011873
+2016,LL fishery,Female,57,4,0.004301
+2017,LL fishery,Female,57,23,0.027381
+2018,LL fishery,Female,57,14,0.017199
+2019,LL fishery,Female,57,19,0.022947
+2020,LL fishery,Female,57,30,0.038265
+2021,LL fishery,Female,57,20,0.040161
+2022,LL fishery,Female,57,18,0.022005
+2002,LL survey,Female,57,19,0.064626
+2003,LL survey,Female,57,24,0.062176
+2004,LL survey,Female,57,19,0.048101
+2005,LL survey,Female,57,7,0.013944
+2006,LL survey,Female,57,8,0.019231
+2007,LL survey,Female,57,7,0.017157
+2008,LL survey,Female,57,1,0.002976
+2009,LL survey,Female,57,5,0.013699
+2010,LL survey,Female,57,1,0.003125
+2011,LL survey,Female,57,15,0.041096
+2012,LL survey,Female,57,20,0.049383
+2013,LL survey,Female,57,9,0.035294
+2014,LL survey,Female,57,4,0.014035
+2015,LL survey,Female,57,9,0.031034
+2016,LL survey,Female,57,17,0.053968
+2017,LL survey,Female,57,24,0.069164
+2018,LL survey,Female,57,27,0.07781
+2019,LL survey,Female,57,14,0.052045
+2020,LL survey,Female,57,35,0.093333
+2021,LL survey,Female,57,30,0.081301
+2022,LL survey,Female,57,27,0.079646
+1997,LL survey,Female,57,6,0.023715
+1998,LL survey,Female,57,5,0.02551
+1999,LL survey,Female,57,7,0.054264
+2000,LL survey,Female,57,5,0.024272
+2001,LL survey,Female,57,12,0.066298
+2022,Pot fishery,Female,57,6,0.023166
+2002,LL fishery,Male,57,60,0.058824
+2003,LL fishery,Male,57,38,0.049803
+2004,LL fishery,Male,57,30,0.039267
+2005,LL fishery,Male,57,11,0.021739
+2006,LL fishery,Male,57,20,0.032841
+2007,LL fishery,Male,57,11,0.021359
+2008,LL fishery,Male,57,7,0.013333
+2009,LL fishery,Male,57,9,0.017274
+2010,LL fishery,Male,57,8,0.014545
+2011,LL fishery,Male,57,13,0.023636
+2012,LL fishery,Male,57,12,0.019835
+2013,LL fishery,Male,57,17,0.024927
+2014,LL fishery,Male,57,6,0.010545
+2015,LL fishery,Male,57,12,0.026608
+2016,LL fishery,Male,57,5,0.009653
+2017,LL fishery,Male,57,15,0.024917
+2018,LL fishery,Male,57,15,0.029644
+2019,LL fishery,Male,57,15,0.02924
+2020,LL fishery,Male,57,31,0.060665
+2021,LL fishery,Male,57,20,0.083682
+2022,LL fishery,Male,57,24,0.07571
+2002,LL survey,Male,57,24,0.069767
+2003,LL survey,Male,57,26,0.06599
+2004,LL survey,Male,57,29,0.084795
+2005,LL survey,Male,57,14,0.038251
+2006,LL survey,Male,57,11,0.03481
+2007,LL survey,Male,57,19,0.057751
+2008,LL survey,Male,57,10,0.037037
+2009,LL survey,Male,57,6,0.023715
+2010,LL survey,Male,57,8,0.02807
+2011,LL survey,Male,57,11,0.03537
+2012,LL survey,Male,57,19,0.059561
+2013,LL survey,Male,57,17,0.060714
+2014,LL survey,Male,57,17,0.061818
+2015,LL survey,Male,57,13,0.064677
+2016,LL survey,Male,57,17,0.07173
 2017,LL survey,Male,57,22,0.088
-2018,LL survey,Male,57,14,0.0651
-2019,LL survey,Male,57,14,0.0707
-2020,LL survey,Male,57,21,0.0879
-2021,LL survey,Male,57,46,0.1673
-2022,LL survey,Male,57,38,0.123
-1997,LL survey,Male,57,6,0.0223
-1998,LL survey,Male,57,2,0.0131
-1999,LL survey,Male,57,7,0.0486
-2000,LL survey,Male,57,17,0.0977
-2001,LL survey,Male,57,13,0.0498
+2018,LL survey,Male,57,14,0.065116
+2019,LL survey,Male,57,14,0.070707
+2020,LL survey,Male,57,21,0.087866
+2021,LL survey,Male,57,46,0.167273
+2022,LL survey,Male,57,38,0.122977
+1997,LL survey,Male,57,6,0.022305
+1998,LL survey,Male,57,2,0.013072
+1999,LL survey,Male,57,7,0.048611
+2000,LL survey,Male,57,17,0.097701
+2001,LL survey,Male,57,13,0.049808
+2022,Pot fishery,Male,57,11,0.141026
 2002,LL fishery,Sex combined,57,109,0.0481
 2003,LL fishery,Sex combined,57,61,0.0342
 2004,LL fishery,Sex combined,57,41,0.0176
@@ -1241,7 +1267,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,57,34,0.0254
 2020,LL fishery,Sex combined,57,61,0.0471
 2021,LL fishery,Sex combined,57,40,0.0543
-2022,LL fishery,Sex combined,57,59,0.0401
+2022,LL fishery,Sex combined,57,42,0.037
 2002,LL survey,Sex combined,57,43,0.0674
 2003,LL survey,Sex combined,57,50,0.0641
 2004,LL survey,Sex combined,57,48,0.0651
@@ -1268,100 +1294,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,57,14,0.0513
 2000,LL survey,Sex combined,57,22,0.0579
 2001,LL survey,Sex combined,57,25,0.0566
-2002,LL fishery,Female,59,50,0.0401
-2003,LL fishery,Female,59,25,0.0245
-2004,LL fishery,Female,59,26,0.0167
-2005,LL fishery,Female,59,12,0.0095
-2006,LL fishery,Female,59,11,0.0102
-2007,LL fishery,Female,59,7,0.007
-2008,LL fishery,Female,59,10,0.0097
-2009,LL fishery,Female,59,6,0.0057
-2010,LL fishery,Female,59,13,0.0131
-2011,LL fishery,Female,59,9,0.0097
-2012,LL fishery,Female,59,11,0.0118
-2013,LL fishery,Female,59,16,0.0223
-2014,LL fishery,Female,59,6,0.0076
-2015,LL fishery,Female,59,7,0.0092
-2016,LL fishery,Female,59,12,0.0129
-2017,LL fishery,Female,59,17,0.0202
-2018,LL fishery,Female,59,13,0.016
-2019,LL fishery,Female,59,15,0.0181
-2020,LL fishery,Female,59,28,0.0357
-2021,LL fishery,Female,59,23,0.0462
-2022,LL fishery,Female,59,47,0.0436
-2002,LL survey,Female,59,17,0.0578
-2003,LL survey,Female,59,13,0.0337
-2004,LL survey,Female,59,15,0.038
-2005,LL survey,Female,59,5,0.01
-2006,LL survey,Female,59,11,0.0264
-2007,LL survey,Female,59,21,0.0515
-2008,LL survey,Female,59,4,0.0119
-2009,LL survey,Female,59,4,0.011
-2010,LL survey,Female,59,1,0.0031
-2011,LL survey,Female,59,6,0.0164
-2012,LL survey,Female,59,26,0.0642
-2013,LL survey,Female,59,8,0.0314
-2014,LL survey,Female,59,16,0.0561
-2015,LL survey,Female,59,5,0.0172
-2016,LL survey,Female,59,15,0.0476
-2017,LL survey,Female,59,15,0.0432
-2018,LL survey,Female,59,25,0.072
-2019,LL survey,Female,59,20,0.0743
-2020,LL survey,Female,59,38,0.1013
-2021,LL survey,Female,59,42,0.1138
-2022,LL survey,Female,59,32,0.0944
-1997,LL survey,Female,59,4,0.0158
-1998,LL survey,Female,59,4,0.0204
-1999,LL survey,Female,59,10,0.0775
-2000,LL survey,Female,59,14,0.068
-2001,LL survey,Female,59,3,0.0166
-2002,LL fishery,Male,59,94,0.0922
-2003,LL fishery,Male,59,60,0.0786
-2004,LL fishery,Male,59,54,0.0707
-2005,LL fishery,Male,59,30,0.0593
-2006,LL fishery,Male,59,30,0.0493
-2007,LL fishery,Male,59,25,0.0485
-2008,LL fishery,Male,59,20,0.0381
-2009,LL fishery,Male,59,25,0.048
-2010,LL fishery,Male,59,26,0.0473
+2022,Pot fishery,Sex combined,57,17,0.0504
+2002,LL fishery,Female,59,50,0.040096
+2003,LL fishery,Female,59,25,0.024462
+2004,LL fishery,Female,59,26,0.016656
+2005,LL fishery,Female,59,12,0.009531
+2006,LL fishery,Female,59,11,0.010233
+2007,LL fishery,Female,59,7,0.007028
+2008,LL fishery,Female,59,10,0.009747
+2009,LL fishery,Female,59,6,0.005731
+2010,LL fishery,Female,59,13,0.013065
+2011,LL fishery,Female,59,9,0.00974
+2012,LL fishery,Female,59,11,0.011803
+2013,LL fishery,Female,59,16,0.022315
+2014,LL fishery,Female,59,6,0.007634
+2015,LL fishery,Female,59,7,0.009235
+2016,LL fishery,Female,59,12,0.012903
+2017,LL fishery,Female,59,17,0.020238
+2018,LL fishery,Female,59,13,0.015971
+2019,LL fishery,Female,59,15,0.018116
+2020,LL fishery,Female,59,28,0.035714
+2021,LL fishery,Female,59,23,0.046185
+2022,LL fishery,Female,59,33,0.040342
+2002,LL survey,Female,59,17,0.057823
+2003,LL survey,Female,59,13,0.033679
+2004,LL survey,Female,59,15,0.037975
+2005,LL survey,Female,59,5,0.00996
+2006,LL survey,Female,59,11,0.026442
+2007,LL survey,Female,59,21,0.051471
+2008,LL survey,Female,59,4,0.011905
+2009,LL survey,Female,59,4,0.010959
+2010,LL survey,Female,59,1,0.003125
+2011,LL survey,Female,59,6,0.016438
+2012,LL survey,Female,59,26,0.064198
+2013,LL survey,Female,59,8,0.031373
+2014,LL survey,Female,59,16,0.05614
+2015,LL survey,Female,59,5,0.017241
+2016,LL survey,Female,59,15,0.047619
+2017,LL survey,Female,59,15,0.043228
+2018,LL survey,Female,59,25,0.072046
+2019,LL survey,Female,59,20,0.074349
+2020,LL survey,Female,59,38,0.101333
+2021,LL survey,Female,59,42,0.113821
+2022,LL survey,Female,59,32,0.094395
+1997,LL survey,Female,59,4,0.01581
+1998,LL survey,Female,59,4,0.020408
+1999,LL survey,Female,59,10,0.077519
+2000,LL survey,Female,59,14,0.067961
+2001,LL survey,Female,59,3,0.016575
+2022,Pot fishery,Female,59,14,0.054054
+2002,LL fishery,Male,59,94,0.092157
+2003,LL fishery,Male,59,60,0.078637
+2004,LL fishery,Male,59,54,0.070681
+2005,LL fishery,Male,59,30,0.059289
+2006,LL fishery,Male,59,30,0.049261
+2007,LL fishery,Male,59,25,0.048544
+2008,LL fishery,Male,59,20,0.038095
+2009,LL fishery,Male,59,25,0.047985
+2010,LL fishery,Male,59,26,0.047273
 2011,LL fishery,Male,59,22,0.04
-2012,LL fishery,Male,59,32,0.0529
-2013,LL fishery,Male,59,40,0.0587
-2014,LL fishery,Male,59,21,0.0369
-2015,LL fishery,Male,59,18,0.0399
-2016,LL fishery,Male,59,18,0.0347
-2017,LL fishery,Male,59,26,0.0432
-2018,LL fishery,Male,59,28,0.0553
-2019,LL fishery,Male,59,31,0.0604
-2020,LL fishery,Male,59,47,0.092
-2021,LL fishery,Male,59,30,0.1255
-2022,LL fishery,Male,59,49,0.1241
-2002,LL survey,Male,59,38,0.1105
-2003,LL survey,Male,59,36,0.0914
-2004,LL survey,Male,59,41,0.1199
-2005,LL survey,Male,59,26,0.071
-2006,LL survey,Male,59,27,0.0854
-2007,LL survey,Male,59,22,0.0669
-2008,LL survey,Male,59,28,0.1037
-2009,LL survey,Male,59,15,0.0593
-2010,LL survey,Male,59,9,0.0316
-2011,LL survey,Male,59,19,0.0611
-2012,LL survey,Male,59,30,0.094
-2013,LL survey,Male,59,27,0.0964
+2012,LL fishery,Male,59,32,0.052893
+2013,LL fishery,Male,59,40,0.058651
+2014,LL fishery,Male,59,21,0.036907
+2015,LL fishery,Male,59,18,0.039911
+2016,LL fishery,Male,59,18,0.034749
+2017,LL fishery,Male,59,26,0.043189
+2018,LL fishery,Male,59,28,0.055336
+2019,LL fishery,Male,59,31,0.060429
+2020,LL fishery,Male,59,47,0.091977
+2021,LL fishery,Male,59,30,0.125523
+2022,LL fishery,Male,59,36,0.113565
+2002,LL survey,Male,59,38,0.110465
+2003,LL survey,Male,59,36,0.091371
+2004,LL survey,Male,59,41,0.119883
+2005,LL survey,Male,59,26,0.071038
+2006,LL survey,Male,59,27,0.085443
+2007,LL survey,Male,59,22,0.066869
+2008,LL survey,Male,59,28,0.103704
+2009,LL survey,Male,59,15,0.059289
+2010,LL survey,Male,59,9,0.031579
+2011,LL survey,Male,59,19,0.061093
+2012,LL survey,Male,59,30,0.094044
+2013,LL survey,Male,59,27,0.096429
 2014,LL survey,Male,59,22,0.08
-2015,LL survey,Male,59,19,0.0945
-2016,LL survey,Male,59,12,0.0506
+2015,LL survey,Male,59,19,0.094527
+2016,LL survey,Male,59,12,0.050633
 2017,LL survey,Male,59,13,0.052
-2018,LL survey,Male,59,23,0.107
-2019,LL survey,Male,59,20,0.101
-2020,LL survey,Male,59,31,0.1297
-2021,LL survey,Male,59,49,0.1782
-2022,LL survey,Male,59,61,0.1974
-1997,LL survey,Male,59,10,0.0372
-1998,LL survey,Male,59,3,0.0196
-1999,LL survey,Male,59,8,0.0556
-2000,LL survey,Male,59,10,0.0575
-2001,LL survey,Male,59,17,0.0651
+2018,LL survey,Male,59,23,0.106977
+2019,LL survey,Male,59,20,0.10101
+2020,LL survey,Male,59,31,0.129707
+2021,LL survey,Male,59,49,0.178182
+2022,LL survey,Male,59,61,0.197411
+1997,LL survey,Male,59,10,0.037175
+1998,LL survey,Male,59,3,0.019608
+1999,LL survey,Male,59,8,0.055556
+2000,LL survey,Male,59,10,0.057471
+2001,LL survey,Male,59,17,0.065134
+2022,Pot fishery,Male,59,13,0.166667
 2002,LL fishery,Sex combined,59,144,0.0635
 2003,LL fishery,Sex combined,59,85,0.0476
 2004,LL fishery,Sex combined,59,80,0.0344
@@ -1382,7 +1411,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,59,46,0.0343
 2020,LL fishery,Sex combined,59,75,0.0579
 2021,LL fishery,Sex combined,59,53,0.0719
-2022,LL fishery,Sex combined,59,96,0.0652
+2022,LL fishery,Sex combined,59,69,0.0608
 2002,LL survey,Sex combined,59,55,0.0862
 2003,LL survey,Sex combined,59,49,0.0628
 2004,LL survey,Sex combined,59,56,0.076
@@ -1409,100 +1438,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,59,18,0.0659
 2000,LL survey,Sex combined,59,24,0.0632
 2001,LL survey,Sex combined,59,20,0.0452
-2002,LL fishery,Female,61,63,0.0505
-2003,LL fishery,Female,61,26,0.0254
-2004,LL fishery,Female,61,57,0.0365
-2005,LL fishery,Female,61,33,0.0262
-2006,LL fishery,Female,61,16,0.0149
-2007,LL fishery,Female,61,14,0.0141
-2008,LL fishery,Female,61,16,0.0156
-2009,LL fishery,Female,61,2,0.0019
-2010,LL fishery,Female,61,10,0.0101
-2011,LL fishery,Female,61,17,0.0184
-2012,LL fishery,Female,61,18,0.0193
-2013,LL fishery,Female,61,21,0.0293
-2014,LL fishery,Female,61,17,0.0216
-2015,LL fishery,Female,61,11,0.0145
-2016,LL fishery,Female,61,15,0.0161
-2017,LL fishery,Female,61,33,0.0393
-2018,LL fishery,Female,61,24,0.0295
-2019,LL fishery,Female,61,31,0.0374
-2020,LL fishery,Female,61,66,0.0842
-2021,LL fishery,Female,61,40,0.0803
-2022,LL fishery,Female,61,76,0.0706
-2002,LL survey,Female,61,17,0.0578
-2003,LL survey,Female,61,17,0.044
-2004,LL survey,Female,61,19,0.0481
-2005,LL survey,Female,61,15,0.0299
-2006,LL survey,Female,61,8,0.0192
-2007,LL survey,Female,61,11,0.027
-2008,LL survey,Female,61,14,0.0417
-2009,LL survey,Female,61,3,0.0082
-2010,LL survey,Female,61,7,0.0219
-2011,LL survey,Female,61,6,0.0164
-2012,LL survey,Female,61,16,0.0395
-2013,LL survey,Female,61,16,0.0627
-2014,LL survey,Female,61,13,0.0456
-2015,LL survey,Female,61,13,0.0448
-2016,LL survey,Female,61,15,0.0476
-2017,LL survey,Female,61,26,0.0749
-2018,LL survey,Female,61,20,0.0576
-2019,LL survey,Female,61,26,0.0967
+2022,Pot fishery,Sex combined,59,27,0.0801
+2002,LL fishery,Female,61,63,0.050521
+2003,LL fishery,Female,61,26,0.02544
+2004,LL fishery,Female,61,57,0.036515
+2005,LL fishery,Female,61,33,0.026211
+2006,LL fishery,Female,61,16,0.014884
+2007,LL fishery,Female,61,14,0.014056
+2008,LL fishery,Female,61,16,0.015595
+2009,LL fishery,Female,61,2,0.00191
+2010,LL fishery,Female,61,10,0.01005
+2011,LL fishery,Female,61,17,0.018398
+2012,LL fishery,Female,61,18,0.019313
+2013,LL fishery,Female,61,21,0.029289
+2014,LL fishery,Female,61,17,0.021628
+2015,LL fishery,Female,61,11,0.014512
+2016,LL fishery,Female,61,15,0.016129
+2017,LL fishery,Female,61,33,0.039286
+2018,LL fishery,Female,61,24,0.029484
+2019,LL fishery,Female,61,31,0.03744
+2020,LL fishery,Female,61,66,0.084184
+2021,LL fishery,Female,61,40,0.080321
+2022,LL fishery,Female,61,53,0.064792
+2002,LL survey,Female,61,17,0.057823
+2003,LL survey,Female,61,17,0.044041
+2004,LL survey,Female,61,19,0.048101
+2005,LL survey,Female,61,15,0.02988
+2006,LL survey,Female,61,8,0.019231
+2007,LL survey,Female,61,11,0.026961
+2008,LL survey,Female,61,14,0.041667
+2009,LL survey,Female,61,3,0.008219
+2010,LL survey,Female,61,7,0.021875
+2011,LL survey,Female,61,6,0.016438
+2012,LL survey,Female,61,16,0.039506
+2013,LL survey,Female,61,16,0.062745
+2014,LL survey,Female,61,13,0.045614
+2015,LL survey,Female,61,13,0.044828
+2016,LL survey,Female,61,15,0.047619
+2017,LL survey,Female,61,26,0.074928
+2018,LL survey,Female,61,20,0.057637
+2019,LL survey,Female,61,26,0.096654
 2020,LL survey,Female,61,33,0.088
-2021,LL survey,Female,61,59,0.1599
-2022,LL survey,Female,61,40,0.118
-1997,LL survey,Female,61,7,0.0277
-1998,LL survey,Female,61,6,0.0306
-1999,LL survey,Female,61,10,0.0775
-2000,LL survey,Female,61,5,0.0243
-2001,LL survey,Female,61,5,0.0276
-2002,LL fishery,Male,61,111,0.1088
-2003,LL fishery,Male,61,108,0.1415
-2004,LL fishery,Male,61,116,0.1518
-2005,LL fishery,Male,61,50,0.0988
-2006,LL fishery,Male,61,73,0.1199
-2007,LL fishery,Male,61,56,0.1087
-2008,LL fishery,Male,61,53,0.101
-2009,LL fishery,Male,61,46,0.0883
-2010,LL fishery,Male,61,58,0.1055
-2011,LL fishery,Male,61,36,0.0655
-2012,LL fishery,Male,61,57,0.0942
-2013,LL fishery,Male,61,60,0.088
-2014,LL fishery,Male,61,54,0.0949
-2015,LL fishery,Male,61,30,0.0665
-2016,LL fishery,Male,61,46,0.0888
-2017,LL fishery,Male,61,43,0.0714
-2018,LL fishery,Male,61,32,0.0632
-2019,LL fishery,Male,61,33,0.0643
-2020,LL fishery,Male,61,55,0.1076
-2021,LL fishery,Male,61,25,0.1046
-2022,LL fishery,Male,61,50,0.1266
-2002,LL survey,Male,61,45,0.1308
-2003,LL survey,Male,61,57,0.1447
-2004,LL survey,Male,61,44,0.1287
-2005,LL survey,Male,61,44,0.1202
-2006,LL survey,Male,61,41,0.1297
-2007,LL survey,Male,61,47,0.1429
-2008,LL survey,Male,61,39,0.1444
-2009,LL survey,Male,61,28,0.1107
-2010,LL survey,Male,61,32,0.1123
-2011,LL survey,Male,61,29,0.0932
-2012,LL survey,Male,61,37,0.116
-2013,LL survey,Male,61,43,0.1536
-2014,LL survey,Male,61,31,0.1127
-2015,LL survey,Male,61,15,0.0746
-2016,LL survey,Male,61,26,0.1097
+2021,LL survey,Female,61,59,0.159892
+2022,LL survey,Female,61,40,0.117994
+1997,LL survey,Female,61,7,0.027668
+1998,LL survey,Female,61,6,0.030612
+1999,LL survey,Female,61,10,0.077519
+2000,LL survey,Female,61,5,0.024272
+2001,LL survey,Female,61,5,0.027624
+2022,Pot fishery,Female,61,23,0.088803000000000007
+2002,LL fishery,Male,61,111,0.108824
+2003,LL fishery,Male,61,108,0.141547
+2004,LL fishery,Male,61,116,0.151832
+2005,LL fishery,Male,61,50,0.098814
+2006,LL fishery,Male,61,73,0.119869
+2007,LL fishery,Male,61,56,0.108738
+2008,LL fishery,Male,61,53,0.100952
+2009,LL fishery,Male,61,46,0.088292
+2010,LL fishery,Male,61,58,0.105455
+2011,LL fishery,Male,61,36,0.065455
+2012,LL fishery,Male,61,57,0.094215
+2013,LL fishery,Male,61,60,0.087977
+2014,LL fishery,Male,61,54,0.094903
+2015,LL fishery,Male,61,30,0.066519
+2016,LL fishery,Male,61,46,0.088803000000000007
+2017,LL fishery,Male,61,43,0.071429
+2018,LL fishery,Male,61,32,0.063241
+2019,LL fishery,Male,61,33,0.064327
+2020,LL fishery,Male,61,55,0.107632
+2021,LL fishery,Male,61,25,0.104603
+2022,LL fishery,Male,61,34,0.107256
+2002,LL survey,Male,61,45,0.130814
+2003,LL survey,Male,61,57,0.14467
+2004,LL survey,Male,61,44,0.128655
+2005,LL survey,Male,61,44,0.120219
+2006,LL survey,Male,61,41,0.129747
+2007,LL survey,Male,61,47,0.142857
+2008,LL survey,Male,61,39,0.144444
+2009,LL survey,Male,61,28,0.110672
+2010,LL survey,Male,61,32,0.112281
+2011,LL survey,Male,61,29,0.093248
+2012,LL survey,Male,61,37,0.115987
+2013,LL survey,Male,61,43,0.153571
+2014,LL survey,Male,61,31,0.112727
+2015,LL survey,Male,61,15,0.074627
+2016,LL survey,Male,61,26,0.109705
 2017,LL survey,Male,61,36,0.144
-2018,LL survey,Male,61,20,0.093
-2019,LL survey,Male,61,24,0.1212
-2020,LL survey,Male,61,33,0.1381
-2021,LL survey,Male,61,35,0.1273
-2022,LL survey,Male,61,49,0.1586
-1997,LL survey,Male,61,15,0.0558
-1998,LL survey,Male,61,11,0.0719
-1999,LL survey,Male,61,12,0.0833
-2000,LL survey,Male,61,19,0.1092
-2001,LL survey,Male,61,21,0.0805
+2018,LL survey,Male,61,20,0.093023
+2019,LL survey,Male,61,24,0.121212
+2020,LL survey,Male,61,33,0.138075
+2021,LL survey,Male,61,35,0.127273
+2022,LL survey,Male,61,49,0.158576
+1997,LL survey,Male,61,15,0.055762
+1998,LL survey,Male,61,11,0.071895
+1999,LL survey,Male,61,12,0.083333
+2000,LL survey,Male,61,19,0.109195
+2001,LL survey,Male,61,21,0.08046
+2022,Pot fishery,Male,61,16,0.205128
 2002,LL fishery,Sex combined,61,174,0.0768
 2003,LL fishery,Sex combined,61,134,0.0751
 2004,LL fishery,Sex combined,61,173,0.0744
@@ -1523,7 +1555,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,61,64,0.0477
 2020,LL fishery,Sex combined,61,121,0.0934
 2021,LL fishery,Sex combined,61,65,0.0882
-2022,LL fishery,Sex combined,61,126,0.0856
+2022,LL fishery,Sex combined,61,87,0.0767
 2002,LL survey,Sex combined,61,62,0.0972
 2003,LL survey,Sex combined,61,74,0.0949
 2004,LL survey,Sex combined,61,63,0.0855
@@ -1550,100 +1582,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,61,22,0.0806
 2000,LL survey,Sex combined,61,24,0.0632
 2001,LL survey,Sex combined,61,26,0.0588
-2002,LL fishery,Female,63,90,0.0722
-2003,LL fishery,Female,63,50,0.0489
-2004,LL fishery,Female,63,86,0.0551
-2005,LL fishery,Female,63,36,0.0286
-2006,LL fishery,Female,63,32,0.0298
-2007,LL fishery,Female,63,34,0.0341
-2008,LL fishery,Female,63,27,0.0263
-2009,LL fishery,Female,63,19,0.0181
-2010,LL fishery,Female,63,26,0.0261
-2011,LL fishery,Female,63,22,0.0238
+2022,Pot fishery,Sex combined,61,39,0.1157
+2002,LL fishery,Female,63,90,0.072173
+2003,LL fishery,Female,63,50,0.048924
+2004,LL fishery,Female,63,86,0.055093
+2005,LL fishery,Female,63,36,0.028594
+2006,LL fishery,Female,63,32,0.029767
+2007,LL fishery,Female,63,34,0.034137
+2008,LL fishery,Female,63,27,0.026316
+2009,LL fishery,Female,63,19,0.018147
+2010,LL fishery,Female,63,26,0.026131
+2011,LL fishery,Female,63,22,0.02381
 2012,LL fishery,Female,63,37,0.0397
-2013,LL fishery,Female,63,38,0.053
-2014,LL fishery,Female,63,36,0.0458
-2015,LL fishery,Female,63,29,0.0383
-2016,LL fishery,Female,63,29,0.0312
-2017,LL fishery,Female,63,25,0.0298
-2018,LL fishery,Female,63,36,0.0442
-2019,LL fishery,Female,63,56,0.0676
-2020,LL fishery,Female,63,84,0.1071
-2021,LL fishery,Female,63,62,0.1245
-2022,LL fishery,Female,63,124,0.1151
-2002,LL survey,Female,63,21,0.0714
-2003,LL survey,Female,63,16,0.0415
-2004,LL survey,Female,63,22,0.0557
-2005,LL survey,Female,63,26,0.0518
-2006,LL survey,Female,63,18,0.0433
-2007,LL survey,Female,63,14,0.0343
-2008,LL survey,Female,63,18,0.0536
-2009,LL survey,Female,63,17,0.0466
-2010,LL survey,Female,63,7,0.0219
-2011,LL survey,Female,63,9,0.0247
-2012,LL survey,Female,63,26,0.0642
-2013,LL survey,Female,63,21,0.0824
-2014,LL survey,Female,63,20,0.0702
-2015,LL survey,Female,63,14,0.0483
-2016,LL survey,Female,63,14,0.0444
-2017,LL survey,Female,63,22,0.0634
-2018,LL survey,Female,63,20,0.0576
-2019,LL survey,Female,63,25,0.0929
+2013,LL fishery,Female,63,38,0.052999
+2014,LL fishery,Female,63,36,0.045802
+2015,LL fishery,Female,63,29,0.038259
+2016,LL fishery,Female,63,29,0.031183
+2017,LL fishery,Female,63,25,0.029762
+2018,LL fishery,Female,63,36,0.044226
+2019,LL fishery,Female,63,56,0.067633
+2020,LL fishery,Female,63,84,0.107143
+2021,LL fishery,Female,63,62,0.124498
+2022,LL fishery,Female,63,91,0.111247
+2002,LL survey,Female,63,21,0.071429
+2003,LL survey,Female,63,16,0.041451
+2004,LL survey,Female,63,22,0.055696
+2005,LL survey,Female,63,26,0.051793
+2006,LL survey,Female,63,18,0.043269
+2007,LL survey,Female,63,14,0.034314
+2008,LL survey,Female,63,18,0.053571
+2009,LL survey,Female,63,17,0.046575
+2010,LL survey,Female,63,7,0.021875
+2011,LL survey,Female,63,9,0.024658
+2012,LL survey,Female,63,26,0.064198
+2013,LL survey,Female,63,21,0.082353
+2014,LL survey,Female,63,20,0.070175
+2015,LL survey,Female,63,14,0.048276
+2016,LL survey,Female,63,14,0.044444
+2017,LL survey,Female,63,22,0.063401
+2018,LL survey,Female,63,20,0.057637
+2019,LL survey,Female,63,25,0.092937
 2020,LL survey,Female,63,27,0.072
-2021,LL survey,Female,63,60,0.1626
-2022,LL survey,Female,63,55,0.1622
-1997,LL survey,Female,63,6,0.0237
-1998,LL survey,Female,63,4,0.0204
-1999,LL survey,Female,63,7,0.0543
-2000,LL survey,Female,63,9,0.0437
-2001,LL survey,Female,63,6,0.0331
-2002,LL fishery,Male,63,154,0.151
-2003,LL fishery,Male,63,122,0.1599
-2004,LL fishery,Male,63,131,0.1715
-2005,LL fishery,Male,63,85,0.168
-2006,LL fishery,Male,63,122,0.2003
-2007,LL fishery,Male,63,79,0.1534
-2008,LL fishery,Male,63,87,0.1657
-2009,LL fishery,Male,63,71,0.1363
-2010,LL fishery,Male,63,67,0.1218
+2021,LL survey,Female,63,60,0.162602
+2022,LL survey,Female,63,55,0.162242
+1997,LL survey,Female,63,6,0.023715
+1998,LL survey,Female,63,4,0.020408
+1999,LL survey,Female,63,7,0.054264
+2000,LL survey,Female,63,9,0.043689
+2001,LL survey,Female,63,6,0.033149
+2022,Pot fishery,Female,63,33,0.127413
+2002,LL fishery,Male,63,154,0.15098
+2003,LL fishery,Male,63,122,0.159895
+2004,LL fishery,Male,63,131,0.171466
+2005,LL fishery,Male,63,85,0.167984
+2006,LL fishery,Male,63,122,0.200328
+2007,LL fishery,Male,63,79,0.153398
+2008,LL fishery,Male,63,87,0.165714
+2009,LL fishery,Male,63,71,0.136276
+2010,LL fishery,Male,63,67,0.121818
 2011,LL fishery,Male,63,88,0.16
-2012,LL fishery,Male,63,86,0.1421
-2013,LL fishery,Male,63,129,0.1891
-2014,LL fishery,Male,63,79,0.1388
-2015,LL fishery,Male,63,54,0.1197
-2016,LL fishery,Male,63,72,0.139
-2017,LL fishery,Male,63,83,0.1379
-2018,LL fishery,Male,63,61,0.1206
-2019,LL fishery,Male,63,50,0.0975
-2020,LL fishery,Male,63,59,0.1155
-2021,LL fishery,Male,63,36,0.1506
-2022,LL fishery,Male,63,44,0.1114
-2002,LL survey,Male,63,39,0.1134
-2003,LL survey,Male,63,47,0.1193
-2004,LL survey,Male,63,48,0.1404
-2005,LL survey,Male,63,72,0.1967
-2006,LL survey,Male,63,59,0.1867
-2007,LL survey,Male,63,55,0.1672
-2008,LL survey,Male,63,42,0.1556
-2009,LL survey,Male,63,43,0.17
-2010,LL survey,Male,63,43,0.1509
-2011,LL survey,Male,63,47,0.1511
-2012,LL survey,Male,63,45,0.1411
-2013,LL survey,Male,63,38,0.1357
-2014,LL survey,Male,63,58,0.2109
-2015,LL survey,Male,63,28,0.1393
-2016,LL survey,Male,63,32,0.135
+2012,LL fishery,Male,63,86,0.142149
+2013,LL fishery,Male,63,129,0.18915
+2014,LL fishery,Male,63,79,0.13884
+2015,LL fishery,Male,63,54,0.119734
+2016,LL fishery,Male,63,72,0.138996
+2017,LL fishery,Male,63,83,0.137874
+2018,LL fishery,Male,63,61,0.120553
+2019,LL fishery,Male,63,50,0.097466
+2020,LL fishery,Male,63,59,0.11546
+2021,LL fishery,Male,63,36,0.150628
+2022,LL fishery,Male,63,37,0.116719
+2002,LL survey,Male,63,39,0.113372
+2003,LL survey,Male,63,47,0.119289
+2004,LL survey,Male,63,48,0.140351
+2005,LL survey,Male,63,72,0.196721
+2006,LL survey,Male,63,59,0.18670900000000001
+2007,LL survey,Male,63,55,0.167173
+2008,LL survey,Male,63,42,0.155556
+2009,LL survey,Male,63,43,0.16996
+2010,LL survey,Male,63,43,0.150877
+2011,LL survey,Male,63,47,0.151125
+2012,LL survey,Male,63,45,0.141066
+2013,LL survey,Male,63,38,0.135714
+2014,LL survey,Male,63,58,0.210909
+2015,LL survey,Male,63,28,0.139303
+2016,LL survey,Male,63,32,0.135021
 2017,LL survey,Male,63,31,0.124
-2018,LL survey,Male,63,26,0.1209
-2019,LL survey,Male,63,15,0.0758
-2020,LL survey,Male,63,33,0.1381
-2021,LL survey,Male,63,24,0.0873
-2022,LL survey,Male,63,34,0.11
-1997,LL survey,Male,63,35,0.1301
-1998,LL survey,Male,63,21,0.1373
-1999,LL survey,Male,63,14,0.0972
-2000,LL survey,Male,63,16,0.092
-2001,LL survey,Male,63,28,0.1073
+2018,LL survey,Male,63,26,0.12093
+2019,LL survey,Male,63,15,0.075758
+2020,LL survey,Male,63,33,0.138075
+2021,LL survey,Male,63,24,0.087273
+2022,LL survey,Male,63,34,0.110032
+1997,LL survey,Male,63,35,0.130112
+1998,LL survey,Male,63,21,0.137255
+1999,LL survey,Male,63,14,0.097222
+2000,LL survey,Male,63,16,0.091954
+2001,LL survey,Male,63,28,0.10728
+2022,Pot fishery,Male,63,7,0.089744
 2002,LL fishery,Sex combined,63,244,0.1076
 2003,LL fishery,Sex combined,63,172,0.0964
 2004,LL fishery,Sex combined,63,217,0.0933
@@ -1664,7 +1699,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,63,106,0.079
 2020,LL fishery,Sex combined,63,143,0.1104
 2021,LL fishery,Sex combined,63,98,0.133
-2022,LL fishery,Sex combined,63,168,0.1141
+2022,LL fishery,Sex combined,63,128,0.1128
 2002,LL survey,Sex combined,63,60,0.094
 2003,LL survey,Sex combined,63,63,0.0808
 2004,LL survey,Sex combined,63,70,0.095
@@ -1691,100 +1726,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,63,21,0.0769
 2000,LL survey,Sex combined,63,25,0.0658
 2001,LL survey,Sex combined,63,34,0.0769
-2002,LL fishery,Female,65,102,0.0818
-2003,LL fishery,Female,65,84,0.0822
-2004,LL fishery,Female,65,149,0.0955
-2005,LL fishery,Female,65,75,0.0596
-2006,LL fishery,Female,65,58,0.054
-2007,LL fishery,Female,65,54,0.0542
-2008,LL fishery,Female,65,41,0.04
-2009,LL fishery,Female,65,48,0.0458
-2010,LL fishery,Female,65,48,0.0482
-2011,LL fishery,Female,65,48,0.0519
-2012,LL fishery,Female,65,40,0.0429
-2013,LL fishery,Female,65,43,0.06
-2014,LL fishery,Female,65,36,0.0458
-2015,LL fishery,Female,65,44,0.058
-2016,LL fishery,Female,65,59,0.0634
-2017,LL fishery,Female,65,31,0.0369
-2018,LL fishery,Female,65,47,0.0577
-2019,LL fishery,Female,65,68,0.0821
-2020,LL fishery,Female,65,70,0.0893
-2021,LL fishery,Female,65,50,0.1004
-2022,LL fishery,Female,65,144,0.1337
-2002,LL survey,Female,65,11,0.0374
-2003,LL survey,Female,65,33,0.0855
-2004,LL survey,Female,65,39,0.0987
-2005,LL survey,Female,65,46,0.0916
-2006,LL survey,Female,65,20,0.0481
-2007,LL survey,Female,65,34,0.0833
-2008,LL survey,Female,65,19,0.0565
-2009,LL survey,Female,65,32,0.0877
+2022,Pot fishery,Sex combined,63,40,0.1187
+2002,LL fishery,Female,65,102,0.081796
+2003,LL fishery,Female,65,84,0.082192
+2004,LL fishery,Female,65,149,0.095452
+2005,LL fishery,Female,65,75,0.059571
+2006,LL fishery,Female,65,58,0.053953
+2007,LL fishery,Female,65,54,0.054217
+2008,LL fishery,Female,65,41,0.039961000000000003
+2009,LL fishery,Female,65,48,0.045845
+2010,LL fishery,Female,65,48,0.048241
+2011,LL fishery,Female,65,48,0.051948
+2012,LL fishery,Female,65,40,0.042918
+2013,LL fishery,Female,65,43,0.059972
+2014,LL fishery,Female,65,36,0.045802
+2015,LL fishery,Female,65,44,0.058047
+2016,LL fishery,Female,65,59,0.063441
+2017,LL fishery,Female,65,31,0.036905
+2018,LL fishery,Female,65,47,0.05774
+2019,LL fishery,Female,65,68,0.082126
+2020,LL fishery,Female,65,70,0.089286
+2021,LL fishery,Female,65,50,0.100402
+2022,LL fishery,Female,65,103,0.125917
+2002,LL survey,Female,65,11,0.037415
+2003,LL survey,Female,65,33,0.085492
+2004,LL survey,Female,65,39,0.098734
+2005,LL survey,Female,65,46,0.091633
+2006,LL survey,Female,65,20,0.048077
+2007,LL survey,Female,65,34,0.083333
+2008,LL survey,Female,65,19,0.056548
+2009,LL survey,Female,65,32,0.087671
 2010,LL survey,Female,65,20,0.0625
-2011,LL survey,Female,65,23,0.063
-2012,LL survey,Female,65,28,0.0691
-2013,LL survey,Female,65,25,0.098
-2014,LL survey,Female,65,33,0.1158
-2015,LL survey,Female,65,25,0.0862
-2016,LL survey,Female,65,15,0.0476
-2017,LL survey,Female,65,20,0.0576
-2018,LL survey,Female,65,23,0.0663
-2019,LL survey,Female,65,27,0.1004
-2020,LL survey,Female,65,31,0.0827
-2021,LL survey,Female,65,45,0.122
-2022,LL survey,Female,65,44,0.1298
-1997,LL survey,Female,65,4,0.0158
-1998,LL survey,Female,65,5,0.0255
-1999,LL survey,Female,65,5,0.0388
-2000,LL survey,Female,65,16,0.0777
-2001,LL survey,Female,65,15,0.0829
-2002,LL fishery,Male,65,125,0.1225
-2003,LL fishery,Male,65,114,0.1494
-2004,LL fishery,Male,65,131,0.1715
-2005,LL fishery,Male,65,98,0.1937
-2006,LL fishery,Male,65,109,0.179
-2007,LL fishery,Male,65,88,0.1709
-2008,LL fishery,Male,65,94,0.179
-2009,LL fishery,Male,65,99,0.19
-2010,LL fishery,Male,65,104,0.1891
-2011,LL fishery,Male,65,98,0.1782
-2012,LL fishery,Male,65,106,0.1752
-2013,LL fishery,Male,65,117,0.1716
-2014,LL fishery,Male,65,99,0.174
-2015,LL fishery,Male,65,67,0.1486
-2016,LL fishery,Male,65,81,0.1564
-2017,LL fishery,Male,65,96,0.1595
-2018,LL fishery,Male,65,85,0.168
-2019,LL fishery,Male,65,88,0.1715
-2020,LL fishery,Male,65,79,0.1546
-2021,LL fishery,Male,65,19,0.0795
-2022,LL fishery,Male,65,37,0.0937
-2002,LL survey,Male,65,32,0.093
-2003,LL survey,Male,65,43,0.1091
-2004,LL survey,Male,65,40,0.117
-2005,LL survey,Male,65,68,0.1858
-2006,LL survey,Male,65,51,0.1614
-2007,LL survey,Male,65,64,0.1945
-2008,LL survey,Male,65,43,0.1593
-2009,LL survey,Male,65,38,0.1502
-2010,LL survey,Male,65,56,0.1965
-2011,LL survey,Male,65,55,0.1768
-2012,LL survey,Male,65,59,0.185
-2013,LL survey,Male,65,47,0.1679
-2014,LL survey,Male,65,41,0.1491
-2015,LL survey,Male,65,28,0.1393
-2016,LL survey,Male,65,25,0.1055
+2011,LL survey,Female,65,23,0.063014
+2012,LL survey,Female,65,28,0.069136
+2013,LL survey,Female,65,25,0.098039
+2014,LL survey,Female,65,33,0.115789
+2015,LL survey,Female,65,25,0.086207
+2016,LL survey,Female,65,15,0.047619
+2017,LL survey,Female,65,20,0.057637
+2018,LL survey,Female,65,23,0.066282
+2019,LL survey,Female,65,27,0.100372
+2020,LL survey,Female,65,31,0.082667
+2021,LL survey,Female,65,45,0.121951
+2022,LL survey,Female,65,44,0.129794
+1997,LL survey,Female,65,4,0.01581
+1998,LL survey,Female,65,5,0.02551
+1999,LL survey,Female,65,5,0.03876
+2000,LL survey,Female,65,16,0.07767
+2001,LL survey,Female,65,15,0.082873
+2022,Pot fishery,Female,65,41,0.158301
+2002,LL fishery,Male,65,125,0.122549
+2003,LL fishery,Male,65,114,0.14941
+2004,LL fishery,Male,65,131,0.171466
+2005,LL fishery,Male,65,98,0.193676
+2006,LL fishery,Male,65,109,0.178982
+2007,LL fishery,Male,65,88,0.170874
+2008,LL fishery,Male,65,94,0.179048
+2009,LL fishery,Male,65,99,0.190019
+2010,LL fishery,Male,65,104,0.189091
+2011,LL fishery,Male,65,98,0.178182
+2012,LL fishery,Male,65,106,0.175207
+2013,LL fishery,Male,65,117,0.171554
+2014,LL fishery,Male,65,99,0.173989
+2015,LL fishery,Male,65,67,0.148559
+2016,LL fishery,Male,65,81,0.156371
+2017,LL fishery,Male,65,96,0.159468
+2018,LL fishery,Male,65,85,0.167984
+2019,LL fishery,Male,65,88,0.17154
+2020,LL fishery,Male,65,79,0.154599
+2021,LL fishery,Male,65,19,0.079498
+2022,LL fishery,Male,65,29,0.091483
+2002,LL survey,Male,65,32,0.093023
+2003,LL survey,Male,65,43,0.109137
+2004,LL survey,Male,65,40,0.116959
+2005,LL survey,Male,65,68,0.185792
+2006,LL survey,Male,65,51,0.161392
+2007,LL survey,Male,65,64,0.194529
+2008,LL survey,Male,65,43,0.159259
+2009,LL survey,Male,65,38,0.150198
+2010,LL survey,Male,65,56,0.196491
+2011,LL survey,Male,65,55,0.176849
+2012,LL survey,Male,65,59,0.184953
+2013,LL survey,Male,65,47,0.167857
+2014,LL survey,Male,65,41,0.149091
+2015,LL survey,Male,65,28,0.139303
+2016,LL survey,Male,65,25,0.105485
 2017,LL survey,Male,65,38,0.152
-2018,LL survey,Male,65,24,0.1116
-2019,LL survey,Male,65,22,0.1111
-2020,LL survey,Male,65,20,0.0837
-2021,LL survey,Male,65,10,0.0364
-2022,LL survey,Male,65,12,0.0388
-1997,LL survey,Male,65,41,0.1524
-1998,LL survey,Male,65,29,0.1895
-1999,LL survey,Male,65,21,0.1458
-2000,LL survey,Male,65,9,0.0517
-2001,LL survey,Male,65,32,0.1226
+2018,LL survey,Male,65,24,0.111628
+2019,LL survey,Male,65,22,0.111111
+2020,LL survey,Male,65,20,0.083682
+2021,LL survey,Male,65,10,0.036364
+2022,LL survey,Male,65,12,0.038835
+1997,LL survey,Male,65,41,0.152416
+1998,LL survey,Male,65,29,0.189542
+1999,LL survey,Male,65,21,0.145833
+2000,LL survey,Male,65,9,0.051724
+2001,LL survey,Male,65,32,0.122605
+2022,Pot fishery,Male,65,8,0.102564
 2002,LL fishery,Sex combined,65,227,0.1001
 2003,LL fishery,Sex combined,65,198,0.1109
 2004,LL fishery,Sex combined,65,280,0.1204
@@ -1805,7 +1843,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,65,156,0.1163
 2020,LL fishery,Sex combined,65,149,0.1151
 2021,LL fishery,Sex combined,65,69,0.0936
-2022,LL fishery,Sex combined,65,181,0.123
+2022,LL fishery,Sex combined,65,132,0.1163
 2002,LL survey,Sex combined,65,43,0.0674
 2003,LL survey,Sex combined,65,76,0.0974
 2004,LL survey,Sex combined,65,79,0.1072
@@ -1832,100 +1870,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,65,26,0.0952
 2000,LL survey,Sex combined,65,25,0.0658
 2001,LL survey,Sex combined,65,47,0.1063
-2002,LL fishery,Female,67,108,0.0866
-2003,LL fishery,Female,67,111,0.1086
-2004,LL fishery,Female,67,154,0.0987
-2005,LL fishery,Female,67,129,0.1025
-2006,LL fishery,Female,67,97,0.0902
-2007,LL fishery,Female,67,70,0.0703
-2008,LL fishery,Female,67,90,0.0877
-2009,LL fishery,Female,67,81,0.0774
-2010,LL fishery,Female,67,71,0.0714
-2011,LL fishery,Female,67,71,0.0768
-2012,LL fishery,Female,67,72,0.0773
-2013,LL fishery,Female,67,55,0.0767
-2014,LL fishery,Female,67,50,0.0636
-2015,LL fishery,Female,67,61,0.0805
-2016,LL fishery,Female,67,53,0.057
-2017,LL fishery,Female,67,52,0.0619
-2018,LL fishery,Female,67,54,0.0663
-2019,LL fishery,Female,67,69,0.0833
-2020,LL fishery,Female,67,90,0.1148
-2021,LL fishery,Female,67,57,0.1145
-2022,LL fishery,Female,67,154,0.143
-2002,LL survey,Female,67,18,0.0612
-2003,LL survey,Female,67,34,0.0881
-2004,LL survey,Female,67,41,0.1038
-2005,LL survey,Female,67,59,0.1175
-2006,LL survey,Female,67,43,0.1034
-2007,LL survey,Female,67,46,0.1127
-2008,LL survey,Female,67,36,0.1071
-2009,LL survey,Female,67,34,0.0932
+2022,Pot fishery,Sex combined,65,49,0.1454
+2002,LL fishery,Female,67,108,0.086608
+2003,LL fishery,Female,67,111,0.108611
+2004,LL fishery,Female,67,154,0.098655
+2005,LL fishery,Female,67,129,0.102462
+2006,LL fishery,Female,67,97,0.090233
+2007,LL fishery,Female,67,70,0.070281
+2008,LL fishery,Female,67,90,0.087719
+2009,LL fishery,Female,67,81,0.077364
+2010,LL fishery,Female,67,71,0.071357
+2011,LL fishery,Female,67,71,0.07684
+2012,LL fishery,Female,67,72,0.077253
+2013,LL fishery,Female,67,55,0.076709
+2014,LL fishery,Female,67,50,0.063613
+2015,LL fishery,Female,67,61,0.080475
+2016,LL fishery,Female,67,53,0.056989
+2017,LL fishery,Female,67,52,0.061905
+2018,LL fishery,Female,67,54,0.066339
+2019,LL fishery,Female,67,69,0.083333
+2020,LL fishery,Female,67,90,0.114796
+2021,LL fishery,Female,67,57,0.114458
+2022,LL fishery,Female,67,104,0.127139
+2002,LL survey,Female,67,18,0.061224
+2003,LL survey,Female,67,34,0.088083
+2004,LL survey,Female,67,41,0.103797
+2005,LL survey,Female,67,59,0.11753
+2006,LL survey,Female,67,43,0.103365
+2007,LL survey,Female,67,46,0.112745
+2008,LL survey,Female,67,36,0.107143
+2009,LL survey,Female,67,34,0.093151
 2010,LL survey,Female,67,28,0.0875
-2011,LL survey,Female,67,29,0.0795
-2012,LL survey,Female,67,42,0.1037
-2013,LL survey,Female,67,27,0.1059
-2014,LL survey,Female,67,28,0.0982
-2015,LL survey,Female,67,32,0.1103
-2016,LL survey,Female,67,25,0.0794
-2017,LL survey,Female,67,25,0.072
-2018,LL survey,Female,67,20,0.0576
-2019,LL survey,Female,67,12,0.0446
+2011,LL survey,Female,67,29,0.079452
+2012,LL survey,Female,67,42,0.103704
+2013,LL survey,Female,67,27,0.105882
+2014,LL survey,Female,67,28,0.098246
+2015,LL survey,Female,67,32,0.110345
+2016,LL survey,Female,67,25,0.079365
+2017,LL survey,Female,67,25,0.072046
+2018,LL survey,Female,67,20,0.057637
+2019,LL survey,Female,67,12,0.04461
 2020,LL survey,Female,67,42,0.112
-2021,LL survey,Female,67,29,0.0786
-2022,LL survey,Female,67,32,0.0944
-1997,LL survey,Female,67,15,0.0593
-1998,LL survey,Female,67,8,0.0408
-1999,LL survey,Female,67,4,0.031
-2000,LL survey,Female,67,17,0.0825
-2001,LL survey,Female,67,10,0.0552
-2002,LL fishery,Male,67,113,0.1108
-2003,LL fishery,Male,67,87,0.114
-2004,LL fishery,Male,67,95,0.1243
-2005,LL fishery,Male,67,71,0.1403
-2006,LL fishery,Male,67,79,0.1297
-2007,LL fishery,Male,67,83,0.1612
-2008,LL fishery,Male,67,100,0.1905
-2009,LL fishery,Male,67,92,0.1766
-2010,LL fishery,Male,67,91,0.1655
-2011,LL fishery,Male,67,91,0.1655
-2012,LL fishery,Male,67,111,0.1835
-2013,LL fishery,Male,67,122,0.1789
-2014,LL fishery,Male,67,98,0.1722
-2015,LL fishery,Male,67,85,0.1885
-2016,LL fishery,Male,67,87,0.168
-2017,LL fishery,Male,67,105,0.1744
-2018,LL fishery,Male,67,93,0.1838
-2019,LL fishery,Male,67,84,0.1637
+2021,LL survey,Female,67,29,0.078591
+2022,LL survey,Female,67,32,0.094395
+1997,LL survey,Female,67,15,0.059289
+1998,LL survey,Female,67,8,0.040816
+1999,LL survey,Female,67,4,0.031008
+2000,LL survey,Female,67,17,0.082524
+2001,LL survey,Female,67,10,0.055249
+2022,Pot fishery,Female,67,50,0.19305
+2002,LL fishery,Male,67,113,0.110784
+2003,LL fishery,Male,67,87,0.114024
+2004,LL fishery,Male,67,95,0.124346
+2005,LL fishery,Male,67,71,0.140316
+2006,LL fishery,Male,67,79,0.129721
+2007,LL fishery,Male,67,83,0.161165
+2008,LL fishery,Male,67,100,0.190476
+2009,LL fishery,Male,67,92,0.176583
+2010,LL fishery,Male,67,91,0.165455
+2011,LL fishery,Male,67,91,0.165455
+2012,LL fishery,Male,67,111,0.183471
+2013,LL fishery,Male,67,122,0.178886
+2014,LL fishery,Male,67,98,0.172232
+2015,LL fishery,Male,67,85,0.18847
+2016,LL fishery,Male,67,87,0.167954
+2017,LL fishery,Male,67,105,0.174419
+2018,LL fishery,Male,67,93,0.183794
+2019,LL fishery,Male,67,84,0.163743
 2020,LL fishery,Male,67,72,0.1409
-2021,LL fishery,Male,67,29,0.1213
-2022,LL fishery,Male,67,39,0.0987
+2021,LL fishery,Male,67,29,0.121339
+2022,LL fishery,Male,67,36,0.113565
 2002,LL survey,Male,67,43,0.125
-2003,LL survey,Male,67,41,0.1041
-2004,LL survey,Male,67,47,0.1374
-2005,LL survey,Male,67,44,0.1202
-2006,LL survey,Male,67,53,0.1677
-2007,LL survey,Male,67,39,0.1185
-2008,LL survey,Male,67,36,0.1333
-2009,LL survey,Male,67,36,0.1423
-2010,LL survey,Male,67,41,0.1439
-2011,LL survey,Male,67,40,0.1286
-2012,LL survey,Male,67,35,0.1097
-2013,LL survey,Male,67,36,0.1286
-2014,LL survey,Male,67,37,0.1345
-2015,LL survey,Male,67,19,0.0945
-2016,LL survey,Male,67,28,0.1181
+2003,LL survey,Male,67,41,0.104061
+2004,LL survey,Male,67,47,0.137427
+2005,LL survey,Male,67,44,0.120219
+2006,LL survey,Male,67,53,0.167722
+2007,LL survey,Male,67,39,0.118541
+2008,LL survey,Male,67,36,0.133333
+2009,LL survey,Male,67,36,0.142292
+2010,LL survey,Male,67,41,0.14386
+2011,LL survey,Male,67,40,0.128617
+2012,LL survey,Male,67,35,0.109718
+2013,LL survey,Male,67,36,0.128571
+2014,LL survey,Male,67,37,0.134545
+2015,LL survey,Male,67,19,0.094527
+2016,LL survey,Male,67,28,0.118143
 2017,LL survey,Male,67,27,0.108
-2018,LL survey,Male,67,15,0.0698
-2019,LL survey,Male,67,21,0.1061
-2020,LL survey,Male,67,15,0.0628
-2021,LL survey,Male,67,9,0.0327
-2022,LL survey,Male,67,13,0.0421
-1997,LL survey,Male,67,52,0.1933
-1998,LL survey,Male,67,17,0.1111
+2018,LL survey,Male,67,15,0.069767
+2019,LL survey,Male,67,21,0.106061
+2020,LL survey,Male,67,15,0.062762
+2021,LL survey,Male,67,9,0.032727
+2022,LL survey,Male,67,13,0.042071
+1997,LL survey,Male,67,52,0.193309
+1998,LL survey,Male,67,17,0.111111
 1999,LL survey,Male,67,18,0.125
-2000,LL survey,Male,67,20,0.1149
-2001,LL survey,Male,67,30,0.1149
+2000,LL survey,Male,67,20,0.114943
+2001,LL survey,Male,67,30,0.114943
+2022,Pot fishery,Male,67,3,0.038462
 2002,LL fishery,Sex combined,67,221,0.0975
 2003,LL fishery,Sex combined,67,198,0.1109
 2004,LL fishery,Sex combined,67,249,0.1071
@@ -1946,7 +1987,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,67,153,0.1141
 2020,LL fishery,Sex combined,67,162,0.1251
 2021,LL fishery,Sex combined,67,86,0.1167
-2022,LL fishery,Sex combined,67,193,0.1311
+2022,LL fishery,Sex combined,67,140,0.1233
 2002,LL survey,Sex combined,67,61,0.0956
 2003,LL survey,Sex combined,67,75,0.0962
 2004,LL survey,Sex combined,67,88,0.1194
@@ -1973,100 +2014,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,67,22,0.0806
 2000,LL survey,Sex combined,67,37,0.0974
 2001,LL survey,Sex combined,67,40,0.0905
-2002,LL fishery,Female,69,118,0.0946
-2003,LL fishery,Female,69,132,0.1292
-2004,LL fishery,Female,69,198,0.1268
-2005,LL fishery,Female,69,148,0.1176
-2006,LL fishery,Female,69,134,0.1247
-2007,LL fishery,Female,69,123,0.1235
-2008,LL fishery,Female,69,103,0.1004
-2009,LL fishery,Female,69,102,0.0974
-2010,LL fishery,Female,69,103,0.1035
-2011,LL fishery,Female,69,94,0.1017
-2012,LL fishery,Female,69,91,0.0976
-2013,LL fishery,Female,69,65,0.0907
-2014,LL fishery,Female,69,61,0.0776
-2015,LL fishery,Female,69,82,0.1082
-2016,LL fishery,Female,69,72,0.0774
-2017,LL fishery,Female,69,49,0.0583
-2018,LL fishery,Female,69,64,0.0786
-2019,LL fishery,Female,69,59,0.0713
-2020,LL fishery,Female,69,63,0.0804
-2021,LL fishery,Female,69,35,0.0703
-2022,LL fishery,Female,69,87,0.0808
-2002,LL survey,Female,69,17,0.0578
-2003,LL survey,Female,69,47,0.1218
-2004,LL survey,Female,69,51,0.1291
-2005,LL survey,Female,69,59,0.1175
-2006,LL survey,Female,69,67,0.1611
-2007,LL survey,Female,69,47,0.1152
-2008,LL survey,Female,69,43,0.128
-2009,LL survey,Female,69,37,0.1014
-2010,LL survey,Female,69,35,0.1094
-2011,LL survey,Female,69,44,0.1205
-2012,LL survey,Female,69,35,0.0864
-2013,LL survey,Female,69,26,0.102
-2014,LL survey,Female,69,28,0.0982
-2015,LL survey,Female,69,20,0.069
-2016,LL survey,Female,69,32,0.1016
-2017,LL survey,Female,69,21,0.0605
-2018,LL survey,Female,69,22,0.0634
-2019,LL survey,Female,69,8,0.0297
-2020,LL survey,Female,69,14,0.0373
-2021,LL survey,Female,69,21,0.0569
-2022,LL survey,Female,69,22,0.0649
-1997,LL survey,Female,69,21,0.083
-1998,LL survey,Female,69,18,0.0918
-1999,LL survey,Female,69,6,0.0465
-2000,LL survey,Female,69,16,0.0777
-2001,LL survey,Female,69,10,0.0552
-2002,LL fishery,Male,69,95,0.0931
-2003,LL fishery,Male,69,64,0.0839
-2004,LL fishery,Male,69,72,0.0942
-2005,LL fishery,Male,69,53,0.1047
-2006,LL fishery,Male,69,57,0.0936
-2007,LL fishery,Male,69,70,0.1359
-2008,LL fishery,Male,69,69,0.1314
-2009,LL fishery,Male,69,65,0.1248
-2010,LL fishery,Male,69,69,0.1255
-2011,LL fishery,Male,69,89,0.1618
-2012,LL fishery,Male,69,79,0.1306
-2013,LL fishery,Male,69,68,0.0997
-2014,LL fishery,Male,69,83,0.1459
-2015,LL fishery,Male,69,63,0.1397
-2016,LL fishery,Male,69,70,0.1351
-2017,LL fishery,Male,69,78,0.1296
-2018,LL fishery,Male,69,57,0.1126
-2019,LL fishery,Male,69,75,0.1462
-2020,LL fishery,Male,69,81,0.1585
-2021,LL fishery,Male,69,18,0.0753
-2022,LL fishery,Male,69,52,0.1316
-2002,LL survey,Male,69,34,0.0988
-2003,LL survey,Male,69,36,0.0914
-2004,LL survey,Male,69,30,0.0877
-2005,LL survey,Male,69,34,0.0929
-2006,LL survey,Male,69,36,0.1139
-2007,LL survey,Male,69,22,0.0669
-2008,LL survey,Male,69,25,0.0926
-2009,LL survey,Male,69,28,0.1107
-2010,LL survey,Male,69,30,0.1053
-2011,LL survey,Male,69,34,0.1093
-2012,LL survey,Male,69,18,0.0564
-2013,LL survey,Male,69,22,0.0786
-2014,LL survey,Male,69,17,0.0618
-2015,LL survey,Male,69,23,0.1144
-2016,LL survey,Male,69,25,0.1055
+2022,Pot fishery,Sex combined,67,53,0.1573
+2002,LL fishery,Female,69,118,0.094627
+2003,LL fishery,Female,69,132,0.129159
+2004,LL fishery,Female,69,198,0.126842
+2005,LL fishery,Female,69,148,0.117554
+2006,LL fishery,Female,69,134,0.124651
+2007,LL fishery,Female,69,123,0.123494
+2008,LL fishery,Female,69,103,0.10039
+2009,LL fishery,Female,69,102,0.097421
+2010,LL fishery,Female,69,103,0.103518
+2011,LL fishery,Female,69,94,0.101732
+2012,LL fishery,Female,69,91,0.097639
+2013,LL fishery,Female,69,65,0.090656
+2014,LL fishery,Female,69,61,0.077608
+2015,LL fishery,Female,69,82,0.108179
+2016,LL fishery,Female,69,72,0.077419
+2017,LL fishery,Female,69,49,0.058333
+2018,LL fishery,Female,69,64,0.078624
+2019,LL fishery,Female,69,59,0.071256
+2020,LL fishery,Female,69,63,0.080357
+2021,LL fishery,Female,69,35,0.070281
+2022,LL fishery,Female,69,62,0.075795
+2002,LL survey,Female,69,17,0.057823
+2003,LL survey,Female,69,47,0.121762
+2004,LL survey,Female,69,51,0.129114
+2005,LL survey,Female,69,59,0.11753
+2006,LL survey,Female,69,67,0.161058
+2007,LL survey,Female,69,47,0.115196
+2008,LL survey,Female,69,43,0.127976
+2009,LL survey,Female,69,37,0.10137
+2010,LL survey,Female,69,35,0.109375
+2011,LL survey,Female,69,44,0.120548
+2012,LL survey,Female,69,35,0.08642
+2013,LL survey,Female,69,26,0.101961
+2014,LL survey,Female,69,28,0.098246
+2015,LL survey,Female,69,20,0.068966
+2016,LL survey,Female,69,32,0.101587
+2017,LL survey,Female,69,21,0.060519
+2018,LL survey,Female,69,22,0.063401
+2019,LL survey,Female,69,8,0.02974
+2020,LL survey,Female,69,14,0.037333
+2021,LL survey,Female,69,21,0.056911
+2022,LL survey,Female,69,22,0.064897
+1997,LL survey,Female,69,21,0.083004
+1998,LL survey,Female,69,18,0.091837
+1999,LL survey,Female,69,6,0.046512
+2000,LL survey,Female,69,16,0.07767
+2001,LL survey,Female,69,10,0.055249
+2022,Pot fishery,Female,69,25,0.096525
+2002,LL fishery,Male,69,95,0.093137
+2003,LL fishery,Male,69,64,0.083879
+2004,LL fishery,Male,69,72,0.094241
+2005,LL fishery,Male,69,53,0.104743
+2006,LL fishery,Male,69,57,0.093596
+2007,LL fishery,Male,69,70,0.135922
+2008,LL fishery,Male,69,69,0.131429
+2009,LL fishery,Male,69,65,0.12476
+2010,LL fishery,Male,69,69,0.125455
+2011,LL fishery,Male,69,89,0.161818
+2012,LL fishery,Male,69,79,0.130579
+2013,LL fishery,Male,69,68,0.099707
+2014,LL fishery,Male,69,83,0.14587
+2015,LL fishery,Male,69,63,0.13969
+2016,LL fishery,Male,69,70,0.135135
+2017,LL fishery,Male,69,78,0.129568
+2018,LL fishery,Male,69,57,0.112648
+2019,LL fishery,Male,69,75,0.146199
+2020,LL fishery,Male,69,81,0.158513
+2021,LL fishery,Male,69,18,0.075314
+2022,LL fishery,Male,69,43,0.135647
+2002,LL survey,Male,69,34,0.098837
+2003,LL survey,Male,69,36,0.091371
+2004,LL survey,Male,69,30,0.087719
+2005,LL survey,Male,69,34,0.092896
+2006,LL survey,Male,69,36,0.113924
+2007,LL survey,Male,69,22,0.066869
+2008,LL survey,Male,69,25,0.092593
+2009,LL survey,Male,69,28,0.110672
+2010,LL survey,Male,69,30,0.105263
+2011,LL survey,Male,69,34,0.109325
+2012,LL survey,Male,69,18,0.056426
+2013,LL survey,Male,69,22,0.078571
+2014,LL survey,Male,69,17,0.061818
+2015,LL survey,Male,69,23,0.114428
+2016,LL survey,Male,69,25,0.105485
 2017,LL survey,Male,69,14,0.056
-2018,LL survey,Male,69,27,0.1256
-2019,LL survey,Male,69,11,0.0556
-2020,LL survey,Male,69,10,0.0418
-2021,LL survey,Male,69,7,0.0255
-2022,LL survey,Male,69,5,0.0162
-1997,LL survey,Male,69,42,0.1561
-1998,LL survey,Male,69,28,0.183
-1999,LL survey,Male,69,15,0.1042
-2000,LL survey,Male,69,19,0.1092
-2001,LL survey,Male,69,33,0.1264
+2018,LL survey,Male,69,27,0.125581
+2019,LL survey,Male,69,11,0.055556
+2020,LL survey,Male,69,10,0.041841
+2021,LL survey,Male,69,7,0.025455
+2022,LL survey,Male,69,5,0.016181
+1997,LL survey,Male,69,42,0.156134
+1998,LL survey,Male,69,28,0.183007
+1999,LL survey,Male,69,15,0.104167
+2000,LL survey,Male,69,19,0.109195
+2001,LL survey,Male,69,33,0.126437
+2022,Pot fishery,Male,69,9,0.115385
 2002,LL fishery,Sex combined,69,213,0.094
 2003,LL fishery,Sex combined,69,196,0.1098
 2004,LL fishery,Sex combined,69,270,0.1161
@@ -2087,7 +2131,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,69,134,0.0999
 2020,LL fishery,Sex combined,69,144,0.1112
 2021,LL fishery,Sex combined,69,53,0.0719
-2022,LL fishery,Sex combined,69,139,0.0944
+2022,LL fishery,Sex combined,69,105,0.0925
 2002,LL survey,Sex combined,69,51,0.0799
 2003,LL survey,Sex combined,69,83,0.1064
 2004,LL survey,Sex combined,69,81,0.1099
@@ -2114,100 +2158,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,69,21,0.0769
 2000,LL survey,Sex combined,69,35,0.0921
 2001,LL survey,Sex combined,69,43,0.0973
-2002,LL fishery,Female,71,112,0.0898
-2003,LL fishery,Female,71,130,0.1272
-2004,LL fishery,Female,71,191,0.1224
-2005,LL fishery,Female,71,137,0.1088
-2006,LL fishery,Female,71,151,0.1405
-2007,LL fishery,Female,71,130,0.1305
-2008,LL fishery,Female,71,137,0.1335
-2009,LL fishery,Female,71,151,0.1442
-2010,LL fishery,Female,71,137,0.1377
-2011,LL fishery,Female,71,127,0.1374
-2012,LL fishery,Female,71,122,0.1309
-2013,LL fishery,Female,71,84,0.1172
-2014,LL fishery,Female,71,79,0.1005
-2015,LL fishery,Female,71,61,0.0805
-2016,LL fishery,Female,71,82,0.0882
-2017,LL fishery,Female,71,72,0.0857
-2018,LL fishery,Female,71,72,0.0885
-2019,LL fishery,Female,71,78,0.0942
-2020,LL fishery,Female,71,53,0.0676
-2021,LL fishery,Female,71,33,0.0663
-2022,LL fishery,Female,71,90,0.0836
-2002,LL survey,Female,71,16,0.0544
-2003,LL survey,Female,71,34,0.0881
-2004,LL survey,Female,71,45,0.1139
-2005,LL survey,Female,71,76,0.1514
-2006,LL survey,Female,71,75,0.1803
-2007,LL survey,Female,71,55,0.1348
-2008,LL survey,Female,71,39,0.1161
-2009,LL survey,Female,71,65,0.1781
-2010,LL survey,Female,71,33,0.1031
-2011,LL survey,Female,71,32,0.0877
-2012,LL survey,Female,71,49,0.121
-2013,LL survey,Female,71,23,0.0902
-2014,LL survey,Female,71,22,0.0772
-2015,LL survey,Female,71,35,0.1207
-2016,LL survey,Female,71,24,0.0762
-2017,LL survey,Female,71,18,0.0519
-2018,LL survey,Female,71,31,0.0893
-2019,LL survey,Female,71,17,0.0632
-2020,LL survey,Female,71,19,0.0507
-2021,LL survey,Female,71,13,0.0352
-2022,LL survey,Female,71,12,0.0354
-1997,LL survey,Female,71,20,0.0791
-1998,LL survey,Female,71,20,0.102
-1999,LL survey,Female,71,7,0.0543
-2000,LL survey,Female,71,13,0.0631
-2001,LL survey,Female,71,10,0.0552
-2002,LL fishery,Male,71,92,0.0902
-2003,LL fishery,Male,71,47,0.0616
-2004,LL fishery,Male,71,47,0.0615
-2005,LL fishery,Male,71,41,0.081
-2006,LL fishery,Male,71,32,0.0525
-2007,LL fishery,Male,71,44,0.0854
-2008,LL fishery,Male,71,46,0.0876
-2009,LL fishery,Male,71,50,0.096
-2010,LL fishery,Male,71,56,0.1018
-2011,LL fishery,Male,71,40,0.0727
-2012,LL fishery,Male,71,61,0.1008
-2013,LL fishery,Male,71,46,0.0674
-2014,LL fishery,Male,71,53,0.0931
-2015,LL fishery,Male,71,52,0.1153
+2022,Pot fishery,Sex combined,69,34,0.1009
+2002,LL fishery,Female,71,112,0.089815999999999993
+2003,LL fishery,Female,71,130,0.127202
+2004,LL fishery,Female,71,191,0.122357
+2005,LL fishery,Female,71,137,0.108817
+2006,LL fishery,Female,71,151,0.140465
+2007,LL fishery,Female,71,130,0.130522
+2008,LL fishery,Female,71,137,0.133528
+2009,LL fishery,Female,71,151,0.144222
+2010,LL fishery,Female,71,137,0.137688
+2011,LL fishery,Female,71,127,0.137446
+2012,LL fishery,Female,71,122,0.130901
+2013,LL fishery,Female,71,84,0.117155
+2014,LL fishery,Female,71,79,0.100509
+2015,LL fishery,Female,71,61,0.080475
+2016,LL fishery,Female,71,82,0.088172
+2017,LL fishery,Female,71,72,0.085714
+2018,LL fishery,Female,71,72,0.088452
+2019,LL fishery,Female,71,78,0.094203
+2020,LL fishery,Female,71,53,0.067602
+2021,LL fishery,Female,71,33,0.066265
+2022,LL fishery,Female,71,65,0.079462
+2002,LL survey,Female,71,16,0.054422
+2003,LL survey,Female,71,34,0.088083
+2004,LL survey,Female,71,45,0.113924
+2005,LL survey,Female,71,76,0.151394
+2006,LL survey,Female,71,75,0.180288
+2007,LL survey,Female,71,55,0.134804
+2008,LL survey,Female,71,39,0.116071
+2009,LL survey,Female,71,65,0.178082
+2010,LL survey,Female,71,33,0.103125
+2011,LL survey,Female,71,32,0.087671
+2012,LL survey,Female,71,49,0.120988
+2013,LL survey,Female,71,23,0.090196
+2014,LL survey,Female,71,22,0.077193
+2015,LL survey,Female,71,35,0.12069
+2016,LL survey,Female,71,24,0.07619
+2017,LL survey,Female,71,18,0.051873
+2018,LL survey,Female,71,31,0.089337
+2019,LL survey,Female,71,17,0.063197
+2020,LL survey,Female,71,19,0.050667
+2021,LL survey,Female,71,13,0.03523
+2022,LL survey,Female,71,12,0.035398
+1997,LL survey,Female,71,20,0.079051
+1998,LL survey,Female,71,20,0.102041
+1999,LL survey,Female,71,7,0.054264
+2000,LL survey,Female,71,13,0.063107
+2001,LL survey,Female,71,10,0.055249
+2022,Pot fishery,Female,71,25,0.096525
+2002,LL fishery,Male,71,92,0.090196
+2003,LL fishery,Male,71,47,0.061599
+2004,LL fishery,Male,71,47,0.061518
+2005,LL fishery,Male,71,41,0.081028
+2006,LL fishery,Male,71,32,0.052545
+2007,LL fishery,Male,71,44,0.085437
+2008,LL fishery,Male,71,46,0.087619
+2009,LL fishery,Male,71,50,0.095969
+2010,LL fishery,Male,71,56,0.101818
+2011,LL fishery,Male,71,40,0.072727
+2012,LL fishery,Male,71,61,0.100826
+2013,LL fishery,Male,71,46,0.067449
+2014,LL fishery,Male,71,53,0.093146
+2015,LL fishery,Male,71,52,0.115299
 2016,LL fishery,Male,71,59,0.1139
-2017,LL fishery,Male,71,58,0.0963
-2018,LL fishery,Male,71,52,0.1028
-2019,LL fishery,Male,71,66,0.1287
-2020,LL fishery,Male,71,35,0.0685
-2021,LL fishery,Male,71,19,0.0795
-2022,LL fishery,Male,71,35,0.0886
-2002,LL survey,Male,71,22,0.064
-2003,LL survey,Male,71,30,0.0761
-2004,LL survey,Male,71,10,0.0292
-2005,LL survey,Male,71,25,0.0683
-2006,LL survey,Male,71,12,0.038
-2007,LL survey,Male,71,21,0.0638
-2008,LL survey,Male,71,18,0.0667
-2009,LL survey,Male,71,23,0.0909
-2010,LL survey,Male,71,21,0.0737
-2011,LL survey,Male,71,25,0.0804
-2012,LL survey,Male,71,26,0.0815
-2013,LL survey,Male,71,11,0.0393
-2014,LL survey,Male,71,21,0.0764
-2015,LL survey,Male,71,14,0.0697
-2016,LL survey,Male,71,14,0.0591
+2017,LL fishery,Male,71,58,0.096346
+2018,LL fishery,Male,71,52,0.102767
+2019,LL fishery,Male,71,66,0.128655
+2020,LL fishery,Male,71,35,0.068493
+2021,LL fishery,Male,71,19,0.079498
+2022,LL fishery,Male,71,32,0.100946
+2002,LL survey,Male,71,22,0.063953
+2003,LL survey,Male,71,30,0.076142
+2004,LL survey,Male,71,10,0.02924
+2005,LL survey,Male,71,25,0.068306
+2006,LL survey,Male,71,12,0.037975
+2007,LL survey,Male,71,21,0.06383
+2008,LL survey,Male,71,18,0.066667
+2009,LL survey,Male,71,23,0.090909
+2010,LL survey,Male,71,21,0.073684
+2011,LL survey,Male,71,25,0.080386
+2012,LL survey,Male,71,26,0.081505
+2013,LL survey,Male,71,11,0.039286
+2014,LL survey,Male,71,21,0.076364
+2015,LL survey,Male,71,14,0.069652
+2016,LL survey,Male,71,14,0.059072
 2017,LL survey,Male,71,11,0.044
-2018,LL survey,Male,71,10,0.0465
-2019,LL survey,Male,71,8,0.0404
-2020,LL survey,Male,71,4,0.0167
-2021,LL survey,Male,71,1,0.0036
-2022,LL survey,Male,71,4,0.0129
-1997,LL survey,Male,71,22,0.0818
-1998,LL survey,Male,71,10,0.0654
-1999,LL survey,Male,71,8,0.0556
-2000,LL survey,Male,71,13,0.0747
-2001,LL survey,Male,71,20,0.0766
+2018,LL survey,Male,71,10,0.046512
+2019,LL survey,Male,71,8,0.040404
+2020,LL survey,Male,71,4,0.016736
+2021,LL survey,Male,71,1,0.003636
+2022,LL survey,Male,71,4,0.012945
+1997,LL survey,Male,71,22,0.081784
+1998,LL survey,Male,71,10,0.065359
+1999,LL survey,Male,71,8,0.055556
+2000,LL survey,Male,71,13,0.074713
+2001,LL survey,Male,71,20,0.076628
+2022,Pot fishery,Male,71,3,0.038462
 2002,LL fishery,Sex combined,71,204,0.09
 2003,LL fishery,Sex combined,71,177,0.0992
 2004,LL fishery,Sex combined,71,238,0.1024
@@ -2228,7 +2275,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,71,144,0.1074
 2020,LL fishery,Sex combined,71,88,0.068
 2021,LL fishery,Sex combined,71,52,0.0706
-2022,LL fishery,Sex combined,71,125,0.0849
+2022,LL fishery,Sex combined,71,97,0.0855
 2002,LL survey,Sex combined,71,38,0.0596
 2003,LL survey,Sex combined,71,64,0.0821
 2004,LL survey,Sex combined,71,55,0.0746
@@ -2255,100 +2302,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,71,15,0.0549
 2000,LL survey,Sex combined,71,26,0.0684
 2001,LL survey,Sex combined,71,30,0.0679
-2002,LL fishery,Female,73,91,0.073
-2003,LL fishery,Female,73,86,0.0841
-2004,LL fishery,Female,73,128,0.082
-2005,LL fishery,Female,73,124,0.0985
-2006,LL fishery,Female,73,139,0.1293
-2007,LL fishery,Female,73,112,0.1124
-2008,LL fishery,Female,73,129,0.1257
-2009,LL fishery,Female,73,130,0.1242
-2010,LL fishery,Female,73,119,0.1196
-2011,LL fishery,Female,73,121,0.131
-2012,LL fishery,Female,73,111,0.1191
-2013,LL fishery,Female,73,72,0.1004
-2014,LL fishery,Female,73,91,0.1158
-2015,LL fishery,Female,73,72,0.095
-2016,LL fishery,Female,73,87,0.0935
-2017,LL fishery,Female,73,51,0.0607
-2018,LL fishery,Female,73,50,0.0614
-2019,LL fishery,Female,73,81,0.0978
-2020,LL fishery,Female,73,40,0.051
-2021,LL fishery,Female,73,33,0.0663
-2022,LL fishery,Female,73,75,0.0696
-2002,LL survey,Female,73,25,0.085
-2003,LL survey,Female,73,17,0.044
-2004,LL survey,Female,73,27,0.0684
-2005,LL survey,Female,73,48,0.0956
+2022,Pot fishery,Sex combined,71,28,0.0831
+2002,LL fishery,Female,73,91,0.072975
+2003,LL fishery,Female,73,86,0.084149
+2004,LL fishery,Female,73,128,0.081999
+2005,LL fishery,Female,73,124,0.098491
+2006,LL fishery,Female,73,139,0.129302
+2007,LL fishery,Female,73,112,0.11245
+2008,LL fishery,Female,73,129,0.125731
+2009,LL fishery,Female,73,130,0.124164
+2010,LL fishery,Female,73,119,0.119598
+2011,LL fishery,Female,73,121,0.130952
+2012,LL fishery,Female,73,111,0.119099
+2013,LL fishery,Female,73,72,0.100418
+2014,LL fishery,Female,73,91,0.115776
+2015,LL fishery,Female,73,72,0.094987
+2016,LL fishery,Female,73,87,0.093548
+2017,LL fishery,Female,73,51,0.060714
+2018,LL fishery,Female,73,50,0.061425
+2019,LL fishery,Female,73,81,0.097826
+2020,LL fishery,Female,73,40,0.05102
+2021,LL fishery,Female,73,33,0.066265
+2022,LL fishery,Female,73,58,0.070905
+2002,LL survey,Female,73,25,0.085034
+2003,LL survey,Female,73,17,0.044041
+2004,LL survey,Female,73,27,0.068354
+2005,LL survey,Female,73,48,0.095618
 2006,LL survey,Female,73,52,0.125
-2007,LL survey,Female,73,43,0.1054
-2008,LL survey,Female,73,36,0.1071
-2009,LL survey,Female,73,37,0.1014
+2007,LL survey,Female,73,43,0.105392
+2008,LL survey,Female,73,36,0.107143
+2009,LL survey,Female,73,37,0.10137
 2010,LL survey,Female,73,44,0.1375
-2011,LL survey,Female,73,48,0.1315
-2012,LL survey,Female,73,38,0.0938
-2013,LL survey,Female,73,20,0.0784
-2014,LL survey,Female,73,25,0.0877
-2015,LL survey,Female,73,24,0.0828
-2016,LL survey,Female,73,24,0.0762
-2017,LL survey,Female,73,24,0.0692
-2018,LL survey,Female,73,17,0.049
-2019,LL survey,Female,73,11,0.0409
-2020,LL survey,Female,73,13,0.0347
-2021,LL survey,Female,73,11,0.0298
-2022,LL survey,Female,73,12,0.0354
-1997,LL survey,Female,73,35,0.1383
-1998,LL survey,Female,73,17,0.0867
-1999,LL survey,Female,73,6,0.0465
-2000,LL survey,Female,73,11,0.0534
-2001,LL survey,Female,73,8,0.0442
-2002,LL fishery,Male,73,50,0.049
-2003,LL fishery,Male,73,27,0.0354
-2004,LL fishery,Male,73,27,0.0353
-2005,LL fishery,Male,73,25,0.0494
-2006,LL fishery,Male,73,38,0.0624
-2007,LL fishery,Male,73,20,0.0388
-2008,LL fishery,Male,73,23,0.0438
-2009,LL fishery,Male,73,23,0.0441
-2010,LL fishery,Male,73,28,0.0509
-2011,LL fishery,Male,73,24,0.0436
-2012,LL fishery,Male,73,22,0.0364
-2013,LL fishery,Male,73,23,0.0337
-2014,LL fishery,Male,73,34,0.0598
-2015,LL fishery,Male,73,29,0.0643
-2016,LL fishery,Male,73,26,0.0502
-2017,LL fishery,Male,73,34,0.0565
-2018,LL fishery,Male,73,35,0.0692
-2019,LL fishery,Male,73,33,0.0643
-2020,LL fishery,Male,73,22,0.0431
-2021,LL fishery,Male,73,10,0.0418
-2022,LL fishery,Male,73,16,0.0405
-2002,LL survey,Male,73,13,0.0378
-2003,LL survey,Male,73,9,0.0228
-2004,LL survey,Male,73,8,0.0234
-2005,LL survey,Male,73,5,0.0137
-2006,LL survey,Male,73,5,0.0158
-2007,LL survey,Male,73,5,0.0152
-2008,LL survey,Male,73,9,0.0333
-2009,LL survey,Male,73,12,0.0474
-2010,LL survey,Male,73,14,0.0491
-2011,LL survey,Male,73,12,0.0386
-2012,LL survey,Male,73,8,0.0251
-2013,LL survey,Male,73,8,0.0286
-2014,LL survey,Male,73,9,0.0327
-2015,LL survey,Male,73,9,0.0448
-2016,LL survey,Male,73,11,0.0464
+2011,LL survey,Female,73,48,0.131507
+2012,LL survey,Female,73,38,0.093827
+2013,LL survey,Female,73,20,0.078431
+2014,LL survey,Female,73,25,0.087719
+2015,LL survey,Female,73,24,0.082759
+2016,LL survey,Female,73,24,0.07619
+2017,LL survey,Female,73,24,0.069164
+2018,LL survey,Female,73,17,0.048991
+2019,LL survey,Female,73,11,0.040892
+2020,LL survey,Female,73,13,0.034667
+2021,LL survey,Female,73,11,0.02981
+2022,LL survey,Female,73,12,0.035398
+1997,LL survey,Female,73,35,0.13834
+1998,LL survey,Female,73,17,0.086735
+1999,LL survey,Female,73,6,0.046512
+2000,LL survey,Female,73,11,0.053398
+2001,LL survey,Female,73,8,0.044199
+2022,Pot fishery,Female,73,17,0.065637
+2002,LL fishery,Male,73,50,0.04902
+2003,LL fishery,Male,73,27,0.035387
+2004,LL fishery,Male,73,27,0.03534
+2005,LL fishery,Male,73,25,0.049407
+2006,LL fishery,Male,73,38,0.062397
+2007,LL fishery,Male,73,20,0.038835
+2008,LL fishery,Male,73,23,0.04381
+2009,LL fishery,Male,73,23,0.044146
+2010,LL fishery,Male,73,28,0.050909
+2011,LL fishery,Male,73,24,0.043636
+2012,LL fishery,Male,73,22,0.036364
+2013,LL fishery,Male,73,23,0.033724
+2014,LL fishery,Male,73,34,0.059754
+2015,LL fishery,Male,73,29,0.064302
+2016,LL fishery,Male,73,26,0.050193
+2017,LL fishery,Male,73,34,0.056478
+2018,LL fishery,Male,73,35,0.06917
+2019,LL fishery,Male,73,33,0.064327
+2020,LL fishery,Male,73,22,0.043053
+2021,LL fishery,Male,73,10,0.041841
+2022,LL fishery,Male,73,14,0.044164
+2002,LL survey,Male,73,13,0.037791
+2003,LL survey,Male,73,9,0.022843
+2004,LL survey,Male,73,8,0.023392
+2005,LL survey,Male,73,5,0.013661
+2006,LL survey,Male,73,5,0.015823
+2007,LL survey,Male,73,5,0.015198
+2008,LL survey,Male,73,9,0.033333
+2009,LL survey,Male,73,12,0.047431
+2010,LL survey,Male,73,14,0.049123
+2011,LL survey,Male,73,12,0.038585
+2012,LL survey,Male,73,8,0.025078
+2013,LL survey,Male,73,8,0.028571
+2014,LL survey,Male,73,9,0.032727
+2015,LL survey,Male,73,9,0.044776
+2016,LL survey,Male,73,11,0.046414
 2017,LL survey,Male,73,5,0.02
-2018,LL survey,Male,73,6,0.0279
-2019,LL survey,Male,73,7,0.0354
-2020,LL survey,Male,73,4,0.0167
+2018,LL survey,Male,73,6,0.027907
+2019,LL survey,Male,73,7,0.035354
+2020,LL survey,Male,73,4,0.016736
 2021,LL survey,Male,73,0,0
-2022,LL survey,Male,73,2,0.0065
-1997,LL survey,Male,73,16,0.0595
-1998,LL survey,Male,73,9,0.0588
-1999,LL survey,Male,73,4,0.0278
-2000,LL survey,Male,73,6,0.0345
-2001,LL survey,Male,73,14,0.0536
+2022,LL survey,Male,73,2,0.006472
+1997,LL survey,Male,73,16,0.05948
+1998,LL survey,Male,73,9,0.058824
+1999,LL survey,Male,73,4,0.027778
+2000,LL survey,Male,73,6,0.034483
+2001,LL survey,Male,73,14,0.05364
+2022,Pot fishery,Male,73,2,0.025641
 2002,LL fishery,Sex combined,73,141,0.0622
 2003,LL fishery,Sex combined,73,113,0.0633
 2004,LL fishery,Sex combined,73,155,0.0667
@@ -2369,7 +2419,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,73,114,0.085
 2020,LL fishery,Sex combined,73,62,0.0479
 2021,LL fishery,Sex combined,73,43,0.0583
-2022,LL fishery,Sex combined,73,91,0.0618
+2022,LL fishery,Sex combined,73,72,0.0634
 2002,LL survey,Sex combined,73,38,0.0596
 2003,LL survey,Sex combined,73,26,0.0333
 2004,LL survey,Sex combined,73,35,0.0475
@@ -2396,100 +2446,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,73,10,0.0366
 2000,LL survey,Sex combined,73,17,0.0447
 2001,LL survey,Sex combined,73,22,0.0498
-2002,LL fishery,Female,75,87,0.0698
-2003,LL fishery,Female,75,70,0.0685
-2004,LL fishery,Female,75,108,0.0692
-2005,LL fishery,Female,75,87,0.0691
-2006,LL fishery,Female,75,106,0.0986
-2007,LL fishery,Female,75,100,0.1004
-2008,LL fishery,Female,75,118,0.115
-2009,LL fishery,Female,75,124,0.1184
-2010,LL fishery,Female,75,109,0.1095
-2011,LL fishery,Female,75,95,0.1028
-2012,LL fishery,Female,75,102,0.1094
-2013,LL fishery,Female,75,62,0.0865
-2014,LL fishery,Female,75,79,0.1005
-2015,LL fishery,Female,75,69,0.091
-2016,LL fishery,Female,75,77,0.0828
-2017,LL fishery,Female,75,55,0.0655
-2018,LL fishery,Female,75,64,0.0786
-2019,LL fishery,Female,75,68,0.0821
-2020,LL fishery,Female,75,38,0.0485
-2021,LL fishery,Female,75,29,0.0582
-2022,LL fishery,Female,75,51,0.0474
-2002,LL survey,Female,75,15,0.051
-2003,LL survey,Female,75,16,0.0415
-2004,LL survey,Female,75,16,0.0405
-2005,LL survey,Female,75,18,0.0359
-2006,LL survey,Female,75,31,0.0745
-2007,LL survey,Female,75,40,0.098
-2008,LL survey,Female,75,33,0.0982
-2009,LL survey,Female,75,39,0.1068
+2022,Pot fishery,Sex combined,73,19,0.0564
+2002,LL fishery,Female,75,87,0.069767
+2003,LL fishery,Female,75,70,0.068493
+2004,LL fishery,Female,75,108,0.069186
+2005,LL fishery,Female,75,87,0.069102
+2006,LL fishery,Female,75,106,0.098605
+2007,LL fishery,Female,75,100,0.100402
+2008,LL fishery,Female,75,118,0.11501
+2009,LL fishery,Female,75,124,0.118434
+2010,LL fishery,Female,75,109,0.109548
+2011,LL fishery,Female,75,95,0.102814
+2012,LL fishery,Female,75,102,0.109442
+2013,LL fishery,Female,75,62,0.086471
+2014,LL fishery,Female,75,79,0.100509
+2015,LL fishery,Female,75,69,0.091029
+2016,LL fishery,Female,75,77,0.082796
+2017,LL fishery,Female,75,55,0.065476
+2018,LL fishery,Female,75,64,0.078624
+2019,LL fishery,Female,75,68,0.082126
+2020,LL fishery,Female,75,38,0.048469
+2021,LL fishery,Female,75,29,0.058233
+2022,LL fishery,Female,75,42,0.051345
+2002,LL survey,Female,75,15,0.05102
+2003,LL survey,Female,75,16,0.041451
+2004,LL survey,Female,75,16,0.040506
+2005,LL survey,Female,75,18,0.035857
+2006,LL survey,Female,75,31,0.074519
+2007,LL survey,Female,75,40,0.098039
+2008,LL survey,Female,75,33,0.098214
+2009,LL survey,Female,75,39,0.106849
 2010,LL survey,Female,75,40,0.125
-2011,LL survey,Female,75,32,0.0877
-2012,LL survey,Female,75,39,0.0963
-2013,LL survey,Female,75,15,0.0588
-2014,LL survey,Female,75,19,0.0667
-2015,LL survey,Female,75,30,0.1034
-2016,LL survey,Female,75,14,0.0444
-2017,LL survey,Female,75,14,0.0403
-2018,LL survey,Female,75,16,0.0461
-2019,LL survey,Female,75,16,0.0595
-2020,LL survey,Female,75,11,0.0293
-2021,LL survey,Female,75,2,0.0054
-2022,LL survey,Female,75,9,0.0265
-1997,LL survey,Female,75,20,0.0791
-1998,LL survey,Female,75,21,0.1071
-1999,LL survey,Female,75,7,0.0543
-2000,LL survey,Female,75,10,0.0485
-2001,LL survey,Female,75,18,0.0994
-2002,LL fishery,Male,75,21,0.0206
-2003,LL fishery,Male,75,28,0.0367
-2004,LL fishery,Male,75,25,0.0327
-2005,LL fishery,Male,75,11,0.0217
-2006,LL fishery,Male,75,15,0.0246
-2007,LL fishery,Male,75,19,0.0369
-2008,LL fishery,Male,75,10,0.019
-2009,LL fishery,Male,75,21,0.0403
+2011,LL survey,Female,75,32,0.087671
+2012,LL survey,Female,75,39,0.096296
+2013,LL survey,Female,75,15,0.058824
+2014,LL survey,Female,75,19,0.066667
+2015,LL survey,Female,75,30,0.103448
+2016,LL survey,Female,75,14,0.044444
+2017,LL survey,Female,75,14,0.040346
+2018,LL survey,Female,75,16,0.04611
+2019,LL survey,Female,75,16,0.05948
+2020,LL survey,Female,75,11,0.029333
+2021,LL survey,Female,75,2,0.00542
+2022,LL survey,Female,75,9,0.026549
+1997,LL survey,Female,75,20,0.079051
+1998,LL survey,Female,75,21,0.107143
+1999,LL survey,Female,75,7,0.054264
+2000,LL survey,Female,75,10,0.048544
+2001,LL survey,Female,75,18,0.099448
+2022,Pot fishery,Female,75,9,0.034749
+2002,LL fishery,Male,75,21,0.020588
+2003,LL fishery,Male,75,28,0.036697
+2004,LL fishery,Male,75,25,0.032723
+2005,LL fishery,Male,75,11,0.021739
+2006,LL fishery,Male,75,15,0.024631
+2007,LL fishery,Male,75,19,0.036893
+2008,LL fishery,Male,75,10,0.019048
+2009,LL fishery,Male,75,21,0.040307
 2010,LL fishery,Male,75,22,0.04
 2011,LL fishery,Male,75,22,0.04
-2012,LL fishery,Male,75,18,0.0298
-2013,LL fishery,Male,75,19,0.0279
-2014,LL fishery,Male,75,20,0.0351
-2015,LL fishery,Male,75,12,0.0266
-2016,LL fishery,Male,75,15,0.029
-2017,LL fishery,Male,75,17,0.0282
-2018,LL fishery,Male,75,19,0.0375
-2019,LL fishery,Male,75,12,0.0234
-2020,LL fishery,Male,75,12,0.0235
-2021,LL fishery,Male,75,8,0.0335
-2022,LL fishery,Male,75,12,0.0304
-2002,LL survey,Male,75,11,0.032
-2003,LL survey,Male,75,4,0.0102
-2004,LL survey,Male,75,8,0.0234
-2005,LL survey,Male,75,5,0.0137
-2006,LL survey,Male,75,5,0.0158
-2007,LL survey,Male,75,4,0.0122
-2008,LL survey,Male,75,6,0.0222
-2009,LL survey,Male,75,6,0.0237
-2010,LL survey,Male,75,7,0.0246
+2012,LL fishery,Male,75,18,0.029752
+2013,LL fishery,Male,75,19,0.027859
+2014,LL fishery,Male,75,20,0.035149
+2015,LL fishery,Male,75,12,0.026608
+2016,LL fishery,Male,75,15,0.028958
+2017,LL fishery,Male,75,17,0.028239
+2018,LL fishery,Male,75,19,0.037549
+2019,LL fishery,Male,75,12,0.023392
+2020,LL fishery,Male,75,12,0.023483
+2021,LL fishery,Male,75,8,0.033473
+2022,LL fishery,Male,75,12,0.037855
+2002,LL survey,Male,75,11,0.031977
+2003,LL survey,Male,75,4,0.010152
+2004,LL survey,Male,75,8,0.023392
+2005,LL survey,Male,75,5,0.013661
+2006,LL survey,Male,75,5,0.015823
+2007,LL survey,Male,75,4,0.012158
+2008,LL survey,Male,75,6,0.022222
+2009,LL survey,Male,75,6,0.023715
+2010,LL survey,Male,75,7,0.024561
 2011,LL survey,Male,75,0,0
-2012,LL survey,Male,75,4,0.0125
-2013,LL survey,Male,75,4,0.0143
-2014,LL survey,Male,75,3,0.0109
-2015,LL survey,Male,75,1,0.005
-2016,LL survey,Male,75,1,0.0042
+2012,LL survey,Male,75,4,0.012539
+2013,LL survey,Male,75,4,0.014286
+2014,LL survey,Male,75,3,0.010909
+2015,LL survey,Male,75,1,0.004975
+2016,LL survey,Male,75,1,0.004219
 2017,LL survey,Male,75,1,0.004
-2018,LL survey,Male,75,2,0.0093
+2018,LL survey,Male,75,2,0.009302
 2019,LL survey,Male,75,0,0
-2020,LL survey,Male,75,3,0.0126
-2021,LL survey,Male,75,1,0.0036
-2022,LL survey,Male,75,1,0.0032
-1997,LL survey,Male,75,10,0.0372
-1998,LL survey,Male,75,5,0.0327
-1999,LL survey,Male,75,1,0.0069
-2000,LL survey,Male,75,5,0.0287
-2001,LL survey,Male,75,7,0.0268
+2020,LL survey,Male,75,3,0.012552
+2021,LL survey,Male,75,1,0.003636
+2022,LL survey,Male,75,1,0.003236
+1997,LL survey,Male,75,10,0.037175
+1998,LL survey,Male,75,5,0.03268
+1999,LL survey,Male,75,1,0.006944
+2000,LL survey,Male,75,5,0.028736
+2001,LL survey,Male,75,7,0.02682
+2022,Pot fishery,Male,75,0,0
 2002,LL fishery,Sex combined,75,108,0.0476
 2003,LL fishery,Sex combined,75,98,0.0549
 2004,LL fishery,Sex combined,75,133,0.0572
@@ -2510,7 +2563,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,75,80,0.0597
 2020,LL fishery,Sex combined,75,50,0.0386
 2021,LL fishery,Sex combined,75,37,0.0502
-2022,LL fishery,Sex combined,75,63,0.0428
+2022,LL fishery,Sex combined,75,54,0.0476
 2002,LL survey,Sex combined,75,26,0.0408
 2003,LL survey,Sex combined,75,20,0.0256
 2004,LL survey,Sex combined,75,24,0.0326
@@ -2537,100 +2590,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,75,8,0.0293
 2000,LL survey,Sex combined,75,15,0.0395
 2001,LL survey,Sex combined,75,25,0.0566
-2002,LL fishery,Female,77,70,0.0561
-2003,LL fishery,Female,77,68,0.0665
-2004,LL fishery,Female,77,55,0.0352
-2005,LL fishery,Female,77,78,0.062
-2006,LL fishery,Female,77,85,0.0791
-2007,LL fishery,Female,77,86,0.0863
-2008,LL fishery,Female,77,71,0.0692
-2009,LL fishery,Female,77,95,0.0907
-2010,LL fishery,Female,77,85,0.0854
-2011,LL fishery,Female,77,72,0.0779
-2012,LL fishery,Female,77,86,0.0923
-2013,LL fishery,Female,77,61,0.0851
-2014,LL fishery,Female,77,66,0.084
-2015,LL fishery,Female,77,49,0.0646
-2016,LL fishery,Female,77,67,0.072
-2017,LL fishery,Female,77,64,0.0762
-2018,LL fishery,Female,77,71,0.0872
-2019,LL fishery,Female,77,64,0.0773
-2020,LL fishery,Female,77,39,0.0497
-2021,LL fishery,Female,77,19,0.0382
-2022,LL fishery,Female,77,41,0.0381
-2002,LL survey,Female,77,13,0.0442
-2003,LL survey,Female,77,17,0.044
-2004,LL survey,Female,77,15,0.038
-2005,LL survey,Female,77,18,0.0359
-2006,LL survey,Female,77,18,0.0433
-2007,LL survey,Female,77,19,0.0466
-2008,LL survey,Female,77,18,0.0536
-2009,LL survey,Female,77,18,0.0493
+2022,Pot fishery,Sex combined,75,9,0.0267
+2002,LL fishery,Female,77,70,0.056135
+2003,LL fishery,Female,77,68,0.066536
+2004,LL fishery,Female,77,55,0.035234
+2005,LL fishery,Female,77,78,0.061954
+2006,LL fishery,Female,77,85,0.07907
+2007,LL fishery,Female,77,86,0.086345
+2008,LL fishery,Female,77,71,0.069201
+2009,LL fishery,Female,77,95,0.090735
+2010,LL fishery,Female,77,85,0.085427
+2011,LL fishery,Female,77,72,0.077922
+2012,LL fishery,Female,77,86,0.092275
+2013,LL fishery,Female,77,61,0.085077
+2014,LL fishery,Female,77,66,0.083969
+2015,LL fishery,Female,77,49,0.064644
+2016,LL fishery,Female,77,67,0.072043
+2017,LL fishery,Female,77,64,0.07619
+2018,LL fishery,Female,77,71,0.087224
+2019,LL fishery,Female,77,64,0.077295
+2020,LL fishery,Female,77,39,0.049745
+2021,LL fishery,Female,77,19,0.038153
+2022,LL fishery,Female,77,36,0.04401
+2002,LL survey,Female,77,13,0.044218
+2003,LL survey,Female,77,17,0.044041
+2004,LL survey,Female,77,15,0.037975
+2005,LL survey,Female,77,18,0.035857
+2006,LL survey,Female,77,18,0.043269
+2007,LL survey,Female,77,19,0.046569
+2008,LL survey,Female,77,18,0.053571
+2009,LL survey,Female,77,18,0.049315
 2010,LL survey,Female,77,24,0.075
-2011,LL survey,Female,77,18,0.0493
-2012,LL survey,Female,77,16,0.0395
-2013,LL survey,Female,77,13,0.051
-2014,LL survey,Female,77,21,0.0737
-2015,LL survey,Female,77,21,0.0724
-2016,LL survey,Female,77,21,0.0667
-2017,LL survey,Female,77,17,0.049
-2018,LL survey,Female,77,17,0.049
-2019,LL survey,Female,77,11,0.0409
-2020,LL survey,Female,77,13,0.0347
-2021,LL survey,Female,77,4,0.0108
-2022,LL survey,Female,77,5,0.0147
-1997,LL survey,Female,77,22,0.087
-1998,LL survey,Female,77,12,0.0612
-1999,LL survey,Female,77,5,0.0388
-2000,LL survey,Female,77,8,0.0388
-2001,LL survey,Female,77,12,0.0663
-2002,LL fishery,Male,77,22,0.0216
-2003,LL fishery,Male,77,17,0.0223
-2004,LL fishery,Male,77,7,0.0092
-2005,LL fishery,Male,77,12,0.0237
-2006,LL fishery,Male,77,12,0.0197
-2007,LL fishery,Male,77,7,0.0136
-2008,LL fishery,Male,77,5,0.0095
-2009,LL fishery,Male,77,12,0.023
-2010,LL fishery,Male,77,6,0.0109
-2011,LL fishery,Male,77,10,0.0182
-2012,LL fishery,Male,77,8,0.0132
-2013,LL fishery,Male,77,9,0.0132
-2014,LL fishery,Male,77,9,0.0158
-2015,LL fishery,Male,77,10,0.0222
-2016,LL fishery,Male,77,9,0.0174
-2017,LL fishery,Male,77,13,0.0216
-2018,LL fishery,Male,77,6,0.0119
-2019,LL fishery,Male,77,4,0.0078
-2020,LL fishery,Male,77,5,0.0098
-2021,LL fishery,Male,77,7,0.0293
-2022,LL fishery,Male,77,4,0.0101
-2002,LL survey,Male,77,4,0.0116
-2003,LL survey,Male,77,4,0.0102
-2004,LL survey,Male,77,2,0.0058
-2005,LL survey,Male,77,3,0.0082
-2006,LL survey,Male,77,3,0.0095
-2007,LL survey,Male,77,1,0.003
-2008,LL survey,Male,77,1,0.0037
-2009,LL survey,Male,77,3,0.0119
-2010,LL survey,Male,77,2,0.007
-2011,LL survey,Male,77,3,0.0096
-2012,LL survey,Male,77,3,0.0094
-2013,LL survey,Male,77,2,0.0071
-2014,LL survey,Male,77,4,0.0145
-2015,LL survey,Male,77,1,0.005
-2016,LL survey,Male,77,4,0.0169
+2011,LL survey,Female,77,18,0.049315
+2012,LL survey,Female,77,16,0.039506
+2013,LL survey,Female,77,13,0.05098
+2014,LL survey,Female,77,21,0.073684
+2015,LL survey,Female,77,21,0.072414
+2016,LL survey,Female,77,21,0.066667
+2017,LL survey,Female,77,17,0.048991
+2018,LL survey,Female,77,17,0.048991
+2019,LL survey,Female,77,11,0.040892
+2020,LL survey,Female,77,13,0.034667
+2021,LL survey,Female,77,4,0.01084
+2022,LL survey,Female,77,5,0.014749
+1997,LL survey,Female,77,22,0.086957
+1998,LL survey,Female,77,12,0.061224
+1999,LL survey,Female,77,5,0.03876
+2000,LL survey,Female,77,8,0.038835
+2001,LL survey,Female,77,12,0.066298
+2022,Pot fishery,Female,77,5,0.019305
+2002,LL fishery,Male,77,22,0.021569
+2003,LL fishery,Male,77,17,0.02228
+2004,LL fishery,Male,77,7,0.009162
+2005,LL fishery,Male,77,12,0.023715
+2006,LL fishery,Male,77,12,0.019704
+2007,LL fishery,Male,77,7,0.013592
+2008,LL fishery,Male,77,5,0.009524
+2009,LL fishery,Male,77,12,0.023033
+2010,LL fishery,Male,77,6,0.010909
+2011,LL fishery,Male,77,10,0.018182
+2012,LL fishery,Male,77,8,0.013223
+2013,LL fishery,Male,77,9,0.013196
+2014,LL fishery,Male,77,9,0.015817
+2015,LL fishery,Male,77,10,0.022172999999999998
+2016,LL fishery,Male,77,9,0.017375
+2017,LL fishery,Male,77,13,0.021595
+2018,LL fishery,Male,77,6,0.011858
+2019,LL fishery,Male,77,4,0.007797
+2020,LL fishery,Male,77,5,0.009785
+2021,LL fishery,Male,77,7,0.029289
+2022,LL fishery,Male,77,4,0.012618
+2002,LL survey,Male,77,4,0.011628
+2003,LL survey,Male,77,4,0.010152
+2004,LL survey,Male,77,2,0.005848
+2005,LL survey,Male,77,3,0.008197
+2006,LL survey,Male,77,3,0.009494
+2007,LL survey,Male,77,1,0.00304
+2008,LL survey,Male,77,1,0.003704
+2009,LL survey,Male,77,3,0.011858
+2010,LL survey,Male,77,2,0.007018
+2011,LL survey,Male,77,3,0.009646
+2012,LL survey,Male,77,3,0.009404
+2013,LL survey,Male,77,2,0.007143
+2014,LL survey,Male,77,4,0.014545
+2015,LL survey,Male,77,1,0.004975
+2016,LL survey,Male,77,4,0.016878
 2017,LL survey,Male,77,0,0
-2018,LL survey,Male,77,1,0.0047
+2018,LL survey,Male,77,1,0.004651
 2019,LL survey,Male,77,0,0
 2020,LL survey,Male,77,0,0
 2021,LL survey,Male,77,0,0
-2022,LL survey,Male,77,4,0.0129
-1997,LL survey,Male,77,6,0.0223
-1998,LL survey,Male,77,1,0.0065
-1999,LL survey,Male,77,2,0.0139
-2000,LL survey,Male,77,1,0.0057
-2001,LL survey,Male,77,3,0.0115
+2022,LL survey,Male,77,4,0.012945
+1997,LL survey,Male,77,6,0.022305
+1998,LL survey,Male,77,1,0.006536
+1999,LL survey,Male,77,2,0.013889
+2000,LL survey,Male,77,1,0.005747
+2001,LL survey,Male,77,3,0.011494
+2022,Pot fishery,Male,77,0,0
 2002,LL fishery,Sex combined,77,92,0.0406
 2003,LL fishery,Sex combined,77,85,0.0476
 2004,LL fishery,Sex combined,77,62,0.0267
@@ -2651,7 +2707,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,77,68,0.0507
 2020,LL fishery,Sex combined,77,44,0.034
 2021,LL fishery,Sex combined,77,26,0.0353
-2022,LL fishery,Sex combined,77,45,0.0306
+2022,LL fishery,Sex combined,77,40,0.0352
 2002,LL survey,Sex combined,77,17,0.0266
 2003,LL survey,Sex combined,77,21,0.0269
 2004,LL survey,Sex combined,77,17,0.0231
@@ -2678,100 +2734,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,77,7,0.0256
 2000,LL survey,Sex combined,77,9,0.0237
 2001,LL survey,Sex combined,77,15,0.0339
-2002,LL fishery,Female,79,67,0.0537
-2003,LL fishery,Female,79,39,0.0382
-2004,LL fishery,Female,79,48,0.0307
-2005,LL fishery,Female,79,65,0.0516
-2006,LL fishery,Female,79,47,0.0437
-2007,LL fishery,Female,79,59,0.0592
-2008,LL fishery,Female,79,65,0.0634
-2009,LL fishery,Female,79,79,0.0755
-2010,LL fishery,Female,79,84,0.0844
-2011,LL fishery,Female,79,53,0.0574
-2012,LL fishery,Female,79,78,0.0837
-2013,LL fishery,Female,79,40,0.0558
-2014,LL fishery,Female,79,55,0.07
-2015,LL fishery,Female,79,49,0.0646
-2016,LL fishery,Female,79,70,0.0753
-2017,LL fishery,Female,79,66,0.0786
-2018,LL fishery,Female,79,69,0.0848
-2019,LL fishery,Female,79,50,0.0604
-2020,LL fishery,Female,79,44,0.0561
-2021,LL fishery,Female,79,17,0.0341
-2022,LL fishery,Female,79,42,0.039
-2002,LL survey,Female,79,11,0.0374
-2003,LL survey,Female,79,16,0.0415
-2004,LL survey,Female,79,10,0.0253
-2005,LL survey,Female,79,14,0.0279
-2006,LL survey,Female,79,15,0.0361
-2007,LL survey,Female,79,15,0.0368
-2008,LL survey,Female,79,17,0.0506
-2009,LL survey,Female,79,18,0.0493
+2022,Pot fishery,Sex combined,77,5,0.0148
+2002,LL fishery,Female,79,67,0.053729
+2003,LL fishery,Female,79,39,0.03816
+2004,LL fishery,Female,79,48,0.03075
+2005,LL fishery,Female,79,65,0.051628
+2006,LL fishery,Female,79,47,0.043721
+2007,LL fishery,Female,79,59,0.059237
+2008,LL fishery,Female,79,65,0.063353
+2009,LL fishery,Female,79,79,0.075454
+2010,LL fishery,Female,79,84,0.084422
+2011,LL fishery,Female,79,53,0.057359
+2012,LL fishery,Female,79,78,0.083691
+2013,LL fishery,Female,79,40,0.055788
+2014,LL fishery,Female,79,55,0.069975
+2015,LL fishery,Female,79,49,0.064644
+2016,LL fishery,Female,79,70,0.075269
+2017,LL fishery,Female,79,66,0.078571
+2018,LL fishery,Female,79,69,0.084767
+2019,LL fishery,Female,79,50,0.060386
+2020,LL fishery,Female,79,44,0.056122
+2021,LL fishery,Female,79,17,0.034137
+2022,LL fishery,Female,79,36,0.04401
+2002,LL survey,Female,79,11,0.037415
+2003,LL survey,Female,79,16,0.041451
+2004,LL survey,Female,79,10,0.025316
+2005,LL survey,Female,79,14,0.027888
+2006,LL survey,Female,79,15,0.036058
+2007,LL survey,Female,79,15,0.036765
+2008,LL survey,Female,79,17,0.050595
+2009,LL survey,Female,79,18,0.049315
 2010,LL survey,Female,79,24,0.075
-2011,LL survey,Female,79,27,0.074
-2012,LL survey,Female,79,13,0.0321
-2013,LL survey,Female,79,9,0.0353
-2014,LL survey,Female,79,8,0.0281
-2015,LL survey,Female,79,8,0.0276
-2016,LL survey,Female,79,11,0.0349
-2017,LL survey,Female,79,12,0.0346
-2018,LL survey,Female,79,8,0.0231
-2019,LL survey,Female,79,7,0.026
-2020,LL survey,Female,79,4,0.0107
-2021,LL survey,Female,79,1,0.0027
+2011,LL survey,Female,79,27,0.073973
+2012,LL survey,Female,79,13,0.032099
+2013,LL survey,Female,79,9,0.035294
+2014,LL survey,Female,79,8,0.02807
+2015,LL survey,Female,79,8,0.027586
+2016,LL survey,Female,79,11,0.034921
+2017,LL survey,Female,79,12,0.034582
+2018,LL survey,Female,79,8,0.023055
+2019,LL survey,Female,79,7,0.026022
+2020,LL survey,Female,79,4,0.010667
+2021,LL survey,Female,79,1,0.00271
 2022,LL survey,Female,79,2,0.0059
-1997,LL survey,Female,79,19,0.0751
-1998,LL survey,Female,79,15,0.0765
-1999,LL survey,Female,79,7,0.0543
-2000,LL survey,Female,79,12,0.0583
-2001,LL survey,Female,79,12,0.0663
-2002,LL fishery,Male,79,6,0.0059
-2003,LL fishery,Male,79,9,0.0118
-2004,LL fishery,Male,79,3,0.0039
-2005,LL fishery,Male,79,5,0.0099
-2006,LL fishery,Male,79,5,0.0082
-2007,LL fishery,Male,79,5,0.0097
-2008,LL fishery,Male,79,1,0.0019
-2009,LL fishery,Male,79,4,0.0077
-2010,LL fishery,Male,79,4,0.0073
-2011,LL fishery,Male,79,6,0.0109
-2012,LL fishery,Male,79,1,0.0017
-2013,LL fishery,Male,79,3,0.0044
-2014,LL fishery,Male,79,5,0.0088
-2015,LL fishery,Male,79,6,0.0133
-2016,LL fishery,Male,79,3,0.0058
-2017,LL fishery,Male,79,6,0.01
-2018,LL fishery,Male,79,1,0.002
-2019,LL fishery,Male,79,5,0.0097
-2020,LL fishery,Male,79,2,0.0039
-2021,LL fishery,Male,79,1,0.0042
-2022,LL fishery,Male,79,1,0.0025
-2002,LL survey,Male,79,1,0.0029
-2003,LL survey,Male,79,2,0.0051
-2004,LL survey,Male,79,1,0.0029
-2005,LL survey,Male,79,4,0.0109
-2006,LL survey,Male,79,1,0.0032
+1997,LL survey,Female,79,19,0.075099
+1998,LL survey,Female,79,15,0.076531
+1999,LL survey,Female,79,7,0.054264
+2000,LL survey,Female,79,12,0.058252
+2001,LL survey,Female,79,12,0.066298
+2022,Pot fishery,Female,79,6,0.023166
+2002,LL fishery,Male,79,6,0.005882
+2003,LL fishery,Male,79,9,0.011796
+2004,LL fishery,Male,79,3,0.003927
+2005,LL fishery,Male,79,5,0.009881
+2006,LL fishery,Male,79,5,0.00821
+2007,LL fishery,Male,79,5,0.009709
+2008,LL fishery,Male,79,1,0.001905
+2009,LL fishery,Male,79,4,0.007678
+2010,LL fishery,Male,79,4,0.007273
+2011,LL fishery,Male,79,6,0.010909
+2012,LL fishery,Male,79,1,0.001653
+2013,LL fishery,Male,79,3,0.004399
+2014,LL fishery,Male,79,5,0.008787
+2015,LL fishery,Male,79,6,0.013304
+2016,LL fishery,Male,79,3,0.005792
+2017,LL fishery,Male,79,6,0.009967
+2018,LL fishery,Male,79,1,0.001976
+2019,LL fishery,Male,79,5,0.009747
+2020,LL fishery,Male,79,2,0.003914
+2021,LL fishery,Male,79,1,0.004184
+2022,LL fishery,Male,79,1,0.003155
+2002,LL survey,Male,79,1,0.002907
+2003,LL survey,Male,79,2,0.005076
+2004,LL survey,Male,79,1,0.002924
+2005,LL survey,Male,79,4,0.010929
+2006,LL survey,Male,79,1,0.003165
 2007,LL survey,Male,79,0,0
-2008,LL survey,Male,79,1,0.0037
-2009,LL survey,Male,79,2,0.0079
+2008,LL survey,Male,79,1,0.003704
+2009,LL survey,Male,79,2,0.007905
 2010,LL survey,Male,79,0,0
-2011,LL survey,Male,79,2,0.0064
-2012,LL survey,Male,79,1,0.0031
+2011,LL survey,Male,79,2,0.006431
+2012,LL survey,Male,79,1,0.003135
 2013,LL survey,Male,79,0,0
-2014,LL survey,Male,79,1,0.0036
-2015,LL survey,Male,79,3,0.0149
+2014,LL survey,Male,79,1,0.003636
+2015,LL survey,Male,79,3,0.014925
 2016,LL survey,Male,79,0,0
 2017,LL survey,Male,79,0,0
-2018,LL survey,Male,79,3,0.014
+2018,LL survey,Male,79,3,0.013953
 2019,LL survey,Male,79,0,0
 2020,LL survey,Male,79,0,0
-2021,LL survey,Male,79,1,0.0036
+2021,LL survey,Male,79,1,0.003636
 2022,LL survey,Male,79,0,0
-1997,LL survey,Male,79,5,0.0186
-1998,LL survey,Male,79,1,0.0065
-1999,LL survey,Male,79,1,0.0069
+1997,LL survey,Male,79,5,0.018587
+1998,LL survey,Male,79,1,0.006536
+1999,LL survey,Male,79,1,0.006944
 2000,LL survey,Male,79,0,0
-2001,LL survey,Male,79,2,0.0077
+2001,LL survey,Male,79,2,0.007663
+2022,Pot fishery,Male,79,0,0
 2002,LL fishery,Sex combined,79,73,0.0322
 2003,LL fishery,Sex combined,79,48,0.0269
 2004,LL fishery,Sex combined,79,51,0.0219
@@ -2792,7 +2851,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,79,55,0.041
 2020,LL fishery,Sex combined,79,46,0.0355
 2021,LL fishery,Sex combined,79,18,0.0244
-2022,LL fishery,Sex combined,79,43,0.0292
+2022,LL fishery,Sex combined,79,37,0.0326
 2002,LL survey,Sex combined,79,12,0.0188
 2003,LL survey,Sex combined,79,18,0.0231
 2004,LL survey,Sex combined,79,11,0.0149
@@ -2819,100 +2878,103 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,79,8,0.0293
 2000,LL survey,Sex combined,79,12,0.0316
 2001,LL survey,Sex combined,79,14,0.0317
-2002,LL fishery,Female,81,46,0.0369
-2003,LL fishery,Female,81,37,0.0362
-2004,LL fishery,Female,81,50,0.032
-2005,LL fishery,Female,81,37,0.0294
-2006,LL fishery,Female,81,50,0.0465
-2007,LL fishery,Female,81,51,0.0512
-2008,LL fishery,Female,81,64,0.0624
-2009,LL fishery,Female,81,80,0.0764
-2010,LL fishery,Female,81,61,0.0613
-2011,LL fishery,Female,81,49,0.053
-2012,LL fishery,Female,81,51,0.0547
-2013,LL fishery,Female,81,43,0.06
-2014,LL fishery,Female,81,49,0.0623
-2015,LL fishery,Female,81,63,0.0831
-2016,LL fishery,Female,81,69,0.0742
-2017,LL fishery,Female,81,50,0.0595
-2018,LL fishery,Female,81,58,0.0713
-2019,LL fishery,Female,81,55,0.0664
-2020,LL fishery,Female,81,33,0.0421
-2021,LL fishery,Female,81,14,0.0281
-2022,LL fishery,Female,81,25,0.0232
-2002,LL survey,Female,81,17,0.0578
-2003,LL survey,Female,81,15,0.0389
-2004,LL survey,Female,81,7,0.0177
-2005,LL survey,Female,81,16,0.0319
-2006,LL survey,Female,81,6,0.0144
-2007,LL survey,Female,81,12,0.0294
-2008,LL survey,Female,81,14,0.0417
-2009,LL survey,Female,81,5,0.0137
-2010,LL survey,Female,81,10,0.0312
-2011,LL survey,Female,81,8,0.0219
-2012,LL survey,Female,81,11,0.0272
-2013,LL survey,Female,81,3,0.0118
-2014,LL survey,Female,81,16,0.0561
-2015,LL survey,Female,81,13,0.0448
-2016,LL survey,Female,81,11,0.0349
-2017,LL survey,Female,81,12,0.0346
-2018,LL survey,Female,81,12,0.0346
-2019,LL survey,Female,81,3,0.0112
-2020,LL survey,Female,81,4,0.0107
-2021,LL survey,Female,81,2,0.0054
-2022,LL survey,Female,81,1,0.0029
-1997,LL survey,Female,81,16,0.0632
-1998,LL survey,Female,81,19,0.0969
-1999,LL survey,Female,81,6,0.0465
-2000,LL survey,Female,81,5,0.0243
-2001,LL survey,Female,81,9,0.0497
-2002,LL fishery,Male,81,6,0.0059
-2003,LL fishery,Male,81,1,0.0013
-2004,LL fishery,Male,81,4,0.0052
-2005,LL fishery,Male,81,2,0.004
-2006,LL fishery,Male,81,3,0.0049
-2007,LL fishery,Male,81,2,0.0039
-2008,LL fishery,Male,81,1,0.0019
-2009,LL fishery,Male,81,4,0.0077
-2010,LL fishery,Male,81,1,0.0018
-2011,LL fishery,Male,81,2,0.0036
-2012,LL fishery,Male,81,1,0.0017
-2013,LL fishery,Male,81,1,0.0015
+2022,Pot fishery,Sex combined,79,6,0.0178
+2002,LL fishery,Female,81,46,0.036889
+2003,LL fishery,Female,81,37,0.036204
+2004,LL fishery,Female,81,50,0.032031
+2005,LL fishery,Female,81,37,0.029388
+2006,LL fishery,Female,81,50,0.046512
+2007,LL fishery,Female,81,51,0.051205
+2008,LL fishery,Female,81,64,0.062378
+2009,LL fishery,Female,81,80,0.076409
+2010,LL fishery,Female,81,61,0.061307
+2011,LL fishery,Female,81,49,0.05303
+2012,LL fishery,Female,81,51,0.054721
+2013,LL fishery,Female,81,43,0.059972
+2014,LL fishery,Female,81,49,0.062341
+2015,LL fishery,Female,81,63,0.083113
+2016,LL fishery,Female,81,69,0.074194
+2017,LL fishery,Female,81,50,0.059524
+2018,LL fishery,Female,81,58,0.071253
+2019,LL fishery,Female,81,55,0.066425
+2020,LL fishery,Female,81,33,0.042092
+2021,LL fishery,Female,81,14,0.028112
+2022,LL fishery,Female,81,24,0.02934
+2002,LL survey,Female,81,17,0.057823
+2003,LL survey,Female,81,15,0.03886
+2004,LL survey,Female,81,7,0.017722
+2005,LL survey,Female,81,16,0.031873
+2006,LL survey,Female,81,6,0.014423
+2007,LL survey,Female,81,12,0.029412
+2008,LL survey,Female,81,14,0.041667
+2009,LL survey,Female,81,5,0.013699
+2010,LL survey,Female,81,10,0.03125
+2011,LL survey,Female,81,8,0.021918
+2012,LL survey,Female,81,11,0.02716
+2013,LL survey,Female,81,3,0.011765
+2014,LL survey,Female,81,16,0.05614
+2015,LL survey,Female,81,13,0.044828
+2016,LL survey,Female,81,11,0.034921
+2017,LL survey,Female,81,12,0.034582
+2018,LL survey,Female,81,12,0.034582
+2019,LL survey,Female,81,3,0.011152
+2020,LL survey,Female,81,4,0.010667
+2021,LL survey,Female,81,2,0.00542
+2022,LL survey,Female,81,1,0.00295
+1997,LL survey,Female,81,16,0.063241
+1998,LL survey,Female,81,19,0.096939
+1999,LL survey,Female,81,6,0.046512
+2000,LL survey,Female,81,5,0.024272
+2001,LL survey,Female,81,9,0.049724
+2022,Pot fishery,Female,81,1,0.003861
+2002,LL fishery,Male,81,6,0.005882
+2003,LL fishery,Male,81,1,0.001311
+2004,LL fishery,Male,81,4,0.005236
+2005,LL fishery,Male,81,2,0.003953
+2006,LL fishery,Male,81,3,0.004926
+2007,LL fishery,Male,81,2,0.003883
+2008,LL fishery,Male,81,1,0.001905
+2009,LL fishery,Male,81,4,0.007678
+2010,LL fishery,Male,81,1,0.001818
+2011,LL fishery,Male,81,2,0.003636
+2012,LL fishery,Male,81,1,0.001653
+2013,LL fishery,Male,81,1,0.001466
 2014,LL fishery,Male,81,0,0
-2015,LL fishery,Male,81,4,0.0089
-2016,LL fishery,Male,81,3,0.0058
-2017,LL fishery,Male,81,3,0.005
-2018,LL fishery,Male,81,3,0.0059
-2019,LL fishery,Male,81,2,0.0039
-2020,LL fishery,Male,81,1,0.002
-2021,LL fishery,Male,81,2,0.0084
-2022,LL fishery,Male,81,3,0.0076
+2015,LL fishery,Male,81,4,0.008869
+2016,LL fishery,Male,81,3,0.005792
+2017,LL fishery,Male,81,3,0.004983
+2018,LL fishery,Male,81,3,0.005929
+2019,LL fishery,Male,81,2,0.003899
+2020,LL fishery,Male,81,1,0.001957
+2021,LL fishery,Male,81,2,0.008368
+2022,LL fishery,Male,81,2,0.006309
 2002,LL survey,Male,81,0,0
-2003,LL survey,Male,81,1,0.0025
+2003,LL survey,Male,81,1,0.002538
 2004,LL survey,Male,81,0,0
-2005,LL survey,Male,81,2,0.0055
+2005,LL survey,Male,81,2,0.005464
 2006,LL survey,Male,81,0,0
 2007,LL survey,Male,81,0,0
-2008,LL survey,Male,81,1,0.0037
-2009,LL survey,Male,81,1,0.004
+2008,LL survey,Male,81,1,0.003704
+2009,LL survey,Male,81,1,0.003953
 2010,LL survey,Male,81,0,0
 2011,LL survey,Male,81,0,0
 2012,LL survey,Male,81,0,0
-2013,LL survey,Male,81,1,0.0036
+2013,LL survey,Male,81,1,0.003571
 2014,LL survey,Male,81,0,0
-2015,LL survey,Male,81,1,0.005
+2015,LL survey,Male,81,1,0.004975
 2016,LL survey,Male,81,0,0
 2017,LL survey,Male,81,0,0
 2018,LL survey,Male,81,0,0
 2019,LL survey,Male,81,0,0
-2020,LL survey,Male,81,1,0.0042
+2020,LL survey,Male,81,1,0.004184
 2021,LL survey,Male,81,0,0
 2022,LL survey,Male,81,0,0
-1997,LL survey,Male,81,1,0.0037
+1997,LL survey,Male,81,1,0.003717
 1998,LL survey,Male,81,0,0
 1999,LL survey,Male,81,0,0
-2000,LL survey,Male,81,1,0.0057
-2001,LL survey,Male,81,3,0.0115
+2000,LL survey,Male,81,1,0.005747
+2001,LL survey,Male,81,3,0.011494
+2022,Pot fishery,Male,81,1,0.012821
 2002,LL fishery,Sex combined,81,52,0.0229
 2003,LL fishery,Sex combined,81,38,0.0213
 2004,LL fishery,Sex combined,81,54,0.0232
@@ -2933,7 +2995,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,81,57,0.0425
 2020,LL fishery,Sex combined,81,34,0.0263
 2021,LL fishery,Sex combined,81,16,0.0217
-2022,LL fishery,Sex combined,81,28,0.019
+2022,LL fishery,Sex combined,81,26,0.0229
 2002,LL survey,Sex combined,81,17,0.0266
 2003,LL survey,Sex combined,81,16,0.0205
 2004,LL survey,Sex combined,81,7,0.0095
@@ -2960,79 +3022,81 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,81,6,0.022
 2000,LL survey,Sex combined,81,6,0.0158
 2001,LL survey,Sex combined,81,12,0.0271
-2002,LL fishery,Female,83,40,0.0321
-2003,LL fishery,Female,83,31,0.0303
-2004,LL fishery,Female,83,47,0.0301
-2005,LL fishery,Female,83,60,0.0477
-2006,LL fishery,Female,83,28,0.026
-2007,LL fishery,Female,83,34,0.0341
-2008,LL fishery,Female,83,34,0.0331
-2009,LL fishery,Female,83,39,0.0372
-2010,LL fishery,Female,83,39,0.0392
-2011,LL fishery,Female,83,43,0.0465
-2012,LL fishery,Female,83,34,0.0365
-2013,LL fishery,Female,83,28,0.0391
-2014,LL fishery,Female,83,36,0.0458
-2015,LL fishery,Female,83,38,0.0501
-2016,LL fishery,Female,83,53,0.057
-2017,LL fishery,Female,83,59,0.0702
-2018,LL fishery,Female,83,48,0.059
-2019,LL fishery,Female,83,30,0.0362
-2020,LL fishery,Female,83,25,0.0319
-2021,LL fishery,Female,83,11,0.0221
-2022,LL fishery,Female,83,24,0.0223
-2002,LL survey,Female,83,9,0.0306
-2003,LL survey,Female,83,8,0.0207
-2004,LL survey,Female,83,3,0.0076
-2005,LL survey,Female,83,15,0.0299
-2006,LL survey,Female,83,8,0.0192
-2007,LL survey,Female,83,5,0.0123
-2008,LL survey,Female,83,11,0.0327
-2009,LL survey,Female,83,14,0.0384
-2010,LL survey,Female,83,7,0.0219
-2011,LL survey,Female,83,9,0.0247
-2012,LL survey,Female,83,8,0.0198
-2013,LL survey,Female,83,7,0.0275
-2014,LL survey,Female,83,10,0.0351
-2015,LL survey,Female,83,9,0.031
-2016,LL survey,Female,83,8,0.0254
-2017,LL survey,Female,83,5,0.0144
-2018,LL survey,Female,83,2,0.0058
-2019,LL survey,Female,83,4,0.0149
-2020,LL survey,Female,83,1,0.0027
-2021,LL survey,Female,83,1,0.0027
+2022,Pot fishery,Sex combined,81,2,0.0059
+2002,LL fishery,Female,83,40,0.032077
+2003,LL fishery,Female,83,31,0.030333
+2004,LL fishery,Female,83,47,0.030109
+2005,LL fishery,Female,83,60,0.047657
+2006,LL fishery,Female,83,28,0.026047
+2007,LL fishery,Female,83,34,0.034137
+2008,LL fishery,Female,83,34,0.033138
+2009,LL fishery,Female,83,39,0.037249
+2010,LL fishery,Female,83,39,0.039196
+2011,LL fishery,Female,83,43,0.046537
+2012,LL fishery,Female,83,34,0.036481
+2013,LL fishery,Female,83,28,0.039052
+2014,LL fishery,Female,83,36,0.045802
+2015,LL fishery,Female,83,38,0.050132
+2016,LL fishery,Female,83,53,0.056989
+2017,LL fishery,Female,83,59,0.070238
+2018,LL fishery,Female,83,48,0.058968
+2019,LL fishery,Female,83,30,0.036232
+2020,LL fishery,Female,83,25,0.031888
+2021,LL fishery,Female,83,11,0.022088
+2022,LL fishery,Female,83,24,0.02934
+2002,LL survey,Female,83,9,0.030612
+2003,LL survey,Female,83,8,0.020725
+2004,LL survey,Female,83,3,0.007595
+2005,LL survey,Female,83,15,0.02988
+2006,LL survey,Female,83,8,0.019231
+2007,LL survey,Female,83,5,0.012255
+2008,LL survey,Female,83,11,0.032738
+2009,LL survey,Female,83,14,0.038356
+2010,LL survey,Female,83,7,0.021875
+2011,LL survey,Female,83,9,0.024658
+2012,LL survey,Female,83,8,0.019753
+2013,LL survey,Female,83,7,0.027451
+2014,LL survey,Female,83,10,0.035088
+2015,LL survey,Female,83,9,0.031034
+2016,LL survey,Female,83,8,0.025397
+2017,LL survey,Female,83,5,0.014409
+2018,LL survey,Female,83,2,0.005764
+2019,LL survey,Female,83,4,0.01487
+2020,LL survey,Female,83,1,0.002667
+2021,LL survey,Female,83,1,0.00271
 2022,LL survey,Female,83,0,0
-1997,LL survey,Female,83,13,0.0514
-1998,LL survey,Female,83,8,0.0408
-1999,LL survey,Female,83,6,0.0465
-2000,LL survey,Female,83,9,0.0437
-2001,LL survey,Female,83,3,0.0166
-2002,LL fishery,Male,83,3,0.0029
-2003,LL fishery,Male,83,6,0.0079
-2004,LL fishery,Male,83,1,0.0013
+1997,LL survey,Female,83,13,0.051383
+1998,LL survey,Female,83,8,0.040816
+1999,LL survey,Female,83,6,0.046512
+2000,LL survey,Female,83,9,0.043689
+2001,LL survey,Female,83,3,0.016575
+2022,Pot fishery,Female,83,0,0
+2002,LL fishery,Male,83,3,0.002941
+2003,LL fishery,Male,83,6,0.007864
+2004,LL fishery,Male,83,1,0.001309
 2005,LL fishery,Male,83,0,0
-2006,LL fishery,Male,83,1,0.0016
-2007,LL fishery,Male,83,1,0.0019
-2008,LL fishery,Male,83,3,0.0057
+2006,LL fishery,Male,83,1,0.001642
+2007,LL fishery,Male,83,1,0.001942
+2008,LL fishery,Male,83,3,0.005714
 2009,LL fishery,Male,83,0,0
-2010,LL fishery,Male,83,1,0.0018
-2011,LL fishery,Male,83,2,0.0036
-2012,LL fishery,Male,83,1,0.0017
-2013,LL fishery,Male,83,1,0.0015
-2014,LL fishery,Male,83,2,0.0035
-2015,LL fishery,Male,83,1,0.0022
-2016,LL fishery,Male,83,2,0.0039
+2010,LL fishery,Male,83,1,0.001818
+2011,LL fishery,Male,83,2,0.003636
+2012,LL fishery,Male,83,1,0.001653
+2013,LL fishery,Male,83,1,0.001466
+2014,LL fishery,Male,83,2,0.003515
+2015,LL fishery,Male,83,1,0.002217
+2016,LL fishery,Male,83,2,0.003861
 2017,LL fishery,Male,83,0,0
 2018,LL fishery,Male,83,0,0
-2019,LL fishery,Male,83,3,0.0058
+2019,LL fishery,Male,83,3,0.005848
 2020,LL fishery,Male,83,0,0
 2021,LL fishery,Male,83,0,0
 2022,LL fishery,Male,83,0,0
-2002,LL survey,Male,83,1,0.0029
+2002,LL survey,Male,83,1,0.002907
 2003,LL survey,Male,83,0,0
 2004,LL survey,Male,83,0,0
 2005,LL survey,Male,83,0,0
-2006,LL survey,Male,83,2,0.0063
+2006,LL survey,Male,83,2,0.006329
 2007,LL survey,Male,83,0,0
 2008,LL survey,Male,83,0,0
 2009,LL survey,Male,83,0,0
@@ -3042,7 +3106,7 @@ year,Source,Sex,length_bin,n,proportion
 2013,LL survey,Male,83,0,0
 2014,LL survey,Male,83,0,0
 2015,LL survey,Male,83,0,0
-2016,LL survey,Male,83,1,0.0042
+2016,LL survey,Male,83,1,0.004219
 2017,LL survey,Male,83,1,0.004
 2018,LL survey,Male,83,0,0
 2019,LL survey,Male,83,0,0
@@ -3051,9 +3115,10 @@ year,Source,Sex,length_bin,n,proportion
 2022,LL survey,Male,83,0,0
 1997,LL survey,Male,83,0,0
 1998,LL survey,Male,83,0,0
-1999,LL survey,Male,83,1,0.0069
+1999,LL survey,Male,83,1,0.006944
 2000,LL survey,Male,83,0,0
 2001,LL survey,Male,83,0,0
+2022,Pot fishery,Male,83,0,0
 2002,LL fishery,Sex combined,83,43,0.019
 2003,LL fishery,Sex combined,83,37,0.0207
 2004,LL fishery,Sex combined,83,48,0.0206
@@ -3074,7 +3139,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,83,33,0.0246
 2020,LL fishery,Sex combined,83,25,0.0193
 2021,LL fishery,Sex combined,83,11,0.0149
-2022,LL fishery,Sex combined,83,24,0.0163
+2022,LL fishery,Sex combined,83,24,0.0211
 2002,LL survey,Sex combined,83,10,0.0157
 2003,LL survey,Sex combined,83,8,0.0103
 2004,LL survey,Sex combined,83,3,0.0041
@@ -3101,71 +3166,73 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,83,7,0.0256
 2000,LL survey,Sex combined,83,9,0.0237
 2001,LL survey,Sex combined,83,3,0.0068
-2002,LL fishery,Female,85,28,0.0225
-2003,LL fishery,Female,85,22,0.0215
-2004,LL fishery,Female,85,50,0.032
-2005,LL fishery,Female,85,56,0.0445
-2006,LL fishery,Female,85,23,0.0214
-2007,LL fishery,Female,85,26,0.0261
-2008,LL fishery,Female,85,33,0.0322
-2009,LL fishery,Female,85,25,0.0239
-2010,LL fishery,Female,85,30,0.0302
-2011,LL fishery,Female,85,21,0.0227
-2012,LL fishery,Female,85,26,0.0279
-2013,LL fishery,Female,85,14,0.0195
-2014,LL fishery,Female,85,36,0.0458
-2015,LL fishery,Female,85,33,0.0435
-2016,LL fishery,Female,85,47,0.0505
-2017,LL fishery,Female,85,57,0.0679
-2018,LL fishery,Female,85,27,0.0332
-2019,LL fishery,Female,85,23,0.0278
-2020,LL fishery,Female,85,15,0.0191
-2021,LL fishery,Female,85,13,0.0261
-2022,LL fishery,Female,85,13,0.0121
-2002,LL survey,Female,85,8,0.0272
-2003,LL survey,Female,85,9,0.0233
-2004,LL survey,Female,85,9,0.0228
-2005,LL survey,Female,85,9,0.0179
-2006,LL survey,Female,85,7,0.0168
-2007,LL survey,Female,85,5,0.0123
-2008,LL survey,Female,85,5,0.0149
-2009,LL survey,Female,85,9,0.0247
-2010,LL survey,Female,85,9,0.0281
-2011,LL survey,Female,85,4,0.011
-2012,LL survey,Female,85,2,0.0049
-2013,LL survey,Female,85,4,0.0157
-2014,LL survey,Female,85,8,0.0281
-2015,LL survey,Female,85,5,0.0172
-2016,LL survey,Female,85,7,0.0222
-2017,LL survey,Female,85,6,0.0173
-2018,LL survey,Female,85,7,0.0202
-2019,LL survey,Female,85,1,0.0037
-2020,LL survey,Female,85,1,0.0027
-2021,LL survey,Female,85,1,0.0027
-2022,LL survey,Female,85,1,0.0029
-1997,LL survey,Female,85,5,0.0198
-1998,LL survey,Female,85,6,0.0306
-1999,LL survey,Female,85,3,0.0233
-2000,LL survey,Female,85,3,0.0146
-2001,LL survey,Female,85,6,0.0331
-2002,LL fishery,Male,85,1,0.001
+2022,Pot fishery,Sex combined,83,0,0
+2002,LL fishery,Female,85,28,0.022453999999999998
+2003,LL fishery,Female,85,22,0.021526
+2004,LL fishery,Female,85,50,0.032031
+2005,LL fishery,Female,85,56,0.04448
+2006,LL fishery,Female,85,23,0.021395
+2007,LL fishery,Female,85,26,0.026104
+2008,LL fishery,Female,85,33,0.032164
+2009,LL fishery,Female,85,25,0.023878
+2010,LL fishery,Female,85,30,0.030151
+2011,LL fishery,Female,85,21,0.022727
+2012,LL fishery,Female,85,26,0.027897
+2013,LL fishery,Female,85,14,0.019526
+2014,LL fishery,Female,85,36,0.045802
+2015,LL fishery,Female,85,33,0.043536
+2016,LL fishery,Female,85,47,0.050538
+2017,LL fishery,Female,85,57,0.067857
+2018,LL fishery,Female,85,27,0.03317
+2019,LL fishery,Female,85,23,0.027778
+2020,LL fishery,Female,85,15,0.019133
+2021,LL fishery,Female,85,13,0.026104
+2022,LL fishery,Female,85,13,0.015892
+2002,LL survey,Female,85,8,0.027211
+2003,LL survey,Female,85,9,0.023316
+2004,LL survey,Female,85,9,0.022785
+2005,LL survey,Female,85,9,0.017928
+2006,LL survey,Female,85,7,0.016827
+2007,LL survey,Female,85,5,0.012255
+2008,LL survey,Female,85,5,0.014881
+2009,LL survey,Female,85,9,0.024658
+2010,LL survey,Female,85,9,0.028125
+2011,LL survey,Female,85,4,0.010959
+2012,LL survey,Female,85,2,0.004938
+2013,LL survey,Female,85,4,0.015686
+2014,LL survey,Female,85,8,0.02807
+2015,LL survey,Female,85,5,0.017241
+2016,LL survey,Female,85,7,0.022222
+2017,LL survey,Female,85,6,0.017291
+2018,LL survey,Female,85,7,0.020173
+2019,LL survey,Female,85,1,0.003717
+2020,LL survey,Female,85,1,0.002667
+2021,LL survey,Female,85,1,0.00271
+2022,LL survey,Female,85,1,0.00295
+1997,LL survey,Female,85,5,0.019763
+1998,LL survey,Female,85,6,0.030612
+1999,LL survey,Female,85,3,0.023256
+2000,LL survey,Female,85,3,0.014563
+2001,LL survey,Female,85,6,0.033149
+2022,Pot fishery,Female,85,0,0
+2002,LL fishery,Male,85,1,9.8e-4
 2003,LL fishery,Male,85,0,0
-2004,LL fishery,Male,85,2,0.0026
-2005,LL fishery,Male,85,1,0.002
-2006,LL fishery,Male,85,1,0.0016
+2004,LL fishery,Male,85,2,0.002618
+2005,LL fishery,Male,85,1,0.001976
+2006,LL fishery,Male,85,1,0.001642
 2007,LL fishery,Male,85,0,0
 2008,LL fishery,Male,85,0,0
 2009,LL fishery,Male,85,0,0
-2010,LL fishery,Male,85,1,0.0018
-2011,LL fishery,Male,85,1,0.0018
-2012,LL fishery,Male,85,1,0.0017
-2013,LL fishery,Male,85,1,0.0015
+2010,LL fishery,Male,85,1,0.001818
+2011,LL fishery,Male,85,1,0.001818
+2012,LL fishery,Male,85,1,0.001653
+2013,LL fishery,Male,85,1,0.001466
 2014,LL fishery,Male,85,0,0
 2015,LL fishery,Male,85,0,0
-2016,LL fishery,Male,85,2,0.0039
+2016,LL fishery,Male,85,2,0.003861
 2017,LL fishery,Male,85,0,0
-2018,LL fishery,Male,85,1,0.002
-2019,LL fishery,Male,85,1,0.0019
+2018,LL fishery,Male,85,1,0.001976
+2019,LL fishery,Male,85,1,0.001949
 2020,LL fishery,Male,85,0,0
 2021,LL fishery,Male,85,0,0
 2022,LL fishery,Male,85,0,0
@@ -3174,19 +3241,19 @@ year,Source,Sex,length_bin,n,proportion
 2004,LL survey,Male,85,0,0
 2005,LL survey,Male,85,0,0
 2006,LL survey,Male,85,0,0
-2007,LL survey,Male,85,1,0.003
+2007,LL survey,Male,85,1,0.00304
 2008,LL survey,Male,85,0,0
 2009,LL survey,Male,85,0,0
 2010,LL survey,Male,85,0,0
 2011,LL survey,Male,85,0,0
 2012,LL survey,Male,85,0,0
 2013,LL survey,Male,85,0,0
-2014,LL survey,Male,85,1,0.0036
+2014,LL survey,Male,85,1,0.003636
 2015,LL survey,Male,85,0,0
 2016,LL survey,Male,85,0,0
 2017,LL survey,Male,85,0,0
 2018,LL survey,Male,85,0,0
-2019,LL survey,Male,85,1,0.0051
+2019,LL survey,Male,85,1,0.005051
 2020,LL survey,Male,85,0,0
 2021,LL survey,Male,85,0,0
 2022,LL survey,Male,85,0,0
@@ -3195,6 +3262,7 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Male,85,0,0
 2000,LL survey,Male,85,0,0
 2001,LL survey,Male,85,0,0
+2022,Pot fishery,Male,85,0,0
 2002,LL fishery,Sex combined,85,29,0.0128
 2003,LL fishery,Sex combined,85,22,0.0123
 2004,LL fishery,Sex combined,85,52,0.0224
@@ -3215,7 +3283,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,85,24,0.0179
 2020,LL fishery,Sex combined,85,15,0.0116
 2021,LL fishery,Sex combined,85,13,0.0176
-2022,LL fishery,Sex combined,85,13,0.0088
+2022,LL fishery,Sex combined,85,13,0.0115
 2002,LL survey,Sex combined,85,8,0.0125
 2003,LL survey,Sex combined,85,9,0.0115
 2004,LL survey,Sex combined,85,9,0.0122
@@ -3242,71 +3310,73 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,85,3,0.011
 2000,LL survey,Sex combined,85,3,0.0079
 2001,LL survey,Sex combined,85,6,0.0136
-2002,LL fishery,Female,87,20,0.016
-2003,LL fishery,Female,87,25,0.0245
-2004,LL fishery,Female,87,40,0.0256
-2005,LL fishery,Female,87,25,0.0199
-2006,LL fishery,Female,87,26,0.0242
-2007,LL fishery,Female,87,31,0.0311
-2008,LL fishery,Female,87,29,0.0283
-2009,LL fishery,Female,87,15,0.0143
-2010,LL fishery,Female,87,19,0.0191
-2011,LL fishery,Female,87,26,0.0281
-2012,LL fishery,Female,87,15,0.0161
-2013,LL fishery,Female,87,21,0.0293
-2014,LL fishery,Female,87,21,0.0267
-2015,LL fishery,Female,87,22,0.029
-2016,LL fishery,Female,87,44,0.0473
-2017,LL fishery,Female,87,28,0.0333
-2018,LL fishery,Female,87,25,0.0307
-2019,LL fishery,Female,87,20,0.0242
-2020,LL fishery,Female,87,10,0.0128
-2021,LL fishery,Female,87,9,0.0181
-2022,LL fishery,Female,87,15,0.0139
-2002,LL survey,Female,87,7,0.0238
-2003,LL survey,Female,87,11,0.0285
-2004,LL survey,Female,87,4,0.0101
-2005,LL survey,Female,87,10,0.0199
-2006,LL survey,Female,87,3,0.0072
-2007,LL survey,Female,87,3,0.0074
-2008,LL survey,Female,87,4,0.0119
-2009,LL survey,Female,87,3,0.0082
+2022,Pot fishery,Sex combined,85,0,0
+2002,LL fishery,Female,87,20,0.016038
+2003,LL fishery,Female,87,25,0.024462
+2004,LL fishery,Female,87,40,0.025625
+2005,LL fishery,Female,87,25,0.019857
+2006,LL fishery,Female,87,26,0.024186
+2007,LL fishery,Female,87,31,0.031124
+2008,LL fishery,Female,87,29,0.028265
+2009,LL fishery,Female,87,15,0.014327
+2010,LL fishery,Female,87,19,0.019095
+2011,LL fishery,Female,87,26,0.028139
+2012,LL fishery,Female,87,15,0.016094
+2013,LL fishery,Female,87,21,0.029289
+2014,LL fishery,Female,87,21,0.026718
+2015,LL fishery,Female,87,22,0.029024
+2016,LL fishery,Female,87,44,0.047312
+2017,LL fishery,Female,87,28,0.033333
+2018,LL fishery,Female,87,25,0.030713
+2019,LL fishery,Female,87,20,0.024155
+2020,LL fishery,Female,87,10,0.012755
+2021,LL fishery,Female,87,9,0.018072
+2022,LL fishery,Female,87,14,0.017115
+2002,LL survey,Female,87,7,0.02381
+2003,LL survey,Female,87,11,0.028497
+2004,LL survey,Female,87,4,0.010127
+2005,LL survey,Female,87,10,0.01992
+2006,LL survey,Female,87,3,0.007212
+2007,LL survey,Female,87,3,0.007353
+2008,LL survey,Female,87,4,0.011905
+2009,LL survey,Female,87,3,0.008219
 2010,LL survey,Female,87,4,0.0125
-2011,LL survey,Female,87,1,0.0027
-2012,LL survey,Female,87,4,0.0099
-2013,LL survey,Female,87,4,0.0157
-2014,LL survey,Female,87,1,0.0035
-2015,LL survey,Female,87,3,0.0103
-2016,LL survey,Female,87,3,0.0095
-2017,LL survey,Female,87,10,0.0288
-2018,LL survey,Female,87,3,0.0086
-2019,LL survey,Female,87,2,0.0074
-2020,LL survey,Female,87,5,0.0133
-2021,LL survey,Female,87,1,0.0027
+2011,LL survey,Female,87,1,0.00274
+2012,LL survey,Female,87,4,0.009877
+2013,LL survey,Female,87,4,0.015686
+2014,LL survey,Female,87,1,0.003509
+2015,LL survey,Female,87,3,0.010345
+2016,LL survey,Female,87,3,0.009524
+2017,LL survey,Female,87,10,0.028818
+2018,LL survey,Female,87,3,0.008646
+2019,LL survey,Female,87,2,0.007435
+2020,LL survey,Female,87,5,0.013333
+2021,LL survey,Female,87,1,0.00271
 2022,LL survey,Female,87,0,0
-1997,LL survey,Female,87,8,0.0316
-1998,LL survey,Female,87,2,0.0102
+1997,LL survey,Female,87,8,0.031621
+1998,LL survey,Female,87,2,0.010204
 1999,LL survey,Female,87,0,0
-2000,LL survey,Female,87,4,0.0194
-2001,LL survey,Female,87,7,0.0387
-2002,LL fishery,Male,87,2,0.002
+2000,LL survey,Female,87,4,0.019417
+2001,LL survey,Female,87,7,0.038674
+2022,Pot fishery,Female,87,1,0.003861
+2002,LL fishery,Male,87,2,0.001961
 2003,LL fishery,Male,87,0,0
 2004,LL fishery,Male,87,0,0
 2005,LL fishery,Male,87,0,0
-2006,LL fishery,Male,87,3,0.0049
+2006,LL fishery,Male,87,3,0.004926
 2007,LL fishery,Male,87,0,0
-2008,LL fishery,Male,87,1,0.0019
+2008,LL fishery,Male,87,1,0.001905
 2009,LL fishery,Male,87,0,0
-2010,LL fishery,Male,87,1,0.0018
+2010,LL fishery,Male,87,1,0.001818
 2011,LL fishery,Male,87,0,0
 2012,LL fishery,Male,87,0,0
-2013,LL fishery,Male,87,1,0.0015
-2014,LL fishery,Male,87,1,0.0018
-2015,LL fishery,Male,87,3,0.0067
+2013,LL fishery,Male,87,1,0.001466
+2014,LL fishery,Male,87,1,0.001757
+2015,LL fishery,Male,87,3,0.006652
 2016,LL fishery,Male,87,0,0
 2017,LL fishery,Male,87,0,0
 2018,LL fishery,Male,87,0,0
-2019,LL fishery,Male,87,1,0.0019
+2019,LL fishery,Male,87,1,0.001949
 2020,LL fishery,Male,87,0,0
 2021,LL fishery,Male,87,0,0
 2022,LL fishery,Male,87,0,0
@@ -3330,12 +3400,13 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL survey,Male,87,0,0
 2020,LL survey,Male,87,0,0
 2021,LL survey,Male,87,0,0
-2022,LL survey,Male,87,1,0.0032
+2022,LL survey,Male,87,1,0.003236
 1997,LL survey,Male,87,0,0
 1998,LL survey,Male,87,0,0
 1999,LL survey,Male,87,0,0
 2000,LL survey,Male,87,0,0
 2001,LL survey,Male,87,0,0
+2022,Pot fishery,Male,87,0,0
 2002,LL fishery,Sex combined,87,22,0.0097
 2003,LL fishery,Sex combined,87,25,0.014
 2004,LL fishery,Sex combined,87,40,0.0172
@@ -3356,7 +3427,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,87,21,0.0157
 2020,LL fishery,Sex combined,87,10,0.0077
 2021,LL fishery,Sex combined,87,9,0.0122
-2022,LL fishery,Sex combined,87,15,0.0102
+2022,LL fishery,Sex combined,87,14,0.0123
 2002,LL survey,Sex combined,87,7,0.011
 2003,LL survey,Sex combined,87,11,0.0141
 2004,LL survey,Sex combined,87,4,0.0054
@@ -3383,66 +3454,68 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,87,0,0
 2000,LL survey,Sex combined,87,4,0.0105
 2001,LL survey,Sex combined,87,7,0.0158
-2002,LL fishery,Female,89,25,0.02
-2003,LL fishery,Female,89,11,0.0108
-2004,LL fishery,Female,89,38,0.0243
-2005,LL fishery,Female,89,34,0.027
-2006,LL fishery,Female,89,17,0.0158
-2007,LL fishery,Female,89,13,0.0131
-2008,LL fishery,Female,89,14,0.0136
-2009,LL fishery,Female,89,11,0.0105
-2010,LL fishery,Female,89,11,0.0111
-2011,LL fishery,Female,89,15,0.0162
-2012,LL fishery,Female,89,8,0.0086
-2013,LL fishery,Female,89,10,0.0139
-2014,LL fishery,Female,89,22,0.028
-2015,LL fishery,Female,89,8,0.0106
-2016,LL fishery,Female,89,22,0.0237
-2017,LL fishery,Female,89,19,0.0226
-2018,LL fishery,Female,89,22,0.027
-2019,LL fishery,Female,89,7,0.0085
-2020,LL fishery,Female,89,10,0.0128
-2021,LL fishery,Female,89,7,0.0141
-2022,LL fishery,Female,89,8,0.0074
-2002,LL survey,Female,89,4,0.0136
-2003,LL survey,Female,89,7,0.0181
-2004,LL survey,Female,89,2,0.0051
-2005,LL survey,Female,89,9,0.0179
-2006,LL survey,Female,89,5,0.012
-2007,LL survey,Female,89,4,0.0098
-2008,LL survey,Female,89,2,0.006
-2009,LL survey,Female,89,6,0.0164
-2010,LL survey,Female,89,2,0.0063
-2011,LL survey,Female,89,1,0.0027
-2012,LL survey,Female,89,1,0.0025
-2013,LL survey,Female,89,6,0.0235
+2022,Pot fishery,Sex combined,87,1,0.003
+2002,LL fishery,Female,89,25,0.020048
+2003,LL fishery,Female,89,11,0.010763
+2004,LL fishery,Female,89,38,0.024343
+2005,LL fishery,Female,89,34,0.027006
+2006,LL fishery,Female,89,17,0.015814
+2007,LL fishery,Female,89,13,0.013052
+2008,LL fishery,Female,89,14,0.013645
+2009,LL fishery,Female,89,11,0.010506
+2010,LL fishery,Female,89,11,0.011055
+2011,LL fishery,Female,89,15,0.016234
+2012,LL fishery,Female,89,8,0.008584
+2013,LL fishery,Female,89,10,0.013947
+2014,LL fishery,Female,89,22,0.02799
+2015,LL fishery,Female,89,8,0.010554
+2016,LL fishery,Female,89,22,0.023656
+2017,LL fishery,Female,89,19,0.022619
+2018,LL fishery,Female,89,22,0.027027
+2019,LL fishery,Female,89,7,0.008454
+2020,LL fishery,Female,89,10,0.012755
+2021,LL fishery,Female,89,7,0.014056
+2022,LL fishery,Female,89,6,0.007335
+2002,LL survey,Female,89,4,0.013605
+2003,LL survey,Female,89,7,0.018135
+2004,LL survey,Female,89,2,0.005063
+2005,LL survey,Female,89,9,0.017928
+2006,LL survey,Female,89,5,0.012019
+2007,LL survey,Female,89,4,0.009804
+2008,LL survey,Female,89,2,0.005952
+2009,LL survey,Female,89,6,0.016438
+2010,LL survey,Female,89,2,0.00625
+2011,LL survey,Female,89,1,0.00274
+2012,LL survey,Female,89,1,0.002469
+2013,LL survey,Female,89,6,0.023529
 2014,LL survey,Female,89,0,0
-2015,LL survey,Female,89,1,0.0034
-2016,LL survey,Female,89,2,0.0063
-2017,LL survey,Female,89,1,0.0029
-2018,LL survey,Female,89,2,0.0058
-2019,LL survey,Female,89,2,0.0074
-2020,LL survey,Female,89,2,0.0053
-2021,LL survey,Female,89,1,0.0027
+2015,LL survey,Female,89,1,0.003448
+2016,LL survey,Female,89,2,0.006349
+2017,LL survey,Female,89,1,0.002882
+2018,LL survey,Female,89,2,0.005764
+2019,LL survey,Female,89,2,0.007435
+2020,LL survey,Female,89,2,0.005333
+2021,LL survey,Female,89,1,0.00271
 2022,LL survey,Female,89,0,0
-1997,LL survey,Female,89,10,0.0395
-1998,LL survey,Female,89,2,0.0102
-1999,LL survey,Female,89,4,0.031
-2000,LL survey,Female,89,3,0.0146
-2001,LL survey,Female,89,2,0.011
-2002,LL fishery,Male,89,2,0.002
+1997,LL survey,Female,89,10,0.039526
+1998,LL survey,Female,89,2,0.010204
+1999,LL survey,Female,89,4,0.031008
+2000,LL survey,Female,89,3,0.014563
+2001,LL survey,Female,89,2,0.01105
+2022,Pot fishery,Female,89,2,0.007722
+2002,LL fishery,Male,89,2,0.001961
 2003,LL fishery,Male,89,0,0
 2004,LL fishery,Male,89,0,0
 2005,LL fishery,Male,89,0,0
 2006,LL fishery,Male,89,0,0
 2007,LL fishery,Male,89,0,0
-2008,LL fishery,Male,89,1,0.0019
+2008,LL fishery,Male,89,1,0.001905
 2009,LL fishery,Male,89,0,0
 2010,LL fishery,Male,89,0,0
-2011,LL fishery,Male,89,1,0.0018
+2011,LL fishery,Male,89,1,0.001818
 2012,LL fishery,Male,89,0,0
 2013,LL fishery,Male,89,0,0
-2014,LL fishery,Male,89,1,0.0018
+2014,LL fishery,Male,89,1,0.001757
 2015,LL fishery,Male,89,0,0
 2016,LL fishery,Male,89,0,0
 2017,LL fishery,Male,89,0,0
@@ -3477,6 +3550,7 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Male,89,0,0
 2000,LL survey,Male,89,0,0
 2001,LL survey,Male,89,0,0
+2022,Pot fishery,Male,89,0,0
 2002,LL fishery,Sex combined,89,27,0.0119
 2003,LL fishery,Sex combined,89,11,0.0062
 2004,LL fishery,Sex combined,89,38,0.0163
@@ -3497,7 +3571,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,89,7,0.0052
 2020,LL fishery,Sex combined,89,10,0.0077
 2021,LL fishery,Sex combined,89,7,0.0095
-2022,LL fishery,Sex combined,89,8,0.0054
+2022,LL fishery,Sex combined,89,6,0.0053
 2002,LL survey,Sex combined,89,4,0.0063
 2003,LL survey,Sex combined,89,7,0.009
 2004,LL survey,Sex combined,89,2,0.0027
@@ -3524,54 +3598,56 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,89,4,0.0147
 2000,LL survey,Sex combined,89,3,0.0079
 2001,LL survey,Sex combined,89,2,0.0045
-2002,LL fishery,Female,91,13,0.0104
-2003,LL fishery,Female,91,8,0.0078
-2004,LL fishery,Female,91,26,0.0167
-2005,LL fishery,Female,91,28,0.0222
-2006,LL fishery,Female,91,11,0.0102
-2007,LL fishery,Female,91,13,0.0131
-2008,LL fishery,Female,91,12,0.0117
-2009,LL fishery,Female,91,12,0.0115
-2010,LL fishery,Female,91,11,0.0111
-2011,LL fishery,Female,91,10,0.0108
-2012,LL fishery,Female,91,9,0.0097
-2013,LL fishery,Female,91,10,0.0139
-2014,LL fishery,Female,91,15,0.0191
-2015,LL fishery,Female,91,18,0.0237
-2016,LL fishery,Female,91,17,0.0183
-2017,LL fishery,Female,91,18,0.0214
-2018,LL fishery,Female,91,14,0.0172
-2019,LL fishery,Female,91,3,0.0036
-2020,LL fishery,Female,91,3,0.0038
-2021,LL fishery,Female,91,3,0.006
-2022,LL fishery,Female,91,6,0.0056
-2002,LL survey,Female,91,3,0.0102
-2003,LL survey,Female,91,2,0.0052
-2004,LL survey,Female,91,1,0.0025
-2005,LL survey,Female,91,8,0.0159
-2006,LL survey,Female,91,2,0.0048
-2007,LL survey,Female,91,2,0.0049
-2008,LL survey,Female,91,4,0.0119
+2022,Pot fishery,Sex combined,89,2,0.0059
+2002,LL fishery,Female,91,13,0.010425
+2003,LL fishery,Female,91,8,0.007828
+2004,LL fishery,Female,91,26,0.016656
+2005,LL fishery,Female,91,28,0.02224
+2006,LL fishery,Female,91,11,0.010233
+2007,LL fishery,Female,91,13,0.013052
+2008,LL fishery,Female,91,12,0.011696
+2009,LL fishery,Female,91,12,0.011461
+2010,LL fishery,Female,91,11,0.011055
+2011,LL fishery,Female,91,10,0.010823
+2012,LL fishery,Female,91,9,0.009657
+2013,LL fishery,Female,91,10,0.013947
+2014,LL fishery,Female,91,15,0.019084
+2015,LL fishery,Female,91,18,0.023747
+2016,LL fishery,Female,91,17,0.01828
+2017,LL fishery,Female,91,18,0.021429
+2018,LL fishery,Female,91,14,0.017199
+2019,LL fishery,Female,91,3,0.003623
+2020,LL fishery,Female,91,3,0.003827
+2021,LL fishery,Female,91,3,0.006024
+2022,LL fishery,Female,91,6,0.007335
+2002,LL survey,Female,91,3,0.010204
+2003,LL survey,Female,91,2,0.005181
+2004,LL survey,Female,91,1,0.002532
+2005,LL survey,Female,91,8,0.015936
+2006,LL survey,Female,91,2,0.004808
+2007,LL survey,Female,91,2,0.004902
+2008,LL survey,Female,91,4,0.011905
 2009,LL survey,Female,91,0,0
-2010,LL survey,Female,91,1,0.0031
-2011,LL survey,Female,91,5,0.0137
+2010,LL survey,Female,91,1,0.003125
+2011,LL survey,Female,91,5,0.013699
 2012,LL survey,Female,91,0,0
-2013,LL survey,Female,91,2,0.0078
-2014,LL survey,Female,91,3,0.0105
-2015,LL survey,Female,91,1,0.0034
-2016,LL survey,Female,91,3,0.0095
-2017,LL survey,Female,91,4,0.0115
-2018,LL survey,Female,91,1,0.0029
+2013,LL survey,Female,91,2,0.007843
+2014,LL survey,Female,91,3,0.010526
+2015,LL survey,Female,91,1,0.003448
+2016,LL survey,Female,91,3,0.009524
+2017,LL survey,Female,91,4,0.011527
+2018,LL survey,Female,91,1,0.002882
 2019,LL survey,Female,91,0,0
 2020,LL survey,Female,91,0,0
 2021,LL survey,Female,91,0,0
-2022,LL survey,Female,91,1,0.0029
-1997,LL survey,Female,91,2,0.0079
-1998,LL survey,Female,91,2,0.0102
+2022,LL survey,Female,91,1,0.00295
+1997,LL survey,Female,91,2,0.007905
+1998,LL survey,Female,91,2,0.010204
 1999,LL survey,Female,91,0,0
-2000,LL survey,Female,91,3,0.0146
-2001,LL survey,Female,91,3,0.0166
-2002,LL fishery,Male,91,1,0.001
+2000,LL survey,Female,91,3,0.014563
+2001,LL survey,Female,91,3,0.016575
+2022,Pot fishery,Female,91,0,0
+2002,LL fishery,Male,91,1,9.8e-4
 2003,LL fishery,Male,91,0,0
 2004,LL fishery,Male,91,0,0
 2005,LL fishery,Male,91,0,0
@@ -3581,14 +3657,14 @@ year,Source,Sex,length_bin,n,proportion
 2009,LL fishery,Male,91,0,0
 2010,LL fishery,Male,91,0,0
 2011,LL fishery,Male,91,0,0
-2012,LL fishery,Male,91,1,0.0017
+2012,LL fishery,Male,91,1,0.001653
 2013,LL fishery,Male,91,0,0
 2014,LL fishery,Male,91,0,0
 2015,LL fishery,Male,91,0,0
 2016,LL fishery,Male,91,0,0
 2017,LL fishery,Male,91,0,0
 2018,LL fishery,Male,91,0,0
-2019,LL fishery,Male,91,1,0.0019
+2019,LL fishery,Male,91,1,0.001949
 2020,LL fishery,Male,91,0,0
 2021,LL fishery,Male,91,0,0
 2022,LL fishery,Male,91,0,0
@@ -3596,7 +3672,7 @@ year,Source,Sex,length_bin,n,proportion
 2003,LL survey,Male,91,0,0
 2004,LL survey,Male,91,0,0
 2005,LL survey,Male,91,0,0
-2006,LL survey,Male,91,1,0.0032
+2006,LL survey,Male,91,1,0.003165
 2007,LL survey,Male,91,0,0
 2008,LL survey,Male,91,0,0
 2009,LL survey,Male,91,0,0
@@ -3618,6 +3694,7 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Male,91,0,0
 2000,LL survey,Male,91,0,0
 2001,LL survey,Male,91,0,0
+2022,Pot fishery,Male,91,0,0
 2002,LL fishery,Sex combined,91,14,0.0062
 2003,LL fishery,Sex combined,91,8,0.0045
 2004,LL fishery,Sex combined,91,26,0.0112
@@ -3638,7 +3715,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,91,4,0.003
 2020,LL fishery,Sex combined,91,3,0.0023
 2021,LL fishery,Sex combined,91,3,0.0041
-2022,LL fishery,Sex combined,91,6,0.0041
+2022,LL fishery,Sex combined,91,6,0.0053
 2002,LL survey,Sex combined,91,3,0.0047
 2003,LL survey,Sex combined,91,2,0.0026
 2004,LL survey,Sex combined,91,1,0.0014
@@ -3665,57 +3742,59 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,91,0,0
 2000,LL survey,Sex combined,91,3,0.0079
 2001,LL survey,Sex combined,91,3,0.0068
-2002,LL fishery,Female,93,1,8e-4
-2003,LL fishery,Female,93,6,0.0059
-2004,LL fishery,Female,93,26,0.0167
-2005,LL fishery,Female,93,21,0.0167
-2006,LL fishery,Female,93,8,0.0074
-2007,LL fishery,Female,93,9,0.009
-2008,LL fishery,Female,93,12,0.0117
-2009,LL fishery,Female,93,5,0.0048
-2010,LL fishery,Female,93,6,0.006
-2011,LL fishery,Female,93,11,0.0119
-2012,LL fishery,Female,93,3,0.0032
-2013,LL fishery,Female,93,3,0.0042
-2014,LL fishery,Female,93,4,0.0051
-2015,LL fishery,Female,93,3,0.004
-2016,LL fishery,Female,93,13,0.014
-2017,LL fishery,Female,93,16,0.019
-2018,LL fishery,Female,93,8,0.0098
-2019,LL fishery,Female,93,8,0.0097
-2020,LL fishery,Female,93,5,0.0064
-2021,LL fishery,Female,93,1,0.002
-2022,LL fishery,Female,93,2,0.0019
-2002,LL survey,Female,93,4,0.0136
-2003,LL survey,Female,93,2,0.0052
-2004,LL survey,Female,93,1,0.0025
-2005,LL survey,Female,93,10,0.0199
-2006,LL survey,Female,93,4,0.0096
-2007,LL survey,Female,93,1,0.0025
-2008,LL survey,Female,93,3,0.0089
-2009,LL survey,Female,93,3,0.0082
+2022,Pot fishery,Sex combined,91,0,0
+2002,LL fishery,Female,93,1,8.02e-4
+2003,LL fishery,Female,93,6,0.005871
+2004,LL fishery,Female,93,26,0.016656
+2005,LL fishery,Female,93,21,0.01668
+2006,LL fishery,Female,93,8,0.007442
+2007,LL fishery,Female,93,9,0.009036
+2008,LL fishery,Female,93,12,0.011696
+2009,LL fishery,Female,93,5,0.004776
+2010,LL fishery,Female,93,6,0.00603
+2011,LL fishery,Female,93,11,0.011905
+2012,LL fishery,Female,93,3,0.003219
+2013,LL fishery,Female,93,3,0.004184
+2014,LL fishery,Female,93,4,0.005089
+2015,LL fishery,Female,93,3,0.003958
+2016,LL fishery,Female,93,13,0.013978
+2017,LL fishery,Female,93,16,0.019048
+2018,LL fishery,Female,93,8,0.009828
+2019,LL fishery,Female,93,8,0.009662
+2020,LL fishery,Female,93,5,0.006378
+2021,LL fishery,Female,93,1,0.002008
+2022,LL fishery,Female,93,2,0.002445
+2002,LL survey,Female,93,4,0.013605
+2003,LL survey,Female,93,2,0.005181
+2004,LL survey,Female,93,1,0.002532
+2005,LL survey,Female,93,10,0.01992
+2006,LL survey,Female,93,4,0.009615
+2007,LL survey,Female,93,1,0.002451
+2008,LL survey,Female,93,3,0.008929
+2009,LL survey,Female,93,3,0.008219
 2010,LL survey,Female,93,4,0.0125
-2011,LL survey,Female,93,2,0.0055
-2012,LL survey,Female,93,2,0.0049
-2013,LL survey,Female,93,1,0.0039
-2014,LL survey,Female,93,2,0.007
-2015,LL survey,Female,93,1,0.0034
-2016,LL survey,Female,93,2,0.0063
+2011,LL survey,Female,93,2,0.005479
+2012,LL survey,Female,93,2,0.004938
+2013,LL survey,Female,93,1,0.003922
+2014,LL survey,Female,93,2,0.007018
+2015,LL survey,Female,93,1,0.003448
+2016,LL survey,Female,93,2,0.006349
 2017,LL survey,Female,93,0,0
-2018,LL survey,Female,93,1,0.0029
-2019,LL survey,Female,93,1,0.0037
-2020,LL survey,Female,93,1,0.0027
+2018,LL survey,Female,93,1,0.002882
+2019,LL survey,Female,93,1,0.003717
+2020,LL survey,Female,93,1,0.002667
 2021,LL survey,Female,93,0,0
 2022,LL survey,Female,93,0,0
-1997,LL survey,Female,93,1,0.004
-1998,LL survey,Female,93,5,0.0255
-1999,LL survey,Female,93,1,0.0078
+1997,LL survey,Female,93,1,0.003953
+1998,LL survey,Female,93,5,0.02551
+1999,LL survey,Female,93,1,0.007752
 2000,LL survey,Female,93,0,0
-2001,LL survey,Female,93,2,0.011
+2001,LL survey,Female,93,2,0.01105
+2022,Pot fishery,Female,93,0,0
 2002,LL fishery,Male,93,0,0
 2003,LL fishery,Male,93,0,0
 2004,LL fishery,Male,93,0,0
-2005,LL fishery,Male,93,1,0.002
+2005,LL fishery,Male,93,1,0.001976
 2006,LL fishery,Male,93,0,0
 2007,LL fishery,Male,93,0,0
 2008,LL fishery,Male,93,0,0
@@ -3755,10 +3834,11 @@ year,Source,Sex,length_bin,n,proportion
 2021,LL survey,Male,93,0,0
 2022,LL survey,Male,93,0,0
 1997,LL survey,Male,93,0,0
-1998,LL survey,Male,93,1,0.0065
+1998,LL survey,Male,93,1,0.006536
 1999,LL survey,Male,93,0,0
 2000,LL survey,Male,93,0,0
 2001,LL survey,Male,93,0,0
+2022,Pot fishery,Male,93,0,0
 2002,LL fishery,Sex combined,93,1,4e-4
 2003,LL fishery,Sex combined,93,6,0.0034
 2004,LL fishery,Sex combined,93,26,0.0112
@@ -3779,7 +3859,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,93,8,0.006
 2020,LL fishery,Sex combined,93,5,0.0039
 2021,LL fishery,Sex combined,93,1,0.0014
-2022,LL fishery,Sex combined,93,2,0.0014
+2022,LL fishery,Sex combined,93,2,0.0018
 2002,LL survey,Sex combined,93,4,0.0063
 2003,LL survey,Sex combined,93,2,0.0026
 2004,LL survey,Sex combined,93,1,0.0014
@@ -3806,53 +3886,55 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,93,1,0.0037
 2000,LL survey,Sex combined,93,0,0
 2001,LL survey,Sex combined,93,2,0.0045
-2002,LL fishery,Female,95,8,0.0064
-2003,LL fishery,Female,95,6,0.0059
-2004,LL fishery,Female,95,20,0.0128
-2005,LL fishery,Female,95,18,0.0143
-2006,LL fishery,Female,95,3,0.0028
-2007,LL fishery,Female,95,4,0.004
-2008,LL fishery,Female,95,6,0.0058
-2009,LL fishery,Female,95,6,0.0057
-2010,LL fishery,Female,95,1,0.001
-2011,LL fishery,Female,95,1,0.0011
-2012,LL fishery,Female,95,5,0.0054
-2013,LL fishery,Female,95,5,0.007
-2014,LL fishery,Female,95,4,0.0051
-2015,LL fishery,Female,95,5,0.0066
-2016,LL fishery,Female,95,8,0.0086
-2017,LL fishery,Female,95,12,0.0143
-2018,LL fishery,Female,95,13,0.016
-2019,LL fishery,Female,95,2,0.0024
-2020,LL fishery,Female,95,3,0.0038
-2021,LL fishery,Female,95,2,0.004
-2022,LL fishery,Female,95,4,0.0037
-2002,LL survey,Female,95,1,0.0034
-2003,LL survey,Female,95,2,0.0052
-2004,LL survey,Female,95,1,0.0025
-2005,LL survey,Female,95,9,0.0179
-2006,LL survey,Female,95,1,0.0024
+2022,Pot fishery,Sex combined,93,0,0
+2002,LL fishery,Female,95,8,0.006415
+2003,LL fishery,Female,95,6,0.005871
+2004,LL fishery,Female,95,20,0.012812
+2005,LL fishery,Female,95,18,0.014297
+2006,LL fishery,Female,95,3,0.002791
+2007,LL fishery,Female,95,4,0.004016
+2008,LL fishery,Female,95,6,0.005848
+2009,LL fishery,Female,95,6,0.005731
+2010,LL fishery,Female,95,1,0.001005
+2011,LL fishery,Female,95,1,0.001082
+2012,LL fishery,Female,95,5,0.005365
+2013,LL fishery,Female,95,5,0.006974
+2014,LL fishery,Female,95,4,0.005089
+2015,LL fishery,Female,95,5,0.006596
+2016,LL fishery,Female,95,8,0.008602
+2017,LL fishery,Female,95,12,0.014286
+2018,LL fishery,Female,95,13,0.015971
+2019,LL fishery,Female,95,2,0.002415
+2020,LL fishery,Female,95,3,0.003827
+2021,LL fishery,Female,95,2,0.004016
+2022,LL fishery,Female,95,4,0.00489
+2002,LL survey,Female,95,1,0.003401
+2003,LL survey,Female,95,2,0.005181
+2004,LL survey,Female,95,1,0.002532
+2005,LL survey,Female,95,9,0.017928
+2006,LL survey,Female,95,1,0.002404
 2007,LL survey,Female,95,0,0
-2008,LL survey,Female,95,1,0.003
-2009,LL survey,Female,95,3,0.0082
-2010,LL survey,Female,95,1,0.0031
-2011,LL survey,Female,95,1,0.0027
-2012,LL survey,Female,95,2,0.0049
-2013,LL survey,Female,95,1,0.0039
+2008,LL survey,Female,95,1,0.002976
+2009,LL survey,Female,95,3,0.008219
+2010,LL survey,Female,95,1,0.003125
+2011,LL survey,Female,95,1,0.00274
+2012,LL survey,Female,95,2,0.004938
+2013,LL survey,Female,95,1,0.003922
 2014,LL survey,Female,95,0,0
 2015,LL survey,Female,95,0,0
-2016,LL survey,Female,95,1,0.0032
-2017,LL survey,Female,95,4,0.0115
-2018,LL survey,Female,95,1,0.0029
-2019,LL survey,Female,95,1,0.0037
+2016,LL survey,Female,95,1,0.003175
+2017,LL survey,Female,95,4,0.011527
+2018,LL survey,Female,95,1,0.002882
+2019,LL survey,Female,95,1,0.003717
 2020,LL survey,Female,95,0,0
 2021,LL survey,Female,95,0,0
 2022,LL survey,Female,95,0,0
-1997,LL survey,Female,95,2,0.0079
+1997,LL survey,Female,95,2,0.007905
 1998,LL survey,Female,95,0,0
 1999,LL survey,Female,95,0,0
-2000,LL survey,Female,95,2,0.0097
-2001,LL survey,Female,95,2,0.011
+2000,LL survey,Female,95,2,0.009709
+2001,LL survey,Female,95,2,0.01105
+2022,Pot fishery,Female,95,0,0
 2002,LL fishery,Male,95,0,0
 2003,LL fishery,Male,95,0,0
 2004,LL fishery,Male,95,0,0
@@ -3865,8 +3947,8 @@ year,Source,Sex,length_bin,n,proportion
 2011,LL fishery,Male,95,0,0
 2012,LL fishery,Male,95,0,0
 2013,LL fishery,Male,95,0,0
-2014,LL fishery,Male,95,1,0.0018
-2015,LL fishery,Male,95,1,0.0022
+2014,LL fishery,Male,95,1,0.001757
+2015,LL fishery,Male,95,1,0.002217
 2016,LL fishery,Male,95,0,0
 2017,LL fishery,Male,95,0,0
 2018,LL fishery,Male,95,0,0
@@ -3897,9 +3979,10 @@ year,Source,Sex,length_bin,n,proportion
 2022,LL survey,Male,95,0,0
 1997,LL survey,Male,95,0,0
 1998,LL survey,Male,95,0,0
-1999,LL survey,Male,95,1,0.0069
+1999,LL survey,Male,95,1,0.006944
 2000,LL survey,Male,95,0,0
 2001,LL survey,Male,95,0,0
+2022,Pot fishery,Male,95,0,0
 2002,LL fishery,Sex combined,95,8,0.0035
 2003,LL fishery,Sex combined,95,6,0.0034
 2004,LL fishery,Sex combined,95,20,0.0086
@@ -3920,7 +4003,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,95,2,0.0015
 2020,LL fishery,Sex combined,95,3,0.0023
 2021,LL fishery,Sex combined,95,2,0.0027
-2022,LL fishery,Sex combined,95,4,0.0027
+2022,LL fishery,Sex combined,95,4,0.0035
 2002,LL survey,Sex combined,95,1,0.0016
 2003,LL survey,Sex combined,95,2,0.0026
 2004,LL survey,Sex combined,95,1,0.0014
@@ -3947,53 +4030,55 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,95,1,0.0037
 2000,LL survey,Sex combined,95,2,0.0053
 2001,LL survey,Sex combined,95,2,0.0045
-2002,LL fishery,Female,97,5,0.004
-2003,LL fishery,Female,97,2,0.002
-2004,LL fishery,Female,97,9,0.0058
-2005,LL fishery,Female,97,16,0.0127
-2006,LL fishery,Female,97,3,0.0028
-2007,LL fishery,Female,97,5,0.005
-2008,LL fishery,Female,97,2,0.0019
-2009,LL fishery,Female,97,1,0.001
-2010,LL fishery,Female,97,2,0.002
-2011,LL fishery,Female,97,2,0.0022
-2012,LL fishery,Female,97,1,0.0011
-2013,LL fishery,Female,97,3,0.0042
-2014,LL fishery,Female,97,3,0.0038
-2015,LL fishery,Female,97,3,0.004
-2016,LL fishery,Female,97,10,0.0108
-2017,LL fishery,Female,97,3,0.0036
-2018,LL fishery,Female,97,2,0.0025
-2019,LL fishery,Female,97,5,0.006
-2020,LL fishery,Female,97,2,0.0026
+2022,Pot fishery,Sex combined,95,0,0
+2002,LL fishery,Female,97,5,0.00401
+2003,LL fishery,Female,97,2,0.001957
+2004,LL fishery,Female,97,9,0.005766
+2005,LL fishery,Female,97,16,0.012708
+2006,LL fishery,Female,97,3,0.002791
+2007,LL fishery,Female,97,5,0.00502
+2008,LL fishery,Female,97,2,0.001949
+2009,LL fishery,Female,97,1,9.55e-4
+2010,LL fishery,Female,97,2,0.00201
+2011,LL fishery,Female,97,2,0.002165
+2012,LL fishery,Female,97,1,0.001073
+2013,LL fishery,Female,97,3,0.004184
+2014,LL fishery,Female,97,3,0.003817
+2015,LL fishery,Female,97,3,0.003958
+2016,LL fishery,Female,97,10,0.010753
+2017,LL fishery,Female,97,3,0.003571
+2018,LL fishery,Female,97,2,0.002457
+2019,LL fishery,Female,97,5,0.006039
+2020,LL fishery,Female,97,2,0.002551
 2021,LL fishery,Female,97,0,0
-2022,LL fishery,Female,97,3,0.0028
-2002,LL survey,Female,97,2,0.0068
-2003,LL survey,Female,97,1,0.0026
-2004,LL survey,Female,97,2,0.0051
-2005,LL survey,Female,97,3,0.006
-2006,LL survey,Female,97,1,0.0024
-2007,LL survey,Female,97,2,0.0049
-2008,LL survey,Female,97,1,0.003
-2009,LL survey,Female,97,1,0.0027
-2010,LL survey,Female,97,2,0.0063
+2022,LL fishery,Female,97,3,0.003667
+2002,LL survey,Female,97,2,0.006803
+2003,LL survey,Female,97,1,0.002591
+2004,LL survey,Female,97,2,0.005063
+2005,LL survey,Female,97,3,0.005976
+2006,LL survey,Female,97,1,0.002404
+2007,LL survey,Female,97,2,0.004902
+2008,LL survey,Female,97,1,0.002976
+2009,LL survey,Female,97,1,0.00274
+2010,LL survey,Female,97,2,0.00625
 2011,LL survey,Female,97,0,0
 2012,LL survey,Female,97,0,0
 2013,LL survey,Female,97,0,0
 2014,LL survey,Female,97,0,0
-2015,LL survey,Female,97,1,0.0034
-2016,LL survey,Female,97,1,0.0032
-2017,LL survey,Female,97,1,0.0029
-2018,LL survey,Female,97,1,0.0029
+2015,LL survey,Female,97,1,0.003448
+2016,LL survey,Female,97,1,0.003175
+2017,LL survey,Female,97,1,0.002882
+2018,LL survey,Female,97,1,0.002882
 2019,LL survey,Female,97,0,0
-2020,LL survey,Female,97,2,0.0053
+2020,LL survey,Female,97,2,0.005333
 2021,LL survey,Female,97,0,0
 2022,LL survey,Female,97,0,0
-1997,LL survey,Female,97,1,0.004
+1997,LL survey,Female,97,1,0.003953
 1998,LL survey,Female,97,0,0
 1999,LL survey,Female,97,0,0
 2000,LL survey,Female,97,0,0
 2001,LL survey,Female,97,0,0
+2022,Pot fishery,Female,97,0,0
 2002,LL fishery,Male,97,0,0
 2003,LL fishery,Male,97,0,0
 2004,LL fishery,Male,97,0,0
@@ -4041,6 +4126,7 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Male,97,0,0
 2000,LL survey,Male,97,0,0
 2001,LL survey,Male,97,0,0
+2022,Pot fishery,Male,97,0,0
 2002,LL fishery,Sex combined,97,5,0.0022
 2003,LL fishery,Sex combined,97,2,0.0011
 2004,LL fishery,Sex combined,97,9,0.0039
@@ -4061,7 +4147,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,97,5,0.0037
 2020,LL fishery,Sex combined,97,2,0.0015
 2021,LL fishery,Sex combined,97,0,0
-2022,LL fishery,Sex combined,97,3,0.002
+2022,LL fishery,Sex combined,97,3,0.0026
 2002,LL survey,Sex combined,97,2,0.0031
 2003,LL survey,Sex combined,97,1,0.0013
 2004,LL survey,Sex combined,97,2,0.0027
@@ -4088,53 +4174,55 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,97,0,0
 2000,LL survey,Sex combined,97,0,0
 2001,LL survey,Sex combined,97,0,0
-2002,LL fishery,Female,99,6,0.0048
-2003,LL fishery,Female,99,5,0.0049
-2004,LL fishery,Female,99,26,0.0167
-2005,LL fishery,Female,99,26,0.0207
-2006,LL fishery,Female,99,9,0.0084
-2007,LL fishery,Female,99,7,0.007
-2008,LL fishery,Female,99,8,0.0078
-2009,LL fishery,Female,99,8,0.0076
-2010,LL fishery,Female,99,4,0.004
-2011,LL fishery,Female,99,6,0.0065
+2022,Pot fishery,Sex combined,97,0,0
+2002,LL fishery,Female,99,6,0.004812
+2003,LL fishery,Female,99,5,0.004892
+2004,LL fishery,Female,99,26,0.016656
+2005,LL fishery,Female,99,26,0.020651
+2006,LL fishery,Female,99,9,0.008372
+2007,LL fishery,Female,99,7,0.007028
+2008,LL fishery,Female,99,8,0.007797
+2009,LL fishery,Female,99,8,0.007641
+2010,LL fishery,Female,99,4,0.00402
+2011,LL fishery,Female,99,6,0.006494
 2012,LL fishery,Female,99,0,0
-2013,LL fishery,Female,99,2,0.0028
-2014,LL fishery,Female,99,5,0.0064
-2015,LL fishery,Female,99,8,0.0106
-2016,LL fishery,Female,99,11,0.0118
-2017,LL fishery,Female,99,10,0.0119
-2018,LL fishery,Female,99,3,0.0037
-2019,LL fishery,Female,99,5,0.006
-2020,LL fishery,Female,99,4,0.0051
-2021,LL fishery,Female,99,4,0.008
-2022,LL fishery,Female,99,2,0.0019
-2002,LL survey,Female,99,4,0.0136
-2003,LL survey,Female,99,2,0.0052
-2004,LL survey,Female,99,13,0.0329
-2005,LL survey,Female,99,11,0.0219
-2006,LL survey,Female,99,2,0.0048
-2007,LL survey,Female,99,3,0.0074
-2008,LL survey,Female,99,2,0.006
-2009,LL survey,Female,99,2,0.0055
-2010,LL survey,Female,99,1,0.0031
+2013,LL fishery,Female,99,2,0.002789
+2014,LL fishery,Female,99,5,0.006361
+2015,LL fishery,Female,99,8,0.010554
+2016,LL fishery,Female,99,11,0.011828
+2017,LL fishery,Female,99,10,0.011905
+2018,LL fishery,Female,99,3,0.003686
+2019,LL fishery,Female,99,5,0.006039
+2020,LL fishery,Female,99,4,0.005102
+2021,LL fishery,Female,99,4,0.008032
+2022,LL fishery,Female,99,2,0.002445
+2002,LL survey,Female,99,4,0.013605
+2003,LL survey,Female,99,2,0.005181
+2004,LL survey,Female,99,13,0.032911
+2005,LL survey,Female,99,11,0.021912
+2006,LL survey,Female,99,2,0.004808
+2007,LL survey,Female,99,3,0.007353
+2008,LL survey,Female,99,2,0.005952
+2009,LL survey,Female,99,2,0.005479
+2010,LL survey,Female,99,1,0.003125
 2011,LL survey,Female,99,0,0
 2012,LL survey,Female,99,0,0
-2013,LL survey,Female,99,1,0.0039
-2014,LL survey,Female,99,1,0.0035
+2013,LL survey,Female,99,1,0.003922
+2014,LL survey,Female,99,1,0.003509
 2015,LL survey,Female,99,0,0
-2016,LL survey,Female,99,2,0.0063
-2017,LL survey,Female,99,2,0.0058
-2018,LL survey,Female,99,1,0.0029
+2016,LL survey,Female,99,2,0.006349
+2017,LL survey,Female,99,2,0.005764
+2018,LL survey,Female,99,1,0.002882
 2019,LL survey,Female,99,0,0
 2020,LL survey,Female,99,0,0
 2021,LL survey,Female,99,0,0
 2022,LL survey,Female,99,0,0
-1997,LL survey,Female,99,4,0.0158
-1998,LL survey,Female,99,1,0.0051
-1999,LL survey,Female,99,1,0.0078
-2000,LL survey,Female,99,1,0.0049
-2001,LL survey,Female,99,3,0.0166
+1997,LL survey,Female,99,4,0.01581
+1998,LL survey,Female,99,1,0.005102
+1999,LL survey,Female,99,1,0.007752
+2000,LL survey,Female,99,1,0.004854
+2001,LL survey,Female,99,3,0.016575
+2022,Pot fishery,Female,99,0,0
 2002,LL fishery,Male,99,0,0
 2003,LL fishery,Male,99,0,0
 2004,LL fishery,Male,99,0,0
@@ -4182,6 +4270,7 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Male,99,0,0
 2000,LL survey,Male,99,0,0
 2001,LL survey,Male,99,0,0
+2022,Pot fishery,Male,99,0,0
 2002,LL fishery,Sex combined,99,6,0.0026
 2003,LL fishery,Sex combined,99,5,0.0028
 2004,LL fishery,Sex combined,99,26,0.0112
@@ -4202,7 +4291,7 @@ year,Source,Sex,length_bin,n,proportion
 2019,LL fishery,Sex combined,99,5,0.0037
 2020,LL fishery,Sex combined,99,4,0.0031
 2021,LL fishery,Sex combined,99,4,0.0054
-2022,LL fishery,Sex combined,99,2,0.0014
+2022,LL fishery,Sex combined,99,2,0.0018
 2002,LL survey,Sex combined,99,4,0.0063
 2003,LL survey,Sex combined,99,2,0.0026
 2004,LL survey,Sex combined,99,13,0.0176
@@ -4229,3 +4318,4 @@ year,Source,Sex,length_bin,n,proportion
 1999,LL survey,Sex combined,99,1,0.0037
 2000,LL survey,Sex combined,99,1,0.0026
 2001,LL survey,Sex combined,99,3,0.0068
+2022,Pot fishery,Sex combined,99,0,0

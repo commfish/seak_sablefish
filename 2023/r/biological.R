@@ -269,10 +269,25 @@ bind_rows(
   filter(!is.na(weight) & !is.na(age) & !is.na(Sex)) %>% 
   mutate(Source = derivedFactor('LL survey' = Project_cde %in% c("03","603"),
                                 'LL fishery' = Project_cde %in% c("02","602"),
+                                'Pot fishery' = Project_cde %in% c("02","602") & Gear == "Pot",
                                 method = "unique")) %>% 
   filter(year <= YEAR & age >= rec_age & age <= plus_group) -> waa
 
-str(waa)
+bind_rows(
+  srv_bio_noOL %>% 
+    mutate(Gear = "LL survey") %>%
+    select(year, Project_cde, Sex, age, weight,Gear) %>% 
+    filter(year >= 1997),
+  fsh_bio_noOL %>% 
+    select(year, Project_cde, Sex, age, weight,Gear) %>% 
+    filter(year >= 2002)) %>% 
+  filter(!is.na(weight) & !is.na(age) & !is.na(Sex)) %>% 
+  mutate(Source = derivedFactor('LL survey' = Project_cde %in% c("03","603"),
+                                'LL fishery' = Gear == "Longline",
+                                'Pot fishery' =  Gear == "Pot",
+                                method = "unique")) %>% 
+  select(year, Project_cde,Sex,age,weight,Source) %>%
+  filter(year <= YEAR & age >= rec_age & age <= plus_group) -> waa_2fleet
 
 bind_rows(
   waa %>%
@@ -282,6 +297,15 @@ bind_rows(
     group_by(Source, age) %>% 
     summarise(weight = mean(weight) %>% round(4)) %>% 
     mutate(Sex = "Combined")) -> emp_waa
+
+bind_rows(
+  waa_2fleet %>%
+    group_by(Source, Sex, age) %>% 
+    summarise(weight = mean(weight) %>% round(4)),
+  waa_2fleet %>% 
+    group_by(Source, age) %>% 
+    summarise(weight = mean(weight) %>% round(4)) %>% 
+    mutate(Sex = "Combined")) -> emp_waa_2fleet
 
 str(emp_waa)
 
@@ -325,7 +349,7 @@ df_cohort <- df %>%
 # axis <- tickr(df_cohort, year, 2)
 
 ggplot(df_cohort, aes(age, weight, colour = Cohort, group = Cohort)) +
-  geom_line(size = 1) +
+  geom_line(linewidth = 1) +
   geom_point(aes(fill = Cohort), show.legend = FALSE, size = 1) +
   facet_grid(~ Sex) +
   labs(x = "Age", y = "Weight-at-age (grams)\n", colour = "Cohort") +
@@ -358,6 +382,7 @@ ggplot(df,
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels)
 
 ggsave(paste0(YEAR+1,"/figures/waa_trends.png"), dpi = 300, height = 5, width = 7, units = "in")
+
 
 #=========================================================================================
 # Survey length-at-age -----
@@ -497,7 +522,7 @@ ggsave(paste0(YEAR+1,"/figures/trends_Linf_1997_", YEAR, ".png"),
 
 #==================================================================================
 # Fishery length-at-age ----
-
+# 1) Base, pre- 2 fleets... 
 # Note that current port sampling protocols were implemented in 2002
 
 # subsets by length, age, sex
@@ -545,7 +570,8 @@ lvb_pars %>% bind_rows(
            Function = "Length-based LVB") %>% 
     full_join(fsh_laa_sub %>% 
                 group_by(Sex) %>% 
-                summarise(n = n()))) -> lvb_pars
+                summarise(n = n()))) %>% 
+  mutate(Gear = "Longline") -> lvb_pars
 
 # Save length-at-age predictions -----
 age_pred <- data.frame(age = rec_age:plus_group)
@@ -635,34 +661,95 @@ ggplot(allom_sub, aes(length, weight, col = Sex, shape = Sex)) +
 ggsave(paste0(YEAR+1,"/figures/allometry_chathamllsurvey_1997_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
 
+#==================================================================================
+# Fishery length-at-age ----
+# 2) 2022+,  fleets... 
 #===== We should see if this differs between gears... 
+#----- get laa for each of the two fisheries for when we add the second fleet to the SCAA
 
-# subsets by length, age, sex, and gear
-fsh_laa_f %>% filter(year >=2022 & Gear == "Longline") -> ll_laa_f
-fsh_laa_f %>% filter(year >=2022 & Gear == "Pot") -> pot_laa_f
-fsh_laa_m %>% filter(year >=2022 & Gear == "Longline") -> ll_laa_m
-fsh_laa_m %>% filter(year >=2022 & Gear == "Pot") -> pot_laa_m
+# First lets just look at data from years when both fisheries occured
+# after this we'll set up the calculations for laa for the scaa
+# subsets by length, age, sex
+fsh_bio_noOL %>% 
+  filter(Sex %in% c("Female", "Male") &
+           !is.na(length) &
+           !is.na(age)) %>% 
+  droplevels() -> fsh_laa_sub; str(fsh_laa_sub)
+
+fsh_laa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Female", Gear == "Longline", year >= 2022) -> fsh_laa_f_ll22
+
+fsh_laa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Male", Gear == "Longline", year >= 2022) -> fsh_laa_m_ll22
+
+fsh_laa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Female", Gear == "Pot", year >= 2022) -> fsh_laa_f_pot22
+
+fsh_laa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Male", Gear == "Pot", year >= 2022) -> fsh_laa_m_pot22
 
 # females
-lvb_f_ll <- fishmethods::growth(unit = 1, # length (2 = weight)
-                                 size = ll_laa_f$length, age = ll_laa_f$age,
+lvb_f_fsh_ll22 <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                 size = fsh_laa_f_ll22$length, age = fsh_laa_f_ll22$age,
                                  error = 1, # additive (2 = multiplicative)
                                  # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
                                  Sinf = 70, K = 0.22, t0 = -1.9)
-lvb_f_pot <- fishmethods::growth(unit = 1, # length (2 = weight)
-                                size = pot_laa_f$length, age = pot_laa_f$age,
+lvb_f_fsh_pot22 <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                      size = fsh_laa_f_pot22$length, age = fsh_laa_f_pot22$age,
+                                      error = 1, # additive (2 = multiplicative)
+                                      # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
+                                      Sinf = 70, K = 0.22, t0 = -1.9)
+
+# males
+lvb_m_fsh_ll22 <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                      size = fsh_laa_m_ll22$length, age = fsh_laa_m_ll22$age,
+                                      error = 1, # additive (2 = multiplicative)
+                                      # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
+                                      Sinf = 70, K = 0.22, t0 = -1.9)
+lvb_m_fsh_pot22 <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                       size = fsh_laa_m_pot22$length, age = fsh_laa_m_pot22$age,
+                                       error = 1, # additive (2 = multiplicative)
+                                       # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
+                                       Sinf = 70, K = 0.22, t0 = -1.9)
+
+# save param estimates
+# do this for full data... just look at recent years now
+
+# subsets by length, age, sex, and gear
+fsh_laa_f %>% filter(year >=2022 & Gear == "Longline") -> ll22_laa_f
+fsh_laa_f %>% filter(year >=2022 & Gear == "Pot") -> pot22_laa_f
+fsh_laa_m %>% filter(year >=2022 & Gear == "Longline") -> ll22_laa_m
+fsh_laa_m %>% filter(year >=2022 & Gear == "Pot") -> pot22_laa_m
+
+fsh_laa_f %>% filter(Gear == "Longline") -> ll_laa_f
+fsh_laa_f %>% filter(Gear == "Pot") -> pot_laa_f
+fsh_laa_m %>% filter(Gear == "Longline") -> ll_laa_m
+fsh_laa_m %>% filter(Gear == "Pot") -> pot_laa_m
+
+# females
+lvb_f_ll22 <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                 size = ll22_laa_f$length, age = ll22_laa_f$age,
+                                 error = 1, # additive (2 = multiplicative)
+                                 # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
+                                 Sinf = 70, K = 0.22, t0 = -1.9)
+lvb_f_pot22 <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                size = pot22_laa_f$length, age = pot22_laa_f$age,
                                 error = 1, # additive (2 = multiplicative)
                                 # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
                                 Sinf = 70, K = 0.22, t0 = -1.9)
 
 # males
-lvb_m_ll <- fishmethods::growth(unit = 1, # length (2 = weight)
-                                size = ll_laa_m$length, age = ll_laa_m$age,
+lvb_m_ll22 <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                size = ll22_laa_m$length, age = ll22_laa_m$age,
                                 error = 1, # additive (2 = multiplicative)
                                 # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
                                 Sinf = 70, K = 0.22, t0 = -1.9)
-lvb_m_pot <- fishmethods::growth(unit = 1, # length (2 = weight)
-                                 size = pot_laa_m$length, age = pot_laa_m$age,
+lvb_m_pot22 <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                 size = pot22_laa_m$length, age = pot22_laa_m$age,
                                  error = 1, # additive (2 = multiplicative)
                                  # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
                                  Sinf = 70, K = 0.22, t0 = -1.9)
@@ -680,14 +767,206 @@ lw_allometry <- function(length, a, b) {a * length ^ b}
 
 START <- c(a = 1e-5, b = 3) #Starting values close to Hanselman et al. 2007
 
-ll_fem_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+ll22_fem_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
                data = filter(allom_sub_fsh22, Sex == "Female", Gear == "Longline"), start = START)
-pot_fem_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+pot22_fem_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
                   data = filter(allom_sub_fsh22, Sex == "Female", Gear == "Pot"), start = START)
-ll_male_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+ll22_male_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
                   data = filter(allom_sub_fsh22, Sex == "Male", Gear == "Longline"), start = START)
-pot_male_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+pot22_male_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
                    data = filter(allom_sub_fsh22, Sex == "Male", Gear == "Pot"), start = START)
+
+# parameter estimates and plot fit 
+beta_m_ll22 <- tidy(ll22_male_fit)$estimate[2]
+beta_m_pot22 <- tidy(pot22_male_fit)$estimate[2]
+beta_f_ll22 <- tidy(ll22_fem_fit)$estimate[2]
+beta_f_pot22 <- tidy(pot22_fem_fit)$estimate[2]
+
+unique(allom_sub$Sex)
+
+bind_rows(tidy(ll22_fem_fit) %>% mutate(Sex = "Female",
+                                      Gear = "Longline"),     
+          tidy(pot22_fem_fit) %>% mutate(Sex = "Female",
+                                       Gear = "Pot"),
+          tidy(ll22_male_fit) %>% mutate(Sex = "Male",
+                                       Gear = "Longline"),     
+          tidy(pot22_male_fit) %>% mutate(Sex = "Male",
+                                        Gear = "Pot")) %>% 
+  #bind_rows(tidy(all_fit) %>% mutate(Sex = "Combined")) %>% 
+  dplyr::select(Parameter = term, Estimate = estimate, SE = std.error, Sex, Gear) %>% 
+  mutate(Source = "Chatham longline and pot fishery",
+         Years = paste0(min(allom_sub_fsh22$year), "-", max(allom_sub_fsh22$year)),
+         Region = "Chatham Strait",
+         Function = "Allometric - NLS") %>% 
+  full_join(allom_sub_fsh22 %>% 
+              group_by(Sex, Gear) %>% 
+              summarise(n = n()))  -> allom_pars_fsh_gear22
+
+length<-rep(as.numeric(seq(min(allom_sub_fsh22$length),max(allom_sub_fsh22$length),1)),4)
+pred<-cbind(length,c(rep("Longline",length(length)/2),rep("Pot",length(length)/2)))
+pred<-cbind(pred,c(rep("Male",nrow(pred)/4),
+                   rep("Female",nrow(pred)/4),
+                   rep("Male",nrow(pred)/4),
+                   rep("Female",nrow(pred)/4)))
+pred<-cbind(pred,c(rep(tidy(ll22_male_fit)$estimate[1],nrow(pred)/4),
+                   rep(tidy(ll22_fem_fit)$estimate[1],nrow(pred)/4),
+                   rep(tidy(pot22_male_fit)$estimate[1],nrow(pred)/4),
+                   rep(tidy(pot22_fem_fit)$estimate[1],nrow(pred)/4)))
+pred<-cbind(pred,c(rep(tidy(ll22_male_fit)$estimate[2],nrow(pred)/4),
+                   rep(tidy(ll22_fem_fit)$estimate[2],nrow(pred)/4),
+                   rep(tidy(pot22_male_fit)$estimate[2],nrow(pred)/4),
+                   rep(tidy(pot22_fem_fit)$estimate[2],nrow(pred)/4)))
+colnames(pred)<-c("length","Gear","Sex","allom_a","allom_b")
+pred<-as.data.frame(pred)
+pred$length<-as.numeric(pred$length)
+pred$allom_a<-as.numeric(pred$allom_a)
+pred$allom_b<-as.numeric(pred$allom_b)
+
+pred$weight<-lw_allometry(pred$length,pred$allom_a,pred$allom_b)
+
+str(pred)
+
+ggplot(allom_sub_fsh22, aes(length, weight, col = Gear, shape = Gear)) +
+  #facet_grid(~Sex) +
+  geom_jitter(alpha =0.8) + 
+  geom_line(data=pred, aes(length, weight, col = Gear)) +
+  
+  labs(x = "Fork length (cm)", y = "Round weight (kg)", alpha = NULL) +
+  facet_grid(~Sex) +
+  # scale_colour_grey() +
+  theme(legend.position = c(0.15, 0.85))
+
+ggsave(paste0(YEAR+1,"/figures/allometry_pot_vs_ll_2022_", YEAR, ".png"),
+       dpi=300, height=4, width=6, units="in")
+
+#==================================================================================
+# Fishery length-at-age ----
+# 3) 1997+,  2 fleets... 
+#good look at overlapping years.  Now allometry for eventual duel-fleet SCAA... 
+
+fsh_bio_noOL %>% 
+  filter(Sex %in% c("Female", "Male") &
+           !is.na(length) &
+           !is.na(age)) %>% 
+  droplevels() -> fsh_laa_sub; str(fsh_laa_sub)
+
+fsh_laa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Female", Gear == "Longline") -> fsh_laa_f_ll
+
+fsh_laa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Male", Gear == "Longline") -> fsh_laa_m_ll
+
+fsh_laa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Female", Gear == "Pot") -> fsh_laa_f_pot
+
+fsh_laa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Male", Gear == "Pot") -> fsh_laa_m_pot
+
+# females
+lvb_f_fsh_ll <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                      size = fsh_laa_f_ll$length, age = fsh_laa_f_ll$age,
+                                      error = 1, # additive (2 = multiplicative)
+                                      # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
+                                      Sinf = 70, K = 0.22, t0 = -1.9)
+lvb_f_fsh_pot <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                       size = fsh_laa_f_pot$length, age = fsh_laa_f_pot$age,
+                                       error = 1, # additive (2 = multiplicative)
+                                       # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
+                                       Sinf = 70, K = 0.22, t0 = -1.9)
+
+# males
+lvb_m_fsh_ll <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                      size = fsh_laa_m_ll$length, age = fsh_laa_m_ll$age,
+                                      error = 1, # additive (2 = multiplicative)
+                                      # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
+                                      Sinf = 70, K = 0.22, t0 = -1.9)
+lvb_m_fsh_pot <- fishmethods::growth(unit = 1, # length (2 = weight)
+                                       size = fsh_laa_m_pot$length, age = fsh_laa_m_pot$age,
+                                       error = 1, # additive (2 = multiplicative)
+                                       # starting values from Hanselman et al. 2007 (Appendix C, Table 1)
+                                       Sinf = 70, K = 0.22, t0 = -1.9)
+
+# save param estimates
+ss_sum<-fsh_laa_sub %>% 
+  group_by(Sex,Gear) %>% 
+  summarise(n = n())
+view(lvb_pars)
+
+lvb_pars %>% 
+  bind_rows(as_tibble(summary(lvb_f_fsh_ll$vout)$parameters[,1:2]) %>% 
+                         mutate(Parameter = c("l_inf", "k", "t0"),
+                                Sex = "Female", Gear = "Longline") %>% 
+                         bind_rows(as_tibble(summary(lvb_m_fsh_ll$vout)$parameters[,1:2]) %>% 
+                                     mutate(Parameter = c("l_inf", "k", "t0"),
+                                            Sex = "Male", Gear = "Longline")) %>% 
+                         bind_rows(as_tibble(summary(lvb_f_fsh_pot$vout)$parameters[,1:2]) %>% 
+                                     mutate(Parameter = c("l_inf", "k", "t0"),
+                                            Sex = "Female", Gear = "Pot")) %>%
+                         bind_rows(as_tibble(summary(lvb_m_fsh_pot$vout)$parameters[,1:2]) %>% 
+                                     mutate(Parameter = c("l_inf", "k", "t0"),
+                                            Sex = "Male", Gear = "Pot")) %>%
+                         mutate(Source = "EQS longline & pot fishery",
+                                Years = paste0("1997-", max(laa_sub$year)),
+                                Region = "Chatham Strait",
+                                Function = "Length-based LVB"
+                         )  %>% 
+                         full_join(fsh_laa_sub %>% 
+                                     group_by(Sex,Gear) %>% 
+                                     summarise(n = n()))) -> lvb_pars_2fleet; view(lvb_pars_2fleet)
+
+# Save length-at-age predictions -----
+age_pred <- data.frame(age = rec_age:plus_group)
+
+# Survey laa
+laa_preds_2fleets <- age_pred %>% 
+  mutate(sex = "Female",
+         length = predict(lvb_f$vout, newdata = age_pred)) %>% 
+  bind_rows(age_pred %>% 
+              mutate(sex = "Male",
+                     length = predict(lvb_m$vout, newdata = age_pred))) %>% 
+  mutate(Source = "LL survey") %>% 
+  # Longline laa
+  bind_rows(age_pred %>% 
+              mutate(sex = "Female",
+                     length = predict(lvb_f_fsh_ll$vout, newdata = age_pred)) %>% 
+              bind_rows(age_pred %>% 
+                          mutate(sex = "Male",
+                                 length = predict(lvb_m_fsh_ll$vout, newdata = age_pred))) %>% 
+              mutate(Source = "LL fishery")) %>%
+  bind_rows(age_pred %>% 
+              mutate(sex = "Female",
+                     length = predict(lvb_f_fsh_pot$vout, newdata = age_pred)) %>% 
+              bind_rows(age_pred %>% 
+                          mutate(sex = "Male",
+                                 length = predict(lvb_m_fsh_pot$vout, newdata = age_pred))) %>% 
+              mutate(Source = "Pot fishery"))
+              
+              
+write_csv(laa_preds_2fleets, paste0(YEAR+1,"/output/pred_laa_plsgrp_2fleets_", plus_group, "_", YEAR, ".csv"))
+
+#------------------
+
+fsh_bio_noOL %>% 
+  filter(Sex %in% c("Female", "Male") &
+           year >= 1997 & 
+           !is.na(length) &
+           !is.na(weight)) %>% 
+  droplevels() -> allom_sub_fsh
+colnames(allom_sub_fsh)
+# length-weight relationship
+
+ll_fem_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+                    data = filter(allom_sub_fsh, Sex == "Female", Gear == "Longline"), start = START)
+pot_fem_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+                     data = filter(allom_sub_fsh, Sex == "Female", Gear == "Pot"), start = START)
+ll_male_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+                     data = filter(allom_sub_fsh, Sex == "Male", Gear == "Longline"), start = START)
+pot_male_fit <- nls(weight ~ lw_allometry(length = length, a, b), 
+                      data = filter(allom_sub_fsh, Sex == "Male", Gear == "Pot"), start = START)
 
 # parameter estimates and plot fit 
 beta_m_ll <- tidy(ll_male_fit)$estimate[2]
@@ -698,39 +977,58 @@ beta_f_pot <- tidy(pot_fem_fit)$estimate[2]
 unique(allom_sub$Sex)
 
 bind_rows(tidy(ll_fem_fit) %>% mutate(Sex = "Female",
-                                      Gear = "Longline"),     
+                                        Gear = "Longline"),     
           tidy(pot_fem_fit) %>% mutate(Sex = "Female",
-                                       Gear = "Pot"),
+                                         Gear = "Pot"),
           tidy(ll_male_fit) %>% mutate(Sex = "Male",
-                                       Gear = "Longline"),     
+                                         Gear = "Longline"),     
           tidy(pot_male_fit) %>% mutate(Sex = "Male",
-                                        Gear = "Pot")) %>% 
+                                          Gear = "Pot")) %>% 
   #bind_rows(tidy(all_fit) %>% mutate(Sex = "Combined")) %>% 
   dplyr::select(Parameter = term, Estimate = estimate, SE = std.error, Sex, Gear) %>% 
   mutate(Source = "Chatham longline and pot fishery",
-         Years = paste0(min(allom_sub_fsh22$year), "-", max(allom_sub_fsh22$year)),
+         Years = paste0(min(allom_sub_fsh$year), "-", max(allom_sub_fsh$year)),
          Region = "Chatham Strait",
          Function = "Allometric - NLS") %>% 
-  full_join(allom_sub_fsh22 %>% 
+  full_join(allom_sub_fsh %>% 
               group_by(Sex, Gear) %>% 
               summarise(n = n()))  -> allom_pars_fsh_gear
 
-ggplot(allom_sub_fsh22, aes(length, weight, col = Gear, shape = Gear)) +
-  facet_grid(~Sex) +
-  geom_jitter(alpha =0.8) + 
-  
-  #pick up on 3-8-23
-#  stat_function(fun = lw_allometry, 
-                args = as.list(tidy(ll_fem_fit)$estimate),
-                col = "#F8766D") + 
-  stat_function(fun = lw_allometry, 
-                args = as.list(tidy(male_fit)$estimate),
-                col = "#00BFC4", lty = 2) + 
-  labs(x = "Fork length (cm)", y = "Round weight (kg)", alpha = NULL) +
-  # scale_colour_grey() +
-  theme(legend.position = c(0.85, 0.2))
+length<-rep(as.numeric(seq(min(allom_sub_fsh$length),max(allom_sub_fsh$length),1)),4)
+pred<-cbind(length,c(rep("Longline",length(length)/2),rep("Pot",length(length)/2)))
+pred<-cbind(pred,c(rep("Male",nrow(pred)/4),
+                   rep("Female",nrow(pred)/4),
+                   rep("Male",nrow(pred)/4),
+                   rep("Female",nrow(pred)/4)))
+pred<-cbind(pred,c(rep(tidy(ll_male_fit)$estimate[1],nrow(pred)/4),
+                   rep(tidy(ll_fem_fit)$estimate[1],nrow(pred)/4),
+                   rep(tidy(pot_male_fit)$estimate[1],nrow(pred)/4),
+                   rep(tidy(pot_fem_fit)$estimate[1],nrow(pred)/4)))
+pred<-cbind(pred,c(rep(tidy(ll_male_fit)$estimate[2],nrow(pred)/4),
+                   rep(tidy(ll_fem_fit)$estimate[2],nrow(pred)/4),
+                   rep(tidy(pot_male_fit)$estimate[2],nrow(pred)/4),
+                   rep(tidy(pot_fem_fit)$estimate[2],nrow(pred)/4)))
+colnames(pred)<-c("length","Gear","Sex","allom_a","allom_b")
+pred<-as.data.frame(pred)
+pred$length<-as.numeric(pred$length)
+pred$allom_a<-as.numeric(pred$allom_a)
+pred$allom_b<-as.numeric(pred$allom_b)
 
-ggsave(paste0(YEAR+1,"/figures/allometry_chathamllsurvey_1997_", YEAR, ".png"),
+pred$weight<-lw_allometry(pred$length,pred$allom_a,pred$allom_b)
+
+str(pred)
+
+ggplot(allom_sub_fsh, aes(length, weight, col = Gear, shape = Gear)) +
+  #facet_grid(~Sex) +
+  geom_jitter(alpha =0.8) + 
+  geom_line(data=pred, aes(length, weight, col = Gear)) +
+  
+  labs(x = "Fork length (cm)", y = "Round weight (kg)", alpha = NULL) +
+  facet_grid(~Sex) +
+  # scale_colour_grey() +
+  theme(legend.position = c(0.15, 0.85))
+
+ggsave(paste0(YEAR+1,"/figures/allometry_pot_vs_ll_1997_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
 
 #===================================================================================================
@@ -882,7 +1180,8 @@ lvb_pars %>% bind_rows(
     mutate(Source = "EQS longline fishery",
          Years = paste0(min(fsh_waa_sub$year), "-", max(fsh_waa_sub$year)),
          Region = "Chatham Strait",
-         Function = "Weight-based LVB")) -> lvb_pars
+         Function = "Weight-based LVB",
+         Gear = "Longline")) -> lvb_pars
 
 view(lvb_pars)
 # Save weight-at-age predictions -----
@@ -962,10 +1261,190 @@ ggsave(paste0(YEAR+1,"/figures/compare_empirical_predicted_waa_", YEAR, ".png"),
 
 bind_rows(allom_pars, lvb_pars %>% rename(SE = `Std. Error`)) %>% 
       mutate(Notes = "seak_sablefish/code/biological.r") %>% 
-  bind_rows(noaa_lvb %>% rename(Notes = Source) %>% rename(Source = Survey)) -> lvb_comp
+  bind_rows(noaa_lvb %>% rename(Notes = Source) %>% rename(Source = Survey)) -> lvb_comp; view(lvb_comp)
 
 write_csv(lvb_comp, paste0(YEAR+1,"/output/compare_vonb_adfg_noaa_", YEAR, ".csv"))
 
+#----------------------------------------------------------------------------------
+## Do the same thing now, but split up the fishery data by gear... 
+
+# subsets by weight, age, sex
+fsh_bio_noOL %>% 
+  filter(Sex %in% c("Female", "Male") &
+           year >= 2002 & # use same years as survey
+           !is.na(age) &
+           !is.na(weight)) %>% 
+  droplevels() -> fsh_waa_sub
+
+fsh_waa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Female", Gear == "Longline") -> fsh_waa_f_ll
+
+fsh_waa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Male", Gear == "Longline") -> fsh_waa_m_ll
+
+fsh_waa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Female", Gear == "Pot") -> fsh_waa_f_pot
+
+fsh_waa_sub %>% 
+  ungroup() %>% 
+  filter(Sex == "Male", Gear == "Pot") -> fsh_waa_m_pot
+
+# mle fit for females
+
+# females
+wvb_f_fsh_ll <- fishmethods::growth(unit = 2, # 1 = length, 2 = weight
+                                 size = fsh_waa_f_ll$weight, age = fsh_waa_f_ll$age,
+                                 error = 2, # 1 = additive, 2 = multiplicative log(w_i) = log(w_inf) + beta * log(1 - exp * (-k * (age_i - t0))) + error
+                                 # starting values from Hanselman et al. 2007 (Appendix C, Table 5)
+                                 Sinf = 5.5, K = 0.24, t0 = -1.4,
+                                 B = allom_pars_fsh_gear %>% filter(Sex == "Female" & Parameter == "b" & Gear == "Longline") %>% pull(Estimate))
+wvb_f_fsh_pot <- fishmethods::growth(unit = 2, # 1 = length, 2 = weight
+                                 size = fsh_waa_f_pot$weight, age = fsh_waa_f_pot$age,
+                                 error = 2, # 1 = additive, 2 = multiplicative log(w_i) = log(w_inf) + beta * log(1 - exp * (-k * (age_i - t0))) + error
+                                 # starting values from Hanselman et al. 2007 (Appendix C, Table 5)
+                                 Sinf = 5.5, K = 0.24, t0 = -1.4,
+                                 B = allom_pars_fsh_gear %>% filter(Sex == "Female" & Parameter == "b" & Gear == "Pot") %>% pull(Estimate))
+wvb_f_fsh # gompertz failed but that wasn't our target so we're good
+
+# males
+wvb_m_fsh_ll <- fishmethods::growth(unit = 2, # 1 = length, 2 = weight
+                                    size = fsh_waa_m_ll$weight, age = fsh_waa_m_ll$age,
+                                    error = 2, # 1 = additive, 2 = multiplicative log(w_i) = log(w_inf) + beta * log(1 - exp * (-k * (age_i - t0))) + error
+                                    # starting values from Hanselman et al. 2007 (Appendix C, Table 5)
+                                    Sinf = 5.5, K = 0.24, t0 = -1.4,
+                                    B = allom_pars_fsh_gear %>% filter(Sex == "Male" & Parameter == "b" & Gear == "Longline") %>% pull(Estimate))
+wvb_m_fsh_pot <- fishmethods::growth(unit = 2, # 1 = length, 2 = weight
+                                     size = fsh_waa_m_pot$weight, age = fsh_waa_m_pot$age,
+                                     error = 2, # 1 = additive, 2 = multiplicative log(w_i) = log(w_inf) + beta * log(1 - exp * (-k * (age_i - t0))) + error
+                                     # starting values from Hanselman et al. 2007 (Appendix C, Table 5)
+                                     Sinf = 5.5, K = 0.24, t0 = -1.4,
+                                     B = allom_pars_fsh_gear %>% filter(Sex == "Male" & Parameter == "b" & Gear == "Pot") %>% pull(Estimate))
+
+# save param estimates
+lvb_pars_2fleet %>% bind_rows(
+  as_tibble(summary(wvb_f_fsh_ll$vout)$parameters[,1:2]) %>% 
+    mutate(Parameter = c("w_inf", "k", "t0"),
+           Sex = "Female",
+           Gear = "Longline",
+           Source = "EQS longline fishery") %>% 
+    bind_rows(as_tibble(summary(wvb_m_fsh_ll$vout)$parameters[,1:2]) %>% 
+                mutate(Parameter = c("w_inf", "k", "t0"),
+                       Sex = "Male",
+                       Gear = "Longline",
+                       Source = "EQS longline fishery")) %>% 
+    bind_rows(as_tibble(summary(wvb_f_fsh_pot$vout)$parameters[,1:2]) %>% 
+                mutate(Parameter = c("w_inf", "k", "t0"),
+                       Sex = "Female",
+                       Gear = "Pot",
+                       Source = "EQS pot fishery")) %>%
+    bind_rows(as_tibble(summary(wvb_m_fsh_pot$vout)$parameters[,1:2]) %>% 
+                mutate(Parameter = c("w_inf", "k", "t0"),
+                       Sex = "Male",
+                       Gear = "Pot",
+                       Source = "EQS pot fishery")) %>% 
+    mutate(#Source = "EQS longline fishery",
+           Years = paste0(min(fsh_waa_sub$year), "-", max(fsh_waa_sub$year)),
+           Region = "Chatham Strait",
+           Function = "Weight-based LVB") %>% 
+    full_join(fsh_waa_sub %>% 
+                group_by(Sex,Gear) %>% 
+                summarise(n = n()))) -> lvb_pars_2fleet
+view(lvb_pars_2fleet)
+
+
+# Save weight-at-age predictions -----
+
+# unfortunately, while the fishmethods package makes it easy to do everything
+# else, it does not make it easy to extract model predictions from the growth
+# curves when using the multiplicative error structure (the one that assumes
+# residuals are lognormally distributed). As such, we have to extract the
+# coefficients and do the predictions manually. Part of this is applying a
+# log-normal bias correction, which gets us the mean (instead of median)
+# predicted value. This correction is E(w_i) = exp(mu_i + 0.5 * sigma^2), where
+# mu is the predicted value in log space (i.e. log(w_i) in the formula below):
+
+# log(w_i) = log(w_inf) + beta * log(1 - exp * (-k * (age_i - t0))) + error
+
+coef_f_wvb <- summary(wvb_f$vout)$parameter[,1] # survey females
+coef_f_wvb_fsh_ll <- summary(wvb_f_fsh_ll$vout)$parameter[,1] # ll fishery females
+coef_f_wvb_fsh_pot <- summary(wvb_f_fsh_pot$vout)$parameter[,1] # pot fishery females
+beta_f_ll <- allom_pars_fsh_gear %>% filter(Sex == "Female" & Parameter == "b" & Gear == "Longline") %>% pull(Estimate) # beta from allometric model (weight-length relationship)
+beta_f_pot <- allom_pars_fsh_gear %>% filter(Sex == "Female" & Parameter == "b" & Gear == "Pot") %>% pull(Estimate)
+
+coef_m_wvb <- summary(wvb_m$vout)$parameter[,1] # survey males
+coef_m_wvb_fsh_ll <- summary(wvb_m_fsh_ll$vout)$parameter[,1] # ll fishery males
+coef_m_wvb_fsh_pot <- summary(wvb_m_fsh_pot$vout)$parameter[,1] # pot fishery males
+beta_m_ll <- allom_pars_fsh_gear %>% filter(Sex == "Male" & Parameter == "b" & Gear == "Longline") %>% pull(Estimate) # beta from allometric model (weight-length relationship)
+beta_m_pot <- allom_pars_fsh_gear %>% filter(Sex == "Male" & Parameter == "b" & Gear == "Pot") %>% pull(Estimate)
+
+#coef_wvb <- summary(wvb$vout)$parameter[,1] # survey sexes combined
+#coef_wvb_fsh <- summary(wvb_fsh$vout)$parameter[,1] # fishery sexes combined
+#beta_c <- allom_pars %>% filter(Sex == "Combined" & Parameter == "b") %>% pull(Estimate) # beta from allometric model (weight-length relationship)
+
+waa_preds_2fleets <- age_pred %>% 
+  mutate(Sex = "Female",
+         round_kg = exp(log(coef_f_wvb[1]) + beta_f * log(1 - exp(-coef_f_wvb[2] * (age_pred$age - coef_f_wvb[3]))) +
+                          0.5 * (sigma(wvb_f$vout)^2))) %>% 
+  bind_rows(age_pred %>% 
+              mutate(Sex = "Male",
+                     round_kg = exp(log(coef_m_wvb[1]) + beta_m * log(1 - exp(-coef_m_wvb[2] * (age_pred$age - coef_m_wvb[3]))) +
+                                      0.5 * (sigma(wvb_m$vout)^2)))) %>% 
+  #bind_rows(age_pred %>% 
+  #            mutate(Sex = "Combined",
+  #                   round_kg = exp(log(coef_wvb[1]) + beta_c * log(1 - exp(-coef_wvb[2] * (age_pred$age - coef_wvb[3]))) +
+  #                                    0.5 * (sigma(wvb$vout)^2)))) %>% 
+  mutate(Source = "LL survey") %>% 
+  # Fishery waa
+  bind_rows(age_pred %>% 
+              mutate(Sex = "Female",
+                     round_kg = exp(log(coef_f_wvb_fsh_ll[1]) + beta_f_ll * log(1 - exp(-coef_f_wvb_fsh_ll[2] * (age_pred$age - coef_f_wvb_fsh_ll[3]))) +
+                                      0.5 * (sigma(wvb_f_fsh_ll$vout)^2))) %>% 
+              bind_rows(age_pred %>% 
+                          mutate(Sex = "Male",
+                                 round_kg = exp(log(coef_m_wvb_fsh_ll[1]) + beta_m_ll * log(1 - exp(-coef_m_wvb_fsh_ll[2] * (age_pred$age - coef_m_wvb_fsh_ll[3]))) +
+                                                  0.5 * (sigma(wvb_m_fsh_ll$vout)^2)))) %>% 
+              mutate(Source = "LL fishery") ) %>%
+  bind_rows(age_pred %>% 
+              mutate(Sex = "Female",
+                     round_kg = exp(log(coef_f_wvb_fsh_pot[1]) + beta_f_pot * log(1 - exp(-coef_f_wvb_fsh_pot[2] * (age_pred$age - coef_f_wvb_fsh_pot[3]))) +
+                                      0.5 * (sigma(wvb_f_fsh_pot$vout)^2))) %>% 
+              bind_rows(age_pred %>% 
+                          mutate(Sex = "Male",
+                                 round_kg = exp(log(coef_m_wvb_fsh_pot[1]) + beta_m_ll * log(1 - exp(-coef_m_wvb_fsh_pot[2] * (age_pred$age - coef_m_wvb_fsh_pot[3]))) +
+                                                  0.5 * (sigma(wvb_m_fsh_pot$vout)^2)))) %>% 
+              mutate(Source = "Pot fishery") )
+
+write_csv(waa_preds_2fleets, paste0(YEAR+1,"/output/pred_waa_plsgrp_2fleets_", plus_group, "_", YEAR, ".csv"))
+
+# Compare empirical and predicted weight-at-age
+ggplot() +
+  geom_point(data = emp_waa_2fleet %>% filter(!is.na(Source)), 
+             aes(x = age, y = weight, col = Source, shape = Sex)) +
+  geom_line(data = waa_preds_2fleets,
+            aes(x = age, y = round_kg, col = Source, linetype = Sex), size = 1) +
+  scale_colour_grey() +
+  # expand_limits(y = 0) +
+  labs(x = "\nAge", y = "Weight (kg)\n", linetype = "Sex", shape = "Sex")
+
+ggsave(paste0(YEAR+1,"/figures/compare_empirical_predicted_waa_2fleet_", YEAR, ".png"), 
+       dpi=300, height=4, width=6, units="in")
+
+# Compare growth results ----
+
+# Comparison of Hanselman et al. 2007 values with the Chatham Strait longline
+# survey. Units: length (cm), weight (kg), and age (yrs)
+
+# for MArch 2 2023 pick up here... 
+
+bind_rows(allom_pars_fsh_gear, lvb_pars_2fleet %>% rename(SE = `Std. Error`)) %>% 
+  mutate(Notes = "seak_sablefish/code/biological.r") %>% 
+  bind_rows(noaa_lvb %>% rename(Notes = Source) %>% rename(Source = Survey) %>%
+              mutate(Gear = "Longline")) -> lvb_comp_2fleet; view(lvb_comp_2fleet)
+
+write_csv(lvb_comp_2fleet, paste0(YEAR+1,"/output/compare_vonb_adfg_noaa_2fleet_", YEAR, ".csv"))
 
 #===========================================================================================
 # Maturity ----
@@ -1314,16 +1793,46 @@ srv_bio_noOL %>%
   bind_rows(fsh_bio %>% 
               filter(age %in% aa) %>% 
               ungroup() %>% 
-              select(Sex, age) %>% 
-              filter(Sex %in% c("Female", "Male")) %>% 
+              select(Sex, age, Gear) %>% 
+              filter(Sex %in% c("Female", "Male"),
+                     Gear == "Longline") %>% 
               na.omit() %>% 
               droplevels() %>% 
               count(Sex, age) %>% 
               group_by(age) %>% 
               mutate(proportion = round(n / sum(n), 2),
                      Source = "LL fishery") %>% 
-              filter(Sex == "Female")) -> byage
+              filter(Sex == "Female")) %>% 
+  bind_rows(fsh_bio %>% 
+              filter(age %in% aa) %>% 
+              ungroup() %>% 
+              select(Sex, age, Gear) %>% 
+              filter(Sex %in% c("Female", "Male"),
+                     Gear == "Pot") %>% 
+              na.omit() %>% 
+              droplevels() %>% 
+              count(Sex, age) %>% 
+              group_by(age) %>% 
+              mutate(proportion = round(n / sum(n), 2),
+                     Source = "Pot fishery") %>% 
+              filter(Sex == "Female"))-> byage
 str(byage); view(byage)
+
+
+#fist year of pot fishery does not have all ages represented so we need to insert them
+ages<-aa %>% data.frame %>% filter(!(aa %in% byage$age[byage$Source == "Pot fishery"]))
+pot_missing_ages<-cbind(Sex = rep("Female",nrow(pot_missing)),
+      age = ages,
+      n = rep(0,nrow(pot_missing)),
+      proportion = rep(NA,nrow(pot_missing)),
+      Source = rep("Pot fishery",nrow(pot_missing))) %>%
+  rename(age = ".")
+
+byage<-rbind(byage,pot_missing_ages) %>% 
+  arrange(factor(Source, levels = c("LL survey","LL fishery","Pot fishery")),
+          age)
+
+
 # get generalized additive model fits and predictions
 # survey
 srv_fitage <- gam(I(Sex == "Female") ~ s(age, k=4), 
@@ -1336,29 +1845,45 @@ plot(srv_fitage)
 srv_predage <- predict(srv_fitage, newdata = data.frame(age = aa),
                        type = "response", se = TRUE)
 
-# fishery
-fsh_fitage <- gam(I(Sex == "Female") ~ s(age, k=4), 
+# longline fishery
+fsh_ll_fitage <- gam(I(Sex == "Female") ~ s(age, k=4), 
                data = filter(fsh_bio_noOL, age %in% aa,
-                             Sex %in% c("Female", "Male")),
+                             Sex %in% c("Female", "Male"),
+                             Gear == "Longline"),
                family = "quasibinomial")
-summary(fsh_fitage)
-plot(fsh_fitage)
+summary(fsh_ll_fitage)
+plot(fsh_ll_fitage)
 
-fsh_predage <- predict(fsh_fitage, newdata = data.frame(age = aa),
+fsh_ll_predage <- predict(fsh_ll_fitage, newdata = data.frame(age = aa),
                        type = "response", se = TRUE)
+
+# pot fishery
+fsh_pot_fitage <- gam(I(Sex == "Female") ~ s(age, k=4), 
+                     data = filter(fsh_bio_noOL, age %in% aa,
+                                   Sex %in% c("Female", "Male"),
+                                   Gear == "Pot"),
+                     family = "quasibinomial")
+summary(fsh_pot_fitage)
+plot(fsh_pot_fitage)
+
+fsh_pot_predage <- predict(fsh_pot_fitage, 
+                           newdata = data.frame(age = aa),
+                          type = "response", se = TRUE)
 
 # combine with the sex_ratio df
 # *FLAG* bind_cols goes by col position, make sure survey is first
 
-bind_cols(
+bind_cols(  #1st year pot data does not have all ages... 
   byage,
   #do.call cbinds each vector in the predict() output list 
   bind_rows(as_tibble(do.call(cbind, srv_predage)) %>% 
               mutate(source_check = "LL survey"),
-            as_tibble(do.call(cbind, fsh_predage)) %>% 
-              mutate(source_check = "LL fishery") ) 
+            as_tibble(do.call(cbind, fsh_ll_predage)) %>% 
+              mutate(source_check = "LL fishery"),
+            as_tibble(do.call(cbind, fsh_pot_predage)) %>% 
+              mutate(source_check = "Pot fishery")) 
   ) -> byage
-view(byage)
+view(byage); view(byage_simp)
 
 # plot
 ggplot(byage, aes(x = age)) +
@@ -1369,9 +1894,12 @@ ggplot(byage, aes(x = age)) +
   xlab("\nAge") +
   ylab("Proportion of females\n") +
   geom_hline(yintercept = 0.5, lty = 2, col = "grey") +
-  scale_colour_manual(values = c("black", "grey")) +
-  scale_fill_manual(values = c("black", "grey")) +
-  theme(legend.position = c(0.8, 0.8)) -> byage_plot
+  scale_colour_viridis_d(option="D",begin=0,end=0.75) +
+  scale_fill_viridis_d(option="D",begin=0,end=0.75) +
+  #scale_fill_manual(values = c("black", "grey")) +
+  theme(legend.position = c(0.15, 0.3),
+        legend.box.background = element_rect(fill = "transparent",
+                                             colour = "transparent")) -> byage_plot
 
 # proportion of females by year in the fishery and survey 
 
@@ -1398,11 +1926,64 @@ srv_bio_noOL %>%
               group_by(year) %>% 
               mutate(proportion = round(n / sum(n), 2),
                      Source = "LL fishery") %>% 
-              filter(Sex == "Female")) -> byyear
+              filter(Sex == "Female")) -> byyear_base
+view(byyear_base)
+
+srv_bio_noOL %>% 
+  filter(age %in% aa) %>% 
+  ungroup() %>% 
+  select(Sex, year) %>% 
+  filter(Sex %in% c("Female", "Male")) %>% 
+  na.omit() %>% 
+  droplevels() %>% 
+  count(Sex, year) %>% 
+  group_by(year) %>% 
+  mutate(proportion = round(n / sum(n), 2),
+         Source = "LL survey") %>% 
+  filter(Sex == "Female") %>% 
+  bind_rows(fsh_bio_noOL %>% 
+              filter(age %in% aa) %>% 
+              ungroup() %>% 
+              select(Sex, year, Gear) %>% 
+              filter(Sex %in% c("Female", "Male"),
+                     Gear == "Longline") %>% 
+              na.omit() %>% 
+              droplevels() %>% 
+              count(Sex, year) %>% 
+              group_by(year) %>% 
+              mutate(proportion = round(n / sum(n), 2),
+                     Source = "LL fishery") %>% 
+              filter(Sex == "Female")) %>%
+  bind_rows(fsh_bio_noOL %>% 
+              filter(age %in% aa) %>% 
+              ungroup() %>% 
+              select(Sex, year, Gear) %>% 
+              filter(Sex %in% c("Female", "Male"),
+                     Gear == "Pot") %>% 
+              na.omit() %>% 
+              droplevels() %>% 
+              count(Sex, year) %>% 
+              group_by(year) %>% 
+              mutate(proportion = round(n / sum(n), 2),
+                     Source = "Pot fishery") %>% 
+              filter(Sex == "Female"))-> byyear
 view(byyear)
 
 # Save output for YPR analysis
 write_csv(byyear, paste0(YEAR+1,"/output/sexratio_byyear_plsgrp", plus_group, "_", YEAR, ".csv"))
+
+ys<-seq(1997,2021,1)
+pot_missing_ys<-cbind(Sex = rep("Female",length(ys)),
+                        year = ys,
+                        n = rep(as.numeric(0),length(ys)),
+                        proportion = rep(NA,length(ys)),
+                        Source = rep("Pot fishery",length(ys))) %>% data.frame() %>%
+  mutate(year = as.numeric(year),n = as.numeric(n))
+
+byyear<-rbind(byyear %>% data.frame(),pot_missing_ys) %>% 
+  arrange(factor(Source, levels = c("LL survey","LL fishery","Pot fishery")),
+          year) %>%
+  mutate(proportion = as.numeric(proportion))
 
 # get generalized additive model fits and predictions
 # survey
@@ -1417,41 +1998,60 @@ srv_predyear <- predict(srv_fityear,
                         newdata = data.frame(year = min(srv_yrs):max(srv_yrs) ),
                        type = "response", se = TRUE)
 
-# fishery
-fsh_fityear <- gam(I(Sex == "Female") ~ s(year, k = 4), 
-                   data = filter(fsh_bio_noOL, Sex %in% c("Female", "Male")),
+# ll fishery
+fsh_ll_fityear <- gam(I(Sex == "Female") ~ s(year, k = 4), 
+                   data = filter(fsh_bio_noOL, Sex %in% c("Female", "Male"),
+                                 Gear == "Longline"),
                    family = "quasibinomial")
-summary(fsh_fityear); plot(fsh_fityear)
+summary(fsh_ll_fityear); plot(fsh_ll_fityear)
 
-fsh_yrs <- byyear %>% filter(Source == "LL fishery") %>% select(year) %>% range()
+fsh_ll_yrs <- byyear %>% filter(Source == "LL fishery") %>% select(year) %>% range()
 
-fsh_predyear <- predict(fsh_fityear, 
-                        newdata = data.frame(year = min(fsh_yrs):max(fsh_yrs) ),
+fsh_ll_predyear <- predict(fsh_ll_fityear, 
+                        newdata = data.frame(year = min(fsh_ll_yrs):max(fsh_ll_yrs) ),
                         type = "response", se = TRUE)
+
+# pot fishery
+fsh_pot_fityear <- gam(I(Sex == "Female") ~ s(year, k = 4), 
+                      data = filter(fsh_bio_noOL, Sex %in% c("Female", "Male"),
+                                    Gear == "Pot"),
+                      family = "quasibinomial")
+summary(fsh_pot_fityear); plot(fsh_pot_fityear)
+
+fsh_pot_yrs <- byyear %>% filter(Source == "Pot fishery") %>% select(year) %>% range()
+
+fsh_pot_predyear <- predict(fsh_pot_fityear, 
+                           newdata = data.frame(year = min(fsh_pot_yrs):max(fsh_pot_yrs) ),
+                           type = "response", se = TRUE)
+
 
 # combine with the sex_ratio df
 # *FLAG* bind_cols goes by col position, make sure survey is first
 bind_cols(
-  byyear,
+  byyear %>% filter(!(Source == "Pot fishery")),
   #do.call cbinds each vector in the predict() output list 
-  bind_rows(tbl_df(do.call(cbind, srv_predyear))%>% mutate(source_check = "LL survey"),
-            tbl_df(do.call(cbind, fsh_predyear))%>% mutate(source_check = "LL fishery") ) 
-) -> byyear
-view(byyear)
+  bind_rows(tibble::as_tibble(do.call(cbind, srv_predyear))%>% mutate(source_check = "LL survey"),
+            tibble::as_tibble(do.call(cbind, fsh_ll_predyear))%>% mutate(source_check = "LL fishery") ) 
+) %>% mutate(proportion = as.numeric(proportion))-> byyear_nopot
+str(byyear_nopot)
 
 # plots
 
-ggplot(data = byyear, aes(x = year)) +
+ggplot(data = byyear_nopot, aes(x = year)) +
   geom_line(aes(y = fit, col = Source), size = 1) +
   geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, 
                   fill = Source),  alpha = 0.2) +
-  geom_point(aes(y = proportion, col = Source)) +  
+  geom_point(data=byyear, aes(y = proportion, col = Source)) +  
+  #geom_point(data=byyear %>% filter(Source == "Pot fishery"),
+  #           aes(x=year,y=proportion, col = "green")) +
   expand_limits(y = c(0.0, 1)) +
   geom_hline(yintercept = 0.5, lty = 2, col = "grey") +
   xlab("\nYear") +
   ylab("Proportion of females\n") +
-  scale_colour_manual(values = c("black", "grey")) +
-  scale_fill_manual(values = c("black", "grey")) +
+  scale_colour_viridis_d(option="D",begin=0,end=0.75) +
+  scale_fill_viridis_d(option="D",begin=0,end=0.5) +
+  #scale_colour_manual(values = c("black", "grey")) +
+  #scale_fill_manual(values = c("black", "grey")) +
   theme(legend.position = "none") -> byyear_plot
 
 plot_grid(byage_plot, byyear_plot, align = c("h"), ncol = 1)
@@ -1466,8 +2066,11 @@ ggsave(paste0(YEAR+1,"/figures/sex_ratios_", YEAR, ".png"), dpi=300,  height=6, 
 #quos() uses stand eval in dplyr, eval cols with nonstand eval using !!!
 cols <- quos(Source, year, Sex, age) 
 
-bind_rows(fsh_bio_noOL %>% mutate(Source = "LL fishery") %>% select(!!!cols), 
-          srv_bio_noOL %>% mutate(Source = "LL survey") %>% select(!!!cols)) %>% 
+bind_rows(fsh_bio_noOL %>% filter(Gear == "Longline") %>%
+            mutate(Source = "LL fishery") %>% select(!!!cols), 
+          fsh_bio_noOL %>% filter(Gear == "Pot") %>%
+            mutate(Source = "Pot fishery") %>% select(!!!cols)) %>%
+  bind_rows(srv_bio_noOL %>% mutate(Source = "LL survey") %>% select(!!!cols)) %>% 
   bind_rows(potsrv_bio %>% mutate(Source = "Pot survey") %>% select(!!!cols)) %>% 
   filter(Sex %in% c('Female', 'Male') & !is.na(age)) %>% 
   droplevels() %>% 
@@ -1516,7 +2119,8 @@ expand.grid(year = unique(agecomps$year),
          proportion = round(proportion, 5)) %>%
   # Keep only relevant years for each Source
   filter(c(Source == "LL fishery" & year >= 2002) |
-           c(Source == "LL survey" & year >= 1997)) -> agecomps
+           c(Source == "LL survey" & year >= 1997) |
+           c(Source == "Pot fishery" & year >= 2022)) -> agecomps
 
 # Check that they sum to 1
 agecomps %>% 
@@ -1549,7 +2153,7 @@ agecomps %>%
   labs(x = "\nAge", y = "Proportion\n") +
   theme(legend.position = c(0.7, 0.9))
 
-ggsave(paste0(YEAR+1,"/figures/agecomp_bargraph_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/agecomp_bargraph_ll_fsh_", YEAR, ".png"), 
               dpi=300, height=3, width=9, units="in")
 
 # All years smoothed by source
@@ -1635,9 +2239,17 @@ bind_rows(srv_bio_noOL %>%
           fsh_bio_noOL %>% 
             filter(year >= 2002 &
                      Sex %in% c("Female", "Male") &
-                     !is.na(length)) %>% 
+                     !is.na(length),
+                   Gear == "Longline") %>% 
             select(year, Sex, length) %>% 
-            mutate(Source = "LL fishery")#,
+            mutate(Source = "LL fishery"),
+          fsh_bio_noOL %>% 
+            filter(year >= 2002 &
+                     Sex %in% c("Female", "Male") &
+                     !is.na(length),
+                   Gear == "Pot") %>% 
+            select(year, Sex, length) %>% 
+            mutate(Source = "Pot fishery")#,
           # potsrv_bio %>% 
           #   filter(Sex %in% c("Female", "Male") &
           #            !is.na(length)) %>% 
@@ -1675,7 +2287,8 @@ expand.grid(year = unique(lencomps$year),
          proportion = round(proportion, 6)) %>%
   # Keep only relevant years for each Source
   filter(c(Source == "LL fishery" & year >= 2002) |
-           c(Source == "LL survey" & year >= 1997) #|
+           c(Source == "LL survey" & year >= 1997) |
+           c(Source == "Pot fishery" & year >= 2022) #|
            # c(Source == "Pot survey" & year %in% pot_yrs$year)
          ) -> lencomps
 
@@ -1717,7 +2330,8 @@ f_lencomps <- lencomps %>%
 lendat %>% 
   filter(Source != "Pot survey") %>% 
   mutate(Source = derivedFactor("Survey" = Source == "LL survey",
-                                "Fishery" = Source == "LL fishery",
+                                "LL Fishery" = Source == "LL fishery",
+                                "Pot Fishery" = Source == "Pot fishery",
                                 .ordered = TRUE)) %>% 
   ggplot(aes(length, year, group = year, fill = year)) + 
   geom_density_ridges(aes(point_fill = year, point_color = year),
@@ -1736,7 +2350,7 @@ ggsave(paste0(YEAR+1,"/figures/lengthcomp_ggridges_", YEAR, ".png"),
 # ggride plot for len dat by sex (for TMB inputs)
 
 lendat %>% 
-  filter(! c(Source %in% c("Pot survey", "LL fishery"))) %>% 
+  filter(! c(Source %in% c("Pot survey", "LL fishery", "Pot fishery"))) %>% 
   mutate(Source = derivedFactor("Survey" = Source == "LL survey")) %>% 
   ggplot(aes(length, year, group = year, fill = year)) + 
   geom_density_ridges(aes(point_fill = year, point_color = year), alpha = 0.3) +
@@ -1753,7 +2367,7 @@ ggsave(paste0(YEAR+1,"/figures/tmb/lencomp_srv_",YEAR,".png"),
 
 # fishery
 lendat %>% 
-  filter(! c(Source %in% c("Pot survey", "LL survey"))) %>% 
+  filter(! c(Source %in% c("Pot survey", "LL survey", "Pot fishery"))) %>% 
   mutate(Source = derivedFactor("Fishery" = Source == "LL fishery")) %>% 
   ggplot(aes(length, year, group = year, fill = year)) + 
   geom_density_ridges(aes(point_fill = year, point_color = year), alpha = 0.3) +
@@ -1763,7 +2377,7 @@ lendat %>%
   # scale_y_reverse() +
   theme(legend.position = "none") + 
   facet_wrap(~ Sex) +
-  ggtitle("Fishery")
+  ggtitle("Longline Fishery")
 
 ggsave(paste0(YEAR+1,"/figures/tmb/lencomp_fsh_",YEAR,".png"), 
        dpi=300, height=8, width=10, units="in")
@@ -1782,7 +2396,8 @@ ggplot() +
                 group = Source, linetype = Source), size = 1) +
   scale_x_discrete(breaks = seq(41, 99, 6),
                    labels = seq(41, 99, 6)) +
-  scale_colour_grey() +
+  #scale_colour_grey() +
+  scale_colour_viridis_d(option = "A", begin=0, end=0.75) +
   xlab('\nFork length (cm)') +
   ylab('Proportion\n') +
   theme(legend.position = c(0.8, 0.8))
@@ -1868,7 +2483,7 @@ ggsave(paste0(YEAR+1,"/figures/llfsh_lencomps_", YEAR-10, "_", YEAR, ".png"),
 
 # Summary stats output for length comps (requested by AJ Linsley 20180907)
 lendat %>% 
-  filter(Source %in% c("LL survey", "LL fishery")) %>% 
+  filter(Source %in% c("LL survey", "LL fishery","Pot fishery")) %>% 
   group_by(Source, Sex, year) %>% 
   dplyr::summarize(mean = mean(length),
             min = min(length),
@@ -1891,8 +2506,11 @@ lensum %>%
 cols <- quos(Source, year, Sex, age) 
 
 bind_rows(
-  fsh_bio %>% mutate(Source = "LL fishery") %>% select(!!!cols), 
-  srv_bio %>% mutate(Source = "LL survey") %>% select(!!!cols)) %>% 
+  fsh_bio %>% filter(Gear == "Longline") %>% 
+    mutate(Source = "LL fishery") %>% select(!!!cols), 
+  fsh_bio %>% filter(Gear == "Pot") %>% 
+    mutate(Source = "Pot fishery") %>% select(!!!cols)) %>% 
+  bind_rows(srv_bio %>% mutate(Source = "LL survey") %>% select(!!!cols)) %>% 
   filter(year >= 1997 & Sex %in% c('Female', 'Male') & !is.na(age)) %>% 
   group_by(Source, Sex, year) %>% 
   dplyr::summarize(mean = mean(age),
