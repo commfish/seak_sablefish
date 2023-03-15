@@ -278,6 +278,271 @@ build_data <- function(
 }
 
 #========================================================================================
+# function to fill list component with a factor
+fill_vals <- function(x,vals){rep(as.factor(vals), length(x))}
+
+# Original code by Gavin Fay, adaped for use in the sablefish model - requires fill_vals() fxn
+TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
+                     optimizer = "nlminb", debug = FALSE, loopnum = 3, newtonsteps = 0) {
+  
+  # Debug function
+  # random <-  random_vars# <- NULL
+  # phases <- build_phases(parameters, data)
+  # model_name <- "scaa_mod"
+  # debug <- FALSE
+  
+  data<-data
+  parameters<-parameters
+  random<-random_vars
+  model_name = "scaa_mod_exp"
+  phase = TRUE
+  newtonsteps = 1
+  debug=FALSE
+  
+  # compile the model
+  TMB::compile(paste0(model_name,".cpp"))
+  dyn.load(TMB::dynlib(model_name))
+  DLL_use <- model_name  
+  out <- list() 
+  
+  if (phase == FALSE) {
+    
+    # work out the map for this phase if phases for parameters is less than the
+    # current phase then map will contain a factor filled with NAs
+    map_use <- list()
+    map_use$dummy <- fill_vals(parameters$dummy, NA)
+    
+    # if not using random effects, assign log_sigma_r an NA in the map so it's not estimated
+    if (data$random_rec == FALSE) {
+      map_use$log_sigma_r <- fill_vals(parameters$log_sigma_r, NA)
+    }
+    
+    # if natural mortality is fixed, assign log_M an NA in the map so its not
+    # estimated
+    if (data$M_type == 0) {
+      map_use$log_M <- fill_vals(parameters$log_M, NA)
+    }
+    
+    # if not using the Dirichlet-multinonial, assign log_fsh_theta and
+    # log_srv_theta NAs in the map so they're not estimated
+    if (data$comp_type != 1) {
+      map_use$log_fsh_theta <- fill_vals(parameters$log_fsh_theta, NA)
+      map_use$log_srv_theta <- fill_vals(parameters$log_srv_theta, NA)
+    }
+    
+    # Temporary debug trying to figure out why I'm getting NA/NaN function
+    # evaluation - think it's something to do with discarding
+    if (tmp_debug == TRUE) {
+      map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
+      map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
+      # map_use$mr_logq <- fill_vals(parameters$mr_logq, NA)
+      # map_use$log_fsh_slx_pars <- factor(c(1, 2, NA, NA, 3, 4, NA, NA))
+      # map_use$log_srv_slx_pars <- factor(c(1, NA, 2, NA))
+    }
+    
+    # Build upper and lower parameter bounds and remove any that are not
+    # estimated (should be the inverse of the map_use)
+    bounds <- build_bounds(param_list = parameters)
+    bounds$upper <- bounds$upper[!names(bounds$upper) %in% names(map_use)]
+    bounds$lower <- bounds$lower[!names(bounds$lower) %in% names(map_use)]
+    
+    # Remove inactive parameters from bounds and vectorize
+    lower <- unlist(bounds$lower)
+    upper <- unlist(bounds$upper)
+    
+    # Remove random effects from bounds
+    if (data$random_rec == FALSE) {
+      lower <- lower[!names(lower) %in% "log_sigma_r"]
+      upper <- upper[!names(lower) %in% "log_sigma_r"]
+    }    
+    
+    # if (data$random_rec == TRUE) {
+    #   lower <- lower[-which(grepl(random[1], names(lower)))]
+    #   lower <- lower[-which(grepl(random[2], names(lower)))]
+    #   upper <- upper[-which(grepl(random[1], names(upper)))]
+    #   upper <- upper[-which(grepl(random[2], names(upper)))]
+    # }
+    
+    # initialize the parameters at values in previous phase
+    params_use <- parameters
+    
+    # Fit the model
+    obj <- TMB::MakeADFun(data,params_use,random=NULL,
+                          DLL=DLL_use,map=map_use)  
+    
+    TMB::newtonOption(obj,smartsearch=FALSE)
+    # lower and upper bounds relate to obj$par and must be the same length as obj$par
+    opt <- nlminb(start = obj$par, objective = obj$fn, hessian = obj$gr,
+                  control = list(eval.max = 1e4, iter.max = 1e4, trace = 0),
+                  lower = lower, upper = upper)
+    
+    # Re-run to further decrease final gradient - used tmb_helper.R -
+    # https://github.com/kaskr/TMB_contrib_R/blob/master/TMBhelper/R/fit_tmb.R
+    for(i in seq(2, loopnum, length = max(0, loopnum - 1))){
+      tmp <- opt[c('iterations','evaluations')]
+      opt <- nlminb(start = opt$par, objective = obj$fn, gradient = obj$gr, 
+                    control = list(eval.max = 1e4, iter.max = 1e4, trace = 0), 
+                    lower = lower, upper = upper )
+      opt[['iterations']] <- opt[['iterations']] + tmp[['iterations']]
+      opt[['evaluations']] <- opt[['evaluations']] + tmp[['evaluations']]
+    }
+    
+    # Run some Newton steps - slow but reduces final gradient (code also from
+    # tmb_helper.R)
+    for(i in seq_len(newtonsteps)) {
+      g <- as.numeric(obj$gr(opt$par))
+      h <- optimHess(opt$par, fn = obj$fn, gr = obj$gr)
+      opt$par <- opt$par - solve(h, g)
+      opt$objective <- obj$fn(opt$par)
+    }
+    rep <- TMB::sdreport(obj)
+  }
+  
+  if (phase == TRUE) {
+    
+    phases <- build_phases(parameters, data)
+    
+    #loop over phases
+    for (phase_cur in 1:max(unlist(phases))) {  #phase_cur<-1
+      
+      # phase_cur <- 1 # Debug function
+      
+      # If debugging build the map to have all parameters as factored NAs
+      if (debug == TRUE) {
+        map_use <- parameters
+        
+        for(i in 1:length(map_use)){
+          map_use[[i]] <- replace(map_use[[i]], values = rep(NA, length(map_use[[i]])))
+        }
+        map_use <- map_use[!names(map_use) %in% "dummy"]
+        
+        for(i in 1:length(map_use)){
+          map_use[[i]] <- factor(map_use[[i]])
+        } 
+        
+      } else {
+        
+        # work out the map for this phase if phases for parameters is less than the
+        # current phase then map will contain a factor filled with NAs
+        map_use <- list()
+        
+        map_use$dummy <- fill_vals(parameters$dummy, NA)
+        
+        j <- 1 # change to 0 if you get rid of the dummy debugging feature
+        j <- 0 # change to 0 if you get rid of the dummy debugging feature
+        
+        phases[[1]]
+        phases[[2]]
+        phases[[3]]; dim(phases[[3]])
+        phases[[4]]
+        phases[[5]]
+        phases[[6]]
+        phases[[7]]
+        phases[[8]]
+        
+        phase_cur < which(phases == )
+        
+        lapply(phases[[i]], length) < phase_cur
+        
+        for (i in 1:length(parameters)) {
+          #if (phases[[i]]>phase_cur) {   #this doesn't make sense... error for these little lists giving multiple/true false
+          if (phases[[i]]>phase_cur) {
+            j <- j+1
+            map_use[[j]] <- fill_vals(parameters[[i]], NA)
+            names(map_use)[j] <- names(parameters)[i]               
+          }
+        }
+        
+        # if not using random effects, assign log_sigma_r an NA in the map so it's not estimated
+        if (data$random_rec == FALSE) {
+          map_use$log_sigma_r <- fill_vals(parameters$log_sigma_r, NA)
+        }
+        
+        # if natural mortality is fixed, assign log_M an NA in the map so its not
+        # estimated
+        if (data$M_type == 0) {
+          map_use$log_M <- fill_vals(parameters$log_M, NA)
+        }
+        
+        # if not using the Dirichlet-multinonial, assign log_fsh_theta and
+        # log_srv_theta NAs in the map so they're not estimated
+        if (data$comp_type != 1) {
+          map_use$log_fsh_theta <- fill_vals(parameters$log_fsh_theta, NA)
+          map_use$log_srv_theta <- fill_vals(parameters$log_srv_theta, NA)
+        }
+        
+        # Temporary debug trying to figure out why I'm getting NA/NaN function
+        # evaluation - think it's something to do with discarding
+        if (tmp_debug == TRUE) {
+          map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
+          map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
+          # map_use$mr_logq <- fill_vals(parameters$mr_logq, NA)
+          
+          # map_use$log_fsh_slx_pars <- factor(c(1, 2, NA, NA, 3, 4, NA, NA))
+          # map_use$log_srv_slx_pars <- factor(c(1, NA, 2, NA))
+        }
+        
+        # j <- 1 # change to 0 if you get rid of the dummy debugging feature
+        # 
+        # for (i in 1:length(parameters)) {
+        #   # if (phases[[i]]>=phase_cur) {
+        #   if (phases[[i]]>phase_cur) {
+        #     j <- j+1
+        #     map_use[[j]] <- fill_vals(parameters[[i]], NA)
+        #     names(map_use)[j] <- names(parameters)[i]               
+        #   }
+        # }
+      }
+      
+      # Build upper and lower parameter bounds and remove any that are not
+      # estimated (should be the inverse of the map_use)
+      bounds <- build_bounds(param_list = parameters)
+      bounds$upper <- bounds$upper[!names(bounds$upper) %in% names(map_use)]
+      bounds$lower <- bounds$lower[!names(bounds$lower) %in% names(map_use)]
+      
+      # Remove inactive parameters from bounds and vectorize
+      lower <- unlist(bounds$lower)
+      upper <- unlist(bounds$upper)
+      
+      # Remove random effects from bounds
+      if (data$random_rec == FALSE) {
+        lower <- lower[!names(lower) %in% "log_sigma_r"]
+        upper <- upper[!names(lower) %in% "log_sigma_r"]
+      }
+      
+      # if (data$random_rec == TRUE) {
+      #   lower <- lower[which(!grepl(random[1], names(lower)))]
+      #   lower <- lower[which(!grepl(random[2], names(lower)))]
+      #   upper <- upper[which(!grepl(random[1], names(upper)))]
+      #   upper <- upper[which(!grepl(random[2], names(upper)))]
+      # }
+      
+      # initialize the parameters at values in previous phase
+      params_use <- parameters
+      if (phase_cur>1) params_use <- obj$env$parList(obj$env$last.par.best)
+      
+      # Fit the model
+      obj <- TMB::MakeADFun(data,params_use,random=NULL, 
+                            DLL=DLL_use,map=map_use)  
+      
+      TMB::newtonOption(obj,smartsearch=FALSE)
+      # lower and upper bounds relate to obj$par and must be the same length as obj$par
+      opt <- nlminb(start = obj$env$last.par.best, objective = obj$fn, hessian = obj$gr,
+                    control=list(eval.max = 1e4, iter.max = 1e4, trace = 0),
+                    lower = lower, upper = upper)
+      rep <- TMB::sdreport(obj)
+    }
+  }
+  out$obj <- obj
+  out$opt <- opt 
+  out$rep <- rep
+  out$map <- map_use
+  out$upper <- upper
+  out$lower <- lower
+  return(out)  
+}
+
+#========================================================================================
 #TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
 #                     optimizer = "nlminb", debug = FALSE, loopnum = 3, newtonsteps = 0) {
   

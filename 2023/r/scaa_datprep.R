@@ -726,7 +726,32 @@ ggsave(paste0("figures/sable_data_yprmodel_", YEAR, ".png"),
 # | +7        	| 11.1                       	|                            	|    5.0 	|        	|         $8.05  	|
 
 
-# processor will be used to define the probability of retaining a fish
+# processor will be used to define the probability of retaini# Sent from R. Ehresmann 2022-03-13n#This is for 2022 Chatham sablefish data only, from fish tickets in OceanAK subject area “eLandings – Grading and Pricing”. I show #1 fish only below and then #1 and #2 combined (a bit less per pound). It does not include survey fish since we typically get a lower price than dock price. 
+#Grade	#1 Fish only
+
+# Size Grade	Average of Price/lb
+# 1/2	$1.08
+# 2/3	$2.21
+# 3/4	$2.94
+# 4/5	$4.72
+# 5/7	$7.69
+# 7+	$8.56
+# Grand Total	$4.93
+
+# Grade	#1 / #2 Fish Combined
+
+# Size Grade	Average of Price/lb
+# 1/2	$1.04
+# 2/3	$2.12
+# 3/4	$2.81
+# 4/5	$4.52
+# 5/7	$7.37
+# 7+	$8.27
+# Grand Total	$4.76
+
+# 2023 note: price disparity between low and high grades appears bigger... 
+
+g a fish
 grades <- data.frame(
   # Round kg
   kg = c(0.5, 0.6, 0.7, 1.4, 2.2, 2.9, 3.6, 5.0),

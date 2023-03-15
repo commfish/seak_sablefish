@@ -96,6 +96,8 @@ table(ll_cpue$hook_space)
 colnames(ll_cpue_ftx)
 unique(ll_cpue_ftx$multi_gear_config)
 
+unique(ll_cpue_ftx$Stat); with(ll_cpue_ftx, table(Stat))
+
 ll_cpue_ftx %>% 
   #filter(depredation == "No depredation" | is.na(depredation)) %>% 
   filter(multi_gear_config == "single_config" &   #get rid of trips that reported 2 gear configurations
@@ -1123,7 +1125,7 @@ glob_cpue_ts<-as.matrix(glob_cpue_ts)
 glob_cpue_ts[,c(1,2,3,4,5,6,8)]<-as.numeric(glob_cpue_ts[,c(1,2,3,4,5,6,8)])
 glob_cpue_ts<-as.data.frame(glob_cpue_ts)
 
-write_csv(glob_cpue_ts, paste0(YEAR+1,"/output/ll_cpue_m12_", min(nom_cpue_ts$year), "_", YEAR, ".csv"))
+write_csv(glob_cpue_ts, paste0(YEAR+1,"/output/ll_cpue_fullstand_", min(nom_cpue_ts$year), "_", YEAR, ".csv"))
 
 
 #=================================================================================

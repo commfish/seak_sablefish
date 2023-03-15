@@ -26,38 +26,39 @@
 
 # most recent year of data (YEAR+1 should be the forecast year)
 {
-YEAR <- 2021
+YEAR <- 2022
 
 # Last years ABC, mortality from discards, and F_ABC values - manually input
 # from previous assessment! Double check these values with the summary table.
 # Note that in years when the recommended ABC = maxABC, there will be repeats
 # (previous years values commented out for reference/check)
-LYR_maxABC <- 1255056 #pj22; 1280406 #1058037 # maxABC for YEAR (ABC under F50)
-LYR_recABC <- 1255056 #pj22 1216743 #1058037 # recommended ABC for YEAR
-LYR_wastage <- 59017 #pj22; 57716 #19142 # wastage for YEAR (this is only defined under maxABC b/c it's included in the calculation of maxABC for the 2020 forecast and beyond)
-LYR_maxF_ABC <- 0.0611 #pjj22 (same as Rec ABC in 21 report?) ;  0.0765 #0.0632 # F50 for YEAR
-LYR_F_ABC <- 0.0611 #pj22, 0.0659 #0.0632 # F under the recommended ABC
+LYR_maxABC <- 1595932#for 2022: 1255056 #pj22; 1280406 #1058037 # maxABC for YEAR (ABC under F50)
+LYR_recABC <- 1443314#for 2022: 1255056 #pj22 1216743 #1058037 # recommended ABC for YEAR
+LYR_wastage <- 72190 #59017 #pj22; 57716 #19142 # wastage for YEAR (this is only defined under maxABC b/c it's included in the calculation of maxABC for the 2020 forecast and beyond)
+LYR_maxF_ABC <- 0.0617#0.0611 #pjj22 (same as Rec ABC in 21 report?) ;  0.0765 #0.0632 # F50 for YEAR
+LYR_F_ABC <- 0.0559 #0.0611 #pj22, 0.0659 #0.0632 # F under the recommended ABC
 
 # Last years projected biomass and SPR - the old assessment framework didn't
 # report these. They are reported in 2020 and will be reported for
 # comparison moving forward similar to federal assessment. These values are
 # reported in assessment summary table
-LYR_proj_age2plus <- 43357877 #pj22; 48513401 # projected age-2+ biomass
-LYR_proj_fSSB <- 15278067 #pj22; 15679118 # projected female spawning biomass
-LYR_SB100 <- 26775615 #pj22; 24853774 # unfished equilibrium female spawning biomass (SPR = 100)
-LYR_SB50 <- 13387807 #pj22; 12426887 # equilibrium female spawning biomass under F50 (SPR = 50)
+
+LYR_proj_age2plus <- 51885665 #for 2022: 43357877 #pj22; 48513401 # projected age-2+ biomass
+LYR_proj_fSSB <- 19714244 #for 2022:15278067 #pj22; 15679118 # projected female spawning biomass
+LYR_SB100 <- 28995917 #for 2022:26775615 #pj22; 24853774 # unfished equilibrium female spawning biomass (SPR = 100)
+LYR_SB50 <- 14497958 #for 2022:13387807 #pj22; 12426887 # equilibrium female spawning biomass under F50 (SPR = 50)
 
 # Set up ----
 
 # Directory setup
 root <- getwd() # project root
-tmb_dat <- file.path(root, "data/tmb_inputs") # location of tmb model data inputs
-tmb_path <- file.path(root, "tmb") # location of cpp
-tmbfigs <- file.path(root, "figures/tmb") # location where model figs are saved
-tmbout <- file.path(root, "output/tmb") # location where model output is saved
+tmb_dat <- file.path(root, paste0(YEAR+1,"/data/tmb_inputs")) # location of tmb model data inputs
+tmb_path <- file.path(root, paste0(YEAR+1,"/tmb")) # location of cpp
+tmbfigs <- file.path(root, paste0(YEAR+1,"/figures/tmb")) # location where model figs are saved
+tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model output is saved
 
-source("r/helper.r")
-source("r/functions.r")
+source("r_helper/helper.r")
+source("r_helper/functions.r")
 
 library(TMB) 
 }
@@ -70,21 +71,21 @@ len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comp
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
 waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
 retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
-slx_pars <- read_csv("data/tmb_inputs/fed_selectivity_transformed_2020.csv") # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2020.csv")) # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
 
 # Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
 # develop one for ADFG. Row = true age, Column = observed age. Proportion
 # observed at age given true age.
-ageing_error <- scan("data/tmb_inputs/ageing_error_fed.txt", sep = " ") %>% matrix(ncol = 30) %>% t()
+ageing_error <- scan(paste0(YEAR+1,"/data/tmb_inputs/ageing_error_fed.txt", sep = " ")) %>% matrix(ncol = 30) %>% t()
 rowSums(ageing_error) # should be 1
 
 # Age-length key from D. Hanselman 2019-04-18. On To DO list to develop one for
 # ADFG (will need separate ones for fishery and survey). See
 # ageing_error_matrix.R for KVK's code, which may be a good start.  Proportion
 # at length given age. Row = age, Column = length bin
-agelen_key_m <- scan("data/tmb_inputs/agelen_key_male.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
+agelen_key_m <- scan(paste0(YEAR+1,"/data/tmb_inputs/agelen_key_male.txt", sep = " "), skip = 1) %>% matrix(ncol = 30) %>% t()
 rowSums(agelen_key_m) # should all = 1
-agelen_key_f <- scan("data/tmb_inputs/agelen_key_fem.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
+agelen_key_f <- scan(paste0(YEAR+1,"/data/tmb_inputs/agelen_key_fem.txt", sep = " "), skip = 1) %>% matrix(ncol = 30) %>% t()
 rowSums(agelen_key_f) 
 
 # Starting values for YEAR == 2019 - delete for the 2020 assessment and
@@ -124,7 +125,8 @@ tmp_debug <- TRUE         # Shuts off estimation of selectivity pars - once sele
 rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 comp_type <- 0    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
-spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
+spr_rec_type <- 0 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
+                  #2023: geometric mean is not working - getting Inf for mean_rec... working on it... 
 M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
 
 # Subsets
@@ -136,6 +138,10 @@ srv_age <- filter(age, Source == "Survey")
 fsh_len <- filter(len, Source == "fsh_len")
 srv_len <- filter(len, Source == "srv_len")
 
+length(c(YEAR - length(rec_devs_inits)+1):YEAR)
+length(rec_devs_inits)
+length(Fdevs_inits)
+
 # initial value processing
 tmp_inits <- data.frame(year = c(YEAR - length(rec_devs_inits)+1):YEAR,
                         rec_devs_inits = rec_devs_inits,
@@ -145,10 +151,9 @@ rec_devs_inits <- tmp_inits %>% pull(rec_devs_inits)
 Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
 
 # TMB set up ----
-ts$fsh_cpue
-ts$fsh_cpue_22rb
-ts$fsh_cpue_base_gam
-ts$fsh_cpue_boot_gam
+ts$fsh_cpue          #in 2023 we are using the fully standardized time series
+ts$fsh_cpue_nom      #nominal fishery CPUE from analysis
+ts$fsh_cpue_base     #cpue clculation in scaa_dataprep.R.. similar to nom
 
 # User-defined fxns in functions.R
 data <- build_data(ts = ts); str(data)  #see this function to change weights and 
@@ -157,8 +162,8 @@ str(data$data_fsh_cpue)
 
 #=====================================
 # *** Checking sensitivity to fishery CPUE data versions
-VER<-"base_22rb" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
-data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
+VER<-"base" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
+#data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
 #==================================================
 
 parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
@@ -180,11 +185,13 @@ setwd(tmb_path)
 # (4) Debug mode with debug = TRUE (will need to uncomment out obj_fun = dummy * dummy; )
 
 str(data)
+# turn off estimation of log_spr_Fxx and see how the model behaves... 
+parameters$log_spr_Fxx <- rep(factor(NA))
 
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
-                model_name = "scaa_mod", phase = FALSE, 
-                newtonsteps = 5, #3 make this zero initially for faster run times
+                model_name = "scaa_mod_exp", phase = FALSE, 
+                newtonsteps = 1, #3 make this zero initially for faster run times (using 5)
                 debug = FALSE)
 
 obj <- out$obj # TMB model object
@@ -307,6 +314,8 @@ ABC <- ABC %>%
   mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
   pivot_longer(-year, names_to = "Fxx", values_to = "ABC")
 
+ABC %>% filter(Fxx == 0.5) %>% data.frame()
+
 # Current (YEAR + 1) maximum ABC under F50
 (maxABC <- ABC %>% filter(Fxx == "0.5" & year == YEAR+1) %>% pull(ABC))
 
@@ -358,7 +367,7 @@ if(recABC == maxABC) {
   
   # Estimate recommended F_ABC using numerical methods
   N <- obj$report()$N  #str(obj$report()) 
-  #Phil insert looking for how to do this on my own... 
+  #Phil insert looking for how to do this ... 
   #str(obj$report())
   #obj$report()$Fxx
   #obj$report()$fsh_slx
@@ -367,8 +376,20 @@ if(recABC == maxABC) {
   #obj$report()$spr_fsh_slx #not saved
   #obj$report()$Z_Fxx   #not saved in output...
   #obj$report()$S_Fxx   #not saved in output...
+  obj$report()$pred_rec
+  obj$report()$pred_rbar
+  obj$report()$mean_rec
   #obj$report()$SBPR #SBPR at each fishing level, female biomass only
-  #obj$report()$SB   #equilibrium biomass at each fishing level, female biomass only
+  obj$report()$SB   #equilibrium biomass at each fishing level, female biomass only #coming up as Inf first run in 2023??? !!!! 
+  obj$report(best)$SB
+  for (i in 1:25){
+    print(obj$report(best)$SB)
+  }
+  obj$report()$spawn_biom[1,]
+  
+  for (i in 1:25){
+    print(obj$report(best)$mean_rec)
+  }
   #obj$report()$fsh_slx
   #back to Jane's code here... 
   N <- sum(N[nyr+1,,1]) + sum(N[nyr+1,,2]) # sum of projected abundance across age and sex
@@ -391,12 +412,20 @@ if(recABC == maxABC) {
     return(F_ABC)
   }
   
+  #catch_to_F(fish_mort=0.07,N=N,nat_mort=nat_mort,catch=recABC,F_to_catch=)
+  
   # F under recommended ABC
   (F_ABC <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = recABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
+  (F_ABC <- uniroot(catch_to_F, interval = c(0.01, 1.9), N = N, catch = recABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
 }
 (F_ABCtest <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = maxABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
 #PJ22: this function is producing different F_ABC than that coming out of TMB code!!!
+#PJ23: yup, still not working. 0.087 here but 0.063 from TMB outbput...  
 
+#what about a back-of-the-napkin schwag? 
+schwag<-recABC*maxF_ABC/maxABC
+
+#
 (F_ABC - LYR_F_ABC) / LYR_F_ABC # Percent difference from Last year's F
 
 # Projected total age-2+ projected biomass
@@ -412,7 +441,10 @@ obj$report(best)$tot_biom[nyr] * 2.20462
 # *** Something f'ed up here... same call gives different results when you repeat...
 # *** gives different multiples of whats happening... DO NOT UNDERSTAND!!!
 
-SB <- as.data.frame(obj$report(best)$SB * 2.20462)
+obj$report(best)$SBPR
+data$Fxx_levels
+
+SB <- as.data.frame(obj$report(best)$SB * 2.20462); SB
 names(SB) <- "SB"
 SB <- SB %>% 
   mutate(Fspr = c(0.0, data$Fxx_levels))
@@ -488,7 +520,7 @@ res <- c(paste0("STATISTICAL CATCH-AT-AGE MODEL RESULTS FOR NSEI SABLEFISH", "\n
                 "Report produced by scaa.R", "\n",
                 # Update as needed!
                 "Developed by Jane Sullivan, ummjane@gmail.com",
-                "Contact: philip.joy1@alaska.gov or rhea.ehresmann@alaska.gov", "\n",
+                "Contact: philip.joy@alaska.gov or rhea.ehresmann@alaska.gov", "\n",
                 "Report generated: ", paste0(Sys.Date()),  "\n",
                 "\n",
                 "Model diagnostics", "\n",
