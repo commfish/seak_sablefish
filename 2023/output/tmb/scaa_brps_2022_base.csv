@@ -2,7 +2,7 @@ STATISTICAL CATCH-AT-AGE MODEL RESULTS FOR NSEI SABLEFISH
 
 Report produced by scaa.R
 Developed by Jane Sullivan, ummjane@gmail.comContact: philip.joy@alaska.gov or rhea.ehresmann@alaska.gov
-Report generated: 2023-03-14
+Report generated: 2023-03-15
 
 Model diagnostics
 Number of parameters:,
@@ -10,7 +10,7 @@ Number of parameters:,
 Negative log likelihood:,
 2096
 Maximum gradient component:,
-0.000000000120378818892208
+0.000052827156721634
 
 ALL VARIABLES REPORTED IN ROUND LB UNLESS OTHERWISE SPECIFIED
 
@@ -37,23 +37,23 @@ F under recommended ABC:
 
 Summary of 2023 (current year's) Biological Reference Points
 Projected age-2 biomass: 
-59131399.5838337
+59131399.5820918
 Projected female spawning biomass: 
-22713707.9173727
+22713707.9165344
 Unfished equilibrium female spawning biomass (SPR = 100): 
-94129030.88641
+47064514.668264
 Equilibrium female spawning biomass under F50 (SPR = 50): 
-47064515.4432051
+23532257.3341307
 Max ABC: 
-1809481.70016293
+1809481.70010056
 Recommended ABC: 
 1659811.1
 Mortality from fishery discards under max ABC: 
-78974.3533229348
+78974.3533198534
 max F_ABC = F_50: 
-0.0627229679665052
+0.062722967966549
 F under recommended ABC: 
-0.0795728568806632
+0.0575348611981194
 
 Summary of percent changes and differences between 2022 and 2023 Biological Reference Points
 Difference between projected age-2+ biomass (round lb): 
@@ -65,13 +65,13 @@ Difference between projected female spawning biomass (round lb):
 Percent difference between projected female spawning biomass: 
 15.2%
 Difference between Unfished equilibrium female spawning biomass (round lb): 
-65133114
+18068598
 Percent difference between Unfished equilibrium female spawning biomass: 
-224.6%
+62.3%
 Difference between equilibrium female spawning biomass under F50 (round lb): 
-32566557
+9034299
 Percent difference between equilibrium female spawning biomass under F50: 
-224.6%
+62.3%
 Difference between max ABCs (round lb): 
 213550
 Percent difference between max ABCs: 
@@ -115,7 +115,7 @@ Percent difference between maxF_ABCs:
 Percent difference between recomended F_ABCs: 
 
 
-42.3
+2.9
 %
 
 

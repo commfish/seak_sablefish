@@ -751,7 +751,7 @@ ggsave(paste0("figures/sable_data_yprmodel_", YEAR, ".png"),
 
 # 2023 note: price disparity between low and high grades appears bigger... 
 
-g a fish
+
 grades <- data.frame(
   # Round kg
   kg = c(0.5, 0.6, 0.7, 1.4, 2.2, 2.9, 3.6, 5.0),

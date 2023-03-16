@@ -28,48 +28,48 @@
 # Set up ----
 
 # most recent year of data
-YEAR <- 2018
+YEAR <- 2022
+source("r_helper/helper.r")
+source("r_helper/functions.r")
 
 # Directory setup
 root <- getwd() # project root
-tmb_path <- file.path(root, "tmb") # location of cpp
-tmb_dat <- file.path(root, "data/tmb_inputs")
+tmb_path <- file.path(root, paste0(YEAR+1,"/tmb")) # location of cpp
+tmb_dat <- file.path(root, paste0(YEAR+1,"/data/tmb_inputs"))
 
 # Temporary debug flag, shut off estimation of selectivity pars
 tmp_debug <- TRUE
-
-source("r/helper.r")
-source("r/functions.r")
 
 library(TMB) 
 library(tmbstan)
 library(shinystan)
 
-ts <- read_csv("data/tmb_inputs/abd_indices.csv")             # time series
-age <- read_csv("data/tmb_inputs/agecomps.csv")               # age comps
-len <- read_csv("data/tmb_inputs/lencomps.csv")               # len comps
-bio <- read_csv("data/tmb_inputs/maturity_sexratio.csv")      # proportion mature and proportion-at-age in the survey
-waa <- read_csv("data/tmb_inputs/waa.csv")                    # weight-at-age
-retention <- read_csv("data/tmb_inputs/retention_probs.csv")  # weight-at-age
+ts <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/abd_indices.csv"))             # time series
+age <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/agecomps.csv"))               # age comps
+len <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/lencomps.csv"))               # len comps
+bio <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/maturity_sexratio.csv"))      # proportion mature and proportion-at-age in the survey
+waa <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/waa.csv"))                    # weight-at-age
+retention <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/retention_probs.csv"))  # weight-at-age
 
 # Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
 # develop one for ADFG. Row = true age, Column = observed age. Proportion
 # observed at age given true age.
-ageing_error <- scan("data/tmb_inputs/ageing_error_fed.txt", sep = " ") %>% matrix(ncol = 30) %>% t()
+ageing_error <- scan("legacy_data/tmb_inputs/ageing_error_fed.txt", sep = " ") %>% matrix(ncol = 30) %>% t()
 rowSums(ageing_error) # should be 1
 
 # Age-length key from D. Hanselman 2019-04-18. On To DO list to develop one for
 # ADFG (will need separate onces for fishery and survey).  Proportion at length
 # given age. Row = age, Column = length bin
-agelen_key_m <- scan("data/tmb_inputs/agelen_key_male.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
+agelen_key_m <- scan("legacy_data/tmb_inputs/agelen_key_male.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
 rowSums(agelen_key_m) # should all = 1
-agelen_key_f <- scan("data/tmb_inputs/agelen_key_fem.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
+agelen_key_f <- scan("legacy_data/tmb_inputs/agelen_key_fem.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
 rowSums(agelen_key_f) 
 # Starting values
 # finits <- read_csv("data/tmb_inputs/inits_f_devs.csv")   # log F devs
 # inits_rec_dev <- read_csv("data/tmb_inputs/inits_rec_devs.csv") # log rec devs
 # inits_rinit <- read_csv("data/tmb_inputs/inits_rinit.csv") # log rec devs
-inits <- read_csv("data/tmb_inputs/inits_v2.csv")
+inits <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/inits_for_",YEAR+1,".csv")) %>%
+  mutate(parameter=Parameter, estimate=Estimate)
 
 # Model dimensions / user inputs
 syr <- min(ts$year)                   # model start year
@@ -97,6 +97,15 @@ srv_len <- filter(len, Source == "srv_len")
 # Data -----
 
 # Structure data for TMB - must use same variable names as .cpp
+random_rec = 0
+slx_type = 1
+comp_type = 0
+spr_rec_type = 1
+M_type = 0
+rec_type = 0
+
+data <- build_data(ts = ts)
+
 data <- list(
   
   # Model dimensions
@@ -121,6 +130,9 @@ data <- list(
   # (same as Federal assessment), 1 = geometric mean, 2 = median (2 not coded
   # yet)
   spr_rec_type = 1,
+  
+  M_type = 0,
+  rec_type = 0,
   
   # Time varying parameters - each vector contains the terminal years of each time block
   fsh_blks = c(14, max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
@@ -163,18 +175,31 @@ data <- list(
   p_mr_q = 1.0,
   sigma_mr_q = 0.01,
   
-  # Weights on likelihood components ("wt_" denotes weight)
-  wt_catch = 1.0,
-  wt_fsh_cpue = 1.0,
-  wt_srv_cpue = 1.0,
-  wt_mr = 1.0,
-  wt_fsh_age = 1.0,
-  wt_srv_age = 1.0,
-  wt_fsh_len = 1.0,
-  wt_srv_len = 1.0,
-  wt_rec_like = 2,
+  # Updated weights for 2020 assessment (2021 ABC)
+  wt_catch = 10.0, # fed = 50
+  wt_fsh_cpue = 1,  # fed = 0.448
+  wt_srv_cpue = 4, # fed = 0.448
+  wt_mr = 1.5,
+  wt_fsh_age = 6, # fed = 7.8
+  wt_srv_age = 8, # fed = 7.95
+  wt_fsh_len = 1, # fed = 1
+  wt_srv_len = 1, # fed = 1
+  wt_rec_like = 1,
   wt_fpen = 0.1,
   wt_spr = 100,
+  
+  # Original weights for 2019 assessment (2020 ABC)
+  # wt_catch = 1.0, 
+  # wt_fsh_cpue = 1.0,  
+  # wt_srv_cpue = 1.0, 
+  # wt_mr = 1.0,
+  # wt_fsh_age = 1.0, 
+  # wt_srv_age = 1.0, 
+  # wt_fsh_len = 1.0, 
+  # wt_srv_len = 1.0, 
+  # wt_rec_like = 1.0,
+  # wt_fpen = 0.1, 
+  # wt_spr = 100,
   
   # Catch
   data_catch = ts$catch,
@@ -350,10 +375,12 @@ data <- list(
               array(data = c(agelen_key_m, agelen_key_f),
                     dim = c(nage, nage, nsex))}
 )
-
+data$M_type
 # Parameters ----
 
 # Parameter starting values
+parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
+
 parameters <- list(
   
   dummy = 0,   # Used for troubleshooting model               
@@ -478,13 +505,14 @@ tune_fsh_len <- list()
 tune_srv_len <- list()
 
 # Iterate ----
-niter <- 15
+niter <- 3 #15
 
-for(iter in 1:niter) {
+for(iter in 1:niter) { #iter<-1
   
   # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
   out <- TMBphase(data, parameters, random = random_vars, 
-                  model_name = "mod", phase = FALSE, 
+                  model_name = "scaa_mod", phase = FALSE, 
+                  newtonsteps = 3, #3 make this zero initially for faster run times (using 5)
                   debug = FALSE)
   
   obj <- out$obj # TMB model object

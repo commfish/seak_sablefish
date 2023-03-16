@@ -4,18 +4,21 @@
 
 # Set up ----
 
-YEAR <- 2021 # most recent year of data
+source("r_helper/helper.r")
+source("r_helper/functions.r")
+
+YEAR <- 2022 # most recent year of data
 
 # Directory setup
 root <- getwd() # project root
-tmb_dat <- file.path(root, "data/tmb_inputs") # location of tmb model data inputs
-tmb_path <- file.path(root, "tmb") # location of cpp
-tmbout <- file.path(root, "output/tmb") # location where model output is saved
-retro_dir <- file.path(tmbout, "retrospective") # subdirectory for analysis
+tmb_dat <- file.path(root, paste0(YEAR+1,"/data/tmb_inputs")) # location of tmb model data inputs
+tmb_path <- file.path(root, paste0(YEAR+1,"/tmb")) # location of cpp
+tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model output is saved
+retro_dir <- file.path(tmbout, paste0("retrospective")) # subdirectory for analysis
 dir.create(retro_dir, showWarnings = FALSE)
 
-source("r/helper.r")
-source("r/functions.r")
+#source("r_helper/helper.r")
+#source("r_helper/functions.r")
 
 library(TMB) 
 
@@ -27,20 +30,20 @@ len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comp
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
 waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
 retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
-slx_pars <- read_csv("data/tmb_inputs/fed_selectivity_transformed_2020.csv") # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
+slx_pars <- read_csv("legacy_data/tmb_inputs/fed_selectivity_transformed_2020.csv") # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
 
 # Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
 # develop one for ADFG. Row = true age, Column = observed age. Proportion
 # observed at age given true age.
-ageing_error <- scan("data/tmb_inputs/ageing_error_fed.txt", sep = " ") %>% matrix(ncol = 30) %>% t()
+ageing_error <- scan("legacy_data/tmb_inputs/ageing_error_fed.txt", sep = " ") %>% matrix(ncol = 30) %>% t()
 rowSums(ageing_error) # should be 1
 
 # Age-length key from D. Hanselman 2019-04-18. On To DO list to develop one for
 # ADFG (will need separate onces for fishery and survey).  Proportion at length
 # given age. Row = age, Column = length bin
-agelen_key_m <- scan("data/tmb_inputs/agelen_key_male.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
+agelen_key_m <- scan("legacy_data/tmb_inputs/agelen_key_male.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
 rowSums(agelen_key_m) # should all = 1
-agelen_key_f <- scan("data/tmb_inputs/agelen_key_fem.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
+agelen_key_f <- scan("legacy_data/tmb_inputs/agelen_key_fem.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
 rowSums(agelen_key_f) 
 
 # Starting values - base on current assessment's mle
@@ -83,7 +86,7 @@ mgc_ls <- list()        # max gradient component
 
 retro <- 0:10           # number of peels
 
-for(i in 1:length(retro)){
+for(i in 1:length(retro)){  #i<-1
   
   iter_dir <- file.path(retro_dir, paste0("retro_", retro[i]))
   dir.create(iter_dir, showWarnings = FALSE)
@@ -108,7 +111,7 @@ for(i in 1:length(retro)){
   # Build TMB objects
   data <- build_data(ts = iter_ts)
   #change out fishery CPUE choice...
-  data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
+  data$data_fsh_cpue<-ts$fsh_cpue[!is.na(ts$fsh_cpue)]
   
   parameters <- build_parameters(rec_devs_inits = iter_rec_devs_inits, 
                                  Fdevs_inits = iter_Fdevs_inits)
@@ -126,7 +129,7 @@ for(i in 1:length(retro)){
   best <- obj$env$last.par.best
   
   # save MLE estimates
-  tidyrep <- save_mle(path = iter_dir, save_inits = FALSE, year = lyr)
+  tidyrep <- save_mle(path = iter_dir, save_inits = FALSE, year = lyr, save=TRUE)
  
   # recruitment in millions
   log_rbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
@@ -231,9 +234,9 @@ order_retro <- SB %>%
 # Function plots and saves retrospective plot (including traditional
 # retrospective plot plus another that shows relative % diff between peel and
 # terminal year estimate per Clark et al 2012), also calculates AFSC Mohn's Rho
-make_retro <- function(df, y, min_year, y_lab, plot_lab) {
+make_retro <- function(df, y, min_year, y_lab, plot_lab) {   #df<-SB
   
-  y <- enquo(y)
+  y <- enquo(y)    #y<-enquo(spawn_biom)
   
   df %>% 
     group_by(retro) %>% 
@@ -310,9 +313,182 @@ make_retro <- function(df, y, min_year, y_lab, plot_lab) {
   return(df)
 }
 
-SB <- make_retro(df = SB, y = spawn_biom, min_year = 2000, y_lab = "Spawning biomass\n(million lb)", plot_lab = "spawn_biom")
-rec <- make_retro(df = rec, y = rec, min_year = 2000, y_lab = "Age-2 recruits\n(millions)", plot_lab = "recruitment")
+SB <- make_retro(df = SB, y = spawn_biom, min_year = 2000, y_lab = "Spawning biomass\n(million lb)", plot_lab = "spawn_biom"); view(SB)
+rec <- make_retro(df = rec, y = rec, min_year = 2000, y_lab = "Age-2 recruits\n(millions)", plot_lab = "recruitment"); view(rec)
 Fmort <- make_retro(df = Fmort, y = Fmort, min_year = 2000, y_lab = "Fishing mortality", plot_lab = "Fmort")
+
+SB_eg<-as.data.frame(SB); mean(SB_eg$diff/100)
+
+rec_eg<-as.data.frame(rec); mean(rec_eg$diff)
+
+#-------------------------------------------------------------------------------
+# Hand cranking the function to make sure things are doing what I think they should
+# be doing... 
+
+df<-SB
+min_year <- YEAR-21
+#y <- enquo(y)    #y<-enquo(spawn_biom)
+
+df %>% 
+  group_by(retro) %>% 
+  full_join(df %>% 
+              filter(retro == "retro_0") %>% 
+              #select(year, term = !!y),
+              select(year, term = spawn_biom),
+            by = "year") %>% 
+  mutate(diff = (spawn_biom - term) / term * 100) %>% 
+  # NOTE - join order_retro into df for plotting - this variable is external
+  # to this function
+  left_join(order_retro) %>% 
+  filter(year >= min_year) -> df
+
+print(df,n=40)
+unique(df$term) #biomass estimates for each year from the terminal year model run
+# Rho calculations
+df %>% 
+  # Alaska Fisheries Science Center and Hurtado-Ferro et al. (2015) Mohn's rho
+  # https://www.afsc.noaa.gov/REFM/stocks/Plan_Team/2013/Sept/Retrospectives_2013_final3.pdf
+  # # mean over all peels (Estimate in peel year - reference estimate (current
+  # # year's estimate) / reference estimate)
+  filter(year == max(year)) %>% 
+  #mutate(m = (!!y - term) / term) %>% 
+  mutate(m = (spawn_biom - term) / term) %>% 
+  ungroup() %>% 
+  dplyr::summarize(mohns_rho = mean(m),
+                   mean_perc_diff = mean(diff)) -> rhos
+
+mohns_rho <- pull(rhos, mohns_rho)
+rho_txt <- as.character(
+  as.expression(substitute(
+    paste("Mohn's ", italic(rho), " = ", xx),
+    list(xx = formatC(mohns_rho, format = "f", digits = 3)))))
+
+axisx <- tickr(df, year, 5)
+y_lab <- "Spawning biomass\n(million lb)"
+plot_lab <- "spawn_biom"
+# Conventional retrospective plot
+p1 <- ggplot() +
+  geom_line(data = df, aes(x = year, y = spawn_biom, col = order_retro, group = order_retro)) +
+  geom_point(data = df %>%
+               group_by(order_retro) %>%
+               dplyr::summarise(year = max(year)) %>%
+               left_join(df),
+             aes(x = year, y = spawn_biom, col = order_retro)) +
+  scale_colour_grey(guide = FALSE) +
+  geom_text(aes(x = min_year + 6,
+                y = df %>%
+                  ungroup() %>%
+                  dplyr::summarize(txt_y = 0.9 * max(spawn_biom)) %>%
+                  pull(txt_y), label = rho_txt),
+            colour = "black", parse = TRUE, family = "Times New Roman") +
+  labs(x = NULL, y = y_lab) +
+  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
+# theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
+
+# Percent difference plot
+p2 <- ggplot(df) +
+  # geom_hline(yintercept = 0, linetype = 2) +
+  # geom_line(data = filter(df, retro != "retro_0"),
+  geom_line(data = df,
+            aes(x = year, y = diff, colour = order_retro, group = order_retro)) +
+  geom_point(data = df %>%
+               group_by(order_retro) %>%
+               dplyr::summarise(year = max(year)) %>%
+               left_join(df),
+             aes(x = year, y = diff, col = order_retro)) +
+  scale_color_grey(guide = FALSE) +
+  labs(x = NULL, y = "Percent change\nfrom terminal year") +
+  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
+# theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
+
+cowplot::plot_grid(p1, p2, align = "hv", nrow = 2) -> retro_plot
+
+ggsave(filename = paste0(retro_dir, "/retrospective_", plot_lab, "_", YEAR, ".png"), plot = retro_plot,
+       dpi = 300, height = 5, width = 6, units = "in")
+
+#-------------------------------------------------------------------------------
+##hand crank recruitment
+df<-rec
+min_year <- YEAR-21
+#y <- enquo(y)    #y<-enquo(spawn_biom)
+
+df %>% 
+  group_by(retro) %>% 
+  full_join(df %>% 
+              filter(retro == "retro_0") %>% 
+              #select(year, term = !!y),
+              select(year, term = rec),
+            by = "year") %>% 
+  mutate(diff = (rec - term) / term * 100) %>% 
+  # NOTE - join order_retro into df for plotting - this variable is external
+  # to this function
+  left_join(order_retro) %>% 
+  filter(year >= min_year) -> df
+
+print(df,n=40)
+unique(df$term) #biomass estimates for each year from the terminal year model run
+# Rho calculations
+df %>% 
+  # Alaska Fisheries Science Center and Hurtado-Ferro et al. (2015) Mohn's rho
+  # https://www.afsc.noaa.gov/REFM/stocks/Plan_Team/2013/Sept/Retrospectives_2013_final3.pdf
+  # # mean over all peels (Estimate in peel year - reference estimate (current
+  # # year's estimate) / reference estimate)
+  filter(year == max(year)) %>% 
+  #mutate(m = (!!y - term) / term) %>% 
+  mutate(m = (rec - term) / term) %>% 
+  ungroup() %>% 
+  dplyr::summarize(mohns_rho = mean(m),
+                   mean_perc_diff = mean(diff)) -> rhos
+
+mohns_rho <- pull(rhos, mohns_rho)
+rho_txt <- as.character(
+  as.expression(substitute(
+    paste("Mohn's ", italic(rho), " = ", xx),
+    list(xx = formatC(mohns_rho, format = "f", digits = 3)))))
+
+axisx <- tickr(df, year, 5)
+y_lab <- "Age-2 recruits\n(millions)"
+plot_lab <- "recruitment"
+
+# Conventional retrospective plot
+p1 <- ggplot() +
+  geom_line(data = df, aes(x = year, y = rec, col = order_retro, group = order_retro)) +
+  geom_point(data = df %>%
+               group_by(order_retro) %>%
+               dplyr::summarise(year = max(year)) %>%
+               left_join(df),
+             aes(x = year, y = rec, col = order_retro)) +
+  scale_colour_grey(guide = FALSE) +
+  geom_text(aes(x = min_year + 6,
+                y = df %>%
+                  ungroup() %>%
+                  dplyr::summarize(txt_y = 0.9 * max(rec)) %>%
+                  pull(txt_y), label = rho_txt),
+            colour = "black", parse = TRUE, family = "Times New Roman") +
+  labs(x = NULL, y = y_lab) +
+  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
+# theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
+
+# Percent difference plot
+p2 <- ggplot(df) +
+  # geom_hline(yintercept = 0, linetype = 2) +
+  # geom_line(data = filter(df, retro != "retro_0"),
+  geom_line(data = df,
+            aes(x = year, y = diff, colour = order_retro, group = order_retro)) +
+  geom_point(data = df %>%
+               group_by(order_retro) %>%
+               dplyr::summarise(year = max(year)) %>%
+               left_join(df),
+             aes(x = year, y = diff, col = order_retro)) +
+  scale_color_grey(guide = FALSE) +
+  labs(x = NULL, y = "Percent change\nfrom terminal year") +
+  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
+# theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
+
+cowplot::plot_grid(p1, p2, align = "hv", nrow = 2) -> retro_plot
+
+ggsave(filename = paste0(retro_dir, "/retrospective_", plot_lab, "_", YEAR, ".png"), plot = retro_plot,
+       dpi = 300, height = 5, width = 6, units = "in")
 
 # Mohn's Rho ----
 

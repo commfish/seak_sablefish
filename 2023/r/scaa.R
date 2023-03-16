@@ -125,7 +125,7 @@ tmp_debug <- TRUE         # Shuts off estimation of selectivity pars - once sele
 rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 comp_type <- 0    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
-spr_rec_type <- 0 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
+spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
                   #2023: geometric mean is not working - getting Inf for mean_rec... working on it... 
 M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
 
@@ -166,6 +166,9 @@ VER<-"base" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_n
 #data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
 #==================================================
 
+#ughs<-inits %>% filter(grepl("spr_Fxx", Parameter)) %>% pull(Estimate)
+#exp(ughs)
+
 parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 random_vars <- build_random_vars() # random effects still in development
 
@@ -185,13 +188,20 @@ setwd(tmb_path)
 # (4) Debug mode with debug = TRUE (will need to uncomment out obj_fun = dummy * dummy; )
 
 str(data)
-# turn off estimation of log_spr_Fxx and see how the model behaves... 
-parameters$log_spr_Fxx <- rep(factor(NA))
+# TROUBLE SHOOTING FOR 3-15-23:
+# turn off estimation of log_spr_Fxx and see how the model behaves...
+# instability in recruitment estimation... 
+
+#parameters$log_spr_Fxx <- rep(factor(NA))
+exp(parameters$log_rbar)
+exp(parameters$log_rec_devs)
+exp(parameters$log_rinit)
+exp(parameters$log_rinit_devs)
 
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
-                model_name = "scaa_mod_exp", phase = FALSE, 
-                newtonsteps = 1, #3 make this zero initially for faster run times (using 5)
+                model_name = "scaa_mod", phase = FALSE, 
+                newtonsteps = 3, #3 make this zero initially for faster run times (using 5)
                 debug = FALSE)
 
 obj <- out$obj # TMB model object
@@ -358,6 +368,31 @@ round(recABC-LYR_recABC,0)
 
 # If the maxABC is within 15%, then F_ABC = maxF_ABC, otherwise calculate new F
 # for constrained ABC
+
+#CHECK for unstable recruitment issues.  In 2023 we discovered a bug in the code
+# that was cuasing unstable estimates.  Fixed now, but check every year as the model
+# is refined and developed.  When these were messed up we got different values everytime
+# they were called.  These loops should produce identical results with realistic numbers
+obj$report()$pred_rec
+obj$report()$pred_rbar
+obj$report()$mean_rec
+obj$report(best)$SB
+for (i in 1:25){
+  print(obj$report(best)$SB)
+}
+for (i in 1:25){
+  print(obj$report(best)$SBPR)
+}
+for (i in 1:25){
+  print(obj$report(best)$pred_rec)
+}
+
+obj$report()$spawn_biom[1,]
+
+for (i in 1:25){
+  print(obj$report(best)$mean_rec)
+}
+
 # PJ 2022: I think there is an error in here; value for F comes in above maxABC but
 # should be less since we are removing fewer fish.  This seems to calculate things
 # based on abundance, but should be biomass?  Not sure whats going on here... 
@@ -376,21 +411,12 @@ if(recABC == maxABC) {
   #obj$report()$spr_fsh_slx #not saved
   #obj$report()$Z_Fxx   #not saved in output...
   #obj$report()$S_Fxx   #not saved in output...
-  obj$report()$pred_rec
-  obj$report()$pred_rbar
-  obj$report()$mean_rec
+  #obj$report()$pred_rec
+  #obj$report()$pred_rbar
+  #obj$report()$mean_rec
   #obj$report()$SBPR #SBPR at each fishing level, female biomass only
-  obj$report()$SB   #equilibrium biomass at each fishing level, female biomass only #coming up as Inf first run in 2023??? !!!! 
-  obj$report(best)$SB
-  for (i in 1:25){
-    print(obj$report(best)$SB)
-  }
-  obj$report()$spawn_biom[1,]
+  #obj$report()$SB   #equilibrium biomass at each fishing level, female biomass only #coming up as Inf first run in 2023??? !!!! 
   
-  for (i in 1:25){
-    print(obj$report(best)$mean_rec)
-  }
-  #obj$report()$fsh_slx
   #back to Jane's code here... 
   N <- sum(N[nyr+1,,1]) + sum(N[nyr+1,,2]) # sum of projected abundance across age and sex
   
@@ -420,13 +446,15 @@ if(recABC == maxABC) {
 }
 (F_ABCtest <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = maxABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
 #PJ22: this function is producing different F_ABC than that coming out of TMB code!!!
-#PJ23: yup, still not working. 0.087 here but 0.063 from TMB outbput...  
+#PJ23: yup, still not working. 0.087 here but 0.063 from TMB outbput... 
+#      trusting the TMB output now and will schwag the recABC F value by deprecating
+#      the maxABC_F proportional ro reduction from maXABC to recABC..
+#      These results saved in output
 
-#what about a back-of-the-napkin schwag? 
-schwag<-recABC*maxF_ABC/maxABC
+F_ABC_schwag<-recABC*maxF_ABC/maxABC
 
 #
-(F_ABC - LYR_F_ABC) / LYR_F_ABC # Percent difference from Last year's F
+(F_ABC_schwag - LYR_F_ABC) / LYR_F_ABC # Percent difference from Last year's F
 
 # Projected total age-2+ projected biomass
 (proj_age2plus <- obj$report(best)$tot_biom[nyr+1] * 2.20462)
@@ -473,7 +501,7 @@ tmp <- data.frame(ssb = f_ssb,
            age = 2:31) %>% 
   mutate(year_class = (YEAR+1) - age,
          perc = ssb / sum(f_ssb),
-         label = ifelse(perc > 0.05, paste0(year_class), NA)) 
+         label = ifelse(perc > 0.01, paste0(year_class), NA)) 
 
 tmp %>% 
   ggplot(aes(x = year_class, y = ssb / 1e6, size = perc, label = label)) +
@@ -485,7 +513,18 @@ tmp %>%
 ggsave(paste0(tmbout, "/percentSSB_bycohort_", YEAR, ".png"),
        dpi=300, height=6, width=8, units="in")
 
-tmp %>% filter(!is.na(label)) %>% mutate(sum(perc))
+tmp %>% filter(!is.na(label)) %>% mutate(sum(perc)) %>%
+  ggplot() + geom_col(aes(y=perc, x= year_class)) +
+  labs(x = "year class", y = "Proportion of biomass") +
+  scale_x_discrete(limits = c(breaks),
+                   breaks = c(breaks)) + 
+  theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1))
+
+ggsave(paste0(tmbout, "/percentSSB_bycohort_2_", YEAR, ".png"),
+       dpi=300, height=6, width=8, units="in")
+
+breaks <- c(seq(min(tmp$year_class),max(tmp$year_class),1))
+
 tmp %>% filter(year_class >= 2013)%>% mutate(sum(perc))
 
 # Figure of current estimates of ABC under contemporary estimates of
@@ -591,7 +630,8 @@ res <- c(paste0("Summary of ", YEAR+1, " (current year's) Biological Reference P
                 maxF_ABC, "\n",
                 
                 "F under recommended ABC: ", "\n",
-                F_ABC, "\n"))
+                #F_ABC, "\n"))
+                F_ABC_schwag, "\n"))
 
 write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR,"_",VER,  ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
 
@@ -637,7 +677,7 @@ res <- c(paste0("Summary of percent changes and differences between ", YEAR, " a
                 "Percent difference between maxF_ABCs: ", "\n",
                 round((maxF_ABC - LYR_maxF_ABC) / LYR_maxF_ABC * 100, 1), "%", "\n",
                 "Percent difference between recomended F_ABCs: ", "\n",
-                round((F_ABC - LYR_F_ABC) / LYR_F_ABC * 100, 1), "%", "\n")
+                round((F_ABC_schwag - LYR_F_ABC) / LYR_F_ABC * 100, 1), "%", "\n")
 
 write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR,"_",VER,  ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
 

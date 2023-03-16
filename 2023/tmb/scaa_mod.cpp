@@ -223,6 +223,10 @@ template<class Type>
   pred_catch.setZero();   
   pred_landed.setZero();  
   pred_wastage.setZero(); 
+  pred_mr.setZero();
+  pred_mr_all.setZero();
+  pred_fsh_cpue.setZero();
+  pred_srv_cpue.setZero();
 
   // Predicted age compositions
   matrix<Type> pred_fsh_age(nyr_fsh_age, nage);     // Fishery (with ageing error)
@@ -244,9 +248,12 @@ template<class Type>
   // Predicted selectivity
   array<Type> fsh_slx(nyr, nage, nsex);           // Fishery selectivity-at-age by sex (on natural scale)
   array<Type> srv_slx(nyr, nage, nsex);           // Survey selectivity-at-age by sex(on natural scale)
+  fsh_slx.setZero();
+  srv_slx.setZero();
 
   // Predicted annual fishing mortality
   vector<Type> Fmort(nyr);      // On natural scale
+  Fmort.setZero();
   
   // Derived matrices by year, age, and sex
   array<Type> N(nyr+1, nage, nsex);   // Abundance-at-age, projected 1 year forward
@@ -257,9 +264,18 @@ template<class Type>
   array<Type> L(nyr, nage, nsex);     // Total landed catch in numbers
   array<Type> D(nyr, nage, nsex);     // Total discards in numbers assumed to die post-release
 
+  N.setZero();
+  Z.setZero();
+  F.setZero();
+  S.setZero();
+  C.setZero();
+  L.setZero();
+  D.setZero();
+
   // Derived time series of recruitment, biomass, and abundance (+ projected values)
   
   vector<Type> pred_rec(nyr);               // Predicted age-2 recruitment
+  pred_rec.setZero();
   
   array<Type> biom(nyr+1, nage, nsex);      // Biomass by year, age, and sex, projected 1 year forward
   vector<Type> tot_biom(nyr+1);             // Summed over age and sex
@@ -291,6 +307,9 @@ template<class Type>
   array<Type> survival_spawn(nyr, nage, nsex);    // Survival at time of spawning
   Type pred_rbar;                                 // Predicted mean recruitment
   Type sigma_r = exp(log_sigma_r);                // Estimated recruitment on natural scale 
+  survival_srv.setZero();
+  survival_fsh.setZero();
+  survival_spawn.setZero();
   
   // SPR-based equilibrium reference points
   int n_Fxx = Fxx_levels.size();                  // Number of Fs estimated
@@ -298,6 +317,7 @@ template<class Type>
   matrix<Type> Nspr(n_Fxx + 1, nage);             // Matrix of spawning numbers-at-age *FLAG* number of rows = number of estimated F_xx% (e.g. 3 = F35,F40,F50)
   vector<Type> SBPR(n_Fxx + 1);                   // Spawning biomass per recruit at various fishing levels
   vector<Type> SB(n_Fxx + 1);                     // Equilibrium spawning biomass at various fishing levels
+  Fxx.setZero();
   Nspr.setZero();
   SBPR.setZero();
   SB.setZero();
@@ -308,6 +328,10 @@ template<class Type>
   array<Type> S_Fxx(n_Fxx, nage, nsex);         // Total survivorship at each Fxx%
   matrix<Type> ABC(nyr+1, n_Fxx);               // ABCs at each F_xx%, retrospectively estimated for past years
   matrix<Type> wastage(nyr+1, n_Fxx);           // Discarded catch assumed to die under each F_xx%, retrospectively estimated for past years
+  
+  sel_Fxx.setZero();
+  Z_Fxx.setZero();
+  S_Fxx.setZero();
   ABC.setZero();
   wastage.setZero();
   
@@ -1455,6 +1479,7 @@ template<class Type>
 
   // Derived vectors by year
   ADREPORT(pred_rec);         // Predicted age-2 recruitment
+  REPORT(pred_rec);
   REPORT(tot_biom);         // Total age-2+ biomass
   REPORT(tot_expl_biom);    // Vulnerable biomass to fishery at the beginning of the fishery
   REPORT(tot_expl_abd);     // Vulnerable abundance to fishery at the beginning of the fishery

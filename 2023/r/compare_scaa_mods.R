@@ -1,7 +1,7 @@
 # Compare 2021 projections using the 2019 and 2020 assessment models.
 
 compare_dir <- file.path(root, "output/tmb/compare_mods_2020") #
-source("r/helper.R")
+source("r_helper/helper.R")
 
 # Data ----
 deriv <- read_csv(paste0(compare_dir, "/2019am/derived_ts_imperial_2020.csv")) %>% 
