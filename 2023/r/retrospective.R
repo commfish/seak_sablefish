@@ -22,11 +22,14 @@ dir.create(retro_dir, showWarnings = FALSE)
 
 library(TMB) 
 
+VER<-"tuned"
 # Data for SCAA
 ts <- read_csv(paste0(tmb_dat, "/abd_indices_", YEAR, ".csv"))        # time series
-ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv"))        # time series
-age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
-len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
+#ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv"))        # time series
+#age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
+#len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
+age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
+len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))  # tuned len comps
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
 waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
 retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
@@ -47,7 +50,12 @@ agelen_key_f <- scan("legacy_data/tmb_inputs/agelen_key_fem.txt", sep = " ", ski
 rowSums(agelen_key_f) 
 
 # Starting values - base on current assessment's mle
-inits <- read_csv(paste0(tmbout, "/tmb_allparams_mle_", YEAR, ".csv"))
+# pick saved model results to work with...
+model_run <-"" #use this if just running last model that was not saved in a separate folder
+model_run <- "/first_run_base"
+model_run <- "/first_tuned_run"
+
+inits <- read_csv(paste0(tmbout,model_run, "/tmb_allparams_mle_", YEAR, ".csv"))
 rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
 rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
 Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
@@ -198,28 +206,28 @@ if(rec_type == 1){
 mgc <- do.call(rbind, mgc_ls)
 
 # Save objects so you don't have to rerun analysis ever time.
-write_csv(rec, paste0(retro_dir, "/retro_recruitment_", YEAR, ".csv"))
-write_csv(SB, paste0(retro_dir, "/retro_SB_", YEAR, ".csv"))
-write_csv(Fmort, paste0(retro_dir, "/retro_Fmort_", YEAR, ".csv"))
-write_csv(ABC, paste0(retro_dir, "/retro_ABC_", YEAR, ".csv"))
-write_csv(SB100, paste0(retro_dir, "/retro_SB100_", YEAR, ".csv"))
-write_csv(SB50, paste0(retro_dir, "/retro_SB50_", YEAR, ".csv"))
+write_csv(rec, paste0(retro_dir, "/retro_recruitment_",VER,"_", YEAR, ".csv"))
+write_csv(SB, paste0(retro_dir, "/retro_SB_",VER,"_", YEAR, ".csv"))
+write_csv(Fmort, paste0(retro_dir, "/retro_Fmort_",VER,"_", YEAR, ".csv"))
+write_csv(ABC, paste0(retro_dir, "/retro_ABC_",VER,"_", YEAR, ".csv"))
+write_csv(SB100, paste0(retro_dir, "/retro_SB100_",VER,"_", YEAR, ".csv"))
+write_csv(SB50, paste0(retro_dir, "/retro_SB50_",VER,"_", YEAR, ".csv"))
 if(rec_type == 1){
-  write_csv(sigmaR, paste0(retro_dir, "/retro_sigmaR_", YEAR, ".csv"))
+  write_csv(sigmaR, paste0(retro_dir, "/retro_sigmaR_",VER,"_", YEAR, ".csv"))
 }
-write_csv(mgc, paste0(retro_dir, "/retro_convergence_", YEAR, ".csv"))
+write_csv(mgc, paste0(retro_dir, "/retro_convergence_",VER,"_", YEAR, ".csv"))
 
 # Load ----
-rec <- read_csv(paste0(retro_dir, "/retro_recruitment_", YEAR, ".csv"))
-SB <- read_csv(paste0(retro_dir, "/retro_SB_", YEAR, ".csv"))
-Fmort <- read_csv(paste0(retro_dir, "/retro_Fmort_", YEAR, ".csv"))
-ABC <- read_csv(paste0(retro_dir, "/retro_ABC_", YEAR, ".csv"))
-SB100 <- read_csv(paste0(retro_dir, "/retro_SB100_", YEAR, ".csv"))
-SB50 <- read_csv(paste0(retro_dir, "/retro_SB50_", YEAR, ".csv"))
+rec <- read_csv(paste0(retro_dir, "/retro_recruitment_",VER,"_", YEAR, ".csv"))
+SB <- read_csv(paste0(retro_dir, "/retro_SB_",VER,"_", YEAR, ".csv"))
+Fmort <- read_csv(paste0(retro_dir, "/retro_Fmort_",VER,"_", YEAR, ".csv"))
+ABC <- read_csv(paste0(retro_dir, "/retro_ABC_",VER,"_", YEAR, ".csv"))
+SB100 <- read_csv(paste0(retro_dir, "/retro_SB100_",VER,"_", YEAR, ".csv"))
+SB50 <- read_csv(paste0(retro_dir, "/retro_SB50_",VER,"_", YEAR, ".csv"))
 if(rec_type == 1){
-  sigmaR <- read_csv(paste0(retro_dir, "/retro_sigmaR_", YEAR, ".csv"))
+  sigmaR <- read_csv(paste0(retro_dir, "/retro_sigmaR_",VER,"_", YEAR, ".csv"))
 }
-mgc <- read_csv(paste0(retro_dir, "/retro_convergence_", YEAR, ".csv"))
+mgc <- read_csv(paste0(retro_dir, "/retro_convergence_",VER,"_", YEAR, ".csv"))
 
 # Do estimates of sigmaR change over time? *Only when estimated*
 if(rec_type == 1){

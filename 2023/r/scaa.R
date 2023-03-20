@@ -4,8 +4,9 @@
 # weight-at-age, survey data about maturity-at-age and proportions-at-age, and
 # fishery and survey age and length compositions.
 
-# Contact: jane.sullivan@noaa.gov
-# Last updated April 2021
+# Original author: jane.sullivan@noaa.gov
+# Current driver: philip.joy@alaska.gov
+# Last updated March 2023
 
 # The following libraries are used for running the SCAA as a Bayesian model,
 # which are still under development. A lot of the infrastructure has been
@@ -64,10 +65,10 @@ library(TMB)
 }
 # Load prepped data from scaa_dataprep.R
 ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv")) #"/abd_indices_", YEAR, ".csv"))       # time series
-#age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
-#len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
- age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
- len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))  # tuned len comps
+age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
+len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
+# age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
+# len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))  # tuned len comps
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
 waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
 retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
@@ -124,7 +125,7 @@ tmp_debug <- TRUE         # Shuts off estimation of selectivity pars - once sele
 # Model switches
 rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
-comp_type <- 0    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
+comp_type <- 1    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
                   #2023: geometric mean is not working - getting Inf for mean_rec... working on it... 
 M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
@@ -163,6 +164,8 @@ str(data$data_fsh_cpue)
 #=====================================
 # *** Checking sensitivity to fishery CPUE data versions
 VER<-"base" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
+VER<-"tuned"
+VER<-"dirichlet_age"
 #data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
 #==================================================
 
@@ -200,8 +203,8 @@ exp(parameters$log_rinit_devs)
 
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
-                model_name = "scaa_mod", phase = FALSE, 
-                newtonsteps = 3, #3 make this zero initially for faster run times (using 5)
+                model_name = "scaa_mod_exp", phase = FALSE, 
+                newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                 debug = FALSE)
 
 obj <- out$obj # TMB model object
@@ -283,9 +286,9 @@ write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR,"_",VER, ".cs
 
 # Fits to abundance indices, derived time series, and F. Use units = "imperial" or
 # "metric" to switch between units. 
-plot_ts(ts = ts, save = FALSE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
-plot_derived_ts(ts = ts, save = FALSE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
-plot_F(save = FALSE)
+plot_ts(ts = ts, save = TRUE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
+plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
+plot_F(save = TRUE)
 
 # Recruitment estimates
 logrbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
@@ -302,7 +305,7 @@ rec %>% filter(brood_year == 2016) %>% pull(rec)
 rec %>% filter(brood_year == 1978) %>% pull(rec)
 
 agecomps <- reshape_age()
-plot_sel(save = FALSE) # Selectivity, fixed at Federal values
+plot_sel(save = TRUE) # Selectivity, fixed at Federal values
 
 plot_age_resids() # Fits to age comps
 barplot_age("Survey")
@@ -510,9 +513,10 @@ tmp %>%
   scale_size(labels = scales::percent) +
   labs(x = "Year class", y = "SSB (kt)", size = paste0("Percent\ncontribution\nto the ", YEAR+1, "\nSSB"))
 
-ggsave(paste0(tmbout, "/percentSSB_bycohort_", YEAR, ".png"),
+ggsave(paste0(tmbout, "/percentSSB_bycohort_",VER,"_", YEAR, ".png"),
        dpi=300, height=6, width=8, units="in")
 
+breaks <- c(seq(min(tmp$year_class),max(tmp$year_class),1))
 tmp %>% filter(!is.na(label)) %>% mutate(sum(perc)) %>%
   ggplot() + geom_col(aes(y=perc, x= year_class)) +
   labs(x = "year class", y = "Proportion of biomass") +
@@ -520,10 +524,8 @@ tmp %>% filter(!is.na(label)) %>% mutate(sum(perc)) %>%
                    breaks = c(breaks)) + 
   theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1))
 
-ggsave(paste0(tmbout, "/percentSSB_bycohort_2_", YEAR, ".png"),
+ggsave(paste0(tmbout, "/percentSSB_bycohort_2_",VER,"_", YEAR, ".png"),
        dpi=300, height=6, width=8, units="in")
-
-breaks <- c(seq(min(tmp$year_class),max(tmp$year_class),1))
 
 tmp %>% filter(year_class >= 2013)%>% mutate(sum(perc))
 
@@ -549,7 +551,7 @@ ggplot() +
   scale_y_continuous(label = scales::comma) +
   labs(x = NULL, y = "Catch (round lb)", fill = "Catch")
 
-ggsave(filename = paste0(tmbfigs, "/catch_ABC_Fspr_", YEAR, ".png"), 
+ggsave(filename = paste0(tmbfigs, "/catch_ABC_Fspr_",VER,"_", YEAR, ".png"), 
        dpi = 300, height = 4, width = 6, units = "in")
 
 # Write BRPs ----

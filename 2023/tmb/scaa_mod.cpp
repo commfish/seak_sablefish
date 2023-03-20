@@ -4,8 +4,9 @@
 // fishery and survey weight-at-age, survey data about maturity-at-age and
 // proportions-at-age, and fishery and survey age and length compositions.
 
-// Author: Jane Sullivan, ummjane@gmail.com
-// Last updated May 2020
+// Original Author: Jane Sullivan, ummjane@gmail.com
+// Current Driver: Phil Joy, philip.joy@alaska.gov
+// Last updated March 2023
 
 #include <TMB.hpp>
 #include <numeric>

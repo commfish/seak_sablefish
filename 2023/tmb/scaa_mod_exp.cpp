@@ -4,8 +4,9 @@
 // fishery and survey weight-at-age, survey data about maturity-at-age and
 // proportions-at-age, and fishery and survey age and length compositions.
 
-// Author: Jane Sullivan, ummjane@gmail.com
-// Last updated May 2020
+// Original Author: Jane Sullivan, ummjane@gmail.com
+// Current Driver: Phil Joy, philip.joy@alaska.gov
+// Last updated March 2023
 
 #include <TMB.hpp>
 #include <numeric>
@@ -155,7 +156,7 @@ template<class Type>
   DATA_INTEGER(nyr_fsh_len)       // number of years 
   DATA_IVECTOR(yrs_fsh_len)       // vector of years
   DATA_ARRAY(data_fsh_len)        // observations (nyr, nlenbin, nsex)
-  DATA_ARRAY(n_fsh_len)           // raw sample size for length comps (nyr, 1, nsex)
+  DATA_ARRAY(n_fsh_len)           // raw sample size for length comps (nyr, 1, nsex) 
   DATA_ARRAY(effn_fsh_len)        // effective sample size (nyr, 1, nsex)
   
   // Survey length comps
@@ -207,8 +208,12 @@ template<class Type>
   
   //  Parameter related to effective sample size for Dirichlet-multinomial
   //  likelihood used for composition data. Eqn 11 in Thorson et al. 2017.
-  PARAMETER(log_fsh_theta);
-  PARAMETER(log_srv_theta);
+  PARAMETER(log_fsh_theta); //ages... u
+  PARAMETER(log_srv_theta); //ages
+  //PARAMETER(log_fsh_m_len_theta); //male lengths...
+  //PARAMETER(log_srv_m_len_theta);
+  //PARAMETER(log_fsh_f_len_theta);
+  //PARAMETER(log_srv_f_len_theta);
     
   // **DERIVED QUANTITIES**
   
@@ -1274,12 +1279,19 @@ template<class Type>
         // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
         sum1_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + Type(1.0) );
         // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-        sum2_fsh(i) += lgamma( n_fsh_age(i) + data_fsh_age(i,j) + fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) ) -
-          lgamma( fsh_theta * n_fsh_age(i) - pred_fsh_age(i,j) );
+        //sum2_fsh(i) += lgamma( n_fsh_age(i) + data_fsh_age(i,j) + fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) ) -
+        //  lgamma( fsh_theta * n_fsh_age(i) - pred_fsh_age(i,j) );
+        sum2_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) ) -
+          lgamma( fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) );   // second n_fsh_age(i) should be big N in Thorso which is not specified an may be a typo? 
+        //sum2_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + fsh_theta * bigN * pred_fsh_age(i,j) ) -
+        //  lgamma( fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) );
       }
       // Full nll for D-M, Eqn 10, Thorson et al. 2017
+      //age_like(0) -= lgamma(n_fsh_age(i) + Type(1.0)) - sum1_fsh(i) + lgamma(fsh_theta * n_fsh_age(i)) -
+      //  lgamma(n_fsh_age(i) + fsh_theta * n_fsh_age(i)) + sum2_fsh(i);
       age_like(0) -= lgamma(n_fsh_age(i) + Type(1.0)) - sum1_fsh(i) + lgamma(fsh_theta * n_fsh_age(i)) -
         lgamma(n_fsh_age(i) + fsh_theta * n_fsh_age(i)) + sum2_fsh(i);
+
     }
     break;
 
@@ -1319,10 +1331,14 @@ template<class Type>
         // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
         sum1_srv(i) += lgamma( n_srv_age(i) * data_srv_age(i,j) + Type(1.0) );
         // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-        sum2_srv(i) += lgamma( n_srv_age(i) + data_srv_age(i,j) + srv_theta * n_srv_age(i) * pred_srv_age(i,j) ) -
-          lgamma( srv_theta * n_srv_age(i) - pred_srv_age(i,j) );
+        //sum2_srv(i) += lgamma( n_srv_age(i) + data_srv_age(i,j) + srv_theta * n_srv_age(i) * pred_srv_age(i,j) ) -
+        //  lgamma( srv_theta * n_srv_age(i) - pred_srv_age(i,j) );
+        sum2_srv(i) += lgamma( n_srv_age(i) * data_srv_age(i,j) + srv_theta * n_srv_age(i) * pred_srv_age(i,j) ) -
+          lgamma( srv_theta * n_srv_age(i) * pred_srv_age(i,j) );   //switch - to * ??
       }
       // Full nll for D-M, Eqn 10, Thorson et al. 2017
+      //age_like(1) -= lgamma(n_srv_age(i) + Type(1.0)) - sum1_srv(i) + lgamma(srv_theta * n_srv_age(i)) -
+      //  lgamma(n_srv_age(i) + srv_theta * n_srv_age(i)) + sum2_srv(i);
       age_like(1) -= lgamma(n_srv_age(i) + Type(1.0)) - sum1_srv(i) + lgamma(srv_theta * n_srv_age(i)) -
         lgamma(n_srv_age(i) + srv_theta * n_srv_age(i)) + sum2_srv(i);
     }

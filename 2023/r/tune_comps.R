@@ -8,12 +8,12 @@
 
 # Equations used:
 #   
-# Nhat_i = sum_j{phat_ij * (1 - phat_ij)} / sum_j{(p_ij - phat_ij)^2}
+# Nhat_i = sum_j{phat_ij * (1 - phat_ij)} / sum_j{(p_ij - phat_ij)^2}  #R, equ6 in Stewart and Hamel?? 
 # Nhat = n / sum_i{(Nhat_i)^(-1)}
 
 # i = year, j = age or length
 # Nhat = effective sample size
-# p_ij = observed age or length comp in a given year
+# p_ij = observed age or length comp in a given year #
 # phat_ij = estimated age or length comp in a given year
 # n = number of years in the comp index
 
@@ -176,10 +176,13 @@ for(iter in 1:niter) { #iter<-1
   effn_fsh_age <- vector(length = nrow(pred_fsh_age))
   
   for(i in 1:nrow(pred_fsh_age)){
-    effn_fsh_age[i] <- sum(pred_fsh_age[i,]*(1-pred_fsh_age[i,])) / sum((data_fsh_age[i,]-pred_fsh_age[i,])^2)
+    effn_fsh_age[i] <- sum(pred_fsh_age[i,]*(1-pred_fsh_age[i,])) / sum((data_fsh_age[i,]-pred_fsh_age[i,])^2)  #Equation 2.5 in Mcalister and Ianelli
+    # Nhat_i = sum_j{phat_ij * (1 - phat_ij)} / sum_j{(p_ij - phat_ij)^2}  #R, equ6 in Stewart and Hamel?? 
+    #    phils_q_fhs_age[i] <- sum(pred_fsh_age[i,]*(1-pred_fsh_age[i,])) / sum((pred_fsh_age[i,]-data_fsh_age[i,])^2) #based on eq6 from Stewart & Hamel??
+    ## but to be true to Stewart and Hamel data should be bootstrapped estimates? 
   }
   
-  effn_fsh_age <- 1/mean(1/effn_fsh_age) # harmonic mean
+  effn_fsh_age <- 1/mean(1/effn_fsh_age) # harmonic mean from Stewat and Hamel... 
 
   tune_fsh_age[[iter]] <- effn_fsh_age
   data$effn_fsh_age <- rep(effn_fsh_age, length(data$effn_fsh_age)) # replace data for next iteration
