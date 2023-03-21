@@ -210,11 +210,9 @@ template<class Type>
   //  likelihood used for composition data. Eqn 11 in Thorson et al. 2017.
   PARAMETER(log_fsh_theta); //ages... u
   PARAMETER(log_srv_theta); //ages
-  //PARAMETER(log_fsh_m_len_theta); //male lengths...
-  //PARAMETER(log_srv_m_len_theta);
-  //PARAMETER(log_fsh_f_len_theta);
-  //PARAMETER(log_srv_f_len_theta);
-    
+  PARAMETER(log_fsh_l_theta); //fishery lengths...
+  // PARAMETER(log_srv_l_theta);
+      
   // **DERIVED QUANTITIES**
   
   // Predicted indices of catch and abundance
@@ -1251,6 +1249,9 @@ template<class Type>
   Type fsh_theta = exp(log_fsh_theta);      // Dirichlet-multinomial parameter
   vector<Type> sum1_fsh(nyr_fsh_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
   vector<Type> sum2_fsh(nyr_fsh_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+  //fsh_theta.setZero();
+  sum1_fsh.setZero();
+  sum2_fsh.setZero();
 
   // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
   switch (comp_type) {
@@ -1303,7 +1304,9 @@ template<class Type>
   Type srv_theta = exp(log_srv_theta);      // Dirichlet-multinomial parameter
   vector<Type> sum1_srv(nyr_srv_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
   vector<Type> sum2_srv(nyr_srv_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-
+  //srv_theta.setZero();
+  sum1_srv.setZero();
+  sum2_srv.setZero();
 
   // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
   switch (comp_type) {
@@ -1352,8 +1355,19 @@ template<class Type>
   // std::cout << "Age comp offset\n" << offset << "\n";
   // std::cout << "Age comp likelihoods\n" << age_like << "\n";
 
-  // Multinomial likelihood for fishery length comps.
-  for (int k = 0; k < nsex; k++) {
+  Type fsh_l_theta = exp(log_fsh_l_theta);      // Dirichlet-multinomial parameter
+  array<Type> sum1_fsh_l(nyr_fsh_len,nsex);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+  array<Type> sum2_fsh_l(nyr_fsh_len,nsex);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+  sum1_fsh_l.setZero();
+  sum2_fsh_l.setZero();
+
+  
+  // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
+  switch (comp_type) {
+
+    case 0: // Multinomial
+
+      for (int k = 0; k < nsex; k++) {
 
     for (int i = 0; i < nyr_fsh_len; i++) {
       for (int l = 0; l < nlenbin; l++) {
@@ -1367,6 +1381,39 @@ template<class Type>
     fsh_len_like(k) *= wt_fsh_len;            // likelihood weight
   }
 
+break;
+
+  case 1: // Dirichlet-multinomial (D-M) 
+
+  for (int k = 0; k < nsex; k++) {
+    for (int i = 0; i < nyr_fsh_len; i++) {
+      // Preliminary calcs
+      for (int l = 0; l < nlenbin; l++) {
+        // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+        sum1_fsh_l(i,k) += lgamma( n_fsh_len(i,k) * data_fsh_len(i,l,k) + Type(1.0) );
+        
+        // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+        //sum2_srv(i) += lgamma( n_srv_age(i) + data_srv_age(i,j) + srv_theta * n_srv_age(i) * pred_srv_age(i,j) ) -
+        //  lgamma( srv_theta * n_srv_age(i) - pred_srv_age(i,j) );
+
+        sum2_fsh_l(i,k) += lgamma( n_fsh_len(i,k) * data_fsh_len(i,l,k) + fsh_l_theta * n_fsh_len(i,k) * pred_fsh_len(i,l,k) ) -
+          lgamma( fsh_l_theta * n_fsh_len(i,k) * pred_fsh_len(i,l,k) );   //switch - to * ??
+      }
+      // Full nll for D-M, Eqn 10, Thorson et al. 2017
+      //age_like(1) -= lgamma(n_srv_age(i) + Type(1.0)) - sum1_srv(i) + lgamma(srv_theta * n_srv_age(i)) -
+      //  lgamma(n_srv_age(i) + srv_theta * n_srv_age(i)) + sum2_srv(i);
+      //age_like(1) -= lgamma(n_fsh_len(i,k) + Type(1.0)) - sum1_fsh_l(i,k) + lgamma(fsh_l_theta * n_fsh_len(i,k)) -
+      //  lgamma(n_fsh_len(i,k) + fsh_l_theta * n_fsh_len(i,k)) + sum2_fsh_l(i,k);
+      fsh_len_like(k) -= lgamma(n_fsh_len(i,k) + Type(1.0)) - sum1_fsh_l(i,k) + lgamma(fsh_l_theta * n_fsh_len(i,k)) -
+        lgamma(n_fsh_len(i,k) + fsh_l_theta * n_fsh_len(i,k)) + sum2_fsh_l(i,k);
+    }
+    //fsh_len_like(k) -= lgamma(n_fsh_len(i,k) + Type(1.0)) - sum1_fsh_l(i,k) + lgamma(fsh_l_theta * n_fsh_len(i,k)) -
+    //    lgamma(n_fsh_len(i,k) + fsh_l_theta * n_fsh_len(i,k)) + sum2_fsh_l(i,k);
+  }
+    break;
+  }
+
+  
   // Multinomial likelihood for survey length comps.
   for (int k = 0; k < nsex; k++) {
 

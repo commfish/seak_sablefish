@@ -127,7 +127,6 @@ rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = r
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 comp_type <- 1    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
-                  #2023: geometric mean is not working - getting Inf for mean_rec... working on it... 
 M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
 
 # Subsets
@@ -165,7 +164,7 @@ str(data$data_fsh_cpue)
 # *** Checking sensitivity to fishery CPUE data versions
 VER<-"base" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
 VER<-"tuned"
-VER<-"dirichlet_age"
+VER<-"dirichlet_age_fsh_l"
 #data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
 #==================================================
 
@@ -173,11 +172,14 @@ VER<-"dirichlet_age"
 #exp(ughs)
 
 parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
+
+parameters <- build_parameters_exp(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 random_vars <- build_random_vars() # random effects still in development
 
 # parameters <- list(dummy = 0)
 # compile("tst.cpp")
-
+data$data_fsh_len
+data$n_fsh_len
 # Run model ----
 
 setwd(tmb_path)
@@ -204,7 +206,7 @@ exp(parameters$log_rinit_devs)
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
                 model_name = "scaa_mod_exp", phase = FALSE, 
-                newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+                newtonsteps = 3, #3 make this zero initially for faster run times (using 5)
                 debug = FALSE)
 
 obj <- out$obj # TMB model object

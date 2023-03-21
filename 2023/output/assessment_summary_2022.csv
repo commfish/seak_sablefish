@@ -1,17 +1,17 @@
 year,N_current,q025,q975,abundance_age2plus,abc_round_lbs,harvest_policy,notes,source
-2005,1727570.8293261414,1473441.053074822,2037728.0938341208,1948450,2255115,F_40%,NA,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2
+2005,1727570.829,1473441.053,2037728.094,1948450,2255115,F_40%,NA,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2
 "
-2006,2172791.794335783,1761987.1071072726,2694097.9508356447,2427828,1340350,F_40%,NA,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2 
+2006,2172791.794,1761987.107,2694097.951,2427828,1340350,F_40%,NA,"abundance from Dressel FDS 09-50 2012; abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11; Dressel 2009 Fishery Data Series No. 09-50 Table 2 
 "
-2007,2739874.7724446105,2195670.4159340817,3418049.2574642366,2333684,1623219,F_40%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
-2008,1769783.61277112,1480683.3495683868,2120683.534480565,1939648,1623219,F_40%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals; no forecast conducted for 2008, Dressel assumed biomass values equal to previous year",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
-2009,2476306.1418773737,2021943.927848396,3030366.0364662795,2145395,1290868,F_45%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
-2010,2196092.9841457773,1841062.1048652742,2627559.184937619,2051250,1250961,F_50%,NA,2013 NSEI Memo Van Kirk
-2012,1851801.0423667987,1556066.398585572,2201059.4761606036,1967917,1160674,F_50%,NA,2013 NSEI Memo Van Kirk
-2013,2009979.505530933,1685751.086569661,2397412.515591101,1905712,1049391,F_50%,"Kirk started using survey weight-at-age to apportion biomass , selected for mgt",2013 NSEI Memo Van Kirk
-2015,1886497.8927771877,1549390.4021692602,2306430.115381727,1766525,986481,F_50%,NA,2015 NSEI assessment Van Kirk
-2017,2061720.0047632928,1674883.4163447383,2536156.9948372273,1927382,850113,F_50%,"hindcast, not used for mgt",2018 NSEI assessment Sullivan (ABC from 2017 NSEI assessment Van Kirk)
-2018,2945189.1116180564,2397142.591081264,3594937.473391919,2060000,965354,F_50%,"estimate, abundance is MR abundance from 2020 forecast",2019 NSEI forecast Sullivan
-2019,3508220.448762254,2862631.412711671,4297275.980742608,3010000,1058037,F_50%,"forecast, abundance is MR abundance from 2020 forecast",2019 NSEI forecast Sullivan
-2020,3069242.8975417106,2493206.0268003107,3773659.169302832,3140000,1216743,F_50%,"forecast, abundance is MR abundance from 2020 forecast",2020 NSEI http://www.adfg.alaska.gov/FedAidPDFs/RIR.5J.2020.05.pdf
-2022,3925208.1067965366,3263707.397743926,4716382.692755408,NA,NA,NA,NA,NA
+2007,2739874.772,2195670.416,3418049.257,2333684,1623219,F_40%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
+2008,1769783.613,1480683.35,2120683.534,1939648,1623219,F_40%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals; no forecast conducted for 2008, Dressel assumed biomass values equal to previous year",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
+2009,2476306.142,2021943.928,3030366.036,2145395,1290868,F_45%,"abundance not reported for 2007-2009, Sullivan ineterpolated at equal intervals",abc and biomass from Dressel's 1997-2010 chatham forecast summary matrix 11-29-11
+2010,2196092.984,1841062.105,2627559.185,2051250,1250961,F_50%,NA,2013 NSEI Memo Van Kirk
+2012,1851801.042,1556066.399,2201059.476,1967917,1160674,F_50%,NA,2013 NSEI Memo Van Kirk
+2013,2009979.506,1685751.087,2397412.516,1905712,1049391,F_50%,"Kirk started using survey weight-at-age to apportion biomass , selected for mgt",2013 NSEI Memo Van Kirk
+2015,1886497.893,1549390.402,2306430.115,1766525,986481,F_50%,NA,2015 NSEI assessment Van Kirk
+2017,2061720.005,1674883.416,2536156.995,1927382,850113,F_50%,"hindcast, not used for mgt",2018 NSEI assessment Sullivan (ABC from 2017 NSEI assessment Van Kirk)
+2018,2945189.112,2397142.591,3594937.473,2060000,965354,F_50%,"estimate, abundance is MR abundance from 2020 forecast",2019 NSEI forecast Sullivan
+2019,3508220.449,2862631.413,4297275.981,3010000,1058037,F_50%,"forecast, abundance is MR abundance from 2020 forecast",2019 NSEI forecast Sullivan
+2020,3069242.898,2493206.027,3773659.169,3140000,1216743,F_50%,"forecast, abundance is MR abundance from 2020 forecast",2020 NSEI http://www.adfg.alaska.gov/FedAidPDFs/RIR.5J.2020.05.pdf
+2022,3925208.107,3263707.398,4716382.693,NA,1595932,F_50%,"forecast, abundance is MR abundance from 2020 forecast",NA

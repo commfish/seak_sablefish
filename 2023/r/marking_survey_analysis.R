@@ -13,15 +13,18 @@
 # 2:  What is the impact be on stock status and ABC recommendations if we had
 # a biennial or triennial marking survey?
 
+# 2023 update
+# 1. 
+
 # Set up ----
 
-YEAR <- 2019 # most recent year of data
+YEAR <- 2022 # most recent year of data
 
 # Directory setup
 root <- getwd() # project root
-tmb_dat <- file.path(root, "data/tmb_inputs") # location of tmb model data inputs
-tmb_path <- file.path(root, "tmb") # location of cpp
-tmbout <- file.path(root, "output/tmb") # location where model output is saved
+tmb_dat <- file.path(root, paste0(YEAR+1,"/data/tmb_inputs")) # location of tmb model data inputs
+tmb_path <- file.path(root, paste0(YEAR+1,"/tmb")) # location of cpp
+tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model output is saved
 mr_sens_dir <- file.path(tmbout, "sensitivity_marking_survey") # subdirectory for analysis
 dir.create(mr_sens_dir, showWarnings = FALSE)
 obj1_dir <- file.path(mr_sens_dir, "obj1_missing_surveys") # subdirectory for obj 1 analysis
@@ -29,14 +32,17 @@ dir.create(obj1_dir, showWarnings = FALSE)
 obj2_dir <- file.path(mr_sens_dir, "obj2_periodical_surveys") # subdirectory for analysis
 dir.create(obj2_dir, showWarnings = FALSE)
 
-source("r/helper.r")
-source("r/functions.r")
+source("r_helper/helper.r")
+source("r_helper/functions.r")
 
 library(TMB) 
 
 # Assessment summary for graphics
-assessment_summary <- read_csv(paste0("output/assessment_summary_", YEAR, ".csv"))
+assessment_summary <- read_csv(paste0(YEAR+1,"/output/assessment_summary_", YEAR, ".csv"))
+#assessment_summary <- read.csv(paste0("C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/",YEAR+1,"/output/assessment_summary_", YEAR, ".csv"))
 
+#Old code
+{
 # Data for SCAA
 ts <- read_csv(paste0(tmb_dat, "/abd_indices_", YEAR, ".csv"))        # time series
 age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
@@ -48,15 +54,15 @@ retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retentio
 # Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
 # develop one for ADFG. Row = true age, Column = observed age. Proportion
 # observed at age given true age.
-ageing_error <- scan("data/tmb_inputs/ageing_error_fed.txt", sep = " ") %>% matrix(ncol = 30) %>% t()
+ageing_error <- scan("legacy_data/tmb_inputs/ageing_error_fed.txt", sep = " ") %>% matrix(ncol = 30) %>% t()
 rowSums(ageing_error) # should be 1
 
 # Age-length key from D. Hanselman 2019-04-18. On To DO list to develop one for
 # ADFG (will need separate onces for fishery and survey).  Proportion at length
 # given age. Row = age, Column = length bin
-agelen_key_m <- scan("data/tmb_inputs/agelen_key_male.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
+agelen_key_m <- scan("legacy_data/tmb_inputs/agelen_key_male.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
 rowSums(agelen_key_m) # should all = 1
-agelen_key_f <- scan("data/tmb_inputs/agelen_key_fem.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
+agelen_key_f <- scan("legacy_data/tmb_inputs/agelen_key_fem.txt", sep = " ", skip = 1) %>% matrix(ncol = 30) %>% t()
 rowSums(agelen_key_f) 
 
 # Starting values - base on current assessment's mle
@@ -82,6 +88,10 @@ slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 comp_type <- 0    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
 M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
+}
+
+#2023 updated code
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2020.csv"))
 
 # Question 1 ----
 
@@ -89,13 +99,14 @@ M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
 # survey (2011, 2014, and 2016)
 
 no_srv_yrs <- ts %>% 
-  filter(year %in% c(2011, 2014, 2016, YEAR)) %>% 
+  #filter(year %in% c(2011, 2014, 2016, YEAR)) %>% 
+  filter(year %in% c(2011, 2014, 2016, 2021, YEAR)) %>% 
   distinct(year, index) 
 
 ABC_out <- list()
 rep_out <- list()
 
-for(i in 1:length(no_srv_yrs$year)) { # TODO: I had to run each iteration manually
+for(i in 1:length(no_srv_yrs$year)) { # TODO: I had to run each iteration manually i<-5
 
   iter_YEAR <- no_srv_yrs$year[i]
   iter_dir <- file.path(obj1_dir, iter_YEAR) # subdirectory for analysis
@@ -129,15 +140,20 @@ for(i in 1:length(no_srv_yrs$year)) { # TODO: I had to run each iteration manual
   setwd(tmb_path)
   
   # Run model using MLE
+  #out <- TMBphase(data, parameters, random = random_vars, 
+  #                model_name = "scaa_mod", phase = FALSE, 
+  #                debug = FALSE, loopnum = 5)
+  
   out <- TMBphase(data, parameters, random = random_vars, 
                   model_name = "scaa_mod", phase = FALSE, 
-                  debug = FALSE, loopnum = 5)
+                  newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+                  debug = FALSE)
   
   obj <- out$obj # TMB model object
   opt <- out$opt # fit
   rep <- out$rep # sdreport
   best <- obj$env$last.par.best
-  
+  rep
   # save MLE estimates
   tidyrep <- save_mle(path = iter_dir, save_inits = FALSE, year = iter_YEAR)
 
@@ -146,7 +162,8 @@ for(i in 1:length(no_srv_yrs$year)) { # TODO: I had to run each iteration manual
   names(ABC) <- data$Fxx_levels
   ABC <- ABC %>% 
     mutate(year = c(unique(iter_ts$year), max(iter_ts$year)+1)) %>% 
-    data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC") %>% 
+    #data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC") %>% 
+    reshape2::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC") %>% 
     filter(Fxx == "0.5" & year == iter_YEAR+1) %>% 
     mutate(missing_MR_srv = iter_YEAR)
   
@@ -165,12 +182,14 @@ ABC_out <- do.call("rbind", ABC_out)
 write_csv(ABC_out, paste0(obj1_dir, "/ABC_summary.csv"))
 ABC_out <- read_csv(paste0(obj1_dir, "/ABC_summary.csv"))
 
+thisyearABC<- 1809482#first_run_base for now... 
+
 ABC_out %>% 
   left_join(assessment_summary %>% 
               select(year, past_ABC = abc_round_lbs) %>% 
               bind_rows(data.frame(year = YEAR + 1,
                                    # max ABC (from this year, results from scaa.R)
-                                   past_ABC = 1280406))) %>% 
+                                   past_ABC = thisyearABC))) %>% 
   mutate(diff = (ABC - past_ABC),
          perc_diff = diff / past_ABC * 100)
 
@@ -178,11 +197,11 @@ assessment_summary %>%
   select(year, abc = abc_round_lbs) %>% 
   bind_rows(data.frame(year = YEAR + 1,
                        # max ABC (from this year, results from scaa.R)
-                       abc = 1280406)) %>% 
+                       abc = thisyearABC)) %>% 
   # Fill in missing years - pulled these from AHO subdirectories from the M
   # drive
-  bind_rows(data.frame(year = c(2011, 2014, 2016), 
-                       abc = c(1046873, 952538, 807559))) %>% 
+  bind_rows(data.frame(year = c(2011, 2014, 2016, 2021), 
+                       abc = c(1046873, 952538, 807559, 1255056))) %>% 
   arrange(year) -> df
 
 axis <- tickr(df, year, 2)
@@ -206,23 +225,99 @@ p1
 ggsave(plot = p1, filename = paste0(obj1_dir, "/ABC_", min(df$year), "_", YEAR+1, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
 
-
+#---------------------------------------------------------------------------------
 # Question 2 ----
 
 # Impact of biennial or triennial surveys
 
 # Approach: 
-# 1. Run model normally for 2019, use predicted values from MR index to fill in
+# 1. Run model normally for new year, use predicted values from MR index to fill in
 # the full time series.
 # 2. Create survey scenarios (bi or triennial)
+{
+ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv")) #"/abd_indices_", YEAR, ".csv"))       # time series
+age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
+len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
+# age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
+# len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))  # tuned len comps
+bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
+waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
+retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2020.csv")) # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
 
-# Run model normally for 2019
+# Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
+# develop one for ADFG. Row = true age, Column = observed age. Proportion
+# observed at age given true age.
+ageing_error <- scan(paste0(YEAR+1,"/data/tmb_inputs/ageing_error_fed.txt", sep = " ")) %>% matrix(ncol = 30) %>% t()
+rowSums(ageing_error) # should be 1
+
+# Age-length key from D. Hanselman 2019-04-18. On To DO list to develop one for
+# ADFG (will need separate ones for fishery and survey). See
+# ageing_error_matrix.R for KVK's code, which may be a good start.  Proportion
+# at length given age. Row = age, Column = length bin
+agelen_key_m <- scan(paste0(YEAR+1,"/data/tmb_inputs/agelen_key_male.txt", sep = " "), skip = 1) %>% matrix(ncol = 30) %>% t()
+rowSums(agelen_key_m) # should all = 1
+agelen_key_f <- scan(paste0(YEAR+1,"/data/tmb_inputs/agelen_key_fem.txt", sep = " "), skip = 1) %>% matrix(ncol = 30) %>% t()
+rowSums(agelen_key_f) 
+
+  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, ".csv"))
+  rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
+  rec_devs_inits <- c(rec_devs_inits, mean(rec_devs_inits)) # mean for current year starting value
+  rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
+  Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
+  Fdevs_inits <- c(Fdevs_inits, mean(Fdevs_inits)) # mean for current year starting value
+
+# Model dimensions / user inputs
+syr <- min(ts$year)                   # model start year
+lyr <- YEAR <- max(ts$year)           # end year
+nyr <- length(syr:lyr)                # number of years        
+rec_age <- min(waa$age)               # recruitment age                  
+plus_group <- max(waa$age)            # plus group age
+nage <- length(rec_age:plus_group)    # number of ages
+nlenbin <- length(unique(len$length_bin)) # number of length bins
+nsex <- 2                 # single sex or sex-structured
+nproj <- 1                # projection years *FLAG* eventually add to cpp file, currently just for graphics
+include_discards <- TRUE  # include discard mortality, TRUE or FALSE
+tmp_debug <- TRUE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
+
+# Model switches
+rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
+slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
+comp_type <- 0    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
+spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
+M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
+
+# Subsets
+mr <- filter(ts, !is.na(mr))
+fsh_cpue <- filter(ts, !is.na(fsh_cpue))
+srv_cpue <- filter(ts, !is.na(srv_cpue))
+fsh_age <- filter(age, Source == "Fishery")
+srv_age <- filter(age, Source == "Survey")
+fsh_len <- filter(len, Source == "fsh_len")
+srv_len <- filter(len, Source == "srv_len")
+
+# initial value processing
+tmp_inits <- data.frame(year = c(YEAR - length(rec_devs_inits)+1):YEAR,
+                        rec_devs_inits = rec_devs_inits,
+                        Fdevs_inits = Fdevs_inits) %>% 
+  filter(between(year, syr, lyr))
+rec_devs_inits <- tmp_inits %>% pull(rec_devs_inits)
+Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
+}
+
+# Run model normally for this year 
 data <- build_data(ts = ts)
 parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 random_vars <- build_random_vars()
+
+setwd(tmb_path)
+#out <- TMBphase(data, parameters, random = random_vars, 
+#                model_name = "scaa_mod", phase = FALSE, 
+#                debug = FALSE, loopnum = 5)
 out <- TMBphase(data, parameters, random = random_vars, 
                 model_name = "scaa_mod", phase = FALSE, 
-                debug = FALSE, loopnum = 5)
+                newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+                debug = FALSE)
 obj <- out$obj # TMB model object
 best <- obj$env$last.par.best
 
@@ -233,28 +328,29 @@ ts <- ts %>% mutate(mr2 = obj$report(best)$pred_mr_all)
 survey_scenarios <- list(
   # Bienniel options
   bi_srv_1 = seq(min(mr$index), max(mr$index), 2),
-  bi_srv_2 = seq(min(mr$index)+1, max(mr$index), 2),
+  #bi_srv_2 = seq(min(mr$index)+1, max(mr$index), 2),
   # Triennial options
   tri_srv_1 = seq(min(mr$index), max(mr$index), 3),
-  tri_srv_2 = seq(min(mr$index)+1, max(mr$index), 3)
+  #tri_srv_2 = seq(min(mr$index)+1, max(mr$index), 3)
+  quad_srv_1 = seq(min(mr$index),max(mr$index),4)
 )
 
 # Years to retrospectively examine
-MR_years <- 2015:YEAR
+MR_years <- 2012:YEAR
 
 ABC_out2 <- matrix(nrow = length(survey_scenarios), 
                    ncol = length(MR_years))
 rep_out2 <- matrix(nrow = length(survey_scenarios), 
                    ncol = length(MR_years))
 
-for(i in 1:length(survey_scenarios)) { 
+for(i in 1:length(survey_scenarios)) { #i<-1
   
   SRV <- names(survey_scenarios)[i]
   dir_SRV <- file.path(obj2_dir, SRV)
   dir.create(dir_SRV, showWarnings = FALSE)
   iter_SRV <- survey_scenarios[[i]] # index years for the MR in this survey scenario
   
-  for(j in 1:length(MR_years)) {
+  for(j in 1:length(MR_years)) {  #j<-1
     
     iter_YEAR <- MR_years[j]
     iter_dir <- file.path(dir_SRV, iter_YEAR) # subdirectory for analysis
@@ -289,9 +385,13 @@ for(i in 1:length(survey_scenarios)) {
     setwd(tmb_path)
     
     # Run model using MLE
+    #out <- TMBphase(data, parameters, random = random_vars, 
+    #                model_name = "scaa_mod", phase = FALSE, 
+    #                debug = FALSE, loopnum = 5)
     out <- TMBphase(data, parameters, random = random_vars, 
                     model_name = "scaa_mod", phase = FALSE, 
-                    debug = FALSE, loopnum = 5)
+                    newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+                    debug = FALSE)
     
     obj <- out$obj # TMB model object
     opt <- out$opt # fit
@@ -306,7 +406,7 @@ for(i in 1:length(survey_scenarios)) {
     names(ABC) <- data$Fxx_levels
     ABC <- ABC %>% 
       mutate(year = c(unique(iter_ts$year), max(iter_ts$year)+1)) %>% 
-      data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC") %>% 
+      reshape2::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC") %>% 
       filter(Fxx == "0.5" & year == iter_YEAR+1) %>%
       pull(ABC)
     
@@ -334,17 +434,24 @@ ABC_out2 <- ABC_out2 %>%
   gather("year", "ABC", -survey_scenarios)
 
 out <- left_join(rep_out2, ABC_out2)
-out <- tbl_df(out)
+#out <- tbl_df(out)
+out <- tibble::as_tibble(out)
+ts %>% select(year, index) %>% right_join(data.frame(index = survey_scenarios$bi_srv_1))
 ts %>% select(year, index) %>% right_join(data.frame(index = survey_scenarios$tri_srv_1))
+ts %>% select(year, index) %>% right_join(data.frame(index = survey_scenarios$quad_srv_1))
+
 out <- out %>% 
   mutate(`Survey scenarios` = derivedFactor(
-    `Biennial ('05, '07, '09, '11, '13, '15, '17, '19)` = survey_scenarios == "bi_srv_1",
-    `Biennial ('06, '08, '10, '12, '14, '16, '18)` = survey_scenarios == "bi_srv_2",
-    `Triennial ('05, '08, '11, '14, '17)` = survey_scenarios == "tri_srv_1",
-    `Triennial ('06, '09, '12, '15, '18)` = survey_scenarios == "tri_srv_2"))
+    `Biennial ('05, '07, '09, '11, '13, '15, '17, '19, '21)` = survey_scenarios == "bi_srv_1",
+    #`Biennial ('06, '08, '10, '12, '14, '16, '18)` = survey_scenarios == "bi_srv_2",
+    `Triennial ('05, '08, '11, '14, '17, '20)` = survey_scenarios == "tri_srv_1",
+    #`Triennial ('06, '09, '12, '15, '18)` = survey_scenarios == "tri_srv_2")
+    `Quadrennial ('05, '09, '13, '17, '21)` = survey_scenarios == "quad_srv_1"
+    ))
 
-write_csv(out, paste0(obj2_dir, "/ABC_summary.csv"))
-out <- read_csv(paste0(obj2_dir, "/ABC_summary.csv"))
+VER<-"base"
+write_csv(out, paste0(obj2_dir, "/ABC_summary_",VER ,".csv"))
+out <- read_csv(paste0(obj2_dir, "/ABC_summary_",VER ,".csv"))
 
 out %>%
   left_join(assessment_summary %>% 
@@ -355,23 +462,26 @@ out %>%
   mutate(diff = (ABC - past_ABC),
          perc_diff = diff / past_ABC * 100)
 
+
+ data.frame(out)
 p2 <- ggplot(df, aes(x = year, y = abc / 1e6)) + 
   geom_point(colour = "grey") +
   geom_line(colour = "grey") +
   scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   scale_y_continuous(limits = c(0, 2.5)) +
-  geom_point(data = out %>% 
+  geom_line(data = out %>% 
                filter(converged == 1) %>% 
                mutate(year = as.numeric(year)+1),
-             aes(x = year, y = ABC / 1e6, colour = `Survey scenarios`, 
-                 shape = `Survey scenarios`),
-             size = 2) +
+             aes(x = year, y = ABC / 1e6, colour = `Survey scenarios` #, 
+                 #shape = `Survey scenarios`
+                 ),
+             size = 1.5) +
   # scale_shape_manual(guide = FALSE) +
   scale_color_grey() +
   labs(x = NULL, y = "ABC (million round lb)\n",
        colour = NULL, shape = NULL) +
   theme(legend.position = "none") +
-  theme(legend.position = c(0.5, 0.85))
+  theme(legend.position = c(0.5, 0.15))
 
 p2
 ggsave(plot = p2, filename = paste0(obj2_dir, "/ABC_", min(df$year), "_", YEAR+1, ".png"), 
