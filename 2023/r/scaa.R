@@ -64,6 +64,7 @@ source("r_helper/functions.r")
 library(TMB) 
 }
 # Load prepped data from scaa_dataprep.R
+{
 ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv")) #"/abd_indices_", YEAR, ".csv"))       # time series
 age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
 len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
@@ -89,25 +90,12 @@ rowSums(agelen_key_m) # should all = 1
 agelen_key_f <- scan(paste0(YEAR+1,"/data/tmb_inputs/agelen_key_fem.txt", sep = " "), skip = 1) %>% matrix(ncol = 30) %>% t()
 rowSums(agelen_key_f) 
 
-# Starting values for YEAR == 2019 - delete for the 2020 assessment and
-# uncomment out the next chunk of code
-#if(YEAR == 2019) {
-#  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
-#  rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
-#  rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
-#  Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
-#}
-
-# Starting values for YEAR >= 2020 - uncomment the following chunk for 2021
-# forecast:
-if(YEAR > 2019) {
   inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, ".csv"))
   rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
   rec_devs_inits <- c(rec_devs_inits, mean(rec_devs_inits)) # mean for current year starting value
   rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
   Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
   Fdevs_inits <- c(Fdevs_inits, mean(Fdevs_inits)) # mean for current year starting value
-}
 
 # Model dimensions / user inputs
 syr <- min(ts$year)                   # model start year
@@ -150,21 +138,23 @@ tmp_inits <- data.frame(year = c(YEAR - length(rec_devs_inits)+1):YEAR,
 rec_devs_inits <- tmp_inits %>% pull(rec_devs_inits)
 Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
 
+# User-defined fxns in functions.R
+data <- build_data(ts = ts); str(data)  #see this function to change weights and 
+# some other things
+}
 # TMB set up ----
 ts$fsh_cpue          #in 2023 we are using the fully standardized time series
 ts$fsh_cpue_nom      #nominal fishery CPUE from analysis
 ts$fsh_cpue_base     #cpue clculation in scaa_dataprep.R.. similar to nom
 
-# User-defined fxns in functions.R
-data <- build_data(ts = ts); str(data)  #see this function to change weights and 
-                                        # some other things
+
 str(data$data_fsh_cpue)
 
 #=====================================
 # *** Checking sensitivity to fishery CPUE data versions
 VER<-"base" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
 VER<-"tuned"
-VER<-"dirichlet_age_fsh_l"
+VER<-"dirichlet_age_dir"
 #data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
 #==================================================
 
@@ -179,7 +169,15 @@ random_vars <- build_random_vars() # random effects still in development
 # parameters <- list(dummy = 0)
 # compile("tst.cpp")
 data$data_fsh_len
+str(data$data_fsh_len)
+data$data_fsh_len[,,2]
+
 data$n_fsh_len
+data$nlenbin
+
+data$nage
+data$data_srv_age
+
 # Run model ----
 
 setwd(tmb_path)
@@ -193,20 +191,11 @@ setwd(tmb_path)
 # (4) Debug mode with debug = TRUE (will need to uncomment out obj_fun = dummy * dummy; )
 
 str(data)
-# TROUBLE SHOOTING FOR 3-15-23:
-# turn off estimation of log_spr_Fxx and see how the model behaves...
-# instability in recruitment estimation... 
-
-#parameters$log_spr_Fxx <- rep(factor(NA))
-exp(parameters$log_rbar)
-exp(parameters$log_rec_devs)
-exp(parameters$log_rinit)
-exp(parameters$log_rinit_devs)
 
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
-                model_name = "scaa_mod_exp", phase = FALSE, 
-                newtonsteps = 3, #3 make this zero initially for faster run times (using 5)
+                model_name = "scaa_mod_dir", phase = FALSE, 
+                newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                 debug = FALSE)
 
 obj <- out$obj # TMB model object
@@ -226,8 +215,8 @@ best <- obj$env$last.par.best # maximum likelihood estimates
 # MLE parameter estimates and standard errors in useable format. Saves output to
 # tmbout and starting vals for next year to tmb_dat by default. See functions.R
 # for more info.
-tidyrep <- save_mle(save = TRUE,
-                    save_inits = TRUE) 
+tidyrep <- save_mle(save = FALSE,
+                    save_inits = FALSE) 
 
 # MLE likelihood components
 obj$report(best)$obj_fun

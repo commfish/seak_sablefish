@@ -19,39 +19,87 @@ template <class Type> Type square(Type x){return x*x;}
 
 // Dirichlet-multinomial
 
-template<class Type>
-Type ddirmult( vector<Type> x, vector<Type> prob, Type ln_theta, int give_log=0 ){
+//template<class Type>
+//Type ddirmult( vector<Type> x, vector<Type> prob, Type ln_theta, int give_log=0 ){
 
   // Pre-processing
-  int n_c = x.size();
-  vector<Type> p_exp(n_c);
-  vector<Type> p_obs(n_c);
-  Type Ntotal = x.sum();
-  p_exp = prob / prob.sum();
-  p_obs = x / Ntotal;
-  Type dirichlet_Parm = exp(ln_theta) * Ntotal;
+//  int n_c = x.size();
+//  vector<Type> p_exp(n_c);
+//  vector<Type> p_obs(n_c);
+//  Type Ntotal = x.sum();
+//  p_exp = prob / prob.sum();
+//  p_obs = x / Ntotal;
+//  Type dirichlet_Parm = exp(ln_theta) * Ntotal;
 
   // https://github.com/nmfs-stock-synthesis/stock-synthesis/blob/main/SS_objfunc.tpl#L306-L314
   // https://github.com/James-Thorson/CCSRA/blob/master/inst/executables/CCSRA_v8.cpp#L237-L242
   // https://www.sciencedirect.com/science/article/pii/S0165783620303696
 
   // 1st term -- integration constant that could be dropped
-  Type logres = lgamma( Ntotal+1 );
-  for( int c=0; c<n_c; c++ ){
-    logres -= lgamma( Ntotal*p_obs(c) + 1.0 );
-  }
+//  Type logres = lgamma( Ntotal+1 );
+//  for( int c=0; c<n_c; c++ ){
+//    logres -= lgamma( Ntotal*p_obs(c) + 1.0 );
+//  }
 
   // 2nd term in formula
-  logres += lgamma( dirichlet_Parm ) - lgamma( Ntotal+dirichlet_Parm );
+//  logres += lgamma( dirichlet_Parm ) - lgamma( Ntotal+dirichlet_Parm );
 
   // Summation in 3rd term
-  for( int c=0; c<n_c; c++ ){
-    logres += lgamma( Ntotal*p_obs(c) + dirichlet_Parm*p_exp(c) );
-    logres -= lgamma( dirichlet_Parm * p_exp(c) );
-  }
+ // for( int c=0; c<n_c; c++ ){
+//    logres += lgamma( Ntotal*p_obs(c) + dirichlet_Parm*p_exp(c) );
+//    logres -= lgamma( dirichlet_Parm * p_exp(c) );
+//  }
 
-  if(give_log) return logres; else return exp(logres);
-}
+//  if(give_log) return logres; else return exp(logres);
+//}
+
+template<class Type>
+// Function to compute likelihood for dirichlet-multinomial (follows linear parameterization of
+// Thorson et al. 2017)
+// @param obs = Observed vector (in proportions)
+// @param pred = Predicted vector (in proportions)
+// @param Input_N = Input sample size
+// @param Dir_Param = parameter for DM
+// @param give_log = whether or not to compute log of likelihood
+Type ddirmult( vector<Type> obs, 
+               vector<Type> pred, 
+               Type Input_N, 
+               Type Dir_Param, 
+               int do_log = 1){
+  
+  // Pre-processing
+  int n_a = obs.size(); // Number of age-classes/bins
+  Type Ntotal = Input_N; // Input sample size assumed
+  vector<Type> p_pred = pred; // Predicted vector
+  vector<Type> p_obs = obs; // Observed vector
+  Type dirichlet_param = exp(Dir_Param) * Ntotal; // Dirichlet Alpha Parameter
+
+  // NOTE: These calculations are in log space (Thorson et al. 2017)
+  // 1st term -- integration constant that could be dropped
+  Type logLike = lgamma(Ntotal + 1);
+  for(int a = 0; a < n_a; a++) logLike -= lgamma(Ntotal * p_obs(a) + 1);
+
+  // 2nd term in formula
+  logLike += lgamma(dirichlet_param) - lgamma(Ntotal + dirichlet_param);
+
+  // Summation in 3rd term
+  for(int a = 0; a < n_a; a++){
+    logLike += lgamma( (Ntotal * p_obs(a)) + (dirichlet_param * p_pred(a)) );
+    logLike -= lgamma(dirichlet_param * p_pred(a));
+  } // end a loop
+  
+  // Type phi = dirichlet_param.sum();
+  // Type logLike = lgamma(Ntotal + 1.0) + lgamma(phi) - lgamma(Ntotal + phi);
+  // for(int a = 0; a < n_a; a++) {
+  //   logLike += -lgamma(p_obs(a) + 1.0) +
+  //     lgamma(p_obs(a) + dirichlet_param(a)) -
+  //     lgamma(dirichlet_param(a));
+  // } // end a loop
+  
+  if(do_log == 1) return logLike; else return exp(logLike);
+} // end function
+
+
 
 template<class Type>
   Type objective_function<Type>::operator() ()
@@ -246,8 +294,6 @@ template<class Type>
   //  likelihood used for composition data. Eqn 11 in Thorson et al. 2017.
   PARAMETER(log_fsh_theta); //ages... u
   PARAMETER(log_srv_theta); //ages
-  PARAMETER(log_fsh_l_theta); //fishery lengths...
-  // PARAMETER(log_srv_l_theta);
       
   // **DERIVED QUANTITIES**
   
@@ -1310,26 +1356,44 @@ template<class Type>
 
   case 1: // Dirichlet-multinomial (D-M)
 
-    for (int i = 0; i < nyr_fsh_age; i++) {
+//    for (int i = 0; i < nyr_fsh_age; i++) {
       // Preliminary calcs
-      for (int j = 0; j < nage; j++) {
+//      for (int j = 0; j < nage; j++) {
         // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-        sum1_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + Type(1.0) );
+//        sum1_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + Type(1.0) );
         // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
         //sum2_fsh(i) += lgamma( n_fsh_age(i) + data_fsh_age(i,j) + fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) ) -
         //  lgamma( fsh_theta * n_fsh_age(i) - pred_fsh_age(i,j) );
-        sum2_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) ) -
-          lgamma( fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) );   // second n_fsh_age(i) should be big N in Thorso which is not specified an may be a typo? 
+//        sum2_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) ) -
+//          lgamma( fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) );   // second n_fsh_age(i) should be big N in Thorso which is not specified an may be a typo? 
         //sum2_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + fsh_theta * bigN * pred_fsh_age(i,j) ) -
         //  lgamma( fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) );
-      }
+//     }
       // Full nll for D-M, Eqn 10, Thorson et al. 2017
       //age_like(0) -= lgamma(n_fsh_age(i) + Type(1.0)) - sum1_fsh(i) + lgamma(fsh_theta * n_fsh_age(i)) -
       //  lgamma(n_fsh_age(i) + fsh_theta * n_fsh_age(i)) + sum2_fsh(i);
-      age_like(0) -= lgamma(n_fsh_age(i) + Type(1.0)) - sum1_fsh(i) + lgamma(fsh_theta * n_fsh_age(i)) -
-        lgamma(n_fsh_age(i) + fsh_theta * n_fsh_age(i)) + sum2_fsh(i);
+ //     age_like(0) -= lgamma(n_fsh_age(i) + Type(1.0)) - sum1_fsh(i) + lgamma(fsh_theta * n_fsh_age(i)) -
+//        lgamma(n_fsh_age(i) + fsh_theta * n_fsh_age(i)) + sum2_fsh(i);
 
+//    }
+
+    vector<Type> obs_fa_vec( nage );
+    vector<Type> pred_fa_vec( nage );
+    Type sampsize_fa; 
+      obs_fa_vec.setZero();
+      pred_fa_vec.setZero();
+    for (int i = 0; i < nyr_fsh_age; i++){
+      obs_fa_vec = data_fsh_age(i);
+      pred_fa_vec = pred_fsh_age(i);
+      sampsize_fa = n_fsh_age(i);
+
+      //pred_sa_vec = 0.9999 * pred_srv_age(i);
+      //pred_sa_vec += 0.0001 / (nage+1.0);
+      //age_like(1) -= ddirmult(obs_sa_vec, pred_sa_vec, log_srv_theta, true );
+      age_like(0) -= ddirmult(obs_fa_vec, pred_fa_vec, sampsize_fa, log_fsh_theta, true );
+      //n_effective(YearI) = 1/(1+theta) + n_samp(YearI)*(theta/(1+theta));  //** need to implement this before done with dirichlet conversions
     }
+
     break;
 
     // case 2: // Multivariate logistic (MVL) - future development
@@ -1364,33 +1428,40 @@ template<class Type>
 
   case 1: // Dirichlet-multinomial (D-M)
 
-    for (int i = 0; i < nyr_srv_age; i++) {
+//    for (int i = 0; i < nyr_srv_age; i++) {
       // Preliminary calcs
-      for (int j = 0; j < nage; j++) {
+//      for (int j = 0; j < nage; j++) {
         // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-        sum1_srv(i) += lgamma( n_srv_age(i) * data_srv_age(i,j) + Type(1.0) );
+//        sum1_srv(i) += lgamma( n_srv_age(i) * data_srv_age(i,j) + Type(1.0) );
         // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
         //sum2_srv(i) += lgamma( n_srv_age(i) + data_srv_age(i,j) + srv_theta * n_srv_age(i) * pred_srv_age(i,j) ) -
         //  lgamma( srv_theta * n_srv_age(i) - pred_srv_age(i,j) );
-        sum2_srv(i) += lgamma( n_srv_age(i) * data_srv_age(i,j) + srv_theta * n_srv_age(i) * pred_srv_age(i,j) ) -
-          lgamma( srv_theta * n_srv_age(i) * pred_srv_age(i,j) );   //switch - to * ??
-      }
+//        sum2_srv(i) += lgamma( n_srv_age(i) * data_srv_age(i,j) + srv_theta * n_srv_age(i) * pred_srv_age(i,j) ) -
+//          lgamma( srv_theta * n_srv_age(i) * pred_srv_age(i,j) );   //switch - to * ??
+//      }
       // Full nll for D-M, Eqn 10, Thorson et al. 2017
       //age_like(1) -= lgamma(n_srv_age(i) + Type(1.0)) - sum1_srv(i) + lgamma(srv_theta * n_srv_age(i)) -
       //  lgamma(n_srv_age(i) + srv_theta * n_srv_age(i)) + sum2_srv(i);
-      age_like(1) -= lgamma(n_srv_age(i) + Type(1.0)) - sum1_srv(i) + lgamma(srv_theta * n_srv_age(i)) -
-        lgamma(n_srv_age(i) + srv_theta * n_srv_age(i)) + sum2_srv(i);
-    }
-
-//    vector<Type> obs_sa_vec( nage );
-//    vector<Type> pred_sa_vec( nage );
-//      obs_sa_vec.setZero();
-//      pred_sa_vec.setZero();
-//    for (int i = 0; i < nyr_srv_age; i++){
-//      obs_sa_vec = data_srv_age(i);
-//      pred_sa_vec = pred_srv_age(i);
-//     age_like(1) -= ddirmult(obs_sa_vec, pred_sa_vec, log_srv_theta, true );
+//      age_like(1) -= lgamma(n_srv_age(i) + Type(1.0)) - sum1_srv(i) + lgamma(srv_theta * n_srv_age(i)) -
+//        lgamma(n_srv_age(i) + srv_theta * n_srv_age(i)) + sum2_srv(i);
 //    }
+
+    vector<Type> obs_sa_vec( nage );
+    vector<Type> pred_sa_vec( nage );
+    Type sampsize_sa; 
+      obs_sa_vec.setZero();
+      pred_sa_vec.setZero();
+    for (int i = 0; i < nyr_srv_age; i++){
+      obs_sa_vec = data_srv_age(i);
+      pred_sa_vec = pred_srv_age(i);
+      sampsize_sa = n_srv_age(i);
+
+      //pred_sa_vec = 0.9999 * pred_srv_age(i);
+      //pred_sa_vec += 0.0001 / (nage+1.0);
+      //age_like(1) -= ddirmult(obs_sa_vec, pred_sa_vec, log_srv_theta, true );
+      age_like(1) -= ddirmult(obs_sa_vec, pred_sa_vec, sampsize_sa, log_srv_theta, true );
+      //n_effective(YearI) = 1/(1+theta) + n_samp(YearI)*(theta/(1+theta));  //** need to implement this before done with dirichlet conversions
+    }
 
     break;
 
@@ -1402,20 +1473,30 @@ template<class Type>
   // std::cout << "Age comp offset\n" << offset << "\n";
   // std::cout << "Age comp likelihoods\n" << age_like << "\n";
 
-  Type fsh_l_theta = exp(log_fsh_l_theta);      // Dirichlet-multinomial parameter
-  array<Type> sum1_fsh_l(nyr_fsh_len,nsex);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-  array<Type> sum2_fsh_l(nyr_fsh_len,nsex);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-  sum1_fsh_l.setZero();
-  sum2_fsh_l.setZero();
+  // Multinomial likelihood for fishery length comps.
 
-  
-  // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
-  switch (comp_type) {
+switch (comp_type) {
 
-    case 0: // Multinomial
+  case 0: // Multinomial
 
-      for (int k = 0; k < nsex; k++) {
+    for (int k = 0; k < nsex; k++) {
+      for (int i = 0; i < nyr_fsh_len; i++) {
+        for (int l = 0; l < nlenbin; l++) {
+        // Offset
+        offset_fsh_len(k) -= effn_fsh_len(i,0,k) * (data_fsh_len(i,l,k) + c) * log(data_fsh_len(i,l,k) + c);
+        // Likelihood
+        fsh_len_like(k) -= effn_fsh_len(i,0,k) * (data_fsh_len(i,l,k) + c) * log(pred_fsh_len(i,l,k) + c);
+        }
+      }
+    fsh_len_like(k) -= offset_fsh_len(k);     // subtract offset
+    fsh_len_like(k) *= wt_fsh_len;            // likelihood weight
+    }
 
+  break;
+
+case 1: // fake shit right now... 
+
+  for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr_fsh_len; i++) {
       for (int l = 0; l < nlenbin; l++) {
         // Offset
@@ -1428,75 +1509,12 @@ template<class Type>
     fsh_len_like(k) *= wt_fsh_len;            // likelihood weight
   }
 
-break;
+  break;
 
-  case 1: // Dirichlet-multinomial (D-M) 
-//    vector<Type> obs_vec( nlenbin + Type(1.0));
-//    vector<Type> pred_vec( nlenbin + Type(1.0));
-//for (int k = 0; k < nsex; k++) {
-//  for (int i = 0; i < nyr_fsh_len; i++) {
-//    for (int l = 0; l < nlenbin; l++) {
-      //jnll_comp(2) -= ddirmult( obs_vec, pred_vec, ln_theta, true ); // from CCSRA_v9.cpp
-      //n_effective(YearI) = 1/(1+theta) + n_samp(YearI)*(theta/(1+theta));
-      //fsh_len_like(k) -= ddirmult(data_fsh_len(i,l,k), pred_fsh_len(i,l,k), log_fsh_l_theta, true );
-      //fsh_len_like(k) -= ddirmult(data_fsh_len(i,k), pred_fsh_len(i,k), log_fsh_l_theta, true );
-      //fsh_len_like(k) -= ddirmult(vector<Type> data_fsh_len(i,k), vector<Type> pred_fsh_len(i,k), log_fsh_l_theta, true );
-      //fsh_len_like(k) -= ddirmult<double>(vector<Type> data_fsh_len(i,k), vector<Type> pred_fsh_len(i,k), log_fsh_l_theta, true );
-      //fsh_len_like(k) -= ddirmult<double>( data_fsh_len(i,l,k), pred_fsh_len(i,l,k), log_fsh_l_theta, true );
-      //fsh_len_like(k) -= 1;
-
-//    obs_vec = data_fsh_len(i,k);
-//    pred_vec = pred_fsh_len(i,k);
-//    fsh_len_like(k) -= ddirmult(obs_vec, pred_vec, log_fsh_l_theta, true );
-
-//    }
-//  //fsh_len_like(k) -= offset_fsh_len(k);
-  //fsh_len_like(k) -= ddirmult( vector<Type> data_fsh_len(1,k), vector<Type> pred_fsh_len(1,k), log_fsh_l_theta, true );
-  //vector<Type> obs_vec( data_fsh_len(0,k) );
-   // vector<Type> pred_vec( pred_fsh_len(0,k) );
-   // fsh_len_like(k) -= ddirmult(obs_vec, pred_vec, log_fsh_l_theta, true );
-//}
-
-
-//  for (int k = 0; k < nsex; k++) {
-//    for (int i = 0; i < nyr_fsh_len; i++) {
-      // Preliminary calcs
-//      for (int l = 0; l < nlenbin; l++) {
-        // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-//        sum1_fsh_l(i,k) += lgamma( n_fsh_len(i,k) * data_fsh_len(i,l,k) + Type(1.0) );
-        // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-        //sum2_srv(i) += lgamma( n_srv_age(i) + data_srv_age(i,j) + srv_theta * n_srv_age(i) * pred_srv_age(i,j) ) -
-        //  lgamma( srv_theta * n_srv_age(i) - pred_srv_age(i,j) );
-//        sum2_fsh_l(i,k) += lgamma( n_fsh_len(i,k) * data_fsh_len(i,l,k) + fsh_l_theta * n_fsh_len(i,k) * pred_fsh_len(i,l,k) ) -
-//          lgamma( fsh_l_theta * n_fsh_len(i,k) * pred_fsh_len(i,l,k) );   //switch - to * ??
-//      }
-      // Full nll for D-M, Eqn 10, Thorson et al. 2017
-      //age_like(1) -= lgamma(n_srv_age(i) + Type(1.0)) - sum1_srv(i) + lgamma(srv_theta * n_srv_age(i)) -
-      //  lgamma(n_srv_age(i) + srv_theta * n_srv_age(i)) + sum2_srv(i);
-      //fsh_len_like(k) -= lgamma(n_fsh_len(i,k) + Type(1.0)) - sum1_fsh_l(i,k) + lgamma(fsh_l_theta * n_fsh_len(i,k)) -
-      //  lgamma(n_fsh_len(i,k) + fsh_l_theta * n_fsh_len(i,k)) + sum2_fsh_l(i,k);
-      //fsh_len_like(k) -= 1;
-//    }
-//    fsh_len_like(k) = Type(1.0);
-//  }
-
-for (int k = 0; k < nsex; k++) {
-    for (int i = 0; i < nyr_fsh_len; i++) {
-      for (int l = 0; l < nlenbin; l++) {
-        // Offset
-        offset_fsh_len(k) -= effn_fsh_len(i,0,k) * (data_fsh_len(i,l,k) + c) * log(data_fsh_len(i,l,k) + c);
-        // Likelihood
-        fsh_len_like(k) -= effn_fsh_len(i,0,k) * (data_fsh_len(i,l,k) + c) * log(pred_fsh_len(i,l,k) + c);
-      }
-    }
-    fsh_len_like(k) -= offset_fsh_len(k);     // subtract offset
-    fsh_len_like(k) *= wt_fsh_len;            // likelihood weight
-  }
-
-    break;
-  }
+}
 
   
+
   // Multinomial likelihood for survey length comps.
   for (int k = 0; k < nsex; k++) {
 
