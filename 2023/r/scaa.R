@@ -154,7 +154,7 @@ str(data$data_fsh_cpue)
 # *** Checking sensitivity to fishery CPUE data versions
 VER<-"base" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
 VER<-"tuned"
-VER<-"dirichlet_age_dir"
+VER<-"dirichlet_full_DEV"
 #data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
 #==================================================
 
@@ -172,12 +172,16 @@ data$data_fsh_len
 str(data$data_fsh_len)
 data$data_fsh_len[,,2]
 
-data$n_fsh_len
+str(data$n_fsh_len)
+data$n_fsh_len[,2,]
+
 data$nlenbin
+data$nyr_fsh_len
 
 data$nage
 data$data_srv_age
 
+bounds <- build_bounds(param_list = parameters)
 # Run model ----
 
 setwd(tmb_path)
@@ -215,8 +219,8 @@ best <- obj$env$last.par.best # maximum likelihood estimates
 # MLE parameter estimates and standard errors in useable format. Saves output to
 # tmbout and starting vals for next year to tmb_dat by default. See functions.R
 # for more info.
-tidyrep <- save_mle(save = FALSE,
-                    save_inits = FALSE) 
+tidyrep <- save_mle(save = TRUE,
+                    save_inits = TRUE) 
 
 # MLE likelihood components
 obj$report(best)$obj_fun

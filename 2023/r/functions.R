@@ -2479,10 +2479,7 @@ intersect_all <- function(a,b,...){
   Reduce(intersect, list(a,b,...))
 }
 
-
-
-#-------------------------------------------------------------------------------
-## model development
+# model development
 build_parameters_exp <- function(
     # data,
   # nsex,

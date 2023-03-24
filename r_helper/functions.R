@@ -977,9 +977,17 @@ build_bounds <- function(param_list = NULL, data_list){
   lower_bnd$log_fsh_theta <- replace(lower_bnd$log_fsh_theta, values = rep(-5, length(lower_bnd$log_fsh_theta)))
   upper_bnd$log_fsh_theta <- replace(upper_bnd$log_fsh_theta, values = rep(15, length(upper_bnd$log_fsh_theta)))
   
-  # Fishery age comp Dirichlet-multinomial theta
+  # Survey age comp Dirichlet-multinomial theta
   lower_bnd$log_srv_theta <- replace(lower_bnd$log_srv_theta, values = rep(-5, length(lower_bnd$log_srv_theta)))
   upper_bnd$log_srv_theta <- replace(upper_bnd$log_srv_theta, values = rep(15, length(upper_bnd$log_srv_theta)))
+  
+  #Fishery length comp Dirilichlet-multinomial theta
+  lower_bnd$log_fsh_l_theta <- replace(lower_bnd$log_fsh_l_theta, values = rep(-5, length(lower_bnd$log_fsh_l_theta)))
+  upper_bnd$log_fsh_l_theta <- replace(upper_bnd$log_fsh_l_theta, values = rep(15, length(upper_bnd$log_fsh_l_theta)))
+  
+  #Survey length comp Dirilichlet-multinomial theta
+  lower_bnd$log_srv_l_theta <- replace(lower_bnd$log_srv_l_theta, values = rep(-5, length(lower_bnd$log_srv_l_theta)))
+  upper_bnd$log_srv_l_theta <- replace(upper_bnd$log_srv_l_theta, values = rep(15, length(upper_bnd$log_srv_l_theta)))
   
   # Put bounds together
   bounds <- list(upper= upper_bnd, lower = lower_bnd)
@@ -2464,3 +2472,159 @@ plot_sel <- function(save = TRUE, path = tmbfigs) {
   
 }
 
+build_parameters_exp <- function(
+    # data,
+  # nsex,
+  # inits,
+  rec_devs_inits,
+  # rinit_devs_inits,
+  Fdevs_inits,
+  ...) {
+  
+  # Parameter starting values
+  parameters <- list(
+    
+    dummy = 0,   # Used for troubleshooting model               
+    
+    log_M = log(0.1),  # M_type = 0 is fixed, 1 is estimated
+    
+    # Fishery selectivity - Contact fed sablefish author, tell him you want the
+    # most recent tem.std file. You're looking for parameters for the pre-IFQ
+    # domestic longline fishery (log_a50_fish1) and the IFQ fixed gear fishery
+    # (e.g. log_a50_fish4_f, log_delta_fish4_f). Note that at least as of 2020
+    # deltas are shared across time blocks and sex, but all a50s are distinct.
+    # Logistic parameters need to be adjusted to a different scale b/c tmb model
+    # fits between ages 0:29 instead of 2:31. see scaa_datprep.R for more info
+    log_fsh_slx_pars = 
+      # Logistic with a50 and a95, data$slx_type = 0, single sex model - needs
+      # updating eventually if ever used
+      if(data$slx_type == 0 & nsex == 1) {
+        array(data = c(log(4.05), log(3.99), # Sexes combined
+                       log(5.30), log(5.20)),
+              dim = c(length(data$fsh_blks), 2, nsex)) # 2 = npar for this slx_type
+        
+        # Logistic with a50 and a95, data$slx_type = 0, sex-structured model - needs
+        # updating eventually if ever used
+      } else if (data$slx_type == 0 & nsex == 2) {
+        array(data = c(log(4.19), log(5.12), # Male
+                       log(5.50), log(6.30),
+                       log(3.91), log(2.87), # Female
+                       log(5.20), log(4.15)),
+              dim = c(length(data$fsh_blks), 2, nsex)) # 2 = npar for this slx_type
+        
+        # Logistic with a50 and slope, data$slx_type = 1, single sex model - needs
+        # updating eventually if ever used
+      } else if (data$slx_type == 1 & nsex == 1) {
+        array(data = c(log(4.05), log(3.99),
+                       log(2.29), log(2.43)),
+              dim = c(length(data$fsh_blks), 2, nsex)) # 2 = npar for this slx_type
+        
+        # FISHERY SELECTIVITY FOR 2020 assessment (2021 ABC)
+      } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model - UPDATE ME!
+        array(data = c(slx_pars$log_a50[slx_pars$fleet == "fsh_t1_m"], # male a50s time block 1
+                       slx_pars$log_a50[slx_pars$fleet == "fsh_t2_m"], #  then time block 2
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t1_m"], # male slopes time block 1
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t2_m"], # then time block 2
+                       slx_pars$log_a50[slx_pars$fleet == "fsh_t1_f"], # female a50s time block 1
+                       slx_pars$log_a50[slx_pars$fleet == "fsh_t2_f"], #  then time block 2
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t1_f"], # female slopes time block 1
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t2_f"]), # then time block 2
+              dim = c(length(data$fsh_blks), 2, nsex)) }, # 2 = npar for this slx_type
+    
+    # FISHERY SELECTIVITY FOR 2019 assessment (2020 ABC)
+    # } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model
+    #   array(data = c(log(5.12), log(4.22), # male
+    #                  log(2.57), log(2.61),
+    #                  log(2.87), log(3.86), # female
+    #                  log(2.29), log(2.61)),
+    #         dim = c(length(data$fsh_blks), 2, nsex)) }, # 2 = npar for this slx_type
+    
+    # Survey selectivity - Contact fed sablefish author, tell him you want the
+    # most recent tem.std file. You're looking for parameters for the domestic
+    # survey (e.g. log_a50_srv1_f) and at least as of 2020 deltas are shared
+    # with log_a50_srv2_m (the male parameter for the cooperative US/JPN
+    # survey). # Logistic parameters need to be adjusted to a different scale
+    # b/c tmb model fits between ages 0:29 instead of 2:31. see scaa_datprep.R
+    # for more info
+    log_srv_slx_pars = 
+      # Logistic with a50 and a95, data$slx_type = 0, single sex model- needs
+      # updating eventually if ever used
+      if(data$slx_type == 0 & nsex == 1) {
+        array(data = c(rep(log(3.74), length(data$srv_blks)),
+                       rep(log(5.20), length(data$srv_blks))),
+              dim = c(length(data$srv_blks), 2, nsex)) # 2 = npar for this slx_type 
+        
+        # Logistic with a50 and a95, data$slx_type = 0, sex-structured model- needs
+        # updating eventually if ever used
+      } else if (data$slx_type == 0 & nsex == 2) {
+        array(data = c(rep(0.911681626710, length(data$srv_blks)), # male
+                       rep(0.656852516513, length(data$srv_blks)),
+                       rep(0.961385402921, length(data$srv_blks)), # female
+                       rep(0.656852516513, length(data$srv_blks))),
+              dim = c(length(data$srv_blks), 2, nsex)) # 2 = npar for this slx_type 
+        
+        # Logistic with a50 and slope, data$slx_type = 1, single sex model- needs
+        # updating eventually if ever used
+      } else if (data$slx_type == 1 & nsex == 1) {
+        array(data = c(rep(log(3.74), length(data$srv_blks)),
+                       rep(log(1.96), length(data$srv_blks))),
+              dim = c(length(data$srv_blks), 2, nsex)) # 2 = npar for this slx_type 
+        
+        
+        # SURVEY SELECTIVITY FOR 2020 assessment (2021 ABC)
+        # Logistic with a50 and slope, data$slx_type = 1, sex-structured model UPDATE ME!
+      } else {
+        array(data = c(rep(slx_pars$log_a50[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # male a50
+                       rep(slx_pars$log_k[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # slope
+                       rep(slx_pars$log_a50[slx_pars$fleet == "srv_f"], length(data$srv_blks)), # female a50
+                       rep(slx_pars$log_k[slx_pars$fleet == "srv_f"], length(data$srv_blks))), # slope
+              dim = c(length(data$srv_blks), 2, nsex))}, # 2 = npar for this slx_type
+    
+    # SURVEY SELECTIVITY FOR 2019 assessment (2020 ABC)
+    # } else { 
+    #   array(data = c(rep(log(3.72), length(data$srv_blks)), # male
+    #                  rep(log(2.21), length(data$srv_blks)),
+    #                  rep(log(3.75), length(data$srv_blks)), # female
+    #                  rep(log(2.21), length(data$srv_blks))),
+    #         dim = c(length(data$srv_blks), 2, nsex)) }, # 2 = npar for this slx_type
+    
+    
+    # Catchability
+    
+    
+    fsh_logq = inits %>% filter(grepl("fsh_logq", Parameter)) %>% pull(Estimate), 
+    srv_logq = inits %>% filter(grepl("srv_logq", Parameter)) %>% pull(Estimate),
+    mr_logq = inits %>% filter(grepl("srv_logq", Parameter)) %>% pull(Estimate),
+    
+    # Log mean recruitment and deviations (nyr)
+    log_rbar = 2.5, #inits %>% filter(Parameter == "log_rbar") %>% pull(Estimate), 
+    log_rec_devs = rec_devs_inits, #rnorm(nyr,0,1), #
+    
+    # Log mean initial numbers-at-age and deviations (nage-2)
+    log_rinit = 8, #inits %>% filter(Parameter == "log_rinit") %>% pull(Estimate), 
+    log_rinit_devs = rinit_devs_inits,
+    
+    # Variability in rec_devs and rinit_devs
+    log_sigma_r = log(1.2), # Federal value of 1.2 on log scale
+    
+    # Fishing mortality
+    log_Fbar = -3, #inits %>% filter(Parameter == "log_Fbar") %>% pull(Estimate),
+    log_F_devs = rnorm(nyr,0,1), #Fdevs_inits,
+    
+    # SPR-based fishing mortality rates, i.e. the F at which the spawning biomass
+    # per recruit is reduced to xx% of its value in an unfished stock
+    log_spr_Fxx = inits %>% filter(grepl("spr_Fxx", Parameter)) %>% pull(Estimate), # F35, F40, F50, F60, F70
+    
+    # Parameter related to effective sample size for Dirichlet-multinomial
+    # likelihood used for composition data. Default of 10 taken from LIME model by
+    # M. Rudd. Estimated in log-space b/c it can only be positive.
+    log_fsh_theta = log(10),   
+    log_srv_theta = log(10),
+    #log_fsh_l_theta = log(10), #
+    log_fsh_l_theta = c(log(5),log(5)),
+    #log_srv_l_theta = log(10) #
+    log_srv_l_theta = c(log(5),log(5))
+  )
+  
+  return(parameters)
+}

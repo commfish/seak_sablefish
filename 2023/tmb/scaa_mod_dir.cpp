@@ -294,6 +294,10 @@ template<class Type>
   //  likelihood used for composition data. Eqn 11 in Thorson et al. 2017.
   PARAMETER(log_fsh_theta); //ages... u
   PARAMETER(log_srv_theta); //ages
+  PARAMETER_VECTOR(log_fsh_l_theta); 
+  PARAMETER_VECTOR(log_srv_l_theta);
+  //PARAMETER(log_fsh_l_theta); 
+  //PARAMETER(log_srv_l_theta);
       
   // **DERIVED QUANTITIES**
   
@@ -1329,11 +1333,12 @@ template<class Type>
 
   // Likelihood for fishery age compositions
   Type fsh_theta = exp(log_fsh_theta);      // Dirichlet-multinomial parameter
-  vector<Type> sum1_fsh(nyr_fsh_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-  vector<Type> sum2_fsh(nyr_fsh_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+  vector<Type> neff_dm_fsh_age(nyr_fsh_age); //effective sample sizes calculated from DM
+  //vector<Type> sum1_fsh(nyr_fsh_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+  //vector<Type> sum2_fsh(nyr_fsh_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
   //fsh_theta.setZero();
-  sum1_fsh.setZero();
-  sum2_fsh.setZero();
+  //sum1_fsh.setZero();
+  //sum2_fsh.setZero();
 
   // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
   switch (comp_type) {
@@ -1386,12 +1391,9 @@ template<class Type>
       obs_fa_vec = data_fsh_age(i);
       pred_fa_vec = pred_fsh_age(i);
       sampsize_fa = n_fsh_age(i);
-
-      //pred_sa_vec = 0.9999 * pred_srv_age(i);
-      //pred_sa_vec += 0.0001 / (nage+1.0);
-      //age_like(1) -= ddirmult(obs_sa_vec, pred_sa_vec, log_srv_theta, true );
+      //sampsize_fa = effn_fsh_age(i);
       age_like(0) -= ddirmult(obs_fa_vec, pred_fa_vec, sampsize_fa, log_fsh_theta, true );
-      //n_effective(YearI) = 1/(1+theta) + n_samp(YearI)*(theta/(1+theta));  //** need to implement this before done with dirichlet conversions
+      neff_dm_fsh_age(i) = 1/(1+fsh_theta) + n_fsh_age(i)*(fsh_theta/(1+fsh_theta));  //** need to implement this before done with dirichlet conversions
     }
 
     break;
@@ -1402,11 +1404,12 @@ template<class Type>
 
   // Likelihood for survey age compositions
   Type srv_theta = exp(log_srv_theta);      // Dirichlet-multinomial parameter
-  vector<Type> sum1_srv(nyr_srv_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-  vector<Type> sum2_srv(nyr_srv_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+  //vector<Type> neff_dm_srv_age; //effective sample sizes calculated from DM
+  //vector<Type> sum1_srv(nyr_srv_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
+  //vector<Type> sum2_srv(nyr_srv_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
   //srv_theta.setZero();
-  sum1_srv.setZero();
-  sum2_srv.setZero();
+  //sum1_srv.setZero();
+  //sum2_srv.setZero();
 
   // Switch for composition likelihood (case 0 or 1 references the value of comp_type)
   switch (comp_type) {
@@ -1455,12 +1458,9 @@ template<class Type>
       obs_sa_vec = data_srv_age(i);
       pred_sa_vec = pred_srv_age(i);
       sampsize_sa = n_srv_age(i);
-
-      //pred_sa_vec = 0.9999 * pred_srv_age(i);
-      //pred_sa_vec += 0.0001 / (nage+1.0);
-      //age_like(1) -= ddirmult(obs_sa_vec, pred_sa_vec, log_srv_theta, true );
+      //sampsize_sa = effn_srv_age(i);
       age_like(1) -= ddirmult(obs_sa_vec, pred_sa_vec, sampsize_sa, log_srv_theta, true );
-      //n_effective(YearI) = 1/(1+theta) + n_samp(YearI)*(theta/(1+theta));  //** need to implement this before done with dirichlet conversions
+      //neff_dm_srv_age(i) = 1/(1+srv_theta) + n_fsh_age(i)*(srv_theta/(1+srv_theta));
     }
 
     break;
@@ -1473,7 +1473,8 @@ template<class Type>
   // std::cout << "Age comp offset\n" << offset << "\n";
   // std::cout << "Age comp likelihoods\n" << age_like << "\n";
 
-  // Multinomial likelihood for fishery length comps.
+  // Fishery length comps.
+ vector<Type> fsh_l_theta = exp(log_fsh_l_theta);   
 
 switch (comp_type) {
 
@@ -1494,28 +1495,51 @@ switch (comp_type) {
 
   break;
 
-case 1: // fake shit right now... 
+case 1: // Dirchlet multinomial
+  array<Type> temp_lenyr_obs(nyr_fsh_len,nlenbin);
+  array<Type> temp_lenyr_pred(nyr_fsh_len,nlenbin);
+  vector<Type> temp_ss(nyr_fsh_len);
+  vector<Type> obs_fl_vec( nlenbin );
+  vector<Type> pred_fl_vec( nlenbin );
+  Type sampsize_fl; 
+  obs_fl_vec.setZero();
+  pred_fl_vec.setZero();
 
   for (int k = 0; k < nsex; k++) {
-    for (int i = 0; i < nyr_fsh_len; i++) {
-      for (int l = 0; l < nlenbin; l++) {
-        // Offset
-        offset_fsh_len(k) -= effn_fsh_len(i,0,k) * (data_fsh_len(i,l,k) + c) * log(data_fsh_len(i,l,k) + c);
-        // Likelihood
-        fsh_len_like(k) -= effn_fsh_len(i,0,k) * (data_fsh_len(i,l,k) + c) * log(pred_fsh_len(i,l,k) + c);
-      }
+    temp_lenyr_obs.setZero();
+    temp_lenyr_pred.setZero();
+    temp_ss.setZero();
+    for (int i = 0; i < nyr_fsh_len; i++){
+      temp_ss(i) = n_fsh_len(i,0,k);
+      //temp_ss(i) = effn_fsh_len(i,0,k);
     }
-    fsh_len_like(k) -= offset_fsh_len(k);     // subtract offset
-    fsh_len_like(k) *= wt_fsh_len;            // likelihood weight
+    for (int i = 0; i < nyr_fsh_len; i++){
+      //temp_ss(i) = n_fsh_len(i,k);
+      for (int l = 0; l < nlenbin; l++) {
+        //extract sex specific length x year matrix
+        temp_lenyr_obs(i,l) = data_fsh_len(i,l,k);
+        temp_lenyr_pred(i,l) = pred_fsh_len(i,l,k);
+      }
+      obs_fl_vec = temp_lenyr_obs(i);
+      pred_fl_vec = temp_lenyr_pred(i);
+      sampsize_fl = temp_ss(i); //if this works should be able to get rid of little ss loop and just go with = n_fsh_len(i,0,k) ... maybe?
+      fsh_len_like(k) -= ddirmult(obs_fl_vec, pred_fl_vec, sampsize_fl, log_fsh_l_theta(k), true );
+      //fsh_len_like(k) -= ddirmult(obs_fl_vec, pred_fl_vec, sampsize_fl, log_fsh_l_theta(k), true );  
+      //n_effective(YearI) = 1/(1+theta) + n_samp(YearI)*(theta/(1+theta));  //** need to implement this before done with dirichlet conversions
+    }
   }
 
   break;
 
 }
-
   
+// Survey length comps
+vector<Type> srv_l_theta = exp(log_srv_l_theta);
 
-  // Multinomial likelihood for survey length comps.
+switch (comp_type) {
+  case 0: // Multinomial
+
+    // Multinomial likelihood for survey length comps.
   for (int k = 0; k < nsex; k++) {
 
     for (int i = 0; i < nyr_srv_len; i++) {
@@ -1531,6 +1555,44 @@ case 1: // fake shit right now...
     srv_len_like(k) *= wt_srv_len;            // likelihood weight
 
   }
+
+  break;
+
+case 1: // Dirchlet multinomial
+  array<Type> temp_lenyr_obs2(nyr_srv_len,nlenbin);
+  array<Type> temp_lenyr_pred2(nyr_srv_len,nlenbin);
+  vector<Type> temp_ss2(nyr_srv_len);
+  vector<Type> obs_sl_vec( nlenbin );
+  vector<Type> pred_sl_vec( nlenbin );
+  Type sampsize_sl; 
+  obs_sl_vec.setZero();
+  pred_sl_vec.setZero();
+
+  for (int k = 0; k < nsex; k++) {
+    temp_lenyr_obs2.setZero();
+    temp_lenyr_pred2.setZero();
+    temp_ss2.setZero();
+    for (int i = 0; i < nyr_srv_len; i++){
+      temp_ss2(i) = n_srv_len(i,0,k);
+      //temp_ss2(i) = effn_srv_len(i,0,k);
+    }
+    for (int i = 0; i < nyr_srv_len; i++){
+      for (int l = 0; l < nlenbin; l++) {
+        //extract sex specific length x year matrix
+        temp_lenyr_obs2(i,l) = data_srv_len(i,l,k);
+        temp_lenyr_pred2(i,l) = pred_srv_len(i,l,k);
+      }
+      obs_sl_vec = temp_lenyr_obs2(i);
+      pred_sl_vec = temp_lenyr_pred2(i);
+      sampsize_sl = temp_ss2(i); //if this works should be able to get rid of little ss loop and just go with = n_fsh_len(i,0,k) ... maybe?
+      srv_len_like(k) -= ddirmult(obs_sl_vec, pred_sl_vec, sampsize_sl, log_srv_l_theta(k), true );
+      //fsh_len_like(k) -= ddirmult(obs_fl_vec, pred_fl_vec, sampsize_fl, log_fsh_l_theta(k), true );  . 
+      //n_effective(YearI) = 1/(1+theta) + n_samp(YearI)*(theta/(1+theta));  //** need to implement this before done with dirichlet conversions
+    }
+  }
+
+  break;
+}
 
   // Recruitment - random_rec switches between penalized likelihood and random
   // effects. Shared sigma_r between rinit_devs and rec_devs, rinit_devs are the
@@ -1692,6 +1754,11 @@ case 1: // fake shit right now...
   REPORT(offset);           // Offsets for age comp multinomial
   REPORT(offset_srv_len);   // Offsets for survey length comp multinomial
   REPORT(offset_fsh_len);   // Offsets for fishery length comp multinomial
+  REPORT(fsh_theta);
+  //REPORT(neff_dm_fsh_age);
+  REPORT(srv_theta);
+  REPORT(fsh_l_theta);
+  REPORT(srv_l_theta);
 
   return(obj_fun);          
   
