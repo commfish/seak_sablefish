@@ -63,6 +63,16 @@ source("r_helper/functions.r")
 
 library(TMB) 
 }
+
+# Model switches
+{
+rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
+slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
+comp_type <- 0    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
+spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
+M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
+}
+
 # Load prepped data from scaa_dataprep.R
 {
 ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv")) #"/abd_indices_", YEAR, ".csv"))       # time series
@@ -110,13 +120,6 @@ nproj <- 1                # projection years *FLAG* eventually add to cpp file, 
 include_discards <- TRUE  # include discard mortality, TRUE or FALSE
 tmp_debug <- TRUE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
 
-# Model switches
-rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
-slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
-comp_type <- 1    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
-spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
-M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
-
 # Subsets
 mr <- filter(ts, !is.na(mr))
 fsh_cpue <- filter(ts, !is.na(fsh_cpue))
@@ -155,6 +158,7 @@ str(data$data_fsh_cpue)
 VER<-"base" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
 VER<-"tuned"
 VER<-"dirichlet_full_DEV"
+VER<-"extra_ind_var_DEV"
 #data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
 #==================================================
 
@@ -198,8 +202,8 @@ str(data)
 
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
-                model_name = "scaa_mod_dir", phase = FALSE, 
-                newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+                model_name = "scaa_mod_dir_ev", phase = FALSE, 
+                newtonsteps = 3, #3 make this zero initially for faster run times (using 5)
                 debug = FALSE)
 
 obj <- out$obj # TMB model object

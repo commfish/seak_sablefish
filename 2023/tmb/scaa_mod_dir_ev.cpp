@@ -298,7 +298,15 @@ template<class Type>
   PARAMETER_VECTOR(log_srv_l_theta);
   //PARAMETER(log_fsh_l_theta); 
   //PARAMETER(log_srv_l_theta);
-      
+
+  //Extra variance terms for indices
+  PARAMETER(log_tau_fsh);
+  PARAMETER(log_tau_srv);
+  PARAMETER(log_tau_mr);
+  Type tau_fsh = exp(log_tau_fsh);  
+  Type tau_srv = exp(log_tau_srv);  
+  Type tau_mr = exp(log_tau_mr);    
+
   // **DERIVED QUANTITIES**
   
   // Predicted indices of catch and abundance
@@ -1312,21 +1320,24 @@ template<class Type>
   // Fishery CPUE: lognormal
   for (int i = 0; i < nyr_fsh_cpue; i++) {
     index_like(0) += square( log((data_fsh_cpue(i) + c) / (pred_fsh_cpue(i) + c)) ) /
-      (Type(2.0) * square(sigma_fsh_cpue(i)));
+      //(Type(2.0) * square(sigma_fsh_cpue(i)));
+      (Type(2.0) * (square(sigma_fsh_cpue(i))+square(tau_fsh)));
   }
   index_like(0) *= wt_fsh_cpue; // Likelihood weight
 
   // Survey CPUE: lognormal
   for (int i = 0; i < nyr_srv_cpue; i++) {
     index_like(1) += square( log((data_srv_cpue(i) + c) / (pred_srv_cpue(i) + c)) ) /
-      (Type(2.0) * square(sigma_srv_cpue(i)));
+      //(Type(2.0) * square(sigma_srv_cpue(i)));
+      (Type(2.0) * (square(sigma_srv_cpue(i))+square(tau_srv)));
   }
   index_like(1) *= wt_srv_cpue; // Likelihood weight
 
   // Mark-recapture index: lognormal
   for (int i = 0; i < nyr_mr; i++) {
     index_like(2) += square( log((data_mr(i) + c) / (pred_mr(i) + c)) ) /
-      (Type(2.0) * square(sigma_mr(i)));
+      //(Type(2.0) * square(sigma_mr(i)));
+      (Type(2.0) * (square(sigma_srv_cpue(i))+square(tau_mr)));
   }
   index_like(2) *= wt_mr;        // Likelihood weight
   // std::cout << "Index likelihoods\n" << index_like << "\n";
@@ -1759,6 +1770,9 @@ case 1: // Dirchlet multinomial
   REPORT(srv_theta);
   REPORT(fsh_l_theta);
   REPORT(srv_l_theta);
+  REPORT(tau_fsh);
+  REPORT(tau_srv);
+  REPORT(tau_mr);
 
   return(obj_fun);          
   

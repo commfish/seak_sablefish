@@ -989,6 +989,16 @@ build_bounds <- function(param_list = NULL, data_list){
   lower_bnd$log_srv_l_theta <- replace(lower_bnd$log_srv_l_theta, values = rep(-5, length(lower_bnd$log_srv_l_theta)))
   upper_bnd$log_srv_l_theta <- replace(upper_bnd$log_srv_l_theta, values = rep(15, length(upper_bnd$log_srv_l_theta)))
   
+  #extra variance terms for indices
+  lower_bnd$log_tau_fsh <- replace(lower_bnd$log_tau_fsh, values = -20) 
+  upper_bnd$log_tau_fsh <- replace(upper_bnd$log_tau_fsh, values = 4) 
+ 
+  lower_bnd$log_tau_srv <- replace(lower_bnd$log_tau_srv, values = -20) 
+  upper_bnd$log_tau_srv <- replace(upper_bnd$log_tau_srv, values = 4) 
+  
+  lower_bnd$log_tau_mr <- replace(lower_bnd$log_tau_mr, values = -20) 
+  upper_bnd$log_tau_mr <- replace(upper_bnd$log_tau_mr, values = 4) 
+  
   # Put bounds together
   bounds <- list(upper= upper_bnd, lower = lower_bnd)
   
@@ -2623,7 +2633,12 @@ build_parameters_exp <- function(
     #log_fsh_l_theta = log(10), #
     log_fsh_l_theta = c(log(5),log(5)),
     #log_srv_l_theta = log(10) #
-    log_srv_l_theta = c(log(5),log(5))
+    log_srv_l_theta = c(log(5),log(5)),
+    
+    #extra variance for index terms
+    log_tau_fsh = log(1.1),
+    log_tau_srv = log(1.1),
+    log_tau_mr = log(1.1)
   )
   
   return(parameters)
