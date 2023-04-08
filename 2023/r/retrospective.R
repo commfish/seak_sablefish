@@ -131,6 +131,8 @@ for(i in 1:length(retro)){  #i<-1
                   model_name = "scaa_mod", phase = FALSE, 
                   debug = FALSE)
   
+  #insert tuning step if necessary... 
+  
   obj <- out$obj # TMB model object
   opt <- out$opt # fit
   rep <- out$rep # sdreport

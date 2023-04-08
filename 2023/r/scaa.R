@@ -71,6 +71,7 @@ slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 comp_type <- 0    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
 M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
+ev_type <- 1     # extra variance in indices; 0 = none, 1 = estimated
 }
 
 # Load prepped data from scaa_dataprep.R
@@ -141,10 +142,11 @@ tmp_inits <- data.frame(year = c(YEAR - length(rec_devs_inits)+1):YEAR,
 rec_devs_inits <- tmp_inits %>% pull(rec_devs_inits)
 Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
 
-# User-defined fxns in functions.R
-data <- build_data(ts = ts); str(data)  #see this function to change weights and 
 # some other things
 }
+# User-defined fxns in functions.R
+
+
 # TMB set up ----
 ts$fsh_cpue          #in 2023 we are using the fully standardized time series
 ts$fsh_cpue_nom      #nominal fishery CPUE from analysis
@@ -158,20 +160,25 @@ str(data$data_fsh_cpue)
 VER<-"base" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
 VER<-"tuned"
 VER<-"dirichlet_full_DEV"
-VER<-"extra_ind_var_DEV"
+VER<-"ev_dir_DEV"
 #data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
 #==================================================
 
 #ughs<-inits %>% filter(grepl("spr_Fxx", Parameter)) %>% pull(Estimate)
 #exp(ughs)
-
+data <- build_data(ts = ts); str(data)  #see this function to change weights and 
 parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 
+#development coded data and parameter lists... 
+data <- build_data_exp(ts = ts)
 parameters <- build_parameters_exp(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 random_vars <- build_random_vars() # random effects still in development
 
 # parameters <- list(dummy = 0)
 # compile("tst.cpp")
+data$ev_type
+data$comp_type
+
 data$data_fsh_len
 str(data$data_fsh_len)
 data$data_fsh_len[,,2]
@@ -202,8 +209,15 @@ str(data)
 
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
-                model_name = "scaa_mod_dir_ev", phase = FALSE, 
-                newtonsteps = 3, #3 make this zero initially for faster run times (using 5)
+                model_name = "scaa_mod_ev", #model_name = "scaa_mod_dir_ev",
+                phase = FALSE,  
+                newtonsteps = 10, #3 make this zero initially for faster run times (using 5)
+                debug = FALSE)
+
+out <- TMBphase_exp(data, parameters, random = random_vars, 
+                model_name = "scaa_mod_dir_ev", #model_name = "scaa_mod_dir_ev",
+                phase = FALSE,  
+                newtonsteps = 10, #3 make this zero initially for faster run times (using 5)
                 debug = FALSE)
 
 obj <- out$obj # TMB model object
@@ -223,8 +237,8 @@ best <- obj$env$last.par.best # maximum likelihood estimates
 # MLE parameter estimates and standard errors in useable format. Saves output to
 # tmbout and starting vals for next year to tmb_dat by default. See functions.R
 # for more info.
-tidyrep <- save_mle(save = TRUE,
-                    save_inits = TRUE) 
+tidyrep <- save_mle(save = FALSE,
+                    save_inits = FALSE) 
 
 # MLE likelihood components
 obj$report(best)$obj_fun
@@ -287,7 +301,7 @@ write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR,"_",VER, ".cs
 # "metric" to switch between units. 
 plot_ts(ts = ts, save = TRUE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
 plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
-plot_F(save = TRUE)
+plot_F(save = FALSE)
 
 # Recruitment estimates
 logrbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
