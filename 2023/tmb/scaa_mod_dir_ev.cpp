@@ -437,7 +437,7 @@ template<class Type>
   wastage.setZero();
   
   // Priors, likelihoods, offsets, and penalty functions
-  vector<Type> priors(3);       // Priors for catchability coefficients
+  vector<Type> priors(4);       // Priors for catchability coefficients; originally vector<Type> priors(3); 
   priors.setZero();
   Type prior_M = 0;             // Prior on natural mortality if estimated
   
@@ -475,7 +475,8 @@ template<class Type>
   // Fishery selectivity
   
   // Number of parameters in the chosen selectivity type: 
-  int npar_slx = log_fsh_slx_pars.dim(1); // dim = array dimensions; 1 = # columns in array = # params in slx_type
+  //int npar_slx = log_fsh_slx_pars.dim(1); // dim = array dimensions; 1 = # columns in array = # params in slx_type
+  Type npar_slx = 2; 
   // std::cout << npar_slx << "\n number of params for slx type\n";
   
   // Preliminary calcs to bring parameters out of log space
@@ -511,7 +512,7 @@ template<class Type>
           switch (slx_type) {
           
           case 0: // Logistic with a50 and a95, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = a95
-            fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_slx_pars(h,0,k)) / (fsh_slx_pars(h,1,k) - fsh_slx_pars(h,0,k))) );
+           fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_slx_pars(h,0,k)) / (fsh_slx_pars(h,1,k) - fsh_slx_pars(h,0,k))) );
             break;
             
           case 1: // Logistic with a50 and slope, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = slope.
@@ -523,8 +524,51 @@ template<class Type>
       }
       i++;
     } while (i <= fsh_blks(h));
+    //} while (i <= fsh_blks(h) and (i > fsh_blks(h-1) or i > -1));
   }
   
+//for(int h = 0; h < 1; h++){                     //hmm.. need to do first time block then the others... 
+//  for (int i = 0; i < fsh_blks(h); i++){
+//   for (int k = 0; k < nsex; k++) {
+//        for (int j = 0; j < nage; j++) {
+          
+          // Selectivity switch (case 0 or 1 references the value of slx_type)
+//          switch (slx_type) {
+          
+//          case 0: // Logistic with a50 and a95, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = a95
+//            fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_slx_pars(h,0,k)) / (fsh_slx_pars(h,1,k) - fsh_slx_pars(h,0,k))) );
+//            break;
+            
+//          case 1: // Logistic with a50 and slope, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = slope.
+            //  *This is the preferred logistic parameterization b/c it reduces parameter correlation*
+//            fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp( Type(-1.0) * fsh_slx_pars(h,1,k) * (j - fsh_slx_pars(h,0,k)) ) );
+//            break;
+//          }
+//        }
+//  }
+//}
+
+//for(int h = 1; h < fsh_blks.size(); h++){                     //hmm.. need to do first time block then the others... 
+//  for (int i = fsh_blks(h-1); i < fsh_blks(h); i++){
+//    for (int k = 0; k < nsex; k++) {
+//        for (int j = 0; j < nage; j++) {
+          
+          // Selectivity switch (case 0 or 1 references the value of slx_type)
+//          switch (slx_type) {
+          
+//          case 0: // Logistic with a50 and a95, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = a95
+//            fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_slx_pars(h,0,k)) / (fsh_slx_pars(h,1,k) - fsh_slx_pars(h,0,k))) );
+//            break;
+            
+//          case 1: // Logistic with a50 and slope, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = slope.
+            //  *This is the preferred logistic parameterization b/c it reduces parameter correlation*
+//            fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp( Type(-1.0) * fsh_slx_pars(h,1,k) * (j - fsh_slx_pars(h,0,k)) ) );
+//            break;
+//          }
+//        }
+//  }
+//}
+
   // std::cout << fsh_slx(1,1,1) << "\n Fishery selectivity \n";
   
   // Survey selectivity - see notes on syntax in fishery selectivity section
@@ -552,7 +596,7 @@ template<class Type>
           switch (slx_type) {
 
           case 0: // Logistic with a50 and a95, where srv_slx_pars(h,0,k) = a50 and srv_slx_pars(h,1,k) = a95
-            srv_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - srv_slx_pars(h,0,k)) / (srv_slx_pars(h,1,k) - fsh_slx_pars(h,0,k))) );
+            srv_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - srv_slx_pars(h,0,k)) / (srv_slx_pars(h,1,k) - srv_slx_pars(h,0,k))) );
             break;
 
           case 1: // Logistic with a50 and slope, where srv_slx_pars(h,0,k) = a50 and srv_slx_pars(h,1,k) = slope.
@@ -1282,13 +1326,13 @@ template<class Type>
   // Priors
 
   // Fishery cpue catchability coefficient
-  //for (int h = 0; h < fsh_blks.size(); h++){
-  //  priors(0) += square( log(fsh_q(h) / p_fsh_q(h)) ) / ( Type(2.0) * square(sigma_fsh_q(h)) );
-  //}
-   priors(0) = c;
+  for (int h = 0; h < fsh_blks.size(); h++){
+    priors(0) += square( log(fsh_q(h) / p_fsh_q(h)) ) / ( Type(2.0) * square(sigma_fsh_q(h)) );
+  }
+  // priors(0) = c;
   // Survey catchability coefficient
-  //priors(1) = square( log(srv_q / p_srv_q) ) / ( Type(2.0) * square(sigma_srv_q) );
-  priors(1) = c;
+  priors(1) = square( log(srv_q / p_srv_q) ) / ( Type(2.0) * square(sigma_srv_q) );
+  //priors(1) = c;
   // Mark-recapture abundance estimate catchability coefficient
   priors(2) = square( log(mr_q / p_mr_q) ) / ( Type(2.0) * square(sigma_mr_q) );
 

@@ -163,10 +163,14 @@ TMBphase_exp <- function(data, parameters, random, model_name, phase = FALSE,
     # evaluation - think it's something to do with discarding
     if (tmp_debug == TRUE) {
       map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
-      map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
-      # map_use$mr_logq <- fill_vals(parameters$mr_logq, NA)
-      # map_use$log_fsh_slx_pars <- factor(c(1, 2, NA, NA, 3, 4, NA, NA))
-      # map_use$log_srv_slx_pars <- factor(c(1, NA, 2, NA))
+      #estimate selectivity in 3rd time block... turn NA's back to values... 
+      
+      #map_use$log_fsh_slx_pars <- factor(c(NA,NA,1,NA,NA,2,
+      #                                     NA,NA,3,NA,NA,4
+      #                                     ))
+      #dim(map_use$log_fsh_slx_pars)<-dim(parameters$log_fsh_slx_pars)
+      #map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
+
     }
     
     # Build upper and lower parameter bounds and remove any that are not
@@ -254,7 +258,6 @@ TMBphase_exp <- function(data, parameters, random, model_name, phase = FALSE,
         # work out the map for this phase if phases for parameters is less than the
         # current phase then map will contain a factor filled with NAs
         map_use <- list()
-        
         
         map_use$dummy <- fill_vals(parameters$dummy, NA)
         
@@ -407,17 +410,33 @@ build_parameters_exp <- function(
                        log(2.29), log(2.43)),
               dim = c(length(data$fsh_blks), 2, nsex)) # 2 = npar for this slx_type
         
-        # FISHERY SELECTIVITY FOR 2020 assessment (2021 ABC)
+        # FISHERY SELECTIVITY FOR 2022 assessment (2023 ABC)
       } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model - UPDATE ME!
         array(data = c(slx_pars$log_a50[slx_pars$fleet == "fsh_t1_m"], # male a50s time block 1
                        slx_pars$log_a50[slx_pars$fleet == "fsh_t2_m"], #  then time block 2
+                       slx_pars$log_a50[slx_pars$fleet == "fsh_t3_m"], #  then time block 3
                        slx_pars$log_k[slx_pars$fleet == "fsh_t1_m"], # male slopes time block 1
                        slx_pars$log_k[slx_pars$fleet == "fsh_t2_m"], # then time block 2
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t3_m"], # then time block 3
                        slx_pars$log_a50[slx_pars$fleet == "fsh_t1_f"], # female a50s time block 1
                        slx_pars$log_a50[slx_pars$fleet == "fsh_t2_f"], #  then time block 2
+                       slx_pars$log_a50[slx_pars$fleet == "fsh_t3_f"], #  then time block 3
                        slx_pars$log_k[slx_pars$fleet == "fsh_t1_f"], # female slopes time block 1
-                       slx_pars$log_k[slx_pars$fleet == "fsh_t2_f"]), # then time block 2
-              dim = c(length(data$fsh_blks), 2, nsex)) }, # 2 = npar for this slx_type
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t2_f"], #  then time block 2
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t3_f"]), # then time block 3
+              dim = c(length(data$fsh_blks), 2, nsex)) }, # 2 = npar for this slx_type   
+        
+        # FISHERY SELECTIVITY FOR 2020 assessment (2021 ABC)
+   #   } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model - UPDATE ME!
+  #      array(data = c(slx_pars$log_a50[slx_pars$fleet == "fsh_t1_m"], # male a50s time block 1
+  #                     slx_pars$log_a50[slx_pars$fleet == "fsh_t2_m"], #  then time block 2
+  #                     slx_pars$log_k[slx_pars$fleet == "fsh_t1_m"], # male slopes time block 1
+  #                     slx_pars$log_k[slx_pars$fleet == "fsh_t2_m"], # then time block 2
+  #                     slx_pars$log_a50[slx_pars$fleet == "fsh_t1_f"], # female a50s time block 1
+  #                     slx_pars$log_a50[slx_pars$fleet == "fsh_t2_f"], #  then time block 2
+  #                     slx_pars$log_k[slx_pars$fleet == "fsh_t1_f"], # female slopes time block 1
+  #                     slx_pars$log_k[slx_pars$fleet == "fsh_t2_f"]), # then time block 2
+  #            dim = c(length(data$fsh_blks), 2, nsex)) }, # 2 = npar for this slx_type
     
     # FISHERY SELECTIVITY FOR 2019 assessment (2020 ABC)
     # } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model
@@ -459,7 +478,7 @@ build_parameters_exp <- function(
               dim = c(length(data$srv_blks), 2, nsex)) # 2 = npar for this slx_type 
         
         
-        # SURVEY SELECTIVITY FOR 2020 assessment (2021 ABC)
+        # SURVEY SELECTIVITY FOR 2022 assessment (2023 ABC)
         # Logistic with a50 and slope, data$slx_type = 1, sex-structured model UPDATE ME!
       } else {
         array(data = c(rep(slx_pars$log_a50[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # male a50
@@ -467,6 +486,14 @@ build_parameters_exp <- function(
                        rep(slx_pars$log_a50[slx_pars$fleet == "srv_f"], length(data$srv_blks)), # female a50
                        rep(slx_pars$log_k[slx_pars$fleet == "srv_f"], length(data$srv_blks))), # slope
               dim = c(length(data$srv_blks), 2, nsex))}, # 2 = npar for this slx_type
+          # SURVEY SELECTIVITY FOR 2020 assessment (2021 ABC)
+        # Logistic with a50 and slope, data$slx_type = 1, sex-structured model UPDATE ME!
+      #} else {
+      #  array(data = c(rep(slx_pars$log_a50[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # male a50
+      #                 rep(slx_pars$log_k[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # slope
+      #                 rep(slx_pars$log_a50[slx_pars$fleet == "srv_f"], length(data$srv_blks)), # female a50
+      #                 rep(slx_pars$log_k[slx_pars$fleet == "srv_f"], length(data$srv_blks))), # slope
+      #        dim = c(length(data$srv_blks), 2, nsex))}, # 2 = npar for this slx_type
     
     # SURVEY SELECTIVITY FOR 2019 assessment (2020 ABC)
     # } else { 
@@ -520,7 +547,7 @@ build_parameters_exp <- function(
 }
 
 #for model experimenting
-build_data_exp <- function(
+build_data_exp <- function(weights = FALSE,
     # data sources (makes it easier to generalize for sensitivity and
   # retrospective analysts)
   ts,  ...) {
@@ -560,7 +587,9 @@ build_data_exp <- function(
     ev_type = ev_type,
     
     # Time varying parameters - each vector contains the terminal years of each time block
-    fsh_blks = c(ts %>% filter(year == 1994) %>% pull(index), max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
+    #fsh_blks = c(ts %>% filter(year == 1994) %>% pull(index), max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
+    fsh_blks = c(ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
+                 max(ts$index)),  # 3 time blocks as per current federal (2022) assessment
     srv_blks = c(max(ts$index)), # no breaks survey selectivity
     
     # Discard mortality rate in the directed fishery (currently either 0 or 0.16,
@@ -589,8 +618,10 @@ build_data_exp <- function(
     Fxx_levels = c(0.35, 0.40, 0.50, 0.60, 0.70),
     
     # Priors ("p_" denotes prior)
-    p_fsh_q = c(exp(-16), exp(-16)),
-    sigma_fsh_q = c(1, 1),
+    #p_fsh_q = c(exp(-16), exp(-16)),
+    #sigma_fsh_q = c(1, 1),
+    p_fsh_q = c(exp(-16), exp(-16), exp(-16)),
+    sigma_fsh_q = c(1, 1, 1),
     p_srv_q = exp(-17), 
     sigma_srv_q = 1,
     p_mr_q = 1.0,
@@ -599,26 +630,12 @@ build_data_exp <- function(
     # Weights on likelihood components ("wt_" denotes weight) based on weights
     # in Federal model
     
-    # Updated weights for 2020 assessment (2021 ABC)
-    #wt_catch = 10.0, # fed = 50
-    #wt_fsh_cpue = 1,  # fed = 0.448
-    #wt_srv_cpue = 4, # fed = 0.448
-    #wt_mr = 1.5,
-    #wt_fsh_age = 6, # fed = 7.8
-    #wt_srv_age = 8, # fed = 7.95
-    #wt_fsh_len = 1, # fed = 1
-    #wt_srv_len = 1, # fed = 1
-    #wt_rec_like = 1,
-    #wt_fpen = 0.1,
-    #wt_spr = 100,
-    
-    # Original weights for 2019 assessment (2020 ABC)
-    wt_catch = 1.0, 
-    wt_fsh_cpue = 1.0,  
-    wt_srv_cpue = 1.0, 
-    wt_mr = 1.0,
-    wt_fsh_age = 1.0, 
-    wt_srv_age = 1.0, 
+    wt_catch = if (weights == TRUE) {wt_catch = 10.0} else {wt_catch = 1.0},
+    wt_fsh_cpue = if (weights == TRUE) {wt_fsh_cpue = 1.0} else {wt_fsh_cpue = 1.0},
+    wt_srv_cpue = if (weights == TRUE) {wt_srv_cpue = 4.0} else {wt_srv_cpue = 1.0},
+    wt_mr = if (weights == TRUE) {wt_mr = 1.5} else {wt_mr = 1.0},
+    wt_fsh_age = if (weights == TRUE) {wt_fsh_age = 6.0} else {wt_fsh_age = 1.0},
+    wt_srv_age = if (weights == TRUE) {wt_srv_age = 8.0} else {wt_srv_age = 1.0},
     wt_fsh_len = 1.0, 
     wt_srv_len = 1.0, 
     wt_rec_like = 1.0,
@@ -800,3 +817,159 @@ build_data_exp <- function(
   
   return(data)
 }
+
+#-------------------------------------------------------------------------------
+# Model Tuning function for retrospective
+# This will tune the last model run and then rerun the model with the ess and output
+# those model results
+#model will use data and parameters as currently set... 
+
+tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps){
+  tune_fsh_age <- list()
+  tune_srv_age <- list()
+  tune_fsh_len <- list()
+  tune_srv_len <- list()
+  
+  for(iter in 1:niter) { #iter<-1
+    
+    # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
+    out <- TMBphase_exp(data, parameters, random = random_vars, 
+                        model_name = modelname, phase = FALSE, 
+                        newtonsteps = newtonsteps, #3 make this zero initially for faster run times (using 5)
+                        debug = FALSE)
+    
+    obj <- out$obj # TMB model object
+    opt <- out$opt # fit
+    
+    # Quick look at MLE results
+    best <- obj$env$last.par.best 
+    
+    # Fishery age comps (sexes combined) ----
+    pred_fsh_age <- as.matrix(obj$report(best)$pred_fsh_age)
+    data_fsh_age <- as.matrix(data$data_fsh_age)
+    effn_fsh_age <- vector(length = nrow(pred_fsh_age))
+    
+    for(i in 1:nrow(pred_fsh_age)){
+      effn_fsh_age[i] <- sum(pred_fsh_age[i,]*(1-pred_fsh_age[i,])) / sum((data_fsh_age[i,]-pred_fsh_age[i,])^2)  #Equation 2.5 in Mcalister and Ianelli
+      # Nhat_i = sum_j{phat_ij * (1 - phat_ij)} / sum_j{(p_ij - phat_ij)^2}  #R, equ6 in Stewart and Hamel?? 
+      #    phils_q_fhs_age[i] <- sum(pred_fsh_age[i,]*(1-pred_fsh_age[i,])) / sum((pred_fsh_age[i,]-data_fsh_age[i,])^2) #based on eq6 from Stewart & Hamel??
+      ## but to be true to Stewart and Hamel data should be bootstrapped estimates? 
+    }
+    
+    effn_fsh_age <- 1/mean(1/effn_fsh_age) # harmonic mean from Stewat and Hamel... 
+    
+    tune_fsh_age[[iter]] <- effn_fsh_age
+    data$effn_fsh_age <- rep(effn_fsh_age, length(data$effn_fsh_age)) # replace data for next iteration
+    
+    # Survey age comps (sexes combined) ----
+    pred_srv_age <- as.matrix(obj$report(best)$pred_srv_age)
+    data_srv_age <- as.matrix(data$data_srv_age)
+    effn_srv_age <- vector(length = nrow(pred_srv_age))
+    
+    for(i in 1:nrow(pred_srv_age)){
+      effn_srv_age[i] <- sum(pred_srv_age[i,]*(1-pred_srv_age[i,])) / sum((data_srv_age[i,]-pred_srv_age[i,])^2)
+    }
+    
+    effn_srv_age <- 1/mean(1/effn_srv_age) # harmonic mean
+    tune_srv_age[[iter]] <- effn_srv_age
+    data$effn_srv_age <- rep(effn_srv_age, length(data$effn_srv_age)) # replace data for next iteration
+    
+    # Fishery length comps (currently only for sex-structured model where nsex = 2) ----
+    pred_fsh_len <- obj$report(best)$pred_fsh_len
+    data_fsh_len <- data$data_fsh_len
+    effn_fsh_len <- matrix(nrow = nrow(pred_fsh_len[,,2]), ncol = 2)
+    
+    data_fsh_len <- data_fsh_len + 1e-6 # add tiny constant so we don't get NaNs
+    
+    for(a in 1:nsex) {
+      for(i in 1:nrow(pred_fsh_len)){
+        effn_fsh_len[i,a] <- sum(pred_fsh_len[i,,a]*(1-pred_fsh_len[i,,a])) / sum((data_fsh_len[i,,a]-pred_fsh_len[i,,a])^2)
+      }
+    }
+    
+    new_effn_fsh_len <- matrix(ncol = 2, nrow = 1)
+    
+    for(a in 1:nsex) {
+      new_effn_fsh_len[a] <- 1/mean(1/effn_fsh_len[,a]) # harmonic mean
+    }
+    tune_fsh_len[[iter]] <- new_effn_fsh_len
+    
+    # replace data for next iteration
+    data$effn_fsh_len <- array(dim = c(nrow = nrow(pred_fsh_len), 1, nsex),
+                               data = c(rep(new_effn_fsh_len[,1],  nrow(pred_fsh_len)), rep(new_effn_fsh_len[,2],  nrow(pred_fsh_len))))
+    
+    # Survey length comps (currently only for sex-structured model where nsex = 2) ----
+    pred_srv_len <- obj$report(best)$pred_srv_len
+    data_srv_len <- data$data_srv_len
+    effn_srv_len <- matrix(nrow = nrow(pred_srv_len[,,2]), ncol = 2)
+    
+    data_srv_len <- data_srv_len + 1e-6 # add tiny constant so we don't get NaNs
+    
+    for(a in 1:nsex) {
+      for(i in 1:nrow(pred_srv_len)){
+        effn_srv_len[i,a] <- sum(pred_srv_len[i,,a]*(1-pred_srv_len[i,,a])) / sum((data_srv_len[i,,a]-pred_srv_len[i,,a])^2)
+      }
+    }
+    
+    new_effn_srv_len <- matrix(ncol = 2, nrow = 1)
+    
+    for(a in 1:nsex) {
+      new_effn_srv_len[a] <- 1/mean(1/effn_srv_len[,a]) # harmonic mean
+    }
+    tune_srv_len[[iter]] <- new_effn_srv_len
+    
+    # replace data for next iteration
+    data$effn_srv_len <- array(dim = c(nrow = nrow(pred_srv_len), 1, nsex),
+                               data = c(rep(new_effn_srv_len[,1],  nrow(pred_srv_len)), rep(new_effn_srv_len[,2],  nrow(pred_srv_len))))
+  }
+  
+  tune_srv_len <- as.data.frame(do.call("rbind", tune_srv_len))
+  names(tune_srv_len) <- c("male_srv_len_ess", "fem_srv_len_ess")
+  tune_srv_age <- as.data.frame(do.call("rbind", tune_srv_age))
+  names(tune_srv_age) <- c("srv_age_ess")
+  tune_fsh_len <- as.data.frame(do.call("rbind", tune_fsh_len))
+  names(tune_fsh_len) <- c("male_fsh_len_ess", "fem_fsh_len_ess")
+  tune_fsh_age <- as.data.frame(do.call("rbind", tune_fsh_age))
+  names(tune_fsh_age) <- c("fsh_age_ess")
+  
+  age <- age %>% 
+    mutate(effn = ifelse(age$Source == "Survey", tune_srv_age[niter,], tune_fsh_age[niter,]))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
+  len <- fsh_len %>% 
+    mutate(effn = ifelse(fsh_len$Sex == "Male", tune_fsh_len[niter,1], tune_fsh_len[niter,2])) %>% 
+    bind_rows(srv_len %>% 
+                mutate(effn = ifelse(srv_len$Sex == "Male", tune_srv_len[niter,1], tune_srv_len[niter,2])))  # tuned len comps
+  
+  fsh_age <- filter(age, Source == "Fishery")
+  srv_age <- filter(age, Source == "Survey")
+  fsh_len <- filter(len, Source == "fsh_len")
+  srv_len <- filter(len, Source == "srv_len")
+  
+  #OK, now run the model with tuned comps
+  data <- build_data_exp(ts = ts, weights = TRUE)
+  
+  parameters <- build_parameters_exp(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
+  random_vars <- build_random_vars() # random effects still in development
+  
+  out <- TMBphase(data, parameters, random = random_vars, 
+                  model_name = "scaa_mod", phase = FALSE, 
+                  debug = FALSE)
+  
+  return(out)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

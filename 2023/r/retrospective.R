@@ -6,6 +6,7 @@
 
 source("r_helper/helper.r")
 source("r_helper/functions.r")
+source("r_helper/exp_functions.r")
 
 YEAR <- 2022 # most recent year of data
 
@@ -22,7 +23,7 @@ dir.create(retro_dir, showWarnings = FALSE)
 
 library(TMB) 
 
-VER<-"tuned"
+VER<-"ev_dir"
 # Data for SCAA
 ts <- read_csv(paste0(tmb_dat, "/abd_indices_", YEAR, ".csv"))        # time series
 #ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv"))        # time series

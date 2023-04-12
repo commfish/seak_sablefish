@@ -31,6 +31,7 @@
 YEAR <- 2022
 source("r_helper/helper.r")
 source("r_helper/functions.r")
+source("r_helper/exp_functions.r")
 
 library(TMB) 
 library(tmbstan)
@@ -45,103 +46,107 @@ tmb_path <- file.path(root, paste0(YEAR+1,"/tmb")) # location of cpp
 tmbfigs <- file.path(root, paste0(YEAR+1,"/figures/tmb")) # location where model figs are saved
 tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model output is saved
 
+# Model switches
+{
+  rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
+  slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
+  comp_type <- 0    # Age  and length comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
+  spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
+  M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
+  ev_type <- 0     # extra variance in indices; 0 = none, 1 = estimated
+}
+
 # Load prepped data from scaa_dataprep.R
-ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv")) #"/abd_indices_", YEAR, ".csv"))       # time series
-age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
-len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
-# age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
-# len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))  # tuned len comps
-bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
-waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
-retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
-slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2020.csv")) # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
-
-# Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
-# develop one for ADFG. Row = true age, Column = observed age. Proportion
-# observed at age given true age.
-ageing_error <- scan(paste0(YEAR+1,"/data/tmb_inputs/ageing_error_fed.txt", sep = " ")) %>% matrix(ncol = 30) %>% t()
-rowSums(ageing_error) # should be 1
-
-# Age-length key from D. Hanselman 2019-04-18. On To DO list to develop one for
-# ADFG (will need separate ones for fishery and survey). See
-# ageing_error_matrix.R for KVK's code, which may be a good start.  Proportion
-# at length given age. Row = age, Column = length bin
-agelen_key_m <- scan(paste0(YEAR+1,"/data/tmb_inputs/agelen_key_male.txt", sep = " "), skip = 1) %>% matrix(ncol = 30) %>% t()
-rowSums(agelen_key_m) # should all = 1
-agelen_key_f <- scan(paste0(YEAR+1,"/data/tmb_inputs/agelen_key_fem.txt", sep = " "), skip = 1) %>% matrix(ncol = 30) %>% t()
-rowSums(agelen_key_f) 
-
-# forecast:
-  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, ".csv"))
+{
+  ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv")) #"/abd_indices_", YEAR, ".csv"))       # time series
+  age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
+  len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
+  # age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
+  # len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))  # tuned len comps
+  bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
+  waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
+  retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
+  slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022_3fsh.csv")) # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
+  
+  # Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
+  # develop one for ADFG. Row = true age, Column = observed age. Proportion
+  # observed at age given true age.
+  ageing_error <- scan(paste0(YEAR+1,"/data/tmb_inputs/ageing_error_fed.txt", sep = " ")) %>% matrix(ncol = 30) %>% t()
+  rowSums(ageing_error) # should be 1
+  
+  # Age-length key from D. Hanselman 2019-04-18. On To DO list to develop one for
+  # ADFG (will need separate ones for fishery and survey). See
+  # ageing_error_matrix.R for KVK's code, which may be a good start.  Proportion
+  # at length given age. Row = age, Column = length bin
+  agelen_key_m <- scan(paste0(YEAR+1,"/data/tmb_inputs/agelen_key_male.txt", sep = " "), skip = 1) %>% matrix(ncol = 30) %>% t()
+  rowSums(agelen_key_m) # should all = 1
+  agelen_key_f <- scan(paste0(YEAR+1,"/data/tmb_inputs/agelen_key_fem.txt", sep = " "), skip = 1) %>% matrix(ncol = 30) %>% t()
+  rowSums(agelen_key_f) 
+  
+  #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
+  #need to add in new selectivity block since not there last year
+  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_NEW_SLX.csv"))
+  
   rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
   rec_devs_inits <- c(rec_devs_inits, mean(rec_devs_inits)) # mean for current year starting value
   rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
   Fdevs_inits <- inits %>% filter(grepl("F_devs", Parameter)) %>% pull(Estimate)
   Fdevs_inits <- c(Fdevs_inits, mean(Fdevs_inits)) # mean for current year starting value
-
-
-# Model dimensions / user inputs
-syr <- min(ts$year)                   # model start year
-lyr <- YEAR <- max(ts$year)           # end year
-nyr <- length(syr:lyr)                # number of years        
-rec_age <- min(waa$age)               # recruitment age                  
-plus_group <- max(waa$age)            # plus group age
-nage <- length(rec_age:plus_group)    # number of ages
-nlenbin <- length(unique(len$length_bin)) # number of length bins
-nsex <- 2                 # single sex or sex-structured
-nproj <- 1                # projection years *FLAG* eventually add to cpp file, currently just for graphics
-include_discards <- TRUE  # include discard mortality, TRUE or FALSE
-tmp_debug <- TRUE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
-
-# Model switches
-rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
-slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
-comp_type <- 0    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
-spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
-#2023: geometric mean is not working - getting Inf for mean_rec... working on it... 
-M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
-
-# Subsets
-mr <- filter(ts, !is.na(mr))
-fsh_cpue <- filter(ts, !is.na(fsh_cpue))
-srv_cpue <- filter(ts, !is.na(srv_cpue))
-fsh_age <- filter(age, Source == "Fishery")
-srv_age <- filter(age, Source == "Survey")
-fsh_len <- filter(len, Source == "fsh_len")
-srv_len <- filter(len, Source == "srv_len")
-
-length(c(YEAR - length(rec_devs_inits)+1):YEAR)
-length(rec_devs_inits)
-length(Fdevs_inits)
-
-# initial value processing
-tmp_inits <- data.frame(year = c(YEAR - length(rec_devs_inits)+1):YEAR,
-                        rec_devs_inits = rec_devs_inits,
-                        Fdevs_inits = Fdevs_inits) %>% 
-  filter(between(year, syr, lyr))
-rec_devs_inits <- tmp_inits %>% pull(rec_devs_inits)
-Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
+  
+  # Model dimensions / user inputs
+  syr <- min(ts$year)                   # model start year
+  lyr <- YEAR <- max(ts$year)           # end year
+  nyr <- length(syr:lyr)                # number of years        
+  rec_age <- min(waa$age)               # recruitment age                  
+  plus_group <- max(waa$age)            # plus group age
+  nage <- length(rec_age:plus_group)    # number of ages
+  nlenbin <- length(unique(len$length_bin)) # number of length bins
+  nsex <- 2                 # single sex or sex-structured
+  nproj <- 1                # projection years *FLAG* eventually add to cpp file, currently just for graphics
+  include_discards <- TRUE  # include discard mortality, TRUE or FALSE
+  tmp_debug <- TRUE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
+  
+  # Subsets
+  mr <- filter(ts, !is.na(mr))
+  fsh_cpue <- filter(ts, !is.na(fsh_cpue))
+  srv_cpue <- filter(ts, !is.na(srv_cpue))
+  fsh_age <- filter(age, Source == "Fishery")
+  srv_age <- filter(age, Source == "Survey")
+  fsh_len <- filter(len, Source == "fsh_len")
+  srv_len <- filter(len, Source == "srv_len")
+  
+  length(c(YEAR - length(rec_devs_inits)+1):YEAR)
+  length(rec_devs_inits)
+  length(Fdevs_inits)
+  
+  # initial value processing
+  tmp_inits <- data.frame(year = c(YEAR - length(rec_devs_inits)+1):YEAR,
+                          rec_devs_inits = rec_devs_inits,
+                          Fdevs_inits = Fdevs_inits) %>% 
+    filter(between(year, syr, lyr))
+  rec_devs_inits <- tmp_inits %>% pull(rec_devs_inits)
+  Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
+  
+  # some other things
+}
 
 # TMB set up ----
 ts$fsh_cpue          #in 2023 we are using the fully standardized time series
 ts$fsh_cpue_nom      #nominal fishery CPUE from analysis
 ts$fsh_cpue_base     #cpue clculation in scaa_dataprep.R.. similar to nom
 
-# User-defined fxns in functions.R
-data <- build_data(ts = ts); str(data)  #see this function to change weights and 
-# some other things
-str(data$data_fsh_cpue)
+
 
 #=====================================
 # *** Checking sensitivity to fishery CPUE data versions
-VER<-"base" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
+VER<-"fsel3_est_ssel_flat_wts" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
 #data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
 
 #-------------------------------------------------------------------------------
 # Load data and parameters
-data <- build_data(ts = ts)
+data <- build_data_exp(ts = ts, weights = FALSE)
 
-parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
+parameters <- build_parameters_exp(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 random_vars <- build_random_vars() # random effects still in development
 #-------------------------------------------------------------------------------
 # Run model ----
@@ -159,9 +164,9 @@ niter <- 15
 for(iter in 1:niter) { #iter<-1
   
   # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
-  out <- TMBphase(data, parameters, random = random_vars, 
-                  model_name = "scaa_mod", phase = FALSE, 
-                  newtonsteps = 3, #3 make this zero initially for faster run times (using 5)
+  out <- TMBphase_exp(data, parameters, random = random_vars, 
+                  model_name = "scaa_mod_dir_ev", phase = FALSE, 
+                  newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                   debug = FALSE)
   
   obj <- out$obj # TMB model object
@@ -270,14 +275,14 @@ unique(age$Source)# check: should just be "Survey" and "Fishery"
 # Save tuned age comps
 age %>% 
   mutate(effn = ifelse(age$Source == "Survey", tune_srv_age[niter,], tune_fsh_age[niter,])) %>%
-  write_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))
+  write_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR,"_", VER,".csv"))
 
 # Save fishery and survey length comps
 fsh_len %>% 
   mutate(effn = ifelse(fsh_len$Sex == "Male", tune_fsh_len[niter,1], tune_fsh_len[niter,2])) %>% 
   bind_rows(srv_len %>% 
               mutate(effn = ifelse(srv_len$Sex == "Male", tune_srv_len[niter,1], tune_srv_len[niter,2]))) %>% 
-  write_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))
+  write_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR,"_", VER, ".csv"))
 
 # Compare tuned to data...
 # or don't... we've just changed the effective sample size... 

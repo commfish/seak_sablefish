@@ -60,6 +60,7 @@ tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model o
 
 source("r_helper/helper.r")
 source("r_helper/functions.r")
+source("r_helper/exp_functions.r")
 
 library(TMB) 
 }
@@ -68,10 +69,10 @@ library(TMB)
 {
 rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
-comp_type <- 0    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
+comp_type <- 0    # Age  and length comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
 M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
-ev_type <- 1     # extra variance in indices; 0 = none, 1 = estimated
+ev_type <- 0     # extra variance in indices; 0 = none, 1 = estimated
 }
 
 # Load prepped data from scaa_dataprep.R
@@ -84,7 +85,7 @@ len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comp
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
 waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
 retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
-slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2020.csv")) # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022_3fsh.csv")) # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
 
 # Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
 # develop one for ADFG. Row = true age, Column = observed age. Proportion
@@ -101,7 +102,10 @@ rowSums(agelen_key_m) # should all = 1
 agelen_key_f <- scan(paste0(YEAR+1,"/data/tmb_inputs/agelen_key_fem.txt", sep = " "), skip = 1) %>% matrix(ncol = 30) %>% t()
 rowSums(agelen_key_f) 
 
-  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, ".csv"))
+  #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
+  #need to add in new selectivity block since not there last year
+  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_NEW_SLX.csv"))
+  
   rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
   rec_devs_inits <- c(rec_devs_inits, mean(rec_devs_inits)) # mean for current year starting value
   rinit_devs_inits <- inits %>% filter(grepl("rinit_devs", Parameter)) %>% pull(Estimate)
@@ -157,10 +161,24 @@ str(data$data_fsh_cpue)
 
 #=====================================
 # *** Checking sensitivity to fishery CPUE data versions
-VER<-"base" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
+VER<-"base_fixed" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
+VER<-"base_flat"
 VER<-"tuned"
 VER<-"dirichlet_full_DEV"
+VER<-"ev_DEV"
 VER<-"ev_dir_DEV"
+VER<-"back_to_basics_new_selectivity"
+VER<-"slx3_basic"
+VER<-"slx3_ev"
+VER<-"slx3_ev_dir" #wont run
+VER<-"slx3_ev_wpriors"
+VER<-"slx3_srvslx_est_flatwts_dir"
+
+VER<-"fsel3_est_ssel_flat_wts"
+VER<-"fsel3_est_ssel_fixed_wts"
+
+VER<-"fsel3_est_ssel_flat_wts_TUNED"
+VER<-"fsel3_est_ssel_fixed_wts_TUNED"
 #data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
 #==================================================
 
@@ -170,14 +188,28 @@ data <- build_data(ts = ts); str(data)  #see this function to change weights and
 parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 
 #development coded data and parameter lists... 
-data <- build_data_exp(ts = ts)
+data <- build_data_exp(ts = ts, weights=TRUE)
 parameters <- build_parameters_exp(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 random_vars <- build_random_vars() # random effects still in development
 
 # parameters <- list(dummy = 0)
 # compile("tst.cpp")
+data$wt_catch
+data$wt_mr
+
 data$ev_type
 data$comp_type
+data$slx_type
+data$nsex
+data$fsh_blks
+data$p_fsh_q
+data$sigma_fsh_q
+parameters$log_fsh_slx_pars
+parameters$fsh_logq
+slx_pars
+
+data$srv_blks
+ts$index
 
 data$data_fsh_len
 str(data$data_fsh_len)
@@ -209,15 +241,15 @@ str(data)
 
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
 out <- TMBphase(data, parameters, random = random_vars, 
-                model_name = "scaa_mod_ev", #model_name = "scaa_mod_dir_ev",
+                model_name = "scaa_mod", #model_name = "scaa_mod_dir_ev",
                 phase = FALSE,  
-                newtonsteps = 10, #3 make this zero initially for faster run times (using 5)
+                newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                 debug = FALSE)
 
 out <- TMBphase_exp(data, parameters, random = random_vars, 
                 model_name = "scaa_mod_dir_ev", #model_name = "scaa_mod_dir_ev",
                 phase = FALSE,  
-                newtonsteps = 10, #3 make this zero initially for faster run times (using 5)
+                newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                 debug = FALSE)
 
 obj <- out$obj # TMB model object
@@ -229,7 +261,8 @@ upper <- out$upper
 # Report gives you a look at estimated parameters with standard errors. The
 # maximum gradient component is a diagnostic of convergence; it should be <=
 # 0.001. If sufficiently small use newtonsteps > 0 to further reduce grad.
-rep 
+rep
+
 best <- obj$env$last.par.best # maximum likelihood estimates
 
 # MLE results ----
@@ -237,8 +270,8 @@ best <- obj$env$last.par.best # maximum likelihood estimates
 # MLE parameter estimates and standard errors in useable format. Saves output to
 # tmbout and starting vals for next year to tmb_dat by default. See functions.R
 # for more info.
-tidyrep <- save_mle(save = FALSE,
-                    save_inits = FALSE) 
+tidyrep <- save_mle(save = TRUE,
+                    save_inits = TRUE) 
 
 # MLE likelihood components
 obj$report(best)$obj_fun
@@ -301,7 +334,7 @@ write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR,"_",VER, ".cs
 # "metric" to switch between units. 
 plot_ts(ts = ts, save = TRUE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
 plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
-plot_F(save = FALSE)
+plot_F(save = TRUE)
 
 # Recruitment estimates
 logrbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)

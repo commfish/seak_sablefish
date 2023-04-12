@@ -9,11 +9,11 @@
 
 # Set up ----
 
-source("r/helper.r")
-source("r/functions.r")
+source("r_helper/helper.r")
+source("r_helper/functions.r")
 
 syr <- 1975
-lyr <- YEAR <- 2021
+lyr <- YEAR <- 2022
 nyr <- length(syr:lyr)
 
 rec_age <- 2
@@ -27,14 +27,14 @@ nage <- length(rec_age:plus_group)
 # 1J02-02). Could use full catch time series in a model if you were interested
 # in reconstructing a long biomass time series.
 
-histcatch <- read_csv("data/fishery/nsei_historicalsablecatch_nosource_carlile_1907_2000.csv")
+histcatch <- read_csv(paste0(YEAR+1,"/data/fishery/nsei_historicalsablecatch_nosource_carlile_1907_2000.csv"))
 names(histcatch) <- c("year", "catch")
 histcatch <- histcatch %>% 
   # Convert round/whole lbs to mt
   mutate(catch = catch * 0.000453592) %>% 
   filter(year >= 1975 & year <= 1985)
 
-read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"), 
+read_csv(paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"), 
                        guess_max = 50000) %>% 
   filter(year > 1985) %>% 
   group_by(year) %>% 
@@ -52,68 +52,66 @@ read_csv(paste0("data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"),
   arrange(year) -> catch
 
 # Fishery CPUE ----
+# in 2023 we are switching to a fully standardized fishery cpue index from the longline fishery
+read_csv(paste0(YEAR+1,"/output/ll_cpue_fullstand_1980_",YEAR,".csv")) -> fsh_cpue 
 
-# Currently fishery CPUE are not available due to a restructure in the data
-# entry application. There is more documentation on this topic in the sql query
-# file, 0_clean_data.R, fishery_catch_cpue.R. For more information contact GF
-# project leader, Rhea Ehresmann. Until these data are available again, the SCAA
-# will insert NAs for missing years. Given that this index has not been
-# historically informative and is assumed to have high variability, we do not
-# anticipate these missing values to impact model performance.
-
-#PJ22: Issues resolved by Justin Daily, January 2022.  Using all data now...
-
-# temporary variable to deal with missing fishery CPUE data:
-fsh_lyr <- 2021
+fsh_cpue <- fsh_cpue %>% mutate(fsh_cpue = fsh_cpue * 0.453592,
+                                sigma_fsh_cpue = ifelse(year %in% (c(seq(1980,1996,1))),0.1,0.08),
+                               # upper_fsh_cpue = fsh_cpue + 1.96 * sqrt(sigma_fsh_cpue*fsh_cpue),
+                               #  lower_fsh_cpue = fsh_cpue - 1.96 * sqrt(sigma_fsh_cpue*fsh_cpue)) %>% 
+                               upper_fsh_cpue = exp(log(fsh_cpue)+1.96*sqrt(log(sigma_fsh_cpue+1))),
+                               lower_fsh_cpue = exp(log(fsh_cpue)-1.96*sqrt(log(sigma_fsh_cpue+1)))) %>% 
+  select(year, fsh_cpue, sigma_fsh_cpue, truesigma_fsh_cpue = var, 
+         upper_fsh_cpue, lower_fsh_cpue)
 
 # Read in data, standardize cpue, etc.
-read_csv(paste0("data/fishery/fishery_cpue_1997_", fsh_lyr,".csv"), 
-#read_csv(paste0("data/fishery/fishery_cpue_2022reboot_1997_", fsh_lyr,".csv"), 
-         guess_max = 50000) %>% 
-  filter(!is.na(hook_space) & !is.na(sable_lbs_set) & !is.na(no_hooks) &
-           julian_day > 226) %>%  # if there were special projects before the fishery opened
-  mutate(# standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
-         std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (hook_space / 39.37))), 
+#read_csv(paste0(YEAR+1,"/data/fishery/fishery_ll_cpue_1997_", YEAR,".csv"), 
+##read_csv(paste0("data/fishery/fishery_cpue_2022reboot_1997_", fsh_lyr,".csv"), 
+#         guess_max = 50000) %>% 
+#  filter(!is.na(hook_space) & !is.na(sable_lbs_set) & !is.na(no_hooks) &
+#           julian_day > 226) %>%  # if there were special projects before the fishery opened
+#  mutate(# standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
+#         std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (hook_space / 39.37))), 
          # convert lbs to kg
-         std_cpue_kg = (sable_lbs_set * 0.453592) / std_hooks) -> fsh_cpue  
-view(fsh_cpue)
-str(fsh_cpue)
+#         std_cpue_kg = (sable_lbs_set * 0.453592) / std_hooks) -> fsh_cpue  
+#view(fsh_cpue)
+#str(fsh_cpue)
 # Nominal CPUE 
-fsh_cpue %>% 
-  group_by(year) %>% 
-  dplyr::summarise(fsh_cpue = mean(std_cpue_kg),
-            n = n(),
-            sd = sd(std_cpue_kg),
-            se = sd / sqrt(n),
+#fsh_cpue %>% 
+#  group_by(year) %>% 
+#  dplyr::summarise(fsh_cpue = mean(std_cpue_kg),
+#            n = n(),
+#            sd = sd(std_cpue_kg),
+#            se = sd / sqrt(n),
             # sigma_fsh_cpue = se / fsh_cpue, # relative standard error too low
             # sigma_fsh_cpue = sd / fsh_cpue#, # CV too high
             # *FLAG* currently just assume cv=0.05 for new ts, 0.1 for old
-            sigma_fsh_cpue = 0.08,  #why assume sigma when you have sd measurements which are much larger?
-            truesigma_fsh_cpue = se / fsh_cpue
-            ) -> fsh_cpue 
+#            sigma_fsh_cpue = 0.08,  #why assume sigma when you have sd measurements which are much larger?
+#            truesigma_fsh_cpue = se / fsh_cpue
+#            ) -> fsh_cpue 
 
 #22rebooted data...
-read_csv(paste0("data/fishery/fishery_cpue_2022reboot_1997_", fsh_lyr,".csv"), 
-         guess_max = 50000) %>% 
-  filter(!is.na(hook_space) & !is.na(sable_lbs_set) & !is.na(no_hooks) &
-           julian_day > 226) %>%  # if there were special projects before the fishery opened
-  mutate(# standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
-    std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (hook_space / 39.37))), 
+#read_csv(paste0("data/fishery/fishery_cpue_2022reboot_1997_", fsh_lyr,".csv"), 
+#         guess_max = 50000) %>% 
+#  filter(!is.na(hook_space) & !is.na(sable_lbs_set) & !is.na(no_hooks) &
+#           julian_day > 226) %>%  # if there were special projects before the fishery opened
+#  mutate(# standardize hook spacing (Sigler & Lunsford 2001, CJFAS), 1 m = 39.37 in
+#    std_hooks = 2.2 * no_hooks * (1 - exp(-0.57 * (hook_space / 39.37))), 
     # convert lbs to kg
-    std_cpue_kg = (sable_lbs_set * 0.453592) / std_hooks) -> fsh_cpue_22rb  
+#    std_cpue_kg = (sable_lbs_set * 0.453592) / std_hooks) -> fsh_cpue_22rb  
 # Nominal CPUE 
-fsh_cpue_22rb %>% 
-  group_by(year) %>% 
-  dplyr::summarise(fsh_cpue = mean(std_cpue_kg),
-                   n = n(),
-                   sd = sd(std_cpue_kg),
-                   se = sd / sqrt(n),
+#fsh_cpue_22rb %>% 
+#  group_by(year) %>% 
+#  dplyr::summarise(fsh_cpue = mean(std_cpue_kg),
+#                   n = n(),
+#                   sd = sd(std_cpue_kg),
+#                   se = sd / sqrt(n),
                    # sigma_fsh_cpue = se / fsh_cpue, # relative standard error too low
                    # sigma_fsh_cpue = sd / fsh_cpue#, # CV too high
                    # *FLAG* currently just assume cv=0.05 for new ts, 0.1 for old
-                   sigma_fsh_cpue = 0.08,  #why assume sigma when you have sd measurements which are much larger?
-                   truesigma_fsh_cpue = se / fsh_cpue
-  ) -> fsh_cpue_22rb 
+#                   sigma_fsh_cpue = 0.08,  #why assume sigma when you have sd measurements which are much larger?
+#                   truesigma_fsh_cpue = se / fsh_cpue
+#  ) -> fsh_cpue_22rb 
 
 # Historical CPUE 
 
@@ -124,62 +122,34 @@ fsh_cpue_22rb %>%
 # data/legacy_fishery_cpue.csv. Similarly, I moved and renamed the same file as
 # data/fishery/legacy_fisherycpue_1980_1996.csv
 
-read_csv("data/fishery/legacy_fisherycpue_1980_1996.csv",
-         col_names = FALSE) %>% as.numeric() -> hist_cpue
+#read_csv("legacy_data/fishery/legacy_fisherycpue_1980_1996.csv",
+#         col_names = FALSE) %>% as.numeric() -> hist_cpue
 
 # Use the mean CV from 1997-present to estimate the variance for legacy CPUE
 # values, following KVK.
 
-data.frame(year = 1980:1996,
-           # Convert to kg
-           fsh_cpue = hist_cpue * 0.453592,
-           sigma_fsh_cpue = 0.1) %>%
-  bind_rows(fsh_cpue) %>%
-  mutate(ln_fsh_cpue = log(fsh_cpue),
-         std = 1.96 * sqrt(log(sigma_fsh_cpue + 1)),
-         upper_fsh_cpue = exp(ln_fsh_cpue + std),
-         lower_fsh_cpue = exp(ln_fsh_cpue - std)) %>% 
-  select(-c(n, sd, se, ln_fsh_cpue, std)) -> fsh_cpue
+#data.frame(year = 1980:1996,
+#           # Convert to kg
+#           fsh_cpue = hist_cpue * 0.453592,
+#           sigma_fsh_cpue = 0.1) %>%
+#  bind_rows(fsh_cpue) %>%
+#  mutate(ln_fsh_cpue = log(fsh_cpue),
+         #std = 1.96 * sqrt(log(sigma_fsh_cpue + 1)),
+#         std = 1.96 * sqrt(log(se + 1)),
+#         upper_fsh_cpue = exp(ln_fsh_cpue + std),
+#         lower_fsh_cpue = exp(ln_fsh_cpue - std)) %>% 
+  #select(-c(n, sd, se, ln_fsh_cpue, std)) -> fsh_cpue
+#  select(-c(var, se, upper, lower, ln_fsh_cpue)) -> fsh_cpue
 
 # Temporary: include rows for missing years (can remove this once fishery CPUE
 # are reestablished)
-fsh_cpue <- data.frame(year = syr:lyr) %>% 
-  full_join(fsh_cpue) %>% 
-  arrange(year)
+#fsh_cpue <- data.frame(year = syr:lyr) %>% 
+#  full_join(fsh_cpue) %>% 
+#  arrange(year)
 
-view(fsh_cpue)
+#view(fsh_cpue)
 
 
-data.frame(year = 1980:1996,
-           # Convert to kg
-           fsh_cpue = hist_cpue * 0.453592,
-           sigma_fsh_cpue = 0.1) %>%
-  bind_rows(fsh_cpue_22rb) %>%
-  mutate(ln_fsh_cpue = log(fsh_cpue),
-         std = 1.96 * sqrt(log(sigma_fsh_cpue + 1)),
-         upper_fsh_cpue = exp(ln_fsh_cpue + std),
-         lower_fsh_cpue = exp(ln_fsh_cpue - std)) %>% 
-  select(-c(n, sd, se, ln_fsh_cpue, std)) -> fsh_cpue_22rb
-
-fsh_cpue_22rb <- data.frame(year = syr:lyr) %>% 
-  full_join(fsh_cpue_22rb) %>% 
-  arrange(year)
-view(fsh_cpue_22rb)
-
-#alternative fishery cpue estimates from GAMs and updated sql and logbook stuff... 
-read_csv(paste0("output/fshcpue_1980_", fsh_lyr,"_base_nom.csv")) -> fsh_cpue_base_nom
-read_csv(paste0("output/fshcpue_1980_", fsh_lyr,"_base_gam.csv")) -> fsh_cpue_base_gam
-read_csv(paste0("output/fshcpue_1980_", fsh_lyr,"_boot_gam.csv")) -> fsh_cpue_boot_gam
-read_csv(paste0("output/fshcpue_2022rb_1980_", fsh_lyr,"_base_gam.csv")) -> fsh_cpue_base_gam22
-read_csv(paste0("output/fshcpue_22rb_1980_", fsh_lyr,"_boot_gam.csv")) -> fsh_cpue_boot_gam22
-
-plot(fsh_cpue$fsh_cpue~fsh_cpue$year, ylim=c(0,2), type="l")
-points(fsh_cpue_base_nom$fsh_cpue~fsh_cpue_base_nom$year, type="l", col="blue")
-points(fsh_cpue_base_gam$cpue~fsh_cpue_base_gam$year, type="l", col="darkcyan")
-points(fsh_cpue_boot_gam$cpue~fsh_cpue_boot_gam$year, type="l", col="forestgreen")
-points(fsh_cpue_base_gam22$cpue~fsh_cpue_base_gam22$year, type="l", col="green")
-points(fsh_cpue_boot_gam22$cpue~fsh_cpue_boot_gam22$year, type="l", col="seagreen")
-points(fsh_cpue_22rb$fsh_cpue ~ fsh_cpue_22rb$year, type="l", col="red")
 #note that processed CPUEs are already in pounds, but one's processed here are in kg
 # Survey NPUE ----
 
@@ -192,7 +162,7 @@ points(fsh_cpue_22rb$fsh_cpue ~ fsh_cpue_22rb$year, type="l", col="red")
 #   mutate(upper_srv_cpue = qnorm(0.975, log(srv_cpue), sigma_srv_cpue),
 #          lower_srv_cpue = qnorm(0.025, log(srv_cpue), sigma_srv_cpue)) -> srv_cpue
 
-read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) %>% 
+read_csv(paste0(YEAR+1,"/output/srvcpue_1997_", YEAR, ".csv")) %>% 
   rename(srv_cpue = std_cpue) %>% 
   # assuming lognormal distribution, use relative se as model input sigma
   mutate(#sigma_srv_cpue = se / srv_cpue, # relative standard error too low! 
@@ -206,7 +176,7 @@ read_csv(paste0("output/srvcpue_1997_", lyr, ".csv")) %>%
 
 # Mark-recapture index ----
 
-read_csv(paste0("output/mr_index_", YEAR, ".csv")) %>% 
+read_csv(paste0(YEAR+1,"/output/mr_index_", YEAR, ".csv")) %>% 
   select(year, mr = estimate, sigma_mr = sd) %>% 
   mutate(# sigma_mr = sigma_mr / mr,
          sigma_mr = 0.05,
@@ -218,7 +188,7 @@ read_csv(paste0("output/mr_index_", YEAR, ".csv")) %>%
 
 # Figure for industry mtg
 # axis <- tickr(data.frame(year = 2005:YEAR), year, 3)
-read_csv(paste0("output/mr_index_", YEAR, ".csv")) %>% 
+read_csv(paste0(YEAR+1,"/output/mr_index_", YEAR, ".csv")) %>% 
   # mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
   # pad(interval = "year") %>% 
   full_join(data.frame(year = 2005:lyr)) %>%
@@ -241,7 +211,7 @@ read_csv(paste0("output/mr_index_", YEAR, ".csv")) %>%
   expand_limits(y = c(0, 4)) +
   labs(x = NULL, y = "\n\nAbundance (millions)\n") 
 
-ggsave(paste0("figures/mr_abd_", YEAR, ".png"), 
+ggsave(paste0(YEAR+1,"/figures/mr_abd_", YEAR, ".png"), 
        dpi=300, height=4, width=7, units="in")
 
 # Percent change in compared to a ten year rolling average
@@ -253,9 +223,11 @@ mr %>%
   filter(year == YEAR) -> mr_lt
 mr_lt
 
-# Percent change from last year
+# Percent change from last mr estimate
+years_since_last<-2
+
 mr %>% 
-  filter(year >= YEAR - 1 & year <= YEAR) %>%
+  filter(year >= YEAR - years_since_last & year <= YEAR) %>%
   select(year, mr) %>% 
   mutate(year2 = ifelse(year == YEAR, "thisyr", "lastyr")) %>% 
   reshape2::dcast("mr" ~ year2, value.var = "mr") %>% 
@@ -286,8 +258,8 @@ catch %>%
 catch_plot
 
 ggplot(fsh_cpue) +
-  geom_point(aes(year, fsh_cpue * 2.20462)) +
-  geom_line(aes(year, fsh_cpue * 2.20462)) +
+  geom_point(aes(year, fsh_cpue * 2.20462)) +#* 2.20462)) +
+  geom_line(aes(year, fsh_cpue * 2.20462)) + #* 2.20462)) +
   geom_ribbon(aes(year, ymin = lower_fsh_cpue * 2.20462 , ymax = upper_fsh_cpue * 2.20462),
               alpha = 0.2, fill = "black", colour = NA) +
   # Board implemented Limitted Entry in 1985
@@ -342,7 +314,7 @@ plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = '
           labels = c('(A)', '(B)', '(C)', '(D)'))
 # plot_grid(fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv')
 
-ggsave(paste0("figures/tmb/abd_indices_", YEAR, "V2.png"),
+ggsave(paste0(YEAR+1,"/figures/tmb/abd_indices_", YEAR, "V2.png"),
        dpi=300, height=10, width=7.7, units="in")
 
 full_join(catch, fsh_cpue) %>% 
@@ -352,48 +324,27 @@ full_join(catch, fsh_cpue) %>%
   
 # View(ts)
 
-write_csv(ts, paste0("data/tmb_inputs/abd_indices_", YEAR, ".csv"))
+write_csv(ts, paste0(YEAR+1,"/data/tmb_inputs/abd_indices_", YEAR, ".csv"))
 
-#add in alternative fisheries cpe indices to see if they make a big difference... 
-full_join(ts, fsh_cpue_22rb %>% 
-            mutate(fsh_cpue_22rb = fsh_cpue) %>%
-            select(year,fsh_cpue_22rb)) %>% 
-  full_join(fsh_cpue_base_nom %>% 
-              mutate(fsh_cpue_base_nom = fsh_cpue/2.20462) %>%
-              select(year,fsh_cpue_base_nom)) %>% 
-  full_join(fsh_cpue_base_gam %>% 
-              mutate(fsh_cpue_base_gam = cpue/2.20462) %>%
-              select(year,fsh_cpue_base_gam)) %>% 
-  full_join(fsh_cpue_boot_gam %>% 
-              mutate(fsh_cpue_boot_gam = cpue/2.20462) %>%
-              select(year,fsh_cpue_boot_gam)) %>% 
-  full_join(fsh_cpue_base_gam22 %>% 
-              mutate(fsh_cpue_base_gam22 = cpue/2.20462) %>%
-              select(year,fsh_cpue_base_gam22)) %>% 
-  full_join(fsh_cpue_boot_gam22 %>% 
-              mutate(fsh_cpue_boot_gam22 = cpue/2.20462) %>%
-              select(year,fsh_cpue_boot_gam22)) -> ts_fsh_cpue_sens
-view(ts_fsh_cpue_sens)
 
-write_csv(ts_fsh_cpue_sens, paste0("data/tmb_inputs/abd_indices_CPUEsense_", YEAR, ".csv"))
 #==========================================================================
 # Biological data ----
 
 # Fishery biological data
-read_csv(paste0("data/fishery/fishery_bio_2000_", lyr,".csv"), 
+read_csv(paste0(YEAR+1,"/data/fishery/fishery_bio_2000_", YEAR,".csv"), 
          guess_max = 50000) %>%
   mutate(Year = factor(year),
          Sex = factor(Sex)) -> fsh_bio
 
 # Survey biological data
-read_csv(paste0("data/survey/llsrv_bio_1988_", lyr,".csv"), 
+read_csv(paste0(YEAR+1,"/data/survey/llsrv_bio_1988_", lyr,".csv"), 
          guess_max = 50000) %>%
   mutate(Year = factor(year),
          Sex = factor(Sex)) -> srv_bio
 
 # Weight-at-age ----
 
-waa <- read_csv(paste0("output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"))
+waa <- read_csv(paste0(YEAR+1,"/output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"))
 
 waa %>% 
   mutate(Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
@@ -408,11 +359,11 @@ waa %>%
                                  "31+"))) -> waa
 
 waa2 <- waa %>% arrange(Source, Sex, age)
-write_csv(waa2, paste0("data/tmb_inputs/waa_", YEAR, ".csv"))
+write_csv(waa2, paste0(YEAR+1,"/data/tmb_inputs/waa_", YEAR, ".csv"))
 
 # Proportion mature -----
 
-read_csv(paste0("output/fem_maturityatage_llsrv_plsgrp", plus_group, "_", YEAR, ".csv"), 
+read_csv(paste0(YEAR+1,"/output/fem_maturityatage_llsrv_plsgrp", plus_group, "_", YEAR, ".csv"), 
          guess_max = 50000) -> mat
 
 mat %>% 
@@ -489,7 +440,7 @@ full_join(byage %>%
             select(age, prop_fem = fit),
           mat %>% 
             select(age, prop_mature)) %>% 
-  write_csv(paste0("data/tmb_inputs/maturity_sexratio_", YEAR, ".csv"))
+  write_csv(paste0(YEAR+1,"/data/tmb_inputs/maturity_sexratio_", YEAR, ".csv"))
 
 # Graphics ----
 
@@ -515,7 +466,7 @@ ggplot(waa %>%
 waa_plot 
 
 # Equation text for plotting values of a_50 (from biological.R)
-(a50 <- read_csv(paste0("output/maturity_param_", YEAR)) %>% 
+(a50 <- read_csv(paste0(YEAR+1,"/output/maturity_param_", YEAR)) %>% 
   pull(a50))
 
 a50_txt <- as.character(
@@ -564,13 +515,14 @@ plot_grid(waa_plot, bottom_plot, nrow = 2, rel_widths = c(1, 1), labels = c('(A)
 # Drop sex ratios since it's not used in SCAA model when sex-structured
 plot_grid(waa_plot, mat_plot, nrow = 2, rel_widths = c(1, 1), labels = c('(A)', '(B)'))
 
-ggsave(paste0("figures/tmb/bio_dat_", YEAR, ".png"), dpi=300, height=10, width=7.5, units="in")
+ggsave(paste0(YEAR+1,"/figures/tmb/bio_dat_", YEAR, ".png"), dpi=300, height=10, width=7.5, units="in")
 
 # Length compositions ----
 
-lencomps <- read_csv(paste0("output/lengthcomps_", YEAR, ".csv"), guess_max = 500000)
+lencomps <- read_csv(paste0(YEAR+1,"/output/lengthcomps_", YEAR, ".csv"), guess_max = 500000)
+unique(lencomps$Source)
 lencomps <- lencomps %>%   
-  filter(Source != "Pot survey") %>% 
+  filter(Source != "Pot survey" & Source != "Pot fishery") %>% 
   mutate(Source = derivedVariable(`fsh_len` = Source == "LL fishery",
                                   `srv_len` = Source == "LL survey")) %>% 
   group_by(Source, Sex, year) %>% 
@@ -580,7 +532,7 @@ lencomps <- lencomps %>%
               mutate(index = year - min(year))) %>% 
   arrange(Source, year, Sex)
 
-write_csv(lencomps, paste0("data/tmb_inputs/lencomps_", YEAR, ".csv"))
+write_csv(lencomps, paste0(YEAR+1,"/data/tmb_inputs/lencomps_", YEAR, ".csv"))
 
 # Age compositions ----
 
@@ -636,7 +588,7 @@ ggplot(agecomps, aes(x = year, y = age, size = proportion)) +
   # scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
   scale_y_continuous(breaks = unique(agecomps$age), labels = age_labs) 
 
-ggsave(paste0("figures/tmb/agecomps_", YEAR, ".png"), dpi = 300, height = 7, width = 9, units = "in")
+ggsave(paste0(YEAR+1,"/figures/tmb/agecomps_", YEAR, ".png"), dpi = 300, height = 7, width = 9, units = "in")
 
 agecomps %>% 
   left_join(data.frame(year = syr:lyr) %>% 
@@ -653,7 +605,7 @@ agecomps[is.na(agecomps)] <- 0
 
 agecomps <- agecomps %>% arrange(Source, year)
 
-write_csv(agecomps, paste0("data/tmb_inputs/agecomps_", YEAR, ".csv"))
+write_csv(agecomps, paste0(YEAR+1,"/data/tmb_inputs/agecomps_", YEAR, ".csv"))
 
 # Data source by year ----
 view(ts)
@@ -687,7 +639,7 @@ ggplot(df, aes(x = year, y = Source)) +
   labs(x = NULL, y = NULL) #+
   # scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
 
-ggsave(paste0("figures/tmb/sable_data_all_", YEAR, ".png"),
+ggsave(paste0(YEAR+1,"/figures/tmb/sable_data_all_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
 
 # This is the figure that shows which data were used previously for the
@@ -699,7 +651,7 @@ ggplot(df, aes(x = year, y = Source, fill = value)) +
   scale_fill_manual(values = c("white", "black")) #+
   # scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
 
-ggsave(paste0("figures/sable_data_yprmodel_", YEAR, ".png"),
+ggsave(paste0(YEAR+1,"/figures/sable_data_yprmodel_", YEAR, ".png"),
        dpi=300, height=3.5, width=7, units="in")
 
 # Retention probabilities ----
@@ -796,7 +748,7 @@ ret <- waa %>% filter(Source == "LL survey") %>%
 
 # View(ret)
 write_csv(ret %>% select(Source, Sex, age, kg, grade, price, p), 
-          "data/tmb_inputs/retention_probs.csv")
+          paste0(YEAR+1,"/data/tmb_inputs/retention_probs.csv"))
 
 # Plot size, sex, and age-specific probabilities of discarding a fish that
 # parameterize model
@@ -841,7 +793,7 @@ ggplot(ret_sex, aes(x = age, y = p, col = Sex, linetype = Sex)) +
 
 plot_grid(size, sex, align = "h")
 
-ggsave(paste0("figures/tmb/retention_prob_", YEAR, "_", plus_group, ".png"), dpi=300,  height=4, width=8,  units="in")
+ggsave(paste0(YEAR+1,"/figures/tmb/retention_prob_", YEAR, "_", plus_group, ".png"), dpi=300,  height=4, width=8,  units="in")
 
 # Alternative retention probability ----
 
@@ -891,7 +843,7 @@ data.frame(dressed_lb = seq(0.1, 7, 0.1)) %>%
 # fb	<- 3.015	#	Female
 
 # Use Chatham allomotry for sexes comb from biological.r
-allom <- read_csv("output/compare_vonb_adfg_noaa.csv") %>% 
+allom <- read_csv(paste0(YEAR+1,"/output/compare_vonb_adfg_noaa.csv")) %>% 
   filter(Sex == "Combined" & Survey == "ADFG Longline")
 
 a	<- allom %>% filter(Parameter == "a") %>% pull(Estimate) 	
@@ -911,13 +863,13 @@ df <- data.frame(
 df %>% 
   mutate(Sex = "Sexes combined") %>% 
   select(Sex, fork_length_cm, round_kg, round_lb, easterncut_lb_0.63) %>% 
-  write_csv(paste0("output/NSEI_forklen_dressedwt_conversion_", YEAR, ".csv"))
+  write_csv(paste0(YEAR+1,"/output/NSEI_forklen_dressedwt_conversion_", YEAR, ".csv"))
 
 df %>% filter(fork_length_cm == 63)
 
-waa <- read_csv(paste0("output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) %>% 
+waa <- read_csv(paste0(YEAR+1,"/output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) %>% 
   rename(sex = Sex)
-laa <- read_csv(paste0("output/pred_laa_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) 
+laa <- read_csv(paste0(YEAR+1,"/output/pred_laa_plsgrp", plus_group, "_", YEAR, ".csv"), guess_max = 50000) 
 full_join(waa, laa) %>% 
 #  rename(fork_length_cm = fork_len) %>% 
   rename(fork_length_cm = length) %>% 
@@ -926,10 +878,10 @@ full_join(waa, laa) %>%
          easterncut_lb_0.63 = round(round_lb * 0.63, 2)) -> waa_laa
   
 waa_laa %>% filter(Source == "LL fishery") %>% 
-  write_csv(paste0("output/NSEI_fishery_forklen_weight_age_conversion_", YEAR, ".csv"))
+  write_csv(paste0(YEAR+1,"/output/NSEI_fishery_forklen_weight_age_conversion_", YEAR, ".csv"))
   
 waa_laa %>% filter(Source == "LL survey") %>% 
-  write_csv(paste0("output/NSEI_survey_forklen_weight_age_conversion_", YEAR, ".csv"))
+  write_csv(paste0(YEAR+1,"/output/NSEI_survey_forklen_weight_age_conversion_", YEAR, ".csv"))
 
 # Selectivity ----
 
@@ -937,7 +889,7 @@ waa_laa %>% filter(Source == "LL survey") %>%
 # 2. until i can fix this, transform federal selectivity predictions
 # appropriately. using predicted federal values, fit logistic curves to obtain
 # fishery/survey selectivity from 0:29 instead of 2:31
-sel <- read_csv("data/fed_selectivity_2020.csv")
+sel <- read_csv(paste0(YEAR+1,"/data/fed_selectivity_2022.csv"))
 view(sel)
 
 unique(sel$fleet)
@@ -946,6 +898,8 @@ sel <- sel %>%
                       "Dom LL Survey Male",
                       "Fixed Gear Fish Pre-IFQ (Derby) Female",
                       "Fixed Gear Fishery Pre-IFQ (Derby) Male",
+                      "Fixed gear Recent (not est/used) Female",
+                      "Fixed gear Recent (not est/used) Male",
                       "Fixed Gear Fish Post-IFQ Female",
                       "Fixed Gear Fish Post-IFQ Male"))
 sel <- sel %>% 
@@ -963,6 +917,7 @@ params <- sel %>%
   select(fleet, a, b)
 
 view(params)
+#params_new<-params
 
 tmb_ages <- unique(sel$tmb_age)
 
@@ -979,6 +934,8 @@ params <- params %>%
                            fleet == "Fixed Gear Fish Pre-IFQ (Derby) Female" ~ "fsh_t1_f" ,
                            fleet == "Fixed Gear Fishery Pre-IFQ (Derby) Male" ~ "fsh_t1_m",
                            fleet == "Fixed Gear Fish Post-IFQ Female" ~ "fsh_t2_f" ,
-                           fleet == "Fixed Gear Fish Post-IFQ Male" ~ "fsh_t2_m"))
+                           fleet == "Fixed Gear Fish Post-IFQ Male" ~ "fsh_t2_m",
+                           fleet == "Fixed gear Recent (not est/used) Female" ~ "fsh_t3_f",
+                           fleet == "Fixed gear Recent (not est/used) Male" ~ "fsh_t3_m"))
 
-write_csv(params, "data/tmb_inputs/fed_selectivity_transformed_2020.csv")
+write_csv(params, paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022_3fsh.csv"))
