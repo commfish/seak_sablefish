@@ -1,0 +1,121 @@
+STATISTICAL CATCH-AT-AGE MODEL RESULTS FOR NSEI SABLEFISH
+
+Report produced by scaa.R
+Developed by Jane Sullivan, ummjane@gmail.comContact: philip.joy@alaska.gov or rhea.ehresmann@alaska.gov
+Report generated: 2023-04-13
+
+Model diagnostics
+Number of parameters:,
+143
+Negative log likelihood:,
+1681
+Maximum gradient component:,
+0.00000000000628830321147689
+
+ALL VARIABLES REPORTED IN ROUND LB UNLESS OTHERWISE SPECIFIED
+
+
+Summary of 2022 (last year's) Biological Reference Points
+Projected age-2 biomass: 
+51885665
+Projected female spawning biomass: 
+19714244
+Unfished equilibrium female spawning biomass (SPR = 100): 
+28995917
+Equilibrium female spawning biomass under F50 (SPR = 50): 
+14497958
+Max ABC: 
+1595932
+Recommended ABC: 
+1443314
+Mortality from fishery discards under max ABC: 
+72190
+max F_ABC = F_50: 
+0.0617
+F under recommended ABC: 
+0.0559
+
+Summary of 2023 (current year's) Biological Reference Points
+Projected age-2 biomass: 
+61215332.1726792
+Projected female spawning biomass: 
+23206203.3173791
+Unfished equilibrium female spawning biomass (SPR = 100): 
+43366070.4888234
+Equilibrium female spawning biomass under F50 (SPR = 50): 
+21683035.2444117
+Max ABC: 
+1170649.47460437
+Recommended ABC: 
+1226816.9
+Mortality from fishery discards under max ABC: 
+48657.9963481085
+max F_ABC = F_50: 
+0.0402490360436577
+F under recommended ABC: 
+0.0421801732271364
+
+Summary of percent changes and differences between 2022 and 2023 Biological Reference Points
+Difference between projected age-2+ biomass (round lb): 
+9329667
+Percent difference between projected age-2+ biomass: 
+18%
+Difference between projected female spawning biomass (round lb): 
+3491959
+Percent difference between projected female spawning biomass: 
+17.7%
+Difference between Unfished equilibrium female spawning biomass (round lb): 
+14370153
+Percent difference between Unfished equilibrium female spawning biomass: 
+49.6%
+Difference between equilibrium female spawning biomass under F50 (round lb): 
+7185077
+Percent difference between equilibrium female spawning biomass under F50: 
+49.6%
+Difference between max ABCs (round lb): 
+-425283
+Percent difference between max ABCs: 
+01
+%
+
+
+Difference between recommended ABCs (round lb): 
+
+
+-216497
+
+
+Percent difference between recommended ABCs: 
+
+
+-15
+%
+
+
+Difference between mortalities from fishery discards under max ABC: 
+
+
+-23532
+
+
+Percent difference between mortalities from fishery discards under max ABC: 
+
+
+-32.6
+%
+
+
+Percent difference between maxF_ABCs: 
+
+
+-34.8
+%
+
+
+Percent difference between recomended F_ABCs: 
+
+
+-24.5
+%
+
+
