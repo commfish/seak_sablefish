@@ -24,6 +24,12 @@
 # Manual inputs ----
 
 # These must be checked or updated annually!
+#TUNED_VER<-"fsel3_est_ssel_flat_wts"
+TUNED_VER<-NA
+TUNED_VER<-"v23"
+
+IND_SIGMA<-TRUE
+
 
 # most recent year of data (YEAR+1 should be the forecast year)
 {
@@ -67,21 +73,30 @@ library(TMB)
 
 # Model switches
 {
-rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
+rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 comp_type <- 0    # Age  and length comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
-M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
+M_type <- 1       # Natural mortality: 0 = fixed, 1 = estimated with a prior
 ev_type <- 0     # extra variance in indices; 0 = none, 1 = estimated
 }
 
 # Load prepped data from scaa_dataprep.R
 {
-ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv")) #"/abd_indices_", YEAR, ".csv"))       # time series
-age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
-len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
-# age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
-# len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))  # tuned len comps
+  if (IND_SIGMA == TRUE) {
+    ts <- read_csv(paste0(tmb_dat, "/abd_indices_truesig_", YEAR, ".csv"))
+  } else {
+    ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv"))
+  }
+  # time series
+  
+  if (is.na(TUNED_VER)){
+    age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
+    len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
+  } else {
+    age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR,"_", TUNED_VER,  ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
+    len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR,"_", TUNED_VER,  ".csv"))  # tuned len comps
+  }
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
 waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
 retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
@@ -179,7 +194,35 @@ VER<-"fsel3_est_ssel_fixed_wts"
 
 VER<-"fsel3_est_ssel_flat_wts_TUNED"
 VER<-"fsel3_est_ssel_fixed_wts_TUNED"
+
+VER<-"fsel3_est_ssel_flat_wts_RE"
+VER<-"fsel3_est_ssel_flat_wts_RE_TUNED"
+
+VER<-"fsel3_est_ssel_flat_wts_RE_Mprior"
+VER<-"fsel3_est_ssel_flat_wts_RE_Mprior_TUNED"
+
+VER<-"fsel3_est_ssel2_flat_wts_RE"
+VER<-"fsel3_est_ssel2_flat_wts_RE_TUNED"
+
+VER<-"fsel3_est_ssel2_flat_wts_RE_dir"
+
+VER<-"fsel3_est_ssel2_flat_wts_RE_Mprior_semiTUNED"  #used tuned ess from ssel (not 2) ... ess always pretty similar so fine for exploring models...
+VER<-"fsel3_est_ssel2_flat_wts_RE_Mprior025_semiTUNED"
 #data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
+
+#Final versions for 2023 analysis
+# sd's of indices reset to sd/var from original estimates except fishery CPUE (justified by the releasing/discarding issue)
+# data weighting flat now, other than tuning step
+# v23 includes tuning comp data
+# 3 fixed selectivity for fishery
+# 2 survey selectivity blocks estimated in the model
+# Random effects in effect for recruitment
+# natural mortality fixed... but some sensitivity with the prior because it changes
+# stock status considerably, although population trends unaffected.
+VER<-"truesigma_trial"
+VER<-"v23_TUNED"
+VER<-"v23_Mprior025"
+
 #==================================================
 
 #ughs<-inits %>% filter(grepl("spr_Fxx", Parameter)) %>% pull(Estimate)
@@ -188,43 +231,26 @@ data <- build_data(ts = ts); str(data)  #see this function to change weights and
 parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 
 #development coded data and parameter lists... 
-data <- build_data_exp(ts = ts, weights=TRUE)
+data <- build_data_exp(ts = ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
 parameters <- build_parameters_exp(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 random_vars <- build_random_vars() # random effects still in development
 
 # parameters <- list(dummy = 0)
 # compile("tst.cpp")
+data$p_sigma_M<-1
+
 data$wt_catch
 data$wt_mr
-
-data$ev_type
-data$comp_type
-data$slx_type
-data$nsex
-data$fsh_blks
-data$p_fsh_q
-data$sigma_fsh_q
-parameters$log_fsh_slx_pars
-parameters$fsh_logq
-slx_pars
-
 data$srv_blks
-ts$index
+data$p_srv_q
+data$sigma_srv_q
+lower
 
-data$data_fsh_len
-str(data$data_fsh_len)
-data$data_fsh_len[,,2]
+parameters$srv_logq
+parameters$fsh_logq
+parameters$mr_logq
+parameters$log_srv_slx_pars
 
-str(data$n_fsh_len)
-data$n_fsh_len[,2,]
-
-data$nlenbin
-data$nyr_fsh_len
-
-data$nage
-data$data_srv_age
-
-bounds <- build_bounds(param_list = parameters)
 # Run model ----
 
 setwd(tmb_path)
@@ -540,6 +566,13 @@ if(rec_type == 1){
     pull(Estimate) %>%
     exp()
 }
+
+if(M_type == 1){
+  tidyrep %>%
+    filter(grepl('log_M', Parameter)) %>%
+    pull(Estimate) %>%
+    exp()
+}  
 # Percent of forecasted ssb 2014 year class makes up
 # Projected total female spawning biomass
 f_ssb <- obj$report(best)$spawn_biom[nyr+1,] * 2.20462

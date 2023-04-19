@@ -151,8 +151,10 @@ template<class Type>
   // Priors ("p_" denotes prior)
   DATA_VECTOR(p_fsh_q)          // prior fishery catchability coefficient (on natural scale)
   DATA_VECTOR(sigma_fsh_q)      // sigma for fishery q
-  DATA_SCALAR(p_srv_q)          // prior on survey catchability coefficient (on natural scale)
-  DATA_SCALAR(sigma_srv_q)      // sigma for survey q
+  //DATA_SCALAR(p_srv_q)          // prior on survey catchability coefficient (on natural scale)
+  DATA_VECTOR(p_srv_q)          // prior on survey catchability coefficient (on natural scale)
+  //DATA_SCALAR(sigma_srv_q)      // sigma for survey q
+  DATA_VECTOR(sigma_srv_q)      // sigma for survey q
   DATA_SCALAR(p_mr_q)           // prior on mark-recapture catchability coefficient (on natural scale)
   DATA_SCALAR(sigma_mr_q)       // sigma for mark-recapture q
  
@@ -275,7 +277,7 @@ template<class Type>
 
   // Catchability
   PARAMETER_VECTOR(fsh_logq);     // fishery       
-  PARAMETER(srv_logq);            // survey 
+  PARAMETER_VECTOR(srv_logq);            // survey 
   PARAMETER(mr_logq);             // mark-recapture 
     
   // Recruitment (rec_devs include a parameter for all ages in the inital yr plus age-2 in all yrs)
@@ -527,48 +529,6 @@ template<class Type>
     //} while (i <= fsh_blks(h) and (i > fsh_blks(h-1) or i > -1));
   }
   
-//for(int h = 0; h < 1; h++){                     //hmm.. need to do first time block then the others... 
-//  for (int i = 0; i < fsh_blks(h); i++){
-//   for (int k = 0; k < nsex; k++) {
-//        for (int j = 0; j < nage; j++) {
-          
-          // Selectivity switch (case 0 or 1 references the value of slx_type)
-//          switch (slx_type) {
-          
-//          case 0: // Logistic with a50 and a95, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = a95
-//            fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_slx_pars(h,0,k)) / (fsh_slx_pars(h,1,k) - fsh_slx_pars(h,0,k))) );
-//            break;
-            
-//          case 1: // Logistic with a50 and slope, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = slope.
-            //  *This is the preferred logistic parameterization b/c it reduces parameter correlation*
-//            fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp( Type(-1.0) * fsh_slx_pars(h,1,k) * (j - fsh_slx_pars(h,0,k)) ) );
-//            break;
-//          }
-//        }
-//  }
-//}
-
-//for(int h = 1; h < fsh_blks.size(); h++){                     //hmm.. need to do first time block then the others... 
-//  for (int i = fsh_blks(h-1); i < fsh_blks(h); i++){
-//    for (int k = 0; k < nsex; k++) {
-//        for (int j = 0; j < nage; j++) {
-          
-          // Selectivity switch (case 0 or 1 references the value of slx_type)
-//          switch (slx_type) {
-          
-//          case 0: // Logistic with a50 and a95, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = a95
-//            fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp(-log(Type(19)) * (j - fsh_slx_pars(h,0,k)) / (fsh_slx_pars(h,1,k) - fsh_slx_pars(h,0,k))) );
-//            break;
-            
-//          case 1: // Logistic with a50 and slope, where fsh_slx_pars(h,0,k) = a50 and fsh_slx_pars(h,1,k) = slope.
-            //  *This is the preferred logistic parameterization b/c it reduces parameter correlation*
-//            fsh_slx(i,j,k) = Type(1.0) / ( Type(1.0) + exp( Type(-1.0) * fsh_slx_pars(h,1,k) * (j - fsh_slx_pars(h,0,k)) ) );
-//            break;
-//          }
-//        }
-//  }
-//}
-
   // std::cout << fsh_slx(1,1,1) << "\n Fishery selectivity \n";
   
   // Survey selectivity - see notes on syntax in fishery selectivity section
@@ -917,10 +877,23 @@ template<class Type>
   // std::cout << "Predicted fishery cpue\n" << pred_fsh_cpue << "\n";
 
   // Survey catchability and predicted survey cpue
-  Type srv_q = exp(srv_logq);
+  //Type srv_q = exp(srv_logq);
+  
+  //for (int i = 0; i < nyr_srv_cpue; i++) {
+  //  pred_srv_cpue(i) = srv_q * tot_vuln_abd(yrs_srv_cpue(i));
+  //}
 
-  for (int i = 0; i < nyr_srv_cpue; i++) {
-    pred_srv_cpue(i) = srv_q * tot_vuln_abd(yrs_srv_cpue(i));
+  vector<Type> srv_q(srv_blks.size());
+  for (int h = 0; h < srv_blks.size(); h++){
+    srv_q(h) = exp(srv_logq(h));
+  }
+  
+  i = 0;
+  for(int h = 0; h < srv_blks.size(); h++){
+    while (i < yrs_srv_cpue.size() && yrs_srv_cpue(i) <= srv_blks(h)) {
+      pred_srv_cpue(i) = srv_q(h) * tot_vuln_abd(yrs_srv_cpue(i));
+      i++;
+    }
   }
   // std::cout << "Predicted srv cpue\n" << pred_srv_cpue << "\n";
 
@@ -1331,7 +1304,10 @@ template<class Type>
   }
   // priors(0) = c;
   // Survey catchability coefficient
-  priors(1) = square( log(srv_q / p_srv_q) ) / ( Type(2.0) * square(sigma_srv_q) );
+  for (int h = 0; h < srv_blks.size(); h++){
+    priors(1) += square( log(srv_q(h) / p_srv_q(h)) ) / ( Type(2.0) * square(sigma_srv_q(h)) );
+  }
+  //priors(1) = square( log(srv_q / p_srv_q) ) / ( Type(2.0) * square(sigma_srv_q) );
   //priors(1) = c;
   // Mark-recapture abundance estimate catchability coefficient
   priors(2) = square( log(mr_q / p_mr_q) ) / ( Type(2.0) * square(sigma_mr_q) );
@@ -1489,8 +1465,8 @@ template<class Type>
     for (int i = 0; i < nyr_fsh_age; i++){
       obs_fa_vec = data_fsh_age(i);
       pred_fa_vec = pred_fsh_age(i);
-      //sampsize_fa = n_fsh_age(i);
-      sampsize_fa = effn_fsh_age(i);
+      sampsize_fa = n_fsh_age(i);
+      //sampsize_fa = effn_fsh_age(i);
       age_like(0) -= ddirmult(obs_fa_vec, pred_fa_vec, sampsize_fa, log_fsh_theta, true );
       neff_dm_fsh_age(i) = 1/(1+fsh_theta) + effn_fsh_age(i)*(fsh_theta/(1+fsh_theta));  //** need to implement this before done with dirichlet conversions
     }
@@ -1556,8 +1532,8 @@ template<class Type>
     for (int i = 0; i < nyr_srv_age; i++){
       obs_sa_vec = data_srv_age(i);
       pred_sa_vec = pred_srv_age(i);
-      //sampsize_sa = n_srv_age(i);
-      sampsize_sa = effn_srv_age(i);
+      sampsize_sa = n_srv_age(i);
+      //sampsize_sa = effn_srv_age(i);
       age_like(1) -= ddirmult(obs_sa_vec, pred_sa_vec, sampsize_sa, log_srv_theta, true );
       //neff_dm_srv_age(i) = 1/(1+srv_theta) + effn_fsh_age(i)*(srv_theta/(1+srv_theta));
     }
@@ -1609,8 +1585,8 @@ case 1: // Dirchlet multinomial
     temp_lenyr_pred.setZero();
     temp_ss.setZero();
     for (int i = 0; i < nyr_fsh_len; i++){
-      //temp_ss(i) = n_fsh_len(i,0,k);
-      temp_ss(i) = effn_fsh_len(i,0,k);
+      temp_ss(i) = n_fsh_len(i,0,k)/3;
+      //temp_ss(i) = effn_fsh_len(i,0,k);
     }
     for (int i = 0; i < nyr_fsh_len; i++){
       //temp_ss(i) = n_fsh_len(i,k);
@@ -1663,6 +1639,7 @@ case 1: // Dirchlet multinomial
   vector<Type> temp_ss2(nyr_srv_len);
   vector<Type> obs_sl_vec( nlenbin );
   vector<Type> pred_sl_vec( nlenbin );
+
   Type sampsize_sl; 
   obs_sl_vec.setZero();
   pred_sl_vec.setZero();
@@ -1671,9 +1648,11 @@ case 1: // Dirchlet multinomial
     temp_lenyr_obs2.setZero();
     temp_lenyr_pred2.setZero();
     temp_ss2.setZero();
+
     for (int i = 0; i < nyr_srv_len; i++){
-      //temp_ss2(i) = n_srv_len(i,0,k);
-      temp_ss2(i) = effn_srv_len(i,0,k);
+      temp_ss2(i) = n_srv_len(i,0,k)/3;
+      //temp_ss2(i) = 200;
+      //temp_ss2(i) = effn_srv_len(i,0,k);
     }
     for (int i = 0; i < nyr_srv_len; i++){
       for (int l = 0; l < nlenbin; l++) {

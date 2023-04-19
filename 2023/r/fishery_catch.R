@@ -87,7 +87,15 @@ ggplot(catch_plot, aes(x = julian_day, colour = factor(year), size = factor(year
 # Total catch by year
 catch_ifdb %>% 
   group_by(year) %>% 
-  dplyr::summarize(total_pounds = sum(whole_pounds)) -> sum_catch #view(sum_catch)
+  dplyr::summarize(total_pounds = sum(whole_pounds)) %>%
+  mutate(perc_ch = (total_pounds-lag(total_pounds,default = first(total_pounds)))/
+           lag(total_pounds,default = first(total_pounds))) -> sum_catch #view(sum_catch)
+
+if (sum_catch$perc_ch[sum_catch$year == YEAR] > 0) {
+  pchange<-paste0(round(sum_catch$perc_ch[sum_catch$year == YEAR]*100,1),"% increase")
+} else {
+  pchange<-paste0(round(sum_catch$perc_ch[sum_catch$year == YEAR]*100,1),"% decrease")
+}
 
 # axis <- tickr(sum_catch, year, 5)
 ggplot(sum_catch %>% 
@@ -100,7 +108,10 @@ ggplot(sum_catch %>%
   scale_y_continuous(breaks = seq(0, 6, 1), limits = c(0, 6), labels = seq(0, 6, 1)) +
   # add a line for EQS starting in 1994 (1997 in the SSEI).
   geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
-  labs(x = NULL, y = "Catch (million round lb)\n") -> catch
+  labs(x = NULL, y = "Catch (million round lb)\n") +
+  annotate("text", x = 2015, y = 5, 
+           label = pchange,
+           size=8)-> catch
 
 write_csv(sum_catch, paste0(YEAR+1,"/output/harvest_1985_", YEAR, ".csv"))
 
@@ -151,6 +162,16 @@ ggsave(paste0(YEAR+1,"/figures/catch_byport_", YEAR, ".png"),
        dpi=300, height=10, width=7, units="in")
 
 # Exvessel value ----
+exvessel_value<-exvessel_value %>% 
+  mutate(perc_ch = (exvessel_mil_usd-lag(exvessel_mil_usd,default = first(exvessel_mil_usd)))/
+         lag(exvessel_mil_usd,default = first(exvessel_mil_usd))) #view(sum_catch)
+
+if (exvessel_value$perc_ch[exvessel_value$year == YEAR] > 0) {
+  pchange_evv<-paste0(round(exvessel_value$perc_ch[exvessel_value$year == YEAR]*100,1),"% increase")
+} else {
+  pchange_evv<-paste0(round(exvessel_value$perc_ch[exvessel_value$year == YEAR]*100,1),"% decrease")
+}
+
 exvessel <- ggplot(exvessel_value, aes(x = year, y = exvessel_mil_usd)) +
   #exvessel <- ggplot(exvessel_value, aes(x = Year.Landed, y = CFEC.Value)) +
   geom_point() +
@@ -160,7 +181,10 @@ exvessel <- ggplot(exvessel_value, aes(x = year, y = exvessel_mil_usd)) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   scale_x_continuous(breaks = seq(1985,2022,5), labels = seq(1985,2022,5)) +
   labs(x = NULL, y = "Ex-vessel value (million USD)\n") +
-  ylim(c(0, 12.5))
+  ylim(c(0, 12.5)) +
+  annotate("text", x = YEAR-7, y = 10, 
+           label = pchange_evv,
+           size=8)
 exvessel
 ggsave(paste0(YEAR+1,"/figures/exvessel_value_1985_", YEAR, ".png"), 
        dpi=300,  height=4, width=7,  units="in")

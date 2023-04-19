@@ -10,8 +10,8 @@ source("r/functions.r")
 # if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
 # Most recent year of data
-YEAR <- 2021
-lyr<-2021
+YEAR <- 2022
+lyr<-2022
 # Logbook/CPUE data  ----
 
 # Read in data, standardize cpue, etc.

@@ -48,7 +48,7 @@ tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model o
 
 # Model switches
 {
-  rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
+  rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
   slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
   comp_type <- 0    # Age  and length comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
   spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
@@ -58,7 +58,7 @@ tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model o
 
 # Load prepped data from scaa_dataprep.R
 {
-  ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv")) #"/abd_indices_", YEAR, ".csv"))       # time series
+  ts <- read_csv(paste0(tmb_dat, "/abd_indices_truesig_", YEAR, ".csv")) #"/abd_indices_", YEAR, ".csv"))       # time series
   age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
   len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
   # age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
@@ -135,17 +135,16 @@ ts$fsh_cpue          #in 2023 we are using the fully standardized time series
 ts$fsh_cpue_nom      #nominal fishery CPUE from analysis
 ts$fsh_cpue_base     #cpue clculation in scaa_dataprep.R.. similar to nom
 
-
-
 #=====================================
 # *** Checking sensitivity to fishery CPUE data versions
-VER<-"fsel3_est_ssel_flat_wts" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
+VER<-"v23" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
 #data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
 
 #-------------------------------------------------------------------------------
 # Load data and parameters
 data <- build_data_exp(ts = ts, weights = FALSE)
-
+data$wt_catch
+data$wt_mr
 parameters <- build_parameters_exp(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 random_vars <- build_random_vars() # random effects still in development
 #-------------------------------------------------------------------------------
@@ -159,7 +158,7 @@ tune_fsh_len <- list()
 tune_srv_len <- list()
 
 # Iterate ----
-niter <- 15
+niter <- 10
 
 for(iter in 1:niter) { #iter<-1
   

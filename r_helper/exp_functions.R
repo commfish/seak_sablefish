@@ -481,11 +481,20 @@ build_parameters_exp <- function(
         # SURVEY SELECTIVITY FOR 2022 assessment (2023 ABC)
         # Logistic with a50 and slope, data$slx_type = 1, sex-structured model UPDATE ME!
       } else {
+        #array(data = c(rep(slx_pars$log_a50[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # male a50
+        #               rep(slx_pars$log_k[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # slope
+        #               rep(slx_pars$log_a50[slx_pars$fleet == "srv_f"], length(data$srv_blks)), # female a50
+        #               rep(slx_pars$log_k[slx_pars$fleet == "srv_f"], length(data$srv_blks))), # slope
+        #      dim = c(length(data$srv_blks), 2, nsex))}, # 2 = npar for this slx_type
         array(data = c(rep(slx_pars$log_a50[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # male a50
-                       rep(slx_pars$log_k[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # slope
-                       rep(slx_pars$log_a50[slx_pars$fleet == "srv_f"], length(data$srv_blks)), # female a50
-                       rep(slx_pars$log_k[slx_pars$fleet == "srv_f"], length(data$srv_blks))), # slope
-              dim = c(length(data$srv_blks), 2, nsex))}, # 2 = npar for this slx_type
+                 rep(slx_pars$log_k[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # slope
+                 rep(slx_pars$log_a50[slx_pars$fleet == "srv_f"], length(data$srv_blks)), # female a50
+                 rep(slx_pars$log_k[slx_pars$fleet == "srv_f"], length(data$srv_blks)),
+                 rep(slx_pars$log_a50[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # male a50
+                 rep(slx_pars$log_k[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # slope
+                 rep(slx_pars$log_a50[slx_pars$fleet == "srv_f"], length(data$srv_blks)), # female a50
+                 rep(slx_pars$log_k[slx_pars$fleet == "srv_f"], length(data$srv_blks))), # slope
+              dim = c(length(data$srv_blks), 2, nsex))},
           # SURVEY SELECTIVITY FOR 2020 assessment (2021 ABC)
         # Logistic with a50 and slope, data$slx_type = 1, sex-structured model UPDATE ME!
       #} else {
@@ -508,7 +517,7 @@ build_parameters_exp <- function(
     
     fsh_logq = inits %>% filter(grepl("fsh_logq", Parameter)) %>% pull(Estimate), 
     srv_logq = inits %>% filter(grepl("srv_logq", Parameter)) %>% pull(Estimate),
-    mr_logq = inits %>% filter(grepl("srv_logq", Parameter)) %>% pull(Estimate),
+    mr_logq = inits %>% filter(grepl("mr_logq", Parameter)) %>% pull(Estimate),
     
     # Log mean recruitment and deviations (nyr)
     log_rbar = 2.5, #inits %>% filter(Parameter == "log_rbar") %>% pull(Estimate), 
@@ -552,6 +561,12 @@ build_data_exp <- function(weights = FALSE,
   # retrospective analysts)
   ts,  ...) {
   
+  #check_fsh_blks<-c(iter_ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
+  #                  max(iter_ts$index))
+  
+  f_blk_ct<-length(c(ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
+    max(ts$index)))
+  
   # Structure data for TMB - must use same variable names as .cpp
   data <- list(
     
@@ -581,7 +596,7 @@ build_data_exp <- function(weights = FALSE,
     # Natural mortality
     M_type = M_type,  # Switch for natural mortality: fixed = 0, estimated with prior = 1. 
     p_log_M = log(0.1), # Priors for natural mortality (same as 2016-2019 Federal assessment
-    p_sigma_M = 0.1,
+    p_sigma_M = 0.025, #0.1,
     
     #Switch for extra variance in indices
     ev_type = ev_type,
@@ -590,8 +605,10 @@ build_data_exp <- function(weights = FALSE,
     #fsh_blks = c(ts %>% filter(year == 1994) %>% pull(index), max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
     fsh_blks = c(ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
                  max(ts$index)),  # 3 time blocks as per current federal (2022) assessment
-    srv_blks = c(max(ts$index)), # no breaks survey selectivity
     
+    #srv_blks = c(max(ts$index)), # no breaks survey selectivity
+    srv_blks = c(ts %>% filter(year == 1999) %>% pull(index), 
+                 max(ts$index)),
     # Discard mortality rate in the directed fishery (currently either 0 or 0.16,
     # borrowed from the halibut fishery)
     dmr = array(data = ifelse(include_discards == TRUE, 0.16, 0), dim = c(nyr, nage, nsex)),
@@ -620,10 +637,12 @@ build_data_exp <- function(weights = FALSE,
     # Priors ("p_" denotes prior)
     #p_fsh_q = c(exp(-16), exp(-16)),
     #sigma_fsh_q = c(1, 1),
-    p_fsh_q = c(exp(-16), exp(-16), exp(-16)),
-    sigma_fsh_q = c(1, 1, 1),
-    p_srv_q = exp(-17), 
-    sigma_srv_q = 1,
+    p_fsh_q = rep(exp(-16), f_blk_ct),
+    sigma_fsh_q = rep(1, f_blk_ct),
+    #p_srv_q = exp(-17), 
+    #sigma_srv_q = 1,
+    p_srv_q = c(exp(-17),exp(-17)), 
+    sigma_srv_q = c(1,1),
     p_mr_q = 1.0,
     sigma_mr_q = 0.01, #0.01,
     
@@ -824,13 +843,13 @@ build_data_exp <- function(weights = FALSE,
 # those model results
 #model will use data and parameters as currently set... 
 
-tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps){
+tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps, wt_opt = FALSE){
   tune_fsh_age <- list()
   tune_srv_age <- list()
   tune_fsh_len <- list()
   tune_srv_len <- list()
   
-  for(iter in 1:niter) { #iter<-1
+  for(iter in 1:niter) { #iter<-4
     
     # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
     out <- TMBphase_exp(data, parameters, random = random_vars, 
@@ -849,8 +868,8 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps){
     data_fsh_age <- as.matrix(data$data_fsh_age)
     effn_fsh_age <- vector(length = nrow(pred_fsh_age))
     
-    for(i in 1:nrow(pred_fsh_age)){
-      effn_fsh_age[i] <- sum(pred_fsh_age[i,]*(1-pred_fsh_age[i,])) / sum((data_fsh_age[i,]-pred_fsh_age[i,])^2)  #Equation 2.5 in Mcalister and Ianelli
+    for(j in 1:nrow(pred_fsh_age)){
+      effn_fsh_age[j] <- sum(pred_fsh_age[j,]*(1-pred_fsh_age[j,])) / sum((data_fsh_age[j,]-pred_fsh_age[j,])^2)  #Equation 2.5 in Mcalister and Ianelli
       # Nhat_i = sum_j{phat_ij * (1 - phat_ij)} / sum_j{(p_ij - phat_ij)^2}  #R, equ6 in Stewart and Hamel?? 
       #    phils_q_fhs_age[i] <- sum(pred_fsh_age[i,]*(1-pred_fsh_age[i,])) / sum((pred_fsh_age[i,]-data_fsh_age[i,])^2) #based on eq6 from Stewart & Hamel??
       ## but to be true to Stewart and Hamel data should be bootstrapped estimates? 
@@ -866,8 +885,8 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps){
     data_srv_age <- as.matrix(data$data_srv_age)
     effn_srv_age <- vector(length = nrow(pred_srv_age))
     
-    for(i in 1:nrow(pred_srv_age)){
-      effn_srv_age[i] <- sum(pred_srv_age[i,]*(1-pred_srv_age[i,])) / sum((data_srv_age[i,]-pred_srv_age[i,])^2)
+    for(j in 1:nrow(pred_srv_age)){
+      effn_srv_age[j] <- sum(pred_srv_age[j,]*(1-pred_srv_age[j,])) / sum((data_srv_age[j,]-pred_srv_age[j,])^2)
     }
     
     effn_srv_age <- 1/mean(1/effn_srv_age) # harmonic mean
@@ -882,8 +901,8 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps){
     data_fsh_len <- data_fsh_len + 1e-6 # add tiny constant so we don't get NaNs
     
     for(a in 1:nsex) {
-      for(i in 1:nrow(pred_fsh_len)){
-        effn_fsh_len[i,a] <- sum(pred_fsh_len[i,,a]*(1-pred_fsh_len[i,,a])) / sum((data_fsh_len[i,,a]-pred_fsh_len[i,,a])^2)
+      for(j in 1:nrow(pred_fsh_len)){
+        effn_fsh_len[j,a] <- sum(pred_fsh_len[j,,a]*(1-pred_fsh_len[j,,a])) / sum((data_fsh_len[j,,a]-pred_fsh_len[j,,a])^2)
       }
     }
     
@@ -906,8 +925,8 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps){
     data_srv_len <- data_srv_len + 1e-6 # add tiny constant so we don't get NaNs
     
     for(a in 1:nsex) {
-      for(i in 1:nrow(pred_srv_len)){
-        effn_srv_len[i,a] <- sum(pred_srv_len[i,,a]*(1-pred_srv_len[i,,a])) / sum((data_srv_len[i,,a]-pred_srv_len[i,,a])^2)
+      for(j in 1:nrow(pred_srv_len)){
+        effn_srv_len[j,a] <- sum(pred_srv_len[j,,a]*(1-pred_srv_len[j,,a])) / sum((data_srv_len[j,,a]-pred_srv_len[j,,a])^2)
       }
     }
     
@@ -932,33 +951,43 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps){
   tune_fsh_age <- as.data.frame(do.call("rbind", tune_fsh_age))
   names(tune_fsh_age) <- c("fsh_age_ess")
   
-  age <- age %>% 
+  age_x <- age %>% #filter(year <= max(year)-(nrow(ts)-data$nyr+1)) %>% 
     mutate(effn = ifelse(age$Source == "Survey", tune_srv_age[niter,], tune_fsh_age[niter,]))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
-  len <- fsh_len %>% 
+
+  len_x <- fsh_len %>% #filter(year <= max(year)-(nrow(ts)-data$nyr+1)) %>%
     mutate(effn = ifelse(fsh_len$Sex == "Male", tune_fsh_len[niter,1], tune_fsh_len[niter,2])) %>% 
     bind_rows(srv_len %>% 
                 mutate(effn = ifelse(srv_len$Sex == "Male", tune_srv_len[niter,1], tune_srv_len[niter,2])))  # tuned len comps
-  
-  fsh_age <- filter(age, Source == "Fishery")
-  srv_age <- filter(age, Source == "Survey")
-  fsh_len <- filter(len, Source == "fsh_len")
-  srv_len <- filter(len, Source == "srv_len")
+
+  fsh_age <- filter(age_x, Source == "Fishery", year <= lyr)
+  srv_age <- filter(age_x, Source == "Survey", year <= lyr)
+  fsh_len <- filter(len_x, Source == "fsh_len", year <= lyr)
+  srv_len <- filter(len_x, Source == "srv_len", year <= lyr)
   
   #OK, now run the model with tuned comps
-  data <- build_data_exp(ts = ts, weights = TRUE)
+  data <- build_data_exp(ts = iter_ts, weights = wt_opt)
   
   parameters <- build_parameters_exp(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
   random_vars <- build_random_vars() # random effects still in development
   
-  out <- TMBphase(data, parameters, random = random_vars, 
-                  model_name = "scaa_mod", phase = FALSE, 
+  if (length(data$fsh_blks) != length(unique(data$fsh_blks))) {
+    data$fsh_blks <- data$fsh_blks[1:length(unique(data$fsh_blks))]
+    data$p_fsh_q <- data$p_fsh_q[1:length(unique(data$fsh_blks))]
+    data$sigma_fsh_q <- data$sigma_fsh_q[1:length(unique(data$fsh_blks))]
+    parameters$log_fsh_slx_pars <- parameters$log_fsh_slx_pars[1:length(unique(data$fsh_blks)),,]
+    parameters$fsh_logq <- parameters$fsh_logq[1:length(unique(data$fsh_blks))]
+  }
+  
+  if(length(parameters$fsh_logq) != length(unique(data$fsh_blks))) {
+    parameters$fsh_logq <- parameters$fsh_logq[1:length(unique(data$fsh_blks))]
+  }
+  
+  out <- TMBphase_exp(data, parameters, random = random_vars, 
+                  model_name = modelname, phase = FALSE, 
                   debug = FALSE)
   
   return(out)
 }
-
-
-
 
 
 

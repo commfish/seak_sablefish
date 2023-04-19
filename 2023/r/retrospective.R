@@ -10,12 +10,13 @@ source("r_helper/exp_functions.r")
 
 YEAR <- 2022 # most recent year of data
 
+VER<-"v23"
 # Directory setup
 root <- getwd() # project root
 tmb_dat <- file.path(root, paste0(YEAR+1,"/data/tmb_inputs")) # location of tmb model data inputs
 tmb_path <- file.path(root, paste0(YEAR+1,"/tmb")) # location of cpp
 tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model output is saved
-retro_dir <- file.path(tmbout, paste0("retrospective")) # subdirectory for analysis
+retro_dir <- file.path(tmbout, paste0("retrospective_", VER)) # subdirectory for analysis
 dir.create(retro_dir, showWarnings = FALSE)
 
 #source("r_helper/helper.r")
@@ -23,18 +24,28 @@ dir.create(retro_dir, showWarnings = FALSE)
 
 library(TMB) 
 
-VER<-"ev_dir"
+TUNED_VER<-NA
+TUNED_VER<-"v23"
+
+IND_SIGMA<-TRUE
 # Data for SCAA
-ts <- read_csv(paste0(tmb_dat, "/abd_indices_", YEAR, ".csv"))        # time series
-#ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv"))        # time series
-#age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
-#len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
-age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
-len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, ".csv"))  # tuned len comps
+if (IND_SIGMA == TRUE) {
+  ts <- read_csv(paste0(tmb_dat, "/abd_indices_truesig_", YEAR, ".csv"))
+} else {
+  ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv"))
+}       # time series
+if (is.na(TUNED_VER)){
+  age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
+  len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
+} else {
+  age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR,"_", TUNED_VER,  ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
+  len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR,"_", TUNED_VER,  ".csv"))  # tuned len comps
+}
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
 waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
 retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
-slx_pars <- read_csv("legacy_data/tmb_inputs/fed_selectivity_transformed_2020.csv") # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022_3fsh.csv"))
+#slx_pars <- read_csv("legacy_data/tmb_inputs/fed_selectivity_transformed_2020.csv") # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
 
 # Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
 # develop one for ADFG. Row = true age, Column = observed age. Proportion
@@ -53,8 +64,8 @@ rowSums(agelen_key_f)
 # Starting values - base on current assessment's mle
 # pick saved model results to work with...
 model_run <-"" #use this if just running last model that was not saved in a separate folder
-model_run <- "/first_run_base"
-model_run <- "/first_tuned_run"
+model_run <- "/fsel3_est_ssel2_flat_wts_RE_Mprior025_semiTUNED"
+model_run <- "/v23_TUNED"
 
 inits <- read_csv(paste0(tmbout,model_run, "/tmb_allparams_mle_", YEAR, ".csv"))
 rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
@@ -73,11 +84,15 @@ include_discards <- TRUE  # include discard mortality, TRUE or FALSE
 tmp_debug <- TRUE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
 
 # Model switches
-rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects
+rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 comp_type <- 0    # Age comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
 M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
+ev_type <- 0      # extra variance in indices; 0 = none, 1 = estimated 
+#Do we need to tune the peels?
+TUNE <- TRUE
+tune_iters <- 7
 
 # Retrospective ----
 
@@ -95,7 +110,8 @@ mgc_ls <- list()        # max gradient component
 
 retro <- 0:10           # number of peels
 
-for(i in 1:length(retro)){  #i<-1
+
+for(i in 1:length(retro)){  #i<-10
   
   iter_dir <- file.path(retro_dir, paste0("retro_", retro[i]))
   dir.create(iter_dir, showWarnings = FALSE)
@@ -117,22 +133,47 @@ for(i in 1:length(retro)){  #i<-1
   iter_rec_devs_inits <- rep(0, nyr) 
   iter_Fdevs_inits <- rep(0, nyr)   
   
-  # Build TMB objects
-  data <- build_data(ts = iter_ts)
+  #iter_rec_devs_inits <- rec_devs_inits[1:nyr]
+  #iter_Fdevs_inits <- Fdevs_inits[1:nyr]
+    
+    # Build TMB objects
+  #data <- build_data(ts = iter_ts)
+  data <- build_data_exp(ts = iter_ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
   #change out fishery CPUE choice...
-  data$data_fsh_cpue<-ts$fsh_cpue[!is.na(ts$fsh_cpue)]
+  #data$data_fsh_cpue<-ts$fsh_cpue[!is.na(ts$fsh_cpue)]
   
-  parameters <- build_parameters(rec_devs_inits = iter_rec_devs_inits, 
+  #parameters <- build_parameters(rec_devs_inits = iter_rec_devs_inits, 
+  #                               Fdevs_inits = iter_Fdevs_inits)
+  parameters <- build_parameters_exp(rec_devs_inits = iter_rec_devs_inits, 
                                  Fdevs_inits = iter_Fdevs_inits)
   random_vars <- build_random_vars()
   
+  #retrospective now transverses time blocks for fsh_sel.  Lets fix those issues
+  if (length(data$fsh_blks) != length(unique(data$fsh_blks))) {
+    data$fsh_blks <- data$fsh_blks[1:length(unique(data$fsh_blks))]
+    data$p_fsh_q <- data$p_fsh_q[1:length(unique(data$fsh_blks))]
+    data$sigma_fsh_q <- data$sigma_fsh_q[1:length(unique(data$fsh_blks))]
+    parameters$log_fsh_slx_pars <- parameters$log_fsh_slx_pars[1:length(unique(data$fsh_blks)),,]
+    parameters$fsh_logq <- parameters$fsh_logq[1:length(unique(data$fsh_blks))]
+  }
+  
+  if(length(parameters$fsh_logq) != length(unique(data$fsh_blks))) {
+    parameters$fsh_logq <- parameters$fsh_logq[1:length(unique(data$fsh_blks))]
+  }
+  
   # Run model using MLE
   setwd(tmb_path)
-  out <- TMBphase(data, parameters, random = random_vars, 
-                  model_name = "scaa_mod", phase = FALSE, 
-                  debug = FALSE)
   
-  #insert tuning step if necessary... 
+    #insert tuning step if necessary... 
+  if (TUNE == TRUE) {
+    out<-tune_it(niter=tune_iters,modelname="scaa_mod_dir_ev",newtonsteps=3, wt_opt = FALSE)
+  } else {
+    out <- TMBphase_exp(data, parameters, random = random_vars, 
+                        model_name = "scaa_mod_dir_ev", phase = FALSE, 
+                        debug = FALSE,newtonsteps=3)
+  }
+  
+  # get stuff from tuned model and peel
   
   obj <- out$obj # TMB model object
   opt <- out$opt # fit
@@ -146,7 +187,9 @@ for(i in 1:length(retro)){  #i<-1
   log_rbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
   log_rec_devs <- tidyrep %>% filter(grepl("log_rec_devs", Parameter)) %>% pull(Estimate)
   rec_ls[[i]] <- data.frame(year = syr:lyr,
-                            rec = exp(log_rbar + log_rec_devs) / 1e6,
+                            #rec = exp(log_rbar + log_rec_devs) / 1e6,
+                            #rec = obj$report(best)$log_rbar,
+                            rec = obj$report(best)$pred_rec,
                             retro = paste0("retro_", retro[i]))    
   
   # spawning stock biomass in million lb
@@ -209,6 +252,7 @@ if(rec_type == 1){
 mgc <- do.call(rbind, mgc_ls)
 
 # Save objects so you don't have to rerun analysis ever time.
+VER<-"v23"
 write_csv(rec, paste0(retro_dir, "/retro_recruitment_",VER,"_", YEAR, ".csv"))
 write_csv(SB, paste0(retro_dir, "/retro_SB_",VER,"_", YEAR, ".csv"))
 write_csv(Fmort, paste0(retro_dir, "/retro_Fmort_",VER,"_", YEAR, ".csv"))
@@ -235,8 +279,11 @@ mgc <- read_csv(paste0(retro_dir, "/retro_convergence_",VER,"_", YEAR, ".csv"))
 # Do estimates of sigmaR change over time? *Only when estimated*
 if(rec_type == 1){
   ggplot(sigmaR, aes(x = retro, y = sigmaR)) +
-    geom_col
+    geom_col()
 }
+
+ggsave(paste0(retro_dir,"/retro_Rsigma_", YEAR, ".png"),
+       dpi=300, height=4, width=7, units="in")
 
 order_retro <- SB %>% 
   distinct(retro) %>% 
@@ -324,8 +371,8 @@ make_retro <- function(df, y, min_year, y_lab, plot_lab) {   #df<-SB
   return(df)
 }
 
-SB <- make_retro(df = SB, y = spawn_biom, min_year = 2000, y_lab = "Spawning biomass\n(million lb)", plot_lab = "spawn_biom"); view(SB)
-rec <- make_retro(df = rec, y = rec, min_year = 2000, y_lab = "Age-2 recruits\n(millions)", plot_lab = "recruitment"); view(rec)
+SB <- make_retro(df = SB, y = spawn_biom, min_year = 2000, y_lab = "Spawning biomass\n(million lb)", plot_lab = "spawn_biom")#; view(SB)
+rec <- make_retro(df = rec, y = rec, min_year = 2000, y_lab = "Age-2 recruits\n(millions)", plot_lab = "recruitment")#; view(rec)
 Fmort <- make_retro(df = Fmort, y = Fmort, min_year = 2000, y_lab = "Fishing mortality", plot_lab = "Fmort")
 
 SB_eg<-as.data.frame(SB); mean(SB_eg$diff/100)

@@ -57,10 +57,14 @@ read_csv(paste0(YEAR+1,"/output/ll_cpue_fullstand_1980_",YEAR,".csv")) -> fsh_cp
 
 fsh_cpue <- fsh_cpue %>% mutate(fsh_cpue = fsh_cpue * 0.453592,
                                 sigma_fsh_cpue = ifelse(year %in% (c(seq(1980,1996,1))),0.1,0.08),
+                               # sigma_fsh_cpue = ifelse(year %in% (c(seq(1980,1996,1))),0.1,se),
+                                #sigma_fsh_cpue = se,
                                # upper_fsh_cpue = fsh_cpue + 1.96 * sqrt(sigma_fsh_cpue*fsh_cpue),
                                #  lower_fsh_cpue = fsh_cpue - 1.96 * sqrt(sigma_fsh_cpue*fsh_cpue)) %>% 
                                upper_fsh_cpue = exp(log(fsh_cpue)+1.96*sqrt(log(sigma_fsh_cpue+1))),
-                               lower_fsh_cpue = exp(log(fsh_cpue)-1.96*sqrt(log(sigma_fsh_cpue+1)))) %>% 
+                               lower_fsh_cpue = exp(log(fsh_cpue)-1.96*sqrt(log(sigma_fsh_cpue+1)))) %>%
+                               #upper_fsh_cpue = upper,
+                               #lower_fsh_cpue = lower) %>% 
   select(year, fsh_cpue, sigma_fsh_cpue, truesigma_fsh_cpue = var, 
          upper_fsh_cpue, lower_fsh_cpue)
 
@@ -167,24 +171,30 @@ read_csv(paste0(YEAR+1,"/output/srvcpue_1997_", YEAR, ".csv")) %>%
   # assuming lognormal distribution, use relative se as model input sigma
   mutate(#sigma_srv_cpue = se / srv_cpue, # relative standard error too low! 
          #sigma_srv_cpue = sd / srv_cpue, # cv too high!
-         sigma_srv_cpue = 0.08,
+         #sigma_srv_cpue = 0.08,
+         sigma_srv_cpue = sd,
          ln_srv_cpue = log(srv_cpue),
          std = 1.96 * sqrt(log(sigma_srv_cpue + 1)),
-         upper_srv_cpue = exp(ln_srv_cpue + std ),
-         lower_srv_cpue = exp(ln_srv_cpue - std )) %>% 
+         #upper_srv_cpue = exp(ln_srv_cpue + std ),
+         #lower_srv_cpue = exp(ln_srv_cpue - std )) %>% 
+         upper_srv_cpue = srv_cpue + 1.96*sigma_srv_cpue,
+         lower_srv_cpue = srv_cpue - 1.96*sigma_srv_cpue) %>% 
   select(-c(sd, se, ln_srv_cpue, std)) -> srv_cpue 
 
 # Mark-recapture index ----
 
 read_csv(paste0(YEAR+1,"/output/mr_index_", YEAR, ".csv")) %>% 
-  select(year, mr = estimate, sigma_mr = sd) %>% 
+  select(year, mr = estimate, sigma_mr = sd, q025, q975) %>% 
   mutate(# sigma_mr = sigma_mr / mr,
-         sigma_mr = 0.05,
+         #sigma_mr = 0.05,
+         #sigma_mr = sd,
          ln_mr = log(mr),
          std = 1.96 * sqrt(log(sigma_mr + 1)),
-         upper_mr = exp(ln_mr + std),
-         lower_mr = exp(ln_mr - std)) %>% 
-  select(-c(std, ln_mr)) -> mr
+         #upper_mr = exp(ln_mr + std),
+         #lower_mr = exp(ln_mr - std)) %>% 
+         upper_mr = q975,
+         lower_mr = q025) %>% 
+  select(-c(std, ln_mr, q025, q975)) -> mr
 
 # Figure for industry mtg
 # axis <- tickr(data.frame(year = 2005:YEAR), year, 3)
@@ -262,6 +272,8 @@ ggplot(fsh_cpue) +
   geom_line(aes(year, fsh_cpue * 2.20462)) + #* 2.20462)) +
   geom_ribbon(aes(year, ymin = lower_fsh_cpue * 2.20462 , ymax = upper_fsh_cpue * 2.20462),
               alpha = 0.2, fill = "black", colour = NA) +
+  #geom_ribbon(aes(year, ymin = lower_fsh_cpue  , ymax = upper_fsh_cpue ),
+  #            alpha = 0.2, fill = "black", colour = NA) +
   # Board implemented Limitted Entry in 1985
   # geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
   # Board implemented Equal Quota Share in 1994
@@ -324,7 +336,7 @@ full_join(catch, fsh_cpue) %>%
   
 # View(ts)
 
-write_csv(ts, paste0(YEAR+1,"/data/tmb_inputs/abd_indices_", YEAR, ".csv"))
+write_csv(ts, paste0(YEAR+1,"/data/tmb_inputs/abd_indices_truesig_", YEAR, ".csv"))
 
 
 #==========================================================================
