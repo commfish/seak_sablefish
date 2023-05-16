@@ -26,10 +26,15 @@
 # These must be checked or updated annually!
 #TUNED_VER<-"fsel3_est_ssel_flat_wts"
 TUNED_VER<-NA
-TUNED_VER<-"v23"
+TUNED_VER<-"Base" #"v23"
+TUNED_VER<-"v23_old_slx"
+TUNED_VER<-"v23_new_2slx"
+TUNED_VER<-"v23_new_3slx"
 
-IND_SIGMA<-TRUE
+IND_SIGMA<-FALSE
 
+SLX_OPT<-0 #switch for loading appropriate initial values: 1 is the old (base) mode in 2023
+           #0 is for the new slx time blocks...
 
 # most recent year of data (YEAR+1 should be the forecast year)
 {
@@ -77,16 +82,17 @@ rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = r
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 comp_type <- 0    # Age  and length comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
-M_type <- 1       # Natural mortality: 0 = fixed, 1 = estimated with a prior
+M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
 ev_type <- 0     # extra variance in indices; 0 = none, 1 = estimated
+tmp_debug <- FALSE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
 }
 
 # Load prepped data from scaa_dataprep.R
 {
   if (IND_SIGMA == TRUE) {
-    ts <- read_csv(paste0(tmb_dat, "/abd_indices_truesig_", YEAR, ".csv"))
+    ts <- read_csv(paste0(tmb_dat, "/abd_indices_truesig3_", YEAR, ".csv"))
   } else {
-    ts <- read_csv(paste0(tmb_dat, "/abd_indices_CPUEsense_", YEAR, ".csv"))
+    ts <- read_csv(paste0(tmb_dat, "/abd_indices_", YEAR, ".csv"))
   }
   # time series
   
@@ -117,9 +123,12 @@ rowSums(agelen_key_m) # should all = 1
 agelen_key_f <- scan(paste0(YEAR+1,"/data/tmb_inputs/agelen_key_fem.txt", sep = " "), skip = 1) %>% matrix(ncol = 30) %>% t()
 rowSums(agelen_key_f) 
 
-  #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
+if (SLX_OPT == 1) {
+  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_base.csv"))
+} else {
   #need to add in new selectivity block since not there last year
   inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_NEW_SLX.csv"))
+}
   
   rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
   rec_devs_inits <- c(rec_devs_inits, mean(rec_devs_inits)) # mean for current year starting value
@@ -138,7 +147,7 @@ nlenbin <- length(unique(len$length_bin)) # number of length bins
 nsex <- 2                 # single sex or sex-structured
 nproj <- 1                # projection years *FLAG* eventually add to cpp file, currently just for graphics
 include_discards <- TRUE  # include discard mortality, TRUE or FALSE
-tmp_debug <- TRUE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
+
 
 # Subsets
 mr <- filter(ts, !is.na(mr))
@@ -222,17 +231,69 @@ VER<-"fsel3_est_ssel2_flat_wts_RE_Mprior025_semiTUNED"
 VER<-"truesigma_trial"
 VER<-"v23_TUNED"
 VER<-"v23_Mprior025"
+VER<-"v23_ev"
+VER<-"v23_truesig_TUNED"
+VER<-"v23_truesig3_semiTUNED_ev"
+VER<-"v23_mock_tau"
+
+#Final final versions for consideration
+#1) Base model from 2022, no changes
+VER<-"Base"  #not tuned
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2020.csv"))
+#1a) Base model from 2022, no changes
+VER<-"Base_tuned"  
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2020.csv"))
+
+#*******v23.2 onward all include the tuning step... 
+#2) Base with updated selectivity
+VER<-"Base_new_slx"
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022.csv"))
+#3) v23 old selectivity
+VER<-"v23_old_slx"
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2020.csv"))
+tmp<-slx_pars[3:4,]  #using 3 time block model so need to duplicate 2nd into 3rd block... 
+tmp$fleet<-c("fsh_t3_f","fsh_t3_m")
+slx_pars<-rbind(slx_pars,tmp)
+
+#4) v23 new selectivity, 2 time blocks
+VER<-"v23_new_2slx"
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022.csv"))
+tmp<-slx_pars[3:4,]  #using 3 time block model so need to duplicate 2nd into 3rd block... 
+tmp$fleet<-c("fsh_t3_f","fsh_t3_m")
+slx_pars<-rbind(slx_pars,tmp)
+
+#5) v23 new selectivity, 3 time blocks
+VER<-"v23_new_3slx"
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022_3fsh.csv"))
+
+# 6a) last try estimating fishery selectivity! 
+VER<-"v23_new_2slx_est"  #a50 and delta
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022.csv"))
+slx_type <- 1 # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
+tmp_debug <- FALSE
+
+# 6b) last try estimating fishery selectivity! 
+VER<-"v23_new_2slx_est_a50a95"  #a50 and a95
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/selectivity_a50_a95.csv"))
+slx_type <- 0 # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
+rec_devs_inits <- rep(0, nyr) 
+Fdevs_inits <- rep(0, nyr) 
+rinit_devs_inits
 
 #==================================================
 
 #ughs<-inits %>% filter(grepl("spr_Fxx", Parameter)) %>% pull(Estimate)
 #exp(ughs)
+# for Base models in 2023
 data <- build_data(ts = ts); str(data)  #see this function to change weights and 
 parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 
-#development coded data and parameter lists... 
+#development coded data and parameter lists...
+# for v23 models
+
 data <- build_data_exp(ts = ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
 parameters <- build_parameters_exp(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
+
 random_vars <- build_random_vars() # random effects still in development
 
 # parameters <- list(dummy = 0)
@@ -250,6 +311,13 @@ parameters$srv_logq
 parameters$fsh_logq
 parameters$mr_logq
 parameters$log_srv_slx_pars
+parameters$log_fsh_slx_pars
+
+exp(parameters$log_srv_slx_pars)
+exp(parameters$log_fsh_slx_pars)
+
+parameters$log_tau_mr
+parameters$log_tau_srv
 
 # Run model ----
 
@@ -266,16 +334,18 @@ setwd(tmb_path)
 str(data)
 
 # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
+# use this for old 2022 model
 out <- TMBphase(data, parameters, random = random_vars, 
                 model_name = "scaa_mod", #model_name = "scaa_mod_dir_ev",
                 phase = FALSE,  
                 newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                 debug = FALSE)
 
+#use this for v23 models
 out <- TMBphase_exp(data, parameters, random = random_vars, 
                 model_name = "scaa_mod_dir_ev", #model_name = "scaa_mod_dir_ev",
                 phase = FALSE,  
-                newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+                newtonsteps = 10, #3 make this zero initially for faster run times (using 5)
                 debug = FALSE)
 
 obj <- out$obj # TMB model object

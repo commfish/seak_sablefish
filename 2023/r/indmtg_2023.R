@@ -204,10 +204,10 @@ smallfish %>%  ggplot(aes(x = year, y = ecdf,col = Source, shape = Source)) +
   theme(axis.title.y = element_text(angle=0, vjust = 0.5),
         legend.position = c(.2,.8)) +
   annotate("text", x = 2015, y = 0.22, label = "20%", col = hex[2]) +
-  annotate("text", x = 2015, y = 0.07, label = "5%", col = hex[1]) +
-  annotate("text", x = YEAR, y = as.numeric(prop_sm_srv/100)+0.02, 
+  annotate("text", x = 2015, y = 0.062, label = "5%", col = hex[1]) +
+  annotate("text", x = YEAR, y = as.numeric(prop_sm_srv/100)-0.02, 
            label = paste0(prop_sm_srv,"%"), col = hex[2]) +
-  annotate("text", x = YEAR, y = as.numeric(prop_sm_fsh/100) +0.02, 
+  annotate("text", x = YEAR, y = as.numeric(prop_sm_fsh/100) -0.02, 
            label = paste0(prop_sm_fsh,"%"), col = hex[1]) #+
   #geom_circle(data=data.frame(x0=c(2015,YEAR),y0=c(0.2,as.numeric(prop_sm_srv/100)),r=c(1,1)),
   #            aes(x0=x0,y0=y0,r=r, col = hex[2]))

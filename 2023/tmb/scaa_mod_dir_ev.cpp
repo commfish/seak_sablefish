@@ -306,10 +306,10 @@ template<class Type>
 
   //Extra variance terms for indices
   PARAMETER(log_tau_fsh);
-  PARAMETER(log_tau_srv);
+  //PARAMETER(log_tau_srv);
   PARAMETER(log_tau_mr);
   Type tau_fsh = exp(log_tau_fsh);  
-  Type tau_srv = exp(log_tau_srv);  
+  //Type tau_srv = exp(log_tau_srv);  
   Type tau_mr = exp(log_tau_mr);  
     
 
@@ -857,6 +857,7 @@ template<class Type>
 
   for (int i = 0; i < nyr; i++) {
     pred_mr_all(i) = mr_q * (tot_expl_abd(i) / Type(1e6)); // All years
+    //pred_mr_all(i) = (tot_expl_abd(i) / Type(1e6)); // All years
   }
   // std::cout << "Predicted MR for all years\n" << pred_mr_all << "\n";
 
@@ -1299,16 +1300,16 @@ template<class Type>
   // Priors
 
   // Fishery cpue catchability coefficient
-  for (int h = 0; h < fsh_blks.size(); h++){
-    priors(0) += square( log(fsh_q(h) / p_fsh_q(h)) ) / ( Type(2.0) * square(sigma_fsh_q(h)) );
-  }
-  // priors(0) = c;
+  //for (int h = 0; h < fsh_blks.size(); h++){
+  //  priors(0) += square( log(fsh_q(h) / p_fsh_q(h)) ) / ( Type(2.0) * square(sigma_fsh_q(h)) );
+  //}
+   priors(0) = c;
   // Survey catchability coefficient
-  for (int h = 0; h < srv_blks.size(); h++){
-    priors(1) += square( log(srv_q(h) / p_srv_q(h)) ) / ( Type(2.0) * square(sigma_srv_q(h)) );
-  }
+  //for (int h = 0; h < srv_blks.size(); h++){
+  //  priors(1) += square( log(srv_q(h) / p_srv_q(h)) ) / ( Type(2.0) * square(sigma_srv_q(h)) );
+  //}
   //priors(1) = square( log(srv_q / p_srv_q) ) / ( Type(2.0) * square(sigma_srv_q) );
-  //priors(1) = c;
+  priors(1) = c;
   // Mark-recapture abundance estimate catchability coefficient
   priors(2) = square( log(mr_q / p_mr_q) ) / ( Type(2.0) * square(sigma_mr_q) );
 
@@ -1380,19 +1381,20 @@ template<class Type>
   // Fishery CPUE: lognormal
   vector<Type> use_sig_fsh(nyr_fsh_cpue);
   for (int i = 0; i < nyr_fsh_cpue; i++) {
-    use_sig_fsh(i) = square(sigma_fsh_cpue(i))+square(tau_fsh);
+    //use_sig_fsh(i) = square(sigma_fsh_cpue(i))+square(tau_fsh);
     index_like(0) += square( log((data_fsh_cpue(i) + c) / (pred_fsh_cpue(i) + c)) ) /
       //(Type(2.0) * square(sigma_fsh_cpue(i)));
+      (Type(2.0) * (square(sigma_fsh_cpue(i)*tau_fsh)));
       //(Type(2.0) * (square(sigma_fsh_cpue(i))+square(tau_fsh)));
-      (Type(2.0) * use_sig_fsh(i));
+      //(Type(2.0) * use_sig_fsh(i));
   }
   //index_like(0) *= wt_fsh_cpue; // Likelihood weight
 
   // Survey CPUE: lognormal
   for (int i = 0; i < nyr_srv_cpue; i++) {
     index_like(1) += square( log((data_srv_cpue(i) + c) / (pred_srv_cpue(i) + c)) ) /
-      //(Type(2.0) * square(sigma_srv_cpue(i)));
-      (Type(2.0) * (square(sigma_srv_cpue(i))+square(tau_srv)));
+      (Type(2.0) * square(sigma_srv_cpue(i)));
+      //(Type(2.0) * (square(sigma_srv_cpue(i))+square(tau_srv)));
   }
   //index_like(1) *= wt_srv_cpue; // Likelihood weight
 
@@ -1400,7 +1402,9 @@ template<class Type>
     for (int i = 0; i < nyr_mr; i++) {
     index_like(2) += square( log((data_mr(i) + c) / (pred_mr(i) + c)) ) /
       //(Type(2.0) * square(sigma_mr(i)));
-      (Type(2.0) * (square(sigma_mr(i))+square(tau_mr)));
+      //(Type(2.0) * (square(sigma_mr(i))+square(tau_mr)));
+      //(Type(2.0) * (square(sigma_mr(i))*square(tau_mr)));
+      (Type(2.0) * (square(sigma_mr(i)*tau_mr)));
     }
   //index_like(2) *= wt_mr; 
     break;
@@ -1837,8 +1841,8 @@ case 1: // Dirchlet multinomial
   REPORT(srv_theta);
   REPORT(fsh_l_theta);
   REPORT(srv_l_theta);
-  REPORT(tau_fsh);
-  REPORT(tau_srv);
+  //REPORT(tau_fsh);
+  //REPORT(tau_srv);
   REPORT(tau_mr);
 
   return(obj_fun);          

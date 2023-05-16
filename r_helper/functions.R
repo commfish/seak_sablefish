@@ -859,7 +859,6 @@ build_parameters <- function(
     
     # Catchability
     
-    
     fsh_logq = inits %>% filter(grepl("fsh_logq", Parameter)) %>% pull(Estimate), 
     srv_logq = inits %>% filter(grepl("srv_logq", Parameter)) %>% pull(Estimate),
     mr_logq = inits %>% filter(grepl("srv_logq", Parameter)) %>% pull(Estimate),
@@ -1115,11 +1114,11 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
       #map_use$log_srv_l_theta <- fill_vals(parameters$log_srv_l_theta, NA)
     }
     
-    if (data$ev_type != 1) {
-      map_use$log_tau_fsh <- fill_vals(parameters$log_tau_fsh, NA)
-      map_use$log_tau_srv <- fill_vals(parameters$log_tau_srv, NA)
-      map_use$log_tau_mr <- fill_vals(parameters$log_tau_mr, NA)
-    }
+    #if (data$ev_type != 1) {
+    #  map_use$log_tau_fsh <- fill_vals(parameters$log_tau_fsh, NA)
+    #  map_use$log_tau_srv <- fill_vals(parameters$log_tau_srv, NA)
+    #  map_use$log_tau_mr <- fill_vals(parameters$log_tau_mr, NA)
+    #}
     
     # Temporary debug trying to figure out why I'm getting NA/NaN function
     # evaluation - think it's something to do with discarding
@@ -1578,7 +1577,6 @@ reshape_ts <- function(ts){
 plot_ts <- function(save = TRUE, path = tmbfigs, ts,
                     units = c('metric', 'imperial'), plot_variance = TRUE){
   
-
   out <- reshape_ts(ts = ts)
   out$ts -> catch # catch in kg
   out$fsh_cpue -> fsh_cpue # kg/hk

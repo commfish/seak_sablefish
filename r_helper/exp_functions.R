@@ -77,13 +77,13 @@ build_bounds_exp <- function(param_list = NULL, data_list){
   
   #extra variance terms for indices
   lower_bnd$log_tau_fsh <- replace(lower_bnd$log_tau_fsh, values = -20) 
-  upper_bnd$log_tau_fsh <- replace(upper_bnd$log_tau_fsh, values = 4) 
+  upper_bnd$log_tau_fsh <- replace(upper_bnd$log_tau_fsh, values = 5) 
   
-  lower_bnd$log_tau_srv <- replace(lower_bnd$log_tau_srv, values = -20) 
-  upper_bnd$log_tau_srv <- replace(upper_bnd$log_tau_srv, values = 4) 
+  #lower_bnd$log_tau_srv <- replace(lower_bnd$log_tau_srv, values = -20) 
+  #upper_bnd$log_tau_srv <- replace(upper_bnd$log_tau_srv, values = 4) 
   
   lower_bnd$log_tau_mr <- replace(lower_bnd$log_tau_mr, values = -20) 
-  upper_bnd$log_tau_mr <- replace(upper_bnd$log_tau_mr, values = 4) 
+  upper_bnd$log_tau_mr <- replace(upper_bnd$log_tau_mr, values = 3) 
   
   # Put bounds together
   bounds <- list(upper= upper_bnd, lower = lower_bnd)
@@ -155,7 +155,7 @@ TMBphase_exp <- function(data, parameters, random, model_name, phase = FALSE,
     
     if (data$ev_type != 1) {
       map_use$log_tau_fsh <- fill_vals(parameters$log_tau_fsh, NA)
-      map_use$log_tau_srv <- fill_vals(parameters$log_tau_srv, NA)
+      #map_use$log_tau_srv <- fill_vals(parameters$log_tau_srv, NA)
       map_use$log_tau_mr <- fill_vals(parameters$log_tau_mr, NA)
     }
     
@@ -163,8 +163,13 @@ TMBphase_exp <- function(data, parameters, random, model_name, phase = FALSE,
     # evaluation - think it's something to do with discarding
     if (tmp_debug == TRUE) {
       map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
-      #estimate selectivity in 3rd time block... turn NA's back to values... 
-      
+      #estimate selectivity in 3rd time block... turn NA's back to values...
+      #map_use$log_fsh_slx_pars <- factor(c(NA,1,NA,2,
+      #                                     NA,3,NA,4
+      #                                    ))
+      #map_use$log_fsh_slx_pars <- factor(c(1,NA,2,NA,
+      #                                     3,NA,4,NA
+      #                                     ))
       #map_use$log_fsh_slx_pars <- factor(c(NA,NA,1,NA,NA,2,
       #                                     NA,NA,3,NA,NA,4
       #                                     ))
@@ -206,7 +211,8 @@ TMBphase_exp <- function(data, parameters, random, model_name, phase = FALSE,
     TMB::newtonOption(obj,smartsearch=FALSE)
     # lower and upper bounds relate to obj$par and must be the same length as obj$par
     opt <- nlminb(start = obj$par, objective = obj$fn, hessian = obj$gr,
-                  control = list(eval.max = 1e4, iter.max = 1e4, trace = 0),
+                  #control = list(eval.max = 1e4, iter.max = 1e4, trace = 0), #original
+                  control = list(eval.max = 1e6, iter.max = 1e6, trace = 0),
                   lower = lower, upper = upper)
     
     # Re-run to further decrease final gradient - used tmb_helper.R -
@@ -214,7 +220,8 @@ TMBphase_exp <- function(data, parameters, random, model_name, phase = FALSE,
     for(i in seq(2, loopnum, length = max(0, loopnum - 1))){
       tmp <- opt[c('iterations','evaluations')]
       opt <- nlminb(start = opt$par, objective = obj$fn, gradient = obj$gr, 
-                    control = list(eval.max = 1e4, iter.max = 1e4, trace = 0), 
+                    #control = list(eval.max = 1e4, iter.max = 1e4, trace = 0), #original
+                    control = list(eval.max = 1e6, iter.max = 1e6, trace = 0), 
                     lower = lower, upper = upper )
       opt[['iterations']] <- opt[['iterations']] + tmp[['iterations']]
       opt[['evaluations']] <- opt[['evaluations']] + tmp[['evaluations']]
@@ -397,11 +404,24 @@ build_parameters_exp <- function(
         # Logistic with a50 and a95, data$slx_type = 0, sex-structured model - needs
         # updating eventually if ever used
       } else if (data$slx_type == 0 & nsex == 2) {
-        array(data = c(log(4.19), log(5.12), # Male
-                       log(5.50), log(6.30),
-                       log(3.91), log(2.87), # Female
-                       log(5.20), log(4.15)),
-              dim = c(length(data$fsh_blks), 2, nsex)) # 2 = npar for this slx_type
+        #array(data = c(log(4.19), log(5.12), # Male a50
+        #               log(5.50), log(6.30), # Male a95
+        #               log(3.91), log(2.87), # Female
+        #               log(5.20), log(4.15)),
+        #      dim = c(length(data$fsh_blks), 2, nsex)) # 2 = npar for this slx_type
+        
+        array(data = c(slx_pars$log_a50[slx_pars$fleet == "fsh_t1_m"], # male a50s time block 1
+                       slx_pars$log_a50[slx_pars$fleet == "fsh_t2_m"], #  then time block 2
+                       
+                       slx_pars$log_a95[slx_pars$fleet == "fsh_t1_m"], # male a95 time block 1
+                       slx_pars$log_a95[slx_pars$fleet == "fsh_t2_m"], # then time block 2
+                       
+                       slx_pars$log_a50[slx_pars$fleet == "fsh_t1_f"], # female a50s time block 1
+                       slx_pars$log_a50[slx_pars$fleet == "fsh_t2_f"], #  then time block 2
+                       
+                       slx_pars$log_a95[slx_pars$fleet == "fsh_t1_f"], # female a95 time block 1
+                       slx_pars$log_a95[slx_pars$fleet == "fsh_t2_f"]),
+              dim = c(length(data$fsh_blks), 2, nsex)) 
         
         # Logistic with a50 and slope, data$slx_type = 1, single sex model - needs
         # updating eventually if ever used
@@ -414,16 +434,16 @@ build_parameters_exp <- function(
       } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model - UPDATE ME!
         array(data = c(slx_pars$log_a50[slx_pars$fleet == "fsh_t1_m"], # male a50s time block 1
                        slx_pars$log_a50[slx_pars$fleet == "fsh_t2_m"], #  then time block 2
-                       slx_pars$log_a50[slx_pars$fleet == "fsh_t3_m"], #  then time block 3
+                       #slx_pars$log_a50[slx_pars$fleet == "fsh_t3_m"], #  then time block 3
                        slx_pars$log_k[slx_pars$fleet == "fsh_t1_m"], # male slopes time block 1
                        slx_pars$log_k[slx_pars$fleet == "fsh_t2_m"], # then time block 2
-                       slx_pars$log_k[slx_pars$fleet == "fsh_t3_m"], # then time block 3
+                       #slx_pars$log_k[slx_pars$fleet == "fsh_t3_m"], # then time block 3
                        slx_pars$log_a50[slx_pars$fleet == "fsh_t1_f"], # female a50s time block 1
                        slx_pars$log_a50[slx_pars$fleet == "fsh_t2_f"], #  then time block 2
-                       slx_pars$log_a50[slx_pars$fleet == "fsh_t3_f"], #  then time block 3
+                       #slx_pars$log_a50[slx_pars$fleet == "fsh_t3_f"], #  then time block 3
                        slx_pars$log_k[slx_pars$fleet == "fsh_t1_f"], # female slopes time block 1
-                       slx_pars$log_k[slx_pars$fleet == "fsh_t2_f"], #  then time block 2
-                       slx_pars$log_k[slx_pars$fleet == "fsh_t3_f"]), # then time block 3
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t2_f"]), #  then time block 2
+                       #slx_pars$log_k[slx_pars$fleet == "fsh_t3_f"]), # then time block 3
               dim = c(length(data$fsh_blks), 2, nsex)) }, # 2 = npar for this slx_type   
         
         # FISHERY SELECTIVITY FOR 2020 assessment (2021 ABC)
@@ -464,10 +484,14 @@ build_parameters_exp <- function(
         # Logistic with a50 and a95, data$slx_type = 0, sex-structured model- needs
         # updating eventually if ever used
       } else if (data$slx_type == 0 & nsex == 2) {
-        array(data = c(rep(0.911681626710, length(data$srv_blks)), # male
-                       rep(0.656852516513, length(data$srv_blks)),
-                       rep(0.961385402921, length(data$srv_blks)), # female
-                       rep(0.656852516513, length(data$srv_blks))),
+        array(data = c(rep(slx_pars$log_a50[slx_pars$fleet == "srv_t1_m"], length(data$srv_blks)), # male a50
+                       rep(slx_pars$log_a95[slx_pars$fleet == "srv_t1_m"], length(data$srv_blks)), # a95
+                       rep(slx_pars$log_a50[slx_pars$fleet == "srv_t1_f"], length(data$srv_blks)), # female a50
+                       rep(slx_pars$log_a95[slx_pars$fleet == "srv_t1_f"], length(data$srv_blks)),
+                       rep(slx_pars$log_a50[slx_pars$fleet == "srv_t2_m"], length(data$srv_blks)), # male a50
+                       rep(slx_pars$log_a95[slx_pars$fleet == "srv_t2_m"], length(data$srv_blks)), # a95
+                       rep(slx_pars$log_a50[slx_pars$fleet == "srv_t2_f"], length(data$srv_blks)), # female a50
+                       rep(slx_pars$log_a95[slx_pars$fleet == "srv_t2_f"], length(data$srv_blks))),
               dim = c(length(data$srv_blks), 2, nsex)) # 2 = npar for this slx_type 
         
         # Logistic with a50 and slope, data$slx_type = 1, single sex model- needs
@@ -547,9 +571,9 @@ build_parameters_exp <- function(
     log_srv_l_theta = c(log(5),log(5)),
     
     #extra variance for index terms
-    log_tau_fsh = log(0.001),
-    log_tau_srv = log(0.001),
-    log_tau_mr = log(0.001) #log(1.1)
+    log_tau_fsh = log(15),
+    #log_tau_srv = log(0),
+    log_tau_mr = log(4) #log(1.1)
   )
   
   return(parameters)
@@ -564,8 +588,9 @@ build_data_exp <- function(weights = FALSE,
   #check_fsh_blks<-c(iter_ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
   #                  max(iter_ts$index))
   
-  f_blk_ct<-length(c(ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
-    max(ts$index)))
+  #f_blk_ct<-length(c(ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
+  #  max(ts$index)))
+  f_blk_ct<-length(c(ts %>% filter(year == 1994) %>% pull(index), max(ts$index)))
   
   # Structure data for TMB - must use same variable names as .cpp
   data <- list(
@@ -602,9 +627,9 @@ build_data_exp <- function(weights = FALSE,
     ev_type = ev_type,
     
     # Time varying parameters - each vector contains the terminal years of each time block
-    #fsh_blks = c(ts %>% filter(year == 1994) %>% pull(index), max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
-    fsh_blks = c(ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
-                 max(ts$index)),  # 3 time blocks as per current federal (2022) assessment
+    fsh_blks = c(ts %>% filter(year == 1994) %>% pull(index), max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
+    #fsh_blks = c(ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
+    #             max(ts$index)),  # 3 time blocks as per current federal (2022) assessment
     
     #srv_blks = c(max(ts$index)), # no breaks survey selectivity
     srv_blks = c(ts %>% filter(year == 1999) %>% pull(index), 
@@ -644,7 +669,7 @@ build_data_exp <- function(weights = FALSE,
     p_srv_q = c(exp(-17),exp(-17)), 
     sigma_srv_q = c(1,1),
     p_mr_q = 1.0,
-    sigma_mr_q = 0.01, #0.01,
+    sigma_mr_q = 0.001, #0.01,
     
     # Weights on likelihood components ("wt_" denotes weight) based on weights
     # in Federal model

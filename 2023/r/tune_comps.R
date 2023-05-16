@@ -66,11 +66,36 @@ tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model o
   bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
   waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
   retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
-  slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022_3fsh.csv")) # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
+}
+  
+VER<-"Base"
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2020.csv"))
+#2) Base with updated selectivity
+VER<-"Base_new_slx"
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022.csv"))
+#3) v23 old selectivity
+VER<-"v23_old_slx"
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2020.csv"))
+tmp<-slx_pars[3:4,]  #using 3 time block model so need to duplicate 2nd into 3rd block... 
+tmp$fleet<-c("fsh_t3_f","fsh_t3_m")
+slx_pars<-rbind(slx_pars,tmp)
+
+#4) v23 new selectivity, 2 time blocks
+VER<-"v23_new_2slx"
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022.csv"))
+tmp<-slx_pars[3:4,]  #using 3 time block model so need to duplicate 2nd into 3rd block... 
+tmp$fleet<-c("fsh_t3_f","fsh_t3_m")
+slx_pars<-rbind(slx_pars,tmp)
+
+#5) v23 new selectivity, 3 time blocks
+VER<-"v23_new_3slx"
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022_3fsh.csv"))# fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
   
   # Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
   # develop one for ADFG. Row = true age, Column = observed age. Proportion
   # observed at age given true age.
+  
+{  
   ageing_error <- scan(paste0(YEAR+1,"/data/tmb_inputs/ageing_error_fed.txt", sep = " ")) %>% matrix(ncol = 30) %>% t()
   rowSums(ageing_error) # should be 1
   
@@ -137,15 +162,20 @@ ts$fsh_cpue_base     #cpue clculation in scaa_dataprep.R.. similar to nom
 
 #=====================================
 # *** Checking sensitivity to fishery CPUE data versions
-VER<-"v23" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
+VER<-"v23_hand_taued_sig" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
 #data$data_fsh_cpue<-ts$fsh_cpue_22rb[!is.na(ts$fsh_cpue_22rb)]
 
 #-------------------------------------------------------------------------------
 # Load data and parameters
-data <- build_data_exp(ts = ts, weights = FALSE)
-data$wt_catch
-data$wt_mr
+# If base model
+data <- build_data(ts = ts); str(data)  #see this function to change weights and 
+parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
+#if v23 model
+
+data <- build_data_exp(ts = ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
 parameters <- build_parameters_exp(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
+
+#no matter model, do this... 
 random_vars <- build_random_vars() # random effects still in development
 #-------------------------------------------------------------------------------
 # Run model ----
@@ -158,7 +188,7 @@ tune_fsh_len <- list()
 tune_srv_len <- list()
 
 # Iterate ----
-niter <- 10
+niter <- 8
 
 for(iter in 1:niter) { #iter<-1
   
@@ -167,6 +197,10 @@ for(iter in 1:niter) { #iter<-1
                   model_name = "scaa_mod_dir_ev", phase = FALSE, 
                   newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                   debug = FALSE)
+  #out <- TMBphase(data, parameters, random = random_vars, 
+  #                    model_name = "scaa_mod", phase = FALSE, 
+  #                    newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+  #                    debug = FALSE)
   
   obj <- out$obj # TMB model object
   opt <- out$opt # fit

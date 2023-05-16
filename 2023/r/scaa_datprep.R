@@ -53,21 +53,34 @@ read_csv(paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"),
 
 # Fishery CPUE ----
 # in 2023 we are switching to a fully standardized fishery cpue index from the longline fishery
+# in 2023 we began work on moving towards using the "true" sigma for the 3 indices.  This will require
+# adding in extra variance at some stage because narrow sigmas results in either unconverged
+# models or very strange results.  The goal is to have the "tau terms (extra varriance) estimated
+# within the model, but could could not be implemented in 2023.  
+
 read_csv(paste0(YEAR+1,"/output/ll_cpue_fullstand_1980_",YEAR,".csv")) -> fsh_cpue 
 
 fsh_cpue <- fsh_cpue %>% mutate(fsh_cpue = fsh_cpue * 0.453592,
+                                q975 = fsh_cpue + 1.96*se* 0.453592,
+                                ln_fsh_cpue = log(fsh_cpue),
+                                #tau = 12,
+                                #true_sig = tau*(exp(((log(q975)-ln_fsh_cpue)/1.96)^2)-1),
                                 sigma_fsh_cpue = ifelse(year %in% (c(seq(1980,1996,1))),0.1,0.08),
-                               # sigma_fsh_cpue = ifelse(year %in% (c(seq(1980,1996,1))),0.1,se),
-                                #sigma_fsh_cpue = se,
-                               # upper_fsh_cpue = fsh_cpue + 1.96 * sqrt(sigma_fsh_cpue*fsh_cpue),
-                               #  lower_fsh_cpue = fsh_cpue - 1.96 * sqrt(sigma_fsh_cpue*fsh_cpue)) %>% 
-                               upper_fsh_cpue = exp(log(fsh_cpue)+1.96*sqrt(log(sigma_fsh_cpue+1))),
-                               lower_fsh_cpue = exp(log(fsh_cpue)-1.96*sqrt(log(sigma_fsh_cpue+1)))) %>%
+                                #sigma_fsh_cpue = ifelse(year %in% (c(seq(1980,1996,1))),
+                                #                        0.1,
+                                #                        true_sig),
+                                #sigma_fsh_cpue = true_sig,
+                                std = 1.96 * sqrt(log(sigma_fsh_cpue + 1)),
+                                upper_fsh_cpue = exp(ln_fsh_cpue + std ),
+                                lower_fsh_cpue = exp(ln_fsh_cpue - std ), 
+                               #upper_fsh_cpue = exp(log(fsh_cpue)+1.96*sqrt(log(sigma_fsh_cpue+1))),
+                               #lower_fsh_cpue = exp(log(fsh_cpue)-1.96*sqrt(log(sigma_fsh_cpue+1)))
+                               ) %>%
                                #upper_fsh_cpue = upper,
                                #lower_fsh_cpue = lower) %>% 
-  select(year, fsh_cpue, sigma_fsh_cpue, truesigma_fsh_cpue = var, 
+  select(year, fsh_cpue, sigma_fsh_cpue, #truesigma_fsh_cpue = var, 
          upper_fsh_cpue, lower_fsh_cpue)
-
+view(fsh_cpue)
 # Read in data, standardize cpue, etc.
 #read_csv(paste0(YEAR+1,"/data/fishery/fishery_ll_cpue_1997_", YEAR,".csv"), 
 ##read_csv(paste0("data/fishery/fishery_cpue_2022reboot_1997_", fsh_lyr,".csv"), 
@@ -172,29 +185,43 @@ read_csv(paste0(YEAR+1,"/output/srvcpue_1997_", YEAR, ".csv")) %>%
   mutate(#sigma_srv_cpue = se / srv_cpue, # relative standard error too low! 
          #sigma_srv_cpue = sd / srv_cpue, # cv too high!
          #sigma_srv_cpue = 0.08,
-         sigma_srv_cpue = sd,
+         true_sig = sd,
+         q975 = srv_cpue + 1.96*true_sig,
          ln_srv_cpue = log(srv_cpue),
+         sigma_srv_cpue = exp(((log(q975)-ln_srv_cpue)/1.96)^2)-1,
          std = 1.96 * sqrt(log(sigma_srv_cpue + 1)),
-         #upper_srv_cpue = exp(ln_srv_cpue + std ),
-         #lower_srv_cpue = exp(ln_srv_cpue - std )) %>% 
-         upper_srv_cpue = srv_cpue + 1.96*sigma_srv_cpue,
-         lower_srv_cpue = srv_cpue - 1.96*sigma_srv_cpue) %>% 
-  select(-c(sd, se, ln_srv_cpue, std)) -> srv_cpue 
+         upper_srv_cpue = exp(ln_srv_cpue + std ),
+         lower_srv_cpue = exp(ln_srv_cpue - std )) %>% 
+         #upper_srv_cpue = srv_cpue + 1.96*sigma_srv_cpue,
+         #lower_srv_cpue = srv_cpue - 1.96*sigma_srv_cpue) %>% 
+  select(-c(sd, se, ln_srv_cpue, std, true_sig, q975)) -> srv_cpue 
 
 # Mark-recapture index ----
 
 read_csv(paste0(YEAR+1,"/output/mr_index_", YEAR, ".csv")) %>% 
-  select(year, mr = estimate, sigma_mr = sd, q025, q975) %>% 
+  select(year, mr = estimate, sd, q025, q975) %>% 
   mutate(# sigma_mr = sigma_mr / mr,
-         #sigma_mr = 0.05,
-         #sigma_mr = sd,
+         sigma_mr = 0.05,
+         #true_sig = sd,
+         #tau = 5,
+         #sigma_mr = tau*(exp(((log(q975)-log(mr))/1.96)^2)-1),
          ln_mr = log(mr),
          std = 1.96 * sqrt(log(sigma_mr + 1)),
-         #upper_mr = exp(ln_mr + std),
-         #lower_mr = exp(ln_mr - std)) %>% 
-         upper_mr = q975,
-         lower_mr = q025) %>% 
-  select(-c(std, ln_mr, q025, q975)) -> mr
+         upper_mr = exp(ln_mr + std),
+         lower_mr = exp(ln_mr - std)) %>% 
+         #upper_mr = q975,
+         #lower_mr = q025) %>% 
+  select(-c(std, ln_mr, q025, q975, sd)) -> mr
+
+full_join(catch, fsh_cpue) %>% 
+  full_join(srv_cpue) %>% 
+  full_join(mr) %>% 
+  mutate(index = year - min(year)) -> ts
+
+view(ts)
+
+write_csv(ts, paste0(YEAR+1,"/data/tmb_inputs/abd_indices_", YEAR, ".csv"))
+
 
 # Figure for industry mtg
 # axis <- tickr(data.frame(year = 2005:YEAR), year, 3)
@@ -329,14 +356,7 @@ plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = '
 ggsave(paste0(YEAR+1,"/figures/tmb/abd_indices_", YEAR, "V2.png"),
        dpi=300, height=10, width=7.7, units="in")
 
-full_join(catch, fsh_cpue) %>% 
-  full_join(srv_cpue) %>% 
-  full_join(mr) %>% 
-  mutate(index = year - min(year)) -> ts
-  
-# View(ts)
 
-write_csv(ts, paste0(YEAR+1,"/data/tmb_inputs/abd_indices_truesig_", YEAR, ".csv"))
 
 
 #==========================================================================

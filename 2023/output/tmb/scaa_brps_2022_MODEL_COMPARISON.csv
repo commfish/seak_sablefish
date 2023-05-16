@@ -1,0 +1,43 @@
+,Base,Base-tuned,Base-updated slx,v23_old_slx,v23_new_2slx,v23_new_3slx
+Number of parameters:,136,136,136,147,147,147
+Negative log likelihood:,2396,2396,6919,1789,1778,1804
+Maximum gradient component:,1.83E-06,1.40E-10,6.66E-12,1.41E-05,3.50E-12,1.84526E-11
+,,,,,,
+Summary of 2022 (last year's) Biological Reference Points,,,,,,
+Projected age-2 biomass: ,"51,885,665","51,885,665","51,885,665","51,885,665","51,885,665","51,885,665"
+Projected female spawning biomass: ,"19,714,244","19,714,244","19,714,244","19,714,244","19,714,244","19,714,244"
+Unfished equilibrium female spawning biomass (SPR = 100): ,"28,995,917","28,995,917","28,995,917","28,995,917","28,995,917","28,995,917"
+Equilibrium female spawning biomass under F50 (SPR = 50): ,"14,497,958","14,497,958","14,497,958","14,497,958","14,497,958","14,497,958"
+Max ABC: ,"1,595,932","1,595,932","1,595,932","1,595,932","1,595,932","1,595,932"
+Recommended ABC: ,"1,443,314","1,443,314","1,443,314","1,443,314","1,443,314","1,443,314"
+Mortality from fishery discards under max ABC: ,"72,190","72,190","72,190","72,190","72,190","72,190"
+max F_ABC = F_50: ,0.0617,0.0617,0.0617,0.0617,0.0617,0.0617
+F under recommended ABC: ,0.0559,0.0559,0.0559,0.0559,0.0559,0.0559
+,,,,,,
+Summary of 2023 (current year's) Biological Reference Points,,,,,,
+Projected age-2 biomass: ,"61,145,122","61,145,122","66,676,302","49,612,772","49,055,617","50,905,349"
+Projected female spawning biomass: ,"23,441,266","23,441,266","26,271,709","18,772,977","18,462,491","19,112,530"
+Unfished equilibrium female spawning biomass (SPR = 100): ,"30,866,389","30,866,389","33,033,358","27,689,745","27,448,519","27,834,275"
+Equilibrium female spawning biomass under F50 (SPR = 50): ,"15,433,194","15,433,194","16,516,679","13,844,873","13,724,259","13,917,138"
+Max ABC: ,"1,873,598","1,873,598","1,983,085","1,486,673","1,380,718","1,447,711"
+Recommended ABC: ,"1,659,811","1,659,811","1,659,811","1,486,673","1,380,718","1,447,711"
+Mortality from fishery discards under max ABC: ,"79,711","79,711","82,775","71,048","66,498","61,137"
+max F_ABC = F_50: ,0.063,0.063,0.059,0.062883821,0.059146925,0.062346633
+F under recommended ABC: ,0.056,0.056,0.049,0.062883821,0.059146925,0.062346633
+,,,,,,
+Summary of percent changes and differences between 2022 and 2023 Biological Reference Points,,,,,,
+Difference between projected age-2+ biomass (round lb): ,"9,259,457","9,259,457","14,790,637","-2,272,893","-2,830,048","-980,316"
+Percent difference between projected age-2+ biomass: ,17.80%,17.80%,28.50%,-4.40%,-5.50%,-1.90%
+Difference between projected female spawning biomass (round lb): ,"3,727,022","3,727,022","6,557,465","-941,267","-1,251,753","-601,714"
+Percent difference between projected female spawning biomass: ,18.90%,18.90%,33.30%,-4.80%,-6.30%,-3.10%
+Difference between Unfished equilibrium female spawning biomass (round lb): ,"1,870,472","1,870,472","4,037,441","-1,306,172","-1,547,398","-1,161,642"
+Percent difference between Unfished equilibrium female spawning biomass: ,6.50%,6.50%,13.90%,-4.50%,-5.30%,-4.00%
+Difference between equilibrium female spawning biomass under F50 (round lb): ,"935,236","935,236","2,018,721","-653,085","-773,699","-580,820"
+Percent difference between equilibrium female spawning biomass under F50: ,6.50%,6.50%,13.90%,-4.50%,-5.30%,-4.00%
+Difference between max ABCs (round lb): ,"277,666","277,666","387,153","-109,259","-215,214","-148,221"
+Percent difference between max ABCs: ,1,1,1,0.01,1,1
+Difference between recommended ABCs (round lb): ,"216,497","216,497","216,497","43,359","-62,596","4,397"
+Percent difference between recommended ABCs: ,15,15,15,3,-4.3,0.3
+Difference between mortalities from fishery discards under max ABC: ,"7,521","7,521","10,585","-1,142","-5,692","-11,053"
+Percent difference between mortalities from fishery discards under max ABC: ,10.4,10.4,14.7,-1.6,-7.9,-15.3
+Percent difference between maxF_ABCs: ,1.6,1.6,-4.5,1.9,-4.1,1
