@@ -30,6 +30,8 @@ TUNED_VER<-"Base" #"v23"
 TUNED_VER<-"v23_old_slx"
 TUNED_VER<-"v23_new_2slx"
 TUNED_VER<-"v23_new_3slx"
+TUNED_VER<-"v23_noMR_5"
+TUNED_VER<-"v23_noMR_10"
 
 IND_SIGMA<-FALSE
 
@@ -106,7 +108,7 @@ tmp_debug <- FALSE         # Shuts off estimation of selectivity pars - once sel
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
 waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
 retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
-slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022_3fsh.csv")) # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
+slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022.csv")) # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
 
 # Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
 # develop one for ADFG. Row = true age, Column = observed age. Proportion
@@ -127,7 +129,8 @@ if (SLX_OPT == 1) {
   inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_base.csv"))
 } else {
   #need to add in new selectivity block since not there last year
-  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_NEW_SLX.csv"))
+  #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_NEW_SLX2.csv"))
+  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, ".csv"))
 }
   
   rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
@@ -184,7 +187,7 @@ ts$fsh_cpue_base     #cpue clculation in scaa_dataprep.R.. similar to nom
 str(data$data_fsh_cpue)
 
 #=====================================
-# *** Checking sensitivity to fishery CPUE data versions
+# *** model development
 VER<-"base_fixed" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
 VER<-"base_flat"
 VER<-"tuned"
@@ -258,19 +261,21 @@ slx_pars<-rbind(slx_pars,tmp)
 #4) v23 new selectivity, 2 time blocks
 VER<-"v23_new_2slx"
 slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022.csv"))
-tmp<-slx_pars[3:4,]  #using 3 time block model so need to duplicate 2nd into 3rd block... 
-tmp$fleet<-c("fsh_t3_f","fsh_t3_m")
-slx_pars<-rbind(slx_pars,tmp)
+#tmp<-slx_pars[3:4,]  #using 3 time block model so need to duplicate 2nd into 3rd block... 
+#tmp$fleet<-c("fsh_t3_f","fsh_t3_m")
+#slx_pars<-rbind(slx_pars,tmp)
 
 #5) v23 new selectivity, 3 time blocks
 VER<-"v23_new_3slx"
 slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022_3fsh.csv"))
 
 # 6a) last try estimating fishery selectivity! 
-VER<-"v23_new_2slx_est"  #a50 and delta
+VER<-"v23_full_slx_est"  #a50 and delta
 slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022.csv"))
 slx_type <- 1 # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 tmp_debug <- FALSE
+#*** in 2023 needed to get initial values by running and just estimating survey selectivity
+#* then use those initial values to get it to estimate fishery selectivity
 
 # 6b) last try estimating fishery selectivity! 
 VER<-"v23_new_2slx_est_a50a95"  #a50 and a95
@@ -280,6 +285,22 @@ rec_devs_inits <- rep(0, nyr)
 Fdevs_inits <- rep(0, nyr) 
 rinit_devs_inits
 
+#8) Get rid of MR experiment...
+
+#8a) last 5 years
+VER<-"v23_noMR_5"
+mr <- filter(ts, !is.na(mr))
+mr <- mr %>% filter(year < 2017)
+#need to reset initial values for recruitment deviations to 0 to get it to converge.  Not sure why but, so be it..
+rec_devs_inits <- rep(0, nyr) 
+Fdevs_inits <- rep(0, nyr) 
+
+#8b) last 10 year
+VER<-"v23_noMR_10"
+mr <- mr %>% filter(year < 2012)
+
+#9) Dirichlet one more time...
+VER<-"v23_dir"
 #==================================================
 
 #ughs<-inits %>% filter(grepl("spr_Fxx", Parameter)) %>% pull(Estimate)
@@ -291,8 +312,8 @@ parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fd
 #development coded data and parameter lists...
 # for v23 models
 
-data <- build_data_exp(ts = ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
-parameters <- build_parameters_exp(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
+data <- build_data_v23(ts = ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
+parameters <- build_parameters_v23(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 
 random_vars <- build_random_vars() # random effects still in development
 
@@ -342,11 +363,11 @@ out <- TMBphase(data, parameters, random = random_vars,
                 debug = FALSE)
 
 #use this for v23 models
-out <- TMBphase_exp(data, parameters, random = random_vars, 
-                model_name = "scaa_mod_dir_ev", #model_name = "scaa_mod_dir_ev",
+out <- TMBphase_v23(data, parameters, random = random_vars, 
+                model_name = "scaa_mod_v23", #model_name = "scaa_mod_dir_ev",
                 phase = FALSE,  
-                newtonsteps = 10, #3 make this zero initially for faster run times (using 5)
-                debug = FALSE)
+                newtonsteps = 35, #3 make this zero initially for faster run times (using 5)
+                debug = FALSE, loopnum = 50)
 
 obj <- out$obj # TMB model object
 opt <- out$opt # fit

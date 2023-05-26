@@ -40,7 +40,7 @@ keyparams <- read_csv("../output/tmb_params.csv")
 like <- read_csv("../output/tmb_likelihoods.csv")
 
 # Model dimensions
-YEAR <- 2018
+YEAR <- 2022
 nyr <- length(1980:YEAR)
 nage <- length(2:31)
 

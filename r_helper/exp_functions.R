@@ -4,7 +4,7 @@
 ## March 2023
 ###############################################################################
 
-build_bounds_exp <- function(param_list = NULL, data_list){
+build_bounds_v23 <- function(param_list = NULL, data_list){
   
   # Debug function
   # param_list <- parameters
@@ -111,7 +111,7 @@ build_bounds_exp <- function(param_list = NULL, data_list){
   return(bounds)
 }
 
-TMBphase_exp <- function(data, parameters, random, model_name, phase = FALSE,
+TMBphase_v23 <- function(data, parameters, random, model_name, phase = FALSE,
                      optimizer = "nlminb", debug = FALSE, loopnum = 3, newtonsteps = 0) {
   
   # Debug function
@@ -180,7 +180,7 @@ TMBphase_exp <- function(data, parameters, random, model_name, phase = FALSE,
     
     # Build upper and lower parameter bounds and remove any that are not
     # estimated (should be the inverse of the map_use)
-    bounds <- build_bounds_exp(param_list = parameters)
+    bounds <- build_bounds_v23(param_list = parameters)
     bounds$upper <- bounds$upper[!names(bounds$upper) %in% names(map_use)]
     bounds$lower <- bounds$lower[!names(bounds$lower) %in% names(map_use)]
     
@@ -212,7 +212,7 @@ TMBphase_exp <- function(data, parameters, random, model_name, phase = FALSE,
     # lower and upper bounds relate to obj$par and must be the same length as obj$par
     opt <- nlminb(start = obj$par, objective = obj$fn, hessian = obj$gr,
                   #control = list(eval.max = 1e4, iter.max = 1e4, trace = 0), #original
-                  control = list(eval.max = 1e6, iter.max = 1e6, trace = 0),
+                  control = list(eval.max = 1e8, iter.max = 1e8, trace = 0),
                   lower = lower, upper = upper)
     
     # Re-run to further decrease final gradient - used tmb_helper.R -
@@ -221,7 +221,7 @@ TMBphase_exp <- function(data, parameters, random, model_name, phase = FALSE,
       tmp <- opt[c('iterations','evaluations')]
       opt <- nlminb(start = opt$par, objective = obj$fn, gradient = obj$gr, 
                     #control = list(eval.max = 1e4, iter.max = 1e4, trace = 0), #original
-                    control = list(eval.max = 1e6, iter.max = 1e6, trace = 0), 
+                    control = list(eval.max = 1e8, iter.max = 1e8, trace = 0), 
                     lower = lower, upper = upper )
       opt[['iterations']] <- opt[['iterations']] + tmp[['iterations']]
       opt[['evaluations']] <- opt[['evaluations']] + tmp[['evaluations']]
@@ -370,7 +370,7 @@ TMBphase_exp <- function(data, parameters, random, model_name, phase = FALSE,
 }
 
 
-build_parameters_exp <- function(
+build_parameters_v23 <- function(
     # data,
   # nsex,
   # inits,
@@ -580,7 +580,7 @@ build_parameters_exp <- function(
 }
 
 #for model experimenting
-build_data_exp <- function(weights = FALSE,
+build_data_v23 <- function(weights = FALSE,
     # data sources (makes it easier to generalize for sensitivity and
   # retrospective analysts)
   ts,  ...) {
@@ -669,7 +669,7 @@ build_data_exp <- function(weights = FALSE,
     p_srv_q = c(exp(-17),exp(-17)), 
     sigma_srv_q = c(1,1),
     p_mr_q = 1.0,
-    sigma_mr_q = 0.001, #0.01,
+    sigma_mr_q = 0.01, #0.01,
     
     # Weights on likelihood components ("wt_" denotes weight) based on weights
     # in Federal model
@@ -877,7 +877,7 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps, 
   for(iter in 1:niter) { #iter<-4
     
     # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
-    out <- TMBphase_exp(data, parameters, random = random_vars, 
+    out <- TMBphase_v23(data, parameters, random = random_vars, 
                         model_name = modelname, phase = FALSE, 
                         newtonsteps = newtonsteps, #3 make this zero initially for faster run times (using 5)
                         debug = FALSE)
@@ -990,9 +990,9 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps, 
   srv_len <- filter(len_x, Source == "srv_len", year <= lyr)
   
   #OK, now run the model with tuned comps
-  data <- build_data_exp(ts = iter_ts, weights = wt_opt)
+  data <- build_data_v23(ts = iter_ts, weights = wt_opt)
   
-  parameters <- build_parameters_exp(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
+  parameters <- build_parameters_v23(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
   random_vars <- build_random_vars() # random effects still in development
   
   if (length(data$fsh_blks) != length(unique(data$fsh_blks))) {
@@ -1007,7 +1007,7 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps, 
     parameters$fsh_logq <- parameters$fsh_logq[1:length(unique(data$fsh_blks))]
   }
   
-  out <- TMBphase_exp(data, parameters, random = random_vars, 
+  out <- TMBphase_v23(data, parameters, random = random_vars, 
                   model_name = modelname, phase = FALSE, 
                   debug = FALSE)
   

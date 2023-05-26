@@ -10,7 +10,7 @@ source("r_helper/exp_functions.r")
 
 YEAR <- 2022 # most recent year of data
 
-VER<-"v23"
+VER<-"v23_new_2slx"
 # Directory setup
 root <- getwd() # project root
 tmb_dat <- file.path(root, paste0(YEAR+1,"/data/tmb_inputs")) # location of tmb model data inputs
@@ -25,9 +25,9 @@ dir.create(retro_dir, showWarnings = FALSE)
 library(TMB) 
 
 TUNED_VER<-NA
-TUNED_VER<-"v23"
+TUNED_VER<-"v23_new_2slx"
 
-IND_SIGMA<-TRUE
+IND_SIGMA<-FALSE
 # Data for SCAA
 if (IND_SIGMA == TRUE) {
   ts <- read_csv(paste0(tmb_dat, "/abd_indices_truesig_", YEAR, ".csv"))
@@ -90,9 +90,12 @@ comp_type <- 0    # Age comp likelihood (not currently developed for len comps):
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
 M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
 ev_type <- 0      # extra variance in indices; 0 = none, 1 = estimated 
+
+
+
 #Do we need to tune the peels?
 TUNE <- TRUE
-tune_iters <- 7
+tune_iters <- 8
 
 # Retrospective ----
 
@@ -166,7 +169,7 @@ for(i in 1:length(retro)){  #i<-10
   
     #insert tuning step if necessary... 
   if (TUNE == TRUE) {
-    out<-tune_it(niter=tune_iters,modelname="scaa_mod_dir_ev",newtonsteps=3, wt_opt = FALSE)
+    out<-tune_it(niter=tune_iters,modelname="scaa_mod_dir_ev",newtonsteps=15, wt_opt = FALSE)
   } else {
     out <- TMBphase_exp(data, parameters, random = random_vars, 
                         model_name = "scaa_mod_dir_ev", phase = FALSE, 

@@ -195,7 +195,7 @@ for(iter in 1:niter) { #iter<-1
   # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
   out <- TMBphase_exp(data, parameters, random = random_vars, 
                   model_name = "scaa_mod_dir_ev", phase = FALSE, 
-                  newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+                  newtonsteps = 15, #3 make this zero initially for faster run times (using 5)
                   debug = FALSE)
   #out <- TMBphase(data, parameters, random = random_vars, 
   #                    model_name = "scaa_mod", phase = FALSE, 
