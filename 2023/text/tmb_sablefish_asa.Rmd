@@ -21,11 +21,14 @@ header-includes:
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.pos = 'H')
 options(kableExtra.html.bsTable = TRUE)
 options(knitr.graphics.auto_pdf = TRUE)
+#knitr::opts_knit$set(root.dir = '../')
+#getwd()
 
 # always_allow_html: yes
 library(knitr)
 library(kableExtra)
 library(tidyverse)
+library(here)
 options(scipen=9999) # remove scientific notation
 
 library(extrafont)
@@ -35,12 +38,27 @@ theme_set(theme_bw(base_size=12,base_family='Times New Roman')+
             theme(panel.grid.major = element_blank(),
                   panel.grid.minor = element_blank()))
 
+# Directory setup
+root<-getwd()
+root<-gsub('/text','',root)
+
+model <- "Final2_v23_new_2slx"
+YEAR<-2022
+
+output_dir <- file.path(root, paste0("output/tmb/",model)) # location of tmb model outputs
+tmb_mod_figures_dir <- file.path(root, paste0("figures/tmb/",model)) # location of cpp
+tmb_figures_dir <- file.path(root, paste0("figures/tmb"))
+figures_dir <- file.path(root, paste0("figures")) # location where model figs are saved
+fig_dir <- file.path(root, paste0("figures"))
 # Read in model outputs
-keyparams <- read_csv("../output/tmb_params.csv")
-like <- read_csv("../output/tmb_likelihoods.csv")
+#keyparams <- read_csv("../output/tmb_params.csv")
+keyparams <- read_csv(paste0(output_dir,"/tmb_allparams_mle_2022.csv"))
+#keyparams <-read.csv(paste0(output_dir,"/tmb_allparams_mle_2022.csv"))
+#like <- read_csv("../output/tmb_likelihoods.csv")
+#like <- read.csv(paste0(output_dir,"/likelihood_components_2022_v23_new_2slx.csv"))
+like <- read_csv(paste0(output_dir,"/likelihood_components_2022_v23_new_2slx.csv"))
 
 # Model dimensions
-YEAR <- 2022
 nyr <- length(1980:YEAR)
 nage <- length(2:31)
 
@@ -679,9 +697,9 @@ kable(sel_tbl, booktabs = TRUE, longtable = TRUE, format = "latex", escape = FAL
 ```{r likesum, echo=FALSE}
 
 like %>% 
-  mutate(value = formatC(value, format = "f", digits = 1),
-         perc = formatC(perc, format = "f", digits = 1)) %>% 
-  select("Likelihood component" = like, "$NLL$" = value, "\\% of $NLL$" = perc) -> like
+  mutate(value = formatC(Likelihood, format = "f", digits = 1),
+         perc = formatC(Percent_of_data_likelihood, format = "f", digits = 1)) %>% 
+  select("Likelihood component" = 'Likelihood component', "$NLL$" = value, "\\% of $NLL$" = perc) -> like
 
 kable(like, booktabs = TRUE, longtable = TRUE, format = "latex", escape = FALSE,
       caption = "Negative likelihood values and percent of each component to the total likelihood. The data likelihood is the sum of all likelihood contributions from data. The difference between the total likelihood and the data likelihood is the contribution of penalized likelihoods, including recruitment and fishing mortality.") 
@@ -690,40 +708,48 @@ kable(like, booktabs = TRUE, longtable = TRUE, format = "latex", escape = FALSE,
 \newpage
 # Figures
 ```{r datsrc, fig.cap="A summary of the available data sources in NSEI by year."}
-
-knitr::include_graphics("../figures/tmb/sable_data_all.png")
+#fig_dir <- file.path(root, paste0("figures"))
+#knitr::include_graphics("../figures/tmb/sable_data_all.png")
+#knitr::include_graphics(paste0("../figures/tmb/sable_data_yprmodel_",YEAR,".png"))
+#knitr::include_graphics(here(figures_dir, "/sable_data_yprmodel_2022.png"))
+knitr::include_graphics(here(figures_dir, paste0("/sable_data_yprmodel_",YEAR,".png")))
+#knitr::include_graphics(paste0(fig_dir,"/sable_data_yprmodel_",YEAR,".png"))
+#knitr::include_graphics("C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/sable_data_yprmodel_2022.png")
 ```
 
 ```{r bioinputs, fig.cap="Biological inputs to the statistical catch-at-age model, including: (A) von Bertalanffy growth model predictions of weight-at-age (kg) by sex from the longline fishery (black) and ADFG longline survey (grey); (B) proportion mature at age for females estimated from the longline survey with the age at 50% maturity ($a_{50}$=6.4 yr); and (C) proportion female in the longline survey, where the curve is the fitted line from a generalized additive model +/- 2 standard error."}
 
-knitr::include_graphics("../figures/tmb/bio_dat.png")
+knitr::include_graphics(paste0(tmb_figures_dir,"/bio_dat_",YEAR,".png"))
 ```
 
 ```{r abdind, fig.cap="Indices of catch and abundance with the assumed error distribution, including: (A) harvest (round mt), (B) fishery catch per unit effort in round kg per hook, (C) survey catch per unit effort in number of fish per hook, and (D) mark-recapture abundance estimates in millions. The dashed vertical line in 1994 mark the transition to the Equal Quota Share program."}
 
-knitr::include_graphics(paste0("../figures/tmb/abd_indices_", YEAR, ".png"))
+#knitr::include_graphics(paste0("../figures/tmb/abd_indices_", YEAR, ".png"))
+knitr::include_graphics(paste0(tmb_figures_dir,"/abd_indices_",YEAR,"V2.png"))
 ```
 
 ```{r agecomps, fig.cap= paste0("Proportions-at-age for in the NSEI longline fishery (2002-",YEAR,") and ADFG longline survey (1997-",YEAR,").")}
 
-knitr::include_graphics(paste0("../figures/tmb/agecomps_", YEAR, ".png"))
+#knitr::include_graphics(paste0("../figures/tmb/agecomps_", YEAR, ".png"))
+knitr::include_graphics(paste0(tmb_figures_dir,"/agecomps_",YEAR,".png"))
 ```
 
 
 ```{r ageerror, fig.cap= paste0("Ageing error matrix used in the model, showing the probability of observing an age given the true age (Heifetz et al. 1999).")}
 
-knitr::include_graphics(paste0("../figures/tmb/ageing_error.png"))
+#knitr::include_graphics(paste0("../figures/tmb/ageing_error.png"))
 ```
 
 
-```{r fshlen, fig.cap= paste0("Fishery length distributions by sex from 2002-",YEAR,". The dashed vertical line at 61 cm represents the length at 50% maturity.")}
+```{r fshlen, fig.cap= paste0("Longline fishery length distributions by sex from 2012-",YEAR,". Vertical bars represent the data nd the black line shows the length composition from the most recent year superimposed on previous years.")}
 
-knitr::include_graphics(paste0("../figures/tmb/lencomp_fsh_",YEAR,".png"))
+#knitr::include_graphics(paste0("../figures/tmb/lencomp_fsh_",YEAR,".png"))
+knitr::include_graphics(paste0(figures_dir,"/llfsh_lencomps_2012_",YEAR,".png"))
 ```
 
-```{r srvlen, fig.cap= paste0("Longline survey length distributions by sex from 1997-",YEAR,". The dashed vertical line at 61 cm represents the length at 50% maturity.")}
+```{r srvlen, fig.cap= paste0("Longline survey length distributions by sex from 2012-",YEAR,". Vertical bars represent the data nd the black line shows the length composition from the most recent year superimposed on previous years.")}
 
-knitr::include_graphics(paste0("../figures/tmb/lencomp_srv_",YEAR,".png"))
+knitr::include_graphics(paste0(figures_dir,"/llsrv_lencomps_2012_",YEAR,".png"))
 ```
 
 ```{r agelenkey, fig.cap= paste0("Age-length key used in the model, with the relative size of the bubbles reflecting the probability that a fish of a given age falls within a certain length bin (Echave et al. 2012). The probabilities sum to 1 across each age.")}

@@ -51,7 +51,7 @@ read_csv(paste0(YEAR+1,"/data/fishery/fishery_bio_2000_", YEAR,".csv"),
          weight_mu = mean(weight, na.rm = TRUE)) %>% 
   ungroup() -> fsh_bio
 unique(fsh_bio$Gear)
-
+str(fsh_bio)
 # Pot survey biological data
 
 read_csv(paste0(YEAR+1,"/data/survey/potsrv_bio_1981_", YEAR, ".csv"), 
@@ -59,10 +59,51 @@ read_csv(paste0(YEAR+1,"/data/survey/potsrv_bio_1981_", YEAR, ".csv"),
   mutate(Year = factor(year),
          Project_cde = factor(Project_cde),
          Stat = factor(Stat),
-         Sex = factor(Sex)) -> potsrv_bio
+         Sex = factor(Sex),
+         Gear = "Pot") -> potsrv_bio
 
 str(potsrv_bio)
 
+#some quick plots of raw data 
+bind_rows(
+  srv_bio %>% 
+    mutate(Gear = "Longline", Source = "Longline survey") %>%
+    select(year, Project_cde, Sex, age, weight, length, Gear, Source) %>% 
+    filter(year >= 1997, !is.na(weight), !is.na(age)),
+  fsh_bio %>% 
+    mutate(Source = "Longline fishery") %>%
+    select(year, Project_cde, Sex, age, weight, length, Gear, Source) %>% 
+    #filter(year >= 2002)) %>% 
+  filter(!is.na(weight) & !is.na(age) & !is.na(Sex))) -> all_bio #%>% 
+  #mutate(Source = derivedFactor('LL survey' = Project_cde %in% c("03","603"),
+  #                              'LL fishery' = Project_cde %in% c("02","602"),
+                                #'Pot fishery' = Project_cde %in% c("02","602") & Gear == "Pot",
+  #                              method = "unique"))) -> all_bio# %>% 
+  #filter(year <= YEAR & age >= rec_age & age <= plus_group) -> all_bio
+
+ggplot(as.data.frame(all_bio %>% filter(Sex == "Female" )),
+       aes(length, year, group = year, fill = year)) +
+    geom_density_ridges(aes(point_fill = year, point_color = year),
+                        alpha = 0.3, scale=2, #jittered_points = TRUE,
+                        rel_min_height = 0.01) +
+  xlim(40,110) +
+ # stat_density_ridges(quantile_lines = FALSE, alpha = 0.75) +
+  facet_wrap(~ Source) + theme(legend.position="none") +
+  ggtitle("Female") + xlab("Length (cm)") + ylab("Year") -> female_lengths
+
+ggplot(as.data.frame(all_bio %>% filter(Sex == "Male")),
+       aes(length, year, group = year, fill = year)) +
+  geom_density_ridges(aes(point_fill = year, point_color = year),
+                      alpha = 0.3, scale=2, #jittered_points = TRUE,
+                      rel_min_height = 0.01) +
+  xlim(40,110) +
+  #stat_density_ridges(quantile_lines = FALSE, alpha = 0.5) +
+  facet_wrap(~ Source) + theme(legend.position="none") +
+  ggtitle("Male")+ xlab("Length (cm)") + ylab("Year")-> male_lengths
+
+library(ggpubr)
+ggarrange(female_lengths, male_lengths, ncol=1,nrow=2)
+ggsave(paste0(YEAR+1,"/figures/raw_length_comps.png"), dpi = 300, height = 8, width = 5, units = "in")
 #==============================================================================================
 ###OULIER REMOVAL STEP for too fat and too skinny sablefish... usually weighing error
 unique(fsh_bio$year)

@@ -553,6 +553,8 @@ ggsave(paste0(YEAR+1,"/figures/tmb/bio_dat_", YEAR, ".png"), dpi=300, height=10,
 
 lencomps <- read_csv(paste0(YEAR+1,"/output/lengthcomps_", YEAR, ".csv"), guess_max = 500000)
 unique(lencomps$Source)
+head(lencomps)
+
 lencomps <- lencomps %>%   
   filter(Source != "Pot survey" & Source != "Pot fishery") %>% 
   mutate(Source = derivedVariable(`fsh_len` = Source == "LL fishery",
@@ -565,6 +567,13 @@ lencomps <- lencomps %>%
   arrange(Source, year, Sex)
 
 write_csv(lencomps, paste0(YEAR+1,"/data/tmb_inputs/lencomps_", YEAR, ".csv"))
+
+str(lencomps)
+ggplot(as.data.frame(lencomps %>% filter(Sex == "Female")),
+       aes(x = length_bin, y = proportion)) +
+  geom_col(aes(color = Source),stat = "identity") +
+  facet_wrap(year) 
+
 
 # Age compositions ----
 

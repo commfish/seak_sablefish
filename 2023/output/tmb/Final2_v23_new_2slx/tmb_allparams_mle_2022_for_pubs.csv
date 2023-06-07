@@ -1,0 +1,195 @@
+Parameter_mod,Estimate,se,,Parameter,Year_or_age
+log_srv_slx_pars,1.443829418,0.343512789,,"Male selectivity s50, < 2000",
+log_srv_slx_pars.1,1.112574446,0.09784299,,"Male selectivity s50, 2000-2022",
+log_srv_slx_pars.2,-0.575746802,0.427501854,,"Male selectivity d slope, < 2000",
+log_srv_slx_pars.3,-0.220497478,0.137297407,,"Male selectivity d slope, 2000-2022",
+log_srv_slx_pars.4,0.639578766,0.207863542,,"Female selectivity s50, < 2000",
+log_srv_slx_pars.5,0.528824706,0.06520391,,"Female selectivity s50, 2000-2022",
+log_srv_slx_pars.6,0.421775517,0.374515285,,"Female selectivity d slope, < 2000",
+log_srv_slx_pars.7,0.853747098,0.180403701,,"Female selectivity d slope, 2000-2022",
+fsh_logq,-17.66968193,0.041285324,,Pre-EQS catchability,
+fsh_logq.1,-17.24259806,0.025175594,,EQS catchability,
+srv_logq,-16.88043565,0.06267473,,"Survey catchability, < 2000",
+srv_logq.1,-16.71778529,0.030403703,,"Survey catchability, 2000-2022",
+mr_logq,-0.042636261,0.009740429,,MR catchability,
+log_rbar,13.59133372,0.090041094,,Mean Recruitment,
+log_rec_devs,0.324541089,0.573466441,,Recruitment Deviation ,1975
+log_rec_devs.1,0.338213715,0.578705895,,Recruitment Deviation ,1976
+log_rec_devs.2,0.344569248,0.58367995,,Recruitment Deviation ,1977
+log_rec_devs.3,0.320086934,0.578064097,,Recruitment Deviation ,1978
+log_rec_devs.4,3.204374421,0.159131189,,Recruitment Deviation ,1979
+log_rec_devs.5,0.296440302,0.568868158,,Recruitment Deviation ,1980
+log_rec_devs.6,0.311779594,0.565863484,,Recruitment Deviation ,1981
+log_rec_devs.7,0.350118725,0.562786938,,Recruitment Deviation ,1982
+log_rec_devs.8,0.359999723,0.546502105,,Recruitment Deviation ,1983
+log_rec_devs.9,0.326368481,0.523572847,,Recruitment Deviation ,1984
+log_rec_devs.10,0.220454793,0.494180808,,Recruitment Deviation ,1985
+log_rec_devs.11,0.07589604,0.462376592,,Recruitment Deviation ,1986
+log_rec_devs.12,-0.067153616,0.434503181,,Recruitment Deviation ,1987
+log_rec_devs.13,-0.216302982,0.41090311,,Recruitment Deviation ,1988
+log_rec_devs.14,-0.34874467,0.393993383,,Recruitment Deviation ,1989
+log_rec_devs.15,-0.396363515,0.38422119,,Recruitment Deviation ,1990
+log_rec_devs.16,-0.34624567,0.376320735,,Recruitment Deviation ,1991
+log_rec_devs.17,-0.28304092,0.367301381,,Recruitment Deviation ,1992
+log_rec_devs.18,-0.339086595,0.361846686,,Recruitment Deviation ,1993
+log_rec_devs.19,-0.384268755,0.358021871,,Recruitment Deviation ,1994
+log_rec_devs.20,-0.164626157,0.354720152,,Recruitment Deviation ,1995
+log_rec_devs.21,0.046451502,0.357881579,,Recruitment Deviation ,1996
+log_rec_devs.22,0.325875676,0.350790551,,Recruitment Deviation ,1997
+log_rec_devs.23,0.670619491,0.295640507,,Recruitment Deviation ,1998
+log_rec_devs.24,0.692082077,0.296480607,,Recruitment Deviation ,1999
+log_rec_devs.25,0.417786216,0.336075096,,Recruitment Deviation ,2000
+log_rec_devs.26,0.298737501,0.336692869,,Recruitment Deviation ,2001
+log_rec_devs.27,0.143742851,0.329130731,,Recruitment Deviation ,2002
+log_rec_devs.28,-0.201790468,0.34427425,,Recruitment Deviation ,2003
+log_rec_devs.29,-0.27931235,0.341830409,,Recruitment Deviation ,2004
+log_rec_devs.30,-0.007575563,0.290519584,,Recruitment Deviation ,2005
+log_rec_devs.31,-0.322073541,0.322617376,,Recruitment Deviation ,2006
+log_rec_devs.32,-0.511527785,0.321291288,,Recruitment Deviation ,2007
+log_rec_devs.33,-0.515800175,0.343817501,,Recruitment Deviation ,2008
+log_rec_devs.34,0.434288925,0.210921371,,Recruitment Deviation ,2009
+log_rec_devs.35,-0.266471658,0.296348658,,Recruitment Deviation ,2010
+log_rec_devs.36,-0.995337049,0.318299519,,Recruitment Deviation ,2011
+log_rec_devs.37,-0.923177359,0.29264074,,Recruitment Deviation ,2012
+log_rec_devs.38,-0.796422012,0.300141135,,Recruitment Deviation ,2013
+log_rec_devs.39,-0.213208202,0.281704113,,Recruitment Deviation ,2014
+log_rec_devs.40,0.493411471,0.226258366,,Recruitment Deviation ,2015
+log_rec_devs.41,0.433610511,0.284378646,,Recruitment Deviation ,2016
+log_rec_devs.42,0.495428848,0.338305036,,Recruitment Deviation ,2017
+log_rec_devs.43,1.751889093,0.153884019,,Recruitment Deviation ,2018
+log_rec_devs.44,0.164373219,0.447361197,,Recruitment Deviation ,2019
+log_rec_devs.45,0.465947233,0.37971614,,Recruitment Deviation ,2020
+log_rec_devs.46,0.498409141,0.476043746,,Recruitment Deviation ,2021
+log_rec_devs.47,0.279167815,0.505290994,,Recruitment Deviation ,2022
+log_rinit,13.83546369,0.138943704,,Initial numbers-at-age,
+log_rinit_devs,0.364307766,0.575748398,,Initial numbers-at-age deviation,3
+log_rinit_devs.1,0.317679289,0.564950686,,Initial numbers-at-age deviation,4
+log_rinit_devs.2,0.253360037,0.549577545,,Initial numbers-at-age deviation,5
+log_rinit_devs.3,0.235689512,0.546069039,,Initial numbers-at-age deviation,6
+log_rinit_devs.4,0.214339798,0.540765965,,Initial numbers-at-age deviation,7
+log_rinit_devs.5,0.193819394,0.53536473,,Initial numbers-at-age deviation,8
+log_rinit_devs.6,0.173879646,0.530225803,,Initial numbers-at-age deviation,9
+log_rinit_devs.7,0.14300161,0.522741455,,Initial numbers-at-age deviation,10
+log_rinit_devs.8,0.122971072,0.517968273,,Initial numbers-at-age deviation,11
+log_rinit_devs.9,0.111455343,0.515239139,,Initial numbers-at-age deviation,12
+log_rinit_devs.10,0.102247512,0.513046025,,Initial numbers-at-age deviation,13
+log_rinit_devs.11,0.09831066,0.512088614,,Initial numbers-at-age deviation,14
+log_rinit_devs.12,0.095581691,0.511409152,,Initial numbers-at-age deviation,15
+log_rinit_devs.13,0.091803957,0.510477576,,Initial numbers-at-age deviation,16
+log_rinit_devs.14,0.092364463,0.510569763,,Initial numbers-at-age deviation,17
+log_rinit_devs.15,0.093412202,0.510781822,,Initial numbers-at-age deviation,18
+log_rinit_devs.16,0.094407851,0.510985612,,Initial numbers-at-age deviation,19
+log_rinit_devs.17,0.094638809,0.511009138,,Initial numbers-at-age deviation,20
+log_rinit_devs.18,0.096683403,0.511473844,,Initial numbers-at-age deviation,21
+log_rinit_devs.19,0.098725227,0.511944461,,Initial numbers-at-age deviation,22
+log_rinit_devs.20,0.100942787,0.512464293,,Initial numbers-at-age deviation,23
+log_rinit_devs.21,0.103038013,0.512960154,,Initial numbers-at-age deviation,24
+log_rinit_devs.22,0.105098575,0.513452861,,Initial numbers-at-age deviation,25
+log_rinit_devs.23,0.107290581,0.513983383,,Initial numbers-at-age deviation,26
+log_rinit_devs.24,0.109871054,0.51461664,,Initial numbers-at-age deviation,27
+log_rinit_devs.25,0.112225999,0.515199021,,Initial numbers-at-age deviation,28
+log_rinit_devs.26,0.114375979,0.51573447,,Initial numbers-at-age deviation,29
+log_rinit_devs.27,0.116339155,0.516226552,,Initial numbers-at-age deviation,30
+log_sigma_r,-0.652654081,0.087526195,,sR,
+log_Fbar,-2.874450141,0.323697116,,Mean fishing mortality,
+log_F_devs,-0.589286391,0.338914637,,Fishing mortality deviation,1975
+log_F_devs.1,-0.585070572,0.337839908,,Fishing mortality deviation,1976
+log_F_devs.2,-1.125451707,0.336579253,,Fishing mortality deviation,1977
+log_F_devs.3,-0.773955109,0.335254091,,Fishing mortality deviation,1978
+log_F_devs.4,-0.351789862,0.334067942,,Fishing mortality deviation,1979
+log_F_devs.5,-0.668403718,0.333022081,,Fishing mortality deviation,1980
+log_F_devs.6,-0.969524906,0.331423328,,Fishing mortality deviation,1981
+log_F_devs.7,-0.901720369,0.329610968,,Fishing mortality deviation,1982
+log_F_devs.8,-0.613210333,0.328233095,,Fishing mortality deviation,1983
+log_F_devs.9,-0.764526374,0.327562571,,Fishing mortality deviation,1984
+log_F_devs.10,-0.344836381,0.327337028,,Fishing mortality deviation,1985
+log_F_devs.11,-0.025858945,0.327241927,,Fishing mortality deviation,1986
+log_F_devs.12,-0.113849256,0.327289317,,Fishing mortality deviation,1987
+log_F_devs.13,-0.003139023,0.327176801,,Fishing mortality deviation,1988
+log_F_devs.14,-0.070446397,0.327112788,,Fishing mortality deviation,1989
+log_F_devs.15,-0.144393623,0.327071654,,Fishing mortality deviation,1990
+log_F_devs.16,0.103837322,0.32699877,,Fishing mortality deviation,1991
+log_F_devs.17,0.263199554,0.326983855,,Fishing mortality deviation,1992
+log_F_devs.18,0.6705103,0.326953181,,Fishing mortality deviation,1993
+log_F_devs.19,0.602398468,0.327017253,,Fishing mortality deviation,1994
+log_F_devs.20,0.654971396,0.327016952,,Fishing mortality deviation,1995
+log_F_devs.21,0.811688425,0.326962247,,Fishing mortality deviation,1996
+log_F_devs.22,0.957775229,0.326881002,,Fishing mortality deviation,1997
+log_F_devs.23,1.075960404,0.326771065,,Fishing mortality deviation,1998
+log_F_devs.24,0.782078515,0.32687893,,Fishing mortality deviation,1999
+log_F_devs.25,0.871405502,0.326802444,,Fishing mortality deviation,2000
+log_F_devs.26,0.589321105,0.326883157,,Fishing mortality deviation,2001
+log_F_devs.27,0.521589895,0.326882366,,Fishing mortality deviation,2002
+log_F_devs.28,0.503220933,0.32685425,,Fishing mortality deviation,2003
+log_F_devs.29,0.575427482,0.326796876,,Fishing mortality deviation,2004
+log_F_devs.30,0.497021855,0.326801724,,Fishing mortality deviation,2005
+log_F_devs.31,0.48776909,0.326780358,,Fishing mortality deviation,2006
+log_F_devs.32,0.235427057,0.326878065,,Fishing mortality deviation,2007
+log_F_devs.33,0.262842483,0.326884994,,Fishing mortality deviation,2008
+log_F_devs.34,-0.012060556,0.327002078,,Fishing mortality deviation,2009
+log_F_devs.35,-0.042345892,0.327052907,,Fishing mortality deviation,2010
+log_F_devs.36,-0.200470404,0.327121857,,Fishing mortality deviation,2011
+log_F_devs.37,-0.063049985,0.32717567,,Fishing mortality deviation,2012
+log_F_devs.38,-0.062066265,0.327255851,,Fishing mortality deviation,2013
+log_F_devs.39,-0.248044862,0.327310322,,Fishing mortality deviation,2014
+log_F_devs.40,-0.227279009,0.327367938,,Fishing mortality deviation,2015
+log_F_devs.41,-0.402221747,0.327400218,,Fishing mortality deviation,2016
+log_F_devs.42,-0.331113017,0.327451043,,Fishing mortality deviation,2017
+log_F_devs.43,-0.176079611,0.327505359,,Fishing mortality deviation,2018
+log_F_devs.44,-0.172223018,0.327549005,,Fishing mortality deviation,2019
+log_F_devs.45,-0.063124277,0.327588142,,Fishing mortality deviation,2020
+log_F_devs.46,-0.19411609,0.327596148,,Fishing mortality deviation,2021
+log_F_devs.47,-0.226787314,0.327620044,,Fishing mortality deviation,2022
+log_spr_Fxx,-2.309629106,0.252744765,,Fishing mortality for max ABC,0.35
+log_spr_Fxx.1,-2.485207778,0.24482661,,Fishing mortality for max ABC,0.4
+log_spr_Fxx.2,-2.828709763,0.24404204,,Fishing mortality for max ABC,0.5
+log_spr_Fxx.3,-3.18426073,0.262227467,,Fishing mortality for max ABC,0.6
+log_spr_Fxx.4,-3.582716754,0.307148896,,Fishing mortality for max ABC,0.7
+pred_rec,1105573.55,642512.6927,,Predicted recruitment,1975
+pred_rec.1,1120793.454,657781.3073,,Predicted recruitment,1976
+pred_rec.2,1127939.378,668110.7601,,Predicted recruitment,1977
+pred_rec.3,1100660.105,645870.719,,Predicted recruitment,1978
+pred_rec.4,19691706.98,2038060.68,,Predicted recruitment,1979
+pred_rec.5,1074938.513,619642.7178,,Predicted recruitment,1980
+pred_rec.6,1091554.421,624085.9359,,Predicted recruitment,1981
+pred_rec.7,1134216.252,641673.8538,,Predicted recruitment,1982
+pred_rec.8,1145478.993,624579.6032,,Predicted recruitment,1983
+pred_rec.9,1107595.713,573817.4742,,Predicted recruitment,1984
+pred_rec.10,996284.8718,484726.1211,,Predicted recruitment,1985
+pred_rec.11,862188.9792,391757.3994,,Predicted recruitment,1986
+pred_rec.12,747268.6984,318871.0223,,Predicted recruitment,1987
+pred_rec.13,643727.473,259914.8723,,Predicted recruitment,1988
+pred_rec.14,563875.6619,218534.3307,,Predicted recruitment,1989
+pred_rec.15,537653.8356,202936.9284,,Predicted recruitment,1990
+pred_rec.16,565286.5494,207844.2366,,Predicted recruitment,1991
+pred_rec.17,602168.6283,214698.5547,,Predicted recruitment,1992
+pred_rec.18,569347.9991,200562.4437,,Predicted recruitment,1993
+pred_rec.19,544196.1137,190404.0548,,Predicted recruitment,1994
+pred_rec.20,677867.7993,233068.5953,,Predicted recruitment,1995
+pred_rec.21,837172.3321,290566.009,,Predicted recruitment,1996
+pred_rec.22,1107050.019,375266.8414,,Predicted recruitment,1997
+pred_rec.23,1562743.064,440311.1162,,Predicted recruitment,1998
+pred_rec.24,1596646.094,450301.7795,,Predicted recruitment,1999
+pred_rec.25,1213622.122,394786.8933,,Predicted recruitment,2000
+pred_rec.26,1077410.699,349887.172,,Predicted recruitment,2001
+pred_rec.27,922715.8118,290716.4815,,Predicted recruitment,2002
+pred_rec.28,653137.6944,218568.3571,,Predicted recruitment,2003
+pred_rec.29,604418.0474,201658.6183,,Predicted recruitment,2004
+pred_rec.30,793142.4789,215757.3853,,Predicted recruitment,2005
+pred_rec.31,579117.2138,180378.381,,Predicted recruitment,2006
+pred_rec.32,479167.707,149221.131,,Predicted recruitment,2007
+pred_rec.33,477124.8824,162204.0357,,Predicted recruitment,2008
+pred_rec.34,1233816.346,225121.7757,,Predicted recruitment,2009
+pred_rec.35,612229.2363,174560.4697,,Predicted recruitment,2010
+pred_rec.36,295373.7165,92247.70197,,Predicted recruitment,2011
+pred_rec.37,317475.6367,89254.03271,,Predicted recruitment,2012
+pred_rec.38,360379.062,104473.5225,,Predicted recruitment,2013
+pred_rec.39,645722.7537,173119.0939,,Predicted recruitment,2014
+pred_rec.40,1308962.229,269980.4465,,Predicted recruitment,2015
+pred_rec.41,1232979.591,332606.1406,,Predicted recruitment,2016
+pred_rec.42,1311605.565,437121.6996,,Predicted recruitment,2017
+pred_rec.43,4607623.682,532390.0658,,Predicted recruitment,2018
+pred_rec.44,941949.4952,422795.4078,,Predicted recruitment,2019
+pred_rec.45,1273501.755,467376.5483,,Predicted recruitment,2020
+pred_rec.46,1315520.364,620009.5402,,Predicted recruitment,2021
+pred_rec.47,1056531.08,536753.5395,,Predicted recruitment,2022

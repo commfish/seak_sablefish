@@ -13,54 +13,7 @@
 
 template <class Type> Type square(Type x){return x*x;}
 
-// template <class Type> Type sumVec(vector<Type> vec){return std::accumulate(vec.begin(), vec.end(), 0.0);}
-
-// template <class Type> Type mean(vector<Type> vec){return std::accumulate(vec.begin(), vec.end(), 0.0) / vec.size();}
-
-// Dirichlet-multinomial
-
-//template<class Type>
-//Type ddirmult( vector<Type> x, vector<Type> prob, Type ln_theta, int give_log=0 ){
-
-  // Pre-processing
-//  int n_c = x.size();
-//  vector<Type> p_exp(n_c);
-//  vector<Type> p_obs(n_c);
-//  Type Ntotal = x.sum();
-//  p_exp = prob / prob.sum();
-//  p_obs = x / Ntotal;
-//  Type dirichlet_Parm = exp(ln_theta) * Ntotal;
-
-  // https://github.com/nmfs-stock-synthesis/stock-synthesis/blob/main/SS_objfunc.tpl#L306-L314
-  // https://github.com/James-Thorson/CCSRA/blob/master/inst/executables/CCSRA_v8.cpp#L237-L242
-  // https://www.sciencedirect.com/science/article/pii/S0165783620303696
-
-  // 1st term -- integration constant that could be dropped
-//  Type logres = lgamma( Ntotal+1 );
-//  for( int c=0; c<n_c; c++ ){
-//    logres -= lgamma( Ntotal*p_obs(c) + 1.0 );
-//  }
-
-  // 2nd term in formula
-//  logres += lgamma( dirichlet_Parm ) - lgamma( Ntotal+dirichlet_Parm );
-
-  // Summation in 3rd term
- // for( int c=0; c<n_c; c++ ){
-//    logres += lgamma( Ntotal*p_obs(c) + dirichlet_Parm*p_exp(c) );
-//    logres -= lgamma( dirichlet_Parm * p_exp(c) );
-//  }
-
-//  if(give_log) return logres; else return exp(logres);
-//}
-
 template<class Type>
-// Function to compute likelihood for dirichlet-multinomial (follows linear parameterization of
-// Thorson et al. 2017)
-// @param obs = Observed vector (in proportions)
-// @param pred = Predicted vector (in proportions)
-// @param Input_N = Input sample size
-// @param Dir_Param = parameter for DM
-// @param give_log = whether or not to compute log of likelihood
 Type ddirmult( vector<Type> obs, 
                vector<Type> pred, 
                Type Input_N, 
@@ -87,14 +40,6 @@ Type ddirmult( vector<Type> obs,
     logLike += lgamma( (Ntotal * p_obs(a)) + (dirichlet_param * p_pred(a)) );
     logLike -= lgamma(dirichlet_param * p_pred(a));
   } // end a loop
-  
-  // Type phi = dirichlet_param.sum();
-  // Type logLike = lgamma(Ntotal + 1.0) + lgamma(phi) - lgamma(Ntotal + phi);
-  // for(int a = 0; a < n_a; a++) {
-  //   logLike += -lgamma(p_obs(a) + 1.0) +
-  //     lgamma(p_obs(a) + dirichlet_param(a)) -
-  //     lgamma(dirichlet_param(a));
-  // } // end a loop
   
   if(do_log == 1) return logLike; else return exp(logLike);
 } // end function
@@ -1440,27 +1385,6 @@ template<class Type>
 
   case 1: // Dirichlet-multinomial (D-M)
 
-//    for (int i = 0; i < nyr_fsh_age; i++) {
-      // Preliminary calcs
-//      for (int j = 0; j < nage; j++) {
-        // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-//        sum1_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + Type(1.0) );
-        // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-        //sum2_fsh(i) += lgamma( n_fsh_age(i) + data_fsh_age(i,j) + fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) ) -
-        //  lgamma( fsh_theta * n_fsh_age(i) - pred_fsh_age(i,j) );
-//        sum2_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) ) -
-//          lgamma( fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) );   // second n_fsh_age(i) should be big N in Thorso which is not specified an may be a typo? 
-        //sum2_fsh(i) += lgamma( n_fsh_age(i) * data_fsh_age(i,j) + fsh_theta * bigN * pred_fsh_age(i,j) ) -
-        //  lgamma( fsh_theta * n_fsh_age(i) * pred_fsh_age(i,j) );
-//     }
-      // Full nll for D-M, Eqn 10, Thorson et al. 2017
-      //age_like(0) -= lgamma(n_fsh_age(i) + Type(1.0)) - sum1_fsh(i) + lgamma(fsh_theta * n_fsh_age(i)) -
-      //  lgamma(n_fsh_age(i) + fsh_theta * n_fsh_age(i)) + sum2_fsh(i);
- //     age_like(0) -= lgamma(n_fsh_age(i) + Type(1.0)) - sum1_fsh(i) + lgamma(fsh_theta * n_fsh_age(i)) -
-//        lgamma(n_fsh_age(i) + fsh_theta * n_fsh_age(i)) + sum2_fsh(i);
-
-//    }
-
     vector<Type> obs_fa_vec( nage );
     vector<Type> pred_fa_vec( nage );
     Type sampsize_fa; 
@@ -1509,24 +1433,6 @@ template<class Type>
     break;
 
   case 1: // Dirichlet-multinomial (D-M)
-
-//    for (int i = 0; i < nyr_srv_age; i++) {
-      // Preliminary calcs
-//      for (int j = 0; j < nage; j++) {
-        // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-//        sum1_srv(i) += lgamma( n_srv_age(i) * data_srv_age(i,j) + Type(1.0) );
-        // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
-        //sum2_srv(i) += lgamma( n_srv_age(i) + data_srv_age(i,j) + srv_theta * n_srv_age(i) * pred_srv_age(i,j) ) -
-        //  lgamma( srv_theta * n_srv_age(i) - pred_srv_age(i,j) );
-//        sum2_srv(i) += lgamma( n_srv_age(i) * data_srv_age(i,j) + srv_theta * n_srv_age(i) * pred_srv_age(i,j) ) -
-//          lgamma( srv_theta * n_srv_age(i) * pred_srv_age(i,j) );   //switch - to * ??
-//      }
-      // Full nll for D-M, Eqn 10, Thorson et al. 2017
-      //age_like(1) -= lgamma(n_srv_age(i) + Type(1.0)) - sum1_srv(i) + lgamma(srv_theta * n_srv_age(i)) -
-      //  lgamma(n_srv_age(i) + srv_theta * n_srv_age(i)) + sum2_srv(i);
-//      age_like(1) -= lgamma(n_srv_age(i) + Type(1.0)) - sum1_srv(i) + lgamma(srv_theta * n_srv_age(i)) -
-//        lgamma(n_srv_age(i) + srv_theta * n_srv_age(i)) + sum2_srv(i);
-//    }
 
     vector<Type> obs_sa_vec( nage );
     vector<Type> pred_sa_vec( nage );
