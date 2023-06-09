@@ -1,0 +1,109 @@
+---
+title: "Untitled"
+author: "Phil Joy"
+date: "2023-06-07"
+output: 
+    word_document:
+    #bookdown::word_document2:
+      reference_docx: word-styles-reference.docx
+      #reference_docx: RIR.1J.2023.XX_NSEI DRAFT.docx
+      fig_caption: yes
+      toc: yes
+      number_sections: false
+#      pandoc_args: ["--filter", "pandoc-crossref"]
+#      pandoc_args: ["-Fpandoc-crossref"]
+#      equationNumbers: true
+    
+header-includes: 
+ \usepackage{float}
+ \floatplacement{figure}{H}
+ \usepackage{fontspec}
+ \setmainfont{Times New Roman}
+ \usepackage{amsmath}
+#always_allow_html: yes
+mainfont: "Times New Roman"
+#equationNumbers: autoNumber: "AMS"
+
+#<script type="text/x-mathjax-config">
+#MathJax.Hub.Config({
+# TeX: {equationNumbers: {autoNumber: "AMS"}}
+#});
+#</script>
+
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.pos = 'H',
+                      root.dir = rprojroot::find_rstudio_root_file())
+options(kableExtra.html.bsTable = TRUE)
+options(knitr.graphics.auto_pdf = TRUE)
+#knitr::opts_knit$set(root.dir = '../')
+#getwd()
+
+# always_allow_html: yes
+library(knitr)
+library(kableExtra)
+library(tidyverse)
+library(here)
+library(pandocfilters)
+options(scipen=9999) # remove scientific notation
+
+library(extrafont)
+loadfonts(device="win")
+windowsFonts(Times=windowsFont("TT Times New Roman"))
+theme_set(theme_bw(base_size=12,base_family='Times New Roman')+ 
+            theme(panel.grid.major = element_blank(),
+                  panel.grid.minor = element_blank()))
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+In each time period, the likelihood of recapturing *k* marked sablefish given *n* sampled fish follows a binomial distribution, where
+
+$$
+\begin{equation} 
+\tag{1}
+Pr(k|n,p) = {n \choose k}p^k(1-p)^{n-k}
+(\#eq:eq1)
+\end{equation}
+$$ 
+
+where $n$ is the input sample size. The relationship between $n$, $\theta$, and $\omega$ is
+
+
+$$
+\begin{equation}
+\tag{2}
+\hat{P}_{t,l,k}^{srv}=\Lambda_{a,l,k}\frac{N_{t,a,k} \cdot s_{a,k}^{srv}}{\sum_{a=a_0}^{a+} N_{t,a,k} \cdot s_{a,k}^{srv}}.
+\end{equation}
+$$ 
+
+or
+
+$$
+\begin{equation}
+\tag{3}
+lnL(SPR)^t = 100({\frac{SBPR_{50}}{SBPR_{100}}-0.50})^2
+\end{equation}
+$$
+
+Additional information on mark–recapture modeling, alternative models considered, and model selection methodology is detailed in Appendix A of Sullivan et al. (2019).
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

@@ -8,8 +8,8 @@ author:
 output:
  # bookdown::pdf_document2:
  # bookdown::word_document2:
- # bookdown::html_document2:
-  word_document: 
+  bookdown::html_document2:
+ # word_document: 
  # html_document:
     fig_caption: yes
     toc: yes
@@ -43,13 +43,13 @@ font-family: Times New Roman;
   font-size: small;
 }
 
-figcaption {
-  text-align: left;
-}
+#figcaption {
+#  text-align: left;
+#}
 
-figure {
-  text-align: left;
-}
+#figure {
+#  text-align: left;
+#}
 </style>
 ---
 ```{css, echo=FALSE}
@@ -57,13 +57,7 @@ h1 {
   text-align: center;
 }
 
-figcaption {
-  text-align: left;
-}
 
-figure {
-  text-align: left;
-}
 ```
 
 
@@ -85,6 +79,7 @@ library(knitr)
 library(kableExtra)
 library(tidyverse)
 library(here)
+library(magick)
 options(scipen=9999) # remove scientific notation
 
 library(extrafont)
@@ -939,9 +934,10 @@ tab1<-tab1 %>%
   select(Year, 'Annual harvest objective', 'Equal quota share', Harvest, 'Exvessel value (mil)',
          'No. of permits', 'No. of days' = No._of_days)
 
-kable(tab1, booktabs = TRUE, longtable = TRUE,  #format = "latex", 
+kable(tab1, booktabs = TRUE, longtable = TRUE,  format = "latex", 
       escape = FALSE, align = c("l",rep("c",ncol(tab1)-1)),
-      caption = "Annual harvest objective (round lb), equal quota share (round lb), reported harvest (round lb), exvessel value, numberof permits, and effort (dats) for the directed commercial Northern Southeast Inside (NSEI) Subdistrict sablefish fishery, 1985-2022.") %>% kable_styling(full_width = F)
+      caption = "Annual harvest objective (round lb), equal quota share (round lb), reported harvest (round lb), exvessel value, numberof permits, and effort (dats) for the directed commercial Northern Southeast Inside (NSEI) Subdistrict sablefish fishery, 1985-2022.") %>% 
+  kable_styling(full_width = F) 
 
 ```
 <br><br><br>
@@ -1219,7 +1215,7 @@ kable(keyparams_print, booktabs = TRUE,  escape = FALSE, align = c('l','c','c','
 
 <br><br><br>
 
-```{r nseimap, out.width = "50%", fig.cap= paste0("Northern Southeast Inside (NSEI) and Southern Southeast Inside (SSEI) Subdistricts including restricted waters of Glacier Bay National Park and Preserve and Annette Islands Reserve.")}
+```{r nseimap, out.width = "50%",fig.align="center", fig.cap="left-aligned", fig.cap= paste0("Northern Southeast Inside (NSEI) and Southern Southeast Inside (SSEI) Subdistricts including restricted waters of Glacier Bay National Park and Preserve and Annette Islands Reserve.")}
 
 knitr::include_graphics(paste0("C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/Legacy_code_pre2023/figures/nsei_ssei_map.jpg"), rel_path=FALSE)
 #knitr::include_graphics(paste0("../figures/tmb/fishing_mort.png"))
