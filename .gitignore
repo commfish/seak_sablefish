@@ -11,8 +11,8 @@ database.csv
 # other file types we don't want to track
 *.xlsx
 *.xlsm
-*.docx
-*.html
+#*.docx
+#*.html
 *.png
 *.pptx
 *.jpg
