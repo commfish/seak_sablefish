@@ -1,6 +1,6 @@
 ---
 title: "Northern Southeast Inside Subdistrict Sablefish (*Anoplopoma fimbria*) Management Plan and Stock Assessment for 2023"
-date: "June 08, 2023"
+date: "June 09, 2023"
 author: 
  - Phil Joy^[Alaska Department of Fish and Game, Commercial Fisheries Division, Juneau, Alaska]
  - Rhea Ehresmann^[Alaska Department of Fish and Game, Commercial Fisheries Division, Sitka, Alaska]
@@ -8,8 +8,8 @@ author:
 output:
  # bookdown::pdf_document2:
  # bookdown::word_document2:
-  bookdown::html_document2:
- # word_document: 
+ # bookdown::html_document2:
+  word_document: 
  # html_document:
     fig_caption: yes
     toc: yes
@@ -43,22 +43,16 @@ font-family: Times New Roman;
   font-size: small;
 }
 
-#figcaption {
-#  text-align: left;
-#}
+figcaption {
+  text-align: left;
+}
 
 #figure {
 #  text-align: left;
 #}
 </style>
 ---
-<style type="text/css">
-h1 {
-  text-align: center;
-}
 
-
-</style>
 
 
 
@@ -844,64 +838,377 @@ Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelih
 
 <br><br><br>
 
-
-\begin{longtable}[t]{lcccccc}
-\caption{(\#tab:catchtab)Annual harvest objective (round lb), equal quota share (round lb), reported harvest (round lb), exvessel value, numberof permits, and effort (dats) for the directed commercial Northern Southeast Inside (NSEI) Subdistrict sablefish fishery, 1985-2022.}\\
-\toprule
-Year & Annual harvest objective & Equal quota share & Harvest & Exvessel value (mil) & No. of permits & No. of days\\
-\midrule
-1985 & 2,380,952 & NA & 2,951,056 & $2 & 105 & 3\\
-1986 & 2,380,952 & NA & 3,874,269 & $2.9 & 138 & 2\\
-1987 & 2,380,952 & NA & 3,861,546 & $3.4 & 158 & 1\\
-1988 & 2,380,952 & NA & 4,196,601 & $4.4 & 149 & 1\\
-1989 & 2,380,952 & NA & 3,767,518 & $3.5 & 151 & 1\\
-\addlinespace
-1990 & 2,380,952 & NA & 3,254,262 & $3.1 & 120 & 1\\
-1991 & 2,380,952 & NA & 3,955,189 & $5.5 & 127 & 1\\
-1992 & 2,380,952 & NA & 4,267,781 & $5.4 & 115 & 1\\
-1993 & 2,380,952 & NA & 5,795,974 & $6.6 & 120 & 1\\
-1994 & 4,761,905 & 38,889 & 4,708,584 & $8.1 & 121 & 30\\
-\addlinespace
-1995 & 4,761,905 & 38,889 & 4,543,272 & $9 & 121 & 30\\
-1996 & 4,761,905 & 38,889 & 4,676,032 & $10.1 & 122 & 61\\
-1997 & 4,800,000 & 39,300 & 4,752,285 & $12.2 & 122 & 76\\
-1998 & 4,800,000 & 41,700 & 4,689,713 & $7.4 & 116 & 76\\
-1999 & 3,120,000 & 28,000 & 3,043,272 & $6.5 & 112 & 76\\
-\addlinespace
-2000 & 3,120,000 & 28,600 & 3,081,797 & $8.6 & 111 & 76\\
-2001 & 2,184,000 & 19,600 & 2,142,619 & $4.6 & 111 & 76\\
-2002 & 2,005,000 & 18,400 & 2,009,379 & $5.3 & 109 & 76\\
-2003 & 2,005,000 & 18,565 & 2,003,083 & $4.8 & 108 & 93\\
-2004 & 2,245,000 & 20,787 & 2,230,396 & $4.6 & 108 & 93\\
-\addlinespace
-2005 & 2,053,000 & 19,400 & 2,027,187 & $5 & 106 & 93\\
-2006 & 2,053,000 & 19,550 & 2,031,227 & $5.1 & 105 & 93\\
-2007 & 1,488,000 & 14,500 & 1,501,483 & $3.7 & 103 & 93\\
-2008 & 1,508,000 & 15,710 & 1,513,043 & $4.4 & 96 & 93\\
-2009 & 1,071,000 & 12,170 & 1,069,217 & $3.3 & 88 & 93\\
-\addlinespace
-2010 & 1,063,000 & 12,218 & 1,054,279 & $3.8 & 87 & 93\\
-2011 & 880,000 & 10,602 & 882,777 & $4.4 & 83 & 93\\
-2012 & 975,000 & 12,342 & 969,775 & $3.9 & 79 & 93\\
-2013 & 1,002,162 & 12,848 & 972,740 & $2.6 & 78 & 93\\
-2014 & 745,774 & 9,561 & 773,534 & $2.7 & 78 & 93\\
-\addlinespace
-2015 & 786,748 & 10,087 & 781,702 & $3.1 & 78 & 93\\
-2016 & 650,754 & 8,343 & 646,329 & $2.8 & 78 & 93\\
-2017 & 720,250 & 9,234 & 714,404 & $3.6 & 78 & 93\\
-2018 & 855,416 & 10,967 & 855,600 & $4.2 & 78 & 93\\
-2019 & 920,093 & 11,796 & 909,341 & $4 & 78 & 93\\
-\addlinespace
-2020 & 1,108,003 & 14,773 & 1,101,091 & $3.1 & 75 & 93\\
-2021 & 1,137,867 & 15,587 & 1,083,363 & $2.8 & 73 & 93\\
-2022 & 1,233,633 & 16,899 & 1,182,518 & $3.6 & 71 & 93\\
-2023 & 1,300,000 & 17,000 & NA & $NA & NA & 93\\
-\bottomrule
-\end{longtable}
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>Annual harvest objective (round lb), equal quota share (round lb), reported harvest (round lb), exvessel value, numberof permits, and effort (dats) for the directed commercial Northern Southeast Inside (NSEI) Subdistrict sablefish fishery, 1985-2022.</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Year </th>
+   <th style="text-align:center;"> Annual harvest objective </th>
+   <th style="text-align:center;"> Equal quota share </th>
+   <th style="text-align:center;"> Harvest </th>
+   <th style="text-align:center;"> Exvessel value (mil) </th>
+   <th style="text-align:center;"> No. of permits </th>
+   <th style="text-align:center;"> No. of days </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> 1985 </td>
+   <td style="text-align:center;"> 2,380,952 </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 2,951,056 </td>
+   <td style="text-align:center;"> $2 </td>
+   <td style="text-align:center;"> 105 </td>
+   <td style="text-align:center;"> 3 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1986 </td>
+   <td style="text-align:center;"> 2,380,952 </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 3,874,269 </td>
+   <td style="text-align:center;"> $2.9 </td>
+   <td style="text-align:center;"> 138 </td>
+   <td style="text-align:center;"> 2 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1987 </td>
+   <td style="text-align:center;"> 2,380,952 </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 3,861,546 </td>
+   <td style="text-align:center;"> $3.4 </td>
+   <td style="text-align:center;"> 158 </td>
+   <td style="text-align:center;"> 1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1988 </td>
+   <td style="text-align:center;"> 2,380,952 </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 4,196,601 </td>
+   <td style="text-align:center;"> $4.4 </td>
+   <td style="text-align:center;"> 149 </td>
+   <td style="text-align:center;"> 1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1989 </td>
+   <td style="text-align:center;"> 2,380,952 </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 3,767,518 </td>
+   <td style="text-align:center;"> $3.5 </td>
+   <td style="text-align:center;"> 151 </td>
+   <td style="text-align:center;"> 1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1990 </td>
+   <td style="text-align:center;"> 2,380,952 </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 3,254,262 </td>
+   <td style="text-align:center;"> $3.1 </td>
+   <td style="text-align:center;"> 120 </td>
+   <td style="text-align:center;"> 1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1991 </td>
+   <td style="text-align:center;"> 2,380,952 </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 3,955,189 </td>
+   <td style="text-align:center;"> $5.5 </td>
+   <td style="text-align:center;"> 127 </td>
+   <td style="text-align:center;"> 1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1992 </td>
+   <td style="text-align:center;"> 2,380,952 </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 4,267,781 </td>
+   <td style="text-align:center;"> $5.4 </td>
+   <td style="text-align:center;"> 115 </td>
+   <td style="text-align:center;"> 1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1993 </td>
+   <td style="text-align:center;"> 2,380,952 </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 5,795,974 </td>
+   <td style="text-align:center;"> $6.6 </td>
+   <td style="text-align:center;"> 120 </td>
+   <td style="text-align:center;"> 1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1994 </td>
+   <td style="text-align:center;"> 4,761,905 </td>
+   <td style="text-align:center;"> 38,889 </td>
+   <td style="text-align:center;"> 4,708,584 </td>
+   <td style="text-align:center;"> $8.1 </td>
+   <td style="text-align:center;"> 121 </td>
+   <td style="text-align:center;"> 30 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1995 </td>
+   <td style="text-align:center;"> 4,761,905 </td>
+   <td style="text-align:center;"> 38,889 </td>
+   <td style="text-align:center;"> 4,543,272 </td>
+   <td style="text-align:center;"> $9 </td>
+   <td style="text-align:center;"> 121 </td>
+   <td style="text-align:center;"> 30 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1996 </td>
+   <td style="text-align:center;"> 4,761,905 </td>
+   <td style="text-align:center;"> 38,889 </td>
+   <td style="text-align:center;"> 4,676,032 </td>
+   <td style="text-align:center;"> $10.1 </td>
+   <td style="text-align:center;"> 122 </td>
+   <td style="text-align:center;"> 61 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1997 </td>
+   <td style="text-align:center;"> 4,800,000 </td>
+   <td style="text-align:center;"> 39,300 </td>
+   <td style="text-align:center;"> 4,752,285 </td>
+   <td style="text-align:center;"> $12.2 </td>
+   <td style="text-align:center;"> 122 </td>
+   <td style="text-align:center;"> 76 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1998 </td>
+   <td style="text-align:center;"> 4,800,000 </td>
+   <td style="text-align:center;"> 41,700 </td>
+   <td style="text-align:center;"> 4,689,713 </td>
+   <td style="text-align:center;"> $7.4 </td>
+   <td style="text-align:center;"> 116 </td>
+   <td style="text-align:center;"> 76 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 1999 </td>
+   <td style="text-align:center;"> 3,120,000 </td>
+   <td style="text-align:center;"> 28,000 </td>
+   <td style="text-align:center;"> 3,043,272 </td>
+   <td style="text-align:center;"> $6.5 </td>
+   <td style="text-align:center;"> 112 </td>
+   <td style="text-align:center;"> 76 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2000 </td>
+   <td style="text-align:center;"> 3,120,000 </td>
+   <td style="text-align:center;"> 28,600 </td>
+   <td style="text-align:center;"> 3,081,797 </td>
+   <td style="text-align:center;"> $8.6 </td>
+   <td style="text-align:center;"> 111 </td>
+   <td style="text-align:center;"> 76 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2001 </td>
+   <td style="text-align:center;"> 2,184,000 </td>
+   <td style="text-align:center;"> 19,600 </td>
+   <td style="text-align:center;"> 2,142,619 </td>
+   <td style="text-align:center;"> $4.6 </td>
+   <td style="text-align:center;"> 111 </td>
+   <td style="text-align:center;"> 76 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2002 </td>
+   <td style="text-align:center;"> 2,005,000 </td>
+   <td style="text-align:center;"> 18,400 </td>
+   <td style="text-align:center;"> 2,009,379 </td>
+   <td style="text-align:center;"> $5.3 </td>
+   <td style="text-align:center;"> 109 </td>
+   <td style="text-align:center;"> 76 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2003 </td>
+   <td style="text-align:center;"> 2,005,000 </td>
+   <td style="text-align:center;"> 18,565 </td>
+   <td style="text-align:center;"> 2,003,083 </td>
+   <td style="text-align:center;"> $4.8 </td>
+   <td style="text-align:center;"> 108 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2004 </td>
+   <td style="text-align:center;"> 2,245,000 </td>
+   <td style="text-align:center;"> 20,787 </td>
+   <td style="text-align:center;"> 2,230,396 </td>
+   <td style="text-align:center;"> $4.6 </td>
+   <td style="text-align:center;"> 108 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2005 </td>
+   <td style="text-align:center;"> 2,053,000 </td>
+   <td style="text-align:center;"> 19,400 </td>
+   <td style="text-align:center;"> 2,027,187 </td>
+   <td style="text-align:center;"> $5 </td>
+   <td style="text-align:center;"> 106 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2006 </td>
+   <td style="text-align:center;"> 2,053,000 </td>
+   <td style="text-align:center;"> 19,550 </td>
+   <td style="text-align:center;"> 2,031,227 </td>
+   <td style="text-align:center;"> $5.1 </td>
+   <td style="text-align:center;"> 105 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2007 </td>
+   <td style="text-align:center;"> 1,488,000 </td>
+   <td style="text-align:center;"> 14,500 </td>
+   <td style="text-align:center;"> 1,501,483 </td>
+   <td style="text-align:center;"> $3.7 </td>
+   <td style="text-align:center;"> 103 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2008 </td>
+   <td style="text-align:center;"> 1,508,000 </td>
+   <td style="text-align:center;"> 15,710 </td>
+   <td style="text-align:center;"> 1,513,043 </td>
+   <td style="text-align:center;"> $4.4 </td>
+   <td style="text-align:center;"> 96 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2009 </td>
+   <td style="text-align:center;"> 1,071,000 </td>
+   <td style="text-align:center;"> 12,170 </td>
+   <td style="text-align:center;"> 1,069,217 </td>
+   <td style="text-align:center;"> $3.3 </td>
+   <td style="text-align:center;"> 88 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2010 </td>
+   <td style="text-align:center;"> 1,063,000 </td>
+   <td style="text-align:center;"> 12,218 </td>
+   <td style="text-align:center;"> 1,054,279 </td>
+   <td style="text-align:center;"> $3.8 </td>
+   <td style="text-align:center;"> 87 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2011 </td>
+   <td style="text-align:center;"> 880,000 </td>
+   <td style="text-align:center;"> 10,602 </td>
+   <td style="text-align:center;"> 882,777 </td>
+   <td style="text-align:center;"> $4.4 </td>
+   <td style="text-align:center;"> 83 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2012 </td>
+   <td style="text-align:center;"> 975,000 </td>
+   <td style="text-align:center;"> 12,342 </td>
+   <td style="text-align:center;"> 969,775 </td>
+   <td style="text-align:center;"> $3.9 </td>
+   <td style="text-align:center;"> 79 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2013 </td>
+   <td style="text-align:center;"> 1,002,162 </td>
+   <td style="text-align:center;"> 12,848 </td>
+   <td style="text-align:center;"> 972,740 </td>
+   <td style="text-align:center;"> $2.6 </td>
+   <td style="text-align:center;"> 78 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2014 </td>
+   <td style="text-align:center;"> 745,774 </td>
+   <td style="text-align:center;"> 9,561 </td>
+   <td style="text-align:center;"> 773,534 </td>
+   <td style="text-align:center;"> $2.7 </td>
+   <td style="text-align:center;"> 78 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2015 </td>
+   <td style="text-align:center;"> 786,748 </td>
+   <td style="text-align:center;"> 10,087 </td>
+   <td style="text-align:center;"> 781,702 </td>
+   <td style="text-align:center;"> $3.1 </td>
+   <td style="text-align:center;"> 78 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2016 </td>
+   <td style="text-align:center;"> 650,754 </td>
+   <td style="text-align:center;"> 8,343 </td>
+   <td style="text-align:center;"> 646,329 </td>
+   <td style="text-align:center;"> $2.8 </td>
+   <td style="text-align:center;"> 78 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2017 </td>
+   <td style="text-align:center;"> 720,250 </td>
+   <td style="text-align:center;"> 9,234 </td>
+   <td style="text-align:center;"> 714,404 </td>
+   <td style="text-align:center;"> $3.6 </td>
+   <td style="text-align:center;"> 78 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2018 </td>
+   <td style="text-align:center;"> 855,416 </td>
+   <td style="text-align:center;"> 10,967 </td>
+   <td style="text-align:center;"> 855,600 </td>
+   <td style="text-align:center;"> $4.2 </td>
+   <td style="text-align:center;"> 78 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019 </td>
+   <td style="text-align:center;"> 920,093 </td>
+   <td style="text-align:center;"> 11,796 </td>
+   <td style="text-align:center;"> 909,341 </td>
+   <td style="text-align:center;"> $4 </td>
+   <td style="text-align:center;"> 78 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2020 </td>
+   <td style="text-align:center;"> 1,108,003 </td>
+   <td style="text-align:center;"> 14,773 </td>
+   <td style="text-align:center;"> 1,101,091 </td>
+   <td style="text-align:center;"> $3.1 </td>
+   <td style="text-align:center;"> 75 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2021 </td>
+   <td style="text-align:center;"> 1,137,867 </td>
+   <td style="text-align:center;"> 15,587 </td>
+   <td style="text-align:center;"> 1,083,363 </td>
+   <td style="text-align:center;"> $2.8 </td>
+   <td style="text-align:center;"> 73 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2022 </td>
+   <td style="text-align:center;"> 1,233,633 </td>
+   <td style="text-align:center;"> 16,899 </td>
+   <td style="text-align:center;"> 1,182,518 </td>
+   <td style="text-align:center;"> $3.6 </td>
+   <td style="text-align:center;"> 71 </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023 </td>
+   <td style="text-align:center;"> 1,300,000 </td>
+   <td style="text-align:center;"> 17,000 </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> $NA </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 93 </td>
+  </tr>
+</tbody>
+</table>
 <br><br><br>
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>(\#tab:brps)Summary of key assessment results used to inform management in 2022 and 2023.  The table includes the estimates of projected biomass (sablefish aged 2 years and above) and female spawning stock biomass, estimated biological reference points of unfished female spawning biomass ($SB_{100}$), female spawning bioass at 50% of unfished levels ($SB_{50}$), and the maximum target fishing mortality of *$F_{50}$*.  Additional values include the maximum permissible Acceptable Biological Catch (max ABC) defined by *$F_{50}$*, the estimates of mortality from fishery releases that would result under max ABC and a discard mortality rate of 016, and the recommended ABC under the max 15% change management proceedure</caption>
+<caption>Summary of key assessment results used to inform management in 2022 and 2023.  The table includes the estimates of projected biomass (sablefish aged 2 years and above) and female spawning stock biomass, estimated biological reference points of unfished female spawning biomass ($SB_{100}$), female spawning bioass at 50% of unfished levels ($SB_{50}$), and the maximum target fishing mortality of *$F_{50}$*.  Additional values include the maximum permissible Acceptable Biological Catch (max ABC) defined by *$F_{50}$*, the estimates of mortality from fishery releases that would result under max ABC and a discard mortality rate of 016, and the recommended ABC under the max 15% change management proceedure</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Quantity/Status </th>
@@ -960,7 +1267,7 @@ Year & Annual harvest objective & Equal quota share & Harvest & Exvessel value (
 <br><br><br>
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>(\#tab:decrements)Decrement types and amounts, 2017-2023.  Estimated catch in round pounds of sablefish.</caption>
+<caption>Decrement types and amounts, 2017-2023.  Estimated catch in round pounds of sablefish.</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Year </th>
@@ -1103,7 +1410,7 @@ Year & Annual harvest objective & Equal quota share & Harvest & Exvessel value (
 <br><br><br>
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>(\#tab:modcomp)A comparison for biological reference points from candidate models in the 2023 assessment.  The base model refers to the model used in the prior assessment.  The 'tuned' model refers to the base model with age and length compositioned tuned via McAllister and Ianelli (1997) methodology.  Progression from that model adds the updated fishery selectivity curves from the federal assessment while v23 model modifications are described in this document.  The v23 no MR 5 and 10 refer to models where mark-recapture abundance estimates were dropped in the last 5 and last 10 years, respectivly,</caption>
+<caption>A comparison for biological reference points from candidate models in the 2023 assessment.  The base model refers to the model used in the prior assessment.  The 'tuned' model refers to the base model with age and length compositioned tuned via McAllister and Ianelli (1997) methodology.  Progression from that model adds the updated fishery selectivity curves from the federal assessment while v23 model modifications are described in this document.  The v23 no MR 5 and 10 refer to models where mark-recapture abundance estimates were dropped in the last 5 and last 10 years, respectivly,</caption>
  <thead>
   <tr>
    <th style="text-align:left;">  </th>
@@ -1238,7 +1545,7 @@ Year & Annual harvest objective & Equal quota share & Harvest & Exvessel value (
 <br><br><br>
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>(\#tab:vardefns)Variable definitions for the statistical catch-at-age model.</caption>
+<caption>Variable definitions for the statistical catch-at-age model.</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Variable </th>
@@ -1447,7 +1754,7 @@ Year & Annual harvest objective & Equal quota share & Harvest & Exvessel value (
 <br><br><br>
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>(\#tab:mr)A summary of data inputs to the mark-recapture models, including total individuals tagged (*K*), the total number of tags remaining once size selectivity is accounted for ($K_0$), tags not available to the longline survey or fishery (captured in ther fisheries or outside Chatham, $D_0$), recaptured individuals in the lpongline survey and fishery ($k_{srv}$ and $k_{fsh}$), number of sampled individuals in the longline survey and fishery ($n_{srv}$ and $n_{fsh}$), tags not available to the fishery (captured outside Chatham or in other fisheries during the survey, $D_{srv}$, and tags recaptred in other fisheries or outside Chatham during the fishery ($D_{fsh}$) for years with a tagging survey, 2005-2023.</caption>
+<caption>A summary of data inputs to the mark-recapture models, including total individuals tagged (*K*), the total number of tags remaining once size selectivity is accounted for ($K_0$), tags not available to the longline survey or fishery (captured in ther fisheries or outside Chatham, $D_0$), recaptured individuals in the lpongline survey and fishery ($k_{srv}$ and $k_{fsh}$), number of sampled individuals in the longline survey and fishery ($n_{srv}$ and $n_{fsh}$), tags not available to the fishery (captured outside Chatham or in other fisheries during the survey, $D_{srv}$, and tags recaptred in other fisheries or outside Chatham during the fishery ($D_{fsh}$) for years with a tagging survey, 2005-2023.</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Year </th>
@@ -1636,7 +1943,7 @@ Year & Annual harvest objective & Equal quota share & Harvest & Exvessel value (
 
 \newpage
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>(\#tab:fedsel)Assumed selectivity parameters for the fishery before the Equal Quota Share program started in 1994 (pre-EQS) and the fishery since the implementation of EQS for females (black points) and males (grey triangles). These parameters estimates were borrowed from the Federal stock assessment, where the Federal derby fishery and IFQ fishery were assumed to represent pre-EQS and EQS NSEI fisheries.</caption>
+<caption>Assumed selectivity parameters for the fishery before the Equal Quota Share program started in 1994 (pre-EQS) and the fishery since the implementation of EQS for females (black points) and males (grey triangles). These parameters estimates were borrowed from the Federal stock assessment, where the Federal derby fishery and IFQ fishery were assumed to represent pre-EQS and EQS NSEI fisheries.</caption>
  <thead>
 <tr>
 <th style="empty-cells: hide;border-bottom:hidden;" colspan="1"></th>
@@ -1674,7 +1981,7 @@ Year & Annual harvest objective & Equal quota share & Harvest & Exvessel value (
 
 \newpage
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>(\#tab:likesum)Negative likelihood values and percent of each component to the total likelihood. The data likelihood is the sum of all likelihood contributions from data. The difference between the total likelihood and the data likelihood is the contribution of penalized likelihoods, including recruitment and fishing mortality.</caption>
+<caption>Negative likelihood values and percent of each component to the total likelihood. The data likelihood is the sum of all likelihood contributions from data. The difference between the total likelihood and the data likelihood is the contribution of penalized likelihoods, including recruitment and fishing mortality.</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Likelihood component </th>
@@ -1756,7 +2063,7 @@ Year & Annual harvest objective & Equal quota share & Harvest & Exvessel value (
 </tbody>
 </table>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>(\#tab:keyparams)Parameter estimates from the statistical catch-at-age model. Estimates of recruitment, initial numbers-at-age, and fishing mortality deviations were excluded for brevity.</caption>
+<caption>Parameter estimates from the statistical catch-at-age model. Estimates of recruitment, initial numbers-at-age, and fishing mortality deviations were excluded for brevity.</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Parameter </th>
@@ -1877,161 +2184,83 @@ Year & Annual harvest objective & Equal quota share & Harvest & Exvessel value (
 
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/Legacy_code_pre2023/figures/nsei_ssei_map.jpg" alt="Northern Southeast Inside (NSEI) and Southern Southeast Inside (SSEI) Subdistricts including restricted waters of Glacier Bay National Park and Preserve and Annette Islands Reserve." width="50%" />
-<p class="caption">(\#fig:nseimap)Northern Southeast Inside (NSEI) and Southern Southeast Inside (SSEI) Subdistricts including restricted waters of Glacier Bay National Park and Preserve and Annette Islands Reserve.</p>
-</div>
+![Northern Southeast Inside (NSEI) and Southern Southeast Inside (SSEI) Subdistricts including restricted waters of Glacier Bay National Park and Preserve and Annette Islands Reserve.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/Legacy_code_pre2023/figures/nsei_ssei_map.jpg){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/catch_exvesselvalue_2022v3.png" alt="Catch, landings by port, and ex-vessel value for Northern Southeast Inside (NSEI) Subdistrict commercial sablefish 1985-2022." width="50%" />
-<p class="caption">(\#fig:catch)Catch, landings by port, and ex-vessel value for Northern Southeast Inside (NSEI) Subdistrict commercial sablefish 1985-2022.</p>
-</div>
+![Catch, landings by port, and ex-vessel value for Northern Southeast Inside (NSEI) Subdistrict commercial sablefish 1985-2022.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/catch_exvesselvalue_2022v3.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/base_vs_v23_catch_Fspr.png" alt="Estimated catch in the NSEI fishery from 2000 - 2022 and the relationship to $F_{40}$, $F_{50}$ and $F_{60}$ (Fspr), the fishing mortality that results in a spawner-per-recruit (SPR) of 40, 50 and 60% of the population's virgin state, in the base model and model v23.  Note that model v23, which makes fewer assumptions based on the federal assessment and is moredpendent on NSEI data, estimates the population as muc closer to the ADF&amp;G management target of $F_{50}$." width="3115" />
-<p class="caption">(\#fig:Fsprcomp)Estimated catch in the NSEI fishery from 2000 - 2022 and the relationship to $F_{40}$, $F_{50}$ and $F_{60}$ (Fspr), the fishing mortality that results in a spawner-per-recruit (SPR) of 40, 50 and 60% of the population's virgin state, in the base model and model v23.  Note that model v23, which makes fewer assumptions based on the federal assessment and is moredpendent on NSEI data, estimates the population as muc closer to the ADF&G management target of $F_{50}$.</p>
-</div>
+![Estimated catch in the NSEI fishery from 2000 - 2022 and the relationship to $F_{40}$, $F_{50}$ and $F_{60}$ (Fspr), the fishing mortality that results in a spawner-per-recruit (SPR) of 40, 50 and 60% of the population's virgin state, in the base model and model v23.  Note that model v23, which makes fewer assumptions based on the federal assessment and is moredpendent on NSEI data, estimates the population as muc closer to the ADF&G management target of $F_{50}$.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/base_vs_v23_catch_Fspr.png)
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/sable_data_yprmodel_2022.png" alt="A summary of the available data sources in NSEI by year." width="50%" />
-<p class="caption">(\#fig:datsrc)A summary of the available data sources in NSEI by year.</p>
-</div>
+![A summary of the available data sources in NSEI by year.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/sable_data_yprmodel_2022.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/bio_dat_2022.png" alt="Biological inputs to the statistical catch-at-age model, including: (A) von Bertalanffy growth model predictions of weight-at-age (kg) by sex from the longline fishery (black) and ADFG longline survey (grey); (B) proportion mature at age for females estimated from the longline survey with the age at 50% maturity ($a_{50}$=6.4 yr); and (C) proportion female in the longline survey, where the curve is the fitted line from a generalized additive model +/- 2 standard error." width="50%" />
-<p class="caption">(\#fig:bioinputs)Biological inputs to the statistical catch-at-age model, including: (A) von Bertalanffy growth model predictions of weight-at-age (kg) by sex from the longline fishery (black) and ADFG longline survey (grey); (B) proportion mature at age for females estimated from the longline survey with the age at 50% maturity ($a_{50}$=6.4 yr); and (C) proportion female in the longline survey, where the curve is the fitted line from a generalized additive model +/- 2 standard error.</p>
-</div>
+![Biological inputs to the statistical catch-at-age model, including: (A) von Bertalanffy growth model predictions of weight-at-age (kg) by sex from the longline fishery (black) and ADFG longline survey (grey); (B) proportion mature at age for females estimated from the longline survey with the age at 50% maturity ($a_{50}$=6.4 yr); and (C) proportion female in the longline survey, where the curve is the fitted line from a generalized additive model +/- 2 standard error.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/bio_dat_2022.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/maturity_atage_byyear_srvfem_2022.png" alt="Changes in length- and maturity-at-age over time in the NSEI sablefish population.  There is a general trend of fish maturing at younger ages and smaller sizes.  The model uses an average of all years for the assessment." width="50%" /><img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/maturity_atlength_byyear_srvfem_2022.png" alt="Changes in length- and maturity-at-age over time in the NSEI sablefish population.  There is a general trend of fish maturing at younger ages and smaller sizes.  The model uses an average of all years for the assessment." width="50%" />
-<p class="caption">(\#fig:deltamat)Changes in length- and maturity-at-age over time in the NSEI sablefish population.  There is a general trend of fish maturing at younger ages and smaller sizes.  The model uses an average of all years for the assessment.</p>
-</div>
+![Changes in length- and maturity-at-age over time in the NSEI sablefish population.  There is a general trend of fish maturing at younger ages and smaller sizes.  The model uses an average of all years for the assessment.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/maturity_atage_byyear_srvfem_2022.png){width=50%}![Changes in length- and maturity-at-age over time in the NSEI sablefish population.  There is a general trend of fish maturing at younger ages and smaller sizes.  The model uses an average of all years for the assessment.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/maturity_atlength_byyear_srvfem_2022.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/abd_indices_2022V2.png" alt="Indices of catch and abundance with the assumed error distribution, including: (A) harvest (round mt), (B) fishery catch per unit effort in round kg per hook, (C) survey catch per unit effort in number of fish per hook, and (D) mark-recapture abundance estimates in millions. The dashed vertical line in 1994 mark the transition to the Equal Quota Share program." width="50%" />
-<p class="caption">(\#fig:abdind)Indices of catch and abundance with the assumed error distribution, including: (A) harvest (round mt), (B) fishery catch per unit effort in round kg per hook, (C) survey catch per unit effort in number of fish per hook, and (D) mark-recapture abundance estimates in millions. The dashed vertical line in 1994 mark the transition to the Equal Quota Share program.</p>
-</div>
+![Indices of catch and abundance with the assumed error distribution, including: (A) harvest (round mt), (B) fishery catch per unit effort in round kg per hook, (C) survey catch per unit effort in number of fish per hook, and (D) mark-recapture abundance estimates in millions. The dashed vertical line in 1994 mark the transition to the Equal Quota Share program.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/abd_indices_2022V2.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/ll_cpue_fullstand_1980_2022.png" alt="CPUE in the NSEI longline sablefish fishery in round lbs per hook.  The nominal values (blue) represent values from past assessments and the fully standardized values represent the values used in this assessment." width="50%" />
-<p class="caption">(\#fig:fcpuestand)CPUE in the NSEI longline sablefish fishery in round lbs per hook.  The nominal values (blue) represent values from past assessments and the fully standardized values represent the values used in this assessment.</p>
-</div>
+![CPUE in the NSEI longline sablefish fishery in round lbs per hook.  The nominal values (blue) represent values from past assessments and the fully standardized values represent the values used in this assessment.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/ll_cpue_fullstand_1980_2022.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/agecomps_2022.png" alt="Proportions-at-age for in the NSEI longline fishery (2002-2022) and ADFG longline survey (1997-2022)." width="50%" />
-<p class="caption">(\#fig:agecomps)Proportions-at-age for in the NSEI longline fishery (2002-2022) and ADFG longline survey (1997-2022).</p>
-</div>
+![Proportions-at-age for in the NSEI longline fishery (2002-2022) and ADFG longline survey (1997-2022).](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/agecomps_2022.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/raw_length_comps.png" alt="Longline fishery and survey length distributions by sex from 1997-2022." width="50%" />
-<p class="caption">(\#fig:lencomp)Longline fishery and survey length distributions by sex from 1997-2022.</p>
-</div>
+![Longline fishery and survey length distributions by sex from 1997-2022.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/raw_length_comps.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/compare_comp_summaries.png" alt="A comparison of the mean length and age in the longline fishery and longline survey since 1997 for male and female sablefish in the NSEI district." width="50%" />
-<p class="caption">(\#fig:compcomps)A comparison of the mean length and age in the longline fishery and longline survey since 1997 for male and female sablefish in the NSEI district.</p>
-</div>
+![A comparison of the mean length and age in the longline fishery and longline survey since 1997 for male and female sablefish in the NSEI district.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/compare_comp_summaries.png){width=50%}
 <br><br><br>
 
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/retention_prob_2022.png" alt="The probability of retaining a fish as a function of weight (left), sex, and age (right)." width="2400" />
-<p class="caption">(\#fig:retention)The probability of retaining a fish as a function of weight (left), sex, and age (right).</p>
-</div>
+![The probability of retaining a fish as a function of weight (left), sex, and age (right).](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/retention_prob_2022.png)
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/selectivity_2022.png" alt="Fixed age-based selectivity curves for the fishery before the Equal Quota Share program started in 1994 (pre-EQS), the fishery since the implementation of EQS, and the estimated ADFG longline survey for females (black points) and males (grey triangles) before and after the standardization of the survey in 2000. Fishery selectivity parameter estimates were borrowed from the Federal stock assessment for the derby fishery (pre-EQS) and IFQ fishery (EQS), while the survey selectivity parameters are estimated within the model." width="50%" />
-<p class="caption">(\#fig:slx)Fixed age-based selectivity curves for the fishery before the Equal Quota Share program started in 1994 (pre-EQS), the fishery since the implementation of EQS, and the estimated ADFG longline survey for females (black points) and males (grey triangles) before and after the standardization of the survey in 2000. Fishery selectivity parameter estimates were borrowed from the Federal stock assessment for the derby fishery (pre-EQS) and IFQ fishery (EQS), while the survey selectivity parameters are estimated within the model.</p>
-</div>
+![Fixed age-based selectivity curves for the fishery before the Equal Quota Share program started in 1994 (pre-EQS), the fishery since the implementation of EQS, and the estimated ADFG longline survey for females (black points) and males (grey triangles) before and after the standardization of the survey in 2000. Fishery selectivity parameter estimates were borrowed from the Federal stock assessment for the derby fishery (pre-EQS) and IFQ fishery (EQS), while the survey selectivity parameters are estimated within the model.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/selectivity_2022.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/pred_abd_indices_imperial_2022.png" alt="Fits to indices of catch and abundance with the assumed error distribution shown as shaded grey polygons. Input data are shown as grey points and model fits are shown in black. Indices include (A) harvest (round mt); (B) fishery catch per unit effort in round kg per hook with separate selectivity and catchability time periods before and after the implementation of the Equal Quota Share program in 1994; (C) survey catch per unit effort in number of fish per hook; and (D) mark-recapture abundance estimates in millions. Solid and dashed lines in panel D reflect years for which data were and were not available, respectively." width="50%" />
-<p class="caption">(\#fig:predabdind)Fits to indices of catch and abundance with the assumed error distribution shown as shaded grey polygons. Input data are shown as grey points and model fits are shown in black. Indices include (A) harvest (round mt); (B) fishery catch per unit effort in round kg per hook with separate selectivity and catchability time periods before and after the implementation of the Equal Quota Share program in 1994; (C) survey catch per unit effort in number of fish per hook; and (D) mark-recapture abundance estimates in millions. Solid and dashed lines in panel D reflect years for which data were and were not available, respectively.</p>
-</div>
+![Fits to indices of catch and abundance with the assumed error distribution shown as shaded grey polygons. Input data are shown as grey points and model fits are shown in black. Indices include (A) harvest (round mt); (B) fishery catch per unit effort in round kg per hook with separate selectivity and catchability time periods before and after the implementation of the Equal Quota Share program in 1994; (C) survey catch per unit effort in number of fish per hook; and (D) mark-recapture abundance estimates in millions. Solid and dashed lines in panel D reflect years for which data were and were not available, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/pred_abd_indices_imperial_2022.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Fishery_agecomps_barplot.png" alt="Fits to fishery age compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively." width="75%" />
-<p class="caption">(\#fig:fshage)Fits to fishery age compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.</p>
-</div>
+![Fits to fishery age compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Fishery_agecomps_barplot.png){width=75%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Survey_agecomps_barplot.png" alt="Fits to survey age compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively." width="75%" />
-<p class="caption">(\#fig:srvage)Fits to survey age compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.</p>
-</div>
+![Fits to survey age compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Survey_agecomps_barplot.png){width=75%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/agecomps_residplot.png" alt="Standardized residuals of fits to fishery (2002-2022) and survey (1997-2022) age compositions. Size of residual scales to point size. Black points represent negative residuals (observed &lt; predicted); white points represent positive residuals (observed &gt; predicted)." width="50%" />
-<p class="caption">(\#fig:residage)Standardized residuals of fits to fishery (2002-2022) and survey (1997-2022) age compositions. Size of residual scales to point size. Black points represent negative residuals (observed < predicted); white points represent positive residuals (observed > predicted).</p>
-</div>
+![Standardized residuals of fits to fishery (2002-2022) and survey (1997-2022) age compositions. Size of residual scales to point size. Black points represent negative residuals (observed < predicted); white points represent positive residuals (observed > predicted).](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/agecomps_residplot.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Fishery_Male_lencomps_barplot.png" alt="Fits to male fishery length compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively." width="75%" />
-<p class="caption">(\#fig:malefshlen)Fits to male fishery length compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.</p>
-</div>
+![Fits to male fishery length compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Fishery_Male_lencomps_barplot.png){width=75%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Fishery_Female_lencomps_barplot.png" alt="Fits to female fishery length compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively." width="75%" />
-<p class="caption">(\#fig:femalefshlen)Fits to female fishery length compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.</p>
-</div>
+![Fits to female fishery length compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Fishery_Female_lencomps_barplot.png){width=75%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Survey_Male_lencomps_barplot.png" alt="Fits to male survey length compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively." width="75%" />
-<p class="caption">(\#fig:malesrvlen)Fits to male survey length compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.</p>
-</div>
+![Fits to male survey length compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Survey_Male_lencomps_barplot.png){width=75%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Survey_Female_lencomps_barplot.png" alt="Fits to female survey length compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively." width="75%" />
-<p class="caption">(\#fig:femalesrvlen)Fits to female survey length compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.</p>
-</div>
+![Fits to female survey length compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Survey_Female_lencomps_barplot.png){width=75%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/lencomps_residplot.png" alt="Standardized residuals of fits to fishery (2002-2022) and survey (1997-2022) length compositions for males and females. Size of residual scales to point size. Black points represent negative residuals (observed &lt; predicted); white points represent positive residuals (observed &gt; predicted)." width="50%" />
-<p class="caption">(\#fig:residlen)Standardized residuals of fits to fishery (2002-2022) and survey (1997-2022) length compositions for males and females. Size of residual scales to point size. Black points represent negative residuals (observed < predicted); white points represent positive residuals (observed > predicted).</p>
-</div>
+![Standardized residuals of fits to fishery (2002-2022) and survey (1997-2022) length compositions for males and females. Size of residual scales to point size. Black points represent negative residuals (observed < predicted); white points represent positive residuals (observed > predicted).](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/lencomps_residplot.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/derived_ts_imperial_2022.png" alt="Model predictions of (A) age-2 recruitment (millions), (B) female spawning stack biomass (million lb), (C) exploitable abundance (millions), and (D) exploitable biomass (million lb)." width="50%" />
-<p class="caption">(\#fig:derivedts)Model predictions of (A) age-2 recruitment (millions), (B) female spawning stack biomass (million lb), (C) exploitable abundance (millions), and (D) exploitable biomass (million lb).</p>
-</div>
+![Model predictions of (A) age-2 recruitment (millions), (B) female spawning stack biomass (million lb), (C) exploitable abundance (millions), and (D) exploitable biomass (million lb).](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/derived_ts_imperial_2022.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/fishing_mort.png" alt="Model-estimated fishing mortality rate (top) and realized harvest rate (bottom), defined as the ratio of total predicted catch to exploitable biomass. Total predicted catch is the sum of landed catch and discarded biomass assumed to die post-release." width="50%" />
-<p class="caption">(\#fig:fishmort)Model-estimated fishing mortality rate (top) and realized harvest rate (bottom), defined as the ratio of total predicted catch to exploitable biomass. Total predicted catch is the sum of landed catch and discarded biomass assumed to die post-release.</p>
-</div>
+![Model-estimated fishing mortality rate (top) and realized harvest rate (bottom), defined as the ratio of total predicted catch to exploitable biomass. Total predicted catch is the sum of landed catch and discarded biomass assumed to die post-release.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/fishing_mort.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/output/tmb/retrospective_v23_new_2slx/retrospective_spawn_biom_2022.png" alt="Mohn's $\rho$ and retrospective peels of sablefish spawning biomass for the last 9 years." width="50%" />
-<p class="caption">(\#fig:mohnsbiom)Mohn's $\rho$ and retrospective peels of sablefish spawning biomass for the last 9 years.</p>
-</div>
+![Mohn's $\rho$ and retrospective peels of sablefish spawning biomass for the last 9 years.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/output/tmb/retrospective_v23_new_2slx/retrospective_spawn_biom_2022.png){width=50%}
 <br><br><br>
 
-<div class="figure" style="text-align: center">
-<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/output/tmb/retrospective_v23_new_2slx/retrospective_recruitment_2022.png" alt="Mohn's $\rho$ and retrospective peels of sablefish recruitment for the last 9 years." width="50%" />
-<p class="caption">(\#fig:mohnsrec)Mohn's $\rho$ and retrospective peels of sablefish recruitment for the last 9 years.</p>
-</div>
+![Mohn's $\rho$ and retrospective peels of sablefish recruitment for the last 9 years.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/output/tmb/retrospective_v23_new_2slx/retrospective_recruitment_2022.png){width=50%}
 <br><br><br>
 <br><br><br>
 <br><br><br>
