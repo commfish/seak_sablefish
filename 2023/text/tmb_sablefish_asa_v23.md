@@ -1,6 +1,6 @@
 ---
 title: "Northern Southeast Inside Subdistrict Sablefish (*Anoplopoma fimbria*) Management Plan and Stock Assessment for 2023"
-date: "June 09, 2023"
+date: "June 22, 2023"
 author: 
  - Phil Joy^[Alaska Department of Fish and Game, Commercial Fisheries Division, Juneau, Alaska]
  - Rhea Ehresmann^[Alaska Department of Fish and Game, Commercial Fisheries Division, Sitka, Alaska]
@@ -8,9 +8,11 @@ author:
 output:
  # bookdown::pdf_document2:
  # bookdown::word_document2:
- # bookdown::html_document2:
-  word_document: 
+  bookdown::html_document2:
+ # word_document: 
  # html_document:
+ # pdf_document:
+ #   latex_engine: lualatex #xelatex  #lualatex
     fig_caption: yes
     toc: yes
     number_sections: false
@@ -52,14 +54,20 @@ figcaption {
 #}
 </style>
 ---
+<style type="text/css">
+h1 {
+  text-align: center;
+}
 
+
+</style>
 
 
 
 
 # ABSTRACT 
 
-This report provides an overview of the stock assessment, harvest strategy, and regulations effective for the 2023 Northern Southeast Inside (NSEI) sablefish (*Anoplopoma fimbria*) commercial fishery. The NSEI sablefish commercial fishery is scheduled to open August 15 and close November 15 and open to both longline and pot gear. The 2023 NSEI sablefish commercial fishery annual harvest objective is 1,233,633 round pounds and is based on decrements from an acceptable biological catch of 1,573,109 round pounds. The annual harvest objective is allocated to 73 limited entry Commercial Fisheries Entry Commission C61A permits through an equal quota share (EQS) system, resulting in a 2023 EQS of 16,899 round pounds for each permit holder.
+This report provides an overview of the stock assessment, harvest strategy, and regulations effective for the 2023 Northern Southeast Inside (NSEI) sablefish (*Anoplopoma fimbria*) commercial fishery. The NSEI sablefish commercial fishery is scheduled to open August 15 and close November 15 and open to both longline and pot gear. The 2023  NSEI sablefish commercial fishery annual harvest objective is 1,395,686 round pounds and is based on decrements from an acceptable biological catch of 1,573,109 round pounds. The annual harvest objective is allocated to 73 limited entry Commercial Fisheries Entry Commission C61A permits through an equal quota share (EQS) system, resulting in a 2023 EQS of 19,121 round pounds for each permit holder.
 
 Key words: 	sablefish, black cod, *Anoplopoma fimbria*, stock assessment, annual harvest objective, AHO, catch per unit effort, CPUE, Northern Southeast, Chatham Strait, NSEI, mark–recapture, tagging
 
@@ -69,7 +77,7 @@ Key words: 	sablefish, black cod, *Anoplopoma fimbria*, stock assessment, annual
 
 The Alaska Department of Fish and Game (ADF&G) evaluates stock status and establishes the Northern Southeast Inside (NSEI) acceptable biological catch (ABC) and subsequent annual harvest objective (AHO). The NSEI Subdistrict management area (Figure \@ref(fig:nseimap)) consists of all waters as defined in 5 AAC 28.105(a)(2).  
 
-The recommended 2023 allowable biological catch (ABC) is 1,573,109 round pounds ($F_{ABC}$ = 0.063), a 9% increase from the 2022 ABC (Table \@ref(tab:catchtab) and \@ref(tab:brps)). After making decrements for sablefish mortalities in other fisheries, **the 2023 NSEI Subdistrict commercial sablefish fishery annual harvest objective (AHO) is <span style="color: red;">1,395,868</span> round pounds** (Table \@ref(tab:catchtab) and \@ref(tab:decrements)). There are 73 valid Commercial Fisheries Entry Commission (CFEC) permits for 2023, which is the same number as 2022. **The individual equal quota share (EQS) is <span style="color: red;">19,121</span> round pounds**, a <span style="color: red;">13%</span> increase from the 2022 EQS of 16,899 round pounds (Table \@ref(tab:catchtab)). 
+The recommended 2023 allowable biological catch (ABC) is 1,573,109  round pounds ($F_{ABC}$ = 0.063), a 9% increase from the 2022 ABC (Table \@ref(tab:catchtab) and \@ref(tab:brps)). After making decrements for sablefish mortalities in other fisheries, **the 2023 NSEI Subdistrict commercial sablefish fishery annual harvest objective (AHO) is <span style="color: red;">1,395,686</span> round pounds** (Table \@ref(tab:catchtab) and \@ref(tab:decrements)). There are 73 valid Commercial Fisheries Entry Commission (CFEC) permits for 2023, which is the same number as 2022. **The individual equal quota share (EQS) is <span style="color: red;">19,121 </span> round pounds**, a <span style="color: red;">13%</span> increase from the 2022 EQS of 16,899 round pounds (Table \@ref(tab:catchtab)). 
 
 Several advancements to the stock assessment and statistical catch-at-age (SCAA) model were implemented for the 2023 NSEI sablefish assessment that improved the model’s ability to capture the dynamics of the stock.  These advancements are:
 
@@ -94,7 +102,7 @@ The process leading to the determination of the ABC, AHO, and EQS includes compi
 
 ## ANNUAL HARVEST OBJECTIVE DETERMINATION
 
-The 2023 AHO was determined by making the following decrements from the recommended ABC (1,573,109 round pounds, Tables 2 and 3):
+The 2023 AHO was determined by making the following decrements from the recommended ABC (1,573,109 round pounds, Tables \@ref(tab:brps) and \@ref(tab:decrements)):
 
   * estimated sablefish bycatch mortality in the commercial Pacific halibut fishery,
   * ADF&G longline survey removals,
@@ -109,7 +117,7 @@ Sablefish caught in NSEI during the Pacific halibut individual fishing quota fis
 
 ### ADF&G longline survey removals
 
-In 2022, no NSEI permit holders will participate in the NSEI longline survey due to budgetary instability and deficit given the low prices of sablefish in 2020 and 2021 (Tables 3 and 4). The survey removal decrement was determined by averaging the survey total harvest from the previous 3 years. Permit holders will likely resume survey participation in 2023. 
+In 2022, <span style="color: red;">no NSEI permit holders will participate in the NSEI longline survey due to budgetary instability and deficit given the low prices of sablefish in 2020 and 2021 (Tables \@ref(tab:catchtab) and ???). The survey removal decrement was determined by averaging the survey total harvest from the previous 3 years. Permit holders will likely resume survey participation in 2023. </span>
 
 ### Sport fish harvest (guided and unguided)
 
@@ -117,11 +125,11 @@ Sablefish sport fish preliminary harvest and release mortality from the guided a
 
 ### Mortality from fishery deadloss
 
-Deadloss mortality in the directed sablefish fishery was estimated by applying the percentage of dead sablefish (i.e., recorded as predated by sand fleas, sharks, hooking injury, or other cause of mortality) caught on the NSEI longline survey using the recent 3-year average, 0.85% (2019–2021), to the NSEI sablefish commercial AHO. 
+Deadloss mortality in the directed sablefish fishery was estimated by applying the percentage of dead sablefish (i.e., recorded as predated by sand fleas, sharks, hooking injury, or other cause of mortality) caught on the NSEI longline survey using the recent 3-year average, 0.85% (2020–2022), to the NSEI sablefish commercial AHO. 
 
 ### Personal use and subsistence harvest
 
-A total of 772 personal use and subsistence sablefish permits were issued in 2021. Annual subsistence and personal use harvest of sablefish is estimated from these permits by adding the total number of retained sablefish reported to the proportion of released sablefish reported after applying a 16% discard mortality rate to released sablefish (Gilroy and Stewart 2013). The Pacific halibut fishery is assumed a reasonable proxy for sablefish because the fisheries utilize similar gear and frequently the same vessels and crew participate in both fisheries. Moreover, both species are considered hardy and do not experience barotrauma. The 2021 longline survey average weight (5.1 lb) was applied to this harvest to obtain a decrement total. 
+A total of 772 personal use and subsistence sablefish permits were issued in 2022. Annual subsistence and personal use harvest of sablefish is estimated from these permits by adding the total number of retained sablefish reported to the proportion of released sablefish reported after applying a 16% discard mortality rate to released sablefish (Gilroy and Stewart 2013). The Pacific halibut fishery is assumed a reasonable proxy for sablefish because the fisheries utilize similar gear and frequently the same vessels and crew participate in both fisheries. Moreover, both species are considered hardy and do not experience barotrauma. The 2022 longline survey average weight (5.1 lb) was applied to this harvest to obtain a decrement total. 
 In 2015, personal use harvest was limited to an annual limit of 50 fish per household. Since 2018, participants of the personal use fishery have been allowed to use pot gear with no more than 2 pots per permit and a maximum of 8 pots per vessel when 4 or more permit holders are on board the same vessel. Use of pot gear has continued to increase with 68% of permit holders fishing pots. 
 
 <br>
@@ -134,7 +142,7 @@ In March 2022, the Alaska Board of Fisheries adopted new regulations that will b
 
   * Full retention requirements and landing requirements using hook-and-line and pot gear for all species of rockfish including thornyhead rockfish.
   * Allowing pot gear as a legal gear type in addition to longline gear for the C61A permits, which is contingent upon the approval process through CFEC. 
-  * Pots must have at least two circular escape rings, with a minimum inside diameter of three and three-fourths inches, installed on opposing vertical or sloping walls of the pot
+  * Pots must have at least two circular escape rings, with a minimum inside diameter of three and three-fourths inches, installed on opposing vertical or sloping walls of the pot.
   
 ### Registration and logbook requirements
 
@@ -150,9 +158,9 @@ Fishermen are requested to watch for tagged sablefish, record tag number(s), and
 
 ### Sablefish possession and landing requirements
 
-In the NSEI Subdistrict, the holder of a CFEC permit for sablefish may not retain more sablefish from the directed fishery than the annual amount of sablefish EQS specified by the department [5 AAC 28.170 (f)]. However, if a permit holder’s harvest exceeds the EQS for that year, by not more than 5%, ADF&G shall reduce the permit holder's EQS for the following year by the amount of the overage. If a permit holder's harvest exceeds the permit holder's EQS by more than 5%, the proceeds from the sale of the overage in excess of 5% shall be surrendered to the state and the permit holder may be prosecuted under AS 16.05.723 [5 AAC 28.170 (j)]. If a permit holder’s harvest is less than the permit holder’s EQS established for the year, ADF&G shall increase the permit holder’s PQS only for the following year by the amount of the underage that does not exceed 5% of the EQS [5 AAC 28.170 (k)]. For the 2022 fishing season, 5% of the annual EQS is 845 round pounds.
+In the NSEI Subdistrict, the holder of a CFEC permit for sablefish may not retain more sablefish from the directed fishery than the annual amount of sablefish EQS specified by the department [5 AAC 28.170 (f)]. However, if a permit holder’s harvest exceeds the EQS for that year, by not more than 5%, ADF&G shall reduce the permit holder's EQS for the following year by the amount of the overage. If a permit holder's harvest exceeds the permit holder's EQS by more than 5%, the proceeds from the sale of the overage in excess of 5% shall be surrendered to the state and the permit holder may be prosecuted under AS 16.05.723 [5 AAC 28.170 (j)]. If a permit holder’s harvest is less than the permit holder’s EQS established for the year, ADF&G shall increase the permit holder’s PQS only for the following year by the amount of the underage that does not exceed 5% of the EQS [5 AAC 28.170 (k)]. For the 2023 fishing season, 5% of the annual EQS is 956.05 round pounds.
 
-### Fish tocket requirements
+### Fish ticket requirements
 
 Landed weights must be recorded on a fish ticket at the time of delivery. If a fisherman delivers fish in the round, the total round weight delivered must be recorded on the fish ticket. If a fisherman delivers dressed fish, the fish ticket must include the total landed dressed weight as well as the round weight equivalent, determined by using the standard 0.63 recovery rate. There is a 2% allowance for ice and slime when unrinsed whole iced sablefish are weighed. A fish ticket must be completed prior to the resumption of fishing and each permit holder must retain, on board their vessel, copies of all NSEI sablefish tickets from the current season and their updated PQS tracking form. When delivering fish out of state, a completed fish ticket must be submitted to ADF&G prior to transporting fish out of Alaska.
 
@@ -196,9 +204,9 @@ The SCAA model results in a maximum permissible ABC of 1,573,109 round lb at a t
 
 The following are notable results from the SCAA model and reflect potential conservation or assessment concerns for this stock:
 
-1. <span style="color: red;">Slinky pots:</span>  This was the first year where slinky pots were allowed in the NSEI sablefish fishery.  Participation was limited in 2022 and did not impact this assessment.  A large increase in pot usage is anticipated in 2023 and will likely affect the next assessment in 2024.  
+1. This was the first year where slinky pots were allowed in the NSEI sablefish fishery.  Participation was limited in 2022 and did not impact this assessment.  A large increase in pot usage is anticipated in 2023 and will likely affect the next assessment in 2024.  
 
-2. Stock status (i.e, the proportional relationship of the stock relative to it’s virgin state) remains uncertain and sensitive to data weighting methodology and fishery selectivity values that remain fixed to values from the federal assessment. The department manages the NSEI fishery for $F_{50}$ (the fishing mortality that results in a SPR (spawner per recruit) of 50%) and changes in model structure and assumptions results in changes to where the population is relative to this target (Table \@ref(tab:modcomp) and Figure \@ref(fig:Fsprcomp)).   Updates to the model instituted in this assessment decreased the reliance on subjective weighting of the data sources but retains a degree of subjectivity in the amount of variance ascribed to the three indices of abundance.  The model relies on variance terms for the mark-recapture abundance estimate and fishery CPUE that are inflated above those calculated from the data and changes to those terms results in different conclusions about where the population is relative to the management target.  Furthermore, updating fishery selectivity to the most recent estimates available from the federal model affects estimates of stock status and is thus a source of concern given likely differences in fishery selectivity between the federal and NSEI fisheries.  Although this assessment demonstrates a 9% increase in the ABC from last year, permutations to the variance terms associated with those indices can swing that increase to as low as 3% (Table \@ref(tab:modcomp)).  The trend in the stock is unambiguous, but managers should be wary of the uncertainty inherent in the current operating model.  As the data weighting for this model continues to evolve to be in line with best practices a goal remains to remove subjective assignment of variances or weighting and allow the model to estimate variance beyond that calculated from the data.  Initial steps were taken to address these concerns in 2023 but require more work before they are adopted into the operating model. 
+2. Stock status (i.e, where the stock is relative to it’s virgin state, as approximated by the spawner-per-recruit (SPR) estimate) remains uncertain and sensitive to data weighting methodology and fishery selectivity values that remain fixed to values from the federal assessment. The department manages the NSEI fishery for $F_{50}$ (the fishing mortality that results in a SPR (spawner per recruit) of 50%) and changes in model structure and assumptions results in changes to where the population is relative to this target (Table \@ref(tab:modcomp) and Figure \@ref(fig:Fsprcomp)).   Updates to the model instituted in this assessment decreased the reliance on subjective weighting of the data sources but retains a degree of subjectivity in the amount of variance ascribed to the three indices of abundance.  The model relies on variance terms for the mark-recapture abundance estimate and fishery CPUE that are inflated above those calculated from the data and changes to those terms results in different conclusions about where the population is relative to the management target.  Furthermore, updating fishery selectivity to the most recent estimates available from the federal model affects estimates of stock status and is thus a source of concern given likely differences in fishery selectivity between the federal and NSEI fisheries.  Although this assessment demonstrates a 9% increase in the ABC from last year, permutations to the variance terms associated with those indices can swing that increase to as low as 3% (Table \@ref(tab:modcomp)).  The trend in the stock is unambiguous, but managers should be wary of the uncertainty inherent in the current operating model.  As the data weighting for this model continues to evolve to be in line with best practices a goal remains to remove subjective assignment of variances or weighting and allow the model to estimate variance beyond that calculated from the data.  Initial steps were taken to address these concerns in 2023 but require more work before they are adopted into the operating model. 
 
 3.  Fit of the model to the abundance indices remains poor and reliant on the inflated variance terms assigned to fishery CPUE and mark-recapture estimates of abundance.  In particular, the abundance estimates derived from the mark-recapture assumption that have underpinned the NSEI sablefish assessment since 2005 and provides scale to the population now appears to underestimate abundance relative to the model estimates.  There is tension between the other data sources (age and length compositions) that forces the aforementioned data weighting to keep the model tethered to those abundance estimates.  A thorough review of the mark-recapture experiment to identify and correct biases in the estimate remains a priority for this project.  Bias correction may result in better fit to the model both by correcting estimates and modifying the modeling prior (penalized likelihood) describing the relationship between actual abundance and the mark-recapture estimate (currently assumed to be a 1:1 ratio).  
 
@@ -208,7 +216,7 @@ The following are notable results from the SCAA model and reflect potential cons
 
 6. Similarly, while the fit to length data is also improved owing to that model tuning methods now used, it is still far from desirable with a consistent pattern in the residuals whereby mid-size fish are underestimated and larger fish are overestimated in the model.  In conjunction with the retrospective results this suggests that the model may be underestimating large recruitment events.  Better estimation of selectivity in both the fishery and the survey will be necessary to improve the fit of length data.
 
-7.	Recruitment of the 2013-2018 year classes was substantial and above the long term average.  These strong year classes are driving the increase in biomass that has occurred over the last several years.  These recruitment events are in line with what is seen in the federal assessment, although the increase evident in the NSEI population is not as steep as that seen in the federal assessment. These fish are still not fully mature or fully grown and thus biomass is likely to continue increasing over the next several yers as these fish grow and mature into the population.  However, they are likely still less than optimal size from a price standpoint and may still be subject to high release rates.  
+7.	Recruitment of the 2013-2018 year classes was substantial and above the long term average.  These strong year classes are driving the increase in biomass that has occurred over the last several years.  These recruitment events are in line with what is seen in the federal assessment, although the increase evident in the NSEI population is not as steep as that seen in the federal assessment. These fish are still not fully mature or fully grown and thus biomass is likely to continue increasing over the next several years as these fish grow and mature into the population.  However, they are likely still less than optimal size from a price standpoint and may still be subject to high release rates.  
 
 8.	Retrospectives patterns in the model are satisfactory.  The model demonstrates a slightly positive bias in spawning biomass of 5% indicating that the model tends to overestimate spawning biomass.  The bias in recruitment is also low on average, although individual years can be quite biased (up to 200%).  In general, the model overestimates recruitment during low recruitment periods and underestimates recruitment during periods of high recruitment.  Given the strong evidence that the population has experienced a recruitment boom over the last several years it is likely that the size of those year classes is somewhat underestimated and the population will see continued growth for several more years. 
 
@@ -218,7 +226,7 @@ The following are notable results from the SCAA model and reflect potential cons
 
 Updates to the stock assessment are listed here:
 
-1.	Fishery CPUE was fully standardized to control for variability in fishing methods and practices over time (i.e, hook size, fishing depth, length of sets, location, etc.) to better detect underlying trends that reflect the abundance of fish available to the fishery.  This involved recalculating fishery CPUE from the re-entered logbook data that was completed in 2020.  In 2020, the ADF&G Southeast Groundfish Project biologists invested considerable staff time and resources into standardizing the full time series of available logbook data, which should improve the long-term quality and interpretation of this index. In particular, consistent methods for identifying target species by trip and set efforts were developed, which was previously conducted manually.  <span style="color: red;">METHODS FROM RHEA!!!</span>
+1.	Fishery CPUE was fully standardized to control for variability in fishing methods and practices over time (i.e, hook size, fishing depth, length of sets, location, etc.) to better detect underlying trends that reflect the abundance of fish available to the fishery.  This involved recalculating fishery CPUE from the re-entered logbook data that was completed in 2020.  In 2020, the ADF&G Southeast Groundfish Project biologists invested considerable staff time and resources into standardizing the full time series of available logbook data, which should improve the long-term quality and interpretation of this index. In particular, consistent methods for identifying target species by trip and set efforts were developed, which was previously conducted manually (<span style="color: red;">CITATION FROM RHEA</span>).
 
 2.	Fishery selectivity in the SCAA was updated to the fixed values estimated in the federal sablefish fishery (Goethel et al. 2022).  
 
@@ -236,7 +244,7 @@ The integrated statistical catch-at-age (SCAA) model presented here was coded in
 
 ## DATA INPUTS
 
-The data used as inputs to the SCAA model biological data, catch, abundance, and composition (Figure 4) are found here: https://github.com/commfish/seak_sablefish/tree/master/data/ tmb_inputs).
+The data used as inputs to the SCAA model biological data, catch, abundance, and composition (Figure \@ref(fig:datsrc)) are found here: https://github.com/commfish/seak_sablefish/tree/master/data/ tmb_inputs).
 
 ### Weight-at-age
 
@@ -251,7 +259,7 @@ $$
 
 where $w_a$ is weight at a given age (lb), $W_{\infty}$ is the mean asymptotic weight (lb), $\beta$ is the power in the allometric equation, *k* relates to the rate at which $W_{\infty}$ is reached, and $t_0$ is the theoretical age at weight zero (years).  Residuals $\epsilon$ were assumed lognormally distributed to account for increasing variability by age, and the variance of these residuals ($\sigma_R$) was estimated. Models were fit separately for each sex and data source using maximum likelihood and the mle() function in R.
 
-The federal assessment uses survey weight-at-age exclusively to fit to catch and effort indices (Hanselman et al. 2018). However, because discarding is permitted in the NSEI fishery, there are large differences in survey and fishery weight-at-age, especially at younger ages (Figure 11A). Consequently, fishery weight-at-age was fit to landed catch biomass, whereas survey weight-at-age was used to estimate exploitable biomass, spawning biomass, and other quantities of interest in the model.
+The federal assessment uses survey weight-at-age exclusively to fit to catch and effort indices (Hanselman et al. 2018). However, because discarding is permitted in the NSEI fishery, there are large differences in survey and fishery weight-at-age, especially at younger ages (Figure \@ref(fig:compcomps)A). Consequently, fishery weight-at-age was fit to landed catch biomass, whereas survey weight-at-age was used to estimate exploitable biomass, spawning biomass, and other quantities of interest in the model.
 
 ### Maturity-at-age
 
@@ -269,9 +277,9 @@ Catch data from 1975 to 2022 include harvest in the directed sablefish longline 
 
 Fishery CPUE, defined as retained lb per hook, was used as an index of abundance from 1980 to 2022 (Figure \@ref(fig:abdind)B). Fishery CPUE was estimated in the SCAA model assuming a lognormal distribution with a fixed log standard deviation of 0.1 for the historical data from dockside interviews (1980–1996; Carlile et al. 2002) and 0.08 for the contemporary logbook data (1997–present).
 
-<span style="color: red;">In 2020, ADF&G reviewed and re-entered logbook data to standardize how trip and set targets were identified.  In past years this was done ad-hoc on an annual basis and methods were not documented leading to confusion with the retirement and turnover of staff.  This project established guidelines for identifying trip and set target based on yadda, yadda, yadda. Trips that had CONDITION were used to identify trip targets while sets that had CONDITION were used to identify set targets. Only sets and trips targetting sablefish were used to calculate fishery CPUE values for use in the assessment. </span>
+<span style="color: red;">In 2020, ADF&G reviewed and re-entered logbook data to standardize how trip and set targets were identified.  In past years this was done ad-hoc on an annual basis and methods were not documented leading to confusion with the retirement and turnover of staff.  This project established guidelines for identifying trip and set target based on yadda, yadda, yadda. Trips that had CONDITION were used to identify trip targets while sets that had CONDITION were used to identify set targets. Only sets and trips targeting sablefish were used to calculate fishery CPUE values for use in the assessment. </span>
 
-Fishery CPUE since 1997 was fully standardized in this year’s assessment to account for shift in fishing practices and vessel participation over time.  Standardization accounts for variability in hook size, hook spacing, fishing depth, soak time, statistical area (fishing location), fishing vessel (as a random effect), julian day, and set length.  CPUE was estimated as the predicted value from generalized additive models (GAM) fitting CPUE to these variables using the mgcv package in R and the gamma smoothing feature.  Standardization resulted in slight changes in the overall time series from past assessments, but the standardized values do a better job of catpuring the increase in biomass that has occured in recent years (Figure \@ref(fig:fcpuestand)).  Standardized fishery CPUE in 2022 was at it’s highest value since 2000 (Figure \@ref(fig:abdind)B), although it remains below the high catch rates seen in the 1980s and early 1990s (Figure \@ref(fig:abdind)B and Figure \@ref(fig:fcpuestand)). 
+Fishery CPUE since 1997 was fully standardized in this year’s assessment to account for shift in fishing practices and vessel participation over time.  Standardization accounts for variability in hook size, hook spacing, fishing depth, soak time, statistical area (fishing location), fishing vessel (as a random effect), Julian day, and set length.  CPUE was estimated as the predicted value from generalized additive models (GAM) fitting CPUE to these variables using the mgcv package in R and the gamma smoothing feature.  Standardization resulted in slight changes in the overall time series from past assessments, but the standardized values do a better job of capturing the increase in biomass that has occurred in recent years (Figure \@ref(fig:fcpuestand)).  Standardized fishery CPUE in 2022 was at it’s highest value since 2000 (Figure \@ref(fig:abdind)B), although it remains below the high catch rates seen in the 1980s and early 1990s (Figure \@ref(fig:abdind)B and Figure \@ref(fig:fcpuestand)). 
 
 Because discarding sablefish is legal in the NSEI fishery, estimating fishery selectivity within the model is not currently possible. To address this issue, the federal selectivity curve is used in the model, which is estimated assuming 100% mandatory retention. A sex- and age-specific retention probability, coupled with a fixed discard mortality rate, are used to estimate mortality from fishery releases. Future research will be aimed at better understanding discarding behavior in the NSEI fishery as it relates to economic and biological factors. 
 
@@ -314,7 +322,7 @@ N_i *exp(-M*t_i) &i = 1\\
 $$
 where $K_0$ is number of tags released in the ADF&G pot survey, $D_0$ is the number of tagged fish that are not available to either the ADF&G longline survey or to the fishery (tags recovered in halibut fishery or outside of Chatham Strait), *𝑀* is assumed natural mortality of 0.10 (Johnson and Quinn 1988), *k* is the number of marked fish recovered, and *C* is the total catch or number of sablefish removed. $N_1$ was assumed to follow a normal distribution with an uninformed prior (precision = $1×10^{-12}$) centered on past assessments’ forecast of abundance.
 
-The probability that a sablefish caught in a given time period is marked *p_i* is informed by the ratio of marks in the population to the total population at that time $K_i/N_i$. Each $p_i$ is assumed to follow  beta prior distribution $p_i$ = $\beta$($\alpha$, $\beta$), where $\alpha$ = ($K_i/N_i$ ) ∗ *x*, $\beta$ = (*1 − $K_i/N_i$ *)/*x*, and a large *x* indicates confidence in $K_i/N_i$. Because $N_i$ was previously assumed to follow vague normal prior, $p_i$ was assigned an informed prior by setting *x* equal to 10,000. 
+The probability that a sablefish caught in a given time period is marked $p_i$ is informed by the ratio of marks in the population to the total population at that time $K_i/N_i$. Each $p_i$ is assumed to follow  beta prior distribution $p_i$ = $\beta$($\alpha$, $\beta$), where $\alpha$ = ($K_i/N_i$ ) ∗ *x*, $\beta$ = (*1 − $K_i/N_i$ *)/*x*, and a large *x* indicates confidence in $K_i/N_i$. Because $N_i$ was previously assumed to follow vague normal prior, $p_i$ was assigned an informed prior by setting *x* equal to 10,000. 
 
 In each time period, the likelihood of recapturing *k* marked sablefish given *n* sampled fish follows a binomial distribution, where
 
@@ -340,7 +348,7 @@ Sex-structured length data from the 2002–2022 longline fishery and 1997–2022
 
 Length distributions in the fishery have dramatically different patterns than the survey (Figures \@ref(fig:lencomp) and \@ref(fig:compcomps)), with few lengths in the fishery less than 60 cm. Full retention is not a requirement in state waters and the length differences between the survey and fishery are attributed to fishery releases of small fish. Because of the bias introduced by allowing fish to be released in the fishery, fishery age and length compositions tend to be poorly fit by the model. 
 
-Finally, the selective harvest of larger-bodied fish results in large differences between survey and fishery size-at-age. Until an age-length key is developed for NSEI, the federal age-length keys ($\Lambda_{a,l,k}$) will be used to fit both survey and fishery length compositions (D. Hanselman, Fisheries Research Biologist, NOAA, Juneau, personal communication, April 2019; Hanselman et al. 2018; Echave et al. 2012; Figure 18). Ultimately, separate age-length keys should be developed for each data source to account for the differences in survey and fishery size-at-age.
+Finally, the selective harvest of larger-bodied fish results in large differences between survey and fishery size-at-age. Until an age-length key is developed for NSEI, the federal age-length keys ($\Lambda_{a,l,k}$) will be used to fit both survey and fishery length compositions (D. Hanselman, Fisheries Research Biologist, NOAA, Juneau, personal communication, April 2019; Hanselman et al. 2018; Echave et al. 2012). Ultimately, separate age-length keys should be developed for each data source to account for the differences in survey and fishery size-at-age.
 
 ### Retention probability
 
@@ -433,7 +441,7 @@ $$
 
 ## PREDICTED VALUES
 
-Predicted fishery CPUE (kg per hook) in year $t$, $\hat{I_t}^{fsh}$ Is defined as a function of fishery catchability $q_{fsh}$ and biomass available to the fishery:
+Predicted fishery CPUE (kg per hook) in year $t$, $\hat{I_t}^{fsh}$, is defined as a function of fishery catchability $q_{fsh}$ and biomass available to the fishery:
 
 $$
 \begin{equation}
@@ -446,7 +454,7 @@ where $w_{a,k}^{srv}$ is mean weight-at-age by sex in the longline survey.  Surv
 
 $$
 \begin{equation}
-S_{t,a,k}^{fsh}=exp(\frac{8}{12}(M+F_{t,a,k}))
+S_{t,a,k}^{fsh}=exp(-\frac{8}{12}(M+F_{t,a,k}))
 (\#eq:bigS)
 \end{equation}
 $$
@@ -617,7 +625,9 @@ The maximum permissible ABC is calculated as the difference between the predicte
 
 The objective function, or the total negative log-likelihood to be minimized, included the sum of the following likelihood components $L$ which received individual weights $\lambda$:.  
 <ol>
-  <li>  Landed catch biomass ($Y$) was modeled using a lognormal likelihood where $\sigma_Y$ was assumed to be 0.05:  $$
+  <li>  Landed catch biomass ($Y$) was modeled using a lognormal likelihood where $\sigma_Y$ was assumed to be 0.05:  
+
+$$
 \begin{equation}
 \mbox{ln}L(Y)=\lambda_Y\frac{1}{2\sigma_Y^2}\sum_{t=1}^{T}\Big(\mbox{ln}(Y_t+c)-\mbox{ln}(\hat{Y}_t+c)\Big)^2 ,
 (\#eq:catchlike)
@@ -717,6 +727,7 @@ The lack of fit to the age and length composition data likely results from restr
 Changes made to the operating model resulted in lower estimates of stock status although the overall trajectory of the stock remains the same.  Tuning the model to estimate the effective sample sizes or the age and length composition data placed more weight on the composition data and had the effect of increasing the biomass estimates (Table \@ref(tab:modcomp)).  Updating the selectivity curves to the most recent values in the federal assessment resulted in lower biomass estimate, although still above the base model using the old selectivity estimates.  The updates made for model v23 that include estimating survey selectivity within the model and estimating recruitment deviations using random effects resulted in lower biomass estimates.  The population still appears to be increasing, however the fishery appears closer to the management target of $SPR_{50}$ than estimated by the base model. 
 
 Estimation of recruitment deviations using random effects produced much lower values of $\sigma_R$ than had been fixed to the federal model value of 1.2 (Table \@ref(tab:keyparams)).  The federal value is noticeably higher than that estimated for other Alaska groundfish stocks (Lynch et al. 2018; Hanselman et al. 2019) whereas the estimate from model v23 was much more in line with other Alaska groundfish at 0.52.   
+
 Despite challenges to fitting the data, the model demonstrates good retrospective patterns.  Retrospective patterns are defined as “systematic changes to estimates of population size, or other assessment model-derived quantities, that occur as additional years of data are added to, or removed from, a stock assessment” (Hutado-Ferro et al. 2015).  They cause over- or underestimation of stock size, which can lead to flawed harvest recommendations or management advice. A positive retrospective pattern or bias can result in overestimation of stock biomass, which if persistent over many years, will result in the realized fishing mortality rate exceeding the target harvest policy (i.e., overfishing). Alternatively, a persistent negative retrospective pattern or bias will translate into foregone yields and fishing opportunity.  
 
 ### Retrospective analysis
@@ -743,11 +754,11 @@ These results, combined with Sullivan et al’s (2020) analysis, continue to dem
 
 ## ABC RECOMMENDATIONS
 
-The recommended ABC for 2023 is derived from an average of the recommended ABC from the base model and model v23.  Regardless of model choice, the population continues to expand with the growth and maturation of the 2013-2019 year classes.  Model v23 shows the population to be much closer to SB50 than does the base model (Figure \@ref(fig:Fsprcomp)) and using this model would result in an increase in the ABC of 3% from last year.  Given that the population is increasing, and the population is forecast to continue increasing in the next several years (albeit, at a slowing rate) we felt that in fairness to the fleet that averaging the two models was appropriate.  This may result in a small to negligible change in the ABC in the 2024 assessment as model development continues and model v23 becomes the base model for the next assessment.   
+The recommended ABC for 2023 is derived from an average of the recommended ABC from the base model and model v23. Regardless of model choice, the population continues to expand with the growth and maturation of the 2013-2018 year classes.  Harvest rates and fishing mortality has been fairly stable for the past 8 years, relatively, in comparison to the high harvests seen in the 1990's and early 2000's (Figure \@ref(fig:fishmort)). Model v23 shows the population to be much closer to SB50 than does the base model (Figure \@ref(fig:Fsprcomp)) and using this model would result in an increase in the ABC of 3% from last year.  Given that the population is increasing, and the population is forecast to continue increasing in the next several years (albeit, at a slowing rate) we felt that in fairness to the fleet that averaging the two models was appropriate.  This may result in a small to negligible change in the ABC in the 2024 assessment as model development continues and model v23 becomes the base model for the next assessment.   
 
-Model v23 results in a maximum permissible ABC (max ABC) of 1,486,406 round lbs at the target fully selected fishing mortality of $F_{50}$ (Table \@ref(tab:brps)).  This is a 43,092 round lb increase (3%) from the 2022 ABC of 1,443,314 round lbs.  The base model produces a max ABC of 1,873,598 round lbs (30% higher than last year’s max ABC) which under the max 15% change would have resulted in a recommended ABC of 1,659,811 round lbs (or a 15% increase).  Balancing model v23 with the base model and averaging the recommended ABC from the two models results in a recommended ABC of 1,573,109 round lbs, of a 9% increase from last year’s ABC.  Mortality from fishery releases under $F_{50}$, assuming fixed retention probabilities and a discard mortality of 0.16 is estimated to be 69,522 lbs in model v23 and 79,711 in the base model, which was included in the max ABC calculation (Table \@ref(tab:brps) and \@ref(tab:decrements)).  
+Model v23 results in a maximum permissible ABC (max ABC) of 1,486,406 round lbs at the target fully selected fishing mortality of $F_{50}$ (Table \@ref(tab:brps)).  This is a 43,092 round lb increase (3%) from the 2022 ABC of 1,443,314 round lbs.  The base model produces a max ABC of 1,873,598 round lbs (30% higher than last year’s max ABC) which under the max 15% change would have resulted in a recommended ABC of 1,659,811 round lbs (or a 15% increase).  Balancing model v23 with the base model and averaging the recommended ABC from the two models results in a recommended ABC of 1,573,109 round lbs, or a 9% increase from last year’s ABC.  Mortality from fishery releases under $F_{50}$, assuming fixed retention probabilities and a discard mortality of 0.16 is estimated to be 69,522 lbs in model v23 and 79,711 in the base model, which was included in the max ABC calculation (Table \@ref(tab:brps) and \@ref(tab:decrements)).  
 
-While there is uncertainty in the absolute estimate of sablefish biomass in the NSEI, the population is undoubtedly increasing as the 2013-2018 year classes continue to grow and mature.  This trend is likely to continue over the next several years as these fish become fully mature and reach maximum size.  While this is certainly a good sign, it is important to note that the population remains below historical levels and that there is still a lack of older fish in the population.  Older females likely contribute disproportionally to the spawning output in the population and it remains desirable to maintain fishing pressure that allows the younger age classes to grow and mature.  
+While there is uncertainty in the absolute estimate of sablefish biomass in the NSEI, the population is undoubtedly increasing as the 2013-2018 year classes continue to grow and mature.  This trend is likely to continue over the next several years as these fish become fully mature and reach maximum size.  While this is certainly a good sign, it is important to note that the population remains below historical levels and that there is still a lack of older fish in the population.  Older females likely contribute disproportionately to the spawning output in the population and it remains desirable to maintain fishing pressure that allows the younger age classes to grow and mature.  
 
 # FUTURE WORK AND RECOMENDATIONS
 
@@ -757,15 +768,15 @@ These tasks are viewed as the next steps in developing the SCAA:
   <li> It is expected that participation in the pot fishery in 2023 will increase dramatically as it has in the SSEI and the federal fishery where pots have been legal for several years.  This will need to be monitored closely to see how catch rates and fish size varies between the longline and pot fisheries.  This issue will involve significant model development and will be of primary concern as the fleet changes fishing practices.
   <li> Develop methods to estimate fishery selectivity as this will make the model less dependent on federal values and the assumption that selectivity in the federal fishery mirrors that in the NSEI fishery.  Initial efforts to do this failed to produce converged numbers and reasonable estimates of selectivity.  Exploring the use of priors on the selectivity parameters, based on the federal estimates, may be an option.  Exploring time varying selectivity in both the fishery and the survey may also provide options that could improve the fit of age and length data.  
   <li> Review the mark-recapture analysis for two primary reasons: 
-    <ul>
+    <ol type="a">
       <li> Determine if less biased estimates of abundance can be produced and by modelling size and geographic differences in capture probabilities, and
       <li> Determine the level of bias in the abundance estimates by comparing recapture rates between the longline survey and the fishery
-    </ul>
+    </ol>
   <li> Continue to develop proper data weighting for the model by 
-    <ul>
+    <ol type="a">
       <li> using estimated uncertainty in the indices and allowing the model to estimate extra-uncertainty parameters, and
       <li> continuing to develop the Dirichlet data weighting of the age and length composition data.
-    </ul>
+    </ol>
   <li> Implement the SCAA model in a Bayesian framework. Preliminary work has been done using
 the R library tmbstan (Monnahan and Kristensen 2018). The process is currently very slow;
 the next steps include optimizing the NUTS algorithm using methods detailed in the
@@ -839,7 +850,7 @@ Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelih
 <br><br><br>
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>Annual harvest objective (round lb), equal quota share (round lb), reported harvest (round lb), exvessel value, numberof permits, and effort (dats) for the directed commercial Northern Southeast Inside (NSEI) Subdistrict sablefish fishery, 1985-2022.</caption>
+<caption>(\#tab:catchtab)Annual harvest objective (round lb), equal quota share (round lb), reported harvest (round lb), exvessel value, numberof permits, and effort (dats) for the directed commercial Northern Southeast Inside (NSEI) Subdistrict sablefish fishery, 1985-2022.</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Year </th>
@@ -1196,8 +1207,8 @@ Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelih
   </tr>
   <tr>
    <td style="text-align:left;"> 2023 </td>
-   <td style="text-align:center;"> 1,300,000 </td>
-   <td style="text-align:center;"> 17,000 </td>
+   <td style="text-align:center;"> 1,395,686 </td>
+   <td style="text-align:center;"> 19,121 </td>
    <td style="text-align:center;"> NA </td>
    <td style="text-align:center;"> $NA </td>
    <td style="text-align:center;"> NA </td>
@@ -1208,7 +1219,7 @@ Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelih
 <br><br><br>
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>Summary of key assessment results used to inform management in 2022 and 2023.  The table includes the estimates of projected biomass (sablefish aged 2 years and above) and female spawning stock biomass, estimated biological reference points of unfished female spawning biomass ($SB_{100}$), female spawning bioass at 50% of unfished levels ($SB_{50}$), and the maximum target fishing mortality of *$F_{50}$*.  Additional values include the maximum permissible Acceptable Biological Catch (max ABC) defined by *$F_{50}$*, the estimates of mortality from fishery releases that would result under max ABC and a discard mortality rate of 016, and the recommended ABC under the max 15% change management proceedure</caption>
+<caption>(\#tab:brps)Summary of key assessment results used to inform management in 2022 and 2023.  The table includes the estimates of projected biomass (sablefish aged 2 years and above) and female spawning stock biomass, estimated biological reference points of unfished female spawning biomass ($SB_{100}$), female spawning bioass at 50% of unfished levels ($SB_{50}$), and the maximum target fishing mortality of *$F_{50}$*.  Additional values include the maximum permissible Acceptable Biological Catch (max ABC) defined by *$F_{50}$*, the estimates of mortality from fishery releases that would result under max ABC and a discard mortality rate of 016, and the recommended ABC under the max 15% change management proceedure</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Quantity/Status </th>
@@ -1267,7 +1278,7 @@ Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelih
 <br><br><br>
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>Decrement types and amounts, 2017-2023.  Estimated catch in round pounds of sablefish.</caption>
+<caption>(\#tab:decrements)Decrement types and amounts, 2018-2023.  Estimated catch in round pounds of sablefish.</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Year </th>
@@ -1410,7 +1421,7 @@ Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelih
 <br><br><br>
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>A comparison for biological reference points from candidate models in the 2023 assessment.  The base model refers to the model used in the prior assessment.  The 'tuned' model refers to the base model with age and length compositioned tuned via McAllister and Ianelli (1997) methodology.  Progression from that model adds the updated fishery selectivity curves from the federal assessment while v23 model modifications are described in this document.  The v23 no MR 5 and 10 refer to models where mark-recapture abundance estimates were dropped in the last 5 and last 10 years, respectivly,</caption>
+<caption>(\#tab:modcomp)A comparison for biological reference points from candidate models in the 2023 assessment.  The base model refers to the model used in the prior assessment.  The 'tuned' model refers to the base model with age and length compositions tuned via McAllister and Ianelli (1997) methodology.  Progression from that model adds the updated fishery selectivity curves from the federal assessment while v23 model modifications are described in this document.  The v23 no MR 5 and 10 refer to models where mark-recapture abundance estimates were dropped in the last 5 and last 10 years, respectively.</caption>
  <thead>
   <tr>
    <th style="text-align:left;">  </th>
@@ -1545,7 +1556,7 @@ Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelih
 <br><br><br>
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>Variable definitions for the statistical catch-at-age model.</caption>
+<caption>(\#tab:vardefns)Variable definitions for the statistical catch-at-age model.</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Variable </th>
@@ -1754,7 +1765,7 @@ Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelih
 <br><br><br>
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>A summary of data inputs to the mark-recapture models, including total individuals tagged (*K*), the total number of tags remaining once size selectivity is accounted for ($K_0$), tags not available to the longline survey or fishery (captured in ther fisheries or outside Chatham, $D_0$), recaptured individuals in the lpongline survey and fishery ($k_{srv}$ and $k_{fsh}$), number of sampled individuals in the longline survey and fishery ($n_{srv}$ and $n_{fsh}$), tags not available to the fishery (captured outside Chatham or in other fisheries during the survey, $D_{srv}$, and tags recaptred in other fisheries or outside Chatham during the fishery ($D_{fsh}$) for years with a tagging survey, 2005-2023.</caption>
+<caption>(\#tab:mr)A summary of data inputs to the mark-recapture models, including total individuals tagged (*K*), the total number of tags remaining once size selectivity is accounted for ($K_0$), tags not available to the longline survey or fishery (captured in ther fisheries or outside Chatham, $D_0$), recaptured individuals in the longline survey and fishery ($k_{srv}$ and $k_{fsh}$), number of sampled individuals in the longline survey and fishery ($n_{srv}$ and $n_{fsh}$), tags not available to the fishery (captured outside Chatham or in other fisheries during the survey, $D_{srv}$, and tags recaptured in other fisheries or outside Chatham during the fishery ($D_{fsh}$) for years with a tagging survey, 2005-2023.</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Year </th>
@@ -1943,7 +1954,7 @@ Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelih
 
 \newpage
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>Assumed selectivity parameters for the fishery before the Equal Quota Share program started in 1994 (pre-EQS) and the fishery since the implementation of EQS for females (black points) and males (grey triangles). These parameters estimates were borrowed from the Federal stock assessment, where the Federal derby fishery and IFQ fishery were assumed to represent pre-EQS and EQS NSEI fisheries.</caption>
+<caption>(\#tab:fedsel)Assumed selectivity parameters for the fishery before the Equal Quota Share program started in 1994 (pre-EQS) and the fishery since the implementation of EQS for females (black points) and males (grey triangles). These parameters estimates were borrowed from the Federal stock assessment, where the Federal derby fishery and IFQ fishery were assumed to represent pre-EQS and EQS NSEI fisheries.</caption>
  <thead>
 <tr>
 <th style="empty-cells: hide;border-bottom:hidden;" colspan="1"></th>
@@ -1980,90 +1991,9 @@ Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelih
 <br><br><br>
 
 \newpage
+
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>Negative likelihood values and percent of each component to the total likelihood. The data likelihood is the sum of all likelihood contributions from data. The difference between the total likelihood and the data likelihood is the contribution of penalized likelihoods, including recruitment and fishing mortality.</caption>
- <thead>
-  <tr>
-   <th style="text-align:left;"> Likelihood component </th>
-   <th style="text-align:center;"> $NLL$ </th>
-   <th style="text-align:center;"> \% of $NLL$ </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;"> Catch </td>
-   <td style="text-align:center;"> 17.6 </td>
-   <td style="text-align:center;"> 1.0 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Fishery CPUE </td>
-   <td style="text-align:center;"> 178.9 </td>
-   <td style="text-align:center;"> 9.9 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Survey CPUE </td>
-   <td style="text-align:center;"> 107.7 </td>
-   <td style="text-align:center;"> 6.0 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Mark-recapture abundance </td>
-   <td style="text-align:center;"> 84.9 </td>
-   <td style="text-align:center;"> 4.7 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Fishery ages </td>
-   <td style="text-align:center;"> 228.9 </td>
-   <td style="text-align:center;"> 12.7 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Survey ages </td>
-   <td style="text-align:center;"> 274.0 </td>
-   <td style="text-align:center;"> 15.2 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Fishery lengths </td>
-   <td style="text-align:center;"> 368.3 </td>
-   <td style="text-align:center;"> 20.5 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Survey lengths </td>
-   <td style="text-align:center;"> 539.8 </td>
-   <td style="text-align:center;"> 30.0 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Data likelihood </td>
-   <td style="text-align:center;"> 1800.1 </td>
-   <td style="text-align:center;"> 100.0 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Fishing mortality penalty </td>
-   <td style="text-align:center;"> 1.4 </td>
-   <td style="text-align:center;"> 0.1 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Recruitment likelihood </td>
-   <td style="text-align:center;"> -11.7 </td>
-   <td style="text-align:center;"> -0.6 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> SPR penalty </td>
-   <td style="text-align:center;"> 0.0 </td>
-   <td style="text-align:center;"> 0.0 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Sum of catchability priors </td>
-   <td style="text-align:center;"> 9.1 </td>
-   <td style="text-align:center;"> 0.5 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Total likelihood </td>
-   <td style="text-align:center;"> 1798.9 </td>
-   <td style="text-align:center;"> 99.9 </td>
-  </tr>
-</tbody>
-</table>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>Parameter estimates from the statistical catch-at-age model. Estimates of recruitment, initial numbers-at-age, and fishing mortality deviations were excluded for brevity.</caption>
+<caption>(\#tab:keyparams)Parameter estimates from the statistical catch-at-age model. Estimates of recruitment, initial numbers-at-age, and fishing mortality deviations were excluded for brevity.</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Parameter </th>
@@ -2177,6 +2107,89 @@ Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelih
   </tr>
 </tbody>
 </table>
+
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>(\#tab:likesum)Negative likelihood values and percent of each component to the total likelihood. The data likelihood is the sum of all likelihood contributions from data. The difference between the total likelihood and the data likelihood is the contribution of penalized likelihoods, including recruitment and fishing mortality.</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Likelihood component </th>
+   <th style="text-align:center;"> $NLL$ </th>
+   <th style="text-align:center;"> \% of $NLL$ </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Catch </td>
+   <td style="text-align:center;"> 17.6 </td>
+   <td style="text-align:center;"> 1.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Fishery CPUE </td>
+   <td style="text-align:center;"> 178.9 </td>
+   <td style="text-align:center;"> 9.9 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Survey CPUE </td>
+   <td style="text-align:center;"> 107.7 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Mark-recapture abundance </td>
+   <td style="text-align:center;"> 84.9 </td>
+   <td style="text-align:center;"> 4.7 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Fishery ages </td>
+   <td style="text-align:center;"> 228.9 </td>
+   <td style="text-align:center;"> 12.7 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Survey ages </td>
+   <td style="text-align:center;"> 274.0 </td>
+   <td style="text-align:center;"> 15.2 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Fishery lengths </td>
+   <td style="text-align:center;"> 368.3 </td>
+   <td style="text-align:center;"> 20.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Survey lengths </td>
+   <td style="text-align:center;"> 539.8 </td>
+   <td style="text-align:center;"> 30.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Data likelihood </td>
+   <td style="text-align:center;"> 1800.1 </td>
+   <td style="text-align:center;"> 100.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Fishing mortality penalty </td>
+   <td style="text-align:center;"> 1.4 </td>
+   <td style="text-align:center;"> 0.1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Recruitment likelihood </td>
+   <td style="text-align:center;"> -11.7 </td>
+   <td style="text-align:center;"> -0.6 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> SPR penalty </td>
+   <td style="text-align:center;"> 0.0 </td>
+   <td style="text-align:center;"> 0.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Sum of catchability priors </td>
+   <td style="text-align:center;"> 9.1 </td>
+   <td style="text-align:center;"> 0.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Total likelihood </td>
+   <td style="text-align:center;"> 1798.9 </td>
+   <td style="text-align:center;"> 99.9 </td>
+  </tr>
+</tbody>
+</table>
 <br><br><br>
 
 \newpage
@@ -2184,83 +2197,165 @@ Wood, S. N. 2011. Fast stable restricted maximum likelihood and marginal likelih
 
 <br><br><br>
 
-![Northern Southeast Inside (NSEI) and Southern Southeast Inside (SSEI) Subdistricts including restricted waters of Glacier Bay National Park and Preserve and Annette Islands Reserve.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/Legacy_code_pre2023/figures/nsei_ssei_map.jpg){width=50%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/Legacy_code_pre2023/figures/nsei_ssei_map.jpg" alt="Northern Southeast Inside (NSEI) and Southern Southeast Inside (SSEI) Subdistricts including restricted waters of Glacier Bay National Park and Preserve and Annette Islands Reserve." width="50%" />
+<p class="caption">(\#fig:nseimap)Northern Southeast Inside (NSEI) and Southern Southeast Inside (SSEI) Subdistricts including restricted waters of Glacier Bay National Park and Preserve and Annette Islands Reserve.</p>
+</div>
 <br><br><br>
 
-![Catch, landings by port, and ex-vessel value for Northern Southeast Inside (NSEI) Subdistrict commercial sablefish 1985-2022.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/catch_exvesselvalue_2022v3.png){width=50%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/catch_exvesselvalue_2022v3.png" alt="Catch, landings by port, and ex-vessel value for Northern Southeast Inside (NSEI) Subdistrict commercial sablefish 1985-2022." width="50%" />
+<p class="caption">(\#fig:catch)Catch, landings by port, and ex-vessel value for Northern Southeast Inside (NSEI) Subdistrict commercial sablefish 1985-2022.</p>
+</div>
 <br><br><br>
 
-![Estimated catch in the NSEI fishery from 2000 - 2022 and the relationship to $F_{40}$, $F_{50}$ and $F_{60}$ (Fspr), the fishing mortality that results in a spawner-per-recruit (SPR) of 40, 50 and 60% of the population's virgin state, in the base model and model v23.  Note that model v23, which makes fewer assumptions based on the federal assessment and is moredpendent on NSEI data, estimates the population as muc closer to the ADF&G management target of $F_{50}$.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/base_vs_v23_catch_Fspr.png)
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/base_vs_v23_catch_Fspr.png" alt="Estimated catch in the NSEI fishery from 2000 - 2022 and the relationship to $F_{40}$, $F_{50}$ and $F_{60}$ (Fspr), the fishing mortality that results in a spawner-per-recruit (SPR) of 40, 50 and 60% of the population's virgin state, in the base model and model v23.  Note that model v23, which makes fewer assumptions based on the federal assessment and is more dpendent on NSEI data, estimates the population as much closer to the ADF&amp;G management target of $F_{50}$." width="3115" />
+<p class="caption">(\#fig:Fsprcomp)Estimated catch in the NSEI fishery from 2000 - 2022 and the relationship to $F_{40}$, $F_{50}$ and $F_{60}$ (Fspr), the fishing mortality that results in a spawner-per-recruit (SPR) of 40, 50 and 60% of the population's virgin state, in the base model and model v23.  Note that model v23, which makes fewer assumptions based on the federal assessment and is more dpendent on NSEI data, estimates the population as much closer to the ADF&G management target of $F_{50}$.</p>
+</div>
 <br><br><br>
 
-![A summary of the available data sources in NSEI by year.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/sable_data_yprmodel_2022.png){width=50%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/sable_data_yprmodel_2022.png" alt="A summary of the available data sources in NSEI by year." width="50%" />
+<p class="caption">(\#fig:datsrc)A summary of the available data sources in NSEI by year.</p>
+</div>
 <br><br><br>
 
-![Biological inputs to the statistical catch-at-age model, including: (A) von Bertalanffy growth model predictions of weight-at-age (kg) by sex from the longline fishery (black) and ADFG longline survey (grey); (B) proportion mature at age for females estimated from the longline survey with the age at 50% maturity ($a_{50}$=6.4 yr); and (C) proportion female in the longline survey, where the curve is the fitted line from a generalized additive model +/- 2 standard error.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/bio_dat_2022.png){width=50%}
-<br><br><br>
-
-![Changes in length- and maturity-at-age over time in the NSEI sablefish population.  There is a general trend of fish maturing at younger ages and smaller sizes.  The model uses an average of all years for the assessment.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/maturity_atage_byyear_srvfem_2022.png){width=50%}![Changes in length- and maturity-at-age over time in the NSEI sablefish population.  There is a general trend of fish maturing at younger ages and smaller sizes.  The model uses an average of all years for the assessment.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/maturity_atlength_byyear_srvfem_2022.png){width=50%}
-<br><br><br>
-
-![Indices of catch and abundance with the assumed error distribution, including: (A) harvest (round mt), (B) fishery catch per unit effort in round kg per hook, (C) survey catch per unit effort in number of fish per hook, and (D) mark-recapture abundance estimates in millions. The dashed vertical line in 1994 mark the transition to the Equal Quota Share program.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/abd_indices_2022V2.png){width=50%}
-<br><br><br>
-
-![CPUE in the NSEI longline sablefish fishery in round lbs per hook.  The nominal values (blue) represent values from past assessments and the fully standardized values represent the values used in this assessment.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/ll_cpue_fullstand_1980_2022.png){width=50%}
-<br><br><br>
-
-![Proportions-at-age for in the NSEI longline fishery (2002-2022) and ADFG longline survey (1997-2022).](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/agecomps_2022.png){width=50%}
-<br><br><br>
-
-![Longline fishery and survey length distributions by sex from 1997-2022.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/raw_length_comps.png){width=50%}
-<br><br><br>
-
-![A comparison of the mean length and age in the longline fishery and longline survey since 1997 for male and female sablefish in the NSEI district.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/compare_comp_summaries.png){width=50%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/compare_comp_summaries.png" alt="A comparison of the mean length and age in the longline fishery and longline survey since 1997 for male and female sablefish in the NSEI district." width="50%" />
+<p class="caption">(\#fig:compcomps)A comparison of the mean length and age in the longline fishery and longline survey since 1997 for male and female sablefish in the NSEI district.</p>
+</div>
 <br><br><br>
 
 
-![The probability of retaining a fish as a function of weight (left), sex, and age (right).](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/retention_prob_2022.png)
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/bio_dat_2022.png" alt="Biological inputs to the statistical catch-at-age model, including: (A) von Bertalanffy growth model predictions of weight-at-age (kg) by sex from the longline fishery (black) and ADFG longline survey (grey); (B) proportion mature at age for females estimated from the longline survey with the age at 50% maturity ($a_{50}$=6.4 yr); and (C) proportion female in the longline survey, where the curve is the fitted line from a generalized additive model +/- 2 standard error." width="50%" />
+<p class="caption">(\#fig:bioinputs)Biological inputs to the statistical catch-at-age model, including: (A) von Bertalanffy growth model predictions of weight-at-age (kg) by sex from the longline fishery (black) and ADFG longline survey (grey); (B) proportion mature at age for females estimated from the longline survey with the age at 50% maturity ($a_{50}$=6.4 yr); and (C) proportion female in the longline survey, where the curve is the fitted line from a generalized additive model +/- 2 standard error.</p>
+</div>
 <br><br><br>
 
-![Fixed age-based selectivity curves for the fishery before the Equal Quota Share program started in 1994 (pre-EQS), the fishery since the implementation of EQS, and the estimated ADFG longline survey for females (black points) and males (grey triangles) before and after the standardization of the survey in 2000. Fishery selectivity parameter estimates were borrowed from the Federal stock assessment for the derby fishery (pre-EQS) and IFQ fishery (EQS), while the survey selectivity parameters are estimated within the model.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/selectivity_2022.png){width=50%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/maturity_atage_byyear_srvfem_2022.png" alt="Changes in length- and maturity-at-age over time in the NSEI sablefish population.  There is a general trend of fish maturing at younger ages and smaller sizes.  The model uses an average of all years for the assessment." width="50%" /><img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/maturity_atlength_byyear_srvfem_2022.png" alt="Changes in length- and maturity-at-age over time in the NSEI sablefish population.  There is a general trend of fish maturing at younger ages and smaller sizes.  The model uses an average of all years for the assessment." width="50%" />
+<p class="caption">(\#fig:deltamat)Changes in length- and maturity-at-age over time in the NSEI sablefish population.  There is a general trend of fish maturing at younger ages and smaller sizes.  The model uses an average of all years for the assessment.</p>
+</div>
 <br><br><br>
 
-![Fits to indices of catch and abundance with the assumed error distribution shown as shaded grey polygons. Input data are shown as grey points and model fits are shown in black. Indices include (A) harvest (round mt); (B) fishery catch per unit effort in round kg per hook with separate selectivity and catchability time periods before and after the implementation of the Equal Quota Share program in 1994; (C) survey catch per unit effort in number of fish per hook; and (D) mark-recapture abundance estimates in millions. Solid and dashed lines in panel D reflect years for which data were and were not available, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/pred_abd_indices_imperial_2022.png){width=50%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/abd_indices_2022V2.png" alt="Indices of catch and abundance with the assumed error distribution, including: (A) harvest (round mt), (B) fishery catch per unit effort in round kg per hook, (C) survey catch per unit effort in number of fish per hook, and (D) mark-recapture abundance estimates in millions. The dashed vertical line in 1994 mark the transition to the Equal Quota Share program." width="50%" />
+<p class="caption">(\#fig:abdind)Indices of catch and abundance with the assumed error distribution, including: (A) harvest (round mt), (B) fishery catch per unit effort in round kg per hook, (C) survey catch per unit effort in number of fish per hook, and (D) mark-recapture abundance estimates in millions. The dashed vertical line in 1994 mark the transition to the Equal Quota Share program.</p>
+</div>
 <br><br><br>
 
-![Fits to fishery age compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Fishery_agecomps_barplot.png){width=75%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/ll_cpue_fullstand_1980_2022.png" alt="CPUE in the NSEI longline sablefish fishery in round lbs per hook.  The nominal values (blue) represent values from past assessments and the fully standardized values represent the values used in this assessment." width="50%" />
+<p class="caption">(\#fig:fcpuestand)CPUE in the NSEI longline sablefish fishery in round lbs per hook.  The nominal values (blue) represent values from past assessments and the fully standardized values represent the values used in this assessment.</p>
+</div>
 <br><br><br>
 
-![Fits to survey age compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Survey_agecomps_barplot.png){width=75%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/agecomps_2022.png" alt="Proportions-at-age for in the NSEI longline fishery (2002-2022) and ADFG longline survey (1997-2022)." width="50%" />
+<p class="caption">(\#fig:agecomps)Proportions-at-age for in the NSEI longline fishery (2002-2022) and ADFG longline survey (1997-2022).</p>
+</div>
 <br><br><br>
 
-![Standardized residuals of fits to fishery (2002-2022) and survey (1997-2022) age compositions. Size of residual scales to point size. Black points represent negative residuals (observed < predicted); white points represent positive residuals (observed > predicted).](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/agecomps_residplot.png){width=50%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/raw_length_comps.png" alt="Longline fishery and survey length distributions by sex from 1997-2022." width="50%" />
+<p class="caption">(\#fig:lencomp)Longline fishery and survey length distributions by sex from 1997-2022.</p>
+</div>
 <br><br><br>
 
-![Fits to male fishery length compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Fishery_Male_lencomps_barplot.png){width=75%}
+
 <br><br><br>
 
-![Fits to female fishery length compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Fishery_Female_lencomps_barplot.png){width=75%}
+
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/retention_prob_2022.png" alt="The probability of retaining a fish as a function of weight (left), sex, and age (right)." width="2400" />
+<p class="caption">(\#fig:retention)The probability of retaining a fish as a function of weight (left), sex, and age (right).</p>
+</div>
 <br><br><br>
 
-![Fits to male survey length compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Survey_Male_lencomps_barplot.png){width=75%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/selectivity_2022.png" alt="Fixed age-based selectivity curves for the fishery before the Equal Quota Share program started in 1994 (pre-EQS), the fishery since the implementation of EQS, and the estimated ADFG longline survey for females (black points) and males (grey triangles) before and after the standardization of the survey in 2000. Fishery selectivity parameter estimates were borrowed from the Federal stock assessment for the derby fishery (pre-EQS) and IFQ fishery (EQS), while the survey selectivity parameters are estimated within the model." width="50%" />
+<p class="caption">(\#fig:slx)Fixed age-based selectivity curves for the fishery before the Equal Quota Share program started in 1994 (pre-EQS), the fishery since the implementation of EQS, and the estimated ADFG longline survey for females (black points) and males (grey triangles) before and after the standardization of the survey in 2000. Fishery selectivity parameter estimates were borrowed from the Federal stock assessment for the derby fishery (pre-EQS) and IFQ fishery (EQS), while the survey selectivity parameters are estimated within the model.</p>
+</div>
 <br><br><br>
 
-![Fits to female survey length compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Survey_Female_lencomps_barplot.png){width=75%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/pred_abd_indices_imperial_2022.png" alt="Fits to indices of catch and abundance with the assumed error distribution shown as shaded grey polygons. Input data are shown as grey points and model fits are shown in black. Indices include (A) harvest (round mt); (B) fishery catch per unit effort in round kg per hook with separate selectivity and catchability time periods before and after the implementation of the Equal Quota Share program in 1994; (C) survey catch per unit effort in number of fish per hook; and (D) mark-recapture abundance estimates in millions. Solid and dashed lines in panel D reflect years for which data were and were not available, respectively." width="50%" />
+<p class="caption">(\#fig:predabdind)Fits to indices of catch and abundance with the assumed error distribution shown as shaded grey polygons. Input data are shown as grey points and model fits are shown in black. Indices include (A) harvest (round mt); (B) fishery catch per unit effort in round kg per hook with separate selectivity and catchability time periods before and after the implementation of the Equal Quota Share program in 1994; (C) survey catch per unit effort in number of fish per hook; and (D) mark-recapture abundance estimates in millions. Solid and dashed lines in panel D reflect years for which data were and were not available, respectively.</p>
+</div>
 <br><br><br>
 
-![Standardized residuals of fits to fishery (2002-2022) and survey (1997-2022) length compositions for males and females. Size of residual scales to point size. Black points represent negative residuals (observed < predicted); white points represent positive residuals (observed > predicted).](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/lencomps_residplot.png){width=50%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/derived_ts_imperial_2022.png" alt="Model predictions of (A) age-2 recruitment (millions), (B) female spawning stack biomass (million lb), (C) exploitable abundance (millions), and (D) exploitable biomass (million lb)." width="50%" />
+<p class="caption">(\#fig:derivedts)Model predictions of (A) age-2 recruitment (millions), (B) female spawning stack biomass (million lb), (C) exploitable abundance (millions), and (D) exploitable biomass (million lb).</p>
+</div>
 <br><br><br>
 
-![Model predictions of (A) age-2 recruitment (millions), (B) female spawning stack biomass (million lb), (C) exploitable abundance (millions), and (D) exploitable biomass (million lb).](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/derived_ts_imperial_2022.png){width=50%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Fishery_agecomps_barplot.png" alt="Fits to fishery age compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively." width="75%" />
+<p class="caption">(\#fig:fshage)Fits to fishery age compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.</p>
+</div>
 <br><br><br>
 
-![Model-estimated fishing mortality rate (top) and realized harvest rate (bottom), defined as the ratio of total predicted catch to exploitable biomass. Total predicted catch is the sum of landed catch and discarded biomass assumed to die post-release.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/fishing_mort.png){width=50%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Survey_agecomps_barplot.png" alt="Fits to survey age compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively." width="75%" />
+<p class="caption">(\#fig:srvage)Fits to survey age compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.</p>
+</div>
 <br><br><br>
 
-![Mohn's $\rho$ and retrospective peels of sablefish spawning biomass for the last 9 years.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/output/tmb/retrospective_v23_new_2slx/retrospective_spawn_biom_2022.png){width=50%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/agecomps_residplot.png" alt="Standardized residuals of fits to fishery (2002-2022) and survey (1997-2022) age compositions. Size of residual scales to point size. Black points represent negative residuals (observed &lt; predicted); white points represent positive residuals (observed &gt; predicted)." width="50%" />
+<p class="caption">(\#fig:residage)Standardized residuals of fits to fishery (2002-2022) and survey (1997-2022) age compositions. Size of residual scales to point size. Black points represent negative residuals (observed < predicted); white points represent positive residuals (observed > predicted).</p>
+</div>
 <br><br><br>
 
-![Mohn's $\rho$ and retrospective peels of sablefish recruitment for the last 9 years.](C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/output/tmb/retrospective_v23_new_2slx/retrospective_recruitment_2022.png){width=50%}
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Fishery_Male_lencomps_barplot.png" alt="Fits to male fishery length compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively." width="75%" />
+<p class="caption">(\#fig:malefshlen)Fits to male fishery length compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.</p>
+</div>
+<br><br><br>
+
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Fishery_Female_lencomps_barplot.png" alt="Fits to female fishery length compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively." width="75%" />
+<p class="caption">(\#fig:femalefshlen)Fits to female fishery length compositions, 2002-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.</p>
+</div>
+<br><br><br>
+
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Survey_Male_lencomps_barplot.png" alt="Fits to male survey length compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively." width="75%" />
+<p class="caption">(\#fig:malesrvlen)Fits to male survey length compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.</p>
+</div>
+<br><br><br>
+
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/Survey_Female_lencomps_barplot.png" alt="Fits to female survey length compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively." width="75%" />
+<p class="caption">(\#fig:femalesrvlen)Fits to female survey length compositions, 1997-2022. Observed and predicted proportions-at-age shown as grey bars and black lines, respectively.</p>
+</div>
+<br><br><br>
+
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/lencomps_residplot.png" alt="Standardized residuals of fits to fishery (2002-2022) and survey (1997-2022) length compositions for males and females. Size of residual scales to point size. Black points represent negative residuals (observed &lt; predicted); white points represent positive residuals (observed &gt; predicted)." width="50%" />
+<p class="caption">(\#fig:residlen)Standardized residuals of fits to fishery (2002-2022) and survey (1997-2022) length compositions for males and females. Size of residual scales to point size. Black points represent negative residuals (observed < predicted); white points represent positive residuals (observed > predicted).</p>
+</div>
+<br><br><br>
+
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/output/tmb/retrospective_v23_new_2slx/retrospective_spawn_biom_2022.png" alt="Mohn's $\rho$ and retrospective peels of sablefish spawning biomass for the last 9 years." width="50%" />
+<p class="caption">(\#fig:mohnsbiom)Mohn's $\rho$ and retrospective peels of sablefish spawning biomass for the last 9 years.</p>
+</div>
+<br><br><br>
+
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/output/tmb/retrospective_v23_new_2slx/retrospective_recruitment_2022.png" alt="Mohn's $\rho$ and retrospective peels of sablefish recruitment for the last 9 years." width="50%" />
+<p class="caption">(\#fig:mohnsrec)Mohn's $\rho$ and retrospective peels of sablefish recruitment for the last 9 years.</p>
+</div>
+<br><br><br>
+
+<div class="figure" style="text-align: center">
+<img src="C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2023/figures/tmb/Final2_v23_new_2slx/fishing_mort.png" alt="Model-estimated fishing mortality rate (top) and realized harvest rate (bottom), defined as the ratio of total predicted catch to exploitable biomass. Total predicted catch is the sum of landed catch and discarded biomass assumed to die post-release." width="50%" />
+<p class="caption">(\#fig:fishmort)Model-estimated fishing mortality rate (top) and realized harvest rate (bottom), defined as the ratio of total predicted catch to exploitable biomass. Total predicted catch is the sum of landed catch and discarded biomass assumed to die post-release.</p>
+</div>
 <br><br><br>
 <br><br><br>
 <br><br><br>
