@@ -23,7 +23,7 @@ output:
     keep_md: true
 #    df_print: kable
 #    documentclass:
-#  radix::radix_article: default
+#  radix::radix_article: default  ff
 
 header-includes: 
  \usepackage{float}
