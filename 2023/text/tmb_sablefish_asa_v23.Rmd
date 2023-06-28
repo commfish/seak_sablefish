@@ -203,6 +203,7 @@ Deadloss mortality in the directed sablefish fishery was estimated by applying t
 ### Personal use and subsistence harvest
 
 A total of 772 personal use and subsistence sablefish permits were issued in `r YEAR`. Annual subsistence and personal use harvest of sablefish is estimated from these permits by adding the total number of retained sablefish reported to the proportion of released sablefish reported after applying a 16% discard mortality rate to released sablefish (Gilroy and Stewart 2013). The Pacific halibut fishery is assumed a reasonable proxy for sablefish because the fisheries utilize similar gear and frequently the same vessels and crew participate in both fisheries. Moreover, both species are considered hardy and do not experience barotrauma. The `r YEAR` longline survey average weight (5.1 lb) was applied to this harvest to obtain a decrement total. 
+
 In 2015, personal use harvest was limited to an annual limit of 50 fish per household. Since 2018, participants of the personal use fishery have been allowed to use pot gear with no more than 2 pots per permit and a maximum of 8 pots per vessel when 4 or more permit holders are on board the same vessel. Use of pot gear has continued to increase with 68% of permit holders fishing pots. 
 
 <br>
