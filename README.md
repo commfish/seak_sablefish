@@ -9,9 +9,11 @@ Jane's orginal model and code has been left unaltered as she left it in 2021.  I
 the branch labelled "seak_sablefish_thru2021_original_JS".  
 The 2022 assessment changed little from the 2021 assessment as done by Jane.
 
-Last updated: January 2023
+Last updated: August 2023
 
 ## Reports
+2023 forecast: https://github.com/commfish/seak_sablefish/blob/master/2023/text/RIR.1J.2023.XX_NSEI_Final.docx.  Please note that as of August 2023 the ADF&G publication department is undergoing revisions and publications have been temporarily suspended.  Please site the github site for this report until official publications are made available. 
+
 2022 forecast: http://www.adfg.alaska.gov/FedAidPDFs/RIR.1J.2022.19.pdf
 
 2021 forecast: http://www.adfg.alaska.gov/FedAidPDFs/RIR.1J.2021.13.pdf
