@@ -123,6 +123,7 @@ The analyses underpinning the current stock assessment are found in the folder l
 17.  `YEAR/r/marking_survey_analysis.r`: sensitivity analysis of marking survey/abundance estimate on SCAA results; impact of moving to a bi- or triennial stock assessment; appeared in 2020 forecast, does not need to be rerun annually;
 18.  `YEAR/r/ypr.r`: run YPR stock assessment by partitioning mark-recapture abundance estimate into sex and age classes, estimating F50 YPR model, and calculating ABC;
 19.  `YEAR/r/ageing_error_matrix.r`: old code from Kray Van Kirk (previous biometrician) that may be useful when developing an updated ageing error matrix.
+20.  `2024/r/survey_gear_experiments.r`: This code examines differences in the catch composition of longline and pot gear in experimental comparison performed in Clarence (SSEI) and Chatham (NSEI) straights in 2022 and 2023. The 2022 study compared slinky and conical pots during the Chatham marking survey. The 2023 studies in both locations compared slinky pots to longline gear in side by side sets. All data is stored in the 2024 year folder.
 
 The `.cpp file` for the SCAA model is found in `tmb/` folder in each YEAR folder.
 
