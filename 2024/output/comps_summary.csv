@@ -20,6 +20,7 @@ LL fishery,Female,2019,15.759006211180123,2,54,Age
 LL fishery,Female,2020,13.303571428571429,3,49,Age
 LL fishery,Female,2021,13.066265060240964,2,51,Age
 LL fishery,Female,2022,12.157701711491443,3,47,Age
+LL fishery,Female,2023,11.007017543859648,3,40,Age
 LL fishery,Male,2002,18.079766536964982,2,68,Age
 LL fishery,Male,2003,15.962239583333334,3,60,Age
 LL fishery,Male,2004,15.695201037613488,3,62,Age
@@ -41,6 +42,7 @@ LL fishery,Male,2019,20.660569105691057,2,60,Age
 LL fishery,Male,2020,19.091976516634052,2,48,Age
 LL fishery,Male,2021,17.405857740585773,3,56,Age
 LL fishery,Male,2022,18.0062893081761,4,55,Age
+LL fishery,Male,2023,14.48125,4,67,Age
 LL survey,Female,1997,17.286259541984734,4,54,Age
 LL survey,Female,1998,16.299492385786802,2,49,Age
 LL survey,Female,1999,11.691275167785236,2,44,Age
@@ -67,6 +69,7 @@ LL survey,Female,2019,8.985130111524164,2,39,Age
 LL survey,Female,2020,8.13262599469496,2,36,Age
 LL survey,Female,2021,6.943243243243243,2,40,Age
 LL survey,Female,2022,7.583577712609971,2,43,Age
+LL survey,Female,2023,7.305405405405406,2,25,Age
 LL survey,Male,1997,20.637037037037036,3,60,Age
 LL survey,Male,1998,19.426751592356688,3,56,Age
 LL survey,Male,1999,15.733727810650887,2,51,Age
@@ -93,8 +96,11 @@ LL survey,Male,2019,11.38888888888889,3,46,Age
 LL survey,Male,2020,9.644351464435147,2,41,Age
 LL survey,Male,2021,7.576086956521739,1,48,Age
 LL survey,Male,2022,8.620578778135048,1,39,Age
+LL survey,Male,2023,8.039087947882736,3,54,Age
 Pot fishery,Female,2022,8.154440154440154,3,28,Age
+Pot fishery,Female,2023,7.255932203389831,3,24,Age
 Pot fishery,Male,2022,12.217948717948717,4,62,Age
+Pot fishery,Male,2023,8.76171875,3,46,Age
 LL fishery,Female,2002,70.16680032076985,49,107,Fork length
 LL fishery,Female,2003,71.01174168297456,49,101,Fork length
 LL fishery,Female,2004,72.5073670723895,50,108,Fork length
@@ -113,10 +119,11 @@ LL fishery,Female,2016,75.32043010752689,47,101,Fork length
 LL fishery,Female,2017,74.4797619047619,46,106,Fork length
 LL fishery,Female,2018,73.8980343980344,50,106,Fork length
 LL fishery,Female,2019,72.03140096618357,50,117,Fork length
-LL fishery,Female,2020,69.16071428571429,51,102,Fork length
+LL fishery,Female,2020,69.1800766283525,51,102,Fork length
 LL fishery,Female,2021,68.6285140562249,49,101,Fork length
 LL fishery,Female,2022,69.06479217603912,47,100,Fork length
-LL fishery,Male,2002,64.37549019607843,46,90,Fork length
+LL fishery,Female,2023,67.72711267605634,50,95,Fork length
+LL fishery,Male,2002,64.36997055937194,46,90,Fork length
 LL fishery,Male,2003,64.41546526867627,50,83,Fork length
 LL fishery,Male,2004,64.45549738219896,49,85,Fork length
 LL fishery,Male,2005,65.38142292490119,51,92,Fork length
@@ -137,6 +144,7 @@ LL fishery,Male,2019,66.19493177387915,46,90,Fork length
 LL fishery,Male,2020,64.68101761252446,50,80,Fork length
 LL fishery,Male,2021,63.89539748953975,50,80,Fork length
 LL fishery,Male,2022,64.52996845425868,51,81,Fork length
+LL fishery,Male,2023,62.79937304075235,50,76,Fork length
 LL survey,Female,1997,73.67312252964427,47,102,Fork length
 LL survey,Female,1998,72.10204081632654,43,98,Fork length
 LL survey,Female,1999,66.35658914728683,44,98,Fork length
@@ -163,6 +171,7 @@ LL survey,Female,2019,63.433085501858734,44,95,Fork length
 LL survey,Female,2020,62.949333333333335,47,97,Fork length
 LL survey,Female,2021,62.16260162601626,45,88,Fork length
 LL survey,Female,2022,62.48672566371681,43,91,Fork length
+LL survey,Female,2023,61.961852861035425,46,97,Fork length
 LL survey,Male,1997,66.11895910780669,43,81,Fork length
 LL survey,Male,1998,64.93464052287581,46,92,Fork length
 LL survey,Male,1999,62.25694444444444,44,95,Fork length
@@ -189,5 +198,8 @@ LL survey,Male,2019,60.0479797979798,45,84,Fork length
 LL survey,Male,2020,59.77824267782427,48,81,Fork length
 LL survey,Male,2021,57.625454545454545,44,79,Fork length
 LL survey,Male,2022,58.689320388349515,45,87,Fork length
+LL survey,Male,2023,58.688741721854306,46,73,Fork length
 Pot fishery,Female,2022,66.46718146718146,55,89,Fork length
+Pot fishery,Female,2023,63.20508474576271,49,85,Fork length
 Pot fishery,Male,2022,61.91025641025641,54,80,Fork length
+Pot fishery,Male,2023,59.88627450980392,51,74,Fork length

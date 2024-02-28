@@ -1,7 +1,8 @@
 # Longline Survey cpue
-# Author: Jane Sullivan
-# Contact: jane.sullivan@noaa.gov
-# Last edited: Feb 2021
+# Original Author: Jane Sullivan
+# Current driver: Phil Joy
+# Contact:  philip.joy@alaska.gov
+# Last edited: April 2024
 
 # The most version of this "V2" calculates survey cpue at the set level and may
 # standardized by soak time, depth, lat/lon, tide, and catch of other species.
@@ -18,7 +19,7 @@ source("r_helper/functions.r")
 if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 library("AICcmodavg")
 
-YEAR <- 2022 # most recent year of data
+YEAR <- 2023 # most recent year of data
 
 # VERSION 2 (2020): ----
 
@@ -431,16 +432,23 @@ print(plot(getViz(mod.global), allTerms = TRUE) + l_fitRaster() + l_fitContour()
 
 #add predicted cpue to sable and recalc yearly CPUE index for each model
 ## Jan-17-23; this function did not work on rerun of '22 check.  Had to manually crank the function... 
+#model.add<-function(mod,dat,colhead){  #mod<-mod.global; dat<-sable; colhead<-"global"
+#  preds<-predict.bam(mod, type="response", se.fit=T)
+#  name<-paste0("cpue.",colhead)
+#  name.sd<-paste0("sd.cpue.",colhead)
+#  sable[,name]<-preds$fit
+#}
+#model.add(mod=mod.global,dat=sable,colhead = "global")
 
+mod<-mod.global
+dat<-sable
+colhead<-"global"
 
-model.add<-function(mod,dat,colhead){  #mod<-mod.global; dat<-sable; colhead<-"global"
-  preds<-predict.bam(mod, type="response", se.fit=T)
-  name<-paste0("cpue.",colhead)
-  name.sd<-paste0("sd.cpue.",colhead)
-  sable[,name]<-preds$fit
-}
+preds<-predict.bam(mod, type="response", se.fit=T)
+name<-paste0("cpue.",colhead)
+name.sd<-paste0("sd.cpue.",colhead)
+sable[,name]<-preds$fit
 
-model.add(mod=mod.global,dat=sable,colhead = "global")
 plot(sable$cpue.global~sable$set_cpue)
 
 head(sable)

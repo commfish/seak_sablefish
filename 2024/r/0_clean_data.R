@@ -1,7 +1,7 @@
 # Clean data 
-# Author: Jane Sullivan
-# Contact: jane.sullivan@noaa.gov
-# Last edited: Feb 2021
+# Author: Phil Joy
+# Contact: philip.joy@alaska.gov
+# Last edited: April 2024
 
 # R version 3.6.3 (2020-02-29)
 # Platform: x86_64-w64-mingw32/x64 (64-bit)
@@ -44,6 +44,8 @@ source("r_helper/helper.r")
 source("r_helper/functions.r")
 
 # 1. Fishery harvest ----
+# From OceanAK: 1. Fishery Harvest.csv
+# Saved to: nseiharvest_ifdb_20XX.csv
 
 # Harvest from IFDB - what managers are using. This only includes directed NSEI
 # harvest (harvest_code = 43 is test fish)
@@ -318,6 +320,8 @@ pot_eff<-unique(pot_eff)
                                  min(pot_eff$year), "_", max(pot_eff$year), ".csv"))
  #=====================================================================================
 # 3. Fishery biological ----
+# From OceanAK: 3. Fishery Biological Data.csv
+# Saved to: fishery_bio_20XX.csv
 
 # Fishery and pot survey bio data still come from IFDB, ZPROD official source
 # for longline survey data
@@ -379,6 +383,8 @@ write_csv(fsh_bio, paste0("legacy_data/fishery/fishery_bio_",
 
 #======================================================================================
 # 4. Longline survey cpue ----
+# From OceanAK: 4. Longline Survey CPUE.csv
+# saved to: llsrv_cpue_1985_20XX.csv
 
 # 2020-01-28: (i.e. "v2") Attempt to do a better job cleaning up the data based
 # on comments. Invalidate: skates with >= 12 invalid hooks (should be done
@@ -443,12 +449,15 @@ write_csv(srv_eff, paste0("legacy_data/survey/llsrv_cpue_", min(srv_eff$year), "
 
 #=======================================================================================
 # 5. Longline survey catch ----
+# OceanAK: 5. Longline Survey Catch.csv
+# Saved to: llsrv_by_condition_1988_20XX.csv
 
-# There is no countback for each fish on the longline survey to check for marks.
+# There was no countback for each fish on the longline survey to check for marks.
 # Only tags are pulled. However, prior to 2019, it was assumed that all fish
 # were checked (only discard status "01" for retained fish) and this is the view
 # that was used. Jane found out about this false assumption during the 2019 longline
 # survey.
+# However, starting in 2022 staff completed countbacks of survey fish. 
 
 #JANE's 2020 with PHIL's 2021 MODCODE
 read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_by_condition_1988_", YEAR, ".csv"), 
@@ -466,6 +475,8 @@ read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_by_condition_1988_", YEAR, "
 
 max(srv_ctc$year); unique(srv_ctc$year)
 view(srv_ctc %>% filter(year == 2022))
+
+str(srv_ctc)
  
 write_csv(srv_ctc, paste0(YEAR+1,"/data/survey/llsrv_by_condition_",
                           min(srv_ctc$year), "_", YEAR, ".csv"))
@@ -474,6 +485,8 @@ write_csv(srv_ctc, paste0("legacy_data/survey/llsrv_by_condition_", min(srv_ctc$
 
 #==============================================================================================
 # 6. Longline survey biological ----
+# From OceanAK: 6. Longline Survey Biological Data.csv
+# copied to: llsrv_bio_20XX.csv
 
 # Chatham Strait Longline Survey biological data. originally stored in ifdb
 # under out_g_bio_effort_age_sex_size but since the development of ACES (the
@@ -519,6 +532,8 @@ write_csv(srv_bio, paste0("legacy_data/survey/llsrv_bio_",
 
 #================================================================================================
 # 7. Pot survey biological ----
+# From OceanAK: 7. Pot Survey Biological Data.csv
+# Saved to potsrv_bio_20XX.csv
 
 # The pot survey is a mark-recapture survey. Limited bio data exists. Use this
 # data for two purposes: 1) the bio data, and 2) determining the number of marks
@@ -568,7 +583,7 @@ str(pot_bio)
 unique(as.numeric(pot_bio$year))  
 
 #PJ NOTE: Date column corrupted.  Not used in analysis and just need year? 
-read_csv(paste0("legacy_data/survey/potsrv_bio_1981_", YEAR-2, ".csv"), 
+read_csv(paste0("legacy_data/survey/potsrv_bio_1981_", YEAR-1, ".csv"), 
          guess_max = 50000) %>% 
   mutate(#Maturity = as.character(Maturity),
          date = ymd(as.Date(date)),
@@ -622,6 +637,8 @@ write_csv(pot_bio, paste0("legacy_data/survey/potsrv_bio_",
 
 #===================================================================================================
 # 8. Tag releases ----
+# From OceanAK: 8. Tag Releases (from pot marking survey).csv
+# Saved as tag_releases_20XX.csv
 
 # From the pot marking survey, includes length
 
@@ -658,10 +675,10 @@ read_csv(paste0(YEAR+1,"/data/survey/raw_data/tag_releases_",
 
 # Data queried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
-str(past_releases); str(tag_releases)
+str(tag_releases)
 
 #when was last marking survey?  In 2022 it was two years age
-last_surv <- 2
+last_surv <- 1
 
 read_csv(paste0("legacy_data/survey/tag_releases_2003_", YEAR-last_surv, ".csv"), 
          guess_max = 50000) -> past_releases
@@ -689,13 +706,15 @@ tag_releases %>% group_by(year, discard_status) %>% dplyr::summarise(n_distinct(
 
 #==========================================================================================
 # 9. Tag recoveries ----
+# From OceanAK: 9. Tag Recoveries.csv
+# Saved to: tag_recoveries_20XX.csv
 
 # This is the batch report that Mike Vaughn does (how we determine how many tags
 # lost/not available to the directed NSEI sablefish fishery). Match up
 # batch_no's to the tag_releases. Also includes recapture lengths (careful to
 # only use sampler lengths)
 
-Dat<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/tag_recoveries_",
+tag_recoveries<-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/tag_recoveries_",
                      YEAR, ".csv")) %>%   
   mutate(landing_date = as.Date(format(parse_date_time(LANDING_DATE, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d")),
          landing_julian_day = yday(landing_date),
@@ -760,6 +779,7 @@ tag_recoveries %>%
 # M:\SABLEFISH\CHATHAM\2022\Port Sampling\22 NSEI Daily Accounting Form by port_FINAL.xlsx
 # Will need to make scv files that match below...
 
+# 2024 data was in same location and shape... 
 
 read_csv(paste0(YEAR+1,"/data/fishery/raw_data/nsei_daily_tag_accounting_", YEAR, ".csv"),
          guess_max = 50000) %>% 
