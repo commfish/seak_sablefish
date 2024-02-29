@@ -4,8 +4,8 @@
 #* 
 # Fishery catch 1985-present, 
 # Author: Jane Sullivan & Phil Joy
-# Contact: jane.sullivan@noaa.gov & philip.joy@alaska.gov
-# Last edited: Feb 2023
+# Contact: philip.joy@alaska.gov
+# Last edited: March 2024
 
 source("r_helper/helper.r")
 source("r_helper/functions.r")
@@ -13,7 +13,7 @@ source("r_helper/functions.r")
 # if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
 # Most recent year of data
-YEAR <- 2022
+YEAR <- 2023
 
 # Harvest ----
 
@@ -40,13 +40,12 @@ exvessel_value <- read_csv(paste0("legacy_data/exvessel_value_",
 #  mutate(year=Year_Landed, exvessel_mil_usd = CFEC_Value/1000000)
 #format like Jane's old for consistency with code... just year and value
 
-#Add 2021 do n 2023 only.  Should not be necessary next year!!!
-exvessel_value[nrow(exvessel_value)+1,]<-list(2021,NA,NA, NA, 2021, 2.821949)
+View(exvessel_value)
+#Add new year from Rhea's querry: 
+#OceanAK exvessel: https://oceanak.dfg.alaska.local/analytics/saw.dll?PortalGo&Action=prompt&path=%2Fshared%2FCommercial%20Fisheries%2FRegion%20I%2FGroundFish%2FUser%20Reports%2FPhil%27s%20Sablefish%2FExvessel%20value%20estimated%20from%20fish%20ticket%20data
+# Save in YEAR/data/fishery/raw_data/Exvessel_value_for_YEAR_estimated_from_fish_ticket_data.csv
 
-#Add new year
-#OceanAK for 2022 exvessel: https://oceanak.dfg.alaska.local/analytics/saw.dll?PortalGo&Action=prompt&path=%2Fshared%2FCommercial%20Fisheries%2FRegion%20I%2FGroundFish%2FUser%20Reports%2FPhil%27s%20Sablefish%2FExvessel%20value%20for%202022%20estimated%20from%20fish%20ticket%20data
-
-exves_new <- read_csv(paste0(YEAR+1,"/data/fishery/raw_data/Exvessel_value_for_2022_estimated_from_fish_ticket_data.csv")) %>% 
+exves_new <- read_csv(paste0(YEAR+1,"/data/fishery/raw_data/Exvessel value estimated from fish ticket data",YEAR,".csv")) %>% 
   data.frame()
 
 exvessel_value[nrow(exvessel_value)+1,]<-list(YEAR,
@@ -199,18 +198,30 @@ data.frame(exvessel_value)
 
 # Relationship between ex-vessel price and catch
 if(!require("ggrepel"))   install.packages("ggrepel") 
-sum_catch %>% 
-  left_join(exvessel_value) %>% 
+
+full_join(sum_catch,exvessel_value,by="year") %>%
   mutate(flag = ifelse(year %in% c(YEAR, YEAR-1, YEAR-2), "a", "b")) %>% 
   ggplot(aes(x = total_pounds / 1e6, y = exvessel_mil_usd, col = flag)) +
   geom_smooth(method = "lm", se = FALSE, col = "grey") +
   geom_point() + 
   ggrepel::geom_text_repel(aes(label = year), max.overlaps = Inf) +
   scale_colour_manual(values = c("red", "black"), guide = FALSE) +
-  labs(x = "\nCatch (million round lb)", y = "Ex-vessel value (million USD)") 
+  labs(x = "\nCatch (million round lb)", y = "Ex-vessel value (million USD)") +
+  scale_y_continuous(limits = c(0,12.5))
 
 ggsave(paste0(YEAR+1,"/figures/exvessel_catch_correlation_1985_", YEAR, ".png"), 
        dpi=300,  height=4, width=7,  units="in")
+
+full_join(sum_catch,exvessel_value,by="year") %>%
+  filter(year > 2000) %>%
+  mutate(flag = ifelse(year %in% c(YEAR, YEAR-1, YEAR-2), "a", "b")) %>% 
+  ggplot(aes(x = total_pounds / 1e6, y = exvessel_mil_usd, col = flag)) +
+  geom_smooth(method = "lm", se = FALSE, col = "grey") +
+  geom_point() + 
+  ggrepel::geom_text_repel(aes(label = year), max.overlaps = Inf) +
+  scale_colour_manual(values = c("red", "black"), guide = FALSE) +
+  labs(x = "\nCatch (million round lb)", y = "Ex-vessel value (million USD)") +
+  scale_y_continuous(limits = c(0,6))
 
 #------------------------------------------------------------------------------
 #_______________________________________________________________________________
