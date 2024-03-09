@@ -111,7 +111,7 @@ build_bounds_v23 <- function(param_list = NULL, data_list){
   return(bounds)
 }
 
-TMBphase_v23 <- function(data, parameters, random, model_name, phase = FALSE,
+TMBphase_v24 <- function(data, parameters, random, model_name, phase = FALSE,
                      optimizer = "nlminb", debug = FALSE, loopnum = 3, newtonsteps = 0) {
   
   # Debug function
@@ -159,6 +159,9 @@ TMBphase_v23 <- function(data, parameters, random, model_name, phase = FALSE,
       map_use$log_tau_mr <- fill_vals(parameters$log_tau_mr, NA)
     }
     
+    if (data$fsh_slx_switch != 1) {
+      map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
+    }
     # Temporary debug trying to figure out why I'm getting NA/NaN function
     # evaluation - think it's something to do with discarding
     if (tmp_debug == TRUE) {
@@ -370,7 +373,7 @@ TMBphase_v23 <- function(data, parameters, random, model_name, phase = FALSE,
 }
 
 
-build_parameters_v23 <- function(
+build_parameters_v24 <- function(
     # data,
   # nsex,
   # inits,
@@ -434,16 +437,16 @@ build_parameters_v23 <- function(
       } else {  # Logistic with a50 and slope, data$slx_type = 1, sex-structured model - UPDATE ME!
         array(data = c(slx_pars$log_a50[slx_pars$fleet == "fsh_t1_m"], # male a50s time block 1
                        slx_pars$log_a50[slx_pars$fleet == "fsh_t2_m"], #  then time block 2
-                       #slx_pars$log_a50[slx_pars$fleet == "fsh_t3_m"], #  then time block 3
+                       slx_pars$log_a50[slx_pars$fleet == "fsh_t3_m"], #  then time block 3
                        slx_pars$log_k[slx_pars$fleet == "fsh_t1_m"], # male slopes time block 1
                        slx_pars$log_k[slx_pars$fleet == "fsh_t2_m"], # then time block 2
-                       #slx_pars$log_k[slx_pars$fleet == "fsh_t3_m"], # then time block 3
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t3_m"], # then time block 3
                        slx_pars$log_a50[slx_pars$fleet == "fsh_t1_f"], # female a50s time block 1
                        slx_pars$log_a50[slx_pars$fleet == "fsh_t2_f"], #  then time block 2
-                       #slx_pars$log_a50[slx_pars$fleet == "fsh_t3_f"], #  then time block 3
+                       slx_pars$log_a50[slx_pars$fleet == "fsh_t3_f"], #  then time block 3
                        slx_pars$log_k[slx_pars$fleet == "fsh_t1_f"], # female slopes time block 1
-                       slx_pars$log_k[slx_pars$fleet == "fsh_t2_f"]), #  then time block 2
-                       #slx_pars$log_k[slx_pars$fleet == "fsh_t3_f"]), # then time block 3
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t2_f"], #  then time block 2
+                       slx_pars$log_k[slx_pars$fleet == "fsh_t3_f"]), # then time block 3
               dim = c(length(data$fsh_blks), 2, nsex)) }, # 2 = npar for this slx_type   
         
         # FISHERY SELECTIVITY FOR 2020 assessment (2021 ABC)
@@ -510,7 +513,19 @@ build_parameters_v23 <- function(
         #               rep(slx_pars$log_a50[slx_pars$fleet == "srv_f"], length(data$srv_blks)), # female a50
         #               rep(slx_pars$log_k[slx_pars$fleet == "srv_f"], length(data$srv_blks))), # slope
         #      dim = c(length(data$srv_blks), 2, nsex))}, # 2 = npar for this slx_type
-        array(data = c(rep(slx_pars$log_a50[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # male a50
+        
+        # FLAG!!! NEED MORE FOR MORE BLOCKS! 4 VALUE FOR EACH BLOCK
+        #NOTE: because the early years of the survey were intended to mimic the fishery, we will fix those
+        # to the pre-IFQ fishery slx values borrowed from the federal assesment. 
+        array(data = c(rep(slx_pars$log_a50[slx_pars$fleet == "fsh_t1_m"], length(data$srv_blks)), # male a50 #
+                 rep(slx_pars$log_k[slx_pars$fleet == "fsh_t1_m"], length(data$srv_blks)), # slope
+                 rep(slx_pars$log_a50[slx_pars$fleet == "srv_f"], length(data$srv_blks)), # female a50
+                 rep(slx_pars$log_k[slx_pars$fleet == "srv_f"], length(data$srv_blks)),
+                 rep(slx_pars$log_a50[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # male a50
+                 rep(slx_pars$log_k[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # slope
+                 rep(slx_pars$log_a50[slx_pars$fleet == "srv_f"], length(data$srv_blks)), # female a50
+                 rep(slx_pars$log_k[slx_pars$fleet == "srv_f"], length(data$srv_blks)),
+                 rep(slx_pars$log_a50[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # male a50
                  rep(slx_pars$log_k[slx_pars$fleet == "srv_m"], length(data$srv_blks)), # slope
                  rep(slx_pars$log_a50[slx_pars$fleet == "srv_f"], length(data$srv_blks)), # female a50
                  rep(slx_pars$log_k[slx_pars$fleet == "srv_f"], length(data$srv_blks)),
@@ -580,7 +595,7 @@ build_parameters_v23 <- function(
 }
 
 #for model experimenting
-build_data_v23 <- function(weights = FALSE,
+build_data_v24 <- function(weights = FALSE,
     # data sources (makes it easier to generalize for sensitivity and
   # retrospective analysts)
   ts,  ...) {
@@ -590,7 +605,8 @@ build_data_v23 <- function(weights = FALSE,
   
   #f_blk_ct<-length(c(ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
   #  max(ts$index)))
-  f_blk_ct<-length(c(ts %>% filter(year == 1994) %>% pull(index), max(ts$index)))
+  f_blk_ct<-length(c(ts %>% filter(year == 1994 | year == 2021) %>% pull(index), max(ts$index)))
+  s_blk_ct<-length(c(ts %>% filter(year == 1999 | year == 2015 | year == 2020) %>% pull(index), max(ts$index)))
   
   # Structure data for TMB - must use same variable names as .cpp
   data <- list(
@@ -608,6 +624,9 @@ build_data_v23 <- function(weights = FALSE,
     
     # Switch for selectivity type: 0 = a50, a95 logistic; 1 = a50, slope logistic
     slx_type = slx_type,
+    
+    # Switch for trying to estimate fishery selectivity; 0 = fixed, 1 = estimate...
+    fsh_slx_switch = fsh_slx_switch, 
     
     # Swtich for age composition type (hopefully one day length comps too): 0 =
     # multinomial; 1 = Dirichlet-multinomial
@@ -627,12 +646,12 @@ build_data_v23 <- function(weights = FALSE,
     ev_type = ev_type,
     
     # Time varying parameters - each vector contains the terminal years of each time block
-    fsh_blks = c(ts %>% filter(year == 1994) %>% pull(index), max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
+    fsh_blks = c(ts %>% filter(year == 1994 | year == 2021) %>% pull(index), max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
     #fsh_blks = c(ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
     #             max(ts$index)),  # 3 time blocks as per current federal (2022) assessment
     
     #srv_blks = c(max(ts$index)), # no breaks survey selectivity
-    srv_blks = c(ts %>% filter(year == 1999) %>% pull(index), 
+    srv_blks = c(ts %>% filter(year == 1999 | year == 2015 | year == 2020) %>% pull(index), 
                  max(ts$index)),
     # Discard mortality rate in the directed fishery (currently either 0 or 0.16,
     # borrowed from the halibut fishery)
@@ -666,8 +685,8 @@ build_data_v23 <- function(weights = FALSE,
     sigma_fsh_q = rep(1, f_blk_ct),
     #p_srv_q = exp(-17), 
     #sigma_srv_q = 1,
-    p_srv_q = c(exp(-17),exp(-17)), 
-    sigma_srv_q = c(1,1),
+    p_srv_q = rep(exp(-17),s_blk_ct), #c(exp(-17),exp(-17),exp(-17),exp(-17)), 
+    sigma_srv_q = rep(1,s_blk_ct), #c(1,1,1,1),
     p_mr_q = 1.0,
     sigma_mr_q = 0.01, #0.01,
     
@@ -1016,14 +1035,931 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps, 
 
 
 
+plot_sel_24 <- function(save = TRUE, path = tmbfigs) {
+  
+  require(data.table)
+  
+  # Extract selectivity matrices and convert to dfs and create a second index col
+  # as a dummy var (must supply an interval to foverlaps). Set as data.table
+  # object so it is searchable
+  if(nsex == 1) {
+    sel <- obj$report(best)$fsh_slx[,,1] %>% as.data.frame() %>% 
+      mutate(Selectivity = "Fishery", Sex = "Sexes combined") %>% 
+      bind_rows(obj$report(best)$srv_slx[,,1] %>% as.data.frame() %>% 
+                  mutate(Selectivity = "Survey", Sex = "Sexes combined"))
+  } else { # Sex-structured
+    sel <- obj$report(best)$fsh_slx[,,1] %>% as.data.frame() %>% 
+      mutate(Selectivity = "Fishery", Sex = "Male") %>% 
+      bind_rows(obj$report(best)$fsh_slx[,,2] %>% as.data.frame() %>% 
+                  mutate(Selectivity = "Fishery", Sex = "Female")) %>% 
+      bind_rows(obj$report(best)$srv_slx[,,1] %>% as.data.frame() %>% 
+                  mutate(Selectivity = "Survey", Sex = "Male")) %>% 
+      bind_rows(obj$report(best)$srv_slx[,,2] %>% as.data.frame() %>% 
+                  mutate(Selectivity = "Survey", Sex = "Female"))}
+  
+  names(sel) <- c(unique(agecomps$age), "Selectivity", "Sex")
+  
+  sel <- sel %>% 
+    mutate(year = rep(ts$year[1:nyr], 2*nsex)) %>% 
+    gather("Age", "proportion", -c(year, Selectivity, Sex)) %>% 
+    mutate(year2 = year) # needed for foverlaps()
+  
+  setDT(sel)
+  
+  # Look up table for selectivity time blocks
+  blks_sel <- data.frame(Selectivity = c(rep("Fishery", length(data$fsh_blks)),
+                                         rep("Survey", length(data$srv_blks))),
+                         end = c(data$fsh_blks, data$srv_blks)) %>%
+    left_join(ts %>%
+                mutate(end = index) %>% 
+                select(year, end), by = "end") %>% 
+    rename(end_year = year) %>% 
+    # Define start of the interval based on the end of the interval
+    group_by(Selectivity) %>% 
+    mutate(start_year = c(min(ts$year), head(end_year, -1) + 1)) 
+  
+  
+  setkey(setDT(blks_sel), Selectivity, start_year, end_year)
+  
+  # Match each year to the start and end year in blks_sel
+  foverlaps(x = sel, y = blks_sel,
+            by.x = c("Selectivity", "year", "year2"),
+            type = "within") -> sel
+  
+  if(save == TRUE) {write_csv(sel, paste0(path, "/selectivity_", YEAR, ".csv"))}
+  
+  sel <- sel %>% 
+    mutate(`Time blocks` = paste0(start_year, "-", end_year),
+           age = as.numeric(Age)) %>% 
+    filter(age <= 31)
+  
+  # axis <- tickr(sel, age, 3)
+  #nrow(blks_sel[blks_sel$Selectivity == "Fishery"])
+  #nrow(blks_sel[blks_sel$Selectivity == "Survey"])
+  #nrow(blks_sel)
+  
+  ggplot(sel %>% filter(Selectivity == "Fishery"), 
+         aes(x = age, y = proportion, colour = Sex, 
+             shape = Sex, lty = Sex, group = Sex)) +
+    geom_point() +
+    geom_line() +
+    facet_wrap(~`Time blocks`, ncol = 2) +
+    scale_colour_grey() +
+    # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    labs(#y = "Proportion retained\n", 
+      x = NULL, y = NULL,
+      colour = NULL, lty = NULL, shape = NULL,
+      title = "Fishery selectivity") +
+    theme(legend.position = c(.85, .25)) -> fsh_sel
+  
+  
+  ggplot(sel %>% filter(Selectivity == "Survey"), 
+         aes(x = age, y = proportion, colour = Sex, 
+             shape = Sex, lty = Sex, group = Sex)) +
+    geom_point() +
+    geom_line() +
+    #facet_grid(~`Time blocks`) +
+    facet_wrap(~`Time blocks`, ncol = 2) +
+    scale_colour_grey() +
+    # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    labs(#y = "Proportion retained\n", 
+      x = NULL, y = NULL,
+      colour = NULL, lty = NULL, shape = NULL,
+      title = "Survey selectivity") +
+    theme(legend.position = c(.85, .2)) -> srv_sel
+  
+  
+  plot_grid(fsh_sel, srv_sel, ncol = 1, 
+            rel_heights = c(nrow(blks_sel[blks_sel$Selectivity == "Fishery"])/nrow(blks_sel), 
+                            nrow(blks_sel[blks_sel$Selectivity == "Survey"])/nrow(blks_sel))) -> p
+  
+  print(p)
+  
+  if(save == TRUE){ 
+    ggsave(plot = p, filename = paste0(path, "/selectivity_", YEAR, ".png"), 
+           dpi = 300, height = 7, width = 6, units = "in")
+  }
+  # ggsave("selectivity.png", dpi = 300, height = 4, width = 6, units = "in")
+  
+}
+
+
+#-------------------------------------------------------------------------------
+build_data_sexyage <- function(weights = FALSE,
+                           # data sources (makes it easier to generalize for sensitivity and
+                           # retrospective analysts)
+                           ts,  ...) {
+  
+  #check_fsh_blks<-c(iter_ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
+  #                  max(iter_ts$index))
+  
+  #f_blk_ct<-length(c(ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
+  #  max(ts$index)))
+  f_blk_ct<-length(c(ts %>% filter(year == 1994 | year == 2021) %>% pull(index), max(ts$index)))
+  s_blk_ct<-length(c(ts %>% filter(year == 1999 | year == 2019) %>% pull(index), max(ts$index)))
+  
+  # Structure data for TMB - must use same variable names as .cpp
+  data <- list(
+    
+    # Model dimensions
+    nyr = nyr,
+    nage = nage,
+    nsex = nsex,
+    nlenbin = nlenbin,
+    lenbin = unique(len$length_bin), 
+    
+    # Switch recruitment estimation: 0 = penalized likelihood (fixed sigma_r), 1 =
+    # random effects
+    random_rec = rec_type,
+    
+    # Switch for selectivity type: 0 = a50, a95 logistic; 1 = a50, slope logistic
+    slx_type = slx_type,
+    
+    # Switch for trying to estimate  selectivity; 0 = fixed, 1 = estimate...
+    fsh_slx_switch = fsh_slx_switch,
+    srv_slx_switch = srv_slx_switch,
+    
+    # Swtich for age composition type (hopefully one day length comps too): 0 =
+    # multinomial; 1 = Dirichlet-multinomial
+    comp_type = comp_type,
+    
+    # Switch for assumption on SPR equilibrium recruitment. 0 = arithmetic mean
+    # (same as Federal assessment), 1 = geometric mean, 2 = median (2 not coded
+    # yet)
+    spr_rec_type = spr_rec_type,
+    
+    # Natural mortality
+    M_type = M_type,  # Switch for natural mortality: fixed = 0, estimated with prior = 1. 
+    p_log_M = log(0.1), # Priors for natural mortality (same as 2016-2019 Federal assessment
+    p_sigma_M = 0.025, #0.1,
+    
+    #Switch for extra variance in indices
+    ev_type = ev_type,
+    
+    # Time varying parameters - each vector contains the terminal years of each time block
+    fsh_blks = c(ts %>% filter(year == 1994 | year == 2021) %>% pull(index), max(ts$index)), #  fishery selectivity: limited entry in 1985, EQS in 1994 = c(5, 14, max(ts$year))
+    #fsh_blks = c(ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
+    #             max(ts$index)),  # 3 time blocks as per current federal (2022) assessment
+    
+    #srv_blks = c(max(ts$index)), # no breaks survey selectivity
+    srv_blks = c(ts %>% filter(year == 1999 | year == 2019) %>% pull(index), 
+                 max(ts$index)),
+    # Discard mortality rate in the directed fishery (currently either 0 or 0.16,
+    # borrowed from the halibut fishery)
+    dmr = array(data = ifelse(include_discards == TRUE, 0.16, 0), dim = c(nyr, nage, nsex)),
+    
+    # Probability of retaining a fish, sex- and age-based
+    retention = 
+      # 100% retention (assuming no discards)
+      if(include_discards == FALSE & nsex == 1) {
+        array(data = 1,
+              # Number of rows could = time blocks but currently doesn't
+              dim = c(1, nage, nsex))
+        # Discards, single sex model
+      } else if (include_discards == TRUE & nsex == 1) {
+        array(data = filter(retention, Sex == "Combined") %>% pull(p),
+              dim = c(1, nage, nsex))
+      } else { # Discards, sex-structured
+        array(data = filter(retention, Sex %in% c("Female","Male")) %>%
+                mutate(sex = ifelse(Sex == "Male", 1, 2)) %>% 
+                arrange(sex) %>% pull(p), dim = c(1, nage, nsex))
+      },
+    
+    
+    # Fxx levels that correspond with log_spr_Fxx in Parameter section
+    Fxx_levels = c(0.35, 0.40, 0.50, 0.60, 0.70),
+    
+    # Priors ("p_" denotes prior)
+    #p_fsh_q = c(exp(-16), exp(-16)),
+    #sigma_fsh_q = c(1, 1),
+    p_fsh_q = rep(exp(-16), f_blk_ct),
+    sigma_fsh_q = rep(1, f_blk_ct),
+    #p_srv_q = exp(-17), 
+    #sigma_srv_q = 1,
+    p_srv_q = rep(exp(-17),s_blk_ct), #c(exp(-17),exp(-17),exp(-17),exp(-17)), 
+    sigma_srv_q = rep(1,s_blk_ct), #c(1,1,1,1),
+    p_mr_q = 1.0,
+    sigma_mr_q = 0.01, #0.01,
+    
+    # Weights on likelihood components ("wt_" denotes weight) based on weights
+    # in Federal model
+    
+    wt_catch = if (weights == TRUE) {wt_catch = 10.0} else {wt_catch = 1.0},
+    wt_fsh_cpue = if (weights == TRUE) {wt_fsh_cpue = 1.0} else {wt_fsh_cpue = 1.0},
+    wt_srv_cpue = if (weights == TRUE) {wt_srv_cpue = 4.0} else {wt_srv_cpue = 1.0},
+    wt_mr = if (weights == TRUE) {wt_mr = 1.5} else {wt_mr = 1.0},
+    wt_fsh_age = if (weights == TRUE) {wt_fsh_age = 6.0} else {wt_fsh_age = 1.0},
+    wt_srv_age = if (weights == TRUE) {wt_srv_age = 8.0} else {wt_srv_age = 1.0},
+    wt_fsh_len = 1.0, 
+    wt_srv_len = 1.0, 
+    wt_rec_like = 1.0,
+    wt_fpen = 0.1, 
+    wt_spr = 100,
+    
+    # Catch
+    data_catch = ts$catch,
+    sigma_catch = pull(ts, sigma_catch),
+    
+    # Mark-recapture estimates
+    nyr_mr = n_distinct(mr, mr),
+    yrs_mr = mr %>% distinct(index) %>% pull(),
+    data_mr = pull(mr, mr),
+    sigma_mr = rep(0.08, n_distinct(mr, mr)), #mr %>% pull(sigma_mr), 
+    
+    # Fishery CPUE
+    nyr_fsh_cpue = fsh_cpue %>% n_distinct(fsh_cpue),
+    yrs_fsh_cpue = fsh_cpue %>% distinct(index) %>% pull(),
+    data_fsh_cpue = pull(fsh_cpue, fsh_cpue),
+    sigma_fsh_cpue = pull(fsh_cpue, sigma_fsh_cpue),
+    
+    # Survey CPUE 
+    nyr_srv_cpue = srv_cpue %>% n_distinct(srv_cpue),
+    yrs_srv_cpue = srv_cpue %>% distinct(index) %>% pull(),
+    data_srv_cpue = pull(srv_cpue, srv_cpue),
+    sigma_srv_cpue = pull(srv_cpue, sigma_srv_cpue),
+    
+    # Timing in month fractions
+    spawn_month = 2/12, # Feb
+    srv_month = 7/12,   # Jul
+    fsh_month = 8/12,   # Aug
+    
+    # Proportion mature-at-age - flexible to vary over time if you wanted, where
+    # rows would be time blocks or annual variations
+    prop_mature = matrix(data = rep(bio$prop_mature, 1),
+                         ncol = nage, byrow = TRUE),
+    
+    # Vector of prop_fem *Need both prop_fem and sex_ratio to accommodate single
+    # sex and sex-structured models*. In sex-structured version, the N matrix is
+    # already split so you don't need prop_fem in spawning biomass calculation (it
+    # will be a vector of 1's).
+    prop_fem = if (nsex == 1) {bio$prop_fem} else { rep(1, nage) } ,
+    
+    # Sex ratio in the survey (matrix of 1's if single sex model so that N matrix
+    # doesn't get split up by sex ratio)
+    sex_ratio = if (nsex == 1) {matrix(data = 1, ncol = nage)
+    } else {matrix(data =  c(c(1 - bio$prop_fem), # Proprtion male
+                             bio$prop_fem), # Proportion female
+                   ncol = nage, byrow = TRUE)},
+    
+    # Weight-at-age: currently weight-at-age is averaged over all years. If for
+    # whatever reason you want to include multiple time periods for weight-at-age,
+    # you would change the number of rows from 1 to the number of time periods or
+    # years
+    data_fsh_waa =
+      if (nsex == 1) { # Single sex model
+        filter(waa, Source == "LL fishery" & Sex == "Combined") %>%
+          pull(round_kg) %>%  matrix(ncol = nage, nrow = nsex)  %>%
+          array(dim = c(1, nage, nsex))} else {
+            # Sex-structured - males in first matrix, females in second
+            filter(waa, Source == "LL fishery" & Sex %in% c("Male", "Female")) %>%
+              arrange(desc(Sex)) %>% 
+              pull(round_kg) %>% 
+              matrix(ncol = nage, nrow = nsex)  %>%
+              array(dim = c(1, nage, nsex))},
+    
+    # Survey weight-at-age used for everything except predicting catch
+    data_srv_waa = 
+      if (nsex == 1) { # Single sex model
+        filter(waa, Source == "LL survey" & Sex == "Combined") %>% 
+          pull(round_kg) %>%  matrix(ncol = nage, nrow = nsex)  %>% 
+          array(dim = c(1, nage, nsex))} else {
+            # Sex-structured - males in first matrix, females in second
+            filter(waa, Source == "LL survey" & Sex %in% c("Male", "Female")) %>% 
+              arrange(desc(Sex)) %>% 
+              pull(round_kg) %>% 
+              matrix(ncol = nage, nrow = nsex)  %>% 
+              array(dim = c(1, nage, nsex))},
+    
+    # Fishery age comps
+    nyr_fsh_age = fsh_age %>% distinct(year) %>% nrow(),
+    yrs_fsh_age = fsh_age %>% distinct(index) %>% pull(),
+    data_fsh_age = array(data = c(unlist(fsh_age %>% filter(Sex == "Male") %>% select(-c(year,index,Sex,Source,n,effn))),
+                     unlist(fsh_age %>% filter(Sex == "Female") %>% select(-c(year,index,Sex,Source,n,effn)))),
+            dim = c(length(unique(fsh_age$year)), nage, nsex)),
+    n_fsh_age = array(data = c(unlist(fsh_age %>% filter(Sex == "Male") %>% select(n)),
+                               unlist(fsh_age %>% filter(Sex == "Female") %>% select(n))),
+                      dim = c(length(unique(fsh_age$year)), 1, nsex)), #pull(fsh_age, n),        # total sample size
+    effn_fsh_age = array(data = c(unlist(fsh_age %>% filter(Sex == "Male") %>% select(effn)),
+                                  unlist(fsh_age %>% filter(Sex == "Female") %>% select(effn))),
+                         dim = c(length(unique(fsh_age$year)), 1, nsex)),  # effective sample size, currently sqrt(n_fsh_age)
+    
+    # Survey age comps
+    nyr_srv_age = srv_age %>% distinct(year) %>% nrow(),
+    yrs_srv_age = srv_age %>% distinct(index) %>% pull(),
+    data_srv_age = array(data = c(unlist(srv_age %>% filter(Sex == "Male") %>% select(-c(year,index,Sex,Source,n,effn))),
+                                  unlist(srv_age %>% filter(Sex == "Female") %>% select(-c(year,index,Sex,Source,n,effn)))),
+                         dim = c(length(unique(srv_age$year)), nage, nsex)),
+    n_srv_age = array(data = c(unlist(srv_age %>% filter(Sex == "Male") %>% select(n)),
+                               unlist(srv_age %>% filter(Sex == "Female") %>% select(n))),
+                      dim = c(length(unique(srv_age$year)), 1, nsex)),        # total sample size
+    effn_srv_age = array(data = c(unlist(srv_age %>% filter(Sex == "Male") %>% select(effn)),
+                                  unlist(srv_age %>% filter(Sex == "Female") %>% select(effn))),
+                         dim = c(length(unique(srv_age$year)), 1, nsex)),  # effective sample size, currently sqrt(n_srv_age)
+    
+    # Fishery length comps
+    nyr_fsh_len = length(unique(fsh_len$year)),
+    yrs_fsh_len = fsh_len %>% distinct(index) %>% pull(),
+    data_fsh_len =
+      if (nsex == 1) { # Single sex model
+        array(data = fsh_len %>% filter(Sex == "Sex combined") %>% pull(proportion),
+              dim = c(length(unique(fsh_len$year)), nlenbin, nsex)) } else {
+                # Sex-structured (make sure males are first)
+                array(data = fsh_len %>% filter(Sex != "Sex combined") %>%
+                        arrange(desc(Sex), length_bin, year) %>% pull(proportion),
+                      dim = c(length(unique(fsh_len$year)), nlenbin, nsex))},
+    
+    n_fsh_len =
+      if (nsex == 1) { # Single sex model
+        array(data = fsh_len %>% filter(Sex == "Sex combined") %>% distinct(year, Sex, n) %>% pull(n),
+              dim = c(length(unique(fsh_len$year)), 1, nsex)) } else {
+                # Sex-structured (make sure males are first)
+                array(data = fsh_len %>% filter(Sex != "Sex combined") %>% 
+                        distinct(year, Sex, n) %>%
+                        arrange(desc(Sex)) %>% pull(n),
+                      dim = c(length(unique(fsh_len$year)), 1, nsex))},
+    
+    effn_fsh_len =
+      if (nsex == 1) { # Single sex model
+        array(data = fsh_len %>% filter(Sex == "Sex combined") %>% distinct(year, Sex, effn) %>% pull(effn),
+              dim = c(length(unique(fsh_len$year)), 1, nsex)) } else {
+                # Sex-structured (make sure males are first)
+                array(data = fsh_len %>% filter(Sex != "Sex combined") %>%
+                        distinct(year, Sex, effn) %>% 
+                        arrange(desc(Sex)) %>% pull(effn),
+                      dim = c(length(unique(fsh_len$year)), 1, nsex))},
+    
+    # Survey length comps
+    nyr_srv_len = length(unique(srv_len$year)),
+    yrs_srv_len = srv_len %>% distinct(index) %>% pull(),
+    data_srv_len =
+      if (nsex == 1) { # Single sex model
+        array(data = srv_len %>% filter(Sex == "Sex combined") %>% pull(proportion),                              
+              dim = c(length(unique(srv_len$year)), nlenbin, nsex)) } else {
+                # Sex-structured (make sure males are first)
+                array(data = srv_len %>% filter(Sex != "Sex combined") %>%
+                        arrange(desc(Sex), length_bin, year) %>% pull(proportion),
+                      dim = c(length(unique(srv_len$year)), nlenbin, nsex))},
+    n_srv_len =
+      if (nsex == 1) { # Single sex model
+        array(data = srv_len %>% filter(Sex == "Sex combined") %>% distinct(year, Sex, n) %>% pull(n),
+              dim = c(length(unique(srv_len$year)), 1, nsex)) } else {
+                # Sex-structured (make sure males are first)
+                array(data = srv_len %>% filter(Sex != "Sex combined") %>%
+                        distinct(year, Sex, n) %>% 
+                        arrange(desc(Sex)) %>% pull(n),
+                      dim = c(length(unique(srv_len$year)), 1, nsex))},
+    effn_srv_len =
+      if (nsex == 1) { # Single sex model
+        array(data = srv_len %>% filter(Sex == "Sex combined") %>%  distinct(year, Sex, effn) %>% pull(effn),
+              dim = c(length(unique(srv_len$year)), 1, nsex)) } else {
+                # Sex-structured (make sure males are first)
+                array(data = srv_len %>% filter(Sex != "Sex combined") %>%
+                        distinct(year, Sex, effn) %>% 
+                        arrange(desc(Sex)) %>% pull(effn),
+                      dim = c(length(unique(srv_len$year)), 1, nsex))},
+    
+    # Ageing error matrix
+    ageing_error = ageing_error,
+    
+    # Fishery age-length transition matrix *FLAG* currently only using the
+    # survey-based matrices from the Feds. Use these as a placeholder for now.
+    agelen_key_fsh =
+      if (nsex == 1) { # Single sex model
+        array(data = c(agelen_key_m), # only have sex-specific, use male curve as placeholder
+              dim = c(nage, nage, nsex))} else {
+                # Sex-structured (make sure males are first)
+                array(data = c(agelen_key_m, agelen_key_f),
+                      dim = c(nage, nage, nsex))},
+    
+    # Survey age-length transition matrix
+    agelen_key_srv =
+      if (nsex == 1) { # Single sex model
+        array(data = c(agelen_key_m), # only have sex-specific, use male curve as placeholder
+              dim = c(nage, nage, nsex))} else {
+                # Sex-structured (make sure males are first)
+                array(data = c(agelen_key_m, agelen_key_f),
+                      dim = c(nage, nage, nsex))}
+  )
+  
+  return(data)
+}
 
 
 
+#-----------------
+TMBphase_sexyage <- function(data, parameters, random, model_name, phase = FALSE,
+                         optimizer = "nlminb", debug = FALSE, loopnum = 3, newtonsteps = 0) {
+  
+  # Debug function
+  # random <-  random_vars# <- NULL
+  # phases <- build_phases(parameters, data)
+  # model_name <- "scaa_mod"
+  # debug <- FALSE
+  
+  # compile the model
+  TMB::compile(paste0(model_name,".cpp"))
+  dyn.load(TMB::dynlib(model_name))
+  DLL_use <- model_name  
+  out <- list() 
+  
+  if (phase == FALSE) {
+    
+    # work out the map for this phase if phases for parameters is less than the
+    # current phase then map will contain a factor filled with NAs
+    map_use <- list()
+    map_use$dummy <- fill_vals(parameters$dummy, NA)
+    
+    # if not using random effects, assign log_sigma_r an NA in the map so it's not estimated
+    if (data$random_rec == FALSE) {
+      map_use$log_sigma_r <- fill_vals(parameters$log_sigma_r, NA)
+    }
+    
+    # if natural mortality is fixed, assign log_M an NA in the map so its not
+    # estimated
+    if (data$M_type == 0) {
+      map_use$log_M <- fill_vals(parameters$log_M, NA)
+    }
+    
+    # if not using the Dirichlet-multinonial, assign log_fsh_theta and
+    # log_srv_theta NAs in the map so they're not estimated
+    if (data$comp_type != 1) {
+      map_use$log_fsh_theta <- fill_vals(parameters$log_fsh_theta, NA)
+      map_use$log_srv_theta <- fill_vals(parameters$log_srv_theta, NA)
+      map_use$log_fsh_l_theta <- fill_vals(parameters$log_fsh_l_theta, NA)  #add these back in when full dirichlet developed... 
+      map_use$log_srv_l_theta <- fill_vals(parameters$log_srv_l_theta, NA)
+    }
+    
+    if (data$ev_type != 1) {
+      map_use$log_tau_fsh <- fill_vals(parameters$log_tau_fsh, NA)
+      #map_use$log_tau_srv <- fill_vals(parameters$log_tau_srv, NA)
+      map_use$log_tau_mr <- fill_vals(parameters$log_tau_mr, NA)
+    }
+    
+    if (data$fsh_slx_switch != 1) {
+      map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
+    } else { # trying to estimate more recent selectivity parameters
+      map_use$log_fsh_slx_pars <- factor(c(NA,1,2,NA,3,4,
+                                           NA,5,6,NA,7,8
+                                           ))
+      # 2 time blocks:
+      #map_use$log_fsh_slx_pars <- factor(c(NA,1,NA,2,
+      #                                     NA,3,NA,4))
+    }
+    
+    if (data$srv_slx_switch != 1) {
+      map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
+    } else { # trying to estimate more recent selectivity parameters
+      # order: m a50 block 1, ma50 block 2, m a50 block 3, 
+      #        m slope block 1, m slope block 2, m slope block 3,
+      #        f a50 block 1, f a50 block 2, f a50 block 3,
+      #        f slope block 1, f slope block 2, f slope block 3 
+      map_use$log_srv_slx_pars <- factor(c(NA,1,2,NA,3,4, #fix selectivity for males in first time block
+                                           5,6,7,8,9,10))
+      # 2 time blocks
+      #map_use$log_srv_slx_pars <- factor(c(NA,1,NA,2, #fix selectivity for males in first time block
+      #                                     3,4,5,6))
+    }
+    
+    # Temporary debug trying to figure out why I'm getting NA/NaN function
+    # evaluation - think it's something to do with discarding
+    if (tmp_debug == TRUE) {
+    }
+    
+    # Build upper and lower parameter bounds and remove any that are not
+    # estimated (should be the inverse of the map_use)
+    
+    # if you're trying to estimate some slx parameters blocks but not others you
+    # need to add those bounds back in there so these if else statements will do that... 
+    
+    if (length(unique(is.na(map_use$log_srv_slx_pars))) > 1 & 
+        length(unique(is.na(map_use$log_fsh_slx_pars))) > 1) {
+      drop_list <- names(map_use)[names(map_use) != c("log_srv_slx_pars") &
+                                    names(map_use) != c("log_fsh_slx_pars")]
+      bounds <- build_bounds_v23(param_list = parameters)
+      bounds$upper <- bounds$upper[!names(bounds$upper) %in% drop_list]
+      bounds$lower <- bounds$lower[!names(bounds$lower) %in% drop_list]
+      
+      lower <- unlist(bounds$lower)
+      upper <- unlist(bounds$upper)
+      
+      lower <- lower[which(!names(lower) %in% sprintf('log_srv_slx_pars%d',
+                                                      c((1+length(map_use$log_srv_slx_pars[!is.na(map_use$log_srv_slx_pars)])):
+                                                          length(names(lower)[grepl(pattern = 'log_srv_slx_pars',names(lower))]))))]
+      
+      upper <- upper[which(!names(upper) %in% sprintf('log_srv_slx_pars%d',
+                                                      c((1+length(map_use$log_srv_slx_pars[!is.na(map_use$log_srv_slx_pars)])):
+                                                          length(names(upper)[grepl(pattern = 'log_srv_slx_pars',names(upper))]))))] 
+
+      lower <- lower[which(!names(lower) %in% sprintf('log_fsh_slx_pars%d',
+                                             c((1+length(map_use$log_fsh_slx_pars[!is.na(map_use$log_fsh_slx_pars)])):
+                                                 length(names(lower)[grepl(pattern = 'log_fsh_slx_pars',names(lower))]))))]
+      
+      upper <- upper[which(!names(upper) %in% sprintf('log_fsh_slx_pars%d',
+                                                      c((1+length(map_use$log_fsh_slx_pars[!is.na(map_use$log_fsh_slx_pars)])):
+                                                          length(names(upper)[grepl(pattern = 'log_fsh_slx_pars',names(upper))]))))] 
+      
+    } else if (length(unique(is.na(map_use$log_srv_slx_pars))) > 1 & 
+                length(unique(is.na(map_use$log_fsh_slx_pars))) <= 1) {
+      drop_list <- names(map_use)[names(map_use) != c("log_srv_slx_pars")]
+      bounds <- build_bounds_v23(param_list = parameters)
+      bounds$upper <- bounds$upper[!names(bounds$upper) %in% drop_list]
+      bounds$lower <- bounds$lower[!names(bounds$lower) %in% drop_list]
+      
+      lower <- unlist(bounds$lower)
+      upper <- unlist(bounds$upper)
+      
+      lower <- lower[which(!names(lower) %in% sprintf('log_srv_slx_pars%d',
+                                                      c((1+length(map_use$log_srv_slx_pars[!is.na(map_use$log_srv_slx_pars)])):
+                                                          length(names(lower)[grepl(pattern = 'log_srv_slx_pars',names(lower))]))))]
+      
+      upper <- upper[which(!names(upper) %in% sprintf('log_srv_slx_pars%d',
+                                                      c((1+length(map_use$log_srv_slx_pars[!is.na(map_use$log_srv_slx_pars)])):
+                                                          length(names(upper)[grepl(pattern = 'log_srv_slx_pars',names(upper))]))))] 
+    } else if (length(unique(is.na(map_use$log_srv_slx_pars))) <= 1 & 
+                length(unique(is.na(map_use$log_fsh_slx_pars))) > 1) {
+      drop_list <- names(map_use)[names(map_use) != c("log_fsh_slx_pars")]
+      bounds <- build_bounds_v23(param_list = parameters)
+      bounds$upper <- bounds$upper[!names(bounds$upper) %in% drop_list]
+      bounds$lower <- bounds$lower[!names(bounds$lower) %in% drop_list]
+      
+      lower <- unlist(bounds$lower)
+      upper <- unlist(bounds$upper)
+      
+      lower <- lower[which(!names(lower) %in% sprintf('log_fsh_slx_pars%d',
+                                                      c((1+length(map_use$log_fsh_slx_pars[!is.na(map_use$log_fsh_slx_pars)])):
+                                                          length(names(lower)[grepl(pattern = 'log_fsh_slx_pars',names(lower))]))))]
+      
+      upper <- upper[which(!names(upper) %in% sprintf('log_fsh_slx_pars%d',
+                                                      c((1+length(map_use$log_fsh_slx_pars[!is.na(map_use$log_fsh_slx_pars)])):
+                                                          length(names(upper)[grepl(pattern = 'log_fsh_slx_pars',names(upper))]))))]  
+    } else {
+      bounds <- build_bounds_v23(param_list = parameters)
+      bounds$upper <- bounds$upper[!names(bounds$upper) %in% names(map_use)]
+      bounds$lower <- bounds$lower[!names(bounds$lower) %in% names(map_use)]
+      
+      lower <- unlist(bounds$lower)
+      upper <- unlist(bounds$upper)
+    }
+    
+    # Remove random effects from bounds
+    if (data$random_rec == FALSE) {
+      lower <- lower[!names(lower) %in% "log_sigma_r"]
+      upper <- upper[!names(lower) %in% "log_sigma_r"]
+    }    
+    
+    # if (data$random_rec == TRUE) {
+    #   lower <- lower[-which(grepl(random[1], names(lower)))]
+    #   lower <- lower[-which(grepl(random[2], names(lower)))]
+    #   upper <- upper[-which(grepl(random[1], names(upper)))]
+    #   upper <- upper[-which(grepl(random[2], names(upper)))]
+    # }
+    
+    # initialize the parameters at values in previous phase
+    params_use <- parameters
+    
+    # Fit the model
+    obj <- TMB::MakeADFun(data,params_use,random=NULL,
+                          DLL=DLL_use,map=map_use)  
+    
+    TMB::newtonOption(obj,smartsearch=FALSE)
+    # lower and upper bounds relate to obj$par and must be the same length as obj$par
+    opt <- nlminb(start = obj$par, objective = obj$fn, hessian = obj$gr,
+                  #control = list(eval.max = 1e4, iter.max = 1e4, trace = 0), #original
+                  control = list(eval.max = 1e8, iter.max = 1e8, trace = 0),
+                  lower = lower, upper = upper)
+    
+    # Re-run to further decrease final gradient - used tmb_helper.R -
+    # https://github.com/kaskr/TMB_contrib_R/blob/master/TMBhelper/R/fit_tmb.R
+    for(i in seq(2, loopnum, length = max(0, loopnum - 1))){
+      tmp <- opt[c('iterations','evaluations')]
+      opt <- nlminb(start = opt$par, objective = obj$fn, gradient = obj$gr, 
+                    #control = list(eval.max = 1e4, iter.max = 1e4, trace = 0), #original
+                    control = list(eval.max = 1e8, iter.max = 1e8, trace = 0), 
+                    lower = lower, upper = upper )
+      opt[['iterations']] <- opt[['iterations']] + tmp[['iterations']]
+      opt[['evaluations']] <- opt[['evaluations']] + tmp[['evaluations']]
+    }
+    
+    # Run some Newton steps - slow but reduces final gradient (code also from
+    # tmb_helper.R)
+    for(i in seq_len(newtonsteps)) {
+      g <- as.numeric(obj$gr(opt$par))
+      h <- optimHess(opt$par, fn = obj$fn, gr = obj$gr)
+      opt$par <- opt$par - solve(h, g)
+      opt$objective <- obj$fn(opt$par)
+    }
+    rep <- TMB::sdreport(obj)
+  }
+  
+  if (phase == TRUE) {
+    
+    phases <- build_phases(parameters, data)
+    
+    #loop over phases
+    for (phase_cur in 1:max(unlist(phases))) {
+      
+      # phase_cur <- 1 # Debug function
+      
+      # If debugging build the map to have all parameters as factored NAs
+      if (debug == TRUE) {
+        map_use <- parameters
+        
+        for(i in 1:length(map_use)){
+          map_use[[i]] <- replace(map_use[[i]], values = rep(NA, length(map_use[[i]])))
+        }
+        map_use <- map_use[!names(map_use) %in% "dummy"]
+        
+        for(i in 1:length(map_use)){
+          map_use[[i]] <- factor(map_use[[i]])
+        } 
+        
+      } else {
+        
+        # work out the map for this phase if phases for parameters is less than the
+        # current phase then map will contain a factor filled with NAs
+        map_use <- list()
+        
+        map_use$dummy <- fill_vals(parameters$dummy, NA)
+        
+        j <- 1 # change to 0 if you get rid of the dummy debugging feature
+        
+        for (i in 1:length(parameters)) {
+          if (phases[[i]]>phase_cur) {
+            j <- j+1
+            map_use[[j]] <- fill_vals(parameters[[i]], NA)
+            names(map_use)[j] <- names(parameters)[i]               
+          }
+        }
+        
+        # if not using random effects, assign log_sigma_r an NA in the map so it's not estimated
+        if (data$random_rec == FALSE) {
+          map_use$log_sigma_r <- fill_vals(parameters$log_sigma_r, NA)
+        }
+        
+        # if natural mortality is fixed, assign log_M an NA in the map so its not
+        # estimated
+        if (data$M_type == 0) {
+          map_use$log_M <- fill_vals(parameters$log_M, NA)
+        }
+        
+        # if not using the Dirichlet-multinonial, assign log_fsh_theta and
+        # log_srv_theta NAs in the map so they're not estimated
+        if (data$comp_type != 1) {
+          map_use$log_fsh_theta <- fill_vals(parameters$log_fsh_theta, NA)
+          map_use$log_srv_theta <- fill_vals(parameters$log_srv_theta, NA)
+          map_use$log_fsh_l_theta <- fill_vals(parameters$log_fsh_l_theta, NA)
+          map_use$log_srv_l_theta <- fill_vals(parameters$log_srv_l_theta, NA)
+        }
+        
+        # Temporary debug trying to figure out why I'm getting NA/NaN function
+        # evaluation - think it's something to do with discarding
+        if (tmp_debug == TRUE) {
+          map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
+          map_use$log_srv_slx_pars <- fill_vals(parameters$log_srv_slx_pars, NA)
+          # map_use$mr_logq <- fill_vals(parameters$mr_logq, NA)
+          
+          # map_use$log_fsh_slx_pars <- factor(c(1, 2, NA, NA, 3, 4, NA, NA))
+          # map_use$log_srv_slx_pars <- factor(c(1, NA, 2, NA))
+        }
+        
+        # j <- 1 # change to 0 if you get rid of the dummy debugging feature
+        # 
+        # for (i in 1:length(parameters)) {
+        #   # if (phases[[i]]>=phase_cur) {
+        #   if (phases[[i]]>phase_cur) {
+        #     j <- j+1
+        #     map_use[[j]] <- fill_vals(parameters[[i]], NA)
+        #     names(map_use)[j] <- names(parameters)[i]               
+        #   }
+        # }
+      }
+      
+      # Build upper and lower parameter bounds and remove any that are not
+      # estimated (should be the inverse of the map_use)
+      bounds <- build_bounds(param_list = parameters)
+      bounds$upper <- bounds$upper[!names(bounds$upper) %in% names(map_use)]
+      bounds$lower <- bounds$lower[!names(bounds$lower) %in% names(map_use)]
+      
+      # Remove inactive parameters from bounds and vectorize
+      lower <- unlist(bounds$lower)
+      upper <- unlist(bounds$upper)
+      
+      # Remove random effects from bounds
+      if (data$random_rec == FALSE) {
+        lower <- lower[!names(lower) %in% "log_sigma_r"]
+        upper <- upper[!names(lower) %in% "log_sigma_r"]
+      }
+      
+      # initialize the parameters at values in previous phase
+      params_use <- parameters
+      if (phase_cur>1) params_use <- obj$env$parList(obj$env$last.par.best)
+      
+      # Fit the model
+      obj <- TMB::MakeADFun(data,params_use,random=NULL, 
+                            DLL=DLL_use,map=map_use)  
+      
+      TMB::newtonOption(obj,smartsearch=FALSE)
+      # lower and upper bounds relate to obj$par and must be the same length as obj$par
+      opt <- nlminb(start = obj$env$last.par.best, objective = obj$fn, hessian = obj$gr,
+                    control=list(eval.max = 1e4, iter.max = 1e4, trace = 0),
+                    lower = lower, upper = upper)
+      rep <- TMB::sdreport(obj)
+    }
+  }
+  out$obj <- obj
+  out$opt <- opt 
+  out$rep <- rep
+  out$map <- map_use
+  out$upper <- upper
+  out$lower <- lower
+  return(out)  
+}
+
+#-------------------------------------------------------------------------------
+reshape_sexyage <- function() {
+  pred_fsh_age <- as.data.frame(obj$report(best)$pred_fsh_age[,,1]) %>% 
+    mutate(Sex = "Male") %>% 
+    bind_rows(as.data.frame(obj$report(best)$pred_fsh_age[,,2]) %>% 
+                mutate(Sex = "Female")) 
+  names(pred_fsh_age) <- c(as.character(rec_age:plus_group), "Sex")
+  pred_fsh_age %>% 
+    mutate(Source = "Fishery",
+           index = rep(data$yrs_fsh_age, nsex)) -> pred_fsh_age
+  
+  pred_srv_age <- as.data.frame(obj$report(best)$pred_srv_age[,,1]) %>% 
+    mutate(Sex = "Male") %>% 
+    bind_rows(as.data.frame(obj$report(best)$pred_srv_age[,,2]) %>% 
+                mutate(Sex = "Female")) 
+  names(pred_srv_age) <- c(as.character(rec_age:plus_group), "Sex")
+  pred_srv_age %>% 
+    mutate(Source = "Survey",
+           index = rep(data$yrs_srv_age, nsex)) -> pred_srv_age
+  
+  pred_fsh_age_m <- as.data.frame(obj$report(best)$pred_fsh_age_m)
+  names(pred_fsh_age_m) <- as.character(rec_age:plus_group)
+  pred_fsh_age_m %>% 
+    mutate(Source = "Fishery",
+           index = data$yrs_fsh_age_m) -> pred_fsh_age_m
+  
+  pred_fsh_age_f <- as.data.frame(obj$report(best)$pred_fsh_age_f)
+  names(pred_fsh_age_f) <- as.character(rec_age:plus_group)
+  pred_fsh_age_f %>% 
+    mutate(Source = "Fishery",
+           index = data$yrs_fsh_age_f) -> pred_fsh_age_f
+  
+  pred_srv_age_m <- as.data.frame(obj$report(best)$pred_srv_age_m)
+  names(pred_srv_age_m) <- as.character(rec_age:plus_group)
+  pred_srv_age_m %>% 
+    mutate(Source = "Survey",
+           index = data$yrs_srv_age_m) -> pred_srv_age_m
+  
+  pred_srv_age_f <- as.data.frame(obj$report(best)$pred_srv_age_f)
+  names(pred_srv_age_f) <- as.character(rec_age:plus_group)
+  pred_srv_age_f %>% 
+    mutate(Source = "Survey",
+           index = data$yrs_srv_age_f) -> pred_srv_age_f
+  
+  # Reshape age comp observations and predictions into long format, calculate
+  # residuals and prep results for plotting
+  len <- len %>% filter(Sex != "Sex combined") %>% droplevels()
+  
+  preds <- rbind(pred_fsh_age_m %>% mutate(Sex = "Male",
+                                           index = data$yrs_fsh_age),
+                 pred_fsh_age_f %>% mutate(Sex = "Female",
+                                           index = data$yrs_fsh_age),
+                 pred_srv_age_m %>% mutate(Sex = "Male",
+                                           index = data$yrs_srv_age),
+                 pred_srv_age_f %>% mutate(Sex = "Female",
+                                           index = data$yrs_srv_age))
+  
+  age %>% #filter(Sex == "M") %>% 
+    pivot_longer(cols = c(as.character(rec_age:plus_group)),
+                 names_to = c("age")) %>%
+    mutate(obs = value) %>% select(-value) %>%
+    #gather("age", "obs", -c("year", "index", "Source", "n", "effn", ))
+    left_join(preds %>% gather("age","pred",1:30),
+              by = c("Source","index","Sex","age")) %>%
+    group_by(Source,Sex) %>%
+    mutate(resid = obs - pred,
+           # Get standardized residual (mean of 0, sd of 1)
+           std_resid = resid / sd(resid),
+           # Pearson's residual
+           pearson = resid / sqrt(var(pred)),
+           # positive or negative
+           `obj performance` = ifelse(std_resid >= 0, "Observed greater than estimated",
+                                      ifelse(is.na(obs), "",
+                                             "Observed less than estimated")),
+           Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
+                                        "9", "10", "11", "12", "13", "14", "15",
+                                        "16", "17", "18", "19", "20", "21", "22",
+                                        "23", "24", "25", "26", "27", "28", "29", "30",
+                                        "31"),
+                        labels = c("2", "3", "4", "5", "6", "7", "8",
+                                   "9", "10", "11", "12", "13", "14", "15",
+                                   "16", "17", "18", "19", "20", "21", "22",
+                                   "23", "24", "25", "26", "27", "28", "29", "30",
+                                   "31+"))) -> agecomps
+  
+  #age %>% filter(Sex == "M") %>%
+  #  gather("age", "obs", -c("year", "index", "Source", "n", "effn")) %>% 
+  #  left_join(
+  #    bind_rows(pred_fsh_age_m, pred_srv_age_m) %>% 
+  #      gather("age", "pred", 1:30),
+  #    by = c("Source", "index", "age")) %>% 
+  #  group_by(Source) %>% 
+  #  mutate(resid = obs - pred,
+           # Get standardized residual (mean of 0, sd of 1)
+  #         std_resid = resid / sd(resid),
+           # Pearson's residual
+  #         pearson = resid / sqrt(var(pred)),
+           # positive or negative
+  #         `obj performance` = ifelse(std_resid >= 0, "Observed greater than estimated",
+  #                                    ifelse(is.na(obs), "",
+  #                                           "Observed less than estimated")),
+  #         Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
+  #                                      "9", "10", "11", "12", "13", "14", "15",
+  #                                      "16", "17", "18", "19", "20", "21", "22",
+  #                                      "23", "24", "25", "26", "27", "28", "29", "30",
+  #                                      "31"),
+  #                      labels = c("2", "3", "4", "5", "6", "7", "8",
+  #                                 "9", "10", "11", "12", "13", "14", "15",
+  #                                 "16", "17", "18", "19", "20", "21", "22",
+  #                                 "23", "24", "25", "26", "27", "28", "29", "30",
+  #                                 "31+")))  -> agecomps
+  
+  return(agecomps)
+}
+
+barplot_sexyage <- function(src = "Survey", sex = "Female", save = TRUE, path = tmbfigs) {
+  
+  age_labs <- get_age_labs()
+  
+  ggplot(agecomps %>% filter(Source == src , Sex == sex)) + #& year >= 2003
+    geom_bar(aes(x = Age, y = obs), 
+             stat = "identity", colour = "grey", fill = "lightgrey",
+             width = 0.8, position = position_dodge(width = 0.5)) +
+    geom_line(aes(x = Age, y = pred, group = 1), size = 0.6) +
+    facet_wrap(~ year, dir = "v", ncol = 5) +
+    scale_x_discrete(breaks = unique(agecomps$Age), labels = age_labs) +
+    labs(x = '\nAge', y = 'Proportion-at-age\n') +
+    ggtitle(paste0(src, " ", sex, "s")) -> p
+  
+  print(p)
+  
+  if(save == TRUE){ 
+    ggsave(plot = p, filename = paste0(path, "/", src," ", sex,"_agecomps_barplot.png"), dpi = 300, height = 6, width = 7, units = "in")
+  }
+  
+}
+#------------
+# Age comp resids
+plot_sexyage_resids <- function(save = TRUE, path = tmbfigs) {
+  
+  age_labs <- get_age_labs()
+  
+  # axis <- tickr(agecomps, year, 5)
+  
+  ggplot(agecomps, aes(x = year, y = Age, size = std_resid,
+                       fill = `obj performance`)) + 
+    geom_point(shape = 21, colour = "black") +
+    scale_size(range = c(0, 3.5)) +
+    facet_grid(Source ~ Sex) +
+    #facet_wrap(~ Source) +
+    labs(x = '\nYear', y = 'Age\n', fill = NULL) +
+    guides(size = FALSE) +
+    scale_fill_manual(values = c("white", "black")) +
+    scale_y_discrete(breaks = unique(agecomps$Age), labels = age_labs) +
+    # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+    theme(legend.position = "bottom",
+          strip.text.x = element_text(size = 11, colour = "black"),
+          strip.text.y = element_text(size = 11, colour = "black")) -> p
+  
+  print(p)
+  
+  if(save == TRUE){ 
+    ggsave(plot = p, filename = paste0(path, "/agecomps_residplot.png"), dpi = 300, height = 6, width = 7, units = "in")
+  }
+}
 
 
-
-
-
-
-
-
+#------------
+barplot_len <- function(src = "Survey", sex = "Female", save = TRUE, path = tmbfigs) {
+  
+  len_labs <- get_len_labs()
+  
+  ggplot(lencomps %>% filter(Source == src & Sex == sex)) + #, year >= 2003
+    geom_bar(aes(x = length_bin, y = obs), 
+             stat = "identity", colour = "grey", fill = "lightgrey",
+             width = 0.8, position = position_dodge(width = 0.5)) +
+    geom_line(aes(x = length_bin, y = pred, group = 1), size = 0.6) +
+    facet_wrap(~ year, dir = "v", ncol = 5) + 
+    scale_x_discrete(breaks = unique(lencomps$length_bin), labels = len_labs) +
+    labs(x = '\nLength (cm)', y = 'Proportion-at-length\n') +
+    ggtitle(paste0(src, " (", sex, ")")) -> p
+  
+  print(p)
+  
+  if(save == TRUE){ 
+    ggsave(plot = p, filename = paste0(path, "/", src, "_", sex, "_lencomps_barplot.png"), dpi = 300, height = 6, width = 7, units = "in")
+  }
+}

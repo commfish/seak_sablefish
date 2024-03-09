@@ -2652,6 +2652,10 @@ TMBphase_v23 <- function(data, parameters, random, model_name, phase = FALSE,
       map_use$log_tau_mr <- fill_vals(parameters$log_tau_mr, NA)
     }
     
+    if (fsh_slx_switch != 1) {
+      map_use$log_fsh_slx_pars <- fill_vals(parameters$log_fsh_slx_pars, NA)
+    }
+    
     # Temporary debug trying to figure out why I'm getting NA/NaN function
     # evaluation - think it's something to do with discarding
     if (tmp_debug == TRUE) {
@@ -3102,6 +3106,8 @@ build_data_v23 <- function(weights = FALSE,
     # Switch for selectivity type: 0 = a50, a95 logistic; 1 = a50, slope logistic
     slx_type = slx_type,
     
+    # Switch for trying to estimate fishery selectivity; 0 = fixed, 1 = estimate...
+    fsh_slx_switch = fsh_slx_switch, 
     # Swtich for age composition type (hopefully one day length comps too): 0 =
     # multinomial; 1 = Dirichlet-multinomial
     comp_type = comp_type,
@@ -3124,7 +3130,7 @@ build_data_v23 <- function(weights = FALSE,
     #fsh_blks = c(ts %>% filter(year == 1994 | year == 2015) %>% pull(index), 
     #             max(ts$index)),  # 3 time blocks as per current federal (2022) assessment
     
-    #srv_blks = c(max(ts$index)), # no breaks survey selectivity
+    #srv_blks = 
     srv_blks = c(ts %>% filter(year == 1999) %>% pull(index), 
                  max(ts$index)),
     # Discard mortality rate in the directed fishery (currently either 0 or 0.16,

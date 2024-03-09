@@ -1530,7 +1530,7 @@ pred_simple %>%
   mutate(Sex = "Female",
          Source = "LL survey",
          # changed rounding from 2 to 4 in 2020
-         probability = round(zoo::na.approx(fitted, maxgap = 2, rule = 2), 4)) %>% 
+         probability = round(zoo::na.approx(fitted, maxgap = 3, rule = 2), 4)) %>% 
   select(age, probability) %>% 
   # arrange(age) %>% 
   write_csv(paste0(YEAR+1,"/output/fem_maturityatage_llsrv_plsgrp", plus_group, "_", YEAR, ".csv"))
