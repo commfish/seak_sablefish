@@ -90,8 +90,7 @@ tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model o
 {
 rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
-fsh_slx_switch <- 1 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
-srv_slx_switch <- 1 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
+fsh_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
 comp_type <- 0    # Age  and length comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
 rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
@@ -110,10 +109,10 @@ tmp_debug <- FALSE         # Shuts off estimation of selectivity pars - once sel
   # time series
   
   if (is.na(TUNED_VER)){
-    age <- read_csv(paste0(tmb_dat, "/agecomps_bysex_", YEAR, ".csv"))          # age comps
+    age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
     len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
   } else {
-    age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_bysex_", YEAR,"_", TUNED_VER,  ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
+    age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR,"_", TUNED_VER,  ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
     len <- read_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR,"_", TUNED_VER,  ".csv"))  # tuned len comps
   }
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
@@ -144,8 +143,7 @@ if (SLX_OPT == 1) {
   #need to add in new selectivity block since not there last year
   #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_NEW_SLX2.csv"))
   #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, "_srv_slx.csv"))
-  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_2fsh_3srv.csv"))
-  #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, "_srv_fsh_slx3.csv"))
+  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, "_srv_slx4.csv"))
 }
   
   rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
@@ -166,7 +164,6 @@ nsex <- 2                 # single sex or sex-structured
 nproj <- 1                # projection years *FLAG* eventually add to cpp file, currently just for graphics
 include_discards <- TRUE  # include discard mortality, TRUE or FALSE
 
-age_lame <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv")) 
 
 # Subsets
 mr <- filter(ts, !is.na(mr))
@@ -206,7 +203,7 @@ str(data$data_fsh_cpue)
 # *** model development
 VER<-"base_fixed" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
 
-VER <- "v23_sexyage"
+VER <- "v23"
 #==================================================
 
 #ughs<-inits %>% filter(grepl("spr_Fxx", Parameter)) %>% pull(Estimate)
@@ -218,7 +215,7 @@ parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fd
 #development coded data and parameter lists...
 # for v23 models
 
-data <- build_data_sexyage(ts = ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
+data <- build_data_v24(ts = ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
 parameters <- build_parameters_v24(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 
 random_vars <- build_random_vars() # random effects still in development
@@ -231,7 +228,7 @@ data$wt_catch
 data$wt_mr
 data$srv_blks
 data$fsh_blks
-data$fsh_slx_switch <- 0
+data$fsh_slx_switch
 data$p_srv_q
 data$sigma_srv_q
 data$p_fsh_q
@@ -255,17 +252,17 @@ data$sex_ratio # matrix [1,] males, [2,] females
 data$data_fsh_waa # sex specific already 
 data$data_srv_waa
 
-str(data$data_fsh_age)
+data$data_fsh_age
 data$n_fsh_age
 data$effn_fsh_age
 
 data$nyr_fsh_len
 data$yrs_fsh_len
-str(data$data_fsh_len) #list, with [,,X] as sex deisgnation
+data$data_fsh_len #list, with [,,X] as sex deisgnation
 data$n_fsh_len #matrix
 data$effn_fsh_len # matrix
 
-str(data)
+
 # Run model ----
 
 setwd(tmb_path)
@@ -289,11 +286,11 @@ out <- TMBphase(data, parameters, random = random_vars,
                 debug = FALSE)
 
 #use this for v23 models
-out <- TMBphase_sexyage(data, parameters, random = random_vars, 
-                model_name = "scaa_mod_sexyage", #model_name = "scaa_mod_dir_ev",
+out <- TMBphase_v24(data, parameters, random = random_vars, 
+                model_name = "scaa_mod_v23", #model_name = "scaa_mod_dir_ev",
                 phase = FALSE,  
                 newtonsteps = 10, #3 make this zero initially for faster run times (using 5)
-                debug = FALSE, loopnum = 20)
+                debug = FALSE, loopnum = 50)
 
 obj <- out$obj # TMB model object
 opt <- out$opt # fit
@@ -353,8 +350,8 @@ like_sum <- data.frame(like = c("Catch",
                                  obj$report(best)$index_like[1], 
                                  obj$report(best)$index_like[2],
                                  obj$report(best)$index_like[3],
-                                 obj$report(best)$fsh_age_like[1], 
-                                 obj$report(best)$srv_age_like[2],
+                                 obj$report(best)$age_like[1], 
+                                 obj$report(best)$age_like[2],
                                  sum(obj$report(best)$fsh_len_like),
                                  sum(obj$report(best)$srv_len_like),
                                  dat_like,
@@ -393,15 +390,13 @@ rec %>% filter(brood_year == 2015) %>% pull(rec)
 rec %>% filter(brood_year == 2016) %>% pull(rec)
 rec %>% filter(brood_year == 1978) %>% pull(rec)
 
-agecomps <- reshape_sexyage()
-#plot_sel(save = TRUE) # Selectivity, fixed at Federal values
+agecomps <- reshape_age()
+plot_sel(save = TRUE) # Selectivity, fixed at Federal values
 plot_sel_24(save = TRUE)
 
-plot_sexyage_resids() # Fits to age comps
-barplot_sexyage("Survey", sex = "Female")
-barplot_sexyage("Survey", sex = "Male")
-barplot_sexyage("Fishery", sex = "Female")
-barplot_sexyage("Fishery", sex = "Male")
+plot_age_resids() # Fits to age comps
+barplot_age("Survey")
+barplot_age("Fishery")
 
 lencomps <- reshape_len()
 plot_len_resids()

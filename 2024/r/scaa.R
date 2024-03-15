@@ -18,6 +18,22 @@
 # Marine Science, Volume 76, Issue 6, November-December 2019, Pages 1477–1488,
 # https://doi-org.arlis.idm.oclc.org/10.1093/icesjms/fsz059
 
+# FLAG!!! SELECTIVITY TIME BLOCKS!!! 
+# Code updated in 2024 so time block breaks can be set here. Note that the 2024
+# models are set up to estimate srv selectivity for all time blocks except males 
+# in the first time block, which is fixed to the federel values. Fishery selectivity
+# has been more difficult so when you set fsh_slx_switch = 1 it will estimate fishery
+# selectivity in the last time block while the rest will be fixed to the federal 
+# values. To change those settings you will have to change the maps in the TMBphase_v23 
+# and TMBphase_v24 functions.
+# The "build_parameter_v23" and "_v24" functions are build to handle up to 4 time 
+# blocks for fsh_slx and 4 time blocks for srv_slx. You may need to modify your 
+# slx_pars data appropriately... this will provide values for fixed parameters 
+# and starting values for estimated parameters.
+# DOUBLE CHECK THAT EVERYTHING ALIGNS APPROPRIATELY!!!! 
+
+#-----------------------------------------------------------------------------------
+
 # library(tmbstan)
 # library(shinystan)
 source("r_helper/helper.r")
@@ -29,22 +45,32 @@ library(TMB)
 
 # These must be checked or updated annually!
 #TUNED_VER<-"fsel3_est_ssel_flat_wts"
-
+set.seed(9921)
 # if this is the first model run of the year set to NA:
 TUNED_VER<-NA
 
 # If you've tuned the model, use the tuned version you named and saved... 
 TUNED_VER<-"Base" #"v23"
-TUNED_VER<-"v23_old_slx"
-TUNED_VER<-"v23_new_2slx"
-TUNED_VER<-"v23_new_3slx"
-TUNED_VER<-"v23_noMR_5"
-TUNED_VER<-"v23_noMR_10"
+TUNED_VER<-"v23_sexyage_fixfshsel"
 
-IND_SIGMA<-FALSE
+IND_SIGMA<-FALSE # turn to true if you want to use true sigma's for the indices.
+            # right now they are inflated to help with data weighting and fitting the model
+            # eventually it would be nice to use the true sigmas and estimate the
+            # extra variance within the models. It is coded with the tau terms so
+            # it can be explored.
 
 SLX_OPT<-0 #switch for loading appropriate initial values: 1 is the old (base) mode in 2023
            #0 is for the new slx time blocks...
+
+SLX_INITS <- 1 # Do you want to use the selectivity values from the federal assessment (0) or 
+            # a mix of federal values (used for fixed parameters) and values estimated from
+            # the model (1). These will serve as starting values for the selectivity
+            # parameters that are being estimated.
+
+agedat <- "aggregated" # age comp data: "aggregated" (sexes combined, v23) or "disaggregated" (age data separated by sex)
+
+# age aggregated model is scaa_mod_v23
+# age disaggregated model is scaa_mod_v24
 
 # most recent year of data (YEAR+1 should be the forecast year)
 {
@@ -91,6 +117,7 @@ tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model o
 rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 fsh_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
+srv_slx_switch <- 1 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
 comp_type <- 0    # Age  and length comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
 rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
@@ -109,7 +136,12 @@ tmp_debug <- FALSE         # Shuts off estimation of selectivity pars - once sel
   # time series
   
   if (is.na(TUNED_VER)){
-    age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
+    if (agedat == "disaggregated") {
+      age <- read_csv(paste0(tmb_dat, "/agecomps_bysex_", YEAR, ".csv"))  # age comps
+    } else {
+      age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))  # age comps
+    }
+            
     len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))          # len comps
   } else {
     age <- read_csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR,"_", TUNED_VER,  ".csv"))  # tuned age comps - see tune_comps.R for prelim work on tuning comps using McAllister/Ianelli method
@@ -118,7 +150,12 @@ tmp_debug <- FALSE         # Shuts off estimation of selectivity pars - once sel
 bio <- read_csv(paste0(tmb_dat, "/maturity_sexratio_", YEAR, ".csv")) # proportion mature and proportion-at-age in the survey
 waa <- read_csv(paste0(tmb_dat, "/waa_", YEAR, ".csv"))               # weight-at-age
 retention <- read_csv(paste0(tmb_dat, "/retention_probs.csv"))        # retention probability (not currently updated annually. saved from ypr.r)
-slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022_3fsh.csv")) # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
+
+if (SLX_INITS == 0) {
+  slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/fed_selectivity_transformed_2022_3fsh.csv")) # fed slx transformed to ages 0:29 instead of ages 2:31. see scaa_datprep.R for more info
+} else {
+  slx_pars <- read_csv(paste0(YEAR+1,"/data/tmb_inputs/slx_inits_2024.csv")) #srv selectivity as estimated and fsh slx from federal assessment
+}
 
 # Ageing error transition matrix from D. Hanselman 2019-04-18. On To Do list to
 # develop one for ADFG. Row = true age, Column = observed age. Proportion
@@ -143,7 +180,8 @@ if (SLX_OPT == 1) {
   #need to add in new selectivity block since not there last year
   #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_NEW_SLX2.csv"))
   #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, "_srv_slx.csv"))
-  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, "_srv_slx4.csv"))
+  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_2fsh_3srv.csv"))
+  #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, "_srv_fsh_slx3.csv"))
 }
   
   rec_devs_inits <- inits %>% filter(grepl("rec_devs", Parameter)) %>% pull(Estimate)
@@ -164,6 +202,7 @@ nsex <- 2                 # single sex or sex-structured
 nproj <- 1                # projection years *FLAG* eventually add to cpp file, currently just for graphics
 include_discards <- TRUE  # include discard mortality, TRUE or FALSE
 
+age_lame <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv")) 
 
 # Subsets
 mr <- filter(ts, !is.na(mr))
@@ -189,80 +228,75 @@ Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
 # some other things
 }
 # User-defined fxns in functions.R
+#=====================================
+# Set time blocks for selectivity:
+srv_blocks <- c(1999,2015) # years are last years of time blocks not counting last year of time series
+fsh_blocks <- c(1994,2021)
 
+{
+  srv_blks <- vector()
 
-# TMB set up ----
-ts$fsh_cpue          #in 2023 we are using the fully standardized time series
-ts$fsh_cpue_nom      #nominal fishery CPUE from analysis
-ts$fsh_cpue_base     #cpue clculation in scaa_dataprep.R.. similar to nom
+for (i in 1:length(srv_blocks)) {
+  srv_blks[i] <- ts %>% filter(year == srv_blocks[i]) %>% pull(index)
+}
 
+srv_blks[length(srv_blocks)+1] <- max(ts$index)
+s_blk_ct<-length(srv_blks)
 
-str(data$data_fsh_cpue)
+fsh_blks <- vector()
+
+for (i in 1:length(fsh_blocks)) {
+  fsh_blks[i] <- ts %>% filter(year == fsh_blocks[i]) %>% pull(index)
+}
+
+fsh_blks[length(fsh_blocks)+1] <- max(ts$index)
+f_blk_ct<-length(fsh_blks)
+}
 
 #=====================================
 # *** model development
 VER<-"base_fixed" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
 
-VER <- "v23"
+VER <- "v23_v24_fixfshsel" #trial runs
+VER <- "v23_sexyage_fixfshsel_TUNED" # trial runs
+
+VER <- "v23_trial"
+
+# Lets call the disaggregated age comps (v24) v24
+# Sex aggregated models from v23.
+# Also, where do we want to add the time blocks on survey slx...
+VER <- "v24_2srv" #just 2 srv slx time blocks
+VER <- "v24_3srv_b2015"
+VER <- "v24_3srv_b2016"
+VER <- "v24_3srv_b2017"
+VER <- "v24_3srv_b2018"
+
+VER <- "v24_2srv_1fsh" #try estimating last fishery time block selectivity
+VER <- "v24_3srv_1fsh_b2015"
+VER <- "v24_3srv_1fsh_b2016"
+VER <- "v24_3srv_1fsh_b2017"
+VER <- "v24_3srv_1fsh_b2018"
+
+# then run the tuned versions... 
 #==================================================
+# load data and parameters
 
-#ughs<-inits %>% filter(grepl("spr_Fxx", Parameter)) %>% pull(Estimate)
-#exp(ughs)
-# for Base models in 2023
-data <- build_data(ts = ts); str(data)  #see this function to change weights and 
-parameters <- build_parameters(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
-
-#development coded data and parameter lists...
-# for v23 models
-
-data <- build_data_v24(ts = ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
-parameters <- build_parameters_v24(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
-
+if (agedat == "aggregated") {
+  data <- build_data_v23(ts = ts); str(data)  #see this function to change weights and 
+  parameters <- build_parameters_v23(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
+} else {
+  data <- build_data_v24(ts = ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
+  parameters <- build_parameters_v24(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
+}
+# random variables
 random_vars <- build_random_vars() # random effects still in development
 
-# parameters <- list(dummy = 0)
-# compile("tst.cpp")
-data$p_sigma_M<-1
+str(data)
 
-data$wt_catch
-data$wt_mr
-data$srv_blks
-data$fsh_blks
-data$fsh_slx_switch
-data$p_srv_q
-data$sigma_srv_q
-data$p_fsh_q
-data$sigma_fsh_q
-lower
-
-parameters$srv_logq
-parameters$fsh_logq
-parameters$mr_logq
+# Check selectivity
+slx_pars
+parameters$log_fsh_slx_pars #(row = timeblock, column = parameter, array3 = sex (1=m, 2 = F))
 parameters$log_srv_slx_pars
-parameters$log_fsh_slx_pars
-
-exp(parameters$log_srv_slx_pars)
-exp(parameters$log_fsh_slx_pars)
-
-parameters$log_tau_mr
-parameters$log_tau_srv
-
-data$prop_fem #all 1s?
-data$sex_ratio # matrix [1,] males, [2,] females
-data$data_fsh_waa # sex specific already 
-data$data_srv_waa
-
-data$data_fsh_age
-data$n_fsh_age
-data$effn_fsh_age
-
-data$nyr_fsh_len
-data$yrs_fsh_len
-data$data_fsh_len #list, with [,,X] as sex deisgnation
-data$n_fsh_len #matrix
-data$effn_fsh_len # matrix
-
-
 # Run model ----
 
 setwd(tmb_path)
@@ -275,22 +309,19 @@ setwd(tmb_path)
 # to build TMB object, map, and bounds
 # (4) Debug mode with debug = TRUE (will need to uncomment out obj_fun = dummy * dummy; )
 
-str(data)
-
-# MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
-# use this for old 2022 model
-out <- TMBphase(data, parameters, random = random_vars, 
-                model_name = "scaa_mod", #model_name = "scaa_mod_dir_ev",
-                phase = FALSE,  
-                newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
-                debug = FALSE)
-
-#use this for v23 models
-out <- TMBphase_v24(data, parameters, random = random_vars, 
-                model_name = "scaa_mod_v23", #model_name = "scaa_mod_dir_ev",
-                phase = FALSE,  
-                newtonsteps = 10, #3 make this zero initially for faster run times (using 5)
-                debug = FALSE, loopnum = 50)
+if (agedat == "aggregated") {
+  out <- TMBphase_v23(data, parameters, random = random_vars, 
+                      model_name = "scaa_mod_v23", #model_name = "scaa_mod_dir_ev",
+                      phase = FALSE,  
+                      newtonsteps = 0, #3 make this zero initially for faster run times (using 5)
+                      debug = FALSE, loopnum = 30)
+} else {
+  out <- TMBphase_v24(data, parameters, random = random_vars, 
+                          model_name = "scaa_mod_v24", #model_name = "scaa_mod_dir_ev",
+                          phase = FALSE,  
+                          newtonsteps = 3, #3 make this zero initially for faster run times (using 5)
+                          debug = FALSE, loopnum = 30)
+}
 
 obj <- out$obj # TMB model object
 opt <- out$opt # fit
@@ -311,7 +342,7 @@ best <- obj$env$last.par.best # maximum likelihood estimates
 # tmbout and starting vals for next year to tmb_dat by default. See functions.R
 # for more info.
 tidyrep <- save_mle(save = TRUE,
-                    save_inits = TRUE) 
+                    save_inits = FALSE) 
 
 # MLE likelihood components
 obj$report(best)$obj_fun
@@ -332,38 +363,74 @@ sum(obj$report()$catch_like,
     obj$report()$age_like[1], obj$report()$age_like[2],
     sum(obj$report()$fsh_len_like),  sum(obj$report()$srv_len_like))
 
-like_sum <- data.frame(like = c("Catch", 
-                                "Fishery CPUE", 
-                                "Survey CPUE", 
-                                "Mark-recapture abundance",
-                                "Fishery ages",
-                                "Survey ages", 
-                                "Fishery lengths",
-                                "Survey lengths", 
-                                "Data likelihood",
-                                "Fishing mortality penalty",
-                                "Recruitment likelihood",
-                                "SPR penalty",
-                                "Sum of catchability priors",
-                                "Total likelihood"),
-                       value = c(obj$report(best)$catch_like,
-                                 obj$report(best)$index_like[1], 
-                                 obj$report(best)$index_like[2],
-                                 obj$report(best)$index_like[3],
-                                 obj$report(best)$age_like[1], 
-                                 obj$report(best)$age_like[2],
-                                 sum(obj$report(best)$fsh_len_like),
-                                 sum(obj$report(best)$srv_len_like),
-                                 dat_like,
-                                 obj$report(best)$fpen,
-                                 obj$report(best)$rec_like,
-                                 obj$report(best)$spr_pen,
-                                 sum(obj$report(best)$priors),
-                                 obj$report(best)$obj_fun)) %>% 
-  mutate(tot = dat_like,
-         perc = (value / tot) * 100) %>% 
-  select(-tot) %>% 
-  rename(`Likelihood component` = like, Likelihood = value, `Percent of data likelihood` = perc)
+if (agedat == "aggregated") {
+  like_sum <- data.frame(like = c("Catch", 
+                                  "Fishery CPUE", 
+                                  "Survey CPUE", 
+                                  "Mark-recapture abundance",
+                                  "Fishery ages",
+                                  "Survey ages", 
+                                  "Fishery lengths",
+                                  "Survey lengths", 
+                                  "Data likelihood",
+                                  "Fishing mortality penalty",
+                                  "Recruitment likelihood",
+                                  "SPR penalty",
+                                  "Sum of catchability priors",
+                                  "Total likelihood"),
+                         value = c(obj$report(best)$catch_like,
+                                   obj$report(best)$index_like[1], 
+                                   obj$report(best)$index_like[2],
+                                   obj$report(best)$index_like[3],
+                                   obj$report(best)$age_like[1], 
+                                   obj$report(best)$age_like[2],
+                                   sum(obj$report(best)$fsh_len_like),
+                                   sum(obj$report(best)$srv_len_like),
+                                   dat_like,
+                                   obj$report(best)$fpen,
+                                   obj$report(best)$rec_like,
+                                   obj$report(best)$spr_pen,
+                                   sum(obj$report(best)$priors),
+                                   obj$report(best)$obj_fun)) %>% 
+    mutate(tot = dat_like,
+           perc = (value / tot) * 100) %>% 
+    select(-tot) %>% 
+    rename(`Likelihood component` = like, Likelihood = value, `Percent of data likelihood` = perc)
+} else {
+  like_sum <- data.frame(like = c("Catch", 
+                                  "Fishery CPUE", 
+                                  "Survey CPUE", 
+                                  "Mark-recapture abundance",
+                                  "Fishery ages",
+                                  "Survey ages", 
+                                  "Fishery lengths",
+                                  "Survey lengths", 
+                                  "Data likelihood",
+                                  "Fishing mortality penalty",
+                                  "Recruitment likelihood",
+                                  "SPR penalty",
+                                  "Sum of catchability priors",
+                                  "Total likelihood"),
+                         value = c(obj$report(best)$catch_like,
+                                   obj$report(best)$index_like[1], 
+                                   obj$report(best)$index_like[2],
+                                   obj$report(best)$index_like[3],
+                                   obj$report(best)$fsh_age_like[1], 
+                                   obj$report(best)$srv_age_like[2],
+                                   sum(obj$report(best)$fsh_len_like),
+                                   sum(obj$report(best)$srv_len_like),
+                                   dat_like,
+                                   obj$report(best)$fpen,
+                                   obj$report(best)$rec_like,
+                                   obj$report(best)$spr_pen,
+                                   sum(obj$report(best)$priors),
+                                   obj$report(best)$obj_fun)) %>% 
+    mutate(tot = dat_like,
+           perc = (value / tot) * 100) %>% 
+    select(-tot) %>% 
+    rename(`Likelihood component` = like, Likelihood = value, `Percent of data likelihood` = perc)
+}
+
 like_sum
 
 write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR,"_",VER, ".csv"))
@@ -390,13 +457,28 @@ rec %>% filter(brood_year == 2015) %>% pull(rec)
 rec %>% filter(brood_year == 2016) %>% pull(rec)
 rec %>% filter(brood_year == 1978) %>% pull(rec)
 
-agecomps <- reshape_age()
-plot_sel(save = TRUE) # Selectivity, fixed at Federal values
-plot_sel_24(save = TRUE)
+if (agedat == "aggregated") {
+  agecomps <- reshape_age()
+} else {
+  agecomps <- reshape_age_disag()
+}
 
-plot_age_resids() # Fits to age comps
-barplot_age("Survey")
-barplot_age("Fishery")
+plot_sel(save = TRUE)
+# save slx values for initial inputs if desired; only works for deaggregated age comps
+new_slx <- save_slx(tidyrep,slx_pars,fsel=0, save=TRUE)
+slx_pars
+
+if (agedat == "aggregated") {
+  plot_age_resids() # Fits to age comps
+  barplot_age("Survey")
+  barplot_age("Fishery")
+} else {
+  plot_age_disag_resids() # Fits to age comps
+  barplot_age_disag("Survey", sex = "Female")
+  barplot_age_disag("Survey", sex = "Male")
+  barplot_age_disag("Fishery", sex = "Female")
+  barplot_age_disag("Fishery", sex = "Male")
+}
 
 lencomps <- reshape_len()
 plot_len_resids()
@@ -491,21 +573,7 @@ if(recABC == maxABC) {
 } else {
   
   # Estimate recommended F_ABC using numerical methods
-  N <- obj$report()$N  #str(obj$report()) 
-  #Phil insert looking for how to do this ... 
-  #str(obj$report())
-  #obj$report()$Fxx
-  #obj$report()$fsh_slx
-  #obj$report()$sel_Fxx
-  #obj$report()$spr_Fxx  #not saved
-  #obj$report()$spr_fsh_slx #not saved
-  #obj$report()$Z_Fxx   #not saved in output...
-  #obj$report()$S_Fxx   #not saved in output...
-  #obj$report()$pred_rec
-  #obj$report()$pred_rbar
-  #obj$report()$mean_rec
-  #obj$report()$SBPR #SBPR at each fishing level, female biomass only
-  #obj$report()$SB   #equilibrium biomass at each fishing level, female biomass only #coming up as Inf first run in 2023??? !!!! 
+  #N <- obj$report()$N  #str(obj$report()) 
   
   #back to Jane's code here... 
   N <- sum(N[nyr+1,,1]) + sum(N[nyr+1,,2]) # sum of projected abundance across age and sex
@@ -534,7 +602,7 @@ if(recABC == maxABC) {
   (F_ABC <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = recABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
   (F_ABC <- uniroot(catch_to_F, interval = c(0.01, 1.9), N = N, catch = recABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
 }
-(F_ABCtest <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = maxABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
+#(F_ABCtest <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = maxABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
 #PJ22: this function is producing different F_ABC than that coming out of TMB code!!!
 #PJ23: yup, still not working. 0.087 here but 0.063 from TMB outbput... 
 #      trusting the TMB output now and will schwag the recABC F value by deprecating
@@ -779,6 +847,9 @@ write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR,"_",VER,  ".csv"), se
 
 # You could continue to append any variables of interest to the SCAA report.
 
+
+#===================================================================================
+
 # Data request May 2020 ----
 
 # Luke Rogers, post-doc working with the coastwide sablefish group (contact:
@@ -953,3 +1024,68 @@ ggsave(paste0("figures/tmb/age_length_key.png"), dpi = 300, height = 7, width = 
 #   
 # rec_devs_inits <- new_inits$rec_devs
 # Fdevs_inits <- new_inits$Fdevs
+
+#------------------------------------------------------------------------------
+# phase plot start: looks like the cpp file would need to be significantly modified
+# to get the yearly estimate of F50 and B50... 
+
+ts %>% 
+  # Add another year to hold projected values
+  full_join(data.frame(year = max(ts$year))) %>%
+  mutate(Fmort = c(obj$report(best)$Fmort),
+         expl_biom = obj$report(best)$tot_expl_biom[1:nyr] / 1e3,
+         exploit = obj$report(best)$pred_catch / expl_biom ) -> ts_php
+
+View(ts_php)
+
+str(obj$report(best))
+
+obj$report(best)$tot_spawn_biom
+obj$report(best)$Fmort
+obj$report(best)$F
+
+Fmort <- obj$report(best)$Fmort
+
+php <- ABC %>% 
+  left_join(wastage %>% filter(year != YEAR+1)) %>% 
+  left_join(ts %>% select(year, landed = catch) %>% 
+              mutate(landed = landed * 2204.62)) %>% 
+  pivot_longer(-c(year, Fxx, ABC)) %>% 
+  rename(Fspr = Fxx) %>% filter(Fspr == 0.5) %>%
+  group_by(year) %>%
+  mutate(catch = sum(value)) %>% filter(name == "landed" & year != 2024) %>%
+  add_column(Fmort = obj$report(best)$Fmort,
+             spawn_biom = obj$report(best)$tot_spawn_biom[1:length(obj$report(best)$Fmort)]) %>%
+  mutate(Exp = catch / ABC,
+         F50 = "?",
+         F_F50 = Exp / as.numeric(Fspr),
+         SB50 = "?",
+         B_B50 = spawn_biom / SB50)
+
+ggplot(php,aes(x=B_B50, y = F_F50, label = year)) +
+  geom_text(check_overlap = TRUE, nudge_x = 0.05) +
+  geom_point() + geom_path() +
+  
+
+
+obj$report(best)$biom
+obj$report(best)$spawn_biom
+obj$report(best)$tot_spawn_biom
+
+obj$report(best)$SBPR
+obj$report(best)$Nspr
+
+obj$report(best)$Fxx
+
+unique(php$year)
+
+nrow(php)
+
+  length(obj$report(best)$Fmort)
+  
+
+
+
+
+
+
