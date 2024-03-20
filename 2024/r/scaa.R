@@ -67,7 +67,7 @@ SLX_INITS <- 1 # Do you want to use the selectivity values from the federal asse
             # the model (1). These will serve as starting values for the selectivity
             # parameters that are being estimated.
 
-agedat <- "aggregated" # age comp data: "aggregated" (sexes combined, v23) or "disaggregated" (age data separated by sex)
+agedat <- "disaggregated" # age comp data: "aggregated" (sexes combined, v23) or "disaggregated" (age data separated by sex)
 
 # age aggregated model is scaa_mod_v23
 # age disaggregated model is scaa_mod_v24
@@ -230,8 +230,8 @@ Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
 # User-defined fxns in functions.R
 #=====================================
 # Set time blocks for selectivity:
-srv_blocks <- c(1999,2015) # years are last years of time blocks not counting last year of time series
-fsh_blocks <- c(1994,2021)
+srv_blocks <- c(1999) # years are last years of time blocks not counting last year of time series
+fsh_blocks <- c(1994)
 
 {
   srv_blks <- vector()
@@ -260,7 +260,7 @@ VER<-"base_fixed" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"
 VER <- "v23_v24_fixfshsel" #trial runs
 VER <- "v23_sexyage_fixfshsel_TUNED" # trial runs
 
-VER <- "v23_trial"
+VER <- "v23_semituned_trial"
 
 # Lets call the disaggregated age comps (v24) v24
 # Sex aggregated models from v23.
@@ -319,7 +319,7 @@ if (agedat == "aggregated") {
   out <- TMBphase_v24(data, parameters, random = random_vars, 
                           model_name = "scaa_mod_v24", #model_name = "scaa_mod_dir_ev",
                           phase = FALSE,  
-                          newtonsteps = 3, #3 make this zero initially for faster run times (using 5)
+                          newtonsteps = 1, #3 make this zero initially for faster run times (using 5)
                           debug = FALSE, loopnum = 30)
 }
 
@@ -342,7 +342,7 @@ best <- obj$env$last.par.best # maximum likelihood estimates
 # tmbout and starting vals for next year to tmb_dat by default. See functions.R
 # for more info.
 tidyrep <- save_mle(save = TRUE,
-                    save_inits = FALSE) 
+                    save_inits = TRUE) 
 
 # MLE likelihood components
 obj$report(best)$obj_fun

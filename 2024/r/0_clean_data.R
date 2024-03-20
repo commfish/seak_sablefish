@@ -10,7 +10,7 @@
 # Platform: x86_64-w64-mingw32/x64 (64-bit)
 
 # In 2022 and 2023 we moved to querying data directly from OceanAK.  In 2022 I (phil)
-# reworked code and was provided the data by Justin Dailt and based on Jane's querries.
+# reworked code and was provided the data by Justin Daily and based on Jane's querries.
 # In 2023 Justin set up the OceanAK querries so that the user (me) has 
 # access and can modify (update year) and download.  This should vastly speed up
 # this whole process.  
@@ -59,7 +59,7 @@ read.csv(paste0(YEAR+1,"/data/fishery/raw_data/nseiharvest_ifdb_",
          sell_date = ymd(parse_date_time(SELL_DATE, c("%Y-%m-%d %H:%M:%S"))),
          whole_pounds = ifelse(ROUND_POUNDS == 0, POUNDS, ROUND_POUNDS)) %>% 
   select(year = YEAR, date, julian_day, Mgmt_area = G_MANAGEMENT_AREA_CODE, Stat = G_STAT_AREA,
-         Adfg = ADFG_NO, trip_no = TRIP_NO, sell_date, Vessel = VESSEL_NAME, Port = PORT_CODE,  
+         Adfg = ADFG_NO, trip_no = TRIP_NO, Gear = GEAR, sell_date, Vessel = VESSEL_NAME, Port = PORT_CODE,  
          Cfec_permit = G_CFEC_FISHERY, Delivery_cde = DELIVERY_CODE, 
          Harvest = HARVEST, Harvest_cde = HARVEST_CODE, Spp_cde = SPECIES_CODE, 
          whole_pounds, pounds = POUNDS) %>% 
@@ -67,14 +67,15 @@ read.csv(paste0(YEAR+1,"/data/fishery/raw_data/nseiharvest_ifdb_",
          Harvest_cde = as.character(Harvest_cde),
          Adfg = as.character(Adfg),
          Delivery_cde = as.character(Delivery_cde)) -> ifdb_catch
-
+str(ifdb_catch)
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
 read_csv(paste0("legacy_data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"),
          guess_max = 50000) -> past_catch
-
+str(ifdb_catch)
 bind_rows(past_catch, ifdb_catch) -> ifdb_catch
 unique(ifdb_catch$year)
+unique(ifdb_catch$Gear)
 #save full '69 through this year for SCAA
 write_csv(ifdb_catch, paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_",
                              min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))

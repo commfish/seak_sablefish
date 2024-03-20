@@ -1343,7 +1343,7 @@ save_mle <- function(#rep, # output from sdreport()
                      save_inits = TRUE, # save mle estimates as starting values for next yr?
                      path_inits = tmb_dat, # file path for starting values
                      year = YEAR,
-                     VER = VER) {
+                     ver = VER) {
   
   # MLE parameter estimates and standard errors in useable format
   # tidyrep <- tidy(summary(rep)) # broom no longer works. it's sad.
@@ -1357,13 +1357,13 @@ save_mle <- function(#rep, # output from sdreport()
   
   # Save output
   if(save == TRUE) {
-  write_csv(key_params, paste0(path, "/tmb_params_mle_",VER,"_", year, ".csv"))
-  write_csv(tidyrep, paste0(path, "/tmb_allparams_mle_",VER,"_", year, ".csv"))
+  write_csv(key_params, paste0(path, "/tmb_params_mle_",ver,"_", year, ".csv"))
+  write_csv(tidyrep, paste0(path, "/tmb_allparams_mle_",ver,"_", year, ".csv"))
   }
   
   # Save starting values for next year
   if(save_inits == TRUE) {
-    write_csv(tidyrep, paste0(path_inits, "/inits_for_",VER,"_", year+1, ".csv"))
+    write_csv(tidyrep, paste0(path_inits, "/inits_for_",ver,"_", year+1, ".csv"))
   }
   
   return(tidyrep)
@@ -5268,18 +5268,32 @@ save_slx <- function(tidyrep = tidyrep, slx_pars = slx_pars,
     new_slx$log_k[new_slx$fleet == "fsh_t3_f"] <- sel[names(sel) == "log_fsh_slx_pars.7"]
   }
   
-  new_slx$log_a50[new_slx$fleet == "srv2_m"] <- sel[names(sel) == "log_srv_slx_pars"]
-  new_slx$log_a50[new_slx$fleet == "srv3_m"] <- sel[names(sel) == "log_srv_slx_pars.1"]
-  new_slx$log_k[new_slx$fleet == "srv2_m"] <- sel[names(sel) == "log_srv_slx_pars.2"]
-  new_slx$log_k[new_slx$fleet == "srv3_m"] <- sel[names(sel) == "log_srv_slx_pars.3"]
-  
-  new_slx$log_a50[new_slx$fleet == "srv1_f"] <- sel[names(sel) == "log_srv_slx_pars.4"]
-  new_slx$log_k[new_slx$fleet == "srv1_f"] <- sel[names(sel) == "log_srv_slx_pars.7"] 
-  new_slx$log_a50[new_slx$fleet == "srv2_f"] <- sel[names(sel) == "log_srv_slx_pars.5"]
-  new_slx$log_k[new_slx$fleet == "srv2_f"] <- sel[names(sel) == "log_srv_slx_pars.8"]
-  new_slx$log_a50[new_slx$fleet == "srv3_f"] <- sel[names(sel) == "log_srv_slx_pars.6"]
-  new_slx$log_k[new_slx$fleet == "srv3_f"] <- sel[names(sel) == "log_srv_slx_pars.9"]
-  
+  if(length(srv_blocks) == 1) {
+    new_slx$log_a50[new_slx$fleet == "srv2_m"] <- sel[names(sel) == "log_srv_slx_pars"]
+    #new_slx$log_a50[new_slx$fleet == "srv3_m"] <- sel[names(sel) == "log_srv_slx_pars.1"]
+    new_slx$log_k[new_slx$fleet == "srv2_m"] <- sel[names(sel) == "log_srv_slx_pars.1"]
+    #new_slx$log_k[new_slx$fleet == "srv3_m"] <- sel[names(sel) == "log_srv_slx_pars.3"]
+    
+    new_slx$log_a50[new_slx$fleet == "srv1_f"] <- sel[names(sel) == "log_srv_slx_pars.2"]
+    new_slx$log_k[new_slx$fleet == "srv1_f"] <- sel[names(sel) == "log_srv_slx_pars.4"] 
+    new_slx$log_a50[new_slx$fleet == "srv2_f"] <- sel[names(sel) == "log_srv_slx_pars.3"]
+    new_slx$log_k[new_slx$fleet == "srv2_f"] <- sel[names(sel) == "log_srv_slx_pars.5"]
+    #new_slx$log_a50[new_slx$fleet == "srv3_f"] <- sel[names(sel) == "log_srv_slx_pars.6"]
+    #new_slx$log_k[new_slx$fleet == "srv3_f"] <- sel[names(sel) == "log_srv_slx_pars.9"]
+  } else if (length(srv_blocks) == 3) {
+    new_slx$log_a50[new_slx$fleet == "srv2_m"] <- sel[names(sel) == "log_srv_slx_pars"]
+    new_slx$log_a50[new_slx$fleet == "srv3_m"] <- sel[names(sel) == "log_srv_slx_pars.1"]
+    new_slx$log_k[new_slx$fleet == "srv2_m"] <- sel[names(sel) == "log_srv_slx_pars.2"]
+    new_slx$log_k[new_slx$fleet == "srv3_m"] <- sel[names(sel) == "log_srv_slx_pars.3"]
+    
+    new_slx$log_a50[new_slx$fleet == "srv1_f"] <- sel[names(sel) == "log_srv_slx_pars.4"]
+    new_slx$log_k[new_slx$fleet == "srv1_f"] <- sel[names(sel) == "log_srv_slx_pars.7"] 
+    new_slx$log_a50[new_slx$fleet == "srv2_f"] <- sel[names(sel) == "log_srv_slx_pars.5"]
+    new_slx$log_k[new_slx$fleet == "srv2_f"] <- sel[names(sel) == "log_srv_slx_pars.8"]
+    new_slx$log_a50[new_slx$fleet == "srv3_f"] <- sel[names(sel) == "log_srv_slx_pars.6"]
+    new_slx$log_k[new_slx$fleet == "srv3_f"] <- sel[names(sel) == "log_srv_slx_pars.9"]
+  }
+
   if(save == TRUE) {
     write_csv(new_slx,paste0(tmb_dat,"/slx_inits_",VER,"_",YEAR+1,".csv"))
     
