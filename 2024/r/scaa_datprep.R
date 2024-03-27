@@ -63,7 +63,7 @@ read_csv(paste0(YEAR+1,"/output/ll_cpue_fullstand_1980_",YEAR,".csv")) -> fsh_cp
 # or, since we're still waiting on the 2023 data as of 3/4/23 we'll need to run the
 # model for now with no new cpue estimate:
 
-read_csv(paste0(YEAR,"/output/ll_cpue_fullstand_1980_",YEAR-1,".csv")) -> fsh_cpue
+#read_csv(paste0(YEAR,"/output/ll_cpue_fullstand_1980_",YEAR-1,".csv")) -> fsh_cpue
 
 fsh_cpue <- fsh_cpue %>% mutate(fsh_cpue = fsh_cpue * 0.453592,
                                 q975 = fsh_cpue + 1.96*se* 0.453592,

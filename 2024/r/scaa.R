@@ -67,7 +67,7 @@ SLX_INITS <- 1 # Do you want to use the selectivity values from the federal asse
             # the model (1). These will serve as starting values for the selectivity
             # parameters that are being estimated.
 
-agedat <- "disaggregated" # age comp data: "aggregated" (sexes combined, v23) or "disaggregated" (age data separated by sex)
+agedat <- "aggregated" # age comp data: "aggregated" (sexes combined, v23) or "disaggregated" (age data separated by sex)
 
 # age aggregated model is scaa_mod_v23
 # age disaggregated model is scaa_mod_v24
@@ -255,11 +255,15 @@ f_blk_ct<-length(fsh_blks)
 
 #=====================================
 # *** model development
-VER<-"base_fixed" #"boot_gam22"  #"base_22rb" #"base" #"boot_gam" #"base_gam" #"base_nom" 
-
-VER <- "v23_v24_fixfshsel" #trial runs
-VER <- "v23_sexyage_fixfshsel_TUNED" # trial runs
-
+# Note _ST = semi-tuned. In these runs I used tuned comp effective sample sizes (ess)
+# from a different model since differnt models find similar ess. These models are
+# NOT final and simply allow me to check convergence on a nearly tuned model and, 
+# more importantly, allow for fewer iterations to fully tune the model.
+VER <- "v23" #"last year's model with 2 est srv slx and 2 fixed fsh slx.
+VER<-"v23_ST" #"last year's model with 2 est srv slx and 2 fixed fsh slx.
+VER <- "v23_TUNED" #trial runs
+VER <- "v23_3f_2s_ST" # 3 fixed fsh slx, 3rd time block for '22 and '23 when pot fishery started
+VER <- "v23_3f_2s_TUNED" 
 VER <- "v23_semituned_trial"
 
 # Lets call the disaggregated age comps (v24) v24
@@ -675,7 +679,7 @@ tmp %>%
   scale_size(labels = scales::percent) +
   labs(x = "Year class", y = "SSB (kt)", size = paste0("Percent\ncontribution\nto the ", YEAR+1, "\nSSB"))
 
-ggsave(paste0(tmbout, "/percentSSB_bycohort_",VER,"_", YEAR, ".png"),
+ggsave(paste0(tmbfigs, "/percentSSB_bycohort_",VER,"_", YEAR, ".png"),
        dpi=300, height=6, width=8, units="in")
 
 breaks <- c(seq(min(tmp$year_class),max(tmp$year_class),1))
@@ -686,7 +690,7 @@ tmp %>% filter(!is.na(label)) %>% mutate(sum(perc)) %>%
                    breaks = c(breaks)) + 
   theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1))
 
-ggsave(paste0(tmbout, "/percentSSB_bycohort_2_",VER,"_", YEAR, ".png"),
+ggsave(paste0(tmbfigs, "/percentSSB_bycohort_2_",VER,"_", YEAR, ".png"),
        dpi=300, height=6, width=8, units="in")
 
 tmp %>% filter(year_class >= 2013)%>% mutate(sum(perc))

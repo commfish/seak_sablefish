@@ -16,7 +16,7 @@
 # this whole process.  
 
 # OceanAK: Chatham Sablefish Assessment
-# https://oceanak.dfg.alaska.local/analytics/saw.dll?Dashboard&PortalPath=%2Fshared%2FCommercial%20Fisheries%2FRegion%20I%2FGroundFish%2FUser%20Reports%2FQueries%20for%20Chatham%20Sablefish%20Assessment%2FDDR%2FChatham%20Sablefish%20Assessment&page=page%201
+# https://oceanak.dfg.alaska.local/analytics/saw.dll?Portal&PortalPath=%2Fshared%2FCommercial%20Fisheries%2FRegion%20I%2FGroundFish%2FUser%20Reports%2FQueries%20for%20Sablefish%20Assessment%2FDDR%2FChatham%20Sablefish%20Assessment
 # This will match up with data pulls for every section below EXCEPT #2 which we
 # developed our own OceanAK querry and script to deal with.  See details below.
 
@@ -98,10 +98,11 @@ write_csv(ifdb_catch, paste0("legacy_data/fishery/nseiharvest_ifdb_",
 # analysis in branch: seak_sablefish_thru2021_original_JS
 
 # Starting in 2023 we set up the CPUE calculations and data using OceanAK queries
-# detailed in script: fishery_cpue_fr_OceanAK_ftx_lb_dat.R.  The query criteria
+# detailed in script: fishery_cpue_fr_OceanAK_ftx_lb_dat.R. In 2024 that script has
+# been replaced by fishery_cpue_prep.R which was developed by Rhea and myself. The query criteria
 # is described in that script and running that code will provide the CPUE data
-# for 1997 through today.  That data is stored in the legacy data folder and will be
-# pulled here and cleaned up for use in the assessment. 
+# for 1997 through today.  That data is stored in the legacy data folder and all the 
+# output necessary for the assessment. 
 #
 # This CPUE calculation has replaced the CPUE data that was being used prior to 
 # 2021 and involved an undocumented series of transformations that was meant to deal
@@ -113,212 +114,30 @@ write_csv(ifdb_catch, paste0("legacy_data/fishery/nseiharvest_ifdb_",
 # going forward as the fishery transitions from longline to pots.  For more 
 # information please see the notes at the head of fishery_cpue_fr_OceanAK_ftx_lb_dat.R.
 #
-# There are now two CPUE files to work with and examine: 
-# 2.a will be the longline data and these CPUE values are used in the model
-# 2.b will be the pot data.  2022 was the first year boats were allowed to fish this
-#     gear, so 2023 will be a "first look" and comparison with longline gear.
-#     As the fleet transitions to pot gear (as it's expected to do) there will be 
-#     a need to use a conversion and create a single Fishery CPUE time series.
-#     This will also be necessary if the ADF&G surveys also transition to pot surveys.
+# 2024 update: There was a big change in the format of the OceanAK output this year
+# which necessitated totally reworking the code for combining the fish ticket and 
+# logbook data. The good news is that the data set is much more complete and CPUE 
+# can be examined at the set level rather than at the trip level as was done in the 
+# past. The bad news is that we have temporarilly dropped stat area from the list
+# of things we're considering. Rhea doesn't trust the fishticket data regarding
+# stat area and the data was not made available to me until late March. Personally
+# I think that the fishticket data on stat area could be used for the join and calculations
+# made using the logbook data, but there was not enough time to explore that. This
+# should be examined and reevaluated going forward. 
 
-# 2.a Longline Fishery CPUE 
+# Also note that cpue uses the longline gear. In 2023 2/3 of the catch was still
+# coming from longline gear and thus the sample size for the index is still a
+# adequate. However, if the pot fishery overtakes the lonline fishery as has
+# ocurred in the federal fishery it may be necessary to derive a different index.
+# One could have seperate indices for the pot and longline fishery but the feds
+# are currently using a combined index formulated by Matt Cheng in Curry's lab. 
+# Please see his paper for more information: 
+# Cheng, M. L. H., C. J. Rodgvellar, J. A. Langan, and C. J. Cunningham. 2023. 
+#   Standardizing fishery-dependent catch-rate information across gears and data
+#   collection programs for Alaska sablefish (Anaplopoma fimbria). ICES Journal of
+#   Marine Science 80, 1028-1042.
 
- read_csv(paste0("legacy_data/fishery/raw_data/fishery_ll_cpue_vers23_1997-",
-                 YEAR,".csv",sep=""), 
-                guess_max = 50000) %>% #nrow(unique(ugh))
-   mutate(year = Year,
-          set_date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="UTC"), #ISO 8601 format; tz="America/Anchorage"
-          sell_date = as.Date(Sell.Date, c("%Y-%m-%d %H:%M:%S"), tz="UTC"),
-          julian_day_set = yday(set_date),
-          julian_day_sell = yday(sell_date),
-          tm_hauled = parse_date_time(Time.Hauled, c("%Y-%m-%d %H:%M:%S")),
-          t_set = parse_date_time(Time.Set, c("%Y-%m-%d %H:%M:%S")),
-          set_soak = soak_time_hrs,
-          set_length = set_length_km,
-          
-          trip_recorded_releases = ifelse(grepl("Released", trip_recorded_releases, ignore.case = TRUE),
-                                          "logged_releases","no_logged_releases"),
-          avg_set_depth_m = 1.8288*Average.Depth.Fathoms,
-          avg_trip_depth_m = 1.8288*mean_trip_depth_fm,
-          
-          gear = factor(Longline.System.Code),
-          gear_name = factor(Gear),
-          
-          #primary configuration
-          hook_size = as.character(hook_size1), 
-          mean_hook_size = as.numeric(mean_hook_size),
-          hook_space = spacing1, #*FLAG* - check that hook_space is in inches
-          size = factor(as.numeric(gsub("[^0-9]", "", hook_size1))),
-          mean_size = mean_hook_size,
-          no_hooks_fished_on_trip = total_hooks_all,
-          no_hooks_exact = total_hooks_exact,
-          no_hooks_est = total_hooks_est,
-          no_hooks_p_set = total_hooks_all/set.count,
-          
-          no_skates_fished_on_trip = total_skate_count,
-          
-          #secondary configuration
-          hook_size_2 = as.character(hook_size2), 
-          hook_space_2 = spacing2, #*FLAG* - check that hook_space is in inches
-          size_2 = factor(as.numeric(gsub("[^0-9]", "", hook_size_2))),
-          no_hooks_2 = total_hooks_est,
-          
-          sable_lbs_set = lbs_p_set,
-          sable_lbs_hook = lbs_p_hk_all,
-          sable_lbs_hook_exact = lbs_p_hk_exact,
-          sable_lbs_hook_est = lbs_p_hk_est) %>% 
-   select(year, sell_date, set_date, julian_day_set, julian_day_sell,
-          trip_no = Trip.Number.log,  #or Trip.Number_ftx?? 
-          Adfg = ADFG.Number, Spp_cde = Trip.Primary.Target.Species.Code, 
-          set_soak, trip_soak = total_soak_time,
-          set_length, total_km_fished, 
-          gear, gear_name,
-          hook_size, mean_hook_size, 
-          hook_space, 
-          mean_hook_spacing,
-          size, mean_size,
-          no_hooks_set = num_of_hooks1,
-          no_hooks_fished_on_trip, no_hooks_exact, no_hooks_est,
-          no_hooks_p_set,
-          hook_size_2, hook_space_2, size_2, no_hooks_2,
-          no_skates_fished_on_trip,
-          #no_skates_exact = num_of_skates1,
-          #no_skates_est = num_of_skates1_calc,
-          Stat = Groundfish.Stat.Area, 
-          
-          set_depth = avg_set_depth_m,
-          trip_depth = avg_trip_depth_m,
-          
-          mean_trip_depth_fm,
-          set_no = Effort.Number, 
-          no_sets = set.count, 
-          multigear_trip,
-          trip_set_targets, trip_recorded_releases, multi_gear_config, 
-          disposition = Disposition, set_depredation = Depredation, 
-          trip_depredation = trip_depr_desc,
-          p_sets_depredated = p_sets_depr, 
-          catch,
-          logged_no = Numbers_log, 
-          logged_lbs = Pounds_log,
-          
-          sable_lbs_set, sable_lbs_hook, sable_lbs_hook_exact, sable_lbs_hook_est,
-          lbs_p_set_km, lbs_p_set_hr, lbs_p_set_km_hr, 
-          lbs_p_hk_exact, lbs_p_hk_km_exact,lbs_p_hk_hr_exact,                        
-          lbs_p_hk_km_hr_exact, lbs_p_hk_est, lbs_p_hk_km_est, lbs_p_hk_hr_est, 
-          lbs_p_hk_km_hr_est, lbs_p_hk_all, lbs_p_hk_km_all, lbs_p_hk_hr_all, 
-          lbs_p_hk_km_hr_all, lbs_p_hk_exact2, lbs_p_hk_km_exact2, lbs_p_hk_hr_exact2, 
-          lbs_p_hk_km_hr_exact2, 
-          
-          start_lat = Start.Latitude.Decimal.Degrees,
-          start_lon = Start.Longitude.Decimal.Degrees, 
-          set_target = Effort.Primary.Target.Species,
-          set_target_2 = Effort.Secondary.Target.Species,
-          trip_target = Trip.Primary.Target.Species,
-          trip_target_2 = Trip.Secondary.Target.Species) -> ll_eff
 
-ll_eff<-unique(ll_eff)
-
- #note some of the dat time stuff will have warnings because of incomplete data
- # will have to deal with NA's in analysis
- 
-  #Get new data from "this" year and add
- #read.csv(paste0(YEAR+1,"/data/fishery/raw_data/fishery_CPUE_", YEAR, ".csv")) -> new_fish_cpue
- 
-head(ll_eff)
-
- #bind the old and new... 
- #bind_rows(fsh_eff_new22, new_fish_cpue) -> fsh_eff_thru_now
- 
- #save for 2023 assessment...
- write_csv(ll_eff, paste0(YEAR+1,"/data/fishery/fishery_ll_cpue_",
-                           min(ll_eff$year), "_", max(ll_eff$year), ".csv"))
- 
- #save for legacy for 2024 and forward
- write_csv(ll_eff, paste0("legacy_data/fishery/fishery_ll_cpue_",
-                                 min(ll_eff$year), "_", max(ll_eff$year), ".csv"))
- 
- # 2.b Pot Fishery CPUE 
- 
- read_csv(paste0("legacy_data/fishery/raw_data/fishery_pot_cpue_vers23_2022-",
-                 YEAR,".csv",sep=""), 
-          guess_max = 50000) %>% 
-    mutate(year = Year,
-           set_date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="UTC"), #ISO 8601 format
-           sell_date = as.Date(Sell.Date, c("%Y-%m-%d %H:%M:%S"), tz="UTC"),
-           julian_day_set = yday(set_date),
-           julian_day_sell = yday(sell_date),
-           tm_hauled = parse_date_time(Time.Hauled, c("%Y-%m-%d %H:%M:%S")),
-           t_set = parse_date_time(Time.Set, c("%Y-%m-%d %H:%M:%S")),
-        date = as.Date(Time.Set, c("%Y-%m-%d %H:%M:%S"), tz="America/Anchorage"), #ISO 8601 format
-        #julian_day = yday(date),
-        tm_hauled = parse_date_time(Time.Hauled, c("%Y-%m-%d %H:%M:%S")),
-        t_set = parse_date_time(Time.Set, c("%Y-%m-%d %H:%M:%S")),
-        
-        set_soak = soak_time_hrs,
-        set_length = set_length_km,
-        
-        #avg_depth_m = 1.8288*Average.Depth.Fathoms,
-        avg_set_depth_m = 1.8288*Average.Depth.Fathoms,
-        avg_trip_depth_m = 1.8288*mean_trip_depth_fm,
-        #gear = factor(Longline.System.Code),
-        gear_name = factor(Gear),
-        
-        #primary configuration
-        pot_space = 0.3048*Pot.Spacing.Feet,  #(convert to meters)
-        line_diam = 2.54*Groundline.Diameter.Inches, # (convert to cm)
-        pot_dim = factor(Pot.Dimensions.raw),
-        pot_type = factor(Pot.Type),
-        
-        no_pots_fished_on_trip = total_pots,
-        no_pots_p_set = total_pots/set.count,
-        
-        sable_lbs_set = lbs_p_set,
-        sable_lbs_pot = lbs_p_pot) %>% 
-   select(year, sell_date, set_date, julian_day_set, julian_day_sell,
-          trip_no = Trip.Number.log,  #or Trip.Number_ftx?? 
-          Adfg = ADFG.Number, 
-          Spp_cde = Trip.Target.Species.Code, #date, #julian_day, 
-          set_soak, trip_soak = total_soak_time,
-          set_length, total_km_fished, 
-          #gear, 
-          gear_name, pot_data = pot_data_status,
-          pot_space, line_diam, pot_dim, pot_type, 
-          pot_len, pot_diam, pot_volume_m3 = Pot_Volume_m3,
-          no_pots_fished_on_trip,
-          no_pots_p_set,
-          Stat = Groundfish.Stat.Area, 
-          set_depth = avg_set_depth_m,
-          trip_depth = avg_trip_depth_m,
-          set_no = Effort.Number, 
-          no_sets = set.count, 
-          multigear_trip,
-          trip_set_targets, trip_recorded_releases,  
-          disposition = Disposition, # depredation = Depredation, 
-          catch,
-          logged_no = Numbers_log, 
-          logged_lbs = Pounds_log,
-          sable_lbs_set, sable_lbs_pot, 
-          lbs_p_set_km, lbs_p_set_hr, lbs_p_set_km_hr, 
-          lbs_p_pot, lbs_p_pot_km,lbs_p_pot_hr,                        
-          lbs_p_pot_km_hr, 
-          
-          start_lat = Start.Latitude.Decimal.Degrees,
-          start_lon = Start.Longitude.Decimal.Degrees, 
-          set_target = Effort.Primary.Target.Species,
-          trip_target = Trip.Target.Species) -> pot_eff
- 
- nrow(pot_eff)
- nrow(unique(pot_eff))
- 
-pot_eff<-unique(pot_eff)
-
- #save for 2023 assessment...
- write_csv(pot_eff, paste0(YEAR+1,"/data/fishery/fishery_pot_cpue_",
-                                 min(pot_eff$year), "_", max(pot_eff$year), ".csv"))
- 
- #save for legacy for 2024 and forward
- write_csv(pot_eff, paste0("legacy_data/fishery/fishery_pot_cpue_",
-                                 min(pot_eff$year), "_", max(pot_eff$year), ".csv"))
  #=====================================================================================
 # 3. Fishery biological ----
 # From OceanAK: 3. Fishery Biological Data.csv

@@ -1,8 +1,8 @@
 
 # Fishery catch 1985-present, fishery CPUE 1997-present
-# Author: Jane Sullivan & Phil Joy
-# Contact: jane.sullivan@noaa.gov & philip.joy@alaska.gov
-# Last edited: Feb 2023
+# Author: Phil Joy
+# Contact: philip.joy@alaska.gov
+# Last edited: April 2024
 
 # Starting in 2023 this code replaces the old fishery CPUE calculations including
 # scripts titled fishery_catch_cpue.R (Jane's original) and fishery_catch_cpue_2022reboot.R
@@ -17,10 +17,8 @@ source("r_helper/functions.r")
 # if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
 # Most recent year of data
-YEAR <- 2022
+YEAR <- 2023
 
-
-colnames(pot_cpue)
 # POT Logbook/CPUE data  ----
 random_check<-function(data){ #data<-pot_cpue
   #length(unique(Sable_ll_CPUE$Year))
@@ -66,13 +64,13 @@ random_check(pot_cpue)
 # data by year, sell_date, Adfg, Stat, 
 
 # 1) Look at cpue based on fish ticket landings... 
-pot_cpue_ftx <- unique(pot_cpue %>% 
-  group_by(year, sell_date, Adfg, Stat) %>% 
-  select(-set_date,-julian_day_set,-set_soak,-set_length,-set_depth,-set_no,
-         -logged_no,-logged_lbs,-disposition,
+#pot_cpue_ftx <- unique(pot_cpue %>% 
+#  group_by(year, sell_date, Adfg, Stat) %>% 
+  #select(-set_date,-julian_day_set,-set_soak,-set_length,-set_depth,-set_no,
+#         -logged_no,-logged_lbs,-disposition,
          #-set_depredation, #depredation not in 2022 pot logbooks... 
-         -start_lat,-start_lon))
-random_check(pot_cpue_ftx) #should just be one row for each trip... 
+#         -start_lat,-start_lon))
+#random_check(pot_cpue_ftx) #should just be one row for each trip... 
 #histogram(ll_cpue_ftx$p_sets_depredated[ll_cpue_ftx$p_sets_depredated > 0])
 
 unique(pot_cpue_ftx$trip_set_targets)
@@ -101,38 +99,39 @@ hist(pot_cpue$no_pots_p_set) #; abline(v=15000, col="blue")
 nrow(pot_cpue)
 table(pot_cpue$pot_space)
 
-
-colnames(pot_cpue_ftx)
+colnames(pot_cpue)
 
 nrow(pot_cpue_ftx %>% filter(Stat == "345803"))
 
-pot_cpue_ftx %>% 
+pot_cpue %>% 
   #filter(depredation == "No depredation" | is.na(depredation)) %>% 
   filter(#trip_set_targets == "all_Sablefish",   # only use trips that were dedicated to sablefish... but not yet...
            !is.na(sell_date) & 
            #!is.na(mean_hook_spacing) & #!is.na(hook_space) & 
            !is.na(sable_lbs_set) &
           # !is.na(start_lon) & !is.na(start_lon) & #remove this because this is at the set level... 
-           !is.na(trip_soak) & !is.na(trip_depth) &
+           !is.na(set_soak) & !is.na(set_depth) &
            #!is.na(mean_hook_size) &   #!is.na(hook_size) &
            #hook_size != "MIX" &
-             trip_soak > 0 & !is.na(trip_soak) & # soak time in hrs
-           julian_day_sell > 226 & # if there were special projects before the fishery opened
+             set_soak > 0 & #!is.na(set_soak) & # soak time in hrs
+           julian_day_sell > 226 #& # if there were special projects before the fishery opened
            #no_hooks_p_set < 15000 & # 15000 in Kray's scripts - 14370 is the 75th percentile
            # limit analysis to Chatham Strait and Frederick Sounds where the
            # majority of fishing occurs
            # target = 710 &
-           Stat %in% c("345603", "345631", "345702",
-                       "335701", "345701", "345731", "345803")) %>% 
+            #Stat areas not used in 2024: but you might bring this back!?!
+           #Stat %in% c("345603", "345631", "345702",
+          #             "335701", "345701", "345731", "345803")
+          ) %>% 
   
   mutate(Year = factor(year), 
          #Gear = factor(gear),
          Adfg = factor(Adfg),
-         Stat = factor(Stat),
-         Stat = fct_relevel(Stat,
-                            c("345702", "335701", # Frederick Sound
+         #Stat = factor(Stat),
+         #Stat = fct_relevel(Stat,
+        #                    c("345702", "335701", # Frederick Sound
                             # Chatham south to north
-                            "345603", "345631", "345701", "345731", "345803")),
+        #                    "345603", "345631", "345701", "345731", "345803")),
          #Depr_sum = ifelse(p_sets_depredated == 0, "none",
         #                   ifelse(p_sets_depredated == 1, "all sets", 
         #                          ifelse(p_sets_depredated > 0 & p_sets_depredated <= 0.25,
@@ -146,7 +145,7 @@ pot_cpue_ftx %>%
          #Mean_hook_size = mean_size, 
          # standardize for pot spacing???  
          #  std_pots = 2.2 * no_hooks_p_set * (1 - exp(-0.57 * (mean_hook_spacing / 39.37))),
-         std_cpue = sable_lbs_set / no_pots_p_set,
+         std_cpue = sable_lbs_set / pots_p_set,
          # dummy varbs, for prediction with random effects
          dum = 1, 
          dumstat = 1) %>% 
@@ -184,8 +183,22 @@ trips_and_vessels %>%
   ylim(0, NA) -> trips_vessels
 
 trips_vessels
-ggsave(plot = trips_vessels, paste0(YEAR+1,"/figures/potfishery_tripandvessel_trends_1997_", YEAR, ".png"), 
+ggsave(plot = trips_vessels, paste0(YEAR+1,"/figures/potfishery_tripandvessel_trends_2022_", YEAR, ".png"), 
        dpi=300, height=6, width=5, units="in")
+
+#-------------------------------------------------------------------------------
+# Quick look:unique(pot_cpue$year)
+colnames(pot_cpue)
+hist(pot_cpue$sable_lbs_set)
+hist(pot_cpue$sable_lbs_pot)
+hist(pot_cpue$pots_p_set)
+
+hist(pot_cpue_ftx$sable_lbs_pot, breaks = 100)
+hist(pot_cpue_ftx$std_cpue, breaks = 100)
+
+nrow(pot_cpue_ftx %>% filter(year == 2022))
+nrow(pot_cpue_ftx %>% filter(year == 2023))
+
 
 # Bootstrap ----
 
@@ -193,16 +206,16 @@ ggsave(plot = trips_vessels, paste0(YEAR+1,"/figures/potfishery_tripandvessel_tr
 
 # Simple bootstrap confidence intervals (smean.cl.boot from rms) ??rms
 library(rms)
-pot_cpue_ftx %>%
-  group_by(year,trip_set_targets) %>%
+pot_cpue_ftx %>% #filter(year == 2022) %>%
+  group_by(year) %>%
   do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot1
 
 ggplot(plot_boot1) +
-  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper, fill = trip_set_targets), 
+  geom_ribbon(aes(x = year, ymin = Lower, ymax = Upper), 
  #             alpha = 0.1, fill = "grey55") +
               alpha = 0.1) +
-  geom_point(aes(x = year, y = Mean, col = trip_set_targets), size = 1) +
-  geom_line(aes(x = year, y = Mean, col = trip_set_targets)) +
+  geom_point(aes(x = year, y = Mean), size = 1) +
+  geom_line(aes(x = year, y = Mean)) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Fishery CPUE (round lb per pot)\n") +
   lims(y = c(0, 70)); view(plot_boot1)
@@ -211,7 +224,7 @@ ggsave(paste0(YEAR+1,"/figures/pot_cpue_ftx_bootCI_bytarget_1997_", YEAR, ".png"
        dpi=300, height=4, width=7, units="in")
 #----
 pot_cpue_ftx %>%
-  filter(trip_set_targets == "all_Sablefish") %>%
+  #filter(trip_set_targets == "all_Sablefish") %>%
   group_by(year,trip_recorded_releases) %>%
   do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot2 #view(plot_boot2)
 
@@ -223,7 +236,7 @@ ggplot(plot_boot2) +
   geom_line(aes(x = year, y = Mean, col = trip_recorded_releases)) +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "Fishery CPUE (round lb per pot)\n") +
-  lims(y = c(0, 80))
+  lims(y = c(0, 125))
 
 ggsave(paste0(YEAR+1,"/figures/pot_cpue_ftx_bootCI_byrelease_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
@@ -253,7 +266,7 @@ ggsave(paste0(YEAR+1,"/figures/fshcpue_ftx_bootCI_bydepr_1997_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")}
 
 pot_cpue_ftx %>%
-  filter(trip_set_targets == "all_Sablefish") %>%
+  #filter(trip_set_targets == "all_Sablefish") %>%
   group_by(year,multigear_trip) %>%
   do(data.frame(rbind(smean.cl.boot(.$std_cpue)))) -> plot_boot4 #view(plot_boot4)
 
@@ -277,14 +290,15 @@ ggsave(paste0(YEAR+1,"/figures/pot_cpue_ftx_bootCI_bygeartrip_1997_", YEAR, ".pn
 #time plots not necessary for first year, so we'll just save this as a table...
 plot_boot1; plot_boot2; plot_boot4
 
-Sum2022_ftx<-rbind(as.data.frame(plot_boot1) %>% mutate(category = "Overall total lbs/pot") %>% 
-        dplyr::select(category, Mean, Lower_CI = Lower, Upper_CI = Upper, -trip_set_targets),
+Sum2023_ftx<-rbind(as.data.frame(plot_boot1) %>% mutate(category = "Overall total lbs/pot") %>% 
+        dplyr::select(year,category, Mean, Lower_CI = Lower, Upper_CI = Upper),
       as.data.frame(plot_boot2) %>% mutate(category = trip_recorded_releases) %>% 
-        select(category, Mean, Lower_CI = Lower, Upper_CI = Upper),
-      as.data.frame(plot_boot4) %>% mutate(category = multigear_trip) %>% 
-        select(category, Mean, Lower_CI = Lower, Upper_CI = Upper))
+        select(year,category, Mean, Lower_CI = Lower, Upper_CI = Upper)#,
+      #as.data.frame(plot_boot4) %>% mutate(category = multigear_trip) %>% 
+      #  select(category, Mean, Lower_CI = Lower, Upper_CI = Upper)
+      )
 
-write_csv(Sum2022_ftx, paste0(YEAR+1,"/output/pot_nom_cpue_summary_",
+write_csv(Sum2023_ftx, paste0(YEAR+1,"/output/pot_nom_cpue_summary_",
                               max(pot_cpue_ftx$year), ".csv"))
 #--------------------------------------------------------------------------------
 # Normality
@@ -360,6 +374,8 @@ ggplot(ll_cpue_ftx_clean, aes(Adfg, cpue, color = Gear)) + geom_jitter(alpha=.4)
 
 #*******************************************************************************
 #* STANDARDIZING CPUE by boat, stat area, gear spec, etc. 
+#* This code was set up in 2023. Not modified in 2024 due to late arrival of data
+#* This will be something to pursue as the pot fishery develops
 #* *****************************************************************************
 colnames(pot_cpue_ftx_clean)
 
