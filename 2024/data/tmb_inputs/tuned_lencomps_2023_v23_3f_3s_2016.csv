@@ -1,0 +1,4411 @@
+year,Source,Sex,length_bin,n,proportion,effn,index
+2002,fsh_len,Female,41,1247,0,NA,27
+2002,fsh_len,Female,43,1247,0,NA,27
+2002,fsh_len,Female,45,1247,0,NA,27
+2002,fsh_len,Female,47,1247,0,NA,27
+2002,fsh_len,Female,49,1247,8.02e-4,NA,27
+2002,fsh_len,Female,51,1247,0.005613,NA,27
+2002,fsh_len,Female,53,1247,0.012029,NA,27
+2002,fsh_len,Female,55,1247,0.020048,NA,27
+2002,fsh_len,Female,57,1247,0.039294,NA,27
+2002,fsh_len,Female,59,1247,0.040096,NA,27
+2002,fsh_len,Female,61,1247,0.050521,NA,27
+2002,fsh_len,Female,63,1247,0.072173,NA,27
+2002,fsh_len,Female,65,1247,0.081796,NA,27
+2002,fsh_len,Female,67,1247,0.086608,NA,27
+2002,fsh_len,Female,69,1247,0.094627,NA,27
+2002,fsh_len,Female,71,1247,0.089815999999999993,NA,27
+2002,fsh_len,Female,73,1247,0.072975,NA,27
+2002,fsh_len,Female,75,1247,0.069767,NA,27
+2002,fsh_len,Female,77,1247,0.056135,NA,27
+2002,fsh_len,Female,79,1247,0.053729,NA,27
+2002,fsh_len,Female,81,1247,0.036889,NA,27
+2002,fsh_len,Female,83,1247,0.032077,NA,27
+2002,fsh_len,Female,85,1247,0.02245399999999999,NA,27
+2002,fsh_len,Female,87,1247,0.016038,NA,27
+2002,fsh_len,Female,89,1247,0.020048,NA,27
+2002,fsh_len,Female,91,1247,0.010425,NA,27
+2002,fsh_len,Female,93,1247,8.02e-4,NA,27
+2002,fsh_len,Female,95,1247,0.006415,NA,27
+2002,fsh_len,Female,97,1247,0.00401,NA,27
+2002,fsh_len,Female,99,1247,0.004812,NA,27
+2002,fsh_len,Male,41,1019,0,NA,27
+2002,fsh_len,Male,43,1019,0,NA,27
+2002,fsh_len,Male,45,1019,0,NA,27
+2002,fsh_len,Male,47,1019,9.81e-4,NA,27
+2002,fsh_len,Male,49,1019,0.003925,NA,27
+2002,fsh_len,Male,51,1019,0.008832,NA,27
+2002,fsh_len,Male,53,1019,0.016683,NA,27
+2002,fsh_len,Male,55,1019,0.030422,NA,27
+2002,fsh_len,Male,57,1019,0.058881,NA,27
+2002,fsh_len,Male,59,1019,0.092247,NA,27
+2002,fsh_len,Male,61,1019,0.10893,NA,27
+2002,fsh_len,Male,63,1019,0.151129,NA,27
+2002,fsh_len,Male,65,1019,0.122669,NA,27
+2002,fsh_len,Male,67,1019,0.110893,NA,27
+2002,fsh_len,Male,69,1019,0.093229,NA,27
+2002,fsh_len,Male,71,1019,0.089303,NA,27
+2002,fsh_len,Male,73,1019,0.049068,NA,27
+2002,fsh_len,Male,75,1019,0.020608,NA,27
+2002,fsh_len,Male,77,1019,0.02159,NA,27
+2002,fsh_len,Male,79,1019,0.005888,NA,27
+2002,fsh_len,Male,81,1019,0.005888,NA,27
+2002,fsh_len,Male,83,1019,0.002944,NA,27
+2002,fsh_len,Male,85,1019,9.81e-4,NA,27
+2002,fsh_len,Male,87,1019,0.001963,NA,27
+2002,fsh_len,Male,89,1019,0.001963,NA,27
+2002,fsh_len,Male,91,1019,9.81e-4,NA,27
+2002,fsh_len,Male,93,1019,0,NA,27
+2002,fsh_len,Male,95,1019,0,NA,27
+2002,fsh_len,Male,97,1019,0,NA,27
+2002,fsh_len,Male,99,1019,0,NA,27
+2002,fsh_len,Sex combined,41,2266,0,NA,27
+2002,fsh_len,Sex combined,43,2266,0,NA,27
+2002,fsh_len,Sex combined,45,2266,0,NA,27
+2002,fsh_len,Sex combined,47,2266,4e-4,NA,27
+2002,fsh_len,Sex combined,49,2266,0.0022,NA,27
+2002,fsh_len,Sex combined,51,2266,0.0071,NA,27
+2002,fsh_len,Sex combined,53,2266,0.0141,NA,27
+2002,fsh_len,Sex combined,55,2266,0.0247,NA,27
+2002,fsh_len,Sex combined,57,2266,0.0481,NA,27
+2002,fsh_len,Sex combined,59,2266,0.0635,NA,27
+2002,fsh_len,Sex combined,61,2266,0.0768,NA,27
+2002,fsh_len,Sex combined,63,2266,0.1077,NA,27
+2002,fsh_len,Sex combined,65,2266,0.1002,NA,27
+2002,fsh_len,Sex combined,67,2266,0.0975,NA,27
+2002,fsh_len,Sex combined,69,2266,0.094,NA,27
+2002,fsh_len,Sex combined,71,2266,0.0896,NA,27
+2002,fsh_len,Sex combined,73,2266,0.0622,NA,27
+2002,fsh_len,Sex combined,75,2266,0.0477,NA,27
+2002,fsh_len,Sex combined,77,2266,0.0406,NA,27
+2002,fsh_len,Sex combined,79,2266,0.0322,NA,27
+2002,fsh_len,Sex combined,81,2266,0.0229,NA,27
+2002,fsh_len,Sex combined,83,2266,0.019,NA,27
+2002,fsh_len,Sex combined,85,2266,0.0128,NA,27
+2002,fsh_len,Sex combined,87,2266,0.0097,NA,27
+2002,fsh_len,Sex combined,89,2266,0.0119,NA,27
+2002,fsh_len,Sex combined,91,2266,0.0062,NA,27
+2002,fsh_len,Sex combined,93,2266,4e-4,NA,27
+2002,fsh_len,Sex combined,95,2266,0.0035,NA,27
+2002,fsh_len,Sex combined,97,2266,0.0022,NA,27
+2002,fsh_len,Sex combined,99,2266,0.0026,NA,27
+2003,fsh_len,Female,41,1022,0,NA,28
+2003,fsh_len,Female,43,1022,0,NA,28
+2003,fsh_len,Female,45,1022,0,NA,28
+2003,fsh_len,Female,47,1022,0,NA,28
+2003,fsh_len,Female,49,1022,9.78e-4,NA,28
+2003,fsh_len,Female,51,1022,0.003914,NA,28
+2003,fsh_len,Female,53,1022,0.011742,NA,28
+2003,fsh_len,Female,55,1022,0.007828,NA,28
+2003,fsh_len,Female,57,1022,0.022505,NA,28
+2003,fsh_len,Female,59,1022,0.024462,NA,28
+2003,fsh_len,Female,61,1022,0.02544,NA,28
+2003,fsh_len,Female,63,1022,0.048924,NA,28
+2003,fsh_len,Female,65,1022,0.082192,NA,28
+2003,fsh_len,Female,67,1022,0.108611,NA,28
+2003,fsh_len,Female,69,1022,0.129159,NA,28
+2003,fsh_len,Female,71,1022,0.127202,NA,28
+2003,fsh_len,Female,73,1022,0.084149,NA,28
+2003,fsh_len,Female,75,1022,0.068493,NA,28
+2003,fsh_len,Female,77,1022,0.066536,NA,28
+2003,fsh_len,Female,79,1022,0.03816,NA,28
+2003,fsh_len,Female,81,1022,0.036204,NA,28
+2003,fsh_len,Female,83,1022,0.030333,NA,28
+2003,fsh_len,Female,85,1022,0.021526,NA,28
+2003,fsh_len,Female,87,1022,0.024462,NA,28
+2003,fsh_len,Female,89,1022,0.010763,NA,28
+2003,fsh_len,Female,91,1022,0.007828,NA,28
+2003,fsh_len,Female,93,1022,0.005871,NA,28
+2003,fsh_len,Female,95,1022,0.005871,NA,28
+2003,fsh_len,Female,97,1022,0.001957,NA,28
+2003,fsh_len,Female,99,1022,0.004892,NA,28
+2003,fsh_len,Male,41,763,0,NA,28
+2003,fsh_len,Male,43,763,0,NA,28
+2003,fsh_len,Male,45,763,0,NA,28
+2003,fsh_len,Male,47,763,0,NA,28
+2003,fsh_len,Male,49,763,0,NA,28
+2003,fsh_len,Male,51,763,0.011796,NA,28
+2003,fsh_len,Male,53,763,0.009174,NA,28
+2003,fsh_len,Male,55,763,0.024902,NA,28
+2003,fsh_len,Male,57,763,0.049803,NA,28
+2003,fsh_len,Male,59,763,0.078637,NA,28
+2003,fsh_len,Male,61,763,0.141547,NA,28
+2003,fsh_len,Male,63,763,0.159895,NA,28
+2003,fsh_len,Male,65,763,0.14941,NA,28
+2003,fsh_len,Male,67,763,0.114024,NA,28
+2003,fsh_len,Male,69,763,0.083879,NA,28
+2003,fsh_len,Male,71,763,0.061599,NA,28
+2003,fsh_len,Male,73,763,0.035387,NA,28
+2003,fsh_len,Male,75,763,0.036697,NA,28
+2003,fsh_len,Male,77,763,0.02228,NA,28
+2003,fsh_len,Male,79,763,0.011796,NA,28
+2003,fsh_len,Male,81,763,0.001311,NA,28
+2003,fsh_len,Male,83,763,0.007864,NA,28
+2003,fsh_len,Male,85,763,0,NA,28
+2003,fsh_len,Male,87,763,0,NA,28
+2003,fsh_len,Male,89,763,0,NA,28
+2003,fsh_len,Male,91,763,0,NA,28
+2003,fsh_len,Male,93,763,0,NA,28
+2003,fsh_len,Male,95,763,0,NA,28
+2003,fsh_len,Male,97,763,0,NA,28
+2003,fsh_len,Male,99,763,0,NA,28
+2003,fsh_len,Sex combined,41,1785,0,NA,28
+2003,fsh_len,Sex combined,43,1785,0,NA,28
+2003,fsh_len,Sex combined,45,1785,0,NA,28
+2003,fsh_len,Sex combined,47,1785,0,NA,28
+2003,fsh_len,Sex combined,49,1785,6e-4,NA,28
+2003,fsh_len,Sex combined,51,1785,0.0073,NA,28
+2003,fsh_len,Sex combined,53,1785,0.0106,NA,28
+2003,fsh_len,Sex combined,55,1785,0.0151,NA,28
+2003,fsh_len,Sex combined,57,1785,0.0342,NA,28
+2003,fsh_len,Sex combined,59,1785,0.0476,NA,28
+2003,fsh_len,Sex combined,61,1785,0.0751,NA,28
+2003,fsh_len,Sex combined,63,1785,0.0964,NA,28
+2003,fsh_len,Sex combined,65,1785,0.1109,NA,28
+2003,fsh_len,Sex combined,67,1785,0.1109,NA,28
+2003,fsh_len,Sex combined,69,1785,0.1098,NA,28
+2003,fsh_len,Sex combined,71,1785,0.0992,NA,28
+2003,fsh_len,Sex combined,73,1785,0.0633,NA,28
+2003,fsh_len,Sex combined,75,1785,0.0549,NA,28
+2003,fsh_len,Sex combined,77,1785,0.0476,NA,28
+2003,fsh_len,Sex combined,79,1785,0.0269,NA,28
+2003,fsh_len,Sex combined,81,1785,0.0213,NA,28
+2003,fsh_len,Sex combined,83,1785,0.0207,NA,28
+2003,fsh_len,Sex combined,85,1785,0.0123,NA,28
+2003,fsh_len,Sex combined,87,1785,0.014,NA,28
+2003,fsh_len,Sex combined,89,1785,0.0062,NA,28
+2003,fsh_len,Sex combined,91,1785,0.0045,NA,28
+2003,fsh_len,Sex combined,93,1785,0.0034,NA,28
+2003,fsh_len,Sex combined,95,1785,0.0034,NA,28
+2003,fsh_len,Sex combined,97,1785,0.0011,NA,28
+2003,fsh_len,Sex combined,99,1785,0.0028,NA,28
+2004,fsh_len,Female,41,1561,0,NA,29
+2004,fsh_len,Female,43,1561,0,NA,29
+2004,fsh_len,Female,45,1561,0,NA,29
+2004,fsh_len,Female,47,1561,0,NA,29
+2004,fsh_len,Female,49,1561,0,NA,29
+2004,fsh_len,Female,51,1561,0.003844,NA,29
+2004,fsh_len,Female,53,1561,0.001281,NA,29
+2004,fsh_len,Female,55,1561,0.006406,NA,29
+2004,fsh_len,Female,57,1561,0.007047,NA,29
+2004,fsh_len,Female,59,1561,0.016656,NA,29
+2004,fsh_len,Female,61,1561,0.036515,NA,29
+2004,fsh_len,Female,63,1561,0.055093,NA,29
+2004,fsh_len,Female,65,1561,0.095452,NA,29
+2004,fsh_len,Female,67,1561,0.098655,NA,29
+2004,fsh_len,Female,69,1561,0.126842,NA,29
+2004,fsh_len,Female,71,1561,0.122357,NA,29
+2004,fsh_len,Female,73,1561,0.081999,NA,29
+2004,fsh_len,Female,75,1561,0.069186,NA,29
+2004,fsh_len,Female,77,1561,0.035234,NA,29
+2004,fsh_len,Female,79,1561,0.03075,NA,29
+2004,fsh_len,Female,81,1561,0.032031,NA,29
+2004,fsh_len,Female,83,1561,0.030109,NA,29
+2004,fsh_len,Female,85,1561,0.032031,NA,29
+2004,fsh_len,Female,87,1561,0.025625,NA,29
+2004,fsh_len,Female,89,1561,0.024343,NA,29
+2004,fsh_len,Female,91,1561,0.016656,NA,29
+2004,fsh_len,Female,93,1561,0.016656,NA,29
+2004,fsh_len,Female,95,1561,0.012812,NA,29
+2004,fsh_len,Female,97,1561,0.005766,NA,29
+2004,fsh_len,Female,99,1561,0.016656,NA,29
+2004,fsh_len,Male,41,764,0,NA,29
+2004,fsh_len,Male,43,764,0,NA,29
+2004,fsh_len,Male,45,764,0,NA,29
+2004,fsh_len,Male,47,764,0,NA,29
+2004,fsh_len,Male,49,764,0.002618,NA,29
+2004,fsh_len,Male,51,764,0.002618,NA,29
+2004,fsh_len,Male,53,764,0.003927,NA,29
+2004,fsh_len,Male,55,764,0.015707,NA,29
+2004,fsh_len,Male,57,764,0.039267,NA,29
+2004,fsh_len,Male,59,764,0.070681,NA,29
+2004,fsh_len,Male,61,764,0.151832,NA,29
+2004,fsh_len,Male,63,764,0.171466,NA,29
+2004,fsh_len,Male,65,764,0.171466,NA,29
+2004,fsh_len,Male,67,764,0.124346,NA,29
+2004,fsh_len,Male,69,764,0.094241,NA,29
+2004,fsh_len,Male,71,764,0.061518,NA,29
+2004,fsh_len,Male,73,764,0.03534,NA,29
+2004,fsh_len,Male,75,764,0.032723,NA,29
+2004,fsh_len,Male,77,764,0.009162,NA,29
+2004,fsh_len,Male,79,764,0.003927,NA,29
+2004,fsh_len,Male,81,764,0.005236,NA,29
+2004,fsh_len,Male,83,764,0.001309,NA,29
+2004,fsh_len,Male,85,764,0.002618,NA,29
+2004,fsh_len,Male,87,764,0,NA,29
+2004,fsh_len,Male,89,764,0,NA,29
+2004,fsh_len,Male,91,764,0,NA,29
+2004,fsh_len,Male,93,764,0,NA,29
+2004,fsh_len,Male,95,764,0,NA,29
+2004,fsh_len,Male,97,764,0,NA,29
+2004,fsh_len,Male,99,764,0,NA,29
+2004,fsh_len,Sex combined,41,2325,0,NA,29
+2004,fsh_len,Sex combined,43,2325,0,NA,29
+2004,fsh_len,Sex combined,45,2325,0,NA,29
+2004,fsh_len,Sex combined,47,2325,0,NA,29
+2004,fsh_len,Sex combined,49,2325,9e-4,NA,29
+2004,fsh_len,Sex combined,51,2325,0.0034,NA,29
+2004,fsh_len,Sex combined,53,2325,0.0022,NA,29
+2004,fsh_len,Sex combined,55,2325,0.0095,NA,29
+2004,fsh_len,Sex combined,57,2325,0.0176,NA,29
+2004,fsh_len,Sex combined,59,2325,0.0344,NA,29
+2004,fsh_len,Sex combined,61,2325,0.0744,NA,29
+2004,fsh_len,Sex combined,63,2325,0.0933,NA,29
+2004,fsh_len,Sex combined,65,2325,0.1204,NA,29
+2004,fsh_len,Sex combined,67,2325,0.1071,NA,29
+2004,fsh_len,Sex combined,69,2325,0.1161,NA,29
+2004,fsh_len,Sex combined,71,2325,0.1024,NA,29
+2004,fsh_len,Sex combined,73,2325,0.0667,NA,29
+2004,fsh_len,Sex combined,75,2325,0.0572,NA,29
+2004,fsh_len,Sex combined,77,2325,0.0267,NA,29
+2004,fsh_len,Sex combined,79,2325,0.0219,NA,29
+2004,fsh_len,Sex combined,81,2325,0.0232,NA,29
+2004,fsh_len,Sex combined,83,2325,0.0206,NA,29
+2004,fsh_len,Sex combined,85,2325,0.0224,NA,29
+2004,fsh_len,Sex combined,87,2325,0.0172,NA,29
+2004,fsh_len,Sex combined,89,2325,0.0163,NA,29
+2004,fsh_len,Sex combined,91,2325,0.0112,NA,29
+2004,fsh_len,Sex combined,93,2325,0.0112,NA,29
+2004,fsh_len,Sex combined,95,2325,0.0086,NA,29
+2004,fsh_len,Sex combined,97,2325,0.0039,NA,29
+2004,fsh_len,Sex combined,99,2325,0.0112,NA,29
+2005,fsh_len,Female,41,1259,0,NA,30
+2005,fsh_len,Female,43,1259,0,NA,30
+2005,fsh_len,Female,45,1259,0,NA,30
+2005,fsh_len,Female,47,1259,0,NA,30
+2005,fsh_len,Female,49,1259,0,NA,30
+2005,fsh_len,Female,51,1259,7.94e-4,NA,30
+2005,fsh_len,Female,53,1259,7.94e-4,NA,30
+2005,fsh_len,Female,55,1259,0.002383,NA,30
+2005,fsh_len,Female,57,1259,0.007149,NA,30
+2005,fsh_len,Female,59,1259,0.009531,NA,30
+2005,fsh_len,Female,61,1259,0.026211,NA,30
+2005,fsh_len,Female,63,1259,0.028594,NA,30
+2005,fsh_len,Female,65,1259,0.059571,NA,30
+2005,fsh_len,Female,67,1259,0.102462,NA,30
+2005,fsh_len,Female,69,1259,0.117554,NA,30
+2005,fsh_len,Female,71,1259,0.108817,NA,30
+2005,fsh_len,Female,73,1259,0.098491,NA,30
+2005,fsh_len,Female,75,1259,0.069102,NA,30
+2005,fsh_len,Female,77,1259,0.061954,NA,30
+2005,fsh_len,Female,79,1259,0.051628,NA,30
+2005,fsh_len,Female,81,1259,0.029388,NA,30
+2005,fsh_len,Female,83,1259,0.047657,NA,30
+2005,fsh_len,Female,85,1259,0.04448,NA,30
+2005,fsh_len,Female,87,1259,0.019857,NA,30
+2005,fsh_len,Female,89,1259,0.027006,NA,30
+2005,fsh_len,Female,91,1259,0.02224,NA,30
+2005,fsh_len,Female,93,1259,0.01668,NA,30
+2005,fsh_len,Female,95,1259,0.014297,NA,30
+2005,fsh_len,Female,97,1259,0.012708,NA,30
+2005,fsh_len,Female,99,1259,0.020651,NA,30
+2005,fsh_len,Male,41,506,0,NA,30
+2005,fsh_len,Male,43,506,0,NA,30
+2005,fsh_len,Male,45,506,0,NA,30
+2005,fsh_len,Male,47,506,0,NA,30
+2005,fsh_len,Male,49,506,0,NA,30
+2005,fsh_len,Male,51,506,0.001976,NA,30
+2005,fsh_len,Male,53,506,0.009881,NA,30
+2005,fsh_len,Male,55,506,0.007905,NA,30
+2005,fsh_len,Male,57,506,0.021739,NA,30
+2005,fsh_len,Male,59,506,0.059289,NA,30
+2005,fsh_len,Male,61,506,0.098814,NA,30
+2005,fsh_len,Male,63,506,0.167984,NA,30
+2005,fsh_len,Male,65,506,0.193676,NA,30
+2005,fsh_len,Male,67,506,0.140316,NA,30
+2005,fsh_len,Male,69,506,0.104743,NA,30
+2005,fsh_len,Male,71,506,0.081028,NA,30
+2005,fsh_len,Male,73,506,0.049407,NA,30
+2005,fsh_len,Male,75,506,0.021739,NA,30
+2005,fsh_len,Male,77,506,0.023715,NA,30
+2005,fsh_len,Male,79,506,0.009881,NA,30
+2005,fsh_len,Male,81,506,0.003953,NA,30
+2005,fsh_len,Male,83,506,0,NA,30
+2005,fsh_len,Male,85,506,0.001976,NA,30
+2005,fsh_len,Male,87,506,0,NA,30
+2005,fsh_len,Male,89,506,0,NA,30
+2005,fsh_len,Male,91,506,0,NA,30
+2005,fsh_len,Male,93,506,0.001976,NA,30
+2005,fsh_len,Male,95,506,0,NA,30
+2005,fsh_len,Male,97,506,0,NA,30
+2005,fsh_len,Male,99,506,0,NA,30
+2005,fsh_len,Sex combined,41,1765,0,NA,30
+2005,fsh_len,Sex combined,43,1765,0,NA,30
+2005,fsh_len,Sex combined,45,1765,0,NA,30
+2005,fsh_len,Sex combined,47,1765,0,NA,30
+2005,fsh_len,Sex combined,49,1765,0,NA,30
+2005,fsh_len,Sex combined,51,1765,0.0011,NA,30
+2005,fsh_len,Sex combined,53,1765,0.0034,NA,30
+2005,fsh_len,Sex combined,55,1765,0.004,NA,30
+2005,fsh_len,Sex combined,57,1765,0.0113,NA,30
+2005,fsh_len,Sex combined,59,1765,0.0238,NA,30
+2005,fsh_len,Sex combined,61,1765,0.047,NA,30
+2005,fsh_len,Sex combined,63,1765,0.0686,NA,30
+2005,fsh_len,Sex combined,65,1765,0.098,NA,30
+2005,fsh_len,Sex combined,67,1765,0.1133,NA,30
+2005,fsh_len,Sex combined,69,1765,0.1139,NA,30
+2005,fsh_len,Sex combined,71,1765,0.1008,NA,30
+2005,fsh_len,Sex combined,73,1765,0.0844,NA,30
+2005,fsh_len,Sex combined,75,1765,0.0555,NA,30
+2005,fsh_len,Sex combined,77,1765,0.051,NA,30
+2005,fsh_len,Sex combined,79,1765,0.0397,NA,30
+2005,fsh_len,Sex combined,81,1765,0.0221,NA,30
+2005,fsh_len,Sex combined,83,1765,0.034,NA,30
+2005,fsh_len,Sex combined,85,1765,0.0323,NA,30
+2005,fsh_len,Sex combined,87,1765,0.0142,NA,30
+2005,fsh_len,Sex combined,89,1765,0.0193,NA,30
+2005,fsh_len,Sex combined,91,1765,0.0159,NA,30
+2005,fsh_len,Sex combined,93,1765,0.0125,NA,30
+2005,fsh_len,Sex combined,95,1765,0.0102,NA,30
+2005,fsh_len,Sex combined,97,1765,0.0091,NA,30
+2005,fsh_len,Sex combined,99,1765,0.0147,NA,30
+2006,fsh_len,Female,41,1075,0,NA,31
+2006,fsh_len,Female,43,1075,0,NA,31
+2006,fsh_len,Female,45,1075,0,NA,31
+2006,fsh_len,Female,47,1075,0,NA,31
+2006,fsh_len,Female,49,1075,0,NA,31
+2006,fsh_len,Female,51,1075,0.00093000000000000005,NA,31
+2006,fsh_len,Female,53,1075,0.003721,NA,31
+2006,fsh_len,Female,55,1075,0.003721,NA,31
+2006,fsh_len,Female,57,1075,0.011163,NA,31
+2006,fsh_len,Female,59,1075,0.010233,NA,31
+2006,fsh_len,Female,61,1075,0.014884,NA,31
+2006,fsh_len,Female,63,1075,0.029767,NA,31
+2006,fsh_len,Female,65,1075,0.053953,NA,31
+2006,fsh_len,Female,67,1075,0.090233,NA,31
+2006,fsh_len,Female,69,1075,0.124651,NA,31
+2006,fsh_len,Female,71,1075,0.140465,NA,31
+2006,fsh_len,Female,73,1075,0.129302,NA,31
+2006,fsh_len,Female,75,1075,0.098605,NA,31
+2006,fsh_len,Female,77,1075,0.07907,NA,31
+2006,fsh_len,Female,79,1075,0.043721,NA,31
+2006,fsh_len,Female,81,1075,0.046512,NA,31
+2006,fsh_len,Female,83,1075,0.026047,NA,31
+2006,fsh_len,Female,85,1075,0.021395,NA,31
+2006,fsh_len,Female,87,1075,0.024186,NA,31
+2006,fsh_len,Female,89,1075,0.015814,NA,31
+2006,fsh_len,Female,91,1075,0.010233,NA,31
+2006,fsh_len,Female,93,1075,0.007442,NA,31
+2006,fsh_len,Female,95,1075,0.002791,NA,31
+2006,fsh_len,Female,97,1075,0.002791,NA,31
+2006,fsh_len,Female,99,1075,0.008372,NA,31
+2006,fsh_len,Male,41,609,0,NA,31
+2006,fsh_len,Male,43,609,0,NA,31
+2006,fsh_len,Male,45,609,0,NA,31
+2006,fsh_len,Male,47,609,0,NA,31
+2006,fsh_len,Male,49,609,0,NA,31
+2006,fsh_len,Male,51,609,0,NA,31
+2006,fsh_len,Male,53,609,0.003284,NA,31
+2006,fsh_len,Male,55,609,0.011494,NA,31
+2006,fsh_len,Male,57,609,0.032841,NA,31
+2006,fsh_len,Male,59,609,0.049261,NA,31
+2006,fsh_len,Male,61,609,0.119869,NA,31
+2006,fsh_len,Male,63,609,0.200328,NA,31
+2006,fsh_len,Male,65,609,0.178982,NA,31
+2006,fsh_len,Male,67,609,0.129721,NA,31
+2006,fsh_len,Male,69,609,0.093596,NA,31
+2006,fsh_len,Male,71,609,0.052545,NA,31
+2006,fsh_len,Male,73,609,0.062397,NA,31
+2006,fsh_len,Male,75,609,0.024631,NA,31
+2006,fsh_len,Male,77,609,0.019704,NA,31
+2006,fsh_len,Male,79,609,0.00821,NA,31
+2006,fsh_len,Male,81,609,0.004926,NA,31
+2006,fsh_len,Male,83,609,0.001642,NA,31
+2006,fsh_len,Male,85,609,0.001642,NA,31
+2006,fsh_len,Male,87,609,0.004926,NA,31
+2006,fsh_len,Male,89,609,0,NA,31
+2006,fsh_len,Male,91,609,0,NA,31
+2006,fsh_len,Male,93,609,0,NA,31
+2006,fsh_len,Male,95,609,0,NA,31
+2006,fsh_len,Male,97,609,0,NA,31
+2006,fsh_len,Male,99,609,0,NA,31
+2006,fsh_len,Sex combined,41,1684,0,NA,31
+2006,fsh_len,Sex combined,43,1684,0,NA,31
+2006,fsh_len,Sex combined,45,1684,0,NA,31
+2006,fsh_len,Sex combined,47,1684,0,NA,31
+2006,fsh_len,Sex combined,49,1684,0,NA,31
+2006,fsh_len,Sex combined,51,1684,6e-4,NA,31
+2006,fsh_len,Sex combined,53,1684,0.0036,NA,31
+2006,fsh_len,Sex combined,55,1684,0.0065,NA,31
+2006,fsh_len,Sex combined,57,1684,0.019,NA,31
+2006,fsh_len,Sex combined,59,1684,0.0243,NA,31
+2006,fsh_len,Sex combined,61,1684,0.0529,NA,31
+2006,fsh_len,Sex combined,63,1684,0.0914,NA,31
+2006,fsh_len,Sex combined,65,1684,0.0992,NA,31
+2006,fsh_len,Sex combined,67,1684,0.1045,NA,31
+2006,fsh_len,Sex combined,69,1684,0.1134,NA,31
+2006,fsh_len,Sex combined,71,1684,0.1087,NA,31
+2006,fsh_len,Sex combined,73,1684,0.1051,NA,31
+2006,fsh_len,Sex combined,75,1684,0.0719,NA,31
+2006,fsh_len,Sex combined,77,1684,0.0576,NA,31
+2006,fsh_len,Sex combined,79,1684,0.0309,NA,31
+2006,fsh_len,Sex combined,81,1684,0.0315,NA,31
+2006,fsh_len,Sex combined,83,1684,0.0172,NA,31
+2006,fsh_len,Sex combined,85,1684,0.0143,NA,31
+2006,fsh_len,Sex combined,87,1684,0.0172,NA,31
+2006,fsh_len,Sex combined,89,1684,0.0101,NA,31
+2006,fsh_len,Sex combined,91,1684,0.0065,NA,31
+2006,fsh_len,Sex combined,93,1684,0.0048,NA,31
+2006,fsh_len,Sex combined,95,1684,0.0018,NA,31
+2006,fsh_len,Sex combined,97,1684,0.0018,NA,31
+2006,fsh_len,Sex combined,99,1684,0.0053,NA,31
+2007,fsh_len,Female,41,996,0,NA,32
+2007,fsh_len,Female,43,996,0,NA,32
+2007,fsh_len,Female,45,996,0,NA,32
+2007,fsh_len,Female,47,996,0,NA,32
+2007,fsh_len,Female,49,996,0,NA,32
+2007,fsh_len,Female,51,996,0.002008,NA,32
+2007,fsh_len,Female,53,996,0.002008,NA,32
+2007,fsh_len,Female,55,996,0.002008,NA,32
+2007,fsh_len,Female,57,996,0.008032,NA,32
+2007,fsh_len,Female,59,996,0.007028,NA,32
+2007,fsh_len,Female,61,996,0.014056,NA,32
+2007,fsh_len,Female,63,996,0.034137,NA,32
+2007,fsh_len,Female,65,996,0.054217,NA,32
+2007,fsh_len,Female,67,996,0.070281,NA,32
+2007,fsh_len,Female,69,996,0.123494,NA,32
+2007,fsh_len,Female,71,996,0.130522,NA,32
+2007,fsh_len,Female,73,996,0.11245,NA,32
+2007,fsh_len,Female,75,996,0.100402,NA,32
+2007,fsh_len,Female,77,996,0.086345,NA,32
+2007,fsh_len,Female,79,996,0.059237,NA,32
+2007,fsh_len,Female,81,996,0.051205,NA,32
+2007,fsh_len,Female,83,996,0.034137,NA,32
+2007,fsh_len,Female,85,996,0.026104,NA,32
+2007,fsh_len,Female,87,996,0.031124,NA,32
+2007,fsh_len,Female,89,996,0.013052,NA,32
+2007,fsh_len,Female,91,996,0.013052,NA,32
+2007,fsh_len,Female,93,996,0.009036,NA,32
+2007,fsh_len,Female,95,996,0.004016,NA,32
+2007,fsh_len,Female,97,996,0.00502,NA,32
+2007,fsh_len,Female,99,996,0.007028,NA,32
+2007,fsh_len,Male,41,515,0,NA,32
+2007,fsh_len,Male,43,515,0,NA,32
+2007,fsh_len,Male,45,515,0,NA,32
+2007,fsh_len,Male,47,515,0,NA,32
+2007,fsh_len,Male,49,515,0,NA,32
+2007,fsh_len,Male,51,515,0,NA,32
+2007,fsh_len,Male,53,515,0.001942,NA,32
+2007,fsh_len,Male,55,515,0.007767,NA,32
+2007,fsh_len,Male,57,515,0.021359,NA,32
+2007,fsh_len,Male,59,515,0.048544,NA,32
+2007,fsh_len,Male,61,515,0.108738,NA,32
+2007,fsh_len,Male,63,515,0.153398,NA,32
+2007,fsh_len,Male,65,515,0.170874,NA,32
+2007,fsh_len,Male,67,515,0.161165,NA,32
+2007,fsh_len,Male,69,515,0.135922,NA,32
+2007,fsh_len,Male,71,515,0.085437,NA,32
+2007,fsh_len,Male,73,515,0.038835,NA,32
+2007,fsh_len,Male,75,515,0.036893,NA,32
+2007,fsh_len,Male,77,515,0.013592,NA,32
+2007,fsh_len,Male,79,515,0.009709,NA,32
+2007,fsh_len,Male,81,515,0.003883,NA,32
+2007,fsh_len,Male,83,515,0.001942,NA,32
+2007,fsh_len,Male,85,515,0,NA,32
+2007,fsh_len,Male,87,515,0,NA,32
+2007,fsh_len,Male,89,515,0,NA,32
+2007,fsh_len,Male,91,515,0,NA,32
+2007,fsh_len,Male,93,515,0,NA,32
+2007,fsh_len,Male,95,515,0,NA,32
+2007,fsh_len,Male,97,515,0,NA,32
+2007,fsh_len,Male,99,515,0,NA,32
+2007,fsh_len,Sex combined,41,1511,0,NA,32
+2007,fsh_len,Sex combined,43,1511,0,NA,32
+2007,fsh_len,Sex combined,45,1511,0,NA,32
+2007,fsh_len,Sex combined,47,1511,0,NA,32
+2007,fsh_len,Sex combined,49,1511,0,NA,32
+2007,fsh_len,Sex combined,51,1511,0.0013,NA,32
+2007,fsh_len,Sex combined,53,1511,0.002,NA,32
+2007,fsh_len,Sex combined,55,1511,0.004,NA,32
+2007,fsh_len,Sex combined,57,1511,0.0126,NA,32
+2007,fsh_len,Sex combined,59,1511,0.0212,NA,32
+2007,fsh_len,Sex combined,61,1511,0.0463,NA,32
+2007,fsh_len,Sex combined,63,1511,0.0748,NA,32
+2007,fsh_len,Sex combined,65,1511,0.094,NA,32
+2007,fsh_len,Sex combined,67,1511,0.1013,NA,32
+2007,fsh_len,Sex combined,69,1511,0.1277,NA,32
+2007,fsh_len,Sex combined,71,1511,0.1152,NA,32
+2007,fsh_len,Sex combined,73,1511,0.0874,NA,32
+2007,fsh_len,Sex combined,75,1511,0.0788,NA,32
+2007,fsh_len,Sex combined,77,1511,0.0615,NA,32
+2007,fsh_len,Sex combined,79,1511,0.0424,NA,32
+2007,fsh_len,Sex combined,81,1511,0.0351,NA,32
+2007,fsh_len,Sex combined,83,1511,0.0232,NA,32
+2007,fsh_len,Sex combined,85,1511,0.0172,NA,32
+2007,fsh_len,Sex combined,87,1511,0.0205,NA,32
+2007,fsh_len,Sex combined,89,1511,0.0086,NA,32
+2007,fsh_len,Sex combined,91,1511,0.0086,NA,32
+2007,fsh_len,Sex combined,93,1511,0.006,NA,32
+2007,fsh_len,Sex combined,95,1511,0.0026,NA,32
+2007,fsh_len,Sex combined,97,1511,0.0033,NA,32
+2007,fsh_len,Sex combined,99,1511,0.0046,NA,32
+2008,fsh_len,Female,41,1026,0,NA,33
+2008,fsh_len,Female,43,1026,0,NA,33
+2008,fsh_len,Female,45,1026,0,NA,33
+2008,fsh_len,Female,47,1026,0,NA,33
+2008,fsh_len,Female,49,1026,0,NA,33
+2008,fsh_len,Female,51,1026,0,NA,33
+2008,fsh_len,Female,53,1026,0,NA,33
+2008,fsh_len,Female,55,1026,0.001949,NA,33
+2008,fsh_len,Female,57,1026,0.002924,NA,33
+2008,fsh_len,Female,59,1026,0.009747,NA,33
+2008,fsh_len,Female,61,1026,0.015595,NA,33
+2008,fsh_len,Female,63,1026,0.026316,NA,33
+2008,fsh_len,Female,65,1026,0.039961000000000003,NA,33
+2008,fsh_len,Female,67,1026,0.087719,NA,33
+2008,fsh_len,Female,69,1026,0.10039,NA,33
+2008,fsh_len,Female,71,1026,0.133528,NA,33
+2008,fsh_len,Female,73,1026,0.125731,NA,33
+2008,fsh_len,Female,75,1026,0.11501,NA,33
+2008,fsh_len,Female,77,1026,0.069201,NA,33
+2008,fsh_len,Female,79,1026,0.063353,NA,33
+2008,fsh_len,Female,81,1026,0.062378,NA,33
+2008,fsh_len,Female,83,1026,0.033138,NA,33
+2008,fsh_len,Female,85,1026,0.032164,NA,33
+2008,fsh_len,Female,87,1026,0.028265,NA,33
+2008,fsh_len,Female,89,1026,0.013645,NA,33
+2008,fsh_len,Female,91,1026,0.011696,NA,33
+2008,fsh_len,Female,93,1026,0.011696,NA,33
+2008,fsh_len,Female,95,1026,0.005848,NA,33
+2008,fsh_len,Female,97,1026,0.001949,NA,33
+2008,fsh_len,Female,99,1026,0.007797,NA,33
+2008,fsh_len,Male,41,525,0,NA,33
+2008,fsh_len,Male,43,525,0,NA,33
+2008,fsh_len,Male,45,525,0,NA,33
+2008,fsh_len,Male,47,525,0,NA,33
+2008,fsh_len,Male,49,525,0,NA,33
+2008,fsh_len,Male,51,525,0,NA,33
+2008,fsh_len,Male,53,525,0,NA,33
+2008,fsh_len,Male,55,525,0.007619,NA,33
+2008,fsh_len,Male,57,525,0.013333,NA,33
+2008,fsh_len,Male,59,525,0.038095,NA,33
+2008,fsh_len,Male,61,525,0.100952,NA,33
+2008,fsh_len,Male,63,525,0.165714,NA,33
+2008,fsh_len,Male,65,525,0.179048,NA,33
+2008,fsh_len,Male,67,525,0.190476,NA,33
+2008,fsh_len,Male,69,525,0.131429,NA,33
+2008,fsh_len,Male,71,525,0.087619,NA,33
+2008,fsh_len,Male,73,525,0.04381,NA,33
+2008,fsh_len,Male,75,525,0.019048,NA,33
+2008,fsh_len,Male,77,525,0.009524,NA,33
+2008,fsh_len,Male,79,525,0.001905,NA,33
+2008,fsh_len,Male,81,525,0.001905,NA,33
+2008,fsh_len,Male,83,525,0.005714,NA,33
+2008,fsh_len,Male,85,525,0,NA,33
+2008,fsh_len,Male,87,525,0.001905,NA,33
+2008,fsh_len,Male,89,525,0.001905,NA,33
+2008,fsh_len,Male,91,525,0,NA,33
+2008,fsh_len,Male,93,525,0,NA,33
+2008,fsh_len,Male,95,525,0,NA,33
+2008,fsh_len,Male,97,525,0,NA,33
+2008,fsh_len,Male,99,525,0,NA,33
+2008,fsh_len,Sex combined,41,1551,0,NA,33
+2008,fsh_len,Sex combined,43,1551,0,NA,33
+2008,fsh_len,Sex combined,45,1551,0,NA,33
+2008,fsh_len,Sex combined,47,1551,0,NA,33
+2008,fsh_len,Sex combined,49,1551,0,NA,33
+2008,fsh_len,Sex combined,51,1551,0,NA,33
+2008,fsh_len,Sex combined,53,1551,0,NA,33
+2008,fsh_len,Sex combined,55,1551,0.0039,NA,33
+2008,fsh_len,Sex combined,57,1551,0.0064,NA,33
+2008,fsh_len,Sex combined,59,1551,0.0193,NA,33
+2008,fsh_len,Sex combined,61,1551,0.0445,NA,33
+2008,fsh_len,Sex combined,63,1551,0.0735,NA,33
+2008,fsh_len,Sex combined,65,1551,0.087,NA,33
+2008,fsh_len,Sex combined,67,1551,0.1225,NA,33
+2008,fsh_len,Sex combined,69,1551,0.1109,NA,33
+2008,fsh_len,Sex combined,71,1551,0.118,NA,33
+2008,fsh_len,Sex combined,73,1551,0.098,NA,33
+2008,fsh_len,Sex combined,75,1551,0.0825,NA,33
+2008,fsh_len,Sex combined,77,1551,0.049,NA,33
+2008,fsh_len,Sex combined,79,1551,0.0426,NA,33
+2008,fsh_len,Sex combined,81,1551,0.0419,NA,33
+2008,fsh_len,Sex combined,83,1551,0.0239,NA,33
+2008,fsh_len,Sex combined,85,1551,0.0213,NA,33
+2008,fsh_len,Sex combined,87,1551,0.0193,NA,33
+2008,fsh_len,Sex combined,89,1551,0.0097,NA,33
+2008,fsh_len,Sex combined,91,1551,0.0077,NA,33
+2008,fsh_len,Sex combined,93,1551,0.0077,NA,33
+2008,fsh_len,Sex combined,95,1551,0.0039,NA,33
+2008,fsh_len,Sex combined,97,1551,0.0013,NA,33
+2008,fsh_len,Sex combined,99,1551,0.0052,NA,33
+2009,fsh_len,Female,41,1047,0,NA,34
+2009,fsh_len,Female,43,1047,0,NA,34
+2009,fsh_len,Female,45,1047,0,NA,34
+2009,fsh_len,Female,47,1047,0,NA,34
+2009,fsh_len,Female,49,1047,0,NA,34
+2009,fsh_len,Female,51,1047,0.00191,NA,34
+2009,fsh_len,Female,53,1047,0,NA,34
+2009,fsh_len,Female,55,1047,9.55e-4,NA,34
+2009,fsh_len,Female,57,1047,0.004776,NA,34
+2009,fsh_len,Female,59,1047,0.005731,NA,34
+2009,fsh_len,Female,61,1047,0.00191,NA,34
+2009,fsh_len,Female,63,1047,0.018147,NA,34
+2009,fsh_len,Female,65,1047,0.045845,NA,34
+2009,fsh_len,Female,67,1047,0.077364,NA,34
+2009,fsh_len,Female,69,1047,0.097421,NA,34
+2009,fsh_len,Female,71,1047,0.144222,NA,34
+2009,fsh_len,Female,73,1047,0.124164,NA,34
+2009,fsh_len,Female,75,1047,0.118434,NA,34
+2009,fsh_len,Female,77,1047,0.090735,NA,34
+2009,fsh_len,Female,79,1047,0.075454,NA,34
+2009,fsh_len,Female,81,1047,0.076409,NA,34
+2009,fsh_len,Female,83,1047,0.037249,NA,34
+2009,fsh_len,Female,85,1047,0.023878,NA,34
+2009,fsh_len,Female,87,1047,0.014327,NA,34
+2009,fsh_len,Female,89,1047,0.010506,NA,34
+2009,fsh_len,Female,91,1047,0.011461,NA,34
+2009,fsh_len,Female,93,1047,0.004776,NA,34
+2009,fsh_len,Female,95,1047,0.005731,NA,34
+2009,fsh_len,Female,97,1047,9.55e-4,NA,34
+2009,fsh_len,Female,99,1047,0.007641,NA,34
+2009,fsh_len,Male,41,521,0,NA,34
+2009,fsh_len,Male,43,521,0,NA,34
+2009,fsh_len,Male,45,521,0,NA,34
+2009,fsh_len,Male,47,521,0,NA,34
+2009,fsh_len,Male,49,521,0,NA,34
+2009,fsh_len,Male,51,521,0,NA,34
+2009,fsh_len,Male,53,521,0,NA,34
+2009,fsh_len,Male,55,521,0,NA,34
+2009,fsh_len,Male,57,521,0.017274,NA,34
+2009,fsh_len,Male,59,521,0.047985,NA,34
+2009,fsh_len,Male,61,521,0.088292,NA,34
+2009,fsh_len,Male,63,521,0.136276,NA,34
+2009,fsh_len,Male,65,521,0.190019,NA,34
+2009,fsh_len,Male,67,521,0.176583,NA,34
+2009,fsh_len,Male,69,521,0.12476,NA,34
+2009,fsh_len,Male,71,521,0.095969,NA,34
+2009,fsh_len,Male,73,521,0.044146,NA,34
+2009,fsh_len,Male,75,521,0.040307,NA,34
+2009,fsh_len,Male,77,521,0.023033,NA,34
+2009,fsh_len,Male,79,521,0.007678,NA,34
+2009,fsh_len,Male,81,521,0.007678,NA,34
+2009,fsh_len,Male,83,521,0,NA,34
+2009,fsh_len,Male,85,521,0,NA,34
+2009,fsh_len,Male,87,521,0,NA,34
+2009,fsh_len,Male,89,521,0,NA,34
+2009,fsh_len,Male,91,521,0,NA,34
+2009,fsh_len,Male,93,521,0,NA,34
+2009,fsh_len,Male,95,521,0,NA,34
+2009,fsh_len,Male,97,521,0,NA,34
+2009,fsh_len,Male,99,521,0,NA,34
+2009,fsh_len,Sex combined,41,1568,0,NA,34
+2009,fsh_len,Sex combined,43,1568,0,NA,34
+2009,fsh_len,Sex combined,45,1568,0,NA,34
+2009,fsh_len,Sex combined,47,1568,0,NA,34
+2009,fsh_len,Sex combined,49,1568,0,NA,34
+2009,fsh_len,Sex combined,51,1568,0.0013,NA,34
+2009,fsh_len,Sex combined,53,1568,0,NA,34
+2009,fsh_len,Sex combined,55,1568,6e-4,NA,34
+2009,fsh_len,Sex combined,57,1568,0.0089,NA,34
+2009,fsh_len,Sex combined,59,1568,0.0198,NA,34
+2009,fsh_len,Sex combined,61,1568,0.0306,NA,34
+2009,fsh_len,Sex combined,63,1568,0.0574,NA,34
+2009,fsh_len,Sex combined,65,1568,0.0938,NA,34
+2009,fsh_len,Sex combined,67,1568,0.1103,NA,34
+2009,fsh_len,Sex combined,69,1568,0.1065,NA,34
+2009,fsh_len,Sex combined,71,1568,0.1282,NA,34
+2009,fsh_len,Sex combined,73,1568,0.0976,NA,34
+2009,fsh_len,Sex combined,75,1568,0.0925,NA,34
+2009,fsh_len,Sex combined,77,1568,0.0682,NA,34
+2009,fsh_len,Sex combined,79,1568,0.0529,NA,34
+2009,fsh_len,Sex combined,81,1568,0.0536,NA,34
+2009,fsh_len,Sex combined,83,1568,0.0249,NA,34
+2009,fsh_len,Sex combined,85,1568,0.0159,NA,34
+2009,fsh_len,Sex combined,87,1568,0.0096,NA,34
+2009,fsh_len,Sex combined,89,1568,0.007,NA,34
+2009,fsh_len,Sex combined,91,1568,0.0077,NA,34
+2009,fsh_len,Sex combined,93,1568,0.0032,NA,34
+2009,fsh_len,Sex combined,95,1568,0.0038,NA,34
+2009,fsh_len,Sex combined,97,1568,6e-4,NA,34
+2009,fsh_len,Sex combined,99,1568,0.0051,NA,34
+2010,fsh_len,Female,41,995,0,NA,35
+2010,fsh_len,Female,43,995,0,NA,35
+2010,fsh_len,Female,45,995,0,NA,35
+2010,fsh_len,Female,47,995,0,NA,35
+2010,fsh_len,Female,49,995,0,NA,35
+2010,fsh_len,Female,51,995,0,NA,35
+2010,fsh_len,Female,53,995,0.00201,NA,35
+2010,fsh_len,Female,55,995,0.001005,NA,35
+2010,fsh_len,Female,57,995,0.003015,NA,35
+2010,fsh_len,Female,59,995,0.013065,NA,35
+2010,fsh_len,Female,61,995,0.01005,NA,35
+2010,fsh_len,Female,63,995,0.026131,NA,35
+2010,fsh_len,Female,65,995,0.048241,NA,35
+2010,fsh_len,Female,67,995,0.071357,NA,35
+2010,fsh_len,Female,69,995,0.103518,NA,35
+2010,fsh_len,Female,71,995,0.137688,NA,35
+2010,fsh_len,Female,73,995,0.119598,NA,35
+2010,fsh_len,Female,75,995,0.109548,NA,35
+2010,fsh_len,Female,77,995,0.085427,NA,35
+2010,fsh_len,Female,79,995,0.084422,NA,35
+2010,fsh_len,Female,81,995,0.061307,NA,35
+2010,fsh_len,Female,83,995,0.039196,NA,35
+2010,fsh_len,Female,85,995,0.030151,NA,35
+2010,fsh_len,Female,87,995,0.019095,NA,35
+2010,fsh_len,Female,89,995,0.011055,NA,35
+2010,fsh_len,Female,91,995,0.011055,NA,35
+2010,fsh_len,Female,93,995,0.00603,NA,35
+2010,fsh_len,Female,95,995,0.001005,NA,35
+2010,fsh_len,Female,97,995,0.00201,NA,35
+2010,fsh_len,Female,99,995,0.00402,NA,35
+2010,fsh_len,Male,41,550,0,NA,35
+2010,fsh_len,Male,43,550,0,NA,35
+2010,fsh_len,Male,45,550,0,NA,35
+2010,fsh_len,Male,47,550,0,NA,35
+2010,fsh_len,Male,49,550,0.001818,NA,35
+2010,fsh_len,Male,51,550,0,NA,35
+2010,fsh_len,Male,53,550,0.001818,NA,35
+2010,fsh_len,Male,55,550,0.009091,NA,35
+2010,fsh_len,Male,57,550,0.014545,NA,35
+2010,fsh_len,Male,59,550,0.047273,NA,35
+2010,fsh_len,Male,61,550,0.105455,NA,35
+2010,fsh_len,Male,63,550,0.121818,NA,35
+2010,fsh_len,Male,65,550,0.189091,NA,35
+2010,fsh_len,Male,67,550,0.165455,NA,35
+2010,fsh_len,Male,69,550,0.125455,NA,35
+2010,fsh_len,Male,71,550,0.101818,NA,35
+2010,fsh_len,Male,73,550,0.050909,NA,35
+2010,fsh_len,Male,75,550,0.04,NA,35
+2010,fsh_len,Male,77,550,0.010909,NA,35
+2010,fsh_len,Male,79,550,0.007273,NA,35
+2010,fsh_len,Male,81,550,0.001818,NA,35
+2010,fsh_len,Male,83,550,0.001818,NA,35
+2010,fsh_len,Male,85,550,0.001818,NA,35
+2010,fsh_len,Male,87,550,0.001818,NA,35
+2010,fsh_len,Male,89,550,0,NA,35
+2010,fsh_len,Male,91,550,0,NA,35
+2010,fsh_len,Male,93,550,0,NA,35
+2010,fsh_len,Male,95,550,0,NA,35
+2010,fsh_len,Male,97,550,0,NA,35
+2010,fsh_len,Male,99,550,0,NA,35
+2010,fsh_len,Sex combined,41,1545,0,NA,35
+2010,fsh_len,Sex combined,43,1545,0,NA,35
+2010,fsh_len,Sex combined,45,1545,0,NA,35
+2010,fsh_len,Sex combined,47,1545,0,NA,35
+2010,fsh_len,Sex combined,49,1545,6e-4,NA,35
+2010,fsh_len,Sex combined,51,1545,0,NA,35
+2010,fsh_len,Sex combined,53,1545,0.0019,NA,35
+2010,fsh_len,Sex combined,55,1545,0.0039,NA,35
+2010,fsh_len,Sex combined,57,1545,0.0071,NA,35
+2010,fsh_len,Sex combined,59,1545,0.0252,NA,35
+2010,fsh_len,Sex combined,61,1545,0.044,NA,35
+2010,fsh_len,Sex combined,63,1545,0.0602,NA,35
+2010,fsh_len,Sex combined,65,1545,0.0984,NA,35
+2010,fsh_len,Sex combined,67,1545,0.1049,NA,35
+2010,fsh_len,Sex combined,69,1545,0.1113,NA,35
+2010,fsh_len,Sex combined,71,1545,0.1249,NA,35
+2010,fsh_len,Sex combined,73,1545,0.0951,NA,35
+2010,fsh_len,Sex combined,75,1545,0.0848,NA,35
+2010,fsh_len,Sex combined,77,1545,0.0589,NA,35
+2010,fsh_len,Sex combined,79,1545,0.057,NA,35
+2010,fsh_len,Sex combined,81,1545,0.0401,NA,35
+2010,fsh_len,Sex combined,83,1545,0.0259,NA,35
+2010,fsh_len,Sex combined,85,1545,0.0201,NA,35
+2010,fsh_len,Sex combined,87,1545,0.0129,NA,35
+2010,fsh_len,Sex combined,89,1545,0.0071,NA,35
+2010,fsh_len,Sex combined,91,1545,0.0071,NA,35
+2010,fsh_len,Sex combined,93,1545,0.0039,NA,35
+2010,fsh_len,Sex combined,95,1545,6e-4,NA,35
+2010,fsh_len,Sex combined,97,1545,0.0013,NA,35
+2010,fsh_len,Sex combined,99,1545,0.0026,NA,35
+2011,fsh_len,Female,41,924,0,NA,36
+2011,fsh_len,Female,43,924,0,NA,36
+2011,fsh_len,Female,45,924,0,NA,36
+2011,fsh_len,Female,47,924,0,NA,36
+2011,fsh_len,Female,49,924,0,NA,36
+2011,fsh_len,Female,51,924,0,NA,36
+2011,fsh_len,Female,53,924,0,NA,36
+2011,fsh_len,Female,55,924,0.007576,NA,36
+2011,fsh_len,Female,57,924,0.004329,NA,36
+2011,fsh_len,Female,59,924,0.00974,NA,36
+2011,fsh_len,Female,61,924,0.018398,NA,36
+2011,fsh_len,Female,63,924,0.02381,NA,36
+2011,fsh_len,Female,65,924,0.051948,NA,36
+2011,fsh_len,Female,67,924,0.07684,NA,36
+2011,fsh_len,Female,69,924,0.101732,NA,36
+2011,fsh_len,Female,71,924,0.137446,NA,36
+2011,fsh_len,Female,73,924,0.130952,NA,36
+2011,fsh_len,Female,75,924,0.102814,NA,36
+2011,fsh_len,Female,77,924,0.077922,NA,36
+2011,fsh_len,Female,79,924,0.057359,NA,36
+2011,fsh_len,Female,81,924,0.05303,NA,36
+2011,fsh_len,Female,83,924,0.046537,NA,36
+2011,fsh_len,Female,85,924,0.022727,NA,36
+2011,fsh_len,Female,87,924,0.028139,NA,36
+2011,fsh_len,Female,89,924,0.016234,NA,36
+2011,fsh_len,Female,91,924,0.010823,NA,36
+2011,fsh_len,Female,93,924,0.011905,NA,36
+2011,fsh_len,Female,95,924,0.001082,NA,36
+2011,fsh_len,Female,97,924,0.002165,NA,36
+2011,fsh_len,Female,99,924,0.006494,NA,36
+2011,fsh_len,Male,41,550,0,NA,36
+2011,fsh_len,Male,43,550,0,NA,36
+2011,fsh_len,Male,45,550,0,NA,36
+2011,fsh_len,Male,47,550,0,NA,36
+2011,fsh_len,Male,49,550,0,NA,36
+2011,fsh_len,Male,51,550,0,NA,36
+2011,fsh_len,Male,53,550,0.003636,NA,36
+2011,fsh_len,Male,55,550,0.005455,NA,36
+2011,fsh_len,Male,57,550,0.023636,NA,36
+2011,fsh_len,Male,59,550,0.04,NA,36
+2011,fsh_len,Male,61,550,0.065455,NA,36
+2011,fsh_len,Male,63,550,0.16,NA,36
+2011,fsh_len,Male,65,550,0.178182,NA,36
+2011,fsh_len,Male,67,550,0.165455,NA,36
+2011,fsh_len,Male,69,550,0.161818,NA,36
+2011,fsh_len,Male,71,550,0.072727,NA,36
+2011,fsh_len,Male,73,550,0.043636,NA,36
+2011,fsh_len,Male,75,550,0.04,NA,36
+2011,fsh_len,Male,77,550,0.018182,NA,36
+2011,fsh_len,Male,79,550,0.010909,NA,36
+2011,fsh_len,Male,81,550,0.003636,NA,36
+2011,fsh_len,Male,83,550,0.003636,NA,36
+2011,fsh_len,Male,85,550,0.001818,NA,36
+2011,fsh_len,Male,87,550,0,NA,36
+2011,fsh_len,Male,89,550,0.001818,NA,36
+2011,fsh_len,Male,91,550,0,NA,36
+2011,fsh_len,Male,93,550,0,NA,36
+2011,fsh_len,Male,95,550,0,NA,36
+2011,fsh_len,Male,97,550,0,NA,36
+2011,fsh_len,Male,99,550,0,NA,36
+2011,fsh_len,Sex combined,41,1474,0,NA,36
+2011,fsh_len,Sex combined,43,1474,0,NA,36
+2011,fsh_len,Sex combined,45,1474,0,NA,36
+2011,fsh_len,Sex combined,47,1474,0,NA,36
+2011,fsh_len,Sex combined,49,1474,0,NA,36
+2011,fsh_len,Sex combined,51,1474,0,NA,36
+2011,fsh_len,Sex combined,53,1474,0.0014,NA,36
+2011,fsh_len,Sex combined,55,1474,0.0068,NA,36
+2011,fsh_len,Sex combined,57,1474,0.0115,NA,36
+2011,fsh_len,Sex combined,59,1474,0.021,NA,36
+2011,fsh_len,Sex combined,61,1474,0.036,NA,36
+2011,fsh_len,Sex combined,63,1474,0.0746,NA,36
+2011,fsh_len,Sex combined,65,1474,0.0991,NA,36
+2011,fsh_len,Sex combined,67,1474,0.1099,NA,36
+2011,fsh_len,Sex combined,69,1474,0.1242,NA,36
+2011,fsh_len,Sex combined,71,1474,0.1133,NA,36
+2011,fsh_len,Sex combined,73,1474,0.0984,NA,36
+2011,fsh_len,Sex combined,75,1474,0.0794,NA,36
+2011,fsh_len,Sex combined,77,1474,0.0556,NA,36
+2011,fsh_len,Sex combined,79,1474,0.04,NA,36
+2011,fsh_len,Sex combined,81,1474,0.0346,NA,36
+2011,fsh_len,Sex combined,83,1474,0.0305,NA,36
+2011,fsh_len,Sex combined,85,1474,0.0149,NA,36
+2011,fsh_len,Sex combined,87,1474,0.0176,NA,36
+2011,fsh_len,Sex combined,89,1474,0.0109,NA,36
+2011,fsh_len,Sex combined,91,1474,0.0068,NA,36
+2011,fsh_len,Sex combined,93,1474,0.0075,NA,36
+2011,fsh_len,Sex combined,95,1474,7e-4,NA,36
+2011,fsh_len,Sex combined,97,1474,0.0014,NA,36
+2011,fsh_len,Sex combined,99,1474,0.0041,NA,36
+2012,fsh_len,Female,41,932,0,NA,37
+2012,fsh_len,Female,43,932,0,NA,37
+2012,fsh_len,Female,45,932,0,NA,37
+2012,fsh_len,Female,47,932,0,NA,37
+2012,fsh_len,Female,49,932,0,NA,37
+2012,fsh_len,Female,51,932,0,NA,37
+2012,fsh_len,Female,53,932,0,NA,37
+2012,fsh_len,Female,55,932,0.007511,NA,37
+2012,fsh_len,Female,57,932,0.005365,NA,37
+2012,fsh_len,Female,59,932,0.011803,NA,37
+2012,fsh_len,Female,61,932,0.019313,NA,37
+2012,fsh_len,Female,63,932,0.0397,NA,37
+2012,fsh_len,Female,65,932,0.042918,NA,37
+2012,fsh_len,Female,67,932,0.077253,NA,37
+2012,fsh_len,Female,69,932,0.097639,NA,37
+2012,fsh_len,Female,71,932,0.130901,NA,37
+2012,fsh_len,Female,73,932,0.119099,NA,37
+2012,fsh_len,Female,75,932,0.109442,NA,37
+2012,fsh_len,Female,77,932,0.092275,NA,37
+2012,fsh_len,Female,79,932,0.083691,NA,37
+2012,fsh_len,Female,81,932,0.054721,NA,37
+2012,fsh_len,Female,83,932,0.036481,NA,37
+2012,fsh_len,Female,85,932,0.027897,NA,37
+2012,fsh_len,Female,87,932,0.016094,NA,37
+2012,fsh_len,Female,89,932,0.008584,NA,37
+2012,fsh_len,Female,91,932,0.009657,NA,37
+2012,fsh_len,Female,93,932,0.003219,NA,37
+2012,fsh_len,Female,95,932,0.005365,NA,37
+2012,fsh_len,Female,97,932,0.001073,NA,37
+2012,fsh_len,Female,99,932,0,NA,37
+2012,fsh_len,Male,41,605,0,NA,37
+2012,fsh_len,Male,43,605,0,NA,37
+2012,fsh_len,Male,45,605,0,NA,37
+2012,fsh_len,Male,47,605,0,NA,37
+2012,fsh_len,Male,49,605,0,NA,37
+2012,fsh_len,Male,51,605,0,NA,37
+2012,fsh_len,Male,53,605,0.003306,NA,37
+2012,fsh_len,Male,55,605,0.009917,NA,37
+2012,fsh_len,Male,57,605,0.019835,NA,37
+2012,fsh_len,Male,59,605,0.052893,NA,37
+2012,fsh_len,Male,61,605,0.094215,NA,37
+2012,fsh_len,Male,63,605,0.142149,NA,37
+2012,fsh_len,Male,65,605,0.175207,NA,37
+2012,fsh_len,Male,67,605,0.183471,NA,37
+2012,fsh_len,Male,69,605,0.130579,NA,37
+2012,fsh_len,Male,71,605,0.100826,NA,37
+2012,fsh_len,Male,73,605,0.036364,NA,37
+2012,fsh_len,Male,75,605,0.029752,NA,37
+2012,fsh_len,Male,77,605,0.013223,NA,37
+2012,fsh_len,Male,79,605,0.001653,NA,37
+2012,fsh_len,Male,81,605,0.001653,NA,37
+2012,fsh_len,Male,83,605,0.001653,NA,37
+2012,fsh_len,Male,85,605,0.001653,NA,37
+2012,fsh_len,Male,87,605,0,NA,37
+2012,fsh_len,Male,89,605,0,NA,37
+2012,fsh_len,Male,91,605,0.001653,NA,37
+2012,fsh_len,Male,93,605,0,NA,37
+2012,fsh_len,Male,95,605,0,NA,37
+2012,fsh_len,Male,97,605,0,NA,37
+2012,fsh_len,Male,99,605,0,NA,37
+2012,fsh_len,Sex combined,41,1537,0,NA,37
+2012,fsh_len,Sex combined,43,1537,0,NA,37
+2012,fsh_len,Sex combined,45,1537,0,NA,37
+2012,fsh_len,Sex combined,47,1537,0,NA,37
+2012,fsh_len,Sex combined,49,1537,0,NA,37
+2012,fsh_len,Sex combined,51,1537,0,NA,37
+2012,fsh_len,Sex combined,53,1537,0.0013,NA,37
+2012,fsh_len,Sex combined,55,1537,0.0085,NA,37
+2012,fsh_len,Sex combined,57,1537,0.0111,NA,37
+2012,fsh_len,Sex combined,59,1537,0.028,NA,37
+2012,fsh_len,Sex combined,61,1537,0.0488,NA,37
+2012,fsh_len,Sex combined,63,1537,0.08,NA,37
+2012,fsh_len,Sex combined,65,1537,0.095,NA,37
+2012,fsh_len,Sex combined,67,1537,0.1191,NA,37
+2012,fsh_len,Sex combined,69,1537,0.1106,NA,37
+2012,fsh_len,Sex combined,71,1537,0.1191,NA,37
+2012,fsh_len,Sex combined,73,1537,0.0865,NA,37
+2012,fsh_len,Sex combined,75,1537,0.0781,NA,37
+2012,fsh_len,Sex combined,77,1537,0.0612,NA,37
+2012,fsh_len,Sex combined,79,1537,0.0514,NA,37
+2012,fsh_len,Sex combined,81,1537,0.0338,NA,37
+2012,fsh_len,Sex combined,83,1537,0.0228,NA,37
+2012,fsh_len,Sex combined,85,1537,0.0176,NA,37
+2012,fsh_len,Sex combined,87,1537,0.0098,NA,37
+2012,fsh_len,Sex combined,89,1537,0.0052,NA,37
+2012,fsh_len,Sex combined,91,1537,0.0065,NA,37
+2012,fsh_len,Sex combined,93,1537,0.002,NA,37
+2012,fsh_len,Sex combined,95,1537,0.0033,NA,37
+2012,fsh_len,Sex combined,97,1537,7e-4,NA,37
+2012,fsh_len,Sex combined,99,1537,0,NA,37
+2013,fsh_len,Female,41,717,0,NA,38
+2013,fsh_len,Female,43,717,0,NA,38
+2013,fsh_len,Female,45,717,0,NA,38
+2013,fsh_len,Female,47,717,0,NA,38
+2013,fsh_len,Female,49,717,0,NA,38
+2013,fsh_len,Female,51,717,0.001395,NA,38
+2013,fsh_len,Female,53,717,0.001395,NA,38
+2013,fsh_len,Female,55,717,0.009763,NA,38
+2013,fsh_len,Female,57,717,0.016736,NA,38
+2013,fsh_len,Female,59,717,0.022315,NA,38
+2013,fsh_len,Female,61,717,0.029289,NA,38
+2013,fsh_len,Female,63,717,0.052999,NA,38
+2013,fsh_len,Female,65,717,0.059972,NA,38
+2013,fsh_len,Female,67,717,0.076709,NA,38
+2013,fsh_len,Female,69,717,0.090656,NA,38
+2013,fsh_len,Female,71,717,0.117155,NA,38
+2013,fsh_len,Female,73,717,0.100418,NA,38
+2013,fsh_len,Female,75,717,0.086471,NA,38
+2013,fsh_len,Female,77,717,0.085077,NA,38
+2013,fsh_len,Female,79,717,0.055788,NA,38
+2013,fsh_len,Female,81,717,0.059972,NA,38
+2013,fsh_len,Female,83,717,0.039052,NA,38
+2013,fsh_len,Female,85,717,0.019526,NA,38
+2013,fsh_len,Female,87,717,0.029289,NA,38
+2013,fsh_len,Female,89,717,0.013947,NA,38
+2013,fsh_len,Female,91,717,0.013947,NA,38
+2013,fsh_len,Female,93,717,0.004184,NA,38
+2013,fsh_len,Female,95,717,0.006974,NA,38
+2013,fsh_len,Female,97,717,0.004184,NA,38
+2013,fsh_len,Female,99,717,0.002789,NA,38
+2013,fsh_len,Male,41,682,0,NA,38
+2013,fsh_len,Male,43,682,0,NA,38
+2013,fsh_len,Male,45,682,0,NA,38
+2013,fsh_len,Male,47,682,0,NA,38
+2013,fsh_len,Male,49,682,0.001466,NA,38
+2013,fsh_len,Male,51,682,0.004399,NA,38
+2013,fsh_len,Male,53,682,0.008798,NA,38
+2013,fsh_len,Male,55,682,0.021994,NA,38
+2013,fsh_len,Male,57,682,0.024927,NA,38
+2013,fsh_len,Male,59,682,0.058651,NA,38
+2013,fsh_len,Male,61,682,0.087977,NA,38
+2013,fsh_len,Male,63,682,0.18915,NA,38
+2013,fsh_len,Male,65,682,0.171554,NA,38
+2013,fsh_len,Male,67,682,0.178886,NA,38
+2013,fsh_len,Male,69,682,0.099707,NA,38
+2013,fsh_len,Male,71,682,0.067449,NA,38
+2013,fsh_len,Male,73,682,0.033724,NA,38
+2013,fsh_len,Male,75,682,0.027859,NA,38
+2013,fsh_len,Male,77,682,0.013196,NA,38
+2013,fsh_len,Male,79,682,0.004399,NA,38
+2013,fsh_len,Male,81,682,0.001466,NA,38
+2013,fsh_len,Male,83,682,0.001466,NA,38
+2013,fsh_len,Male,85,682,0.001466,NA,38
+2013,fsh_len,Male,87,682,0.001466,NA,38
+2013,fsh_len,Male,89,682,0,NA,38
+2013,fsh_len,Male,91,682,0,NA,38
+2013,fsh_len,Male,93,682,0,NA,38
+2013,fsh_len,Male,95,682,0,NA,38
+2013,fsh_len,Male,97,682,0,NA,38
+2013,fsh_len,Male,99,682,0,NA,38
+2013,fsh_len,Sex combined,41,1399,0,NA,38
+2013,fsh_len,Sex combined,43,1399,0,NA,38
+2013,fsh_len,Sex combined,45,1399,0,NA,38
+2013,fsh_len,Sex combined,47,1399,0,NA,38
+2013,fsh_len,Sex combined,49,1399,7e-4,NA,38
+2013,fsh_len,Sex combined,51,1399,0.0029,NA,38
+2013,fsh_len,Sex combined,53,1399,0.005,NA,38
+2013,fsh_len,Sex combined,55,1399,0.0157,NA,38
+2013,fsh_len,Sex combined,57,1399,0.0207,NA,38
+2013,fsh_len,Sex combined,59,1399,0.04,NA,38
+2013,fsh_len,Sex combined,61,1399,0.0579,NA,38
+2013,fsh_len,Sex combined,63,1399,0.1194,NA,38
+2013,fsh_len,Sex combined,65,1399,0.1144,NA,38
+2013,fsh_len,Sex combined,67,1399,0.1265,NA,38
+2013,fsh_len,Sex combined,69,1399,0.0951,NA,38
+2013,fsh_len,Sex combined,71,1399,0.0929,NA,38
+2013,fsh_len,Sex combined,73,1399,0.0679,NA,38
+2013,fsh_len,Sex combined,75,1399,0.0579,NA,38
+2013,fsh_len,Sex combined,77,1399,0.05,NA,38
+2013,fsh_len,Sex combined,79,1399,0.0307,NA,38
+2013,fsh_len,Sex combined,81,1399,0.0315,NA,38
+2013,fsh_len,Sex combined,83,1399,0.0207,NA,38
+2013,fsh_len,Sex combined,85,1399,0.0107,NA,38
+2013,fsh_len,Sex combined,87,1399,0.0157,NA,38
+2013,fsh_len,Sex combined,89,1399,0.0071,NA,38
+2013,fsh_len,Sex combined,91,1399,0.0071,NA,38
+2013,fsh_len,Sex combined,93,1399,0.0021,NA,38
+2013,fsh_len,Sex combined,95,1399,0.0036,NA,38
+2013,fsh_len,Sex combined,97,1399,0.0021,NA,38
+2013,fsh_len,Sex combined,99,1399,0.0014,NA,38
+2014,fsh_len,Female,41,786,0,NA,39
+2014,fsh_len,Female,43,786,0,NA,39
+2014,fsh_len,Female,45,786,0,NA,39
+2014,fsh_len,Female,47,786,0,NA,39
+2014,fsh_len,Female,49,786,0.001272,NA,39
+2014,fsh_len,Female,51,786,0.001272,NA,39
+2014,fsh_len,Female,53,786,0.001272,NA,39
+2014,fsh_len,Female,55,786,0.007634,NA,39
+2014,fsh_len,Female,57,786,0.007634,NA,39
+2014,fsh_len,Female,59,786,0.007634,NA,39
+2014,fsh_len,Female,61,786,0.021628,NA,39
+2014,fsh_len,Female,63,786,0.045802,NA,39
+2014,fsh_len,Female,65,786,0.045802,NA,39
+2014,fsh_len,Female,67,786,0.063613,NA,39
+2014,fsh_len,Female,69,786,0.077608,NA,39
+2014,fsh_len,Female,71,786,0.100509,NA,39
+2014,fsh_len,Female,73,786,0.115776,NA,39
+2014,fsh_len,Female,75,786,0.100509,NA,39
+2014,fsh_len,Female,77,786,0.083969,NA,39
+2014,fsh_len,Female,79,786,0.069975,NA,39
+2014,fsh_len,Female,81,786,0.062341,NA,39
+2014,fsh_len,Female,83,786,0.045802,NA,39
+2014,fsh_len,Female,85,786,0.045802,NA,39
+2014,fsh_len,Female,87,786,0.026718,NA,39
+2014,fsh_len,Female,89,786,0.02799,NA,39
+2014,fsh_len,Female,91,786,0.019084,NA,39
+2014,fsh_len,Female,93,786,0.005089,NA,39
+2014,fsh_len,Female,95,786,0.005089,NA,39
+2014,fsh_len,Female,97,786,0.003817,NA,39
+2014,fsh_len,Female,99,786,0.006361,NA,39
+2014,fsh_len,Male,41,569,0,NA,39
+2014,fsh_len,Male,43,569,0,NA,39
+2014,fsh_len,Male,45,569,0,NA,39
+2014,fsh_len,Male,47,569,0,NA,39
+2014,fsh_len,Male,49,569,0,NA,39
+2014,fsh_len,Male,51,569,0,NA,39
+2014,fsh_len,Male,53,569,0.001757,NA,39
+2014,fsh_len,Male,55,569,0.003515,NA,39
+2014,fsh_len,Male,57,569,0.010545,NA,39
+2014,fsh_len,Male,59,569,0.036907,NA,39
+2014,fsh_len,Male,61,569,0.094903,NA,39
+2014,fsh_len,Male,63,569,0.13884,NA,39
+2014,fsh_len,Male,65,569,0.173989,NA,39
+2014,fsh_len,Male,67,569,0.172232,NA,39
+2014,fsh_len,Male,69,569,0.14587,NA,39
+2014,fsh_len,Male,71,569,0.093146,NA,39
+2014,fsh_len,Male,73,569,0.059754,NA,39
+2014,fsh_len,Male,75,569,0.035149,NA,39
+2014,fsh_len,Male,77,569,0.015817,NA,39
+2014,fsh_len,Male,79,569,0.008787,NA,39
+2014,fsh_len,Male,81,569,0,NA,39
+2014,fsh_len,Male,83,569,0.003515,NA,39
+2014,fsh_len,Male,85,569,0,NA,39
+2014,fsh_len,Male,87,569,0.001757,NA,39
+2014,fsh_len,Male,89,569,0.001757,NA,39
+2014,fsh_len,Male,91,569,0,NA,39
+2014,fsh_len,Male,93,569,0,NA,39
+2014,fsh_len,Male,95,569,0.001757,NA,39
+2014,fsh_len,Male,97,569,0,NA,39
+2014,fsh_len,Male,99,569,0,NA,39
+2014,fsh_len,Sex combined,41,1355,0,NA,39
+2014,fsh_len,Sex combined,43,1355,0,NA,39
+2014,fsh_len,Sex combined,45,1355,0,NA,39
+2014,fsh_len,Sex combined,47,1355,0,NA,39
+2014,fsh_len,Sex combined,49,1355,7e-4,NA,39
+2014,fsh_len,Sex combined,51,1355,7e-4,NA,39
+2014,fsh_len,Sex combined,53,1355,0.0015,NA,39
+2014,fsh_len,Sex combined,55,1355,0.0059,NA,39
+2014,fsh_len,Sex combined,57,1355,0.0089,NA,39
+2014,fsh_len,Sex combined,59,1355,0.0199,NA,39
+2014,fsh_len,Sex combined,61,1355,0.0524,NA,39
+2014,fsh_len,Sex combined,63,1355,0.0849,NA,39
+2014,fsh_len,Sex combined,65,1355,0.0996,NA,39
+2014,fsh_len,Sex combined,67,1355,0.1092,NA,39
+2014,fsh_len,Sex combined,69,1355,0.1063,NA,39
+2014,fsh_len,Sex combined,71,1355,0.0974,NA,39
+2014,fsh_len,Sex combined,73,1355,0.0923,NA,39
+2014,fsh_len,Sex combined,75,1355,0.0731,NA,39
+2014,fsh_len,Sex combined,77,1355,0.0554,NA,39
+2014,fsh_len,Sex combined,79,1355,0.0443,NA,39
+2014,fsh_len,Sex combined,81,1355,0.0362,NA,39
+2014,fsh_len,Sex combined,83,1355,0.028,NA,39
+2014,fsh_len,Sex combined,85,1355,0.0266,NA,39
+2014,fsh_len,Sex combined,87,1355,0.0162,NA,39
+2014,fsh_len,Sex combined,89,1355,0.017,NA,39
+2014,fsh_len,Sex combined,91,1355,0.0111,NA,39
+2014,fsh_len,Sex combined,93,1355,0.003,NA,39
+2014,fsh_len,Sex combined,95,1355,0.0037,NA,39
+2014,fsh_len,Sex combined,97,1355,0.0022,NA,39
+2014,fsh_len,Sex combined,99,1355,0.0037,NA,39
+2015,fsh_len,Female,41,758,0,NA,40
+2015,fsh_len,Female,43,758,0,NA,40
+2015,fsh_len,Female,45,758,0,NA,40
+2015,fsh_len,Female,47,758,0.001319,NA,40
+2015,fsh_len,Female,49,758,0,NA,40
+2015,fsh_len,Female,51,758,0.002639,NA,40
+2015,fsh_len,Female,53,758,0.010554,NA,40
+2015,fsh_len,Female,55,758,0.003958,NA,40
+2015,fsh_len,Female,57,758,0.011873,NA,40
+2015,fsh_len,Female,59,758,0.009235,NA,40
+2015,fsh_len,Female,61,758,0.014512,NA,40
+2015,fsh_len,Female,63,758,0.038259,NA,40
+2015,fsh_len,Female,65,758,0.058047,NA,40
+2015,fsh_len,Female,67,758,0.080475,NA,40
+2015,fsh_len,Female,69,758,0.108179,NA,40
+2015,fsh_len,Female,71,758,0.080475,NA,40
+2015,fsh_len,Female,73,758,0.094987,NA,40
+2015,fsh_len,Female,75,758,0.091029,NA,40
+2015,fsh_len,Female,77,758,0.064644,NA,40
+2015,fsh_len,Female,79,758,0.064644,NA,40
+2015,fsh_len,Female,81,758,0.083113,NA,40
+2015,fsh_len,Female,83,758,0.050132,NA,40
+2015,fsh_len,Female,85,758,0.043536,NA,40
+2015,fsh_len,Female,87,758,0.029024,NA,40
+2015,fsh_len,Female,89,758,0.010554,NA,40
+2015,fsh_len,Female,91,758,0.023747,NA,40
+2015,fsh_len,Female,93,758,0.003958,NA,40
+2015,fsh_len,Female,95,758,0.006596,NA,40
+2015,fsh_len,Female,97,758,0.003958,NA,40
+2015,fsh_len,Female,99,758,0.010554,NA,40
+2015,fsh_len,Male,41,451,0,NA,40
+2015,fsh_len,Male,43,451,0,NA,40
+2015,fsh_len,Male,45,451,0,NA,40
+2015,fsh_len,Male,47,451,0,NA,40
+2015,fsh_len,Male,49,451,0,NA,40
+2015,fsh_len,Male,51,451,0.002217,NA,40
+2015,fsh_len,Male,53,451,0.002217,NA,40
+2015,fsh_len,Male,55,451,0.004435,NA,40
+2015,fsh_len,Male,57,451,0.026608,NA,40
+2015,fsh_len,Male,59,451,0.039911,NA,40
+2015,fsh_len,Male,61,451,0.066519,NA,40
+2015,fsh_len,Male,63,451,0.119734,NA,40
+2015,fsh_len,Male,65,451,0.148559,NA,40
+2015,fsh_len,Male,67,451,0.18847,NA,40
+2015,fsh_len,Male,69,451,0.13969,NA,40
+2015,fsh_len,Male,71,451,0.115299,NA,40
+2015,fsh_len,Male,73,451,0.064302,NA,40
+2015,fsh_len,Male,75,451,0.026608,NA,40
+2015,fsh_len,Male,77,451,0.02217299999999999,NA,40
+2015,fsh_len,Male,79,451,0.013304,NA,40
+2015,fsh_len,Male,81,451,0.008869,NA,40
+2015,fsh_len,Male,83,451,0.002217,NA,40
+2015,fsh_len,Male,85,451,0,NA,40
+2015,fsh_len,Male,87,451,0.006652,NA,40
+2015,fsh_len,Male,89,451,0,NA,40
+2015,fsh_len,Male,91,451,0,NA,40
+2015,fsh_len,Male,93,451,0,NA,40
+2015,fsh_len,Male,95,451,0.002217,NA,40
+2015,fsh_len,Male,97,451,0,NA,40
+2015,fsh_len,Male,99,451,0,NA,40
+2015,fsh_len,Sex combined,41,1209,0,NA,40
+2015,fsh_len,Sex combined,43,1209,0,NA,40
+2015,fsh_len,Sex combined,45,1209,0,NA,40
+2015,fsh_len,Sex combined,47,1209,8e-4,NA,40
+2015,fsh_len,Sex combined,49,1209,0,NA,40
+2015,fsh_len,Sex combined,51,1209,0.0025,NA,40
+2015,fsh_len,Sex combined,53,1209,0.0074,NA,40
+2015,fsh_len,Sex combined,55,1209,0.0041,NA,40
+2015,fsh_len,Sex combined,57,1209,0.0174,NA,40
+2015,fsh_len,Sex combined,59,1209,0.0207,NA,40
+2015,fsh_len,Sex combined,61,1209,0.0339,NA,40
+2015,fsh_len,Sex combined,63,1209,0.0687,NA,40
+2015,fsh_len,Sex combined,65,1209,0.0918,NA,40
+2015,fsh_len,Sex combined,67,1209,0.1208,NA,40
+2015,fsh_len,Sex combined,69,1209,0.1199,NA,40
+2015,fsh_len,Sex combined,71,1209,0.0935,NA,40
+2015,fsh_len,Sex combined,73,1209,0.0835,NA,40
+2015,fsh_len,Sex combined,75,1209,0.067,NA,40
+2015,fsh_len,Sex combined,77,1209,0.0488,NA,40
+2015,fsh_len,Sex combined,79,1209,0.0455,NA,40
+2015,fsh_len,Sex combined,81,1209,0.0554,NA,40
+2015,fsh_len,Sex combined,83,1209,0.0323,NA,40
+2015,fsh_len,Sex combined,85,1209,0.0273,NA,40
+2015,fsh_len,Sex combined,87,1209,0.0207,NA,40
+2015,fsh_len,Sex combined,89,1209,0.0066,NA,40
+2015,fsh_len,Sex combined,91,1209,0.0149,NA,40
+2015,fsh_len,Sex combined,93,1209,0.0025,NA,40
+2015,fsh_len,Sex combined,95,1209,0.005,NA,40
+2015,fsh_len,Sex combined,97,1209,0.0025,NA,40
+2015,fsh_len,Sex combined,99,1209,0.0066,NA,40
+2016,fsh_len,Female,41,930,0,NA,41
+2016,fsh_len,Female,43,930,0,NA,41
+2016,fsh_len,Female,45,930,0,NA,41
+2016,fsh_len,Female,47,930,0.001075,NA,41
+2016,fsh_len,Female,49,930,0,NA,41
+2016,fsh_len,Female,51,930,0,NA,41
+2016,fsh_len,Female,53,930,0.003226,NA,41
+2016,fsh_len,Female,55,930,0.005376,NA,41
+2016,fsh_len,Female,57,930,0.004301,NA,41
+2016,fsh_len,Female,59,930,0.012903,NA,41
+2016,fsh_len,Female,61,930,0.016129,NA,41
+2016,fsh_len,Female,63,930,0.031183,NA,41
+2016,fsh_len,Female,65,930,0.063441,NA,41
+2016,fsh_len,Female,67,930,0.056989,NA,41
+2016,fsh_len,Female,69,930,0.077419,NA,41
+2016,fsh_len,Female,71,930,0.088172,NA,41
+2016,fsh_len,Female,73,930,0.093548,NA,41
+2016,fsh_len,Female,75,930,0.082796,NA,41
+2016,fsh_len,Female,77,930,0.072043,NA,41
+2016,fsh_len,Female,79,930,0.075269,NA,41
+2016,fsh_len,Female,81,930,0.074194,NA,41
+2016,fsh_len,Female,83,930,0.056989,NA,41
+2016,fsh_len,Female,85,930,0.050538,NA,41
+2016,fsh_len,Female,87,930,0.047312,NA,41
+2016,fsh_len,Female,89,930,0.023656,NA,41
+2016,fsh_len,Female,91,930,0.01828,NA,41
+2016,fsh_len,Female,93,930,0.013978,NA,41
+2016,fsh_len,Female,95,930,0.008602,NA,41
+2016,fsh_len,Female,97,930,0.010753,NA,41
+2016,fsh_len,Female,99,930,0.011828,NA,41
+2016,fsh_len,Male,41,518,0,NA,41
+2016,fsh_len,Male,43,518,0.001931,NA,41
+2016,fsh_len,Male,45,518,0.001931,NA,41
+2016,fsh_len,Male,47,518,0,NA,41
+2016,fsh_len,Male,49,518,0,NA,41
+2016,fsh_len,Male,51,518,0.013514,NA,41
+2016,fsh_len,Male,53,518,0.005792,NA,41
+2016,fsh_len,Male,55,518,0.015444,NA,41
+2016,fsh_len,Male,57,518,0.009653,NA,41
+2016,fsh_len,Male,59,518,0.034749,NA,41
+2016,fsh_len,Male,61,518,0.088803000000000007,NA,41
+2016,fsh_len,Male,63,518,0.138996,NA,41
+2016,fsh_len,Male,65,518,0.156371,NA,41
+2016,fsh_len,Male,67,518,0.167954,NA,41
+2016,fsh_len,Male,69,518,0.135135,NA,41
+2016,fsh_len,Male,71,518,0.1139,NA,41
+2016,fsh_len,Male,73,518,0.050193,NA,41
+2016,fsh_len,Male,75,518,0.028958,NA,41
+2016,fsh_len,Male,77,518,0.017375,NA,41
+2016,fsh_len,Male,79,518,0.005792,NA,41
+2016,fsh_len,Male,81,518,0.005792,NA,41
+2016,fsh_len,Male,83,518,0.003861,NA,41
+2016,fsh_len,Male,85,518,0.003861,NA,41
+2016,fsh_len,Male,87,518,0,NA,41
+2016,fsh_len,Male,89,518,0,NA,41
+2016,fsh_len,Male,91,518,0,NA,41
+2016,fsh_len,Male,93,518,0,NA,41
+2016,fsh_len,Male,95,518,0,NA,41
+2016,fsh_len,Male,97,518,0,NA,41
+2016,fsh_len,Male,99,518,0,NA,41
+2016,fsh_len,Sex combined,41,1448,0,NA,41
+2016,fsh_len,Sex combined,43,1448,7e-4,NA,41
+2016,fsh_len,Sex combined,45,1448,7e-4,NA,41
+2016,fsh_len,Sex combined,47,1448,7e-4,NA,41
+2016,fsh_len,Sex combined,49,1448,0,NA,41
+2016,fsh_len,Sex combined,51,1448,0.0048,NA,41
+2016,fsh_len,Sex combined,53,1448,0.0041,NA,41
+2016,fsh_len,Sex combined,55,1448,0.009,NA,41
+2016,fsh_len,Sex combined,57,1448,0.0062,NA,41
+2016,fsh_len,Sex combined,59,1448,0.0207,NA,41
+2016,fsh_len,Sex combined,61,1448,0.0421,NA,41
+2016,fsh_len,Sex combined,63,1448,0.0698,NA,41
+2016,fsh_len,Sex combined,65,1448,0.0967,NA,41
+2016,fsh_len,Sex combined,67,1448,0.0967,NA,41
+2016,fsh_len,Sex combined,69,1448,0.0981,NA,41
+2016,fsh_len,Sex combined,71,1448,0.0974,NA,41
+2016,fsh_len,Sex combined,73,1448,0.078,NA,41
+2016,fsh_len,Sex combined,75,1448,0.0635,NA,41
+2016,fsh_len,Sex combined,77,1448,0.0525,NA,41
+2016,fsh_len,Sex combined,79,1448,0.0504,NA,41
+2016,fsh_len,Sex combined,81,1448,0.0497,NA,41
+2016,fsh_len,Sex combined,83,1448,0.038,NA,41
+2016,fsh_len,Sex combined,85,1448,0.0338,NA,41
+2016,fsh_len,Sex combined,87,1448,0.0304,NA,41
+2016,fsh_len,Sex combined,89,1448,0.0152,NA,41
+2016,fsh_len,Sex combined,91,1448,0.0117,NA,41
+2016,fsh_len,Sex combined,93,1448,0.009,NA,41
+2016,fsh_len,Sex combined,95,1448,0.0055,NA,41
+2016,fsh_len,Sex combined,97,1448,0.0069,NA,41
+2016,fsh_len,Sex combined,99,1448,0.0076,NA,41
+2017,fsh_len,Female,41,840,0,NA,42
+2017,fsh_len,Female,43,840,0,NA,42
+2017,fsh_len,Female,45,840,0,NA,42
+2017,fsh_len,Female,47,840,0.00119,NA,42
+2017,fsh_len,Female,49,840,0.002381,NA,42
+2017,fsh_len,Female,51,840,0.005952,NA,42
+2017,fsh_len,Female,53,840,0.011905,NA,42
+2017,fsh_len,Female,55,840,0.014286,NA,42
+2017,fsh_len,Female,57,840,0.027381,NA,42
+2017,fsh_len,Female,59,840,0.020238,NA,42
+2017,fsh_len,Female,61,840,0.039286,NA,42
+2017,fsh_len,Female,63,840,0.029762,NA,42
+2017,fsh_len,Female,65,840,0.036905,NA,42
+2017,fsh_len,Female,67,840,0.061905,NA,42
+2017,fsh_len,Female,69,840,0.058333,NA,42
+2017,fsh_len,Female,71,840,0.085714,NA,42
+2017,fsh_len,Female,73,840,0.060714,NA,42
+2017,fsh_len,Female,75,840,0.065476,NA,42
+2017,fsh_len,Female,77,840,0.07619,NA,42
+2017,fsh_len,Female,79,840,0.078571,NA,42
+2017,fsh_len,Female,81,840,0.059524,NA,42
+2017,fsh_len,Female,83,840,0.070238,NA,42
+2017,fsh_len,Female,85,840,0.067857,NA,42
+2017,fsh_len,Female,87,840,0.033333,NA,42
+2017,fsh_len,Female,89,840,0.022619,NA,42
+2017,fsh_len,Female,91,840,0.021429,NA,42
+2017,fsh_len,Female,93,840,0.019048,NA,42
+2017,fsh_len,Female,95,840,0.014286,NA,42
+2017,fsh_len,Female,97,840,0.003571,NA,42
+2017,fsh_len,Female,99,840,0.011905,NA,42
+2017,fsh_len,Male,41,602,0,NA,42
+2017,fsh_len,Male,43,602,0,NA,42
+2017,fsh_len,Male,45,602,0,NA,42
+2017,fsh_len,Male,47,602,0.004983,NA,42
+2017,fsh_len,Male,49,602,0.001661,NA,42
+2017,fsh_len,Male,51,602,0.001661,NA,42
+2017,fsh_len,Male,53,602,0.011628,NA,42
+2017,fsh_len,Male,55,602,0.021595,NA,42
+2017,fsh_len,Male,57,602,0.024917,NA,42
+2017,fsh_len,Male,59,602,0.043189,NA,42
+2017,fsh_len,Male,61,602,0.071429,NA,42
+2017,fsh_len,Male,63,602,0.137874,NA,42
+2017,fsh_len,Male,65,602,0.159468,NA,42
+2017,fsh_len,Male,67,602,0.174419,NA,42
+2017,fsh_len,Male,69,602,0.129568,NA,42
+2017,fsh_len,Male,71,602,0.096346,NA,42
+2017,fsh_len,Male,73,602,0.056478,NA,42
+2017,fsh_len,Male,75,602,0.028239,NA,42
+2017,fsh_len,Male,77,602,0.021595,NA,42
+2017,fsh_len,Male,79,602,0.009967,NA,42
+2017,fsh_len,Male,81,602,0.004983,NA,42
+2017,fsh_len,Male,83,602,0,NA,42
+2017,fsh_len,Male,85,602,0,NA,42
+2017,fsh_len,Male,87,602,0,NA,42
+2017,fsh_len,Male,89,602,0,NA,42
+2017,fsh_len,Male,91,602,0,NA,42
+2017,fsh_len,Male,93,602,0,NA,42
+2017,fsh_len,Male,95,602,0,NA,42
+2017,fsh_len,Male,97,602,0,NA,42
+2017,fsh_len,Male,99,602,0,NA,42
+2017,fsh_len,Sex combined,41,1442,0,NA,42
+2017,fsh_len,Sex combined,43,1442,0,NA,42
+2017,fsh_len,Sex combined,45,1442,0,NA,42
+2017,fsh_len,Sex combined,47,1442,0.0028,NA,42
+2017,fsh_len,Sex combined,49,1442,0.0021,NA,42
+2017,fsh_len,Sex combined,51,1442,0.0042,NA,42
+2017,fsh_len,Sex combined,53,1442,0.0118,NA,42
+2017,fsh_len,Sex combined,55,1442,0.0173,NA,42
+2017,fsh_len,Sex combined,57,1442,0.0264,NA,42
+2017,fsh_len,Sex combined,59,1442,0.0298,NA,42
+2017,fsh_len,Sex combined,61,1442,0.0527,NA,42
+2017,fsh_len,Sex combined,63,1442,0.0749,NA,42
+2017,fsh_len,Sex combined,65,1442,0.0881,NA,42
+2017,fsh_len,Sex combined,67,1442,0.1089,NA,42
+2017,fsh_len,Sex combined,69,1442,0.0881,NA,42
+2017,fsh_len,Sex combined,71,1442,0.0902,NA,42
+2017,fsh_len,Sex combined,73,1442,0.0589,NA,42
+2017,fsh_len,Sex combined,75,1442,0.0499,NA,42
+2017,fsh_len,Sex combined,77,1442,0.0534,NA,42
+2017,fsh_len,Sex combined,79,1442,0.0499,NA,42
+2017,fsh_len,Sex combined,81,1442,0.0368,NA,42
+2017,fsh_len,Sex combined,83,1442,0.0409,NA,42
+2017,fsh_len,Sex combined,85,1442,0.0395,NA,42
+2017,fsh_len,Sex combined,87,1442,0.0194,NA,42
+2017,fsh_len,Sex combined,89,1442,0.0132,NA,42
+2017,fsh_len,Sex combined,91,1442,0.0125,NA,42
+2017,fsh_len,Sex combined,93,1442,0.0111,NA,42
+2017,fsh_len,Sex combined,95,1442,0.0083,NA,42
+2017,fsh_len,Sex combined,97,1442,0.0021,NA,42
+2017,fsh_len,Sex combined,99,1442,0.0069,NA,42
+2018,fsh_len,Female,41,814,0,NA,43
+2018,fsh_len,Female,43,814,0,NA,43
+2018,fsh_len,Female,45,814,0,NA,43
+2018,fsh_len,Female,47,814,0,NA,43
+2018,fsh_len,Female,49,814,0,NA,43
+2018,fsh_len,Female,51,814,0.004914,NA,43
+2018,fsh_len,Female,53,814,0.007371,NA,43
+2018,fsh_len,Female,55,814,0.007371,NA,43
+2018,fsh_len,Female,57,814,0.017199,NA,43
+2018,fsh_len,Female,59,814,0.015971,NA,43
+2018,fsh_len,Female,61,814,0.029484,NA,43
+2018,fsh_len,Female,63,814,0.044226,NA,43
+2018,fsh_len,Female,65,814,0.05774,NA,43
+2018,fsh_len,Female,67,814,0.066339,NA,43
+2018,fsh_len,Female,69,814,0.078624,NA,43
+2018,fsh_len,Female,71,814,0.088452,NA,43
+2018,fsh_len,Female,73,814,0.061425,NA,43
+2018,fsh_len,Female,75,814,0.078624,NA,43
+2018,fsh_len,Female,77,814,0.087224,NA,43
+2018,fsh_len,Female,79,814,0.084767,NA,43
+2018,fsh_len,Female,81,814,0.071253,NA,43
+2018,fsh_len,Female,83,814,0.058968,NA,43
+2018,fsh_len,Female,85,814,0.03317,NA,43
+2018,fsh_len,Female,87,814,0.030713,NA,43
+2018,fsh_len,Female,89,814,0.027027,NA,43
+2018,fsh_len,Female,91,814,0.017199,NA,43
+2018,fsh_len,Female,93,814,0.009828,NA,43
+2018,fsh_len,Female,95,814,0.015971,NA,43
+2018,fsh_len,Female,97,814,0.002457,NA,43
+2018,fsh_len,Female,99,814,0.003686,NA,43
+2018,fsh_len,Male,41,506,0,NA,43
+2018,fsh_len,Male,43,506,0,NA,43
+2018,fsh_len,Male,45,506,0,NA,43
+2018,fsh_len,Male,47,506,0,NA,43
+2018,fsh_len,Male,49,506,0,NA,43
+2018,fsh_len,Male,51,506,0.001976,NA,43
+2018,fsh_len,Male,53,506,0.017787,NA,43
+2018,fsh_len,Male,55,506,0.01581,NA,43
+2018,fsh_len,Male,57,506,0.029644,NA,43
+2018,fsh_len,Male,59,506,0.055336,NA,43
+2018,fsh_len,Male,61,506,0.063241,NA,43
+2018,fsh_len,Male,63,506,0.120553,NA,43
+2018,fsh_len,Male,65,506,0.167984,NA,43
+2018,fsh_len,Male,67,506,0.183794,NA,43
+2018,fsh_len,Male,69,506,0.112648,NA,43
+2018,fsh_len,Male,71,506,0.102767,NA,43
+2018,fsh_len,Male,73,506,0.06917,NA,43
+2018,fsh_len,Male,75,506,0.037549,NA,43
+2018,fsh_len,Male,77,506,0.011858,NA,43
+2018,fsh_len,Male,79,506,0.001976,NA,43
+2018,fsh_len,Male,81,506,0.005929,NA,43
+2018,fsh_len,Male,83,506,0,NA,43
+2018,fsh_len,Male,85,506,0.001976,NA,43
+2018,fsh_len,Male,87,506,0,NA,43
+2018,fsh_len,Male,89,506,0,NA,43
+2018,fsh_len,Male,91,506,0,NA,43
+2018,fsh_len,Male,93,506,0,NA,43
+2018,fsh_len,Male,95,506,0,NA,43
+2018,fsh_len,Male,97,506,0,NA,43
+2018,fsh_len,Male,99,506,0,NA,43
+2018,fsh_len,Sex combined,41,1320,0,NA,43
+2018,fsh_len,Sex combined,43,1320,0,NA,43
+2018,fsh_len,Sex combined,45,1320,0,NA,43
+2018,fsh_len,Sex combined,47,1320,0,NA,43
+2018,fsh_len,Sex combined,49,1320,0,NA,43
+2018,fsh_len,Sex combined,51,1320,0.0038,NA,43
+2018,fsh_len,Sex combined,53,1320,0.0114,NA,43
+2018,fsh_len,Sex combined,55,1320,0.0106,NA,43
+2018,fsh_len,Sex combined,57,1320,0.022,NA,43
+2018,fsh_len,Sex combined,59,1320,0.0311,NA,43
+2018,fsh_len,Sex combined,61,1320,0.0424,NA,43
+2018,fsh_len,Sex combined,63,1320,0.0735,NA,43
+2018,fsh_len,Sex combined,65,1320,0.1,NA,43
+2018,fsh_len,Sex combined,67,1320,0.1114,NA,43
+2018,fsh_len,Sex combined,69,1320,0.0917,NA,43
+2018,fsh_len,Sex combined,71,1320,0.0939,NA,43
+2018,fsh_len,Sex combined,73,1320,0.0644,NA,43
+2018,fsh_len,Sex combined,75,1320,0.0629,NA,43
+2018,fsh_len,Sex combined,77,1320,0.0583,NA,43
+2018,fsh_len,Sex combined,79,1320,0.053,NA,43
+2018,fsh_len,Sex combined,81,1320,0.0462,NA,43
+2018,fsh_len,Sex combined,83,1320,0.0364,NA,43
+2018,fsh_len,Sex combined,85,1320,0.0212,NA,43
+2018,fsh_len,Sex combined,87,1320,0.0189,NA,43
+2018,fsh_len,Sex combined,89,1320,0.0167,NA,43
+2018,fsh_len,Sex combined,91,1320,0.0106,NA,43
+2018,fsh_len,Sex combined,93,1320,0.0061,NA,43
+2018,fsh_len,Sex combined,95,1320,0.0098,NA,43
+2018,fsh_len,Sex combined,97,1320,0.0015,NA,43
+2018,fsh_len,Sex combined,99,1320,0.0023,NA,43
+2019,fsh_len,Female,41,828,0,NA,44
+2019,fsh_len,Female,43,828,0,NA,44
+2019,fsh_len,Female,45,828,0,NA,44
+2019,fsh_len,Female,47,828,0,NA,44
+2019,fsh_len,Female,49,828,0,NA,44
+2019,fsh_len,Female,51,828,0.001208,NA,44
+2019,fsh_len,Female,53,828,0.007246,NA,44
+2019,fsh_len,Female,55,828,0.006039,NA,44
+2019,fsh_len,Female,57,828,0.022947,NA,44
+2019,fsh_len,Female,59,828,0.018116,NA,44
+2019,fsh_len,Female,61,828,0.03744,NA,44
+2019,fsh_len,Female,63,828,0.067633,NA,44
+2019,fsh_len,Female,65,828,0.082126,NA,44
+2019,fsh_len,Female,67,828,0.083333,NA,44
+2019,fsh_len,Female,69,828,0.071256,NA,44
+2019,fsh_len,Female,71,828,0.094203,NA,44
+2019,fsh_len,Female,73,828,0.097826,NA,44
+2019,fsh_len,Female,75,828,0.082126,NA,44
+2019,fsh_len,Female,77,828,0.077295,NA,44
+2019,fsh_len,Female,79,828,0.060386,NA,44
+2019,fsh_len,Female,81,828,0.066425,NA,44
+2019,fsh_len,Female,83,828,0.036232,NA,44
+2019,fsh_len,Female,85,828,0.027778,NA,44
+2019,fsh_len,Female,87,828,0.024155,NA,44
+2019,fsh_len,Female,89,828,0.008454,NA,44
+2019,fsh_len,Female,91,828,0.003623,NA,44
+2019,fsh_len,Female,93,828,0.009662,NA,44
+2019,fsh_len,Female,95,828,0.002415,NA,44
+2019,fsh_len,Female,97,828,0.006039,NA,44
+2019,fsh_len,Female,99,828,0.006039,NA,44
+2019,fsh_len,Male,41,513,0,NA,44
+2019,fsh_len,Male,43,513,0,NA,44
+2019,fsh_len,Male,45,513,0,NA,44
+2019,fsh_len,Male,47,513,0.001949,NA,44
+2019,fsh_len,Male,49,513,0.001949,NA,44
+2019,fsh_len,Male,51,513,0,NA,44
+2019,fsh_len,Male,53,513,0.003899,NA,44
+2019,fsh_len,Male,55,513,0.009747,NA,44
+2019,fsh_len,Male,57,513,0.02924,NA,44
+2019,fsh_len,Male,59,513,0.060429,NA,44
+2019,fsh_len,Male,61,513,0.064327,NA,44
+2019,fsh_len,Male,63,513,0.097466,NA,44
+2019,fsh_len,Male,65,513,0.17154,NA,44
+2019,fsh_len,Male,67,513,0.163743,NA,44
+2019,fsh_len,Male,69,513,0.146199,NA,44
+2019,fsh_len,Male,71,513,0.128655,NA,44
+2019,fsh_len,Male,73,513,0.064327,NA,44
+2019,fsh_len,Male,75,513,0.023392,NA,44
+2019,fsh_len,Male,77,513,0.007797,NA,44
+2019,fsh_len,Male,79,513,0.009747,NA,44
+2019,fsh_len,Male,81,513,0.003899,NA,44
+2019,fsh_len,Male,83,513,0.005848,NA,44
+2019,fsh_len,Male,85,513,0.001949,NA,44
+2019,fsh_len,Male,87,513,0.001949,NA,44
+2019,fsh_len,Male,89,513,0,NA,44
+2019,fsh_len,Male,91,513,0.001949,NA,44
+2019,fsh_len,Male,93,513,0,NA,44
+2019,fsh_len,Male,95,513,0,NA,44
+2019,fsh_len,Male,97,513,0,NA,44
+2019,fsh_len,Male,99,513,0,NA,44
+2019,fsh_len,Sex combined,41,1341,0,NA,44
+2019,fsh_len,Sex combined,43,1341,0,NA,44
+2019,fsh_len,Sex combined,45,1341,0,NA,44
+2019,fsh_len,Sex combined,47,1341,7e-4,NA,44
+2019,fsh_len,Sex combined,49,1341,7e-4,NA,44
+2019,fsh_len,Sex combined,51,1341,7e-4,NA,44
+2019,fsh_len,Sex combined,53,1341,0.006,NA,44
+2019,fsh_len,Sex combined,55,1341,0.0075,NA,44
+2019,fsh_len,Sex combined,57,1341,0.0254,NA,44
+2019,fsh_len,Sex combined,59,1341,0.0343,NA,44
+2019,fsh_len,Sex combined,61,1341,0.0477,NA,44
+2019,fsh_len,Sex combined,63,1341,0.079,NA,44
+2019,fsh_len,Sex combined,65,1341,0.1163,NA,44
+2019,fsh_len,Sex combined,67,1341,0.1141,NA,44
+2019,fsh_len,Sex combined,69,1341,0.0999,NA,44
+2019,fsh_len,Sex combined,71,1341,0.1074,NA,44
+2019,fsh_len,Sex combined,73,1341,0.085,NA,44
+2019,fsh_len,Sex combined,75,1341,0.0597,NA,44
+2019,fsh_len,Sex combined,77,1341,0.0507,NA,44
+2019,fsh_len,Sex combined,79,1341,0.041,NA,44
+2019,fsh_len,Sex combined,81,1341,0.0425,NA,44
+2019,fsh_len,Sex combined,83,1341,0.0246,NA,44
+2019,fsh_len,Sex combined,85,1341,0.0179,NA,44
+2019,fsh_len,Sex combined,87,1341,0.0157,NA,44
+2019,fsh_len,Sex combined,89,1341,0.0052,NA,44
+2019,fsh_len,Sex combined,91,1341,0.003,NA,44
+2019,fsh_len,Sex combined,93,1341,0.006,NA,44
+2019,fsh_len,Sex combined,95,1341,0.0015,NA,44
+2019,fsh_len,Sex combined,97,1341,0.0037,NA,44
+2019,fsh_len,Sex combined,99,1341,0.0037,NA,44
+2020,fsh_len,Female,41,783,0,NA,45
+2020,fsh_len,Female,43,783,0,NA,45
+2020,fsh_len,Female,45,783,0,NA,45
+2020,fsh_len,Female,47,783,0,NA,45
+2020,fsh_len,Female,49,783,0,NA,45
+2020,fsh_len,Female,51,783,0.001277,NA,45
+2020,fsh_len,Female,53,783,0.012771,NA,45
+2020,fsh_len,Female,55,783,0.021711,NA,45
+2020,fsh_len,Female,57,783,0.038314,NA,45
+2020,fsh_len,Female,59,783,0.03576,NA,45
+2020,fsh_len,Female,61,783,0.084291,NA,45
+2020,fsh_len,Female,63,783,0.10728,NA,45
+2020,fsh_len,Female,65,783,0.0894,NA,45
+2020,fsh_len,Female,67,783,0.114943,NA,45
+2020,fsh_len,Female,69,783,0.08046,NA,45
+2020,fsh_len,Female,71,783,0.067688,NA,45
+2020,fsh_len,Female,73,783,0.051086,NA,45
+2020,fsh_len,Female,75,783,0.048531,NA,45
+2020,fsh_len,Female,77,783,0.049808,NA,45
+2020,fsh_len,Female,79,783,0.056194,NA,45
+2020,fsh_len,Female,81,783,0.042146,NA,45
+2020,fsh_len,Female,83,783,0.031928,NA,45
+2020,fsh_len,Female,85,783,0.019157,NA,45
+2020,fsh_len,Female,87,783,0.012771,NA,45
+2020,fsh_len,Female,89,783,0.012771,NA,45
+2020,fsh_len,Female,91,783,0.003831,NA,45
+2020,fsh_len,Female,93,783,0.006386,NA,45
+2020,fsh_len,Female,95,783,0.003831,NA,45
+2020,fsh_len,Female,97,783,0.002554,NA,45
+2020,fsh_len,Female,99,783,0.005109,NA,45
+2020,fsh_len,Male,41,511,0,NA,45
+2020,fsh_len,Male,43,511,0,NA,45
+2020,fsh_len,Male,45,511,0,NA,45
+2020,fsh_len,Male,47,511,0,NA,45
+2020,fsh_len,Male,49,511,0,NA,45
+2020,fsh_len,Male,51,511,0.003914,NA,45
+2020,fsh_len,Male,53,511,0.005871,NA,45
+2020,fsh_len,Male,55,511,0.009785,NA,45
+2020,fsh_len,Male,57,511,0.060665,NA,45
+2020,fsh_len,Male,59,511,0.091977,NA,45
+2020,fsh_len,Male,61,511,0.107632,NA,45
+2020,fsh_len,Male,63,511,0.11546,NA,45
+2020,fsh_len,Male,65,511,0.154599,NA,45
+2020,fsh_len,Male,67,511,0.1409,NA,45
+2020,fsh_len,Male,69,511,0.158513,NA,45
+2020,fsh_len,Male,71,511,0.068493,NA,45
+2020,fsh_len,Male,73,511,0.043053,NA,45
+2020,fsh_len,Male,75,511,0.023483,NA,45
+2020,fsh_len,Male,77,511,0.009785,NA,45
+2020,fsh_len,Male,79,511,0.003914,NA,45
+2020,fsh_len,Male,81,511,0.001957,NA,45
+2020,fsh_len,Male,83,511,0,NA,45
+2020,fsh_len,Male,85,511,0,NA,45
+2020,fsh_len,Male,87,511,0,NA,45
+2020,fsh_len,Male,89,511,0,NA,45
+2020,fsh_len,Male,91,511,0,NA,45
+2020,fsh_len,Male,93,511,0,NA,45
+2020,fsh_len,Male,95,511,0,NA,45
+2020,fsh_len,Male,97,511,0,NA,45
+2020,fsh_len,Male,99,511,0,NA,45
+2020,fsh_len,Sex combined,41,1294,0,NA,45
+2020,fsh_len,Sex combined,43,1294,0,NA,45
+2020,fsh_len,Sex combined,45,1294,0,NA,45
+2020,fsh_len,Sex combined,47,1294,0,NA,45
+2020,fsh_len,Sex combined,49,1294,0,NA,45
+2020,fsh_len,Sex combined,51,1294,0.0023,NA,45
+2020,fsh_len,Sex combined,53,1294,0.01,NA,45
+2020,fsh_len,Sex combined,55,1294,0.017,NA,45
+2020,fsh_len,Sex combined,57,1294,0.0471,NA,45
+2020,fsh_len,Sex combined,59,1294,0.058,NA,45
+2020,fsh_len,Sex combined,61,1294,0.0935,NA,45
+2020,fsh_len,Sex combined,63,1294,0.1105,NA,45
+2020,fsh_len,Sex combined,65,1294,0.1151,NA,45
+2020,fsh_len,Sex combined,67,1294,0.1252,NA,45
+2020,fsh_len,Sex combined,69,1294,0.1113,NA,45
+2020,fsh_len,Sex combined,71,1294,0.068,NA,45
+2020,fsh_len,Sex combined,73,1294,0.0479,NA,45
+2020,fsh_len,Sex combined,75,1294,0.0386,NA,45
+2020,fsh_len,Sex combined,77,1294,0.034,NA,45
+2020,fsh_len,Sex combined,79,1294,0.0355,NA,45
+2020,fsh_len,Sex combined,81,1294,0.0263,NA,45
+2020,fsh_len,Sex combined,83,1294,0.0193,NA,45
+2020,fsh_len,Sex combined,85,1294,0.0116,NA,45
+2020,fsh_len,Sex combined,87,1294,0.0077,NA,45
+2020,fsh_len,Sex combined,89,1294,0.0077,NA,45
+2020,fsh_len,Sex combined,91,1294,0.0023,NA,45
+2020,fsh_len,Sex combined,93,1294,0.0039,NA,45
+2020,fsh_len,Sex combined,95,1294,0.0023,NA,45
+2020,fsh_len,Sex combined,97,1294,0.0015,NA,45
+2020,fsh_len,Sex combined,99,1294,0.0031,NA,45
+2021,fsh_len,Female,41,498,0,NA,46
+2021,fsh_len,Female,43,498,0,NA,46
+2021,fsh_len,Female,45,498,0,NA,46
+2021,fsh_len,Female,47,498,0,NA,46
+2021,fsh_len,Female,49,498,0.002008,NA,46
+2021,fsh_len,Female,51,498,0.002008,NA,46
+2021,fsh_len,Female,53,498,0.008032,NA,46
+2021,fsh_len,Female,55,498,0.02008,NA,46
+2021,fsh_len,Female,57,498,0.040161,NA,46
+2021,fsh_len,Female,59,498,0.046185,NA,46
+2021,fsh_len,Female,61,498,0.080321,NA,46
+2021,fsh_len,Female,63,498,0.124498,NA,46
+2021,fsh_len,Female,65,498,0.100402,NA,46
+2021,fsh_len,Female,67,498,0.114458,NA,46
+2021,fsh_len,Female,69,498,0.070281,NA,46
+2021,fsh_len,Female,71,498,0.066265,NA,46
+2021,fsh_len,Female,73,498,0.066265,NA,46
+2021,fsh_len,Female,75,498,0.058233,NA,46
+2021,fsh_len,Female,77,498,0.038153,NA,46
+2021,fsh_len,Female,79,498,0.034137,NA,46
+2021,fsh_len,Female,81,498,0.028112,NA,46
+2021,fsh_len,Female,83,498,0.022088,NA,46
+2021,fsh_len,Female,85,498,0.026104,NA,46
+2021,fsh_len,Female,87,498,0.018072,NA,46
+2021,fsh_len,Female,89,498,0.014056,NA,46
+2021,fsh_len,Female,91,498,0.006024,NA,46
+2021,fsh_len,Female,93,498,0.002008,NA,46
+2021,fsh_len,Female,95,498,0.004016,NA,46
+2021,fsh_len,Female,97,498,0,NA,46
+2021,fsh_len,Female,99,498,0.008032,NA,46
+2021,fsh_len,Male,41,239,0,NA,46
+2021,fsh_len,Male,43,239,0,NA,46
+2021,fsh_len,Male,45,239,0,NA,46
+2021,fsh_len,Male,47,239,0,NA,46
+2021,fsh_len,Male,49,239,0,NA,46
+2021,fsh_len,Male,51,239,0.008368,NA,46
+2021,fsh_len,Male,53,239,0.016736,NA,46
+2021,fsh_len,Male,55,239,0.037657,NA,46
+2021,fsh_len,Male,57,239,0.083682,NA,46
+2021,fsh_len,Male,59,239,0.125523,NA,46
+2021,fsh_len,Male,61,239,0.104603,NA,46
+2021,fsh_len,Male,63,239,0.150628,NA,46
+2021,fsh_len,Male,65,239,0.079498,NA,46
+2021,fsh_len,Male,67,239,0.121339,NA,46
+2021,fsh_len,Male,69,239,0.075314,NA,46
+2021,fsh_len,Male,71,239,0.079498,NA,46
+2021,fsh_len,Male,73,239,0.041841,NA,46
+2021,fsh_len,Male,75,239,0.033473,NA,46
+2021,fsh_len,Male,77,239,0.029289,NA,46
+2021,fsh_len,Male,79,239,0.004184,NA,46
+2021,fsh_len,Male,81,239,0.008368,NA,46
+2021,fsh_len,Male,83,239,0,NA,46
+2021,fsh_len,Male,85,239,0,NA,46
+2021,fsh_len,Male,87,239,0,NA,46
+2021,fsh_len,Male,89,239,0,NA,46
+2021,fsh_len,Male,91,239,0,NA,46
+2021,fsh_len,Male,93,239,0,NA,46
+2021,fsh_len,Male,95,239,0,NA,46
+2021,fsh_len,Male,97,239,0,NA,46
+2021,fsh_len,Male,99,239,0,NA,46
+2021,fsh_len,Sex combined,41,737,0,NA,46
+2021,fsh_len,Sex combined,43,737,0,NA,46
+2021,fsh_len,Sex combined,45,737,0,NA,46
+2021,fsh_len,Sex combined,47,737,0,NA,46
+2021,fsh_len,Sex combined,49,737,0.0014,NA,46
+2021,fsh_len,Sex combined,51,737,0.0041,NA,46
+2021,fsh_len,Sex combined,53,737,0.0109,NA,46
+2021,fsh_len,Sex combined,55,737,0.0258,NA,46
+2021,fsh_len,Sex combined,57,737,0.0543,NA,46
+2021,fsh_len,Sex combined,59,737,0.0719,NA,46
+2021,fsh_len,Sex combined,61,737,0.0882,NA,46
+2021,fsh_len,Sex combined,63,737,0.133,NA,46
+2021,fsh_len,Sex combined,65,737,0.0936,NA,46
+2021,fsh_len,Sex combined,67,737,0.1167,NA,46
+2021,fsh_len,Sex combined,69,737,0.0719,NA,46
+2021,fsh_len,Sex combined,71,737,0.0706,NA,46
+2021,fsh_len,Sex combined,73,737,0.0583,NA,46
+2021,fsh_len,Sex combined,75,737,0.0502,NA,46
+2021,fsh_len,Sex combined,77,737,0.0353,NA,46
+2021,fsh_len,Sex combined,79,737,0.0244,NA,46
+2021,fsh_len,Sex combined,81,737,0.0217,NA,46
+2021,fsh_len,Sex combined,83,737,0.0149,NA,46
+2021,fsh_len,Sex combined,85,737,0.0176,NA,46
+2021,fsh_len,Sex combined,87,737,0.0122,NA,46
+2021,fsh_len,Sex combined,89,737,0.0095,NA,46
+2021,fsh_len,Sex combined,91,737,0.0041,NA,46
+2021,fsh_len,Sex combined,93,737,0.0014,NA,46
+2021,fsh_len,Sex combined,95,737,0.0027,NA,46
+2021,fsh_len,Sex combined,97,737,0,NA,46
+2021,fsh_len,Sex combined,99,737,0.0054,NA,46
+2022,fsh_len,Female,41,818,0,NA,47
+2022,fsh_len,Female,43,818,0,NA,47
+2022,fsh_len,Female,45,818,0,NA,47
+2022,fsh_len,Female,47,818,0.001222,NA,47
+2022,fsh_len,Female,49,818,0.001222,NA,47
+2022,fsh_len,Female,51,818,0.003667,NA,47
+2022,fsh_len,Female,53,818,0.003667,NA,47
+2022,fsh_len,Female,55,818,0.013447,NA,47
+2022,fsh_len,Female,57,818,0.022005,NA,47
+2022,fsh_len,Female,59,818,0.040342,NA,47
+2022,fsh_len,Female,61,818,0.064792,NA,47
+2022,fsh_len,Female,63,818,0.111247,NA,47
+2022,fsh_len,Female,65,818,0.125917,NA,47
+2022,fsh_len,Female,67,818,0.127139,NA,47
+2022,fsh_len,Female,69,818,0.075795,NA,47
+2022,fsh_len,Female,71,818,0.079462,NA,47
+2022,fsh_len,Female,73,818,0.070905,NA,47
+2022,fsh_len,Female,75,818,0.051345,NA,47
+2022,fsh_len,Female,77,818,0.04401,NA,47
+2022,fsh_len,Female,79,818,0.04401,NA,47
+2022,fsh_len,Female,81,818,0.02934,NA,47
+2022,fsh_len,Female,83,818,0.02934,NA,47
+2022,fsh_len,Female,85,818,0.015892,NA,47
+2022,fsh_len,Female,87,818,0.017115,NA,47
+2022,fsh_len,Female,89,818,0.007335,NA,47
+2022,fsh_len,Female,91,818,0.007335,NA,47
+2022,fsh_len,Female,93,818,0.002445,NA,47
+2022,fsh_len,Female,95,818,0.00489,NA,47
+2022,fsh_len,Female,97,818,0.003667,NA,47
+2022,fsh_len,Female,99,818,0.002445,NA,47
+2022,fsh_len,Male,41,317,0,NA,47
+2022,fsh_len,Male,43,317,0,NA,47
+2022,fsh_len,Male,45,317,0,NA,47
+2022,fsh_len,Male,47,317,0,NA,47
+2022,fsh_len,Male,49,317,0,NA,47
+2022,fsh_len,Male,51,317,0.003155,NA,47
+2022,fsh_len,Male,53,317,0.015773,NA,47
+2022,fsh_len,Male,55,317,0.022082,NA,47
+2022,fsh_len,Male,57,317,0.07571,NA,47
+2022,fsh_len,Male,59,317,0.113565,NA,47
+2022,fsh_len,Male,61,317,0.107256,NA,47
+2022,fsh_len,Male,63,317,0.116719,NA,47
+2022,fsh_len,Male,65,317,0.091483,NA,47
+2022,fsh_len,Male,67,317,0.113565,NA,47
+2022,fsh_len,Male,69,317,0.135647,NA,47
+2022,fsh_len,Male,71,317,0.100946,NA,47
+2022,fsh_len,Male,73,317,0.044164,NA,47
+2022,fsh_len,Male,75,317,0.037855,NA,47
+2022,fsh_len,Male,77,317,0.012618,NA,47
+2022,fsh_len,Male,79,317,0.003155,NA,47
+2022,fsh_len,Male,81,317,0.006309,NA,47
+2022,fsh_len,Male,83,317,0,NA,47
+2022,fsh_len,Male,85,317,0,NA,47
+2022,fsh_len,Male,87,317,0,NA,47
+2022,fsh_len,Male,89,317,0,NA,47
+2022,fsh_len,Male,91,317,0,NA,47
+2022,fsh_len,Male,93,317,0,NA,47
+2022,fsh_len,Male,95,317,0,NA,47
+2022,fsh_len,Male,97,317,0,NA,47
+2022,fsh_len,Male,99,317,0,NA,47
+2022,fsh_len,Sex combined,41,1135,0,NA,47
+2022,fsh_len,Sex combined,43,1135,0,NA,47
+2022,fsh_len,Sex combined,45,1135,0,NA,47
+2022,fsh_len,Sex combined,47,1135,9e-4,NA,47
+2022,fsh_len,Sex combined,49,1135,9e-4,NA,47
+2022,fsh_len,Sex combined,51,1135,0.0035,NA,47
+2022,fsh_len,Sex combined,53,1135,0.007,NA,47
+2022,fsh_len,Sex combined,55,1135,0.0159,NA,47
+2022,fsh_len,Sex combined,57,1135,0.037,NA,47
+2022,fsh_len,Sex combined,59,1135,0.0608,NA,47
+2022,fsh_len,Sex combined,61,1135,0.0767,NA,47
+2022,fsh_len,Sex combined,63,1135,0.1128,NA,47
+2022,fsh_len,Sex combined,65,1135,0.1163,NA,47
+2022,fsh_len,Sex combined,67,1135,0.1233,NA,47
+2022,fsh_len,Sex combined,69,1135,0.0925,NA,47
+2022,fsh_len,Sex combined,71,1135,0.0855,NA,47
+2022,fsh_len,Sex combined,73,1135,0.0634,NA,47
+2022,fsh_len,Sex combined,75,1135,0.0476,NA,47
+2022,fsh_len,Sex combined,77,1135,0.0352,NA,47
+2022,fsh_len,Sex combined,79,1135,0.0326,NA,47
+2022,fsh_len,Sex combined,81,1135,0.0229,NA,47
+2022,fsh_len,Sex combined,83,1135,0.0211,NA,47
+2022,fsh_len,Sex combined,85,1135,0.0115,NA,47
+2022,fsh_len,Sex combined,87,1135,0.0123,NA,47
+2022,fsh_len,Sex combined,89,1135,0.0053,NA,47
+2022,fsh_len,Sex combined,91,1135,0.0053,NA,47
+2022,fsh_len,Sex combined,93,1135,0.0018,NA,47
+2022,fsh_len,Sex combined,95,1135,0.0035,NA,47
+2022,fsh_len,Sex combined,97,1135,0.0026,NA,47
+2022,fsh_len,Sex combined,99,1135,0.0018,NA,47
+2023,fsh_len,Female,41,568,0,NA,48
+2023,fsh_len,Female,43,568,0,NA,48
+2023,fsh_len,Female,45,568,0,NA,48
+2023,fsh_len,Female,47,568,0,NA,48
+2023,fsh_len,Female,49,568,0,NA,48
+2023,fsh_len,Female,51,568,0.001761,NA,48
+2023,fsh_len,Female,53,568,0.005282,NA,48
+2023,fsh_len,Female,55,568,0.012324,NA,48
+2023,fsh_len,Female,57,568,0.035211,NA,48
+2023,fsh_len,Female,59,568,0.047535,NA,48
+2023,fsh_len,Female,61,568,0.077465,NA,48
+2023,fsh_len,Female,63,568,0.116197,NA,48
+2023,fsh_len,Female,65,568,0.144366,NA,48
+2023,fsh_len,Female,67,568,0.126761,NA,48
+2023,fsh_len,Female,69,568,0.086268,NA,48
+2023,fsh_len,Female,71,568,0.068662,NA,48
+2023,fsh_len,Female,73,568,0.077465,NA,48
+2023,fsh_len,Female,75,568,0.06338,NA,48
+2023,fsh_len,Female,77,568,0.03169,NA,48
+2023,fsh_len,Female,79,568,0.021127,NA,48
+2023,fsh_len,Female,81,568,0.02993,NA,48
+2023,fsh_len,Female,83,568,0.022887,NA,48
+2023,fsh_len,Female,85,568,0.010563,NA,48
+2023,fsh_len,Female,87,568,0.008803,NA,48
+2023,fsh_len,Female,89,568,0.005282,NA,48
+2023,fsh_len,Female,91,568,0.003521,NA,48
+2023,fsh_len,Female,93,568,0.001761,NA,48
+2023,fsh_len,Female,95,568,0.001761,NA,48
+2023,fsh_len,Female,97,568,0,NA,48
+2023,fsh_len,Female,99,568,0,NA,48
+2023,fsh_len,Male,41,319,0,NA,48
+2023,fsh_len,Male,43,319,0,NA,48
+2023,fsh_len,Male,45,319,0,NA,48
+2023,fsh_len,Male,47,319,0,NA,48
+2023,fsh_len,Male,49,319,0,NA,48
+2023,fsh_len,Male,51,319,0.009404,NA,48
+2023,fsh_len,Male,53,319,0.015674,NA,48
+2023,fsh_len,Male,55,319,0.040752,NA,48
+2023,fsh_len,Male,57,319,0.097179,NA,48
+2023,fsh_len,Male,59,319,0.112853,NA,48
+2023,fsh_len,Male,61,319,0.134796,NA,48
+2023,fsh_len,Male,63,319,0.137931,NA,48
+2023,fsh_len,Male,65,319,0.137931,NA,48
+2023,fsh_len,Male,67,319,0.106583,NA,48
+2023,fsh_len,Male,69,319,0.122257,NA,48
+2023,fsh_len,Male,71,319,0.034483,NA,48
+2023,fsh_len,Male,73,319,0.040752,NA,48
+2023,fsh_len,Male,75,319,0.00627,NA,48
+2023,fsh_len,Male,77,319,0.003135,NA,48
+2023,fsh_len,Male,79,319,0,NA,48
+2023,fsh_len,Male,81,319,0,NA,48
+2023,fsh_len,Male,83,319,0,NA,48
+2023,fsh_len,Male,85,319,0,NA,48
+2023,fsh_len,Male,87,319,0,NA,48
+2023,fsh_len,Male,89,319,0,NA,48
+2023,fsh_len,Male,91,319,0,NA,48
+2023,fsh_len,Male,93,319,0,NA,48
+2023,fsh_len,Male,95,319,0,NA,48
+2023,fsh_len,Male,97,319,0,NA,48
+2023,fsh_len,Male,99,319,0,NA,48
+2023,fsh_len,Sex combined,41,887,0,NA,48
+2023,fsh_len,Sex combined,43,887,0,NA,48
+2023,fsh_len,Sex combined,45,887,0,NA,48
+2023,fsh_len,Sex combined,47,887,0,NA,48
+2023,fsh_len,Sex combined,49,887,0,NA,48
+2023,fsh_len,Sex combined,51,887,0.0045,NA,48
+2023,fsh_len,Sex combined,53,887,0.009,NA,48
+2023,fsh_len,Sex combined,55,887,0.0225,NA,48
+2023,fsh_len,Sex combined,57,887,0.0575,NA,48
+2023,fsh_len,Sex combined,59,887,0.071,NA,48
+2023,fsh_len,Sex combined,61,887,0.0981,NA,48
+2023,fsh_len,Sex combined,63,887,0.124,NA,48
+2023,fsh_len,Sex combined,65,887,0.1421,NA,48
+2023,fsh_len,Sex combined,67,887,0.1195,NA,48
+2023,fsh_len,Sex combined,69,887,0.0992,NA,48
+2023,fsh_len,Sex combined,71,887,0.0564,NA,48
+2023,fsh_len,Sex combined,73,887,0.0643,NA,48
+2023,fsh_len,Sex combined,75,887,0.0428,NA,48
+2023,fsh_len,Sex combined,77,887,0.0214,NA,48
+2023,fsh_len,Sex combined,79,887,0.0135,NA,48
+2023,fsh_len,Sex combined,81,887,0.0192,NA,48
+2023,fsh_len,Sex combined,83,887,0.0147,NA,48
+2023,fsh_len,Sex combined,85,887,0.0068,NA,48
+2023,fsh_len,Sex combined,87,887,0.0056,NA,48
+2023,fsh_len,Sex combined,89,887,0.0034,NA,48
+2023,fsh_len,Sex combined,91,887,0.0023,NA,48
+2023,fsh_len,Sex combined,93,887,0.0011,NA,48
+2023,fsh_len,Sex combined,95,887,0.0011,NA,48
+2023,fsh_len,Sex combined,97,887,0,NA,48
+2023,fsh_len,Sex combined,99,887,0,NA,48
+1997,srv_len,Female,41,253,0,NA,22
+1997,srv_len,Female,43,253,0,NA,22
+1997,srv_len,Female,45,253,0,NA,22
+1997,srv_len,Female,47,253,0.003953,NA,22
+1997,srv_len,Female,49,253,0.003953,NA,22
+1997,srv_len,Female,51,253,0,NA,22
+1997,srv_len,Female,53,253,0.007905,NA,22
+1997,srv_len,Female,55,253,0.031621,NA,22
+1997,srv_len,Female,57,253,0.023715,NA,22
+1997,srv_len,Female,59,253,0.01581,NA,22
+1997,srv_len,Female,61,253,0.027668,NA,22
+1997,srv_len,Female,63,253,0.023715,NA,22
+1997,srv_len,Female,65,253,0.01581,NA,22
+1997,srv_len,Female,67,253,0.059289,NA,22
+1997,srv_len,Female,69,253,0.083004,NA,22
+1997,srv_len,Female,71,253,0.079051,NA,22
+1997,srv_len,Female,73,253,0.13834,NA,22
+1997,srv_len,Female,75,253,0.079051,NA,22
+1997,srv_len,Female,77,253,0.086957,NA,22
+1997,srv_len,Female,79,253,0.075099,NA,22
+1997,srv_len,Female,81,253,0.063241,NA,22
+1997,srv_len,Female,83,253,0.051383,NA,22
+1997,srv_len,Female,85,253,0.019763,NA,22
+1997,srv_len,Female,87,253,0.031621,NA,22
+1997,srv_len,Female,89,253,0.039526,NA,22
+1997,srv_len,Female,91,253,0.007905,NA,22
+1997,srv_len,Female,93,253,0.003953,NA,22
+1997,srv_len,Female,95,253,0.007905,NA,22
+1997,srv_len,Female,97,253,0.003953,NA,22
+1997,srv_len,Female,99,253,0.01581,NA,22
+1997,srv_len,Male,41,269,0,NA,22
+1997,srv_len,Male,43,269,0.003717,NA,22
+1997,srv_len,Male,45,269,0.003717,NA,22
+1997,srv_len,Male,47,269,0,NA,22
+1997,srv_len,Male,49,269,0.007435,NA,22
+1997,srv_len,Male,51,269,0.003717,NA,22
+1997,srv_len,Male,53,269,0.007435,NA,22
+1997,srv_len,Male,55,269,0.003717,NA,22
+1997,srv_len,Male,57,269,0.022305,NA,22
+1997,srv_len,Male,59,269,0.037175,NA,22
+1997,srv_len,Male,61,269,0.055762,NA,22
+1997,srv_len,Male,63,269,0.130112,NA,22
+1997,srv_len,Male,65,269,0.152416,NA,22
+1997,srv_len,Male,67,269,0.193309,NA,22
+1997,srv_len,Male,69,269,0.156134,NA,22
+1997,srv_len,Male,71,269,0.081784,NA,22
+1997,srv_len,Male,73,269,0.05948,NA,22
+1997,srv_len,Male,75,269,0.037175,NA,22
+1997,srv_len,Male,77,269,0.022305,NA,22
+1997,srv_len,Male,79,269,0.018587,NA,22
+1997,srv_len,Male,81,269,0.003717,NA,22
+1997,srv_len,Male,83,269,0,NA,22
+1997,srv_len,Male,85,269,0,NA,22
+1997,srv_len,Male,87,269,0,NA,22
+1997,srv_len,Male,89,269,0,NA,22
+1997,srv_len,Male,91,269,0,NA,22
+1997,srv_len,Male,93,269,0,NA,22
+1997,srv_len,Male,95,269,0,NA,22
+1997,srv_len,Male,97,269,0,NA,22
+1997,srv_len,Male,99,269,0,NA,22
+1997,srv_len,Sex combined,41,522,0,NA,22
+1997,srv_len,Sex combined,43,522,0.0019,NA,22
+1997,srv_len,Sex combined,45,522,0.0019,NA,22
+1997,srv_len,Sex combined,47,522,0.0019,NA,22
+1997,srv_len,Sex combined,49,522,0.0057,NA,22
+1997,srv_len,Sex combined,51,522,0.0019,NA,22
+1997,srv_len,Sex combined,53,522,0.0077,NA,22
+1997,srv_len,Sex combined,55,522,0.0172,NA,22
+1997,srv_len,Sex combined,57,522,0.023,NA,22
+1997,srv_len,Sex combined,59,522,0.0268,NA,22
+1997,srv_len,Sex combined,61,522,0.0421,NA,22
+1997,srv_len,Sex combined,63,522,0.0785,NA,22
+1997,srv_len,Sex combined,65,522,0.0862,NA,22
+1997,srv_len,Sex combined,67,522,0.1284,NA,22
+1997,srv_len,Sex combined,69,522,0.1207,NA,22
+1997,srv_len,Sex combined,71,522,0.0805,NA,22
+1997,srv_len,Sex combined,73,522,0.0977,NA,22
+1997,srv_len,Sex combined,75,522,0.0575,NA,22
+1997,srv_len,Sex combined,77,522,0.0536,NA,22
+1997,srv_len,Sex combined,79,522,0.046,NA,22
+1997,srv_len,Sex combined,81,522,0.0326,NA,22
+1997,srv_len,Sex combined,83,522,0.0249,NA,22
+1997,srv_len,Sex combined,85,522,0.0096,NA,22
+1997,srv_len,Sex combined,87,522,0.0153,NA,22
+1997,srv_len,Sex combined,89,522,0.0192,NA,22
+1997,srv_len,Sex combined,91,522,0.0038,NA,22
+1997,srv_len,Sex combined,93,522,0.0019,NA,22
+1997,srv_len,Sex combined,95,522,0.0038,NA,22
+1997,srv_len,Sex combined,97,522,0.0019,NA,22
+1997,srv_len,Sex combined,99,522,0.0077,NA,22
+1998,srv_len,Female,41,196,0,NA,23
+1998,srv_len,Female,43,196,0.005102,NA,23
+1998,srv_len,Female,45,196,0,NA,23
+1998,srv_len,Female,47,196,0,NA,23
+1998,srv_len,Female,49,196,0,NA,23
+1998,srv_len,Female,51,196,0.020408,NA,23
+1998,srv_len,Female,53,196,0.02551,NA,23
+1998,srv_len,Female,55,196,0.030612,NA,23
+1998,srv_len,Female,57,196,0.02551,NA,23
+1998,srv_len,Female,59,196,0.020408,NA,23
+1998,srv_len,Female,61,196,0.030612,NA,23
+1998,srv_len,Female,63,196,0.020408,NA,23
+1998,srv_len,Female,65,196,0.02551,NA,23
+1998,srv_len,Female,67,196,0.040816,NA,23
+1998,srv_len,Female,69,196,0.091837,NA,23
+1998,srv_len,Female,71,196,0.102041,NA,23
+1998,srv_len,Female,73,196,0.086735,NA,23
+1998,srv_len,Female,75,196,0.107143,NA,23
+1998,srv_len,Female,77,196,0.061224,NA,23
+1998,srv_len,Female,79,196,0.076531,NA,23
+1998,srv_len,Female,81,196,0.096939,NA,23
+1998,srv_len,Female,83,196,0.040816,NA,23
+1998,srv_len,Female,85,196,0.030612,NA,23
+1998,srv_len,Female,87,196,0.010204,NA,23
+1998,srv_len,Female,89,196,0.010204,NA,23
+1998,srv_len,Female,91,196,0.010204,NA,23
+1998,srv_len,Female,93,196,0.02551,NA,23
+1998,srv_len,Female,95,196,0,NA,23
+1998,srv_len,Female,97,196,0,NA,23
+1998,srv_len,Female,99,196,0.005102,NA,23
+1998,srv_len,Male,41,153,0,NA,23
+1998,srv_len,Male,43,153,0,NA,23
+1998,srv_len,Male,45,153,0,NA,23
+1998,srv_len,Male,47,153,0.013072,NA,23
+1998,srv_len,Male,49,153,0.013072,NA,23
+1998,srv_len,Male,51,153,0.013072,NA,23
+1998,srv_len,Male,53,153,0.03268,NA,23
+1998,srv_len,Male,55,153,0.026144,NA,23
+1998,srv_len,Male,57,153,0.013072,NA,23
+1998,srv_len,Male,59,153,0.019608,NA,23
+1998,srv_len,Male,61,153,0.071895,NA,23
+1998,srv_len,Male,63,153,0.137255,NA,23
+1998,srv_len,Male,65,153,0.189542,NA,23
+1998,srv_len,Male,67,153,0.111111,NA,23
+1998,srv_len,Male,69,153,0.183007,NA,23
+1998,srv_len,Male,71,153,0.065359,NA,23
+1998,srv_len,Male,73,153,0.058824,NA,23
+1998,srv_len,Male,75,153,0.03268,NA,23
+1998,srv_len,Male,77,153,0.006536,NA,23
+1998,srv_len,Male,79,153,0.006536,NA,23
+1998,srv_len,Male,81,153,0,NA,23
+1998,srv_len,Male,83,153,0,NA,23
+1998,srv_len,Male,85,153,0,NA,23
+1998,srv_len,Male,87,153,0,NA,23
+1998,srv_len,Male,89,153,0,NA,23
+1998,srv_len,Male,91,153,0,NA,23
+1998,srv_len,Male,93,153,0.006536,NA,23
+1998,srv_len,Male,95,153,0,NA,23
+1998,srv_len,Male,97,153,0,NA,23
+1998,srv_len,Male,99,153,0,NA,23
+1998,srv_len,Sex combined,41,349,0,NA,23
+1998,srv_len,Sex combined,43,349,0.0029,NA,23
+1998,srv_len,Sex combined,45,349,0,NA,23
+1998,srv_len,Sex combined,47,349,0.0057,NA,23
+1998,srv_len,Sex combined,49,349,0.0057,NA,23
+1998,srv_len,Sex combined,51,349,0.0172,NA,23
+1998,srv_len,Sex combined,53,349,0.0287,NA,23
+1998,srv_len,Sex combined,55,349,0.0287,NA,23
+1998,srv_len,Sex combined,57,349,0.0201,NA,23
+1998,srv_len,Sex combined,59,349,0.0201,NA,23
+1998,srv_len,Sex combined,61,349,0.0487,NA,23
+1998,srv_len,Sex combined,63,349,0.0716,NA,23
+1998,srv_len,Sex combined,65,349,0.0974,NA,23
+1998,srv_len,Sex combined,67,349,0.0716,NA,23
+1998,srv_len,Sex combined,69,349,0.1318,NA,23
+1998,srv_len,Sex combined,71,349,0.086,NA,23
+1998,srv_len,Sex combined,73,349,0.0745,NA,23
+1998,srv_len,Sex combined,75,349,0.0745,NA,23
+1998,srv_len,Sex combined,77,349,0.0372,NA,23
+1998,srv_len,Sex combined,79,349,0.0458,NA,23
+1998,srv_len,Sex combined,81,349,0.0544,NA,23
+1998,srv_len,Sex combined,83,349,0.0229,NA,23
+1998,srv_len,Sex combined,85,349,0.0172,NA,23
+1998,srv_len,Sex combined,87,349,0.0057,NA,23
+1998,srv_len,Sex combined,89,349,0.0057,NA,23
+1998,srv_len,Sex combined,91,349,0.0057,NA,23
+1998,srv_len,Sex combined,93,349,0.0172,NA,23
+1998,srv_len,Sex combined,95,349,0,NA,23
+1998,srv_len,Sex combined,97,349,0,NA,23
+1998,srv_len,Sex combined,99,349,0.0029,NA,23
+1999,srv_len,Female,41,129,0,NA,24
+1999,srv_len,Female,43,129,0,NA,24
+1999,srv_len,Female,45,129,0.007752,NA,24
+1999,srv_len,Female,47,129,0.031008,NA,24
+1999,srv_len,Female,49,129,0.03876,NA,24
+1999,srv_len,Female,51,129,0.031008,NA,24
+1999,srv_len,Female,53,129,0.031008,NA,24
+1999,srv_len,Female,55,129,0.069767,NA,24
+1999,srv_len,Female,57,129,0.054264,NA,24
+1999,srv_len,Female,59,129,0.077519,NA,24
+1999,srv_len,Female,61,129,0.077519,NA,24
+1999,srv_len,Female,63,129,0.054264,NA,24
+1999,srv_len,Female,65,129,0.03876,NA,24
+1999,srv_len,Female,67,129,0.031008,NA,24
+1999,srv_len,Female,69,129,0.046512,NA,24
+1999,srv_len,Female,71,129,0.054264,NA,24
+1999,srv_len,Female,73,129,0.046512,NA,24
+1999,srv_len,Female,75,129,0.054264,NA,24
+1999,srv_len,Female,77,129,0.03876,NA,24
+1999,srv_len,Female,79,129,0.054264,NA,24
+1999,srv_len,Female,81,129,0.046512,NA,24
+1999,srv_len,Female,83,129,0.046512,NA,24
+1999,srv_len,Female,85,129,0.023256,NA,24
+1999,srv_len,Female,87,129,0,NA,24
+1999,srv_len,Female,89,129,0.031008,NA,24
+1999,srv_len,Female,91,129,0,NA,24
+1999,srv_len,Female,93,129,0.007752,NA,24
+1999,srv_len,Female,95,129,0,NA,24
+1999,srv_len,Female,97,129,0,NA,24
+1999,srv_len,Female,99,129,0.007752,NA,24
+1999,srv_len,Male,41,144,0,NA,24
+1999,srv_len,Male,43,144,0,NA,24
+1999,srv_len,Male,45,144,0.006944,NA,24
+1999,srv_len,Male,47,144,0.048611,NA,24
+1999,srv_len,Male,49,144,0.027778,NA,24
+1999,srv_len,Male,51,144,0.013889,NA,24
+1999,srv_len,Male,53,144,0.076389,NA,24
+1999,srv_len,Male,55,144,0.041667,NA,24
+1999,srv_len,Male,57,144,0.048611,NA,24
+1999,srv_len,Male,59,144,0.055556,NA,24
+1999,srv_len,Male,61,144,0.083333,NA,24
+1999,srv_len,Male,63,144,0.097222,NA,24
+1999,srv_len,Male,65,144,0.145833,NA,24
+1999,srv_len,Male,67,144,0.125,NA,24
+1999,srv_len,Male,69,144,0.104167,NA,24
+1999,srv_len,Male,71,144,0.055556,NA,24
+1999,srv_len,Male,73,144,0.027778,NA,24
+1999,srv_len,Male,75,144,0.006944,NA,24
+1999,srv_len,Male,77,144,0.013889,NA,24
+1999,srv_len,Male,79,144,0.006944,NA,24
+1999,srv_len,Male,81,144,0,NA,24
+1999,srv_len,Male,83,144,0.006944,NA,24
+1999,srv_len,Male,85,144,0,NA,24
+1999,srv_len,Male,87,144,0,NA,24
+1999,srv_len,Male,89,144,0,NA,24
+1999,srv_len,Male,91,144,0,NA,24
+1999,srv_len,Male,93,144,0,NA,24
+1999,srv_len,Male,95,144,0.006944,NA,24
+1999,srv_len,Male,97,144,0,NA,24
+1999,srv_len,Male,99,144,0,NA,24
+1999,srv_len,Sex combined,41,273,0,NA,24
+1999,srv_len,Sex combined,43,273,0,NA,24
+1999,srv_len,Sex combined,45,273,0.0073,NA,24
+1999,srv_len,Sex combined,47,273,0.0403,NA,24
+1999,srv_len,Sex combined,49,273,0.033,NA,24
+1999,srv_len,Sex combined,51,273,0.022,NA,24
+1999,srv_len,Sex combined,53,273,0.0549,NA,24
+1999,srv_len,Sex combined,55,273,0.0549,NA,24
+1999,srv_len,Sex combined,57,273,0.0513,NA,24
+1999,srv_len,Sex combined,59,273,0.0659,NA,24
+1999,srv_len,Sex combined,61,273,0.0806,NA,24
+1999,srv_len,Sex combined,63,273,0.0769,NA,24
+1999,srv_len,Sex combined,65,273,0.0952,NA,24
+1999,srv_len,Sex combined,67,273,0.0806,NA,24
+1999,srv_len,Sex combined,69,273,0.0769,NA,24
+1999,srv_len,Sex combined,71,273,0.0549,NA,24
+1999,srv_len,Sex combined,73,273,0.0366,NA,24
+1999,srv_len,Sex combined,75,273,0.0293,NA,24
+1999,srv_len,Sex combined,77,273,0.0256,NA,24
+1999,srv_len,Sex combined,79,273,0.0293,NA,24
+1999,srv_len,Sex combined,81,273,0.022,NA,24
+1999,srv_len,Sex combined,83,273,0.0256,NA,24
+1999,srv_len,Sex combined,85,273,0.011,NA,24
+1999,srv_len,Sex combined,87,273,0,NA,24
+1999,srv_len,Sex combined,89,273,0.0147,NA,24
+1999,srv_len,Sex combined,91,273,0,NA,24
+1999,srv_len,Sex combined,93,273,0.0037,NA,24
+1999,srv_len,Sex combined,95,273,0.0037,NA,24
+1999,srv_len,Sex combined,97,273,0,NA,24
+1999,srv_len,Sex combined,99,273,0.0037,NA,24
+2000,srv_len,Female,41,206,0,NA,25
+2000,srv_len,Female,43,206,0,NA,25
+2000,srv_len,Female,45,206,0.004854,NA,25
+2000,srv_len,Female,47,206,0.014563,NA,25
+2000,srv_len,Female,49,206,0.024272,NA,25
+2000,srv_len,Female,51,206,0.063107,NA,25
+2000,srv_len,Female,53,206,0.043689,NA,25
+2000,srv_len,Female,55,206,0.043689,NA,25
+2000,srv_len,Female,57,206,0.024272,NA,25
+2000,srv_len,Female,59,206,0.067961,NA,25
+2000,srv_len,Female,61,206,0.024272,NA,25
+2000,srv_len,Female,63,206,0.043689,NA,25
+2000,srv_len,Female,65,206,0.07767,NA,25
+2000,srv_len,Female,67,206,0.082524,NA,25
+2000,srv_len,Female,69,206,0.07767,NA,25
+2000,srv_len,Female,71,206,0.063107,NA,25
+2000,srv_len,Female,73,206,0.053398,NA,25
+2000,srv_len,Female,75,206,0.048544,NA,25
+2000,srv_len,Female,77,206,0.038835,NA,25
+2000,srv_len,Female,79,206,0.058252,NA,25
+2000,srv_len,Female,81,206,0.024272,NA,25
+2000,srv_len,Female,83,206,0.043689,NA,25
+2000,srv_len,Female,85,206,0.014563,NA,25
+2000,srv_len,Female,87,206,0.019417,NA,25
+2000,srv_len,Female,89,206,0.014563,NA,25
+2000,srv_len,Female,91,206,0.014563,NA,25
+2000,srv_len,Female,93,206,0,NA,25
+2000,srv_len,Female,95,206,0.009709,NA,25
+2000,srv_len,Female,97,206,0,NA,25
+2000,srv_len,Female,99,206,0.004854,NA,25
+2000,srv_len,Male,41,174,0,NA,25
+2000,srv_len,Male,43,174,0,NA,25
+2000,srv_len,Male,45,174,0.011494,NA,25
+2000,srv_len,Male,47,174,0.028736,NA,25
+2000,srv_len,Male,49,174,0.057471,NA,25
+2000,srv_len,Male,51,174,0.045977,NA,25
+2000,srv_len,Male,53,174,0.028736,NA,25
+2000,srv_len,Male,55,174,0.045977,NA,25
+2000,srv_len,Male,57,174,0.097701,NA,25
+2000,srv_len,Male,59,174,0.057471,NA,25
+2000,srv_len,Male,61,174,0.109195,NA,25
+2000,srv_len,Male,63,174,0.091954,NA,25
+2000,srv_len,Male,65,174,0.051724,NA,25
+2000,srv_len,Male,67,174,0.114943,NA,25
+2000,srv_len,Male,69,174,0.109195,NA,25
+2000,srv_len,Male,71,174,0.074713,NA,25
+2000,srv_len,Male,73,174,0.034483,NA,25
+2000,srv_len,Male,75,174,0.028736,NA,25
+2000,srv_len,Male,77,174,0.005747,NA,25
+2000,srv_len,Male,79,174,0,NA,25
+2000,srv_len,Male,81,174,0.005747,NA,25
+2000,srv_len,Male,83,174,0,NA,25
+2000,srv_len,Male,85,174,0,NA,25
+2000,srv_len,Male,87,174,0,NA,25
+2000,srv_len,Male,89,174,0,NA,25
+2000,srv_len,Male,91,174,0,NA,25
+2000,srv_len,Male,93,174,0,NA,25
+2000,srv_len,Male,95,174,0,NA,25
+2000,srv_len,Male,97,174,0,NA,25
+2000,srv_len,Male,99,174,0,NA,25
+2000,srv_len,Sex combined,41,380,0,NA,25
+2000,srv_len,Sex combined,43,380,0,NA,25
+2000,srv_len,Sex combined,45,380,0.0079,NA,25
+2000,srv_len,Sex combined,47,380,0.0211,NA,25
+2000,srv_len,Sex combined,49,380,0.0395,NA,25
+2000,srv_len,Sex combined,51,380,0.0553,NA,25
+2000,srv_len,Sex combined,53,380,0.0368,NA,25
+2000,srv_len,Sex combined,55,380,0.0447,NA,25
+2000,srv_len,Sex combined,57,380,0.0579,NA,25
+2000,srv_len,Sex combined,59,380,0.0632,NA,25
+2000,srv_len,Sex combined,61,380,0.0632,NA,25
+2000,srv_len,Sex combined,63,380,0.0658,NA,25
+2000,srv_len,Sex combined,65,380,0.0658,NA,25
+2000,srv_len,Sex combined,67,380,0.0974,NA,25
+2000,srv_len,Sex combined,69,380,0.0921,NA,25
+2000,srv_len,Sex combined,71,380,0.0684,NA,25
+2000,srv_len,Sex combined,73,380,0.0447,NA,25
+2000,srv_len,Sex combined,75,380,0.0395,NA,25
+2000,srv_len,Sex combined,77,380,0.0237,NA,25
+2000,srv_len,Sex combined,79,380,0.0316,NA,25
+2000,srv_len,Sex combined,81,380,0.0158,NA,25
+2000,srv_len,Sex combined,83,380,0.0237,NA,25
+2000,srv_len,Sex combined,85,380,0.0079,NA,25
+2000,srv_len,Sex combined,87,380,0.0105,NA,25
+2000,srv_len,Sex combined,89,380,0.0079,NA,25
+2000,srv_len,Sex combined,91,380,0.0079,NA,25
+2000,srv_len,Sex combined,93,380,0,NA,25
+2000,srv_len,Sex combined,95,380,0.0053,NA,25
+2000,srv_len,Sex combined,97,380,0,NA,25
+2000,srv_len,Sex combined,99,380,0.0026,NA,25
+2001,srv_len,Female,41,181,0,NA,26
+2001,srv_len,Female,43,181,0,NA,26
+2001,srv_len,Female,45,181,0,NA,26
+2001,srv_len,Female,47,181,0.01105,NA,26
+2001,srv_len,Female,49,181,0.016575,NA,26
+2001,srv_len,Female,51,181,0.027624,NA,26
+2001,srv_len,Female,53,181,0.055249,NA,26
+2001,srv_len,Female,55,181,0.016575,NA,26
+2001,srv_len,Female,57,181,0.066298,NA,26
+2001,srv_len,Female,59,181,0.016575,NA,26
+2001,srv_len,Female,61,181,0.027624,NA,26
+2001,srv_len,Female,63,181,0.033149,NA,26
+2001,srv_len,Female,65,181,0.082873,NA,26
+2001,srv_len,Female,67,181,0.055249,NA,26
+2001,srv_len,Female,69,181,0.055249,NA,26
+2001,srv_len,Female,71,181,0.055249,NA,26
+2001,srv_len,Female,73,181,0.044199,NA,26
+2001,srv_len,Female,75,181,0.099448,NA,26
+2001,srv_len,Female,77,181,0.066298,NA,26
+2001,srv_len,Female,79,181,0.066298,NA,26
+2001,srv_len,Female,81,181,0.049724,NA,26
+2001,srv_len,Female,83,181,0.016575,NA,26
+2001,srv_len,Female,85,181,0.033149,NA,26
+2001,srv_len,Female,87,181,0.038674,NA,26
+2001,srv_len,Female,89,181,0.01105,NA,26
+2001,srv_len,Female,91,181,0.016575,NA,26
+2001,srv_len,Female,93,181,0.01105,NA,26
+2001,srv_len,Female,95,181,0.01105,NA,26
+2001,srv_len,Female,97,181,0,NA,26
+2001,srv_len,Female,99,181,0.016575,NA,26
+2001,srv_len,Male,41,261,0,NA,26
+2001,srv_len,Male,43,261,0,NA,26
+2001,srv_len,Male,45,261,0.003831,NA,26
+2001,srv_len,Male,47,261,0.003831,NA,26
+2001,srv_len,Male,49,261,0.007663,NA,26
+2001,srv_len,Male,51,261,0.057471,NA,26
+2001,srv_len,Male,53,261,0.042146,NA,26
+2001,srv_len,Male,55,261,0.030651,NA,26
+2001,srv_len,Male,57,261,0.049808,NA,26
+2001,srv_len,Male,59,261,0.065134,NA,26
+2001,srv_len,Male,61,261,0.08046,NA,26
+2001,srv_len,Male,63,261,0.10728,NA,26
+2001,srv_len,Male,65,261,0.122605,NA,26
+2001,srv_len,Male,67,261,0.114943,NA,26
+2001,srv_len,Male,69,261,0.126437,NA,26
+2001,srv_len,Male,71,261,0.076628,NA,26
+2001,srv_len,Male,73,261,0.05364,NA,26
+2001,srv_len,Male,75,261,0.02682,NA,26
+2001,srv_len,Male,77,261,0.011494,NA,26
+2001,srv_len,Male,79,261,0.007663,NA,26
+2001,srv_len,Male,81,261,0.011494,NA,26
+2001,srv_len,Male,83,261,0,NA,26
+2001,srv_len,Male,85,261,0,NA,26
+2001,srv_len,Male,87,261,0,NA,26
+2001,srv_len,Male,89,261,0,NA,26
+2001,srv_len,Male,91,261,0,NA,26
+2001,srv_len,Male,93,261,0,NA,26
+2001,srv_len,Male,95,261,0,NA,26
+2001,srv_len,Male,97,261,0,NA,26
+2001,srv_len,Male,99,261,0,NA,26
+2001,srv_len,Sex combined,41,442,0,NA,26
+2001,srv_len,Sex combined,43,442,0,NA,26
+2001,srv_len,Sex combined,45,442,0.0023,NA,26
+2001,srv_len,Sex combined,47,442,0.0068,NA,26
+2001,srv_len,Sex combined,49,442,0.0113,NA,26
+2001,srv_len,Sex combined,51,442,0.0452,NA,26
+2001,srv_len,Sex combined,53,442,0.0475,NA,26
+2001,srv_len,Sex combined,55,442,0.0249,NA,26
+2001,srv_len,Sex combined,57,442,0.0566,NA,26
+2001,srv_len,Sex combined,59,442,0.0452,NA,26
+2001,srv_len,Sex combined,61,442,0.0588,NA,26
+2001,srv_len,Sex combined,63,442,0.0769,NA,26
+2001,srv_len,Sex combined,65,442,0.1063,NA,26
+2001,srv_len,Sex combined,67,442,0.0905,NA,26
+2001,srv_len,Sex combined,69,442,0.0973,NA,26
+2001,srv_len,Sex combined,71,442,0.0679,NA,26
+2001,srv_len,Sex combined,73,442,0.0498,NA,26
+2001,srv_len,Sex combined,75,442,0.0566,NA,26
+2001,srv_len,Sex combined,77,442,0.0339,NA,26
+2001,srv_len,Sex combined,79,442,0.0317,NA,26
+2001,srv_len,Sex combined,81,442,0.0271,NA,26
+2001,srv_len,Sex combined,83,442,0.0068,NA,26
+2001,srv_len,Sex combined,85,442,0.0136,NA,26
+2001,srv_len,Sex combined,87,442,0.0158,NA,26
+2001,srv_len,Sex combined,89,442,0.0045,NA,26
+2001,srv_len,Sex combined,91,442,0.0068,NA,26
+2001,srv_len,Sex combined,93,442,0.0045,NA,26
+2001,srv_len,Sex combined,95,442,0.0045,NA,26
+2001,srv_len,Sex combined,97,442,0,NA,26
+2001,srv_len,Sex combined,99,442,0.0068,NA,26
+2002,srv_len,Female,41,294,0,NA,27
+2002,srv_len,Female,43,294,0,NA,27
+2002,srv_len,Female,45,294,0,NA,27
+2002,srv_len,Female,47,294,0.006803,NA,27
+2002,srv_len,Female,49,294,0.010204,NA,27
+2002,srv_len,Female,51,294,0.006803,NA,27
+2002,srv_len,Female,53,294,0.02381,NA,27
+2002,srv_len,Female,55,294,0.071429,NA,27
+2002,srv_len,Female,57,294,0.064626,NA,27
+2002,srv_len,Female,59,294,0.057823,NA,27
+2002,srv_len,Female,61,294,0.057823,NA,27
+2002,srv_len,Female,63,294,0.071429,NA,27
+2002,srv_len,Female,65,294,0.037415,NA,27
+2002,srv_len,Female,67,294,0.061224,NA,27
+2002,srv_len,Female,69,294,0.057823,NA,27
+2002,srv_len,Female,71,294,0.054422,NA,27
+2002,srv_len,Female,73,294,0.085034,NA,27
+2002,srv_len,Female,75,294,0.05102,NA,27
+2002,srv_len,Female,77,294,0.044218,NA,27
+2002,srv_len,Female,79,294,0.037415,NA,27
+2002,srv_len,Female,81,294,0.057823,NA,27
+2002,srv_len,Female,83,294,0.030612,NA,27
+2002,srv_len,Female,85,294,0.027211,NA,27
+2002,srv_len,Female,87,294,0.02381,NA,27
+2002,srv_len,Female,89,294,0.013605,NA,27
+2002,srv_len,Female,91,294,0.010204,NA,27
+2002,srv_len,Female,93,294,0.013605,NA,27
+2002,srv_len,Female,95,294,0.003401,NA,27
+2002,srv_len,Female,97,294,0.006803,NA,27
+2002,srv_len,Female,99,294,0.013605,NA,27
+2002,srv_len,Male,41,344,0,NA,27
+2002,srv_len,Male,43,344,0,NA,27
+2002,srv_len,Male,45,344,0.002907,NA,27
+2002,srv_len,Male,47,344,0.005814,NA,27
+2002,srv_len,Male,49,344,0.005814,NA,27
+2002,srv_len,Male,51,344,0.023256,NA,27
+2002,srv_len,Male,53,344,0.034884,NA,27
+2002,srv_len,Male,55,344,0.034884,NA,27
+2002,srv_len,Male,57,344,0.069767,NA,27
+2002,srv_len,Male,59,344,0.110465,NA,27
+2002,srv_len,Male,61,344,0.130814,NA,27
+2002,srv_len,Male,63,344,0.113372,NA,27
+2002,srv_len,Male,65,344,0.093023,NA,27
+2002,srv_len,Male,67,344,0.125,NA,27
+2002,srv_len,Male,69,344,0.098837,NA,27
+2002,srv_len,Male,71,344,0.063953,NA,27
+2002,srv_len,Male,73,344,0.037791,NA,27
+2002,srv_len,Male,75,344,0.031977,NA,27
+2002,srv_len,Male,77,344,0.011628,NA,27
+2002,srv_len,Male,79,344,0.002907,NA,27
+2002,srv_len,Male,81,344,0,NA,27
+2002,srv_len,Male,83,344,0.002907,NA,27
+2002,srv_len,Male,85,344,0,NA,27
+2002,srv_len,Male,87,344,0,NA,27
+2002,srv_len,Male,89,344,0,NA,27
+2002,srv_len,Male,91,344,0,NA,27
+2002,srv_len,Male,93,344,0,NA,27
+2002,srv_len,Male,95,344,0,NA,27
+2002,srv_len,Male,97,344,0,NA,27
+2002,srv_len,Male,99,344,0,NA,27
+2002,srv_len,Sex combined,41,638,0,NA,27
+2002,srv_len,Sex combined,43,638,0,NA,27
+2002,srv_len,Sex combined,45,638,0.0016,NA,27
+2002,srv_len,Sex combined,47,638,0.0063,NA,27
+2002,srv_len,Sex combined,49,638,0.0078,NA,27
+2002,srv_len,Sex combined,51,638,0.0157,NA,27
+2002,srv_len,Sex combined,53,638,0.0298,NA,27
+2002,srv_len,Sex combined,55,638,0.0517,NA,27
+2002,srv_len,Sex combined,57,638,0.0674,NA,27
+2002,srv_len,Sex combined,59,638,0.0862,NA,27
+2002,srv_len,Sex combined,61,638,0.0972,NA,27
+2002,srv_len,Sex combined,63,638,0.094,NA,27
+2002,srv_len,Sex combined,65,638,0.0674,NA,27
+2002,srv_len,Sex combined,67,638,0.0956,NA,27
+2002,srv_len,Sex combined,69,638,0.0799,NA,27
+2002,srv_len,Sex combined,71,638,0.0596,NA,27
+2002,srv_len,Sex combined,73,638,0.0596,NA,27
+2002,srv_len,Sex combined,75,638,0.0408,NA,27
+2002,srv_len,Sex combined,77,638,0.0266,NA,27
+2002,srv_len,Sex combined,79,638,0.0188,NA,27
+2002,srv_len,Sex combined,81,638,0.0266,NA,27
+2002,srv_len,Sex combined,83,638,0.0157,NA,27
+2002,srv_len,Sex combined,85,638,0.0125,NA,27
+2002,srv_len,Sex combined,87,638,0.011,NA,27
+2002,srv_len,Sex combined,89,638,0.0063,NA,27
+2002,srv_len,Sex combined,91,638,0.0047,NA,27
+2002,srv_len,Sex combined,93,638,0.0063,NA,27
+2002,srv_len,Sex combined,95,638,0.0016,NA,27
+2002,srv_len,Sex combined,97,638,0.0031,NA,27
+2002,srv_len,Sex combined,99,638,0.0063,NA,27
+2003,srv_len,Female,41,386,0,NA,28
+2003,srv_len,Female,43,386,0,NA,28
+2003,srv_len,Female,45,386,0,NA,28
+2003,srv_len,Female,47,386,0.005181,NA,28
+2003,srv_len,Female,49,386,0.005181,NA,28
+2003,srv_len,Female,51,386,0.03886,NA,28
+2003,srv_len,Female,53,386,0.028497,NA,28
+2003,srv_len,Female,55,386,0.033679,NA,28
+2003,srv_len,Female,57,386,0.062176,NA,28
+2003,srv_len,Female,59,386,0.033679,NA,28
+2003,srv_len,Female,61,386,0.044041,NA,28
+2003,srv_len,Female,63,386,0.041451,NA,28
+2003,srv_len,Female,65,386,0.085492,NA,28
+2003,srv_len,Female,67,386,0.088083,NA,28
+2003,srv_len,Female,69,386,0.121762,NA,28
+2003,srv_len,Female,71,386,0.088083,NA,28
+2003,srv_len,Female,73,386,0.044041,NA,28
+2003,srv_len,Female,75,386,0.041451,NA,28
+2003,srv_len,Female,77,386,0.044041,NA,28
+2003,srv_len,Female,79,386,0.041451,NA,28
+2003,srv_len,Female,81,386,0.03886,NA,28
+2003,srv_len,Female,83,386,0.020725,NA,28
+2003,srv_len,Female,85,386,0.023316,NA,28
+2003,srv_len,Female,87,386,0.028497,NA,28
+2003,srv_len,Female,89,386,0.018135,NA,28
+2003,srv_len,Female,91,386,0.005181,NA,28
+2003,srv_len,Female,93,386,0.005181,NA,28
+2003,srv_len,Female,95,386,0.005181,NA,28
+2003,srv_len,Female,97,386,0.002591,NA,28
+2003,srv_len,Female,99,386,0.005181,NA,28
+2003,srv_len,Male,41,394,0,NA,28
+2003,srv_len,Male,43,394,0,NA,28
+2003,srv_len,Male,45,394,0.002538,NA,28
+2003,srv_len,Male,47,394,0.005076,NA,28
+2003,srv_len,Male,49,394,0.022843,NA,28
+2003,srv_len,Male,51,394,0.030457,NA,28
+2003,srv_len,Male,53,394,0.025381,NA,28
+2003,srv_len,Male,55,394,0.060914,NA,28
+2003,srv_len,Male,57,394,0.06599,NA,28
+2003,srv_len,Male,59,394,0.091371,NA,28
+2003,srv_len,Male,61,394,0.14467,NA,28
+2003,srv_len,Male,63,394,0.119289,NA,28
+2003,srv_len,Male,65,394,0.109137,NA,28
+2003,srv_len,Male,67,394,0.104061,NA,28
+2003,srv_len,Male,69,394,0.091371,NA,28
+2003,srv_len,Male,71,394,0.076142,NA,28
+2003,srv_len,Male,73,394,0.022843,NA,28
+2003,srv_len,Male,75,394,0.010152,NA,28
+2003,srv_len,Male,77,394,0.010152,NA,28
+2003,srv_len,Male,79,394,0.005076,NA,28
+2003,srv_len,Male,81,394,0.002538,NA,28
+2003,srv_len,Male,83,394,0,NA,28
+2003,srv_len,Male,85,394,0,NA,28
+2003,srv_len,Male,87,394,0,NA,28
+2003,srv_len,Male,89,394,0,NA,28
+2003,srv_len,Male,91,394,0,NA,28
+2003,srv_len,Male,93,394,0,NA,28
+2003,srv_len,Male,95,394,0,NA,28
+2003,srv_len,Male,97,394,0,NA,28
+2003,srv_len,Male,99,394,0,NA,28
+2003,srv_len,Sex combined,41,780,0,NA,28
+2003,srv_len,Sex combined,43,780,0,NA,28
+2003,srv_len,Sex combined,45,780,0.0013,NA,28
+2003,srv_len,Sex combined,47,780,0.0051,NA,28
+2003,srv_len,Sex combined,49,780,0.0141,NA,28
+2003,srv_len,Sex combined,51,780,0.0346,NA,28
+2003,srv_len,Sex combined,53,780,0.0269,NA,28
+2003,srv_len,Sex combined,55,780,0.0474,NA,28
+2003,srv_len,Sex combined,57,780,0.0641,NA,28
+2003,srv_len,Sex combined,59,780,0.0628,NA,28
+2003,srv_len,Sex combined,61,780,0.0949,NA,28
+2003,srv_len,Sex combined,63,780,0.0808,NA,28
+2003,srv_len,Sex combined,65,780,0.0974,NA,28
+2003,srv_len,Sex combined,67,780,0.0962,NA,28
+2003,srv_len,Sex combined,69,780,0.1064,NA,28
+2003,srv_len,Sex combined,71,780,0.0821,NA,28
+2003,srv_len,Sex combined,73,780,0.0333,NA,28
+2003,srv_len,Sex combined,75,780,0.0256,NA,28
+2003,srv_len,Sex combined,77,780,0.0269,NA,28
+2003,srv_len,Sex combined,79,780,0.0231,NA,28
+2003,srv_len,Sex combined,81,780,0.0205,NA,28
+2003,srv_len,Sex combined,83,780,0.0103,NA,28
+2003,srv_len,Sex combined,85,780,0.0115,NA,28
+2003,srv_len,Sex combined,87,780,0.0141,NA,28
+2003,srv_len,Sex combined,89,780,0.009,NA,28
+2003,srv_len,Sex combined,91,780,0.0026,NA,28
+2003,srv_len,Sex combined,93,780,0.0026,NA,28
+2003,srv_len,Sex combined,95,780,0.0026,NA,28
+2003,srv_len,Sex combined,97,780,0.0013,NA,28
+2003,srv_len,Sex combined,99,780,0.0026,NA,28
+2004,srv_len,Female,41,395,0,NA,29
+2004,srv_len,Female,43,395,0,NA,29
+2004,srv_len,Female,45,395,0,NA,29
+2004,srv_len,Female,47,395,0,NA,29
+2004,srv_len,Female,49,395,0.002532,NA,29
+2004,srv_len,Female,51,395,0.03038,NA,29
+2004,srv_len,Female,53,395,0.01519,NA,29
+2004,srv_len,Female,55,395,0.035443,NA,29
+2004,srv_len,Female,57,395,0.048101,NA,29
+2004,srv_len,Female,59,395,0.037975,NA,29
+2004,srv_len,Female,61,395,0.048101,NA,29
+2004,srv_len,Female,63,395,0.055696,NA,29
+2004,srv_len,Female,65,395,0.098734,NA,29
+2004,srv_len,Female,67,395,0.103797,NA,29
+2004,srv_len,Female,69,395,0.129114,NA,29
+2004,srv_len,Female,71,395,0.113924,NA,29
+2004,srv_len,Female,73,395,0.068354,NA,29
+2004,srv_len,Female,75,395,0.040506,NA,29
+2004,srv_len,Female,77,395,0.037975,NA,29
+2004,srv_len,Female,79,395,0.025316,NA,29
+2004,srv_len,Female,81,395,0.017722,NA,29
+2004,srv_len,Female,83,395,0.007595,NA,29
+2004,srv_len,Female,85,395,0.022785,NA,29
+2004,srv_len,Female,87,395,0.010127,NA,29
+2004,srv_len,Female,89,395,0.005063,NA,29
+2004,srv_len,Female,91,395,0.002532,NA,29
+2004,srv_len,Female,93,395,0.002532,NA,29
+2004,srv_len,Female,95,395,0.002532,NA,29
+2004,srv_len,Female,97,395,0.005063,NA,29
+2004,srv_len,Female,99,395,0.032911,NA,29
+2004,srv_len,Male,41,342,0,NA,29
+2004,srv_len,Male,43,342,0,NA,29
+2004,srv_len,Male,45,342,0,NA,29
+2004,srv_len,Male,47,342,0,NA,29
+2004,srv_len,Male,49,342,0.002924,NA,29
+2004,srv_len,Male,51,342,0.023392,NA,29
+2004,srv_len,Male,53,342,0.035088,NA,29
+2004,srv_len,Male,55,342,0.038012,NA,29
+2004,srv_len,Male,57,342,0.084795,NA,29
+2004,srv_len,Male,59,342,0.119883,NA,29
+2004,srv_len,Male,61,342,0.128655,NA,29
+2004,srv_len,Male,63,342,0.140351,NA,29
+2004,srv_len,Male,65,342,0.116959,NA,29
+2004,srv_len,Male,67,342,0.137427,NA,29
+2004,srv_len,Male,69,342,0.087719,NA,29
+2004,srv_len,Male,71,342,0.02924,NA,29
+2004,srv_len,Male,73,342,0.023392,NA,29
+2004,srv_len,Male,75,342,0.023392,NA,29
+2004,srv_len,Male,77,342,0.005848,NA,29
+2004,srv_len,Male,79,342,0.002924,NA,29
+2004,srv_len,Male,81,342,0,NA,29
+2004,srv_len,Male,83,342,0,NA,29
+2004,srv_len,Male,85,342,0,NA,29
+2004,srv_len,Male,87,342,0,NA,29
+2004,srv_len,Male,89,342,0,NA,29
+2004,srv_len,Male,91,342,0,NA,29
+2004,srv_len,Male,93,342,0,NA,29
+2004,srv_len,Male,95,342,0,NA,29
+2004,srv_len,Male,97,342,0,NA,29
+2004,srv_len,Male,99,342,0,NA,29
+2004,srv_len,Sex combined,41,737,0,NA,29
+2004,srv_len,Sex combined,43,737,0,NA,29
+2004,srv_len,Sex combined,45,737,0,NA,29
+2004,srv_len,Sex combined,47,737,0,NA,29
+2004,srv_len,Sex combined,49,737,0.0027,NA,29
+2004,srv_len,Sex combined,51,737,0.0271,NA,29
+2004,srv_len,Sex combined,53,737,0.0244,NA,29
+2004,srv_len,Sex combined,55,737,0.0366,NA,29
+2004,srv_len,Sex combined,57,737,0.0651,NA,29
+2004,srv_len,Sex combined,59,737,0.076,NA,29
+2004,srv_len,Sex combined,61,737,0.0855,NA,29
+2004,srv_len,Sex combined,63,737,0.095,NA,29
+2004,srv_len,Sex combined,65,737,0.1072,NA,29
+2004,srv_len,Sex combined,67,737,0.1194,NA,29
+2004,srv_len,Sex combined,69,737,0.1099,NA,29
+2004,srv_len,Sex combined,71,737,0.0746,NA,29
+2004,srv_len,Sex combined,73,737,0.0475,NA,29
+2004,srv_len,Sex combined,75,737,0.0326,NA,29
+2004,srv_len,Sex combined,77,737,0.0231,NA,29
+2004,srv_len,Sex combined,79,737,0.0149,NA,29
+2004,srv_len,Sex combined,81,737,0.0095,NA,29
+2004,srv_len,Sex combined,83,737,0.0041,NA,29
+2004,srv_len,Sex combined,85,737,0.0122,NA,29
+2004,srv_len,Sex combined,87,737,0.0054,NA,29
+2004,srv_len,Sex combined,89,737,0.0027,NA,29
+2004,srv_len,Sex combined,91,737,0.0014,NA,29
+2004,srv_len,Sex combined,93,737,0.0014,NA,29
+2004,srv_len,Sex combined,95,737,0.0014,NA,29
+2004,srv_len,Sex combined,97,737,0.0027,NA,29
+2004,srv_len,Sex combined,99,737,0.0176,NA,29
+2005,srv_len,Female,41,502,0,NA,30
+2005,srv_len,Female,43,502,0,NA,30
+2005,srv_len,Female,45,502,0,NA,30
+2005,srv_len,Female,47,502,0.001992,NA,30
+2005,srv_len,Female,49,502,0,NA,30
+2005,srv_len,Female,51,502,0,NA,30
+2005,srv_len,Female,53,502,0.00996,NA,30
+2005,srv_len,Female,55,502,0.00996,NA,30
+2005,srv_len,Female,57,502,0.013944,NA,30
+2005,srv_len,Female,59,502,0.00996,NA,30
+2005,srv_len,Female,61,502,0.02988,NA,30
+2005,srv_len,Female,63,502,0.051793,NA,30
+2005,srv_len,Female,65,502,0.091633,NA,30
+2005,srv_len,Female,67,502,0.11753,NA,30
+2005,srv_len,Female,69,502,0.11753,NA,30
+2005,srv_len,Female,71,502,0.151394,NA,30
+2005,srv_len,Female,73,502,0.095618,NA,30
+2005,srv_len,Female,75,502,0.035857,NA,30
+2005,srv_len,Female,77,502,0.035857,NA,30
+2005,srv_len,Female,79,502,0.027888,NA,30
+2005,srv_len,Female,81,502,0.031873,NA,30
+2005,srv_len,Female,83,502,0.02988,NA,30
+2005,srv_len,Female,85,502,0.017928,NA,30
+2005,srv_len,Female,87,502,0.01992,NA,30
+2005,srv_len,Female,89,502,0.017928,NA,30
+2005,srv_len,Female,91,502,0.015936,NA,30
+2005,srv_len,Female,93,502,0.01992,NA,30
+2005,srv_len,Female,95,502,0.017928,NA,30
+2005,srv_len,Female,97,502,0.005976,NA,30
+2005,srv_len,Female,99,502,0.021912,NA,30
+2005,srv_len,Male,41,366,0,NA,30
+2005,srv_len,Male,43,366,0,NA,30
+2005,srv_len,Male,45,366,0,NA,30
+2005,srv_len,Male,47,366,0,NA,30
+2005,srv_len,Male,49,366,0,NA,30
+2005,srv_len,Male,51,366,0,NA,30
+2005,srv_len,Male,53,366,0.027322,NA,30
+2005,srv_len,Male,55,366,0.027322,NA,30
+2005,srv_len,Male,57,366,0.038251,NA,30
+2005,srv_len,Male,59,366,0.071038,NA,30
+2005,srv_len,Male,61,366,0.120219,NA,30
+2005,srv_len,Male,63,366,0.196721,NA,30
+2005,srv_len,Male,65,366,0.185792,NA,30
+2005,srv_len,Male,67,366,0.120219,NA,30
+2005,srv_len,Male,69,366,0.092896,NA,30
+2005,srv_len,Male,71,366,0.068306,NA,30
+2005,srv_len,Male,73,366,0.013661,NA,30
+2005,srv_len,Male,75,366,0.013661,NA,30
+2005,srv_len,Male,77,366,0.008197,NA,30
+2005,srv_len,Male,79,366,0.010929,NA,30
+2005,srv_len,Male,81,366,0.005464,NA,30
+2005,srv_len,Male,83,366,0,NA,30
+2005,srv_len,Male,85,366,0,NA,30
+2005,srv_len,Male,87,366,0,NA,30
+2005,srv_len,Male,89,366,0,NA,30
+2005,srv_len,Male,91,366,0,NA,30
+2005,srv_len,Male,93,366,0,NA,30
+2005,srv_len,Male,95,366,0,NA,30
+2005,srv_len,Male,97,366,0,NA,30
+2005,srv_len,Male,99,366,0,NA,30
+2005,srv_len,Sex combined,41,868,0,NA,30
+2005,srv_len,Sex combined,43,868,0,NA,30
+2005,srv_len,Sex combined,45,868,0,NA,30
+2005,srv_len,Sex combined,47,868,0.0012,NA,30
+2005,srv_len,Sex combined,49,868,0,NA,30
+2005,srv_len,Sex combined,51,868,0,NA,30
+2005,srv_len,Sex combined,53,868,0.0173,NA,30
+2005,srv_len,Sex combined,55,868,0.0173,NA,30
+2005,srv_len,Sex combined,57,868,0.0242,NA,30
+2005,srv_len,Sex combined,59,868,0.0357,NA,30
+2005,srv_len,Sex combined,61,868,0.068,NA,30
+2005,srv_len,Sex combined,63,868,0.1129,NA,30
+2005,srv_len,Sex combined,65,868,0.1313,NA,30
+2005,srv_len,Sex combined,67,868,0.1187,NA,30
+2005,srv_len,Sex combined,69,868,0.1071,NA,30
+2005,srv_len,Sex combined,71,868,0.1164,NA,30
+2005,srv_len,Sex combined,73,868,0.0611,NA,30
+2005,srv_len,Sex combined,75,868,0.0265,NA,30
+2005,srv_len,Sex combined,77,868,0.0242,NA,30
+2005,srv_len,Sex combined,79,868,0.0207,NA,30
+2005,srv_len,Sex combined,81,868,0.0207,NA,30
+2005,srv_len,Sex combined,83,868,0.0173,NA,30
+2005,srv_len,Sex combined,85,868,0.0104,NA,30
+2005,srv_len,Sex combined,87,868,0.0115,NA,30
+2005,srv_len,Sex combined,89,868,0.0104,NA,30
+2005,srv_len,Sex combined,91,868,0.0092,NA,30
+2005,srv_len,Sex combined,93,868,0.0115,NA,30
+2005,srv_len,Sex combined,95,868,0.0104,NA,30
+2005,srv_len,Sex combined,97,868,0.0035,NA,30
+2005,srv_len,Sex combined,99,868,0.0127,NA,30
+2006,srv_len,Female,41,416,0,NA,31
+2006,srv_len,Female,43,416,0,NA,31
+2006,srv_len,Female,45,416,0,NA,31
+2006,srv_len,Female,47,416,0,NA,31
+2006,srv_len,Female,49,416,0,NA,31
+2006,srv_len,Female,51,416,0.007212,NA,31
+2006,srv_len,Female,53,416,0.004808,NA,31
+2006,srv_len,Female,55,416,0.014423,NA,31
+2006,srv_len,Female,57,416,0.019231,NA,31
+2006,srv_len,Female,59,416,0.026442,NA,31
+2006,srv_len,Female,61,416,0.019231,NA,31
+2006,srv_len,Female,63,416,0.043269,NA,31
+2006,srv_len,Female,65,416,0.048077,NA,31
+2006,srv_len,Female,67,416,0.103365,NA,31
+2006,srv_len,Female,69,416,0.161058,NA,31
+2006,srv_len,Female,71,416,0.180288,NA,31
+2006,srv_len,Female,73,416,0.125,NA,31
+2006,srv_len,Female,75,416,0.074519,NA,31
+2006,srv_len,Female,77,416,0.043269,NA,31
+2006,srv_len,Female,79,416,0.036058,NA,31
+2006,srv_len,Female,81,416,0.014423,NA,31
+2006,srv_len,Female,83,416,0.019231,NA,31
+2006,srv_len,Female,85,416,0.016827,NA,31
+2006,srv_len,Female,87,416,0.007212,NA,31
+2006,srv_len,Female,89,416,0.012019,NA,31
+2006,srv_len,Female,91,416,0.004808,NA,31
+2006,srv_len,Female,93,416,0.009615,NA,31
+2006,srv_len,Female,95,416,0.002404,NA,31
+2006,srv_len,Female,97,416,0.002404,NA,31
+2006,srv_len,Female,99,416,0.004808,NA,31
+2006,srv_len,Male,41,316,0,NA,31
+2006,srv_len,Male,43,316,0,NA,31
+2006,srv_len,Male,45,316,0,NA,31
+2006,srv_len,Male,47,316,0,NA,31
+2006,srv_len,Male,49,316,0.006329,NA,31
+2006,srv_len,Male,51,316,0.009494,NA,31
+2006,srv_len,Male,53,316,0,NA,31
+2006,srv_len,Male,55,316,0.012658,NA,31
+2006,srv_len,Male,57,316,0.03481,NA,31
+2006,srv_len,Male,59,316,0.085443,NA,31
+2006,srv_len,Male,61,316,0.129747,NA,31
+2006,srv_len,Male,63,316,0.18670900000000001,NA,31
+2006,srv_len,Male,65,316,0.161392,NA,31
+2006,srv_len,Male,67,316,0.167722,NA,31
+2006,srv_len,Male,69,316,0.113924,NA,31
+2006,srv_len,Male,71,316,0.037975,NA,31
+2006,srv_len,Male,73,316,0.015823,NA,31
+2006,srv_len,Male,75,316,0.015823,NA,31
+2006,srv_len,Male,77,316,0.009494,NA,31
+2006,srv_len,Male,79,316,0.003165,NA,31
+2006,srv_len,Male,81,316,0,NA,31
+2006,srv_len,Male,83,316,0.006329,NA,31
+2006,srv_len,Male,85,316,0,NA,31
+2006,srv_len,Male,87,316,0,NA,31
+2006,srv_len,Male,89,316,0,NA,31
+2006,srv_len,Male,91,316,0.003165,NA,31
+2006,srv_len,Male,93,316,0,NA,31
+2006,srv_len,Male,95,316,0,NA,31
+2006,srv_len,Male,97,316,0,NA,31
+2006,srv_len,Male,99,316,0,NA,31
+2006,srv_len,Sex combined,41,732,0,NA,31
+2006,srv_len,Sex combined,43,732,0,NA,31
+2006,srv_len,Sex combined,45,732,0,NA,31
+2006,srv_len,Sex combined,47,732,0,NA,31
+2006,srv_len,Sex combined,49,732,0.0027,NA,31
+2006,srv_len,Sex combined,51,732,0.0082,NA,31
+2006,srv_len,Sex combined,53,732,0.0027,NA,31
+2006,srv_len,Sex combined,55,732,0.0137,NA,31
+2006,srv_len,Sex combined,57,732,0.026,NA,31
+2006,srv_len,Sex combined,59,732,0.0519,NA,31
+2006,srv_len,Sex combined,61,732,0.0669,NA,31
+2006,srv_len,Sex combined,63,732,0.1052,NA,31
+2006,srv_len,Sex combined,65,732,0.097,NA,31
+2006,srv_len,Sex combined,67,732,0.1311,NA,31
+2006,srv_len,Sex combined,69,732,0.1407,NA,31
+2006,srv_len,Sex combined,71,732,0.1189,NA,31
+2006,srv_len,Sex combined,73,732,0.0779,NA,31
+2006,srv_len,Sex combined,75,732,0.0492,NA,31
+2006,srv_len,Sex combined,77,732,0.0287,NA,31
+2006,srv_len,Sex combined,79,732,0.0219,NA,31
+2006,srv_len,Sex combined,81,732,0.0082,NA,31
+2006,srv_len,Sex combined,83,732,0.0137,NA,31
+2006,srv_len,Sex combined,85,732,0.0096,NA,31
+2006,srv_len,Sex combined,87,732,0.0041,NA,31
+2006,srv_len,Sex combined,89,732,0.0068,NA,31
+2006,srv_len,Sex combined,91,732,0.0041,NA,31
+2006,srv_len,Sex combined,93,732,0.0055,NA,31
+2006,srv_len,Sex combined,95,732,0.0014,NA,31
+2006,srv_len,Sex combined,97,732,0.0014,NA,31
+2006,srv_len,Sex combined,99,732,0.0027,NA,31
+2007,srv_len,Female,41,408,0,NA,32
+2007,srv_len,Female,43,408,0,NA,32
+2007,srv_len,Female,45,408,0,NA,32
+2007,srv_len,Female,47,408,0,NA,32
+2007,srv_len,Female,49,408,0.004902,NA,32
+2007,srv_len,Female,51,408,0.007353,NA,32
+2007,srv_len,Female,53,408,0.007353,NA,32
+2007,srv_len,Female,55,408,0.026961,NA,32
+2007,srv_len,Female,57,408,0.017157,NA,32
+2007,srv_len,Female,59,408,0.051471,NA,32
+2007,srv_len,Female,61,408,0.026961,NA,32
+2007,srv_len,Female,63,408,0.034314,NA,32
+2007,srv_len,Female,65,408,0.083333,NA,32
+2007,srv_len,Female,67,408,0.112745,NA,32
+2007,srv_len,Female,69,408,0.115196,NA,32
+2007,srv_len,Female,71,408,0.134804,NA,32
+2007,srv_len,Female,73,408,0.105392,NA,32
+2007,srv_len,Female,75,408,0.098039,NA,32
+2007,srv_len,Female,77,408,0.046569,NA,32
+2007,srv_len,Female,79,408,0.036765,NA,32
+2007,srv_len,Female,81,408,0.029412,NA,32
+2007,srv_len,Female,83,408,0.012255,NA,32
+2007,srv_len,Female,85,408,0.012255,NA,32
+2007,srv_len,Female,87,408,0.007353,NA,32
+2007,srv_len,Female,89,408,0.009804,NA,32
+2007,srv_len,Female,91,408,0.004902,NA,32
+2007,srv_len,Female,93,408,0.002451,NA,32
+2007,srv_len,Female,95,408,0,NA,32
+2007,srv_len,Female,97,408,0.004902,NA,32
+2007,srv_len,Female,99,408,0.007353,NA,32
+2007,srv_len,Male,41,329,0,NA,32
+2007,srv_len,Male,43,329,0,NA,32
+2007,srv_len,Male,45,329,0,NA,32
+2007,srv_len,Male,47,329,0,NA,32
+2007,srv_len,Male,49,329,0.015198,NA,32
+2007,srv_len,Male,51,329,0.018237,NA,32
+2007,srv_len,Male,53,329,0.018237,NA,32
+2007,srv_len,Male,55,329,0.036474,NA,32
+2007,srv_len,Male,57,329,0.057751,NA,32
+2007,srv_len,Male,59,329,0.066869,NA,32
+2007,srv_len,Male,61,329,0.142857,NA,32
+2007,srv_len,Male,63,329,0.167173,NA,32
+2007,srv_len,Male,65,329,0.194529,NA,32
+2007,srv_len,Male,67,329,0.118541,NA,32
+2007,srv_len,Male,69,329,0.066869,NA,32
+2007,srv_len,Male,71,329,0.06383,NA,32
+2007,srv_len,Male,73,329,0.015198,NA,32
+2007,srv_len,Male,75,329,0.012158,NA,32
+2007,srv_len,Male,77,329,0.00304,NA,32
+2007,srv_len,Male,79,329,0,NA,32
+2007,srv_len,Male,81,329,0,NA,32
+2007,srv_len,Male,83,329,0,NA,32
+2007,srv_len,Male,85,329,0.00304,NA,32
+2007,srv_len,Male,87,329,0,NA,32
+2007,srv_len,Male,89,329,0,NA,32
+2007,srv_len,Male,91,329,0,NA,32
+2007,srv_len,Male,93,329,0,NA,32
+2007,srv_len,Male,95,329,0,NA,32
+2007,srv_len,Male,97,329,0,NA,32
+2007,srv_len,Male,99,329,0,NA,32
+2007,srv_len,Sex combined,41,737,0,NA,32
+2007,srv_len,Sex combined,43,737,0,NA,32
+2007,srv_len,Sex combined,45,737,0,NA,32
+2007,srv_len,Sex combined,47,737,0,NA,32
+2007,srv_len,Sex combined,49,737,0.0095,NA,32
+2007,srv_len,Sex combined,51,737,0.0122,NA,32
+2007,srv_len,Sex combined,53,737,0.0122,NA,32
+2007,srv_len,Sex combined,55,737,0.0312,NA,32
+2007,srv_len,Sex combined,57,737,0.0353,NA,32
+2007,srv_len,Sex combined,59,737,0.0583,NA,32
+2007,srv_len,Sex combined,61,737,0.0787,NA,32
+2007,srv_len,Sex combined,63,737,0.0936,NA,32
+2007,srv_len,Sex combined,65,737,0.133,NA,32
+2007,srv_len,Sex combined,67,737,0.1153,NA,32
+2007,srv_len,Sex combined,69,737,0.0936,NA,32
+2007,srv_len,Sex combined,71,737,0.1031,NA,32
+2007,srv_len,Sex combined,73,737,0.0651,NA,32
+2007,srv_len,Sex combined,75,737,0.0597,NA,32
+2007,srv_len,Sex combined,77,737,0.0271,NA,32
+2007,srv_len,Sex combined,79,737,0.0204,NA,32
+2007,srv_len,Sex combined,81,737,0.0163,NA,32
+2007,srv_len,Sex combined,83,737,0.0068,NA,32
+2007,srv_len,Sex combined,85,737,0.0081,NA,32
+2007,srv_len,Sex combined,87,737,0.0041,NA,32
+2007,srv_len,Sex combined,89,737,0.0054,NA,32
+2007,srv_len,Sex combined,91,737,0.0027,NA,32
+2007,srv_len,Sex combined,93,737,0.0014,NA,32
+2007,srv_len,Sex combined,95,737,0,NA,32
+2007,srv_len,Sex combined,97,737,0.0027,NA,32
+2007,srv_len,Sex combined,99,737,0.0041,NA,32
+2008,srv_len,Female,41,336,0,NA,33
+2008,srv_len,Female,43,336,0,NA,33
+2008,srv_len,Female,45,336,0,NA,33
+2008,srv_len,Female,47,336,0,NA,33
+2008,srv_len,Female,49,336,0.002976,NA,33
+2008,srv_len,Female,51,336,0.005952,NA,33
+2008,srv_len,Female,53,336,0.014881,NA,33
+2008,srv_len,Female,55,336,0.008929,NA,33
+2008,srv_len,Female,57,336,0.002976,NA,33
+2008,srv_len,Female,59,336,0.011905,NA,33
+2008,srv_len,Female,61,336,0.041667,NA,33
+2008,srv_len,Female,63,336,0.053571,NA,33
+2008,srv_len,Female,65,336,0.056548,NA,33
+2008,srv_len,Female,67,336,0.107143,NA,33
+2008,srv_len,Female,69,336,0.127976,NA,33
+2008,srv_len,Female,71,336,0.116071,NA,33
+2008,srv_len,Female,73,336,0.107143,NA,33
+2008,srv_len,Female,75,336,0.098214,NA,33
+2008,srv_len,Female,77,336,0.053571,NA,33
+2008,srv_len,Female,79,336,0.050595,NA,33
+2008,srv_len,Female,81,336,0.041667,NA,33
+2008,srv_len,Female,83,336,0.032738,NA,33
+2008,srv_len,Female,85,336,0.014881,NA,33
+2008,srv_len,Female,87,336,0.011905,NA,33
+2008,srv_len,Female,89,336,0.005952,NA,33
+2008,srv_len,Female,91,336,0.011905,NA,33
+2008,srv_len,Female,93,336,0.008929,NA,33
+2008,srv_len,Female,95,336,0.002976,NA,33
+2008,srv_len,Female,97,336,0.002976,NA,33
+2008,srv_len,Female,99,336,0.005952,NA,33
+2008,srv_len,Male,41,270,0,NA,33
+2008,srv_len,Male,43,270,0,NA,33
+2008,srv_len,Male,45,270,0,NA,33
+2008,srv_len,Male,47,270,0,NA,33
+2008,srv_len,Male,49,270,0.003704,NA,33
+2008,srv_len,Male,51,270,0,NA,33
+2008,srv_len,Male,53,270,0.025926,NA,33
+2008,srv_len,Male,55,270,0.011111,NA,33
+2008,srv_len,Male,57,270,0.037037,NA,33
+2008,srv_len,Male,59,270,0.103704,NA,33
+2008,srv_len,Male,61,270,0.144444,NA,33
+2008,srv_len,Male,63,270,0.155556,NA,33
+2008,srv_len,Male,65,270,0.159259,NA,33
+2008,srv_len,Male,67,270,0.133333,NA,33
+2008,srv_len,Male,69,270,0.092593,NA,33
+2008,srv_len,Male,71,270,0.066667,NA,33
+2008,srv_len,Male,73,270,0.033333,NA,33
+2008,srv_len,Male,75,270,0.022222,NA,33
+2008,srv_len,Male,77,270,0.003704,NA,33
+2008,srv_len,Male,79,270,0.003704,NA,33
+2008,srv_len,Male,81,270,0.003704,NA,33
+2008,srv_len,Male,83,270,0,NA,33
+2008,srv_len,Male,85,270,0,NA,33
+2008,srv_len,Male,87,270,0,NA,33
+2008,srv_len,Male,89,270,0,NA,33
+2008,srv_len,Male,91,270,0,NA,33
+2008,srv_len,Male,93,270,0,NA,33
+2008,srv_len,Male,95,270,0,NA,33
+2008,srv_len,Male,97,270,0,NA,33
+2008,srv_len,Male,99,270,0,NA,33
+2008,srv_len,Sex combined,41,606,0,NA,33
+2008,srv_len,Sex combined,43,606,0,NA,33
+2008,srv_len,Sex combined,45,606,0,NA,33
+2008,srv_len,Sex combined,47,606,0,NA,33
+2008,srv_len,Sex combined,49,606,0.0033,NA,33
+2008,srv_len,Sex combined,51,606,0.0033,NA,33
+2008,srv_len,Sex combined,53,606,0.0198,NA,33
+2008,srv_len,Sex combined,55,606,0.0099,NA,33
+2008,srv_len,Sex combined,57,606,0.0182,NA,33
+2008,srv_len,Sex combined,59,606,0.0528,NA,33
+2008,srv_len,Sex combined,61,606,0.0875,NA,33
+2008,srv_len,Sex combined,63,606,0.099,NA,33
+2008,srv_len,Sex combined,65,606,0.1023,NA,33
+2008,srv_len,Sex combined,67,606,0.1188,NA,33
+2008,srv_len,Sex combined,69,606,0.1122,NA,33
+2008,srv_len,Sex combined,71,606,0.0941,NA,33
+2008,srv_len,Sex combined,73,606,0.0743,NA,33
+2008,srv_len,Sex combined,75,606,0.0644,NA,33
+2008,srv_len,Sex combined,77,606,0.0314,NA,33
+2008,srv_len,Sex combined,79,606,0.0297,NA,33
+2008,srv_len,Sex combined,81,606,0.0248,NA,33
+2008,srv_len,Sex combined,83,606,0.0182,NA,33
+2008,srv_len,Sex combined,85,606,0.0083,NA,33
+2008,srv_len,Sex combined,87,606,0.0066,NA,33
+2008,srv_len,Sex combined,89,606,0.0033,NA,33
+2008,srv_len,Sex combined,91,606,0.0066,NA,33
+2008,srv_len,Sex combined,93,606,0.005,NA,33
+2008,srv_len,Sex combined,95,606,0.0017,NA,33
+2008,srv_len,Sex combined,97,606,0.0017,NA,33
+2008,srv_len,Sex combined,99,606,0.0033,NA,33
+2009,srv_len,Female,41,365,0,NA,34
+2009,srv_len,Female,43,365,0,NA,34
+2009,srv_len,Female,45,365,0,NA,34
+2009,srv_len,Female,47,365,0.005479,NA,34
+2009,srv_len,Female,49,365,0,NA,34
+2009,srv_len,Female,51,365,0.008219,NA,34
+2009,srv_len,Female,53,365,0.005479,NA,34
+2009,srv_len,Female,55,365,0.008219,NA,34
+2009,srv_len,Female,57,365,0.013699,NA,34
+2009,srv_len,Female,59,365,0.010959,NA,34
+2009,srv_len,Female,61,365,0.008219,NA,34
+2009,srv_len,Female,63,365,0.046575,NA,34
+2009,srv_len,Female,65,365,0.087671,NA,34
+2009,srv_len,Female,67,365,0.093151,NA,34
+2009,srv_len,Female,69,365,0.10137,NA,34
+2009,srv_len,Female,71,365,0.178082,NA,34
+2009,srv_len,Female,73,365,0.10137,NA,34
+2009,srv_len,Female,75,365,0.106849,NA,34
+2009,srv_len,Female,77,365,0.049315,NA,34
+2009,srv_len,Female,79,365,0.049315,NA,34
+2009,srv_len,Female,81,365,0.013699,NA,34
+2009,srv_len,Female,83,365,0.038356,NA,34
+2009,srv_len,Female,85,365,0.024658,NA,34
+2009,srv_len,Female,87,365,0.008219,NA,34
+2009,srv_len,Female,89,365,0.016438,NA,34
+2009,srv_len,Female,91,365,0,NA,34
+2009,srv_len,Female,93,365,0.008219,NA,34
+2009,srv_len,Female,95,365,0.008219,NA,34
+2009,srv_len,Female,97,365,0.00274,NA,34
+2009,srv_len,Female,99,365,0.005479,NA,34
+2009,srv_len,Male,41,253,0,NA,34
+2009,srv_len,Male,43,253,0,NA,34
+2009,srv_len,Male,45,253,0,NA,34
+2009,srv_len,Male,47,253,0,NA,34
+2009,srv_len,Male,49,253,0.003953,NA,34
+2009,srv_len,Male,51,253,0.007905,NA,34
+2009,srv_len,Male,53,253,0.011858,NA,34
+2009,srv_len,Male,55,253,0.023715,NA,34
+2009,srv_len,Male,57,253,0.023715,NA,34
+2009,srv_len,Male,59,253,0.059289,NA,34
+2009,srv_len,Male,61,253,0.110672,NA,34
+2009,srv_len,Male,63,253,0.16996,NA,34
+2009,srv_len,Male,65,253,0.150198,NA,34
+2009,srv_len,Male,67,253,0.142292,NA,34
+2009,srv_len,Male,69,253,0.110672,NA,34
+2009,srv_len,Male,71,253,0.090909,NA,34
+2009,srv_len,Male,73,253,0.047431,NA,34
+2009,srv_len,Male,75,253,0.023715,NA,34
+2009,srv_len,Male,77,253,0.011858,NA,34
+2009,srv_len,Male,79,253,0.007905,NA,34
+2009,srv_len,Male,81,253,0.003953,NA,34
+2009,srv_len,Male,83,253,0,NA,34
+2009,srv_len,Male,85,253,0,NA,34
+2009,srv_len,Male,87,253,0,NA,34
+2009,srv_len,Male,89,253,0,NA,34
+2009,srv_len,Male,91,253,0,NA,34
+2009,srv_len,Male,93,253,0,NA,34
+2009,srv_len,Male,95,253,0,NA,34
+2009,srv_len,Male,97,253,0,NA,34
+2009,srv_len,Male,99,253,0,NA,34
+2009,srv_len,Sex combined,41,618,0,NA,34
+2009,srv_len,Sex combined,43,618,0,NA,34
+2009,srv_len,Sex combined,45,618,0,NA,34
+2009,srv_len,Sex combined,47,618,0.0032,NA,34
+2009,srv_len,Sex combined,49,618,0.0016,NA,34
+2009,srv_len,Sex combined,51,618,0.0081,NA,34
+2009,srv_len,Sex combined,53,618,0.0081,NA,34
+2009,srv_len,Sex combined,55,618,0.0146,NA,34
+2009,srv_len,Sex combined,57,618,0.0178,NA,34
+2009,srv_len,Sex combined,59,618,0.0307,NA,34
+2009,srv_len,Sex combined,61,618,0.0502,NA,34
+2009,srv_len,Sex combined,63,618,0.0971,NA,34
+2009,srv_len,Sex combined,65,618,0.1133,NA,34
+2009,srv_len,Sex combined,67,618,0.1133,NA,34
+2009,srv_len,Sex combined,69,618,0.1052,NA,34
+2009,srv_len,Sex combined,71,618,0.1424,NA,34
+2009,srv_len,Sex combined,73,618,0.0793,NA,34
+2009,srv_len,Sex combined,75,618,0.0728,NA,34
+2009,srv_len,Sex combined,77,618,0.034,NA,34
+2009,srv_len,Sex combined,79,618,0.0324,NA,34
+2009,srv_len,Sex combined,81,618,0.0097,NA,34
+2009,srv_len,Sex combined,83,618,0.0227,NA,34
+2009,srv_len,Sex combined,85,618,0.0146,NA,34
+2009,srv_len,Sex combined,87,618,0.0049,NA,34
+2009,srv_len,Sex combined,89,618,0.0097,NA,34
+2009,srv_len,Sex combined,91,618,0,NA,34
+2009,srv_len,Sex combined,93,618,0.0049,NA,34
+2009,srv_len,Sex combined,95,618,0.0049,NA,34
+2009,srv_len,Sex combined,97,618,0.0016,NA,34
+2009,srv_len,Sex combined,99,618,0.0032,NA,34
+2010,srv_len,Female,41,320,0,NA,35
+2010,srv_len,Female,43,320,0,NA,35
+2010,srv_len,Female,45,320,0.0125,NA,35
+2010,srv_len,Female,47,320,0,NA,35
+2010,srv_len,Female,49,320,0.009375,NA,35
+2010,srv_len,Female,51,320,0.009375,NA,35
+2010,srv_len,Female,53,320,0.009375,NA,35
+2010,srv_len,Female,55,320,0.00625,NA,35
+2010,srv_len,Female,57,320,0.003125,NA,35
+2010,srv_len,Female,59,320,0.003125,NA,35
+2010,srv_len,Female,61,320,0.021875,NA,35
+2010,srv_len,Female,63,320,0.021875,NA,35
+2010,srv_len,Female,65,320,0.0625,NA,35
+2010,srv_len,Female,67,320,0.0875,NA,35
+2010,srv_len,Female,69,320,0.109375,NA,35
+2010,srv_len,Female,71,320,0.103125,NA,35
+2010,srv_len,Female,73,320,0.1375,NA,35
+2010,srv_len,Female,75,320,0.125,NA,35
+2010,srv_len,Female,77,320,0.075,NA,35
+2010,srv_len,Female,79,320,0.075,NA,35
+2010,srv_len,Female,81,320,0.03125,NA,35
+2010,srv_len,Female,83,320,0.021875,NA,35
+2010,srv_len,Female,85,320,0.028125,NA,35
+2010,srv_len,Female,87,320,0.0125,NA,35
+2010,srv_len,Female,89,320,0.00625,NA,35
+2010,srv_len,Female,91,320,0.003125,NA,35
+2010,srv_len,Female,93,320,0.0125,NA,35
+2010,srv_len,Female,95,320,0.003125,NA,35
+2010,srv_len,Female,97,320,0.00625,NA,35
+2010,srv_len,Female,99,320,0.003125,NA,35
+2010,srv_len,Male,41,285,0,NA,35
+2010,srv_len,Male,43,285,0,NA,35
+2010,srv_len,Male,45,285,0,NA,35
+2010,srv_len,Male,47,285,0.014035,NA,35
+2010,srv_len,Male,49,285,0.010526,NA,35
+2010,srv_len,Male,51,285,0.007018,NA,35
+2010,srv_len,Male,53,285,0.021053,NA,35
+2010,srv_len,Male,55,285,0.024561,NA,35
+2010,srv_len,Male,57,285,0.02807,NA,35
+2010,srv_len,Male,59,285,0.031579,NA,35
+2010,srv_len,Male,61,285,0.112281,NA,35
+2010,srv_len,Male,63,285,0.150877,NA,35
+2010,srv_len,Male,65,285,0.196491,NA,35
+2010,srv_len,Male,67,285,0.14386,NA,35
+2010,srv_len,Male,69,285,0.105263,NA,35
+2010,srv_len,Male,71,285,0.073684,NA,35
+2010,srv_len,Male,73,285,0.049123,NA,35
+2010,srv_len,Male,75,285,0.024561,NA,35
+2010,srv_len,Male,77,285,0.007018,NA,35
+2010,srv_len,Male,79,285,0,NA,35
+2010,srv_len,Male,81,285,0,NA,35
+2010,srv_len,Male,83,285,0,NA,35
+2010,srv_len,Male,85,285,0,NA,35
+2010,srv_len,Male,87,285,0,NA,35
+2010,srv_len,Male,89,285,0,NA,35
+2010,srv_len,Male,91,285,0,NA,35
+2010,srv_len,Male,93,285,0,NA,35
+2010,srv_len,Male,95,285,0,NA,35
+2010,srv_len,Male,97,285,0,NA,35
+2010,srv_len,Male,99,285,0,NA,35
+2010,srv_len,Sex combined,41,605,0,NA,35
+2010,srv_len,Sex combined,43,605,0,NA,35
+2010,srv_len,Sex combined,45,605,0.0066,NA,35
+2010,srv_len,Sex combined,47,605,0.0066,NA,35
+2010,srv_len,Sex combined,49,605,0.0099,NA,35
+2010,srv_len,Sex combined,51,605,0.0083,NA,35
+2010,srv_len,Sex combined,53,605,0.0149,NA,35
+2010,srv_len,Sex combined,55,605,0.0149,NA,35
+2010,srv_len,Sex combined,57,605,0.0149,NA,35
+2010,srv_len,Sex combined,59,605,0.0165,NA,35
+2010,srv_len,Sex combined,61,605,0.0645,NA,35
+2010,srv_len,Sex combined,63,605,0.0826,NA,35
+2010,srv_len,Sex combined,65,605,0.1256,NA,35
+2010,srv_len,Sex combined,67,605,0.114,NA,35
+2010,srv_len,Sex combined,69,605,0.1074,NA,35
+2010,srv_len,Sex combined,71,605,0.0893,NA,35
+2010,srv_len,Sex combined,73,605,0.0959,NA,35
+2010,srv_len,Sex combined,75,605,0.0777,NA,35
+2010,srv_len,Sex combined,77,605,0.043,NA,35
+2010,srv_len,Sex combined,79,605,0.0397,NA,35
+2010,srv_len,Sex combined,81,605,0.0165,NA,35
+2010,srv_len,Sex combined,83,605,0.0116,NA,35
+2010,srv_len,Sex combined,85,605,0.0149,NA,35
+2010,srv_len,Sex combined,87,605,0.0066,NA,35
+2010,srv_len,Sex combined,89,605,0.0033,NA,35
+2010,srv_len,Sex combined,91,605,0.0017,NA,35
+2010,srv_len,Sex combined,93,605,0.0066,NA,35
+2010,srv_len,Sex combined,95,605,0.0017,NA,35
+2010,srv_len,Sex combined,97,605,0.0033,NA,35
+2010,srv_len,Sex combined,99,605,0.0017,NA,35
+2011,srv_len,Female,41,365,0,NA,36
+2011,srv_len,Female,43,365,0,NA,36
+2011,srv_len,Female,45,365,0,NA,36
+2011,srv_len,Female,47,365,0,NA,36
+2011,srv_len,Female,49,365,0.008219,NA,36
+2011,srv_len,Female,51,365,0.024658,NA,36
+2011,srv_len,Female,53,365,0.043836,NA,36
+2011,srv_len,Female,55,365,0.046575,NA,36
+2011,srv_len,Female,57,365,0.041096,NA,36
+2011,srv_len,Female,59,365,0.016438,NA,36
+2011,srv_len,Female,61,365,0.016438,NA,36
+2011,srv_len,Female,63,365,0.024658,NA,36
+2011,srv_len,Female,65,365,0.063014,NA,36
+2011,srv_len,Female,67,365,0.079452,NA,36
+2011,srv_len,Female,69,365,0.120548,NA,36
+2011,srv_len,Female,71,365,0.087671,NA,36
+2011,srv_len,Female,73,365,0.131507,NA,36
+2011,srv_len,Female,75,365,0.087671,NA,36
+2011,srv_len,Female,77,365,0.049315,NA,36
+2011,srv_len,Female,79,365,0.073973,NA,36
+2011,srv_len,Female,81,365,0.021918,NA,36
+2011,srv_len,Female,83,365,0.024658,NA,36
+2011,srv_len,Female,85,365,0.010959,NA,36
+2011,srv_len,Female,87,365,0.00274,NA,36
+2011,srv_len,Female,89,365,0.00274,NA,36
+2011,srv_len,Female,91,365,0.013699,NA,36
+2011,srv_len,Female,93,365,0.005479,NA,36
+2011,srv_len,Female,95,365,0.00274,NA,36
+2011,srv_len,Female,97,365,0,NA,36
+2011,srv_len,Female,99,365,0,NA,36
+2011,srv_len,Male,41,311,0,NA,36
+2011,srv_len,Male,43,311,0,NA,36
+2011,srv_len,Male,45,311,0,NA,36
+2011,srv_len,Male,47,311,0.006431,NA,36
+2011,srv_len,Male,49,311,0.009646,NA,36
+2011,srv_len,Male,51,311,0.032154,NA,36
+2011,srv_len,Male,53,311,0.038585,NA,36
+2011,srv_len,Male,55,311,0.022508,NA,36
+2011,srv_len,Male,57,311,0.03537,NA,36
+2011,srv_len,Male,59,311,0.061093,NA,36
+2011,srv_len,Male,61,311,0.093248,NA,36
+2011,srv_len,Male,63,311,0.151125,NA,36
+2011,srv_len,Male,65,311,0.176849,NA,36
+2011,srv_len,Male,67,311,0.128617,NA,36
+2011,srv_len,Male,69,311,0.109325,NA,36
+2011,srv_len,Male,71,311,0.080386,NA,36
+2011,srv_len,Male,73,311,0.038585,NA,36
+2011,srv_len,Male,75,311,0,NA,36
+2011,srv_len,Male,77,311,0.009646,NA,36
+2011,srv_len,Male,79,311,0.006431,NA,36
+2011,srv_len,Male,81,311,0,NA,36
+2011,srv_len,Male,83,311,0,NA,36
+2011,srv_len,Male,85,311,0,NA,36
+2011,srv_len,Male,87,311,0,NA,36
+2011,srv_len,Male,89,311,0,NA,36
+2011,srv_len,Male,91,311,0,NA,36
+2011,srv_len,Male,93,311,0,NA,36
+2011,srv_len,Male,95,311,0,NA,36
+2011,srv_len,Male,97,311,0,NA,36
+2011,srv_len,Male,99,311,0,NA,36
+2011,srv_len,Sex combined,41,676,0,NA,36
+2011,srv_len,Sex combined,43,676,0,NA,36
+2011,srv_len,Sex combined,45,676,0,NA,36
+2011,srv_len,Sex combined,47,676,0.003,NA,36
+2011,srv_len,Sex combined,49,676,0.0089,NA,36
+2011,srv_len,Sex combined,51,676,0.0281,NA,36
+2011,srv_len,Sex combined,53,676,0.0414,NA,36
+2011,srv_len,Sex combined,55,676,0.0355,NA,36
+2011,srv_len,Sex combined,57,676,0.0385,NA,36
+2011,srv_len,Sex combined,59,676,0.037,NA,36
+2011,srv_len,Sex combined,61,676,0.0518,NA,36
+2011,srv_len,Sex combined,63,676,0.0828,NA,36
+2011,srv_len,Sex combined,65,676,0.1154,NA,36
+2011,srv_len,Sex combined,67,676,0.1021,NA,36
+2011,srv_len,Sex combined,69,676,0.1154,NA,36
+2011,srv_len,Sex combined,71,676,0.0843,NA,36
+2011,srv_len,Sex combined,73,676,0.0888,NA,36
+2011,srv_len,Sex combined,75,676,0.0473,NA,36
+2011,srv_len,Sex combined,77,676,0.0311,NA,36
+2011,srv_len,Sex combined,79,676,0.0429,NA,36
+2011,srv_len,Sex combined,81,676,0.0118,NA,36
+2011,srv_len,Sex combined,83,676,0.0133,NA,36
+2011,srv_len,Sex combined,85,676,0.0059,NA,36
+2011,srv_len,Sex combined,87,676,0.0015,NA,36
+2011,srv_len,Sex combined,89,676,0.0015,NA,36
+2011,srv_len,Sex combined,91,676,0.0074,NA,36
+2011,srv_len,Sex combined,93,676,0.003,NA,36
+2011,srv_len,Sex combined,95,676,0.0015,NA,36
+2011,srv_len,Sex combined,97,676,0,NA,36
+2011,srv_len,Sex combined,99,676,0,NA,36
+2012,srv_len,Female,41,405,0.002469,NA,37
+2012,srv_len,Female,43,405,0,NA,37
+2012,srv_len,Female,45,405,0,NA,37
+2012,srv_len,Female,47,405,0.002469,NA,37
+2012,srv_len,Female,49,405,0,NA,37
+2012,srv_len,Female,51,405,0.009877,NA,37
+2012,srv_len,Female,53,405,0.019753,NA,37
+2012,srv_len,Female,55,405,0.032099,NA,37
+2012,srv_len,Female,57,405,0.049383,NA,37
+2012,srv_len,Female,59,405,0.064198,NA,37
+2012,srv_len,Female,61,405,0.039506,NA,37
+2012,srv_len,Female,63,405,0.064198,NA,37
+2012,srv_len,Female,65,405,0.069136,NA,37
+2012,srv_len,Female,67,405,0.103704,NA,37
+2012,srv_len,Female,69,405,0.08642,NA,37
+2012,srv_len,Female,71,405,0.120988,NA,37
+2012,srv_len,Female,73,405,0.093827,NA,37
+2012,srv_len,Female,75,405,0.096296,NA,37
+2012,srv_len,Female,77,405,0.039506,NA,37
+2012,srv_len,Female,79,405,0.032099,NA,37
+2012,srv_len,Female,81,405,0.02716,NA,37
+2012,srv_len,Female,83,405,0.019753,NA,37
+2012,srv_len,Female,85,405,0.004938,NA,37
+2012,srv_len,Female,87,405,0.009877,NA,37
+2012,srv_len,Female,89,405,0.002469,NA,37
+2012,srv_len,Female,91,405,0,NA,37
+2012,srv_len,Female,93,405,0.004938,NA,37
+2012,srv_len,Female,95,405,0.004938,NA,37
+2012,srv_len,Female,97,405,0,NA,37
+2012,srv_len,Female,99,405,0,NA,37
+2012,srv_len,Male,41,319,0,NA,37
+2012,srv_len,Male,43,319,0,NA,37
+2012,srv_len,Male,45,319,0.00627,NA,37
+2012,srv_len,Male,47,319,0.00627,NA,37
+2012,srv_len,Male,49,319,0.00627,NA,37
+2012,srv_len,Male,51,319,0.015674,NA,37
+2012,srv_len,Male,53,319,0.028213,NA,37
+2012,srv_len,Male,55,319,0.043887,NA,37
+2012,srv_len,Male,57,319,0.059561,NA,37
+2012,srv_len,Male,59,319,0.094044,NA,37
+2012,srv_len,Male,61,319,0.115987,NA,37
+2012,srv_len,Male,63,319,0.141066,NA,37
+2012,srv_len,Male,65,319,0.184953,NA,37
+2012,srv_len,Male,67,319,0.109718,NA,37
+2012,srv_len,Male,69,319,0.056426,NA,37
+2012,srv_len,Male,71,319,0.081505,NA,37
+2012,srv_len,Male,73,319,0.025078,NA,37
+2012,srv_len,Male,75,319,0.012539,NA,37
+2012,srv_len,Male,77,319,0.009404,NA,37
+2012,srv_len,Male,79,319,0.003135,NA,37
+2012,srv_len,Male,81,319,0,NA,37
+2012,srv_len,Male,83,319,0,NA,37
+2012,srv_len,Male,85,319,0,NA,37
+2012,srv_len,Male,87,319,0,NA,37
+2012,srv_len,Male,89,319,0,NA,37
+2012,srv_len,Male,91,319,0,NA,37
+2012,srv_len,Male,93,319,0,NA,37
+2012,srv_len,Male,95,319,0,NA,37
+2012,srv_len,Male,97,319,0,NA,37
+2012,srv_len,Male,99,319,0,NA,37
+2012,srv_len,Sex combined,41,724,0.0014,NA,37
+2012,srv_len,Sex combined,43,724,0,NA,37
+2012,srv_len,Sex combined,45,724,0.0028,NA,37
+2012,srv_len,Sex combined,47,724,0.0041,NA,37
+2012,srv_len,Sex combined,49,724,0.0028,NA,37
+2012,srv_len,Sex combined,51,724,0.0124,NA,37
+2012,srv_len,Sex combined,53,724,0.0235,NA,37
+2012,srv_len,Sex combined,55,724,0.0373,NA,37
+2012,srv_len,Sex combined,57,724,0.053900000000000003,NA,37
+2012,srv_len,Sex combined,59,724,0.0773,NA,37
+2012,srv_len,Sex combined,61,724,0.0732,NA,37
+2012,srv_len,Sex combined,63,724,0.0981,NA,37
+2012,srv_len,Sex combined,65,724,0.1202,NA,37
+2012,srv_len,Sex combined,67,724,0.1064,NA,37
+2012,srv_len,Sex combined,69,724,0.0732,NA,37
+2012,srv_len,Sex combined,71,724,0.1036,NA,37
+2012,srv_len,Sex combined,73,724,0.0635,NA,37
+2012,srv_len,Sex combined,75,724,0.0594,NA,37
+2012,srv_len,Sex combined,77,724,0.0262,NA,37
+2012,srv_len,Sex combined,79,724,0.0193,NA,37
+2012,srv_len,Sex combined,81,724,0.0152,NA,37
+2012,srv_len,Sex combined,83,724,0.011,NA,37
+2012,srv_len,Sex combined,85,724,0.0028,NA,37
+2012,srv_len,Sex combined,87,724,0.0055,NA,37
+2012,srv_len,Sex combined,89,724,0.0014,NA,37
+2012,srv_len,Sex combined,91,724,0,NA,37
+2012,srv_len,Sex combined,93,724,0.0028,NA,37
+2012,srv_len,Sex combined,95,724,0.0028,NA,37
+2012,srv_len,Sex combined,97,724,0,NA,37
+2012,srv_len,Sex combined,99,724,0,NA,37
+2013,srv_len,Female,41,255,0,NA,38
+2013,srv_len,Female,43,255,0,NA,38
+2013,srv_len,Female,45,255,0,NA,38
+2013,srv_len,Female,47,255,0,NA,38
+2013,srv_len,Female,49,255,0.007843,NA,38
+2013,srv_len,Female,51,255,0.011765,NA,38
+2013,srv_len,Female,53,255,0.011765,NA,38
+2013,srv_len,Female,55,255,0.023529,NA,38
+2013,srv_len,Female,57,255,0.035294,NA,38
+2013,srv_len,Female,59,255,0.031373,NA,38
+2013,srv_len,Female,61,255,0.062745,NA,38
+2013,srv_len,Female,63,255,0.082353,NA,38
+2013,srv_len,Female,65,255,0.098039,NA,38
+2013,srv_len,Female,67,255,0.105882,NA,38
+2013,srv_len,Female,69,255,0.101961,NA,38
+2013,srv_len,Female,71,255,0.090196,NA,38
+2013,srv_len,Female,73,255,0.078431,NA,38
+2013,srv_len,Female,75,255,0.058824,NA,38
+2013,srv_len,Female,77,255,0.05098,NA,38
+2013,srv_len,Female,79,255,0.035294,NA,38
+2013,srv_len,Female,81,255,0.011765,NA,38
+2013,srv_len,Female,83,255,0.027451,NA,38
+2013,srv_len,Female,85,255,0.015686,NA,38
+2013,srv_len,Female,87,255,0.015686,NA,38
+2013,srv_len,Female,89,255,0.023529,NA,38
+2013,srv_len,Female,91,255,0.007843,NA,38
+2013,srv_len,Female,93,255,0.003922,NA,38
+2013,srv_len,Female,95,255,0.003922,NA,38
+2013,srv_len,Female,97,255,0,NA,38
+2013,srv_len,Female,99,255,0.003922,NA,38
+2013,srv_len,Male,41,280,0,NA,38
+2013,srv_len,Male,43,280,0,NA,38
+2013,srv_len,Male,45,280,0,NA,38
+2013,srv_len,Male,47,280,0,NA,38
+2013,srv_len,Male,49,280,0.003571,NA,38
+2013,srv_len,Male,51,280,0.007143,NA,38
+2013,srv_len,Male,53,280,0.021429,NA,38
+2013,srv_len,Male,55,280,0.053571,NA,38
+2013,srv_len,Male,57,280,0.060714,NA,38
+2013,srv_len,Male,59,280,0.096429,NA,38
+2013,srv_len,Male,61,280,0.153571,NA,38
+2013,srv_len,Male,63,280,0.135714,NA,38
+2013,srv_len,Male,65,280,0.167857,NA,38
+2013,srv_len,Male,67,280,0.128571,NA,38
+2013,srv_len,Male,69,280,0.078571,NA,38
+2013,srv_len,Male,71,280,0.039286,NA,38
+2013,srv_len,Male,73,280,0.028571,NA,38
+2013,srv_len,Male,75,280,0.014286,NA,38
+2013,srv_len,Male,77,280,0.007143,NA,38
+2013,srv_len,Male,79,280,0,NA,38
+2013,srv_len,Male,81,280,0.003571,NA,38
+2013,srv_len,Male,83,280,0,NA,38
+2013,srv_len,Male,85,280,0,NA,38
+2013,srv_len,Male,87,280,0,NA,38
+2013,srv_len,Male,89,280,0,NA,38
+2013,srv_len,Male,91,280,0,NA,38
+2013,srv_len,Male,93,280,0,NA,38
+2013,srv_len,Male,95,280,0,NA,38
+2013,srv_len,Male,97,280,0,NA,38
+2013,srv_len,Male,99,280,0,NA,38
+2013,srv_len,Sex combined,41,535,0,NA,38
+2013,srv_len,Sex combined,43,535,0,NA,38
+2013,srv_len,Sex combined,45,535,0,NA,38
+2013,srv_len,Sex combined,47,535,0,NA,38
+2013,srv_len,Sex combined,49,535,0.0056,NA,38
+2013,srv_len,Sex combined,51,535,0.0093,NA,38
+2013,srv_len,Sex combined,53,535,0.0168,NA,38
+2013,srv_len,Sex combined,55,535,0.0393,NA,38
+2013,srv_len,Sex combined,57,535,0.0486,NA,38
+2013,srv_len,Sex combined,59,535,0.0654,NA,38
+2013,srv_len,Sex combined,61,535,0.1103,NA,38
+2013,srv_len,Sex combined,63,535,0.1103,NA,38
+2013,srv_len,Sex combined,65,535,0.1346,NA,38
+2013,srv_len,Sex combined,67,535,0.1178,NA,38
+2013,srv_len,Sex combined,69,535,0.0897,NA,38
+2013,srv_len,Sex combined,71,535,0.0636,NA,38
+2013,srv_len,Sex combined,73,535,0.0523,NA,38
+2013,srv_len,Sex combined,75,535,0.0355,NA,38
+2013,srv_len,Sex combined,77,535,0.028,NA,38
+2013,srv_len,Sex combined,79,535,0.0168,NA,38
+2013,srv_len,Sex combined,81,535,0.0075,NA,38
+2013,srv_len,Sex combined,83,535,0.0131,NA,38
+2013,srv_len,Sex combined,85,535,0.0075,NA,38
+2013,srv_len,Sex combined,87,535,0.0075,NA,38
+2013,srv_len,Sex combined,89,535,0.0112,NA,38
+2013,srv_len,Sex combined,91,535,0.0037,NA,38
+2013,srv_len,Sex combined,93,535,0.0019,NA,38
+2013,srv_len,Sex combined,95,535,0.0019,NA,38
+2013,srv_len,Sex combined,97,535,0,NA,38
+2013,srv_len,Sex combined,99,535,0.0019,NA,38
+2014,srv_len,Female,41,285,0,NA,39
+2014,srv_len,Female,43,285,0,NA,39
+2014,srv_len,Female,45,285,0,NA,39
+2014,srv_len,Female,47,285,0,NA,39
+2014,srv_len,Female,49,285,0,NA,39
+2014,srv_len,Female,51,285,0.007018,NA,39
+2014,srv_len,Female,53,285,0.003509,NA,39
+2014,srv_len,Female,55,285,0.014035,NA,39
+2014,srv_len,Female,57,285,0.014035,NA,39
+2014,srv_len,Female,59,285,0.05614,NA,39
+2014,srv_len,Female,61,285,0.045614,NA,39
+2014,srv_len,Female,63,285,0.070175,NA,39
+2014,srv_len,Female,65,285,0.115789,NA,39
+2014,srv_len,Female,67,285,0.098246,NA,39
+2014,srv_len,Female,69,285,0.098246,NA,39
+2014,srv_len,Female,71,285,0.077193,NA,39
+2014,srv_len,Female,73,285,0.087719,NA,39
+2014,srv_len,Female,75,285,0.066667,NA,39
+2014,srv_len,Female,77,285,0.073684,NA,39
+2014,srv_len,Female,79,285,0.02807,NA,39
+2014,srv_len,Female,81,285,0.05614,NA,39
+2014,srv_len,Female,83,285,0.035088,NA,39
+2014,srv_len,Female,85,285,0.02807,NA,39
+2014,srv_len,Female,87,285,0.003509,NA,39
+2014,srv_len,Female,89,285,0,NA,39
+2014,srv_len,Female,91,285,0.010526,NA,39
+2014,srv_len,Female,93,285,0.007018,NA,39
+2014,srv_len,Female,95,285,0,NA,39
+2014,srv_len,Female,97,285,0,NA,39
+2014,srv_len,Female,99,285,0.003509,NA,39
+2014,srv_len,Male,41,275,0,NA,39
+2014,srv_len,Male,43,275,0,NA,39
+2014,srv_len,Male,45,275,0.003636,NA,39
+2014,srv_len,Male,47,275,0,NA,39
+2014,srv_len,Male,49,275,0,NA,39
+2014,srv_len,Male,51,275,0,NA,39
+2014,srv_len,Male,53,275,0.010909,NA,39
+2014,srv_len,Male,55,275,0.032727,NA,39
+2014,srv_len,Male,57,275,0.061818,NA,39
+2014,srv_len,Male,59,275,0.08,NA,39
+2014,srv_len,Male,61,275,0.112727,NA,39
+2014,srv_len,Male,63,275,0.210909,NA,39
+2014,srv_len,Male,65,275,0.149091,NA,39
+2014,srv_len,Male,67,275,0.134545,NA,39
+2014,srv_len,Male,69,275,0.061818,NA,39
+2014,srv_len,Male,71,275,0.076364,NA,39
+2014,srv_len,Male,73,275,0.032727,NA,39
+2014,srv_len,Male,75,275,0.010909,NA,39
+2014,srv_len,Male,77,275,0.014545,NA,39
+2014,srv_len,Male,79,275,0.003636,NA,39
+2014,srv_len,Male,81,275,0,NA,39
+2014,srv_len,Male,83,275,0,NA,39
+2014,srv_len,Male,85,275,0.003636,NA,39
+2014,srv_len,Male,87,275,0,NA,39
+2014,srv_len,Male,89,275,0,NA,39
+2014,srv_len,Male,91,275,0,NA,39
+2014,srv_len,Male,93,275,0,NA,39
+2014,srv_len,Male,95,275,0,NA,39
+2014,srv_len,Male,97,275,0,NA,39
+2014,srv_len,Male,99,275,0,NA,39
+2014,srv_len,Sex combined,41,560,0,NA,39
+2014,srv_len,Sex combined,43,560,0,NA,39
+2014,srv_len,Sex combined,45,560,0.0018,NA,39
+2014,srv_len,Sex combined,47,560,0,NA,39
+2014,srv_len,Sex combined,49,560,0,NA,39
+2014,srv_len,Sex combined,51,560,0.0036,NA,39
+2014,srv_len,Sex combined,53,560,0.0071,NA,39
+2014,srv_len,Sex combined,55,560,0.0232,NA,39
+2014,srv_len,Sex combined,57,560,0.0375,NA,39
+2014,srv_len,Sex combined,59,560,0.0679,NA,39
+2014,srv_len,Sex combined,61,560,0.0786,NA,39
+2014,srv_len,Sex combined,63,560,0.1393,NA,39
+2014,srv_len,Sex combined,65,560,0.1321,NA,39
+2014,srv_len,Sex combined,67,560,0.1161,NA,39
+2014,srv_len,Sex combined,69,560,0.0804,NA,39
+2014,srv_len,Sex combined,71,560,0.0768,NA,39
+2014,srv_len,Sex combined,73,560,0.0607,NA,39
+2014,srv_len,Sex combined,75,560,0.0393,NA,39
+2014,srv_len,Sex combined,77,560,0.0446,NA,39
+2014,srv_len,Sex combined,79,560,0.0161,NA,39
+2014,srv_len,Sex combined,81,560,0.0286,NA,39
+2014,srv_len,Sex combined,83,560,0.0179,NA,39
+2014,srv_len,Sex combined,85,560,0.0161,NA,39
+2014,srv_len,Sex combined,87,560,0.0018,NA,39
+2014,srv_len,Sex combined,89,560,0,NA,39
+2014,srv_len,Sex combined,91,560,0.0054,NA,39
+2014,srv_len,Sex combined,93,560,0.0036,NA,39
+2014,srv_len,Sex combined,95,560,0,NA,39
+2014,srv_len,Sex combined,97,560,0,NA,39
+2014,srv_len,Sex combined,99,560,0.0018,NA,39
+2015,srv_len,Female,41,290,0,NA,40
+2015,srv_len,Female,43,290,0,NA,40
+2015,srv_len,Female,45,290,0,NA,40
+2015,srv_len,Female,47,290,0.003448,NA,40
+2015,srv_len,Female,49,290,0.003448,NA,40
+2015,srv_len,Female,51,290,0.02069,NA,40
+2015,srv_len,Female,53,290,0.017241,NA,40
+2015,srv_len,Female,55,290,0.024138,NA,40
+2015,srv_len,Female,57,290,0.031034,NA,40
+2015,srv_len,Female,59,290,0.017241,NA,40
+2015,srv_len,Female,61,290,0.044828,NA,40
+2015,srv_len,Female,63,290,0.048276,NA,40
+2015,srv_len,Female,65,290,0.086207,NA,40
+2015,srv_len,Female,67,290,0.110345,NA,40
+2015,srv_len,Female,69,290,0.068966,NA,40
+2015,srv_len,Female,71,290,0.12069,NA,40
+2015,srv_len,Female,73,290,0.082759,NA,40
+2015,srv_len,Female,75,290,0.103448,NA,40
+2015,srv_len,Female,77,290,0.072414,NA,40
+2015,srv_len,Female,79,290,0.027586,NA,40
+2015,srv_len,Female,81,290,0.044828,NA,40
+2015,srv_len,Female,83,290,0.031034,NA,40
+2015,srv_len,Female,85,290,0.017241,NA,40
+2015,srv_len,Female,87,290,0.010345,NA,40
+2015,srv_len,Female,89,290,0.003448,NA,40
+2015,srv_len,Female,91,290,0.003448,NA,40
+2015,srv_len,Female,93,290,0.003448,NA,40
+2015,srv_len,Female,95,290,0,NA,40
+2015,srv_len,Female,97,290,0.003448,NA,40
+2015,srv_len,Female,99,290,0,NA,40
+2015,srv_len,Male,41,201,0,NA,40
+2015,srv_len,Male,43,201,0,NA,40
+2015,srv_len,Male,45,201,0.004975,NA,40
+2015,srv_len,Male,47,201,0.004975,NA,40
+2015,srv_len,Male,49,201,0.024876,NA,40
+2015,srv_len,Male,51,201,0.054726,NA,40
+2015,srv_len,Male,53,201,0.0199,NA,40
+2015,srv_len,Male,55,201,0.024876,NA,40
+2015,srv_len,Male,57,201,0.064677,NA,40
+2015,srv_len,Male,59,201,0.094527,NA,40
+2015,srv_len,Male,61,201,0.074627,NA,40
+2015,srv_len,Male,63,201,0.139303,NA,40
+2015,srv_len,Male,65,201,0.139303,NA,40
+2015,srv_len,Male,67,201,0.094527,NA,40
+2015,srv_len,Male,69,201,0.114428,NA,40
+2015,srv_len,Male,71,201,0.069652,NA,40
+2015,srv_len,Male,73,201,0.044776,NA,40
+2015,srv_len,Male,75,201,0.004975,NA,40
+2015,srv_len,Male,77,201,0.004975,NA,40
+2015,srv_len,Male,79,201,0.014925,NA,40
+2015,srv_len,Male,81,201,0.004975,NA,40
+2015,srv_len,Male,83,201,0,NA,40
+2015,srv_len,Male,85,201,0,NA,40
+2015,srv_len,Male,87,201,0,NA,40
+2015,srv_len,Male,89,201,0,NA,40
+2015,srv_len,Male,91,201,0,NA,40
+2015,srv_len,Male,93,201,0,NA,40
+2015,srv_len,Male,95,201,0,NA,40
+2015,srv_len,Male,97,201,0,NA,40
+2015,srv_len,Male,99,201,0,NA,40
+2015,srv_len,Sex combined,41,491,0,NA,40
+2015,srv_len,Sex combined,43,491,0,NA,40
+2015,srv_len,Sex combined,45,491,0.002,NA,40
+2015,srv_len,Sex combined,47,491,0.0041,NA,40
+2015,srv_len,Sex combined,49,491,0.0122,NA,40
+2015,srv_len,Sex combined,51,491,0.0346,NA,40
+2015,srv_len,Sex combined,53,491,0.0183,NA,40
+2015,srv_len,Sex combined,55,491,0.0244,NA,40
+2015,srv_len,Sex combined,57,491,0.0448,NA,40
+2015,srv_len,Sex combined,59,491,0.0489,NA,40
+2015,srv_len,Sex combined,61,491,0.057,NA,40
+2015,srv_len,Sex combined,63,491,0.0855,NA,40
+2015,srv_len,Sex combined,65,491,0.1079,NA,40
+2015,srv_len,Sex combined,67,491,0.1039,NA,40
+2015,srv_len,Sex combined,69,491,0.0876,NA,40
+2015,srv_len,Sex combined,71,491,0.0998,NA,40
+2015,srv_len,Sex combined,73,491,0.0672,NA,40
+2015,srv_len,Sex combined,75,491,0.0631,NA,40
+2015,srv_len,Sex combined,77,491,0.0448,NA,40
+2015,srv_len,Sex combined,79,491,0.0224,NA,40
+2015,srv_len,Sex combined,81,491,0.0285,NA,40
+2015,srv_len,Sex combined,83,491,0.0183,NA,40
+2015,srv_len,Sex combined,85,491,0.0102,NA,40
+2015,srv_len,Sex combined,87,491,0.0061,NA,40
+2015,srv_len,Sex combined,89,491,0.002,NA,40
+2015,srv_len,Sex combined,91,491,0.002,NA,40
+2015,srv_len,Sex combined,93,491,0.002,NA,40
+2015,srv_len,Sex combined,95,491,0,NA,40
+2015,srv_len,Sex combined,97,491,0.002,NA,40
+2015,srv_len,Sex combined,99,491,0,NA,40
+2016,srv_len,Female,41,315,0,NA,41
+2016,srv_len,Female,43,315,0,NA,41
+2016,srv_len,Female,45,315,0,NA,41
+2016,srv_len,Female,47,315,0.012698,NA,41
+2016,srv_len,Female,49,315,0.038095,NA,41
+2016,srv_len,Female,51,315,0.031746,NA,41
+2016,srv_len,Female,53,315,0.038095,NA,41
+2016,srv_len,Female,55,315,0.031746,NA,41
+2016,srv_len,Female,57,315,0.053968,NA,41
+2016,srv_len,Female,59,315,0.047619,NA,41
+2016,srv_len,Female,61,315,0.047619,NA,41
+2016,srv_len,Female,63,315,0.044444,NA,41
+2016,srv_len,Female,65,315,0.047619,NA,41
+2016,srv_len,Female,67,315,0.079365,NA,41
+2016,srv_len,Female,69,315,0.101587,NA,41
+2016,srv_len,Female,71,315,0.07619,NA,41
+2016,srv_len,Female,73,315,0.07619,NA,41
+2016,srv_len,Female,75,315,0.044444,NA,41
+2016,srv_len,Female,77,315,0.066667,NA,41
+2016,srv_len,Female,79,315,0.034921,NA,41
+2016,srv_len,Female,81,315,0.034921,NA,41
+2016,srv_len,Female,83,315,0.025397,NA,41
+2016,srv_len,Female,85,315,0.022222,NA,41
+2016,srv_len,Female,87,315,0.009524,NA,41
+2016,srv_len,Female,89,315,0.006349,NA,41
+2016,srv_len,Female,91,315,0.009524,NA,41
+2016,srv_len,Female,93,315,0.006349,NA,41
+2016,srv_len,Female,95,315,0.003175,NA,41
+2016,srv_len,Female,97,315,0.003175,NA,41
+2016,srv_len,Female,99,315,0.006349,NA,41
+2016,srv_len,Male,41,237,0,NA,41
+2016,srv_len,Male,43,237,0.004219,NA,41
+2016,srv_len,Male,45,237,0.008439,NA,41
+2016,srv_len,Male,47,237,0.012658,NA,41
+2016,srv_len,Male,49,237,0.037975,NA,41
+2016,srv_len,Male,51,237,0.012658,NA,41
+2016,srv_len,Male,53,237,0.037975,NA,41
+2016,srv_len,Male,55,237,0.059072,NA,41
+2016,srv_len,Male,57,237,0.07173,NA,41
+2016,srv_len,Male,59,237,0.050633,NA,41
+2016,srv_len,Male,61,237,0.109705,NA,41
+2016,srv_len,Male,63,237,0.135021,NA,41
+2016,srv_len,Male,65,237,0.105485,NA,41
+2016,srv_len,Male,67,237,0.118143,NA,41
+2016,srv_len,Male,69,237,0.105485,NA,41
+2016,srv_len,Male,71,237,0.059072,NA,41
+2016,srv_len,Male,73,237,0.046414,NA,41
+2016,srv_len,Male,75,237,0.004219,NA,41
+2016,srv_len,Male,77,237,0.016878,NA,41
+2016,srv_len,Male,79,237,0,NA,41
+2016,srv_len,Male,81,237,0,NA,41
+2016,srv_len,Male,83,237,0.004219,NA,41
+2016,srv_len,Male,85,237,0,NA,41
+2016,srv_len,Male,87,237,0,NA,41
+2016,srv_len,Male,89,237,0,NA,41
+2016,srv_len,Male,91,237,0,NA,41
+2016,srv_len,Male,93,237,0,NA,41
+2016,srv_len,Male,95,237,0,NA,41
+2016,srv_len,Male,97,237,0,NA,41
+2016,srv_len,Male,99,237,0,NA,41
+2016,srv_len,Sex combined,41,552,0,NA,41
+2016,srv_len,Sex combined,43,552,0.0018,NA,41
+2016,srv_len,Sex combined,45,552,0.0036,NA,41
+2016,srv_len,Sex combined,47,552,0.0127,NA,41
+2016,srv_len,Sex combined,49,552,0.038,NA,41
+2016,srv_len,Sex combined,51,552,0.0236,NA,41
+2016,srv_len,Sex combined,53,552,0.038,NA,41
+2016,srv_len,Sex combined,55,552,0.0435,NA,41
+2016,srv_len,Sex combined,57,552,0.0616,NA,41
+2016,srv_len,Sex combined,59,552,0.0489,NA,41
+2016,srv_len,Sex combined,61,552,0.0743,NA,41
+2016,srv_len,Sex combined,63,552,0.0833,NA,41
+2016,srv_len,Sex combined,65,552,0.0725,NA,41
+2016,srv_len,Sex combined,67,552,0.096,NA,41
+2016,srv_len,Sex combined,69,552,0.1033,NA,41
+2016,srv_len,Sex combined,71,552,0.0688,NA,41
+2016,srv_len,Sex combined,73,552,0.0634,NA,41
+2016,srv_len,Sex combined,75,552,0.0272,NA,41
+2016,srv_len,Sex combined,77,552,0.0453,NA,41
+2016,srv_len,Sex combined,79,552,0.0199,NA,41
+2016,srv_len,Sex combined,81,552,0.0199,NA,41
+2016,srv_len,Sex combined,83,552,0.0163,NA,41
+2016,srv_len,Sex combined,85,552,0.0127,NA,41
+2016,srv_len,Sex combined,87,552,0.0054,NA,41
+2016,srv_len,Sex combined,89,552,0.0036,NA,41
+2016,srv_len,Sex combined,91,552,0.0054,NA,41
+2016,srv_len,Sex combined,93,552,0.0036,NA,41
+2016,srv_len,Sex combined,95,552,0.0018,NA,41
+2016,srv_len,Sex combined,97,552,0.0018,NA,41
+2016,srv_len,Sex combined,99,552,0.0036,NA,41
+2017,srv_len,Female,41,347,0,NA,42
+2017,srv_len,Female,43,347,0.002882,NA,42
+2017,srv_len,Female,45,347,0.011527,NA,42
+2017,srv_len,Female,47,347,0.028818,NA,42
+2017,srv_len,Female,49,347,0.014409,NA,42
+2017,srv_len,Female,51,347,0.025937,NA,42
+2017,srv_len,Female,53,347,0.054755,NA,42
+2017,srv_len,Female,55,347,0.04611,NA,42
+2017,srv_len,Female,57,347,0.069164,NA,42
+2017,srv_len,Female,59,347,0.043228,NA,42
+2017,srv_len,Female,61,347,0.074928,NA,42
+2017,srv_len,Female,63,347,0.063401,NA,42
+2017,srv_len,Female,65,347,0.057637,NA,42
+2017,srv_len,Female,67,347,0.072046,NA,42
+2017,srv_len,Female,69,347,0.060519,NA,42
+2017,srv_len,Female,71,347,0.051873,NA,42
+2017,srv_len,Female,73,347,0.069164,NA,42
+2017,srv_len,Female,75,347,0.040346,NA,42
+2017,srv_len,Female,77,347,0.048991,NA,42
+2017,srv_len,Female,79,347,0.034582,NA,42
+2017,srv_len,Female,81,347,0.034582,NA,42
+2017,srv_len,Female,83,347,0.014409,NA,42
+2017,srv_len,Female,85,347,0.017291,NA,42
+2017,srv_len,Female,87,347,0.028818,NA,42
+2017,srv_len,Female,89,347,0.002882,NA,42
+2017,srv_len,Female,91,347,0.011527,NA,42
+2017,srv_len,Female,93,347,0,NA,42
+2017,srv_len,Female,95,347,0.011527,NA,42
+2017,srv_len,Female,97,347,0.002882,NA,42
+2017,srv_len,Female,99,347,0.005764,NA,42
+2017,srv_len,Male,41,250,0,NA,42
+2017,srv_len,Male,43,250,0,NA,42
+2017,srv_len,Male,45,250,0.02,NA,42
+2017,srv_len,Male,47,250,0.008,NA,42
+2017,srv_len,Male,49,250,0.02,NA,42
+2017,srv_len,Male,51,250,0.036,NA,42
+2017,srv_len,Male,53,250,0.056,NA,42
+2017,srv_len,Male,55,250,0.064,NA,42
+2017,srv_len,Male,57,250,0.088,NA,42
+2017,srv_len,Male,59,250,0.052,NA,42
+2017,srv_len,Male,61,250,0.144,NA,42
+2017,srv_len,Male,63,250,0.124,NA,42
+2017,srv_len,Male,65,250,0.152,NA,42
+2017,srv_len,Male,67,250,0.108,NA,42
+2017,srv_len,Male,69,250,0.056,NA,42
+2017,srv_len,Male,71,250,0.044,NA,42
+2017,srv_len,Male,73,250,0.02,NA,42
+2017,srv_len,Male,75,250,0.004,NA,42
+2017,srv_len,Male,77,250,0,NA,42
+2017,srv_len,Male,79,250,0,NA,42
+2017,srv_len,Male,81,250,0,NA,42
+2017,srv_len,Male,83,250,0.004,NA,42
+2017,srv_len,Male,85,250,0,NA,42
+2017,srv_len,Male,87,250,0,NA,42
+2017,srv_len,Male,89,250,0,NA,42
+2017,srv_len,Male,91,250,0,NA,42
+2017,srv_len,Male,93,250,0,NA,42
+2017,srv_len,Male,95,250,0,NA,42
+2017,srv_len,Male,97,250,0,NA,42
+2017,srv_len,Male,99,250,0,NA,42
+2017,srv_len,Sex combined,41,597,0,NA,42
+2017,srv_len,Sex combined,43,597,0.0017,NA,42
+2017,srv_len,Sex combined,45,597,0.0151,NA,42
+2017,srv_len,Sex combined,47,597,0.0201,NA,42
+2017,srv_len,Sex combined,49,597,0.0168,NA,42
+2017,srv_len,Sex combined,51,597,0.0302,NA,42
+2017,srv_len,Sex combined,53,597,0.0553,NA,42
+2017,srv_len,Sex combined,55,597,0.0536,NA,42
+2017,srv_len,Sex combined,57,597,0.0771,NA,42
+2017,srv_len,Sex combined,59,597,0.0469,NA,42
+2017,srv_len,Sex combined,61,597,0.1039,NA,42
+2017,srv_len,Sex combined,63,597,0.0888,NA,42
+2017,srv_len,Sex combined,65,597,0.0972,NA,42
+2017,srv_len,Sex combined,67,597,0.0871,NA,42
+2017,srv_len,Sex combined,69,597,0.0586,NA,42
+2017,srv_len,Sex combined,71,597,0.0486,NA,42
+2017,srv_len,Sex combined,73,597,0.0486,NA,42
+2017,srv_len,Sex combined,75,597,0.0251,NA,42
+2017,srv_len,Sex combined,77,597,0.0285,NA,42
+2017,srv_len,Sex combined,79,597,0.0201,NA,42
+2017,srv_len,Sex combined,81,597,0.0201,NA,42
+2017,srv_len,Sex combined,83,597,0.0101,NA,42
+2017,srv_len,Sex combined,85,597,0.0101,NA,42
+2017,srv_len,Sex combined,87,597,0.0168,NA,42
+2017,srv_len,Sex combined,89,597,0.0017,NA,42
+2017,srv_len,Sex combined,91,597,0.0067,NA,42
+2017,srv_len,Sex combined,93,597,0,NA,42
+2017,srv_len,Sex combined,95,597,0.0067,NA,42
+2017,srv_len,Sex combined,97,597,0.0017,NA,42
+2017,srv_len,Sex combined,99,597,0.0034,NA,42
+2018,srv_len,Female,41,347,0,NA,43
+2018,srv_len,Female,43,347,0.002882,NA,43
+2018,srv_len,Female,45,347,0.011527,NA,43
+2018,srv_len,Female,47,347,0.014409,NA,43
+2018,srv_len,Female,49,347,0.025937,NA,43
+2018,srv_len,Female,51,347,0.0317,NA,43
+2018,srv_len,Female,53,347,0.054755,NA,43
+2018,srv_len,Female,55,347,0.060519,NA,43
+2018,srv_len,Female,57,347,0.07781,NA,43
+2018,srv_len,Female,59,347,0.072046,NA,43
+2018,srv_len,Female,61,347,0.057637,NA,43
+2018,srv_len,Female,63,347,0.057637,NA,43
+2018,srv_len,Female,65,347,0.066282,NA,43
+2018,srv_len,Female,67,347,0.057637,NA,43
+2018,srv_len,Female,69,347,0.063401,NA,43
+2018,srv_len,Female,71,347,0.089337,NA,43
+2018,srv_len,Female,73,347,0.048991,NA,43
+2018,srv_len,Female,75,347,0.04611,NA,43
+2018,srv_len,Female,77,347,0.048991,NA,43
+2018,srv_len,Female,79,347,0.023055,NA,43
+2018,srv_len,Female,81,347,0.034582,NA,43
+2018,srv_len,Female,83,347,0.005764,NA,43
+2018,srv_len,Female,85,347,0.020173,NA,43
+2018,srv_len,Female,87,347,0.008646,NA,43
+2018,srv_len,Female,89,347,0.005764,NA,43
+2018,srv_len,Female,91,347,0.002882,NA,43
+2018,srv_len,Female,93,347,0.002882,NA,43
+2018,srv_len,Female,95,347,0.002882,NA,43
+2018,srv_len,Female,97,347,0.002882,NA,43
+2018,srv_len,Female,99,347,0.002882,NA,43
+2018,srv_len,Male,41,215,0,NA,43
+2018,srv_len,Male,43,215,0,NA,43
+2018,srv_len,Male,45,215,0.013953,NA,43
+2018,srv_len,Male,47,215,0.013953,NA,43
+2018,srv_len,Male,49,215,0.023256,NA,43
+2018,srv_len,Male,51,215,0.046512,NA,43
+2018,srv_len,Male,53,215,0.060465,NA,43
+2018,srv_len,Male,55,215,0.046512,NA,43
+2018,srv_len,Male,57,215,0.065116,NA,43
+2018,srv_len,Male,59,215,0.106977,NA,43
+2018,srv_len,Male,61,215,0.093023,NA,43
+2018,srv_len,Male,63,215,0.12093,NA,43
+2018,srv_len,Male,65,215,0.111628,NA,43
+2018,srv_len,Male,67,215,0.069767,NA,43
+2018,srv_len,Male,69,215,0.125581,NA,43
+2018,srv_len,Male,71,215,0.046512,NA,43
+2018,srv_len,Male,73,215,0.027907,NA,43
+2018,srv_len,Male,75,215,0.009302,NA,43
+2018,srv_len,Male,77,215,0.004651,NA,43
+2018,srv_len,Male,79,215,0.013953,NA,43
+2018,srv_len,Male,81,215,0,NA,43
+2018,srv_len,Male,83,215,0,NA,43
+2018,srv_len,Male,85,215,0,NA,43
+2018,srv_len,Male,87,215,0,NA,43
+2018,srv_len,Male,89,215,0,NA,43
+2018,srv_len,Male,91,215,0,NA,43
+2018,srv_len,Male,93,215,0,NA,43
+2018,srv_len,Male,95,215,0,NA,43
+2018,srv_len,Male,97,215,0,NA,43
+2018,srv_len,Male,99,215,0,NA,43
+2018,srv_len,Sex combined,41,562,0,NA,43
+2018,srv_len,Sex combined,43,562,0.0018,NA,43
+2018,srv_len,Sex combined,45,562,0.0125,NA,43
+2018,srv_len,Sex combined,47,562,0.0142,NA,43
+2018,srv_len,Sex combined,49,562,0.0249,NA,43
+2018,srv_len,Sex combined,51,562,0.0374,NA,43
+2018,srv_len,Sex combined,53,562,0.0569,NA,43
+2018,srv_len,Sex combined,55,562,0.0552,NA,43
+2018,srv_len,Sex combined,57,562,0.073,NA,43
+2018,srv_len,Sex combined,59,562,0.0854,NA,43
+2018,srv_len,Sex combined,61,562,0.0712,NA,43
+2018,srv_len,Sex combined,63,562,0.0819,NA,43
+2018,srv_len,Sex combined,65,562,0.0836,NA,43
+2018,srv_len,Sex combined,67,562,0.0623,NA,43
+2018,srv_len,Sex combined,69,562,0.0872,NA,43
+2018,srv_len,Sex combined,71,562,0.073,NA,43
+2018,srv_len,Sex combined,73,562,0.0409,NA,43
+2018,srv_len,Sex combined,75,562,0.032,NA,43
+2018,srv_len,Sex combined,77,562,0.032,NA,43
+2018,srv_len,Sex combined,79,562,0.0196,NA,43
+2018,srv_len,Sex combined,81,562,0.0214,NA,43
+2018,srv_len,Sex combined,83,562,0.0036,NA,43
+2018,srv_len,Sex combined,85,562,0.0125,NA,43
+2018,srv_len,Sex combined,87,562,0.0053,NA,43
+2018,srv_len,Sex combined,89,562,0.0036,NA,43
+2018,srv_len,Sex combined,91,562,0.0018,NA,43
+2018,srv_len,Sex combined,93,562,0.0018,NA,43
+2018,srv_len,Sex combined,95,562,0.0018,NA,43
+2018,srv_len,Sex combined,97,562,0.0018,NA,43
+2018,srv_len,Sex combined,99,562,0.0018,NA,43
+2019,srv_len,Female,41,269,0,NA,44
+2019,srv_len,Female,43,269,0,NA,44
+2019,srv_len,Female,45,269,0.007435,NA,44
+2019,srv_len,Female,47,269,0.033457,NA,44
+2019,srv_len,Female,49,269,0.02974,NA,44
+2019,srv_len,Female,51,269,0.055762,NA,44
+2019,srv_len,Female,53,269,0.052045,NA,44
+2019,srv_len,Female,55,269,0.048327,NA,44
+2019,srv_len,Female,57,269,0.052045,NA,44
+2019,srv_len,Female,59,269,0.074349,NA,44
+2019,srv_len,Female,61,269,0.096654,NA,44
+2019,srv_len,Female,63,269,0.092937,NA,44
+2019,srv_len,Female,65,269,0.100372,NA,44
+2019,srv_len,Female,67,269,0.04461,NA,44
+2019,srv_len,Female,69,269,0.02974,NA,44
+2019,srv_len,Female,71,269,0.063197,NA,44
+2019,srv_len,Female,73,269,0.040892,NA,44
+2019,srv_len,Female,75,269,0.05948,NA,44
+2019,srv_len,Female,77,269,0.040892,NA,44
+2019,srv_len,Female,79,269,0.026022,NA,44
+2019,srv_len,Female,81,269,0.011152,NA,44
+2019,srv_len,Female,83,269,0.01487,NA,44
+2019,srv_len,Female,85,269,0.003717,NA,44
+2019,srv_len,Female,87,269,0.007435,NA,44
+2019,srv_len,Female,89,269,0.007435,NA,44
+2019,srv_len,Female,91,269,0,NA,44
+2019,srv_len,Female,93,269,0.003717,NA,44
+2019,srv_len,Female,95,269,0.003717,NA,44
+2019,srv_len,Female,97,269,0,NA,44
+2019,srv_len,Female,99,269,0,NA,44
+2019,srv_len,Male,41,198,0,NA,44
+2019,srv_len,Male,43,198,0,NA,44
+2019,srv_len,Male,45,198,0.005051,NA,44
+2019,srv_len,Male,47,198,0.020202,NA,44
+2019,srv_len,Male,49,198,0.060606,NA,44
+2019,srv_len,Male,51,198,0.070707,NA,44
+2019,srv_len,Male,53,198,0.045455,NA,44
+2019,srv_len,Male,55,198,0.075758,NA,44
+2019,srv_len,Male,57,198,0.070707,NA,44
+2019,srv_len,Male,59,198,0.10101,NA,44
+2019,srv_len,Male,61,198,0.121212,NA,44
+2019,srv_len,Male,63,198,0.075758,NA,44
+2019,srv_len,Male,65,198,0.111111,NA,44
+2019,srv_len,Male,67,198,0.106061,NA,44
+2019,srv_len,Male,69,198,0.055556,NA,44
+2019,srv_len,Male,71,198,0.040404,NA,44
+2019,srv_len,Male,73,198,0.035354,NA,44
+2019,srv_len,Male,75,198,0,NA,44
+2019,srv_len,Male,77,198,0,NA,44
+2019,srv_len,Male,79,198,0,NA,44
+2019,srv_len,Male,81,198,0,NA,44
+2019,srv_len,Male,83,198,0,NA,44
+2019,srv_len,Male,85,198,0.005051,NA,44
+2019,srv_len,Male,87,198,0,NA,44
+2019,srv_len,Male,89,198,0,NA,44
+2019,srv_len,Male,91,198,0,NA,44
+2019,srv_len,Male,93,198,0,NA,44
+2019,srv_len,Male,95,198,0,NA,44
+2019,srv_len,Male,97,198,0,NA,44
+2019,srv_len,Male,99,198,0,NA,44
+2019,srv_len,Sex combined,41,467,0,NA,44
+2019,srv_len,Sex combined,43,467,0,NA,44
+2019,srv_len,Sex combined,45,467,0.0064,NA,44
+2019,srv_len,Sex combined,47,467,0.0278,NA,44
+2019,srv_len,Sex combined,49,467,0.0428,NA,44
+2019,srv_len,Sex combined,51,467,0.0621,NA,44
+2019,srv_len,Sex combined,53,467,0.0493,NA,44
+2019,srv_len,Sex combined,55,467,0.06,NA,44
+2019,srv_len,Sex combined,57,467,0.06,NA,44
+2019,srv_len,Sex combined,59,467,0.0857,NA,44
+2019,srv_len,Sex combined,61,467,0.1071,NA,44
+2019,srv_len,Sex combined,63,467,0.0857,NA,44
+2019,srv_len,Sex combined,65,467,0.1049,NA,44
+2019,srv_len,Sex combined,67,467,0.0707,NA,44
+2019,srv_len,Sex combined,69,467,0.0407,NA,44
+2019,srv_len,Sex combined,71,467,0.0535,NA,44
+2019,srv_len,Sex combined,73,467,0.0385,NA,44
+2019,srv_len,Sex combined,75,467,0.0343,NA,44
+2019,srv_len,Sex combined,77,467,0.0236,NA,44
+2019,srv_len,Sex combined,79,467,0.015,NA,44
+2019,srv_len,Sex combined,81,467,0.0064,NA,44
+2019,srv_len,Sex combined,83,467,0.0086,NA,44
+2019,srv_len,Sex combined,85,467,0.0043,NA,44
+2019,srv_len,Sex combined,87,467,0.0043,NA,44
+2019,srv_len,Sex combined,89,467,0.0043,NA,44
+2019,srv_len,Sex combined,91,467,0,NA,44
+2019,srv_len,Sex combined,93,467,0.0021,NA,44
+2019,srv_len,Sex combined,95,467,0.0021,NA,44
+2019,srv_len,Sex combined,97,467,0,NA,44
+2019,srv_len,Sex combined,99,467,0,NA,44
+2020,srv_len,Female,41,375,0,NA,45
+2020,srv_len,Female,43,375,0,NA,45
+2020,srv_len,Female,45,375,0,NA,45
+2020,srv_len,Female,47,375,0.002667,NA,45
+2020,srv_len,Female,49,375,0.008,NA,45
+2020,srv_len,Female,51,375,0.034667,NA,45
+2020,srv_len,Female,53,375,0.08,NA,45
+2020,srv_len,Female,55,375,0.085333,NA,45
+2020,srv_len,Female,57,375,0.093333,NA,45
+2020,srv_len,Female,59,375,0.101333,NA,45
+2020,srv_len,Female,61,375,0.088,NA,45
+2020,srv_len,Female,63,375,0.072,NA,45
+2020,srv_len,Female,65,375,0.082667,NA,45
+2020,srv_len,Female,67,375,0.112,NA,45
+2020,srv_len,Female,69,375,0.037333,NA,45
+2020,srv_len,Female,71,375,0.050667,NA,45
+2020,srv_len,Female,73,375,0.034667,NA,45
+2020,srv_len,Female,75,375,0.029333,NA,45
+2020,srv_len,Female,77,375,0.034667,NA,45
+2020,srv_len,Female,79,375,0.010667,NA,45
+2020,srv_len,Female,81,375,0.010667,NA,45
+2020,srv_len,Female,83,375,0.002667,NA,45
+2020,srv_len,Female,85,375,0.002667,NA,45
+2020,srv_len,Female,87,375,0.013333,NA,45
+2020,srv_len,Female,89,375,0.005333,NA,45
+2020,srv_len,Female,91,375,0,NA,45
+2020,srv_len,Female,93,375,0.002667,NA,45
+2020,srv_len,Female,95,375,0,NA,45
+2020,srv_len,Female,97,375,0.005333,NA,45
+2020,srv_len,Female,99,375,0,NA,45
+2020,srv_len,Male,41,239,0,NA,45
+2020,srv_len,Male,43,239,0,NA,45
+2020,srv_len,Male,45,239,0,NA,45
+2020,srv_len,Male,47,239,0,NA,45
+2020,srv_len,Male,49,239,0.008368,NA,45
+2020,srv_len,Male,51,239,0.054393,NA,45
+2020,srv_len,Male,53,239,0.100418,NA,45
+2020,srv_len,Male,55,239,0.104603,NA,45
+2020,srv_len,Male,57,239,0.087866,NA,45
+2020,srv_len,Male,59,239,0.129707,NA,45
+2020,srv_len,Male,61,239,0.138075,NA,45
+2020,srv_len,Male,63,239,0.138075,NA,45
+2020,srv_len,Male,65,239,0.083682,NA,45
+2020,srv_len,Male,67,239,0.062762,NA,45
+2020,srv_len,Male,69,239,0.041841,NA,45
+2020,srv_len,Male,71,239,0.016736,NA,45
+2020,srv_len,Male,73,239,0.016736,NA,45
+2020,srv_len,Male,75,239,0.012552,NA,45
+2020,srv_len,Male,77,239,0,NA,45
+2020,srv_len,Male,79,239,0,NA,45
+2020,srv_len,Male,81,239,0.004184,NA,45
+2020,srv_len,Male,83,239,0,NA,45
+2020,srv_len,Male,85,239,0,NA,45
+2020,srv_len,Male,87,239,0,NA,45
+2020,srv_len,Male,89,239,0,NA,45
+2020,srv_len,Male,91,239,0,NA,45
+2020,srv_len,Male,93,239,0,NA,45
+2020,srv_len,Male,95,239,0,NA,45
+2020,srv_len,Male,97,239,0,NA,45
+2020,srv_len,Male,99,239,0,NA,45
+2020,srv_len,Sex combined,41,614,0,NA,45
+2020,srv_len,Sex combined,43,614,0,NA,45
+2020,srv_len,Sex combined,45,614,0,NA,45
+2020,srv_len,Sex combined,47,614,0.0016,NA,45
+2020,srv_len,Sex combined,49,614,0.0081,NA,45
+2020,srv_len,Sex combined,51,614,0.0423,NA,45
+2020,srv_len,Sex combined,53,614,0.0879,NA,45
+2020,srv_len,Sex combined,55,614,0.0928,NA,45
+2020,srv_len,Sex combined,57,614,0.0912,NA,45
+2020,srv_len,Sex combined,59,614,0.1124,NA,45
+2020,srv_len,Sex combined,61,614,0.1075,NA,45
+2020,srv_len,Sex combined,63,614,0.0977,NA,45
+2020,srv_len,Sex combined,65,614,0.0831,NA,45
+2020,srv_len,Sex combined,67,614,0.0928,NA,45
+2020,srv_len,Sex combined,69,614,0.0391,NA,45
+2020,srv_len,Sex combined,71,614,0.0375,NA,45
+2020,srv_len,Sex combined,73,614,0.0277,NA,45
+2020,srv_len,Sex combined,75,614,0.0228,NA,45
+2020,srv_len,Sex combined,77,614,0.0212,NA,45
+2020,srv_len,Sex combined,79,614,0.0065,NA,45
+2020,srv_len,Sex combined,81,614,0.0081,NA,45
+2020,srv_len,Sex combined,83,614,0.0016,NA,45
+2020,srv_len,Sex combined,85,614,0.0016,NA,45
+2020,srv_len,Sex combined,87,614,0.0081,NA,45
+2020,srv_len,Sex combined,89,614,0.0033,NA,45
+2020,srv_len,Sex combined,91,614,0,NA,45
+2020,srv_len,Sex combined,93,614,0.0016,NA,45
+2020,srv_len,Sex combined,95,614,0,NA,45
+2020,srv_len,Sex combined,97,614,0.0033,NA,45
+2020,srv_len,Sex combined,99,614,0,NA,45
+2021,srv_len,Female,41,369,0,NA,46
+2021,srv_len,Female,43,369,0,NA,46
+2021,srv_len,Female,45,369,0.00271,NA,46
+2021,srv_len,Female,47,369,0,NA,46
+2021,srv_len,Female,49,369,0.00542,NA,46
+2021,srv_len,Female,51,369,0.00813,NA,46
+2021,srv_len,Female,53,369,0.04336,NA,46
+2021,srv_len,Female,55,369,0.065041,NA,46
+2021,srv_len,Female,57,369,0.081301,NA,46
+2021,srv_len,Female,59,369,0.113821,NA,46
+2021,srv_len,Female,61,369,0.159892,NA,46
+2021,srv_len,Female,63,369,0.162602,NA,46
+2021,srv_len,Female,65,369,0.121951,NA,46
+2021,srv_len,Female,67,369,0.078591,NA,46
+2021,srv_len,Female,69,369,0.056911,NA,46
+2021,srv_len,Female,71,369,0.03523,NA,46
+2021,srv_len,Female,73,369,0.02981,NA,46
+2021,srv_len,Female,75,369,0.00542,NA,46
+2021,srv_len,Female,77,369,0.01084,NA,46
+2021,srv_len,Female,79,369,0.00271,NA,46
+2021,srv_len,Female,81,369,0.00542,NA,46
+2021,srv_len,Female,83,369,0.00271,NA,46
+2021,srv_len,Female,85,369,0.00271,NA,46
+2021,srv_len,Female,87,369,0.00271,NA,46
+2021,srv_len,Female,89,369,0.00271,NA,46
+2021,srv_len,Female,91,369,0,NA,46
+2021,srv_len,Female,93,369,0,NA,46
+2021,srv_len,Female,95,369,0,NA,46
+2021,srv_len,Female,97,369,0,NA,46
+2021,srv_len,Female,99,369,0,NA,46
+2021,srv_len,Male,41,275,0,NA,46
+2021,srv_len,Male,43,275,0,NA,46
+2021,srv_len,Male,45,275,0.003636,NA,46
+2021,srv_len,Male,47,275,0.010909,NA,46
+2021,srv_len,Male,49,275,0.025455,NA,46
+2021,srv_len,Male,51,275,0.04,NA,46
+2021,srv_len,Male,53,275,0.123636,NA,46
+2021,srv_len,Male,55,275,0.130909,NA,46
+2021,srv_len,Male,57,275,0.167273,NA,46
+2021,srv_len,Male,59,275,0.178182,NA,46
+2021,srv_len,Male,61,275,0.127273,NA,46
+2021,srv_len,Male,63,275,0.087273,NA,46
+2021,srv_len,Male,65,275,0.036364,NA,46
+2021,srv_len,Male,67,275,0.032727,NA,46
+2021,srv_len,Male,69,275,0.025455,NA,46
+2021,srv_len,Male,71,275,0.003636,NA,46
+2021,srv_len,Male,73,275,0,NA,46
+2021,srv_len,Male,75,275,0.003636,NA,46
+2021,srv_len,Male,77,275,0,NA,46
+2021,srv_len,Male,79,275,0.003636,NA,46
+2021,srv_len,Male,81,275,0,NA,46
+2021,srv_len,Male,83,275,0,NA,46
+2021,srv_len,Male,85,275,0,NA,46
+2021,srv_len,Male,87,275,0,NA,46
+2021,srv_len,Male,89,275,0,NA,46
+2021,srv_len,Male,91,275,0,NA,46
+2021,srv_len,Male,93,275,0,NA,46
+2021,srv_len,Male,95,275,0,NA,46
+2021,srv_len,Male,97,275,0,NA,46
+2021,srv_len,Male,99,275,0,NA,46
+2021,srv_len,Sex combined,41,644,0,NA,46
+2021,srv_len,Sex combined,43,644,0,NA,46
+2021,srv_len,Sex combined,45,644,0.0031,NA,46
+2021,srv_len,Sex combined,47,644,0.0047,NA,46
+2021,srv_len,Sex combined,49,644,0.014,NA,46
+2021,srv_len,Sex combined,51,644,0.0217,NA,46
+2021,srv_len,Sex combined,53,644,0.0776,NA,46
+2021,srv_len,Sex combined,55,644,0.0932,NA,46
+2021,srv_len,Sex combined,57,644,0.118,NA,46
+2021,srv_len,Sex combined,59,644,0.1413,NA,46
+2021,srv_len,Sex combined,61,644,0.146,NA,46
+2021,srv_len,Sex combined,63,644,0.1304,NA,46
+2021,srv_len,Sex combined,65,644,0.0854,NA,46
+2021,srv_len,Sex combined,67,644,0.059,NA,46
+2021,srv_len,Sex combined,69,644,0.0435,NA,46
+2021,srv_len,Sex combined,71,644,0.0217,NA,46
+2021,srv_len,Sex combined,73,644,0.0171,NA,46
+2021,srv_len,Sex combined,75,644,0.0047,NA,46
+2021,srv_len,Sex combined,77,644,0.0062,NA,46
+2021,srv_len,Sex combined,79,644,0.0031,NA,46
+2021,srv_len,Sex combined,81,644,0.0031,NA,46
+2021,srv_len,Sex combined,83,644,0.0016,NA,46
+2021,srv_len,Sex combined,85,644,0.0016,NA,46
+2021,srv_len,Sex combined,87,644,0.0016,NA,46
+2021,srv_len,Sex combined,89,644,0.0016,NA,46
+2021,srv_len,Sex combined,91,644,0,NA,46
+2021,srv_len,Sex combined,93,644,0,NA,46
+2021,srv_len,Sex combined,95,644,0,NA,46
+2021,srv_len,Sex combined,97,644,0,NA,46
+2021,srv_len,Sex combined,99,644,0,NA,46
+2022,srv_len,Female,41,339,0,NA,47
+2022,srv_len,Female,43,339,0.0059,NA,47
+2022,srv_len,Female,45,339,0,NA,47
+2022,srv_len,Female,47,339,0.00885,NA,47
+2022,srv_len,Female,49,339,0.017699,NA,47
+2022,srv_len,Female,51,339,0.014749,NA,47
+2022,srv_len,Female,53,339,0.035398,NA,47
+2022,srv_len,Female,55,339,0.047198,NA,47
+2022,srv_len,Female,57,339,0.079646,NA,47
+2022,srv_len,Female,59,339,0.094395,NA,47
+2022,srv_len,Female,61,339,0.117994,NA,47
+2022,srv_len,Female,63,339,0.162242,NA,47
+2022,srv_len,Female,65,339,0.129794,NA,47
+2022,srv_len,Female,67,339,0.094395,NA,47
+2022,srv_len,Female,69,339,0.064897,NA,47
+2022,srv_len,Female,71,339,0.035398,NA,47
+2022,srv_len,Female,73,339,0.035398,NA,47
+2022,srv_len,Female,75,339,0.026549,NA,47
+2022,srv_len,Female,77,339,0.014749,NA,47
+2022,srv_len,Female,79,339,0.0059,NA,47
+2022,srv_len,Female,81,339,0.00295,NA,47
+2022,srv_len,Female,83,339,0,NA,47
+2022,srv_len,Female,85,339,0.00295,NA,47
+2022,srv_len,Female,87,339,0,NA,47
+2022,srv_len,Female,89,339,0,NA,47
+2022,srv_len,Female,91,339,0.00295,NA,47
+2022,srv_len,Female,93,339,0,NA,47
+2022,srv_len,Female,95,339,0,NA,47
+2022,srv_len,Female,97,339,0,NA,47
+2022,srv_len,Female,99,339,0,NA,47
+2022,srv_len,Male,41,309,0,NA,47
+2022,srv_len,Male,43,309,0,NA,47
+2022,srv_len,Male,45,309,0.003236,NA,47
+2022,srv_len,Male,47,309,0.012945,NA,47
+2022,srv_len,Male,49,309,0.019417,NA,47
+2022,srv_len,Male,51,309,0.042071,NA,47
+2022,srv_len,Male,53,309,0.080906,NA,47
+2022,srv_len,Male,55,309,0.116505,NA,47
+2022,srv_len,Male,57,309,0.122977,NA,47
+2022,srv_len,Male,59,309,0.197411,NA,47
+2022,srv_len,Male,61,309,0.158576,NA,47
+2022,srv_len,Male,63,309,0.110032,NA,47
+2022,srv_len,Male,65,309,0.038835,NA,47
+2022,srv_len,Male,67,309,0.042071,NA,47
+2022,srv_len,Male,69,309,0.016181,NA,47
+2022,srv_len,Male,71,309,0.012945,NA,47
+2022,srv_len,Male,73,309,0.006472,NA,47
+2022,srv_len,Male,75,309,0.003236,NA,47
+2022,srv_len,Male,77,309,0.012945,NA,47
+2022,srv_len,Male,79,309,0,NA,47
+2022,srv_len,Male,81,309,0,NA,47
+2022,srv_len,Male,83,309,0,NA,47
+2022,srv_len,Male,85,309,0,NA,47
+2022,srv_len,Male,87,309,0.003236,NA,47
+2022,srv_len,Male,89,309,0,NA,47
+2022,srv_len,Male,91,309,0,NA,47
+2022,srv_len,Male,93,309,0,NA,47
+2022,srv_len,Male,95,309,0,NA,47
+2022,srv_len,Male,97,309,0,NA,47
+2022,srv_len,Male,99,309,0,NA,47
+2022,srv_len,Sex combined,41,648,0,NA,47
+2022,srv_len,Sex combined,43,648,0.0031,NA,47
+2022,srv_len,Sex combined,45,648,0.0015,NA,47
+2022,srv_len,Sex combined,47,648,0.0108,NA,47
+2022,srv_len,Sex combined,49,648,0.0185,NA,47
+2022,srv_len,Sex combined,51,648,0.0278,NA,47
+2022,srv_len,Sex combined,53,648,0.0571,NA,47
+2022,srv_len,Sex combined,55,648,0.0802,NA,47
+2022,srv_len,Sex combined,57,648,0.1003,NA,47
+2022,srv_len,Sex combined,59,648,0.1435,NA,47
+2022,srv_len,Sex combined,61,648,0.1373,NA,47
+2022,srv_len,Sex combined,63,648,0.1373,NA,47
+2022,srv_len,Sex combined,65,648,0.0864,NA,47
+2022,srv_len,Sex combined,67,648,0.0694,NA,47
+2022,srv_len,Sex combined,69,648,0.0417,NA,47
+2022,srv_len,Sex combined,71,648,0.0247,NA,47
+2022,srv_len,Sex combined,73,648,0.0216,NA,47
+2022,srv_len,Sex combined,75,648,0.0154,NA,47
+2022,srv_len,Sex combined,77,648,0.0139,NA,47
+2022,srv_len,Sex combined,79,648,0.0031,NA,47
+2022,srv_len,Sex combined,81,648,0.0015,NA,47
+2022,srv_len,Sex combined,83,648,0,NA,47
+2022,srv_len,Sex combined,85,648,0.0015,NA,47
+2022,srv_len,Sex combined,87,648,0.0015,NA,47
+2022,srv_len,Sex combined,89,648,0,NA,47
+2022,srv_len,Sex combined,91,648,0.0015,NA,47
+2022,srv_len,Sex combined,93,648,0,NA,47
+2022,srv_len,Sex combined,95,648,0,NA,47
+2022,srv_len,Sex combined,97,648,0,NA,47
+2022,srv_len,Sex combined,99,648,0,NA,47
+2023,srv_len,Female,41,367,0,NA,48
+2023,srv_len,Female,43,367,0,NA,48
+2023,srv_len,Female,45,367,0,NA,48
+2023,srv_len,Female,47,367,0.013624,NA,48
+2023,srv_len,Female,49,367,0.027248,NA,48
+2023,srv_len,Female,51,367,0.024523,NA,48
+2023,srv_len,Female,53,367,0.032698,NA,48
+2023,srv_len,Female,55,367,0.073569,NA,48
+2023,srv_len,Female,57,367,0.076294,NA,48
+2023,srv_len,Female,59,367,0.089918,NA,48
+2023,srv_len,Female,61,367,0.149864,NA,48
+2023,srv_len,Female,63,367,0.117166,NA,48
+2023,srv_len,Female,65,367,0.103542,NA,48
+2023,srv_len,Female,67,367,0.108992,NA,48
+2023,srv_len,Female,69,367,0.06812,NA,48
+2023,srv_len,Female,71,367,0.054496,NA,48
+2023,srv_len,Female,73,367,0.021798,NA,48
+2023,srv_len,Female,75,367,0.013624,NA,48
+2023,srv_len,Female,77,367,0,NA,48
+2023,srv_len,Female,79,367,0.013624,NA,48
+2023,srv_len,Female,81,367,0.002725,NA,48
+2023,srv_len,Female,83,367,0,NA,48
+2023,srv_len,Female,85,367,0,NA,48
+2023,srv_len,Female,87,367,0,NA,48
+2023,srv_len,Female,89,367,0,NA,48
+2023,srv_len,Female,91,367,0.002725,NA,48
+2023,srv_len,Female,93,367,0.002725,NA,48
+2023,srv_len,Female,95,367,0,NA,48
+2023,srv_len,Female,97,367,0.002725,NA,48
+2023,srv_len,Female,99,367,0,NA,48
+2023,srv_len,Male,41,302,0,NA,48
+2023,srv_len,Male,43,302,0,NA,48
+2023,srv_len,Male,45,302,0,NA,48
+2023,srv_len,Male,47,302,0.009934,NA,48
+2023,srv_len,Male,49,302,0.013245,NA,48
+2023,srv_len,Male,51,302,0.046358,NA,48
+2023,srv_len,Male,53,302,0.049669,NA,48
+2023,srv_len,Male,55,302,0.096026,NA,48
+2023,srv_len,Male,57,302,0.18543,NA,48
+2023,srv_len,Male,59,302,0.192053,NA,48
+2023,srv_len,Male,61,302,0.149007,NA,48
+2023,srv_len,Male,63,302,0.119205,NA,48
+2023,srv_len,Male,65,302,0.066225,NA,48
+2023,srv_len,Male,67,302,0.029801,NA,48
+2023,srv_len,Male,69,302,0.013245,NA,48
+2023,srv_len,Male,71,302,0.02649,NA,48
+2023,srv_len,Male,73,302,0.003311,NA,48
+2023,srv_len,Male,75,302,0,NA,48
+2023,srv_len,Male,77,302,0,NA,48
+2023,srv_len,Male,79,302,0,NA,48
+2023,srv_len,Male,81,302,0,NA,48
+2023,srv_len,Male,83,302,0,NA,48
+2023,srv_len,Male,85,302,0,NA,48
+2023,srv_len,Male,87,302,0,NA,48
+2023,srv_len,Male,89,302,0,NA,48
+2023,srv_len,Male,91,302,0,NA,48
+2023,srv_len,Male,93,302,0,NA,48
+2023,srv_len,Male,95,302,0,NA,48
+2023,srv_len,Male,97,302,0,NA,48
+2023,srv_len,Male,99,302,0,NA,48
+2023,srv_len,Sex combined,41,669,0,NA,48
+2023,srv_len,Sex combined,43,669,0,NA,48
+2023,srv_len,Sex combined,45,669,0,NA,48
+2023,srv_len,Sex combined,47,669,0.012,NA,48
+2023,srv_len,Sex combined,49,669,0.0209,NA,48
+2023,srv_len,Sex combined,51,669,0.0344,NA,48
+2023,srv_len,Sex combined,53,669,0.0404,NA,48
+2023,srv_len,Sex combined,55,669,0.0837,NA,48
+2023,srv_len,Sex combined,57,669,0.1256,NA,48
+2023,srv_len,Sex combined,59,669,0.136,NA,48
+2023,srv_len,Sex combined,61,669,0.1495,NA,48
+2023,srv_len,Sex combined,63,669,0.1181,NA,48
+2023,srv_len,Sex combined,65,669,0.0867,NA,48
+2023,srv_len,Sex combined,67,669,0.0732,NA,48
+2023,srv_len,Sex combined,69,669,0.0433,NA,48
+2023,srv_len,Sex combined,71,669,0.0419,NA,48
+2023,srv_len,Sex combined,73,669,0.0135,NA,48
+2023,srv_len,Sex combined,75,669,0.0075,NA,48
+2023,srv_len,Sex combined,77,669,0,NA,48
+2023,srv_len,Sex combined,79,669,0.0075,NA,48
+2023,srv_len,Sex combined,81,669,0.0015,NA,48
+2023,srv_len,Sex combined,83,669,0,NA,48
+2023,srv_len,Sex combined,85,669,0,NA,48
+2023,srv_len,Sex combined,87,669,0,NA,48
+2023,srv_len,Sex combined,89,669,0,NA,48
+2023,srv_len,Sex combined,91,669,0.0015,NA,48
+2023,srv_len,Sex combined,93,669,0.0015,NA,48
+2023,srv_len,Sex combined,95,669,0,NA,48
+2023,srv_len,Sex combined,97,669,0.0015,NA,48
+2023,srv_len,Sex combined,99,669,0,NA,48
