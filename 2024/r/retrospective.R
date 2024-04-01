@@ -11,7 +11,7 @@ source("r_helper/exp_functions.r")
 
 YEAR <- 2023 # most recent year of data
 
-VER<-"v24_trial"
+VER<-"v23_3f_3s_2016_TUNED"
 # Directory setup
 root <- getwd() # project root
 tmb_dat <- file.path(root, paste0(YEAR+1,"/data/tmb_inputs")) # location of tmb model data inputs
@@ -27,7 +27,7 @@ dir.create(retro_dir, showWarnings = FALSE)
 library(TMB) 
 
 TUNED_VER<-NA
-TUNED_VER<-"v23_new_2slx"
+TUNED_VER<-"v23_3f_3s_2015"
 
 IND_SIGMA<-FALSE
 
@@ -39,7 +39,7 @@ SLX_INITS <- 1 # Do you want to use the selectivity values from the federal asse
 # the model (1). These will serve as starting values for the selectivity
 # parameters that are being estimated.
 
-agedat <- "disaggregated" # age comp data: "aggregated" (sexes combined, v23) or "disaggregated" (age data separated by sex)
+agedat <- "aggregated" # age comp data: "aggregated" (sexes combined, v23) or "disaggregated" (age data separated by sex)
 
 # most recent year of data (YEAR+1 should be the forecast year)
 # Model switches
@@ -161,32 +161,12 @@ agedat <- "disaggregated" # age comp data: "aggregated" (sexes combined, v23) or
 #-------------------------------------------------------------------------------
 #=====================================
 # Set time blocks for selectivity:
-srv_blocks <- c(1999,2015) # years are last years of time blocks
+srv_blocks <- c(1999,2016) # years are last years of time blocks
 fsh_blocks <- c(1994,2021)
-
-{
-  srv_blks <- vector()
-  
-  for (i in 1:length(srv_blocks)) {
-    srv_blks[i] <- ts %>% filter(year == srv_blocks[i]) %>% pull(index)
-  }
-  
-  srv_blks[length(srv_blocks)+1] <- max(ts$index)
-  s_blk_ct<-length(srv_blks)
-  
-  fsh_blks <- vector()
-  
-  for (i in 1:length(fsh_blocks)) {
-    fsh_blks[i] <- ts %>% filter(year == fsh_blocks[i]) %>% pull(index)
-  }
-  
-  fsh_blks[length(fsh_blocks)+1] <- max(ts$index)
-  f_blk_ct<-length(fsh_blks)
-}
 
 #--------------------------------------------------------------------------------
 #Do we need to tune the peels?
-TUNE <- FALSE
+TUNE <- TRUE
 tune_iters <- 2
 
 # Retrospective ----
@@ -203,10 +183,10 @@ if(rec_type == 1){
 }
 mgc_ls <- list()        # max gradient component
 
-retro <- 0:5           # number of peels
+retro <- 0:10           # number of peels
 
 
-for(i in 1:length(retro)){  #i<-9
+for(i in 1:length(retro)){  #i<-1
   
   iter_dir <- file.path(retro_dir, paste0("retro_", retro[i]))
   dir.create(iter_dir, showWarnings = FALSE)
@@ -225,8 +205,34 @@ for(i in 1:length(retro)){  #i<-9
   srv_len <- len %>% filter(year <= lyr & Source == "srv_len")
   
   # Starting values
-  iter_rec_devs_inits <- rep(0, nyr) 
-  iter_Fdevs_inits <- rep(0, nyr)   
+  #iter_rec_devs_inits <- rep(0, nyr) 
+  #iter_Fdevs_inits <- rep(0, nyr) 
+  
+  iter_rec_devs_inits <- rec_devs_inits[1:nyr] 
+  iter_Fdevs_inits <- Fdevs_inits[1:nyr] 
+  
+  srv_blocks <- srv_blocks[srv_blocks < lyr] #c(1999,2016) # years are last years of time blocks
+  fsh_blocks <- fsh_blocks[fsh_blocks < lyr]
+  
+  {
+    srv_blks <- vector()
+    
+    for (j in 1:length(srv_blocks)) {
+      srv_blks[j] <- iter_ts %>% filter(year == srv_blocks[j]) %>% pull(index)
+    }
+    
+    srv_blks[length(srv_blocks)+1] <- max(iter_ts$index)
+    s_blk_ct<-length(srv_blks)
+    
+    fsh_blks <- vector()
+    
+    for (j in 1:length(fsh_blocks)) {
+      fsh_blks[j] <- iter_ts %>% filter(year == fsh_blocks[j]) %>% pull(index)
+    }
+    
+    fsh_blks[length(fsh_blocks)+1] <- max(iter_ts$index)
+    f_blk_ct<-length(fsh_blks)
+  }
   
   #iter_rec_devs_inits <- rec_devs_inits[1:nyr]
   #iter_Fdevs_inits <- Fdevs_inits[1:nyr]
@@ -238,56 +244,47 @@ for(i in 1:length(retro)){  #i<-9
     parameters <- build_parameters_v23(rec_devs_inits = iter_rec_devs_inits, 
                                        Fdevs_inits = iter_Fdevs_inits)
   } else {
-    data <- build_data_sexyage(ts = iter_ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
+    data <- build_data_v24(ts = iter_ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
     parameters <- build_parameters_v24(rec_devs_inits = iter_rec_devs_inits, 
                                        Fdevs_inits = iter_Fdevs_inits)
   }
   
   random_vars <- build_random_vars()
   
-  #retrospective now transverses time blocks for fsh_sel.  Lets fix those issues
-  if (length(data$fsh_blks) != length(unique(data$fsh_blks))) {
-    data$fsh_blks <- data$fsh_blks[1:length(unique(data$fsh_blks))]
-    data$p_fsh_q <- data$p_fsh_q[1:length(unique(data$fsh_blks))]
-    data$sigma_fsh_q <- data$sigma_fsh_q[1:length(unique(data$fsh_blks))]
-    parameters$log_fsh_slx_pars <- parameters$log_fsh_slx_pars[1:length(unique(data$fsh_blks)),,]
-    parameters$fsh_logq <- parameters$fsh_logq[1:length(unique(data$fsh_blks))]
-  }
-  
-  if(length(parameters$fsh_logq) != length(unique(data$fsh_blks))) {
-    parameters$fsh_logq <- parameters$fsh_logq[1:length(unique(data$fsh_blks))]
-  }
-  
-  if (length(data$srv_blks) != length(unique(data$srv_blks))) {
-    data$srv_blks <- data$srv_blks[1:length(unique(data$srv_blks))]
-    data$p_srv_q <- data$p_srv_q[1:length(unique(data$srv_blks))]
-    data$sigma_srv_q <- data$sigma_srv_q[1:length(unique(data$srv_blks))]
-    parameters$log_srv_slx_pars <- parameters$log_srv_slx_pars[1:length(unique(data$srv_blks)),,]
-    parameters$srv_logq <- parameters$srv_logq[1:length(unique(data$srv_blks))]
-  }
-  
-  if(length(parameters$srv_logq) != length(unique(data$srv_blks))) {
-    parameters$srv_logq <- parameters$srv_logq[1:length(unique(data$srv_blks))]
-  }
-  
-  # Run model using MLE
+    # Run model using MLE
   setwd(tmb_path)
   
     #insert tuning step if necessary...
   if (agedat == "aggregated") {
     if (TUNE == TRUE) {
-      out<-tune_it(niter=tune_iters,modelname="scaa_mod_v23",newtonsteps=3, wt_opt = FALSE)
+      #try(invisible(capture.output(out<-tune_it(niter=tune_iters,modelname="scaa_mod_v23",
+      #                                          newtonsteps=3, wt_opt = FALSE),
+      #                             type="message")),silent=TRUE)
+      out<-tune_it(niter=tune_iters,modelname="scaa_mod_v23",
+                   newtonsteps=0, wt_opt = FALSE)
+      
     } else {
+      #try(invisible(capture.output(out <- TMBphase_v23(data, parameters, random = random_vars, 
+      #                                                 model_name = "scaa_mod_v23", phase = FALSE, 
+      #                                                 debug = FALSE,newtonsteps=0),type="message")),silent=TRUE)
       out <- TMBphase_v23(data, parameters, random = random_vars, 
                           model_name = "scaa_mod_v23", phase = FALSE, 
-                          debug = FALSE,newtonsteps=3)
+                          debug = FALSE,newtonsteps=0)
+      #rep <- out$rep
+      
+      #if (max(abs(rep$gradient.fixed)) > 0.001) {
+      #  out <- TMBphase_v23(data, parameters, random = random_vars, 
+      #                      model_name = "scaa_mod_v23", phase = FALSE, 
+      #                      newtonsteps = 3, #3 make this zero initially for faster run times (using 5)
+      #                      debug = FALSE, loopnum = 30)
+      #}
     }
   } else {
     if (TUNE == TRUE) {
-      out<-tune_it(niter=tune_iters,modelname="scaa_mod_sexyage",newtonsteps=3, wt_opt = FALSE)
+      out<-tune_it(niter=tune_iters,modelname="scaa_mod_v24",newtonsteps=0, wt_opt = FALSE)
     } else {
-      out <- TMBphase_sexyage(data, parameters, random = random_vars, 
-                          model_name = "scaa_mod_sexyage", phase = FALSE, 
+      out <- TMBphase_v24(data, parameters, random = random_vars, 
+                          model_name = "scaa_mod_v24", phase = FALSE, 
                           debug = FALSE,newtonsteps=0)
     }
   }
@@ -304,32 +301,37 @@ for(i in 1:length(retro)){  #i<-9
   # recruitment in millions
   log_rbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
   log_rec_devs <- tidyrep %>% filter(grepl("log_rec_devs", Parameter)) %>% pull(Estimate)
-  rec_ls[[i]] <- data.frame(year = syr:lyr,
-                            #rec = exp(log_rbar + log_rec_devs) / 1e6,
-                            #rec = obj$report(best)$log_rbar,
-                            rec = obj$report(best)$pred_rec,
-                            retro = paste0("retro_", retro[i]))    
   
-  # spawning stock biomass in million lb
-  SB_ls[[i]] <- data.frame(year = syr:(lyr+1),
-                           spawn_biom =  obj$report(best)$tot_spawn_biom * 2.20462 / 1e6,
-                           retro = paste0("retro_", retro[i]))
-
-  # annual fishing mortality rate (Ft)
-  Fmort_ls[[i]] <- data.frame(year = syr:lyr,
-                              Fmort = obj$report(best)$Fmort,
-                              retro = paste0("retro_", retro[i]))  # fishing mortality rate (Ft)
-
-  # ABC over time (current estimate of F50 imposed on all years) in million lb
-  ABC <- as.data.frame(obj$report(best)$ABC * 2.20462 / 1e6)
-  names(ABC) <- data$Fxx_levels
-  ABC_ls[[i]] <- ABC %>% 
-    mutate(year = syr:(lyr+1)) %>% 
-    tidyr::pivot_longer(cols = -year, names_to = "Fxx", values_to = "ABC") %>% 
-    # data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC") %>% 
-    filter(Fxx == "0.5") %>% 
-    mutate(retro = paste0("retro_", retro[i])) %>% 
-    select(-Fxx)
+  if (length(syr:lyr) != length(obj$report(best)$pred_rec)) {
+    #if the retro doesn't converge skip it
+  } else {
+    rec_ls[[i]] <- data.frame(year = syr:lyr,
+                              #rec = exp(log_rbar + log_rec_devs) / 1e6,
+                              #rec = obj$report(best)$log_rbar,
+                              rec = obj$report(best)$pred_rec,
+                              retro = paste0("retro_", retro[i]))    
+    
+    # spawning stock biomass in million lb
+    SB_ls[[i]] <- data.frame(year = syr:(lyr+1),
+                             spawn_biom =  obj$report(best)$tot_spawn_biom * 2.20462 / 1e6,
+                             retro = paste0("retro_", retro[i]))
+    
+    # annual fishing mortality rate (Ft)
+    Fmort_ls[[i]] <- data.frame(year = syr:lyr,
+                                Fmort = obj$report(best)$Fmort,
+                                retro = paste0("retro_", retro[i]))  # fishing mortality rate (Ft)
+    
+    # ABC over time (current estimate of F50 imposed on all years) in million lb
+    ABC <- as.data.frame(obj$report(best)$ABC * 2.20462 / 1e6)
+    names(ABC) <- data$Fxx_levels
+    ABC_ls[[i]] <- ABC %>% 
+      mutate(year = syr:(lyr+1)) %>% 
+      tidyr::pivot_longer(cols = -year, names_to = "Fxx", values_to = "ABC") %>% 
+      # data.table::melt(id.vars = c("year"), variable.name = "Fxx", value.name = "ABC") %>% 
+      filter(Fxx == "0.5") %>% 
+      mutate(retro = paste0("retro_", retro[i])) %>% 
+      select(-Fxx)
+  }
   
   # equilibrium unfished and fished spawning biomass in million lb
   SB <- as.data.frame(obj$report(best)$SB * 2.20462 / 1e6)
@@ -357,7 +359,9 @@ for(i in 1:length(retro)){  #i<-9
   mgc_ls[[i]] <- data.frame(retro = paste0("retro_", retro[i]),
                                     mgc = max(rep$gradient.fixed))  
 }
-  
+
+#-------------------------------------------------------------------------------
+# done running retros.. now put it together...   
 rec <- do.call(rbind, rec_ls)
 SB <- do.call(rbind, SB_ls)
 Fmort <- do.call(rbind, Fmort_ls)

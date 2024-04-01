@@ -3142,8 +3142,8 @@ build_parameters_v23 <- function(
                          slx_pars$log_a50[slx_pars$fleet == "fsh_t2_f"], #  then time block 2
                          slx_pars$log_a50[slx_pars$fleet == "fsh_t3_f"], #  then time block 3
                          slx_pars$log_k[slx_pars$fleet == "fsh_t1_f"], # female slopes time block 1
-                         slx_pars$log_k[slx_pars$fleet == "fsh_t2_f"]), #  then time block 2
-                #slx_pars$log_k[slx_pars$fleet == "fsh_t3_f"]), # then time block 3
+                         slx_pars$log_k[slx_pars$fleet == "fsh_t2_f"], #  then time block 2
+                         slx_pars$log_k[slx_pars$fleet == "fsh_t3_f"]), # then time block 3
                 dim = c(length(data$fsh_blks), 2, nsex)) 
         } else if (length(data$fsh_blks) == 4) {
           array(data = c(slx_pars$log_a50[slx_pars$fleet == "fsh_t1_m"], # male a50s time block 1
@@ -3260,6 +3260,7 @@ build_parameters_v23 <- function(
                          rep(slx_pars$log_k[slx_pars$fleet == "srv3_m"]), # slope
                          rep(slx_pars$log_a50[slx_pars$fleet == "srv1_f"]), # female a50
                          rep(slx_pars$log_a50[slx_pars$fleet == "srv2_f"]), # female a50
+                         rep(slx_pars$log_a50[slx_pars$fleet == "srv3_f"]), # female a50
                          rep(slx_pars$log_a50[slx_pars$fleet == "srv3_f"]), # female a50
                          rep(slx_pars$log_k[slx_pars$fleet == "srv1_f"]),
                          rep(slx_pars$log_k[slx_pars$fleet == "srv2_f"]), # slope
@@ -3655,8 +3656,8 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps, 
       data_fsh_age <- as.matrix(data$data_fsh_age)
       effn_fsh_age <- vector(length = nrow(pred_fsh_age))
       
-      for(i in 1:nrow(pred_fsh_age)){
-        effn_fsh_age[i] <- sum(pred_fsh_age[i,]*(1-pred_fsh_age[i,])) / sum((data_fsh_age[i,]-pred_fsh_age[i,])^2)  #Equation 2.5 in Mcalister and Ianelli
+      for(k in 1:nrow(pred_fsh_age)){
+        effn_fsh_age[k] <- sum(pred_fsh_age[k,]*(1-pred_fsh_age[k,])) / sum((data_fsh_age[k,]-pred_fsh_age[k,])^2)  #Equation 2.5 in Mcalister and Ianelli
         # Nhat_i = sum_j{phat_ij * (1 - phat_ij)} / sum_j{(p_ij - phat_ij)^2}  #R, equ6 in Stewart and Hamel?? 
         #    phils_q_fhs_age[i] <- sum(pred_fsh_age[i,]*(1-pred_fsh_age[i,])) / sum((pred_fsh_age[i,]-data_fsh_age[i,])^2) #based on eq6 from Stewart & Hamel??
         ## but to be true to Stewart and Hamel data should be bootstrapped estimates? 
@@ -3672,8 +3673,8 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps, 
       data_srv_age <- as.matrix(data$data_srv_age)
       effn_srv_age <- vector(length = nrow(pred_srv_age))
       
-      for(i in 1:nrow(pred_srv_age)){
-        effn_srv_age[i] <- sum(pred_srv_age[i,]*(1-pred_srv_age[i,])) / sum((data_srv_age[i,]-pred_srv_age[i,])^2)
+      for(k in 1:nrow(pred_srv_age)){
+        effn_srv_age[k] <- sum(pred_srv_age[k,]*(1-pred_srv_age[i,])) / sum((data_srv_age[k,]-pred_srv_age[k,])^2)
       }
       
       effn_srv_age <- 1/mean(1/effn_srv_age) # harmonic mean
@@ -3689,8 +3690,8 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps, 
       data_fsh_age <- data_fsh_age + 1e-6 # add tiny constant so we don't get NaNs
       
       for(a in 1:nsex) {
-        for(i in 1:nrow(pred_fsh_age)){
-          effn_fsh_age[i,a] <- sum(pred_fsh_age[i,,a]*(1-pred_fsh_age[i,,a])) / sum((data_fsh_age[i,,a]-pred_fsh_age[i,,a])^2)
+        for(k in 1:nrow(pred_fsh_age)){
+          effn_fsh_age[k,a] <- sum(pred_fsh_age[k,,a]*(1-pred_fsh_age[k,,a])) / sum((data_fsh_age[k,,a]-pred_fsh_age[k,,a])^2)
         }
       }
       
@@ -3713,8 +3714,8 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps, 
       data_srv_age <- data_srv_age + 1e-6 # add tiny constant so we don't get NaNs
       
       for(a in 1:nsex) {
-        for(i in 1:nrow(pred_srv_age)){
-          effn_srv_age[i,a] <- sum(pred_srv_age[i,,a]*(1-pred_srv_age[i,,a])) / sum((data_srv_age[i,,a]-pred_srv_age[i,,a])^2)
+        for(k in 1:nrow(pred_srv_age)){
+          effn_srv_age[k,a] <- sum(pred_srv_age[k,,a]*(1-pred_srv_age[k,,a])) / sum((data_srv_age[k,,a]-pred_srv_age[k,,a])^2)
         }
       }
       
@@ -3824,6 +3825,28 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps, 
   fsh_len <- filter(len_x, Source == "fsh_len", year <= lyr)
   srv_len <- filter(len_x, Source == "srv_len", year <= lyr)
   
+  srv_blocks <- srv_blocks[srv_blocks < lyr] #c(1999,2016) # years are last years of time blocks
+  fsh_blocks <- fsh_blocks[fsh_blocks < lyr]
+  
+  {
+    srv_blks <- vector()
+    
+    for (j in 1:length(srv_blocks)) {
+      srv_blks[j] <- iter_ts %>% filter(year == srv_blocks[j]) %>% pull(index)
+    }
+    
+    srv_blks[length(srv_blocks)+1] <- max(iter_ts$index)
+    s_blk_ct<-length(srv_blks)
+    
+    fsh_blks <- vector()
+    
+    for (j in 1:length(fsh_blocks)) {
+      fsh_blks[j] <- iter_ts %>% filter(year == fsh_blocks[j]) %>% pull(index)
+    }
+    
+    fsh_blks[length(fsh_blocks)+1] <- max(iter_ts$index)
+    f_blk_ct<-length(fsh_blks)
+  }
   #OK, now run the model with tuned comps
   if (agedat == "aggregated") {
     data <- build_data_v23(ts = iter_ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
@@ -3836,29 +3859,7 @@ tune_it <-function(niter=1,modelname="scaa_mod_dir_ev",newtonsteps=newtonsteps, 
   }
   random_vars <- build_random_vars() # random effects still in development
   
-  if (length(data$fsh_blks) != length(unique(data$fsh_blks))) {
-    data$fsh_blks <- data$fsh_blks[1:length(unique(data$fsh_blks))]
-    data$p_fsh_q <- data$p_fsh_q[1:length(unique(data$fsh_blks))]
-    data$sigma_fsh_q <- data$sigma_fsh_q[1:length(unique(data$fsh_blks))]
-    parameters$log_fsh_slx_pars <- parameters$log_fsh_slx_pars[1:length(unique(data$fsh_blks)),,]
-    parameters$fsh_logq <- parameters$fsh_logq[1:length(unique(data$fsh_blks))]
-  }
   
-  if(length(parameters$fsh_logq) != length(unique(data$fsh_blks))) {
-    parameters$fsh_logq <- parameters$fsh_logq[1:length(unique(data$fsh_blks))]
-  }
-  
-  if (length(data$srv_blks) != length(unique(data$srv_blks))) {
-    data$srv_blks <- data$srv_blks[1:length(unique(data$srv_blks))]
-    data$p_srv_q <- data$p_srv_q[1:length(unique(data$srv_blks))]
-    data$sigma_srv_q <- data$sigma_srv_q[1:length(unique(data$srv_blks))]
-    parameters$log_srv_slx_pars <- parameters$log_srv_slx_pars[1:length(unique(data$srv_blks)),,]
-    parameters$srv_logq <- parameters$srv_logq[1:length(unique(data$srv_blks))]
-  }
-  
-  if(length(parameters$srv_logq) != length(unique(data$srv_blks))) {
-    parameters$srv_logq <- parameters$srv_logq[1:length(unique(data$srv_blks))]
-  }
   
   if (agedat == "aggregated") {
     out <- TMBphase_v23(data, parameters, random = random_vars, 
@@ -4089,6 +4090,7 @@ build_parameters_v24 <- function(
                          rep(slx_pars$log_k[slx_pars$fleet == "srv3_m"]), # slope
                          rep(slx_pars$log_a50[slx_pars$fleet == "srv1_f"]), # female a50
                          rep(slx_pars$log_a50[slx_pars$fleet == "srv2_f"]), # female a50
+                         rep(slx_pars$log_a50[slx_pars$fleet == "srv3_f"]), # female a50
                          rep(slx_pars$log_a50[slx_pars$fleet == "srv3_f"]), # female a50
                          rep(slx_pars$log_k[slx_pars$fleet == "srv1_f"]),
                          rep(slx_pars$log_k[slx_pars$fleet == "srv2_f"]), # slope

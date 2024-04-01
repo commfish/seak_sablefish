@@ -50,8 +50,8 @@ set.seed(9921)
 TUNED_VER<-NA
 
 # If you've tuned the model, use the tuned version you named and saved... 
-TUNED_VER<-"Base" #"v23"
-TUNED_VER<-"v23_sexyage_fixfshsel"
+TUNED_VER<-"v23_3f_3s_2015"
+TUNED_VER<-"v24_3f_3s_2017"
 
 IND_SIGMA<-FALSE # turn to true if you want to use true sigma's for the indices.
             # right now they are inflated to help with data weighting and fitting the model
@@ -67,7 +67,7 @@ SLX_INITS <- 1 # Do you want to use the selectivity values from the federal asse
             # the model (1). These will serve as starting values for the selectivity
             # parameters that are being estimated.
 
-agedat <- "aggregated" # age comp data: "aggregated" (sexes combined, v23) or "disaggregated" (age data separated by sex)
+agedat <- "disaggregated" # age comp data: "aggregated" (sexes combined, v23) or "disaggregated" (age data separated by sex)
 
 # age aggregated model is scaa_mod_v23
 # age disaggregated model is scaa_mod_v24
@@ -116,7 +116,7 @@ tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model o
 {
 rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
-fsh_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
+fsh_slx_switch <- 1 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
 srv_slx_switch <- 1 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
 comp_type <- 0    # Age  and length comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
@@ -230,8 +230,8 @@ Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
 # User-defined fxns in functions.R
 #=====================================
 # Set time blocks for selectivity:
-srv_blocks <- c(1999) # years are last years of time blocks not counting last year of time series
-fsh_blocks <- c(1994)
+srv_blocks <- c(1999,2017) # years are last years of time blocks not counting last year of time series
+fsh_blocks <- c(1994,2021)
 
 {
   srv_blks <- vector()
@@ -261,25 +261,45 @@ f_blk_ct<-length(fsh_blks)
 # more importantly, allow for fewer iterations to fully tune the model.
 VER <- "v23" #"last year's model with 2 est srv slx and 2 fixed fsh slx.
 VER<-"v23_ST" #"last year's model with 2 est srv slx and 2 fixed fsh slx.
-VER <- "v23_TUNED" #trial runs
+VER <- "v23_TUNED" #could not tune. Too unstable. 
 VER <- "v23_3f_2s_ST" # 3 fixed fsh slx, 3rd time block for '22 and '23 when pot fishery started
-VER <- "v23_3f_2s_TUNED" 
-VER <- "v23_semituned_trial"
+VER <- "v23_3f_2s_TUNED"  #could not tune. Too unstable.
+VER <- "v23_3f_3s_2015"
+VER <- "v23_3f_3s_2015_TUNED"
+VER <- "v23_3f_3s_2016"
+VER <- "v23_3f_3s_2016_TUNED"
+VER <- "v23_3f_3s_2017"
+VER <- "v23_3f_3s_2017_TUNED"
+VER <- "v23_3f_3s_2018"
+VER <- "v23_3f_3s_2018_TUNED"
+VER <- "v23_3f_3s_2019"
+VER <- "v23_3f_3s_2019_TUNED"
 
 # Lets call the disaggregated age comps (v24) v24
 # Sex aggregated models from v23.
 # Also, where do we want to add the time blocks on survey slx...
-VER <- "v24_2srv" #just 2 srv slx time blocks
-VER <- "v24_3srv_b2015"
-VER <- "v24_3srv_b2016"
-VER <- "v24_3srv_b2017"
-VER <- "v24_3srv_b2018"
+VER <- "v24_2f_2s_ST" #just 2 srv slx time blocks
+VER <- "v24_3f_2s_ST" # 3 fixed fsh slx, 3rd time block for '22 and '23 when pot fishery started
+VER <- "v24_3f_2s_TUNED"  #could not tune. Too unstable.
+VER <- "v24_3f_3s_2015"
+VER <- "v24_3f_3s_2015_TUNED"
+VER <- "v24_3f_3s_2016"
+VER <- "v24_3f_3s_2016_TUNED"
+VER <- "v24_3f_3s_2017"
+VER <- "v24_3f_3s_2017_TUNED"
+VER <- "v24_3f_3s_2018"
+VER <- "v24_3f_3s_2018_TUNED"
+VER <- "v24_3f_3s_2019"
+VER <- "v24_3f_3s_2019_TUNED"
 
-VER <- "v24_2srv_1fsh" #try estimating last fishery time block selectivity
-VER <- "v24_3srv_1fsh_b2015"
-VER <- "v24_3srv_1fsh_b2016"
-VER <- "v24_3srv_1fsh_b2017"
-VER <- "v24_3srv_1fsh_b2018"
+#try to estimate fsh_slx in last time block: 
+VER <- "v24_3f1e_3s_2017_ST" # unestimable fsh_slx
+VER <- "v23_3f1e_3s_2016_ST" # estimate bt se are enormous
+
+# trying an extra survey time block because a little weird in a few years
+VER <- "v23_3f_4s_15_18_ST"
+VER <- "v24_3f_4s_15_18_ST"
+
 
 # then run the tuned versions... 
 #==================================================
@@ -317,13 +337,13 @@ if (agedat == "aggregated") {
   out <- TMBphase_v23(data, parameters, random = random_vars, 
                       model_name = "scaa_mod_v23", #model_name = "scaa_mod_dir_ev",
                       phase = FALSE,  
-                      newtonsteps = 0, #3 make this zero initially for faster run times (using 5)
+                      newtonsteps = 2, #3 make this zero initially for faster run times (using 5)
                       debug = FALSE, loopnum = 30)
 } else {
   out <- TMBphase_v24(data, parameters, random = random_vars, 
                           model_name = "scaa_mod_v24", #model_name = "scaa_mod_dir_ev",
                           phase = FALSE,  
-                          newtonsteps = 1, #3 make this zero initially for faster run times (using 5)
+                          newtonsteps = 0, #3 make this zero initially for faster run times (using 5)
                           debug = FALSE, loopnum = 30)
 }
 
@@ -344,9 +364,16 @@ best <- obj$env$last.par.best # maximum likelihood estimates
 
 # MLE parameter estimates and standard errors in useable format. Saves output to
 # tmbout and starting vals for next year to tmb_dat by default. See functions.R
-# for more info.
-tidyrep <- save_mle(save = TRUE,
-                    save_inits = TRUE) 
+
+# NOTE: If you want to save your last run from the tune_comps.R rather than rerunning the model 
+# you will need to reset the paths here: 
+#tmbout <- "C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2024/output/tmb"
+#tmb_dat <- "C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2024/data/tmb_inputs"
+#tmbfigs <- "C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2024/figures/tmb"
+#tmb_path <- "C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2024/tmb"
+
+tidyrep <- save_mle(save = FALSE,
+                    save_inits = FALSE) 
 
 # MLE likelihood components
 obj$report(best)$obj_fun
@@ -442,7 +469,8 @@ write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR,"_",VER, ".cs
 # MLE figs ----
 
 # Fits to abundance indices, derived time series, and F. Use units = "imperial" or
-# "metric" to switch between units. 
+# "metric" to switch between units. tmb_path <- file.path(root, paste0(YEAR+1,"/tmb")) # location of cpp
+
 plot_ts(ts = ts, save = TRUE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
 plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
 plot_F(save = TRUE)
@@ -577,7 +605,7 @@ if(recABC == maxABC) {
 } else {
   
   # Estimate recommended F_ABC using numerical methods
-  #N <- obj$report()$N  #str(obj$report()) 
+  N <- obj$report()$N  #str(obj$report()) 
   
   #back to Jane's code here... 
   N <- sum(N[nyr+1,,1]) + sum(N[nyr+1,,2]) # sum of projected abundance across age and sex

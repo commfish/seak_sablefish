@@ -53,7 +53,7 @@ SLX_INITS <- 1 # Do you want to use the selectivity values from the federal asse
 # the model (1). These will serve as starting values for the selectivity
 # parameters that are being estimated.
 
-agedat <- "disaggregated" 
+agedat <- "aggregated" 
 
 {
   rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
@@ -188,7 +188,8 @@ fsh_blocks <- c(1994,2021)
 }
 #=====================================
 # *** Checking sensitivity to fishery CPUE data versions
-VER<-"v24_trial" 
+VER<-"v23" #too unstable; could not tune
+VER <- "v23_3f_2s"
 
 #-------------------------------------------------------------------------------
 # Load data and parameters
@@ -214,7 +215,7 @@ tune_fsh_len <- list()
 tune_srv_len <- list()
 
 # Iterate ----
-niter <- 2
+niter <- 5
 
 for(iter in 1:niter) { #iter<-2
   
@@ -230,21 +231,21 @@ for(iter in 1:niter) { #iter<-2
     if (max(abs(rep$gradient.fixed)) > 0.001) {
       out <- TMBphase_v23(data, parameters, random = random_vars, 
                               model_name = "scaa_mod_v23", phase = FALSE, 
-                              newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+                              newtonsteps = 3, #3 make this zero initially for faster run times (using 5)
                               debug = FALSE, loopnum = 30)
     }
   } else {
-    out <- TMBphase_sexyage(data, parameters, random = random_vars, 
-                            model_name = "scaa_mod_sexyage", #model_name = "scaa_mod_dir_ev",
+    out <- TMBphase_v24(data, parameters, random = random_vars, 
+                            model_name = "scaa_mod_v24", #model_name = "scaa_mod_dir_ev",
                             phase = FALSE,  
                             newtonsteps = 0, #3 make this zero initially for faster run times (using 5)
                             debug = FALSE, loopnum = 30)
     rep <- out$rep
     
     if (max(abs(rep$gradient.fixed)) > 0.001) {
-      out <- TMBphase_sexyage(data, parameters, random = random_vars, 
-                              model_name = "scaa_mod_sexyage", phase = FALSE, 
-                              newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+      out <- TMBphase_v24(data, parameters, random = random_vars, 
+                              model_name = "scaa_mod_v24", phase = FALSE, 
+                              newtonsteps = 3, #3 make this zero initially for faster run times (using 5)
                               debug = FALSE, loopnum = 30)
     }
   }
@@ -387,6 +388,8 @@ for(iter in 1:niter) { #iter<-2
 
 #-------------------------------------------------------------------------------
 # Save tuned age and length comp sample sizes for running the model:
+
+tune_srv_len; tune_srv_age; tune_fsh_len; tune_fsh_age
 
 if (agedat == "aggregated") {
   tune_srv_len <- as.data.frame(do.call("rbind", tune_srv_len))
