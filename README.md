@@ -1,14 +1,13 @@
 # Northern Southeast Inside Waters (NSEI) sablefish (*Anoplopoma fimbria*) stock assessment
 
-*Please note that Phil Joy resigned this position in April 2024. Contact Rhea Ehresmann (rhea.ehresmann@alaska.gov) or Chris Siddon (chris.siddon@alaska.gov) with questions until a new biometrician has been assigned to this assessment. The 2024 assessment has been completed and the report will be posted here once finalized.*
+*Please note that Phil Joy (philip.joy@alaska.gov) resigned this position in April 2024. Contact Rhea Ehresmann (rhea.ehresmann@alaska.gov) or Chris Siddon (chris.siddon@alaska.gov) with questions until a new biometrician has been assigned to this assessment. The 2024 assessment has been completed and the report will be posted in the repository once finalized.*
 
-Please direct any questions to: 
-Phil Joy (philip.joy@alaska.gov) or Rhea Ehresmann (rhea.ehresmann@alaska.gov)
+*Fishery data needed for the assessment but not available from this repository is available on the Sitka Groundfish drive * ***M:/SABLEFISH/CHATHAM/SCAA_Fishery_Data_for_new_bio_2024.***
 
-Phil Joy took over this position and assessment in 2022 from Jane Sullivan, now at NOAA.
-This fork will contain all assessments of NSEI sablefish from 2022 until otherwise stated.
-Jane's orginal model and code has been left unaltered as she left it in 2021.  It is in 
-the branch labelled "seak_sablefish_thru2021_original_JS".  
+## Assessment authors:
+
+* 2019-2021: Jane Sullivan, now with NOAA. Development of the original SCAA model that replaced the SPR model used previously in this assessment. Original model and code archived in branch *"seak_sablefish_thru2021_original_JS"*
+* 2022-2024: Phil Joy, now with ADF&G Sport Fish Division. SCAA development including selectivity development, random effects and fishery CPUE standardization.
 
 Last updated: April 2024
 
