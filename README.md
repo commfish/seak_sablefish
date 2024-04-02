@@ -2,7 +2,7 @@
 
 *Please note that Phil Joy (philip.joy@alaska.gov) resigned this position in April 2024. Contact Rhea Ehresmann (rhea.ehresmann@alaska.gov) or Chris Siddon (chris.siddon@alaska.gov) with questions until a new biometrician has been assigned to this assessment. The 2024 assessment has been completed and the report will be posted in the repository once finalized.*
 
-*Fishery data needed for the assessment but not available from this repository is available on the Sitka Groundfish drive * ***M:/SABLEFISH/CHATHAM/SCAA_Fishery_Data_for_new_bio_2024.***
+*Fishery data needed for the assessment but not available from this repository is available on the Sitka Groundfish drive.* ***M:/SABLEFISH/CHATHAM/SCAA_Fishery_Data_for_new_bio_2024.***
 
 ## Assessment authors:
 
