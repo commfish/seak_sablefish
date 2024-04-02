@@ -4,8 +4,8 @@ source("r_helper/functions.r")
 # if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
 # Most recent year of data
-YEAR <- 2022
-lyr<-2022
+YEAR <- 2023
+lyr<-2023
 
 fsh_cpue <- read_csv(paste0(YEAR+1,"/output/ll_cpue_fullstand_1980_", YEAR, ".csv"))
 
@@ -13,6 +13,16 @@ fsh_cpue %>%
   filter(year >= YEAR - 1) %>%
   select(year, fsh_cpue) %>% 
   reshape2::dcast("fsh_cpue" ~ year) -> perc_ch
+
+# Percent change from last year
+fsh_cpue %>% 
+  #rename(srv_cpue = std_cpue) %>%
+  filter(year >= YEAR - 1 & year <= YEAR) %>%
+  select(year, fsh_cpue) %>% 
+  mutate(year2 = ifelse(year == YEAR, "thisyr", "lastyr")) %>% 
+  reshape2::dcast("fsh_cpue" ~ year2, value.var = "fsh_cpue") %>% 
+  mutate(perc_change_ly = (thisyr - lastyr) / lastyr * 100,
+         eval_ly = ifelse(perc_change_ly < 0, "decreased", "increased")) -> fsh_ly
 
 names(perc_ch) <- c("cpue", "last_year", "this_year") 
 perc_ch %>% mutate(perc_change_ly = (`this_year` - `last_year`) / `last_year` * 100) ->pchange
@@ -25,7 +35,12 @@ ggplot(fsh_cpue %>% filter(year >=2000)) +
                   ymax = upper),
               alpha = 0.2,  fill = "grey") +
   labs(x = "", y = "Fishery CPUE (round lb per hook)\n") + 
-  annotate("text", x = YEAR-2, y = max(fsh_cpue$fsh_cpue[fsh_cpue$year >= 2000])*1.1, label = paste0("+",change,"%"), size = 7) + 
+#  annotate("text", x = YEAR-2, y = max(fsh_cpue$fsh_cpue[fsh_cpue$year >= 2000])*1.1, label = paste0("",change,"%"), size = 7) + 
+  geom_text(x = YEAR-2, 
+            y = max(fsh_cpue$fsh_cpue[fsh_cpue$year > 2000]) * 1.05,
+            label = paste0(ifelse(fsh_ly$eval_ly == "increased", "+", ""),
+                           sprintf("%.0f%%", fsh_ly$perc_change_ly)), 
+            size = 7) +
   theme(axis.text = element_text(size=15)) -> fishery_trends
 
 ggsave(paste0(YEAR+1,"/figures/fshcpue_1997_", YEAR, ".png"),
@@ -52,7 +67,7 @@ ggplot(mr_ests %>% filter(year >=2000)) +
                   ymax = q975),
               alpha = 0.2,  fill = "grey") +
   labs(x = "", y = "Abundance (millions)\n") + 
-  annotate("text", x = YEAR-2, y = max(mr_ests$estimate)*1.1, label = paste0("+",change,"%"), size = 7) + 
+#  annotate("text", x = YEAR-2, y = max(mr_ests$estimate)*1.1, label = paste0("",change,"%"), size = 7) + 
   scale_x_continuous(limits=c(2000,YEAR)) +
   theme(axis.text = element_text(size=15)) -> mr_trends
 
@@ -86,7 +101,7 @@ ggplot(data = srv_cpue2000, aes(x = year)) +
   # lims(y = c(0, 0.45)) + 
   geom_text(x = YEAR-2, 
             y = 1.1 * max(srv_cpue2000$std_cpue),
-            label = paste0(ifelse(srv_ly$eval_ly == "increased", "+", "-"),
+            label = paste0(ifelse(srv_ly$eval_ly == "increased", "+", ""),
                            sprintf("%.0f%%", srv_ly$perc_change_ly)), 
             size = 7) +
   theme(axis.text = element_text(size=15)) +
@@ -151,13 +166,17 @@ fsh_bio %>%
   summarize(ecdf = (ecdf(weight)(3 / 0.63 / 2.20462)) * 100) %>% 
   group_by(Source) %>% 
   mutate(std = (ecdf - mean(ecdf)) / sd(ecdf),
-         mean = mean(ecdf)) %>% 
-  ggplot(aes(x = year, y = ecdf,col = Source)) +
+         mean = mean(ecdf)) -> df_fb 
+
+ggplot(df_fb,aes(x = year, y = ecdf,col = Source)) +
   # ggplot(aes(x = year, y = std,lty = Source)) +
   # geom_hline(yintercept = 0, lty = 2, col = "grey") +
   geom_line() +
   geom_point() +
   geom_line(aes(y = mean, col = Source), lty = 2) +
+  annotate("text", x = YEAR, y = df_fb$ecdf[df_fb$year == YEAR]*1.1, 
+           label = paste0(round(df_fb$ecdf[df_fb$year == YEAR],0),"%"), 
+           size = 4, col = c("red","darkcyan")) + 
   # labs(x = NULL, y = NULL) +
   labs(x = NULL, y = "Percent under 3 dressed lb")
 

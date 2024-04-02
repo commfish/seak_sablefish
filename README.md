@@ -1,18 +1,21 @@
 # Northern Southeast Inside Waters (NSEI) sablefish (*Anoplopoma fimbria*) stock assessment
 
+*Please note that Phil Joy resigned this position in April 2024. Contact Rhea Ehresmann (rhea.ehresmann@alaska.gov) or Chris Siddon (chris.siddon@alaska.gov) with questions until a new biometrician has been assigned to this assessment. The 2024 assessment has been completed and the report will be posted here once finalized.*
+
 Please direct any questions to: 
-Phil Joy (philip.joy@alaska.gov, ummjane@gmail.com) or Rhea Ehresmann (rhea.ehresmann@alaska.gov)
+Phil Joy (philip.joy@alaska.gov) or Rhea Ehresmann (rhea.ehresmann@alaska.gov)
 
 Phil Joy took over this position and assessment in 2022 from Jane Sullivan, now at NOAA.
 This fork will contain all assessments of NSEI sablefish from 2022 until otherwise stated.
 Jane's orginal model and code has been left unaltered as she left it in 2021.  It is in 
 the branch labelled "seak_sablefish_thru2021_original_JS".  
-The 2022 assessment changed little from the 2021 assessment as done by Jane.
 
-Last updated: August 2023
+Last updated: April 2024
 
 ## Reports
-2023 forecast: [git word document](https://github.com/commfish/seak_sablefish/blob/master/2023/text/RIR.1J.2023.XX_NSEI_Final.docx).  Please note that as of August 2023 the ADF&G publication department is undergoing revisions and publications have been temporarily suspended.  Please site the github site for this report until official publications are made available. 
+2024 forecast: *Pending*
+
+2023 forecast: [git word document](https://github.com/commfish/seak_sablefish/blob/master/2023/text/RIR.1J.2023.XX_NSEI_Final.docx).  Please note that as of August 2023 the ADF&G publication department is undergoing revisions and publications have been temporarily suspended.  Please site the github for this report until official publications are made available. 
 
 2022 forecast: http://www.adfg.alaska.gov/FedAidPDFs/RIR.1J.2022.19.pdf
 
@@ -104,12 +107,12 @@ The analyses underpinning the current stock assessment are found in the folder l
 
 ![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/steps_to_run_assessment.jpg)
 
-**Description of R scripts:**  
+**Description of R scripts:** Follow the order of these scripts to run the assessment...  
 1.  [`r_helper/helper.r`](https://github.com/commfish/seak_sablefish/blob/master/r_helper/helper.R): Sourced by most other R scripts in this project, includes libraries/dependecies and ggplot themes;
 2.  [`r_helper/functions.r`](https://github.com/commfish/seak_sablefish/blob/master/r_helper/functions.R):  Sourced by most other R scripts in this project, includes user-defined functions; 
-3.  `2023/r/fishery_cpue_fr_OceanAK_ftx_lb_dat.R`: Instructions on pulling fish ticket and logbook data from OceanAK, cleaning it and merging the two data sources for CPUE calculation for the 2023 assessment. This has been replaced in 2024 by the next script listed; 
+3.  `2023/r/fishery_cpue_fr_OceanAK_ftx_lb_dat.R`: *Deprecated* Instructions on pulling fish ticket and logbook data from OceanAK, cleaning it and merging the two data sources for CPUE calculation for the 2023 assessment. *This has been replaced in 2024 by the next script listed;* 
 4.  `YEAR/r/fishery_cpue_prep.R`: This replaces the previous script used in 2023. This script has instructions for getting the cpue data from the new OceanAK output and formatting it for calculating cpue indices. As of 2024 this is a WORK IN PROGRESS and the next assessment author should pay special attention to this script as well as the associated scipts for calculating and standarizing cpue fishery_ll_cpue.R and fishery_pot_cpue.R.
-5.  `YEAR/r/0_querynclean_data.r`: Descriptions of the data, `SQL` queries, and subsequent manipulations to clean raw data.  This script is no longer used as the data is pulled from OceanAK database;
+5.  `YEAR/r/0_querynclean_data.r`: *Deprecated* Descriptions of the data, `SQL` queries, and subsequent manipulations to clean raw data.  *This script is no longer used as the data is pulled from OceanAK database;*
 6.  `YEAR/r/0_clean_data.R`: Descriptions of data and manipulations to clean raw data for analysis; 
 7.  `YEAR/r/fishery_catch.R`: calculate and graphics for fishery catch data; 
 8.  `YEAR/r/fishery_ll_cpue.R`: calculate and standardize longline fishery cpue;
@@ -119,10 +122,10 @@ The analyses underpinning the current stock assessment are found in the folder l
 12.  `YEAR/r/mark_recapture.r`: clean release and recapture data, evaluate assumptions for mark-recapture experiment, and conduct analysis and model selection for the mark-recapture analysis; mark-recapture abundance estimated using the Bayesian software `JAGS`;
 13.  `YEAR/r/scaa_dataprep.r`: compilation of catch, indices of relative and absolute abundace, age and length comps, biological data, and fishery retention probabilities for use in the SCAA model; also includes conversion tables for age-length-weight, which appears in an appendix in the 2020 assessment;
 14.  `YEAR/r/scaa.r`: run SCAA model, generate output, results, and figures for assessment; also includes prelim work to run the SCAA as a Bayesian model;
-15.  `YEAR/r/tune_comps.r`: estimate effective samples sizes for age/length comps using McAllister and Ianelli (1997) with harmonic mean; implemented for assessment in 2023;
+15.  `YEAR/r/tune_comps.r`: estimate effective samples sizes for age/length comps using McAllister and Ianelli (1997) with harmonic mean. After running scaa.r use this script to tune the model. implemented for assessment in 2023;
 16.  `YEAR/r/retrospective.r`: retrospective analysis to evaluate performance of SCAA model;
 17.  `YEAR/r/marking_survey_analysis.r`: sensitivity analysis of marking survey/abundance estimate on SCAA results; impact of moving to a bi- or triennial stock assessment; appeared in 2020 forecast, does not need to be rerun annually;
-18.  `YEAR/r/ypr.r`: run YPR stock assessment by partitioning mark-recapture abundance estimate into sex and age classes, estimating F50 YPR model, and calculating ABC;
+18.  `YEAR/r/ypr.r`: run YPR stock assessment by partitioning mark-recapture abundance estimate into sex and age classes, estimating F50 YPR model, and calculating ABC. *Not run since 2020*;
 19.  `YEAR/r/ageing_error_matrix.r`: old code from Kray Van Kirk (previous biometrician) that may be useful when developing an updated ageing error matrix.
 20.  `2024/r/survey_gear_experiments.r`: This code examines differences in the catch composition of longline and pot gear in experimental comparison performed in Clarence (SSEI) and Chatham (NSEI) straights in 2022 and 2023. The 2022 study compared slinky and conical pots during the Chatham marking survey. The 2023 studies in both locations compared slinky pots to longline gear in side by side sets. All data is stored in the 2024 year folder.
 
