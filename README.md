@@ -9,12 +9,12 @@
 * 2019-2021: Jane Sullivan, now with NOAA. Development of the original SCAA model that replaced the SPR model used previously in this assessment. Original model and code archived in branch *"seak_sablefish_thru2021_original_JS"*
 * 2022-2024: Phil Joy, now with ADF&G Sport Fish Division. SCAA development including selectivity development, random effects and fishery CPUE standardization.
 
-Last updated: April 2024
+Last updated: July 2024
 
 ## Reports
-2024 forecast: *Pending*
+2024 forecast: [git word document](https://github.com/commfish/seak_sablefish/blob/master/2024/text/RIR.1J.2024.XX_NSEI_v3%20DRAFT%200724.docx).  Please note that as of August 2023 the ADF&G publication department is undergoing revisions and publications have been temporarily suspended.  Please cite the github for this report until official publications are made available. 
 
-2023 forecast: [git word document](https://github.com/commfish/seak_sablefish/blob/master/2023/text/RIR.1J.2023.XX_NSEI_Final.docx).  Please note that as of August 2023 the ADF&G publication department is undergoing revisions and publications have been temporarily suspended.  Please site the github for this report until official publications are made available. 
+2023 forecast: [git word document](https://github.com/commfish/seak_sablefish/blob/master/2023/text/RIR.1J.2023.XX_NSEI_Final.docx).  Please note that as of August 2023 the ADF&G publication department is undergoing revisions and publications have been temporarily suspended.  Please cite the github for this report until official publications are made available. 
 
 2022 forecast: http://www.adfg.alaska.gov/FedAidPDFs/RIR.1J.2022.19.pdf
 
