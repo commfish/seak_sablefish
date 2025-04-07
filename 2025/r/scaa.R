@@ -30,7 +30,7 @@
 # blocks for fsh_slx and 4 time blocks for srv_slx. You may need to modify your 
 # slx_pars data appropriately... this will provide values for fixed parameters 
 # and starting values for estimated parameters.
-# DOUBLE CHECK THAT EVERYTHING ALIGNS APPROPRIATELY!!!! 
+# DOUBLE CHECK THAT EVERYTHING ALIGNS APPROPRIATELY!!!! #
 
 #-----------------------------------------------------------------------------------
 
