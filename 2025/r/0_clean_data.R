@@ -1,5 +1,5 @@
 # Clean data 
-# Author: Spencer Weinstein
+# Author: Spencer Weinstein 
 # Contact: spencer.weinstein@alaska.gov
 # Last edited: February 2025
 
