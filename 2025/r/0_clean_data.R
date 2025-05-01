@@ -1,6 +1,6 @@
 # Clean data 
 # Author: Spencer Weinstein 
-# Contact: spencer.weinstein@alaska.gov
+# Contact: spencer.weinstein@alaska.gov 
 # Last edited: February 2025
 
 # R version 3.6.3 (2020-02-29)
