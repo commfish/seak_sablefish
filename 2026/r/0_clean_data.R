@@ -37,7 +37,7 @@
 # catch - varies between whole_pounds or whole_kg depending on what its being used for
 
 # most recent year of data
-YEAR <- 2024
+YEAR <- 2025
 
 # Load ----
 source("r_helper/helper.r")
@@ -49,15 +49,15 @@ source("r_helper/functions.r")
 
 # Harvest from IFDB - what managers are using. This only includes directed NSEI
 # harvest (harvest_code = 43 is test fish)
-
-read.csv(paste0(YEAR+1,"/data/fishery/raw_data/nseiharvest_ifdb_",
-                YEAR, ".csv")) %>%
+ifdb_catch <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/nseiharvest_ifdb_",
+                              YEAR, ".csv")) %>%
   #str(Dat)
   #ifdb_catch<-Dat %>% 
-  mutate(#date = ymd(parse_date_time(CATCH_DATE, c("%Y-%m-%d %H:%M:%S"))), #ISO 8601 format #AGR turned this off and fixed below, post OceanAK update.
-    date = mdy_hm(CATCH_DATE),
+  mutate(
+    # date = ymd(parse_date_time(CATCH_DATE, c("%Y-%m-%d %H:%M:%S"))), #ISO 8601 format #AGR turned this off and fixed below, post OceanAK update.
+    date = mdy(CATCH_DATE),
     julian_day = lubridate::yday(date),
-    #sell_date = ymd(parse_date_time(SELL_DATE, c("%m-%d-%Y %H:%M:%S"))),
+    # sell_date = ymd(parse_date_time(SELL_DATE, c("%m-%d-%Y %H:%M:%S"))),
     sell_date = mdy_hm(SELL_DATE), #AGR changed
     whole_pounds = ifelse(ROUND_POUNDS == 0, POUNDS, ROUND_POUNDS)) %>% 
   select(year = YEAR, date, julian_day, Mgmt_area = G_MANAGEMENT_AREA_CODE, Stat = G_STAT_AREA,
@@ -70,11 +70,12 @@ read.csv(paste0(YEAR+1,"/data/fishery/raw_data/nseiharvest_ifdb_",
   mutate(Stat = as.character(Stat),
          Harvest_cde = as.character(Harvest_cde),
          Adfg = as.character(Adfg),
-         Delivery_cde = as.character(Delivery_cde)) -> ifdb_catch
+         Delivery_cde = as.character(Delivery_cde)) 
 
-View(ifdb_catch)
 
-str(ifdb_catch)
+# View(ifdb_catch)
+
+# str(ifdb_catch)
 
 
 # Data quieried before (that way you're using the same data that was used for

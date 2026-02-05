@@ -13,13 +13,15 @@
 library(pacman)
 p_load(dplyr, ggplot2, tidyverse, sf, lubridate, tibble, janitor, stringr, readr, data.table)
 
-YEAR <- 2024
+YEAR <- 2025
 #-------------------------------------------------------------------------------------------------------------
 # Notes on Data and Metadata
 #-------------------------------------------------------------------------------------------------------------
 # Source data from OceanAK:
-# The 3 logbook outputs are saved in OceanAK: /Shared Folders/Commercial Fisheries/Region 1/GroundFish/User Reports/Queries for Sablefish Assessment/DDR/Chatham Sablefish Assessment 
-# and include 2. Fishery Logbooks for CPUE (longline and pot) -- fishticket_report, catch_report, and gear_report. This link should take you to it: 
+# The 3 logbook outputs are saved in OceanAK: /Shared Folders/Commercial Fisheries/Region 1/GroundFish/User Reports/Queries 
+# for Sablefish Assessment/DDR/Chatham Sablefish Assessment and include 
+# 2. Fishery Logbooks for CPUE (longline and pot) -- fishticket_report, catch_report, and gear_report. 
+# This link should take you to it: 
 ## https://oceanak.dfg.alaska.local/analytics/saw.dll?Portal&PortalPath=%2Fshared%2FCommercial%20Fisheries%2FRegion%20I%2FGroundFish%2FUser%20Reports%2FQueries%20for%20Sablefish%20Assessment%2FDDR%2FChatham%20Sablefish%20Assessment
 
 #### ATTENTION!!!!!!
@@ -60,8 +62,10 @@ YEAR <- 2024
 # needs to be added in here to keep it in the data and just make calculations
 # based on the logbook data. Data was not available in 2024 until late March so 
 # I did not have time to explore this further. The 2025 assessment should revisit this! 
+# 
+# AP says that stat area will be joined in a later step (Aaron 2026)
 
-ftx <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/CPUE_dat_25_revisions/fishticket_report.csv")) %>% 
+ftx <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/fishticket_report.csv")) %>% 
   clean_names() %>%  
   mutate(date_left_port = as.Date(date_left_port, format = "%m/%d/%Y"),
          ft_sell_date = as.Date(sell_date, format = "%m/%d/%Y"),
@@ -89,16 +93,23 @@ ftx_ll_cpue <- ftx %>%
   group_by(year,trip_number,ft_sell_date) %>%
   mutate(trip_landing = sum(ft_sable_rnd_lbs))
 
-View(ftx_ll_cpue)
-
-data.frame(ftx_ll_cpue)
 ## pot trip fish tickets for cpue join later 
 ftx_pot_cpue <- ftx %>% 
   filter(ft_species == "Sablefish", 
          project_code == 617) %>% 
-  select(year, trip_number, project_code, ft_adfg_number, #ft_stat, 
-         vessel_name, ticket_number, cfec_fishery_code, cfec_permit_number, 
-         ft_sell_date, ft_sable_rnd_lbs = ft_rnd_lbs, ft_dispo_code, harvest_code) %>%
+  select(year, 
+         trip_number,
+         project_code,
+         ft_adfg_number, 
+         #ft_stat, 
+         vessel_name, 
+         ticket_number, 
+         cfec_fishery_code,
+         cfec_permit_number, 
+         ft_sell_date, 
+         ft_sable_rnd_lbs = ft_rnd_lbs, 
+         ft_dispo_code, 
+         harvest_code) %>%
   group_by(year,trip_number,ft_sell_date) %>%
   mutate(trip_landing = sum(ft_sable_rnd_lbs))
 
@@ -114,11 +125,11 @@ ftx_mixed_cpue <- ftx %>%
 
 
 #-------------------------------------------------------------------------------------------------------------
-# catch data by effort level 
+# catch data by effort level ##################################################
 #-------------------------------------------------------------------------------------------------------------
 #Unique row for each effort that includes depredation and catch for all species  
 
-catch <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/CPUE_dat_25_revisions/catch_report.csv")) %>% 
+catch <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/catch_report.csv")) %>% 
   clean_names() %>% 
 #  filter(groundfish_management_area_code %in% c("345603", "345631", "345702", # removed in 2024 because filtered out already:
 #                                                "335701", "345701", "345731", "345803")) %>%
@@ -140,13 +151,14 @@ catch <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/CPUE_dat_25_revisions/ca
   ## spread columns to make it easier to see so each effort is one row 
   pivot_wider(names_from = c(log_species, log_dispo), values_from = c(log_numbers, log_rnd_lbs)) 
 
-colnames(catch)
+# colnames(catch)
+
 #-------------------------------------------------------------------------------------------------------------
-# gear configuration data by effort level 
+# Gear configuration data by effort level ######################################
 #-------------------------------------------------------------------------------------------------------------
 # Unique row for each effort that includes gear configurations for each set as well as set/haul data and target species 
 
-gear <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/CPUE_dat_25_revisions/gear_report.csv"), na.strings = c("", " ", "NA")) %>% 
+gear <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/gear_report.csv"), na.strings = c("", " ", "NA")) %>% 
   clean_names() %>% 
 #  filter(groundfish_stat_area %in% c("345603", "345631", "345702", # removed in 2024 because filtered out already:
 #                                     "335701", "345701", "345731", "345803")) %>%
@@ -181,8 +193,8 @@ gear <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/CPUE_dat_25_revisions/gea
   ## separate those data into new columns labeled _1 and _2 for all the different gear configs (there are at most 2 configs per effort) 
   separate_wider_delim(cols = c(gear_target_species_code:pot_dimensions), delim = ";", names_sep = "_", too_few = "align_start") 
 
-colnames(gear)
-unique(gear$log_stat_area)
+# colnames(gear)
+# unique(gear$log_stat_area)
 #-------------------------------------------------------------------------------------------------------------
 # join gear config and catch data by effort level so every effort is its own row -- this all logbook data now!
 #-------------------------------------------------------------------------------------------------------------
@@ -200,7 +212,7 @@ ll_log <- all_effort_data %>%
   select(-c(pot_line_diam_1:pot_dimensions_2)) %>%
   filter(trip_target_species_combined == 710) # Changed 2025 to be sets that targeted sablefish only
 
-View(ll_log)
+# View(ll_log)
 
 ## pot trip logbook data only for cpue 
 pot_log <- all_effort_data %>%
@@ -213,8 +225,7 @@ mixed_log <- all_effort_data %>%
   filter(project_code == 631) 
   
 #-------------------------------------------------------------------------------------------------------------
-# Longline logbook prep for CPUE -- right now each row = one unique effort and this code manipulates logbooks
-# data based on fishery_cpue_fr_OceanAK_ftx_lb_dat.R file step #13 lines 377-421 
+# Longline logbook prep for CPUE ############################################### 
 #-------------------------------------------------------------------------------------------------------------
 
 log_ll_cpue <- ll_log %>% 
@@ -313,20 +324,21 @@ log_ll_cpue <- ll_log %>%
          #for analyzing CPUE versus things like hook size will want
          #to filter out multi_config
          mean_trip_depth_fm = mean(average_depth_fathoms)) 
+
 ## Next line of code in Phil's data pulls in whole weights from FT data, so merge FT data next 
-unique()
+
 #-------------------------------------------------------------------------------------------------------------
 # Longline logbook join with fish ticket data (you can merge this earlier but it will change 1 unique effort/row!) 
 # Refer to Line 422 in fishery_cpue_fr_OceanAK_ftx_lb_dat.R file from here onward 
 #-------------------------------------------------------------------------------------------------------------
+
 ## Join logbook data with fish ticket data 
 ll_cpue_log_ftx <- log_ll_cpue %>% 
   full_join(ftx_ll_cpue, by = c("year", "trip_number", "project_code")) %>% 
   relocate(c(114:120), .before = trip_target_species_combined)
 
 ## Format and save for cpue exam and calculation: 
-
-ll_cpue_log_ftx %>% filter(effort_target_species_code_1 == 710) %>% 
+ll_cpue <- ll_cpue_log_ftx %>% filter(effort_target_species_code_1 == 710) %>% 
   group_by(year,trip_number,adfg_number,
            log_stat_area, # Changed 2025 - are-added this
            ft_sell_date) %>%
@@ -379,35 +391,17 @@ ll_cpue_log_ftx %>% filter(effort_target_species_code_1 == 710) %>%
                                  set_catch / log_numbers_sablefish_retained,
                                  NA),
     meanset_vs_trip_cpue_ratio = mean(sable_lbs_set, na.rm=T) / trip_sable_lbs_set
-  ) -> ll_cpue
+  ) 
 
-View(ll_cpue)
+# View(ll_cpue)
 
-colnames(ll_cpue)
+# colnames(ll_cpue)
 
 # format for existing cpue scrips
 
 #mdy_hm(SELL_DATE)
 
-# mutate(#date = ymd(parse_date_time(CATCH_DATE, c("%Y-%m-%d %H:%M:%S"))), #ISO 8601 format #AGR turned this off and fixed below, post OceanAK update.
- # date = mdy_hm(CATCH_DATE),
-  #julian_day = lubridate::yday(date),
-  #sell_date = ymd(parse_date_time(SELL_DATE, c("%m-%d-%Y %H:%M:%S"))),
-  #sell_date = mdy_hm(SELL_DATE) #AGR changed
-
-#ft_sell_date = as.Date(sell_date, format = "%m/%d/%Y")
-
-#ll_cpue %>% 
- # mutate(set_date = as.Date(time_set, c("%m/%d/%Y %H:%M"), tz="UTC"),
-  #       sell_date = ft_sell_date,
-   #      julian_day_set = yday(set_date),
-    #     julian_day_sell = yday(sell_date),
-     #    tm_hauled = parse_date_time(time_hauled, c("%m/%d/%Y %H:%M")),
-      #   t_set = parse_date_time(time_set, c("%m/%d/%Y %H:%M")),
-       #  set_soak = set_soak_time,
-        # set_length = set_km_fished,
-
-ll_cpue %>% 
+cpue_for_analysis <- ll_cpue %>% 
   mutate(set_date = as.Date(time_set, format = "%m/%d/%Y %H:%M"),
          sell_date = ft_sell_date,
          julian_day_set = lubridate::yday(set_date),
@@ -486,11 +480,11 @@ ll_cpue %>%
          set_target_2 = effort_target_species_2,
          trip_target = trip_target_species_code_1,
          trip_target_2 = trip_target_species_code_2,
-         meanset_vs_trip_cpue_ratio) -> cpue_for_analysis
+         meanset_vs_trip_cpue_ratio)
 
+# View(cpue_for_analysis)
 
-View(cpue_for_analysis)
-
+# Save
 write_csv(cpue_for_analysis, paste0(YEAR+1,"/data/fishery/fishery_ll_cpue_",
                          min(cpue_for_analysis$year), "_", max(cpue_for_analysis$year), ".csv"))
 

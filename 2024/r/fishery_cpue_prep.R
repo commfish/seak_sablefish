@@ -461,16 +461,15 @@ write_csv(cpue_for_analysis, paste0(YEAR+1,"/data/fishery/fishery_ll_cpue_",
 write_csv(cpue_for_analysis, paste0("legacy_data/fishery/fishery_ll_cpue_",
                          min(cpue_for_analysis$year), "_", max(cpue_for_analysis$year), ".csv"))
 
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# Pot CPUE:
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
+
+# Pot CPUE: ####################################################################
+# Aaron will fix this for use in std fishery cpue for 2027 assessment
+
 str(pot_log)
 unique(pot_log$pot_dimensions_1)
 with(pot_log, table(pot_dimensions_1))
-# one weird pot_dimentsion to examine? 24x42x60
 
+# one weird pot_dimentsion to examine? 24x42x60
 pot_log <- pot_log %>% mutate(pot_dim_raw1 = pot_dimensions_1,
                                   pot_dim_raw2 = pot_dimensions_1) %>%
   extract(pot_dim_raw1, c("pot_diam","pot_len"),"([\\d.]+)[^\\d.]+([\\d.]+)", convert = TRUE) %>%
@@ -535,7 +534,7 @@ pot_cpue_log_ftx %>% filter(effort_target_species_code_1 == 710) %>%
     ticket_number = list(unique(ticket_number)), #sometimes a trip has more than one ticket so need to combined... 
     cfec_permit_number = list(unique(cfec_permit_number)), #sometimes a trip has more than one permit number so need to combined...
     stat_area_count_log = length(unique(log_stat_area)),
-    stat_area_count_ft = length(unique(ft_stat)),
+    # stat_area_count_ft = length(unique(ft_stat)),
     set_count = length(unique(effort_number)),
     set_count_match = ifelse(set_count == set.count,"Match","Mismatch"),
     trip_catch = trip_landing #sum(unique(ft_sable_rnd_lbs)),
