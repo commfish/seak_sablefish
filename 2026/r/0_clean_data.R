@@ -80,12 +80,14 @@ ifdb_catch <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/nseiharvest_ifdb_",
 
 # Data quieried before (that way you're using the same data that was used for
 # the assessment, starting in 2017)
-read_csv(paste0("legacy_data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"),
-         guess_max = 50000) -> past_catch # SPENCER'S NOTE: THIS IS WORKING, IT'S JUST LOADING THE PREVIOUS FILE THAT DOESN'T WORK
+# SPENCER'S NOTE: THIS IS WORKING, IT'S JUST LOADING THE PREVIOUS FILE THAT DOESN'T WORK
+past_catch <- read_csv(paste0("legacy_data/fishery/nseiharvest_ifdb_1969_", YEAR-1, ".csv"),
+                       guess_max = 50000) 
 str(ifdb_catch)
-bind_rows(past_catch, ifdb_catch) -> ifdb_catch
+ifdb_catch <- bind_rows(past_catch, ifdb_catch) 
 unique(ifdb_catch$year)
 unique(ifdb_catch$Gear)
+
 #save full '69 through this year for SCAA
 write_csv(ifdb_catch, paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_",
                              min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
@@ -95,6 +97,7 @@ write_csv(ifdb_catch, paste0("legacy_data/fishery/nseiharvest_ifdb_",
 
 # only use this for year >= 1985 (see fishery_catch_cpue.R for more documentation)
 ifdb_catch <- ifdb_catch %>% filter(year >= 1985)
+
 write_csv(ifdb_catch, paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_",
                              min(ifdb_catch$year), "_", max(ifdb_catch$year), ".csv"))
 
@@ -239,13 +242,13 @@ write_csv(fsh_bio, paste0("legacy_data/fishery/fishery_bio_",
 # number_hooks, bare, bait, invalid, sablefish, 
 # subset_condition_code, trip_comments, trip_design_comment, effort_comment, subset_comments
 
-read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_cpue_1985_",
-                YEAR, ".csv"), 
-         guess_max = 50000) %>% 
+srv_eff <- read_csv(paste0(YEAR+1,"/data/survey/llsrv_cpue_1985_",
+                           YEAR, ".csv"), 
+                    guess_max = 50000) %>% 
   filter(YEAR <= YEAR) %>%
   mutate(date = as.Date(format(parse_date_time(TIME_SECOND_ANCHOR_OVERBOARD, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d")), #ISO 8601 format
-    #date = mdy_hm(TIME_SECOND_ANCHOR_OVERBOARD),
-        julian_day = yday(date),
+         #date = mdy_hm(TIME_SECOND_ANCHOR_OVERBOARD),
+         julian_day = yday(date),
          time1 = ymd_hms(parse_date_time(TIME_FIRST_ANCHOR_ONBOARD, c("%Y-%m-%d %H:%M:%S"))),
          time2 = ymd_hms(parse_date_time(TIME_SECOND_ANCHOR_OVERBOARD, c("%Y-%m-%d %H:%M:%S"))),
          soak = difftime(time1, time2,
@@ -263,7 +266,8 @@ read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_cpue_1985_",
          no_hooks = NUMBER_HOOKS, bare = BARE, bait = BAIT, invalid = INVALID, 
          sablefish = SABLEFISH, halibut = HALIBUT, idiot = IDIOT, 
          shortraker = SHORTRAKER, rougheye = ROUGHEYE, skate_general = SKATE_GENERAL,
-         longnose_skate = SKATE_LONGNOSE, big_skate = SKATE_BIG, sleeper_shark = SLEEPER_SHARK) -> srv_eff
+         longnose_skate = SKATE_LONGNOSE, big_skate = SKATE_BIG, sleeper_shark = SLEEPER_SHARK)
+ 
 
 str(srv_eff)
 
@@ -287,21 +291,21 @@ write_csv(srv_eff, paste0("legacy_data/survey/llsrv_cpue_", min(srv_eff$year), "
 # However, starting in 2022 staff completed countbacks of survey fish. 
 
 #JANE's 2020 with PHIL's 2021 MODCODE
-read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_by_condition_1988_", YEAR, ".csv"), 
-         guess_max = 50000) %>% 
+srv_ctc <- read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_by_condition_1988_", YEAR, ".csv"), 
+                    guess_max = 50000) %>% 
   filter(YEAR <= YEAR) %>%
   mutate(date = as.Date(format(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%Y-%m-%d %H:%M:%S")),"%Y-%m-%d")),
-#  mutate(date = ymd(as.Date(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%m/%d/%Y %H:%M:%S %p")))), # ISO 8601 format
+         #  mutate(date = ymd(as.Date(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%m/%d/%Y %H:%M:%S %p")))), # ISO 8601 format
          julian_day = yday(date)) %>% 
   select(year = YEAR, Project_cde = PROJECT_CODE, 
          trip_no = TRIP_NO, Adfg = ADFG_NO, Vessel = VESSEL_NAME, date, 
          julian_day, Stat = STAT, Spp_cde = SPECIES_CODE, 
          set = EFFORT_NO, no_hooks = NUMBER_HOOKS, hooks_bare = BARE,
          hooks_bait = BAIT, hook_invalid = INVALID, hooks_sablefish = NUMBERS,
-         discard_status_cde = DISCARD_STATUS_CODE, discard_status = DISCARD_STATUS) -> srv_ctc
+         discard_status_cde = DISCARD_STATUS_CODE, discard_status = DISCARD_STATUS)
 
 max(srv_ctc$year); unique(srv_ctc$year)
-view(srv_ctc %>% filter(year == 2022))
+# view(srv_ctc %>% filter(year == 2022))
 
 str(srv_ctc)
  
@@ -324,12 +328,11 @@ write_csv(srv_ctc, paste0("legacy_data/survey/llsrv_by_condition_", min(srv_ctc$
 # Same issue as Fishery Biological data with the age readability codes (see
 # description above). Repulled all data in 2019 to strip out age readability
 # codes > 3.
-
-read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_bio_", 
-                YEAR, ".csv"), 
-         guess_max = 50000) %>% 
+srv_bio <- read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_bio_", 
+                           YEAR, ".csv"), 
+                    guess_max = 50000) %>% 
   mutate(date = date(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%Y-%m-%d %H:%M:%S"))), #ISO 8601 format
-#  mutate(date = date(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%m/%d/%Y %H:%M:%S %p"))), #ISO 8601 format 
+         #  mutate(date = date(parse_date_time(TIME_FIRST_BUOY_ONBOARD, c("%m/%d/%Y %H:%M:%S %p"))), #ISO 8601 format 
          julian_day = yday(date),
          Sex = derivedFactor("Male" = SEX_CODE == "01",
                              "Female" = SEX_CODE == "02",
@@ -344,7 +347,8 @@ read_csv(paste0(YEAR+1,"/data/survey/raw_data/llsrv_bio_",
          start_lon = START_LON, end_lat = END_LAT, end_lon = END_LON, depth = DEPTH_METERS, 
          length = LENGTH, weight = WEIGHT, age = AGE, Sex, Maturity, age_type_code = AGE_TYPE_CODE, 
          age_readability = AGE_READABILITY_CODE, otolith_condition = OTOLITH_CONDITION_CODE )  %>% 
-  filter(Mgmt_area == 'NSEI') -> srv_bio
+  filter(Mgmt_area == 'NSEI') 
+
 
 read_csv(paste0("legacy_data/survey/llsrv_bio_1988_", YEAR-1, ".csv"), 
          guess_max = 50000) %>% 

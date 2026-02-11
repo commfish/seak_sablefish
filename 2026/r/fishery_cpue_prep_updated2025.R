@@ -22,7 +22,8 @@ YEAR <- 2025
 # for Sablefish Assessment/DDR/Chatham Sablefish Assessment and include 
 # 2. Fishery Logbooks for CPUE (longline and pot) -- fishticket_report, catch_report, and gear_report. 
 # This link should take you to it: 
-## https://oceanak.dfg.alaska.local/analytics/saw.dll?Portal&PortalPath=%2Fshared%2FCommercial%20Fisheries%2FRegion%20I%2FGroundFish%2FUser%20Reports%2FQueries%20for%20Sablefish%20Assessment%2FDDR%2FChatham%20Sablefish%20Assessment
+## https://oceanak.dfg.alaska.local/analytics/saw.dll?Portal&PortalPath=%2Fshared%2FCommercial%20Fisheries%2
+## FRegion%20I%2FGroundFish%2FUser%20Reports%2FQueries%20for%20Sablefish%20Assessment%2FDDR%2FChatham%20Sablefish%20Assessment
 
 #### ATTENTION!!!!!!
 ## TO AVOID ISSUES WITH DATES, YOU MUST SAVE THE CSV FILES ABOVE AS "CSV (Comma delimited)" NOT "CSV UTF-8 (Comma delimited)" WHICH IS 
