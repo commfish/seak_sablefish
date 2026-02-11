@@ -1,0 +1,86 @@
+Parameter,Estimate,SE,Sex,Source,Years,Region,Function,n,Gear,Notes
+a,1.0466112224766661e-5,4.78994118759914e-7,Male,ADFG longline survey,1997-2024,Chatham Strait,Allometric - NLS,7665,NA,seak_sablefish/code/biological.r
+b,3.0069768179015686,0.010940042880574112,Male,ADFG longline survey,1997-2024,Chatham Strait,Allometric - NLS,7665,NA,seak_sablefish/code/biological.r
+a,7.616054596914481e-6,2.1703703095409195e-7,Female,ADFG longline survey,1997-2024,Chatham Strait,Allometric - NLS,9143,NA,seak_sablefish/code/biological.r
+b,3.0810257322700743,0.006572046675704343,Female,ADFG longline survey,1997-2024,Chatham Strait,Allometric - NLS,9143,NA,seak_sablefish/code/biological.r
+a,8.322924181272769e-6,1.6809824751070215e-7,Combined,ADFG longline survey,1997-2024,Chatham Strait,Allometric - NLS,16808,NA,seak_sablefish/code/biological.r
+b,3.060890213390956,0.0047063296156410845,Combined,ADFG longline survey,1997-2024,Chatham Strait,Allometric - NLS,16808,NA,seak_sablefish/code/biological.r
+l_inf,85.29386471006532,0.3729765906500131,Female,ADFG longline survey,1997-2024,Chatham Strait,Length-based LVB,9143,Longline,seak_sablefish/code/biological.r
+k,0.08481570732018323,0.00232524802807113,Female,ADFG longline survey,1997-2024,Chatham Strait,Length-based LVB,9143,Longline,seak_sablefish/code/biological.r
+t0,-9.014721747233262,0.3067596759510994,Female,ADFG longline survey,1997-2024,Chatham Strait,Length-based LVB,9143,Longline,seak_sablefish/code/biological.r
+l_inf,69.19897668832752,0.14603371328128656,Male,ADFG longline survey,1997-2024,Chatham Strait,Length-based LVB,7665,Longline,seak_sablefish/code/biological.r
+k,0.11964128810337223,0.003288286128162878,Male,ADFG longline survey,1997-2024,Chatham Strait,Length-based LVB,7665,Longline,seak_sablefish/code/biological.r
+t0,-9.061845927289308,0.35080263372190257,Male,ADFG longline survey,1997-2024,Chatham Strait,Length-based LVB,7665,Longline,seak_sablefish/code/biological.r
+l_inf,87.74628646758222,0.31252807339664296,Female,EQS longline fishery,2002-2023,Chatham Strait,Length-based LVB,20152,Longline,seak_sablefish/code/biological.r
+k,0.062578181942444,0.0016121844962373915,Female,EQS longline fishery,2002-2023,Chatham Strait,Length-based LVB,20152,Longline,seak_sablefish/code/biological.r
+t0,-15.459225699112887,0.4358745331161942,Female,EQS longline fishery,2002-2023,Chatham Strait,Length-based LVB,20152,Longline,seak_sablefish/code/biological.r
+l_inf,88.74279343094739,8.568428684837077,Female,EQS pot fishery,2022-2023,Chatham Strait,Length-based LVB,849,Pot,seak_sablefish/code/biological.r
+k,0.04331674209327487,0.017076864238293552,Female,EQS pot fishery,2022-2023,Chatham Strait,Length-based LVB,849,Pot,seak_sablefish/code/biological.r
+t0,-22.33188542445637,5.943678102156851,Female,EQS pot fishery,2022-2023,Chatham Strait,Length-based LVB,849,Pot,seak_sablefish/code/biological.r
+l_inf,70.96104873305596,0.17722007477981835,Male,EQS longline fishery,2002-2023,Chatham Strait,Length-based LVB,11991,Longline,seak_sablefish/code/biological.r
+k,0.07197085755975452,0.0027635994799837197,Male,EQS longline fishery,2002-2023,Chatham Strait,Length-based LVB,11991,Longline,seak_sablefish/code/biological.r
+t0,-20.579636905168986,0.8955414104505582,Male,EQS longline fishery,2002-2023,Chatham Strait,Length-based LVB,11991,Longline,seak_sablefish/code/biological.r
+l_inf,71.02937934902361,1.4761735047766706,Male,EQS pot fishery,2022-2023,Chatham Strait,Length-based LVB,333,Pot,seak_sablefish/code/biological.r
+k,0.07567319091186918,0.015488089472791558,Male,EQS pot fishery,2022-2023,Chatham Strait,Length-based LVB,333,Pot,seak_sablefish/code/biological.r
+t0,-16.632703040625586,3.621848433888844,Male,EQS pot fishery,2022-2023,Chatham Strait,Length-based LVB,333,Pot,seak_sablefish/code/biological.r
+w_inf,6.423415713588551,0.08912776220814114,Female,ADFG longline survey,1997-2024,Chatham Strait,Weight-based LVB,9143,Longline,seak_sablefish/code/biological.r
+k,0.09650667477136016,0.002561108870629136,Female,ADFG longline survey,1997-2024,Chatham Strait,Weight-based LVB,9143,Longline,seak_sablefish/code/biological.r
+t0,-7.395719698357989,0.2512394966584356,Female,ADFG longline survey,1997-2024,Chatham Strait,Weight-based LVB,9143,Longline,seak_sablefish/code/biological.r
+w_inf,3.50442049215025,0.023276419463621027,Male,ADFG longline survey,1997-2024,Chatham Strait,Weight-based LVB,7665,Longline,seak_sablefish/code/biological.r
+k,0.13878743489557502,0.003584492046591896,Male,ADFG longline survey,1997-2024,Chatham Strait,Weight-based LVB,7665,Longline,seak_sablefish/code/biological.r
+t0,-6.859922901967599,0.26975255107573876,Male,ADFG longline survey,1997-2024,Chatham Strait,Weight-based LVB,7665,Longline,seak_sablefish/code/biological.r
+w_inf,4.3749750745484945,0.029598786584594305,Combined,ADFG longline survey,1997-2024,Chatham Strait,Weight-based LVB,16808,Longline,seak_sablefish/code/biological.r
+k,0.13986382424291688,0.0028115952620008915,Combined,ADFG longline survey,1997-2024,Chatham Strait,Weight-based LVB,16808,Longline,seak_sablefish/code/biological.r
+t0,-5.648019004473436,0.1805331804367928,Combined,ADFG longline survey,1997-2024,Chatham Strait,Weight-based LVB,16808,Longline,seak_sablefish/code/biological.r
+w_inf,7.190454205599548,0.08269485394040597,Female,EQS longline fishery,2002-2023,Chatham Strait,Weight-based LVB,20152,Longline,seak_sablefish/code/biological.r
+k,0.06701656858360064,0.0018192866151893708,Female,EQS longline fishery,2002-2023,Chatham Strait,Weight-based LVB,20152,Longline,seak_sablefish/code/biological.r
+t0,-14.560083320835531,0.4333507562420298,Female,EQS longline fishery,2002-2023,Chatham Strait,Weight-based LVB,20152,Longline,seak_sablefish/code/biological.r
+w_inf,6.027492856162277,1.3041085832088892,Female,EQS pot fishery,2022-2023,Chatham Strait,Weight-based LVB,849,Pot,seak_sablefish/code/biological.r
+k,0.059248954913534845,0.02105902636582071,Female,EQS pot fishery,2022-2023,Chatham Strait,Weight-based LVB,849,Pot,seak_sablefish/code/biological.r
+t0,-18.20937677813361,4.95346315199866,Female,EQS pot fishery,2022-2023,Chatham Strait,Weight-based LVB,849,Pot,seak_sablefish/code/biological.r
+w_inf,3.812746131196879,0.024562331212442588,Male,EQS longline fishery,2002-2023,Chatham Strait,Weight-based LVB,11991,Longline,seak_sablefish/code/biological.r
+k,0.0900859886321094,0.0033851211445465896,Male,EQS longline fishery,2002-2023,Chatham Strait,Weight-based LVB,11991,Longline,seak_sablefish/code/biological.r
+t0,-16.00558201929473,0.7424245463329865,Male,EQS longline fishery,2002-2023,Chatham Strait,Weight-based LVB,11991,Longline,seak_sablefish/code/biological.r
+w_inf,3.9046449136171875,0.3315954626111986,Male,EQS pot fishery,2022-2023,Chatham Strait,Weight-based LVB,333,Pot,seak_sablefish/code/biological.r
+k,0.07015986479387507,0.01828562509125384,Male,EQS pot fishery,2022-2023,Chatham Strait,Weight-based LVB,333,Pot,seak_sablefish/code/biological.r
+t0,-18.366302026646636,4.8170345326614425,Male,EQS pot fishery,2022-2023,Chatham Strait,Weight-based LVB,333,Pot,seak_sablefish/code/biological.r
+w_inf,4.86419924852251,0.024904795443418008,Combined,EQS longline fishery,2002-2023,Chatham Strait,Weight-based LVB,32143,Longline,seak_sablefish/code/biological.r
+k,0.11231026515660494,0.002610382460753041,Combined,EQS longline fishery,2002-2023,Chatham Strait,Weight-based LVB,32143,Longline,seak_sablefish/code/biological.r
+t0,-9.856394641072942,0.32838018119133583,Combined,EQS longline fishery,2002-2023,Chatham Strait,Weight-based LVB,32143,Longline,seak_sablefish/code/biological.r
+w_inf,3.9863423841144305,0.22349242269868203,Combined,EQS pot fishery,2022-2023,Chatham Strait,Weight-based LVB,1182,Pot,seak_sablefish/code/biological.r
+k,0.10635892256328137,0.01940475517029275,Combined,EQS pot fishery,2022-2023,Chatham Strait,Weight-based LVB,1182,Pot,seak_sablefish/code/biological.r
+t0,-12.304047815375899,2.4409080488915493,Combined,EQS pot fishery,2022-2023,Chatham Strait,Weight-based LVB,1182,Pot,seak_sablefish/code/biological.r
+l_inf,65.269,0.341,Male,NOAA Longline,1981-1993,Coastwide,Length-based LVB,30,NA,Hanselman et al. 2007 Appendix 3C
+k,0.227,0.029,Male,NOAA Longline,1981-1993,Coastwide,Length-based LVB,30,NA,Hanselman et al. 2007 Appendix 3C
+t0,-4.092,0.936,Male,NOAA Longline,1981-1993,Coastwide,Length-based LVB,30,NA,Hanselman et al. 2007 Appendix 3C
+l_inf,67.774,0.127,Male,NOAA Longline,1996-2004,Coastwide,Length-based LVB,4889,NA,Hanselman et al. 2007 Appendix 3C
+k,0.29,0.009,Male,NOAA Longline,1996-2004,Coastwide,Length-based LVB,4889,NA,Hanselman et al. 2007 Appendix 3C
+t0,-2.273,0.171,Male,NOAA Longline,1996-2004,Coastwide,Length-based LVB,4889,NA,Hanselman et al. 2007 Appendix 3C
+l_inf,75.568,0.46,Female,NOAA Longline,1981-1993,Coastwide,Length-based LVB,31,NA,Hanselman et al. 2007 Appendix 3C
+k,0.208,0.018,Female,NOAA Longline,1981-1993,Coastwide,Length-based LVB,31,NA,Hanselman et al. 2007 Appendix 3C
+t0,-3.629,0.523,Female,NOAA Longline,1981-1993,Coastwide,Length-based LVB,31,NA,Hanselman et al. 2007 Appendix 3C
+l_inf,80.22,0.221,Female,NOAA Longline,1996-2004,Coastwide,Length-based LVB,5767,NA,Hanselman et al. 2007 Appendix 3C
+k,0.222,0.005,Female,NOAA Longline,1996-2004,Coastwide,Length-based LVB,5767,NA,Hanselman et al. 2007 Appendix 3C
+t0,-1.949,0.119,Female,NOAA Longline,1996-2004,Coastwide,Length-based LVB,5767,NA,Hanselman et al. 2007 Appendix 3C
+l_inf,70.818,NA,Male,NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,NA,NA,Hanselman et al. 2007 Appendix 3C
+k,0.097,NA,Male,NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,NA,NA,Hanselman et al. 2007 Appendix 3C
+t0,11.369,NA,Male,NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,NA,NA,Hanselman et al. 2007 Appendix 3C
+l_inf,68.343,NA,Male,NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,605,NA,Hanselman et al. 2007 Appendix 3C
+k,0.307,NA,Male,NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,605,NA,Hanselman et al. 2007 Appendix 3C
+t0,-1.714,NA,Male,NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,605,NA,Hanselman et al. 2007 Appendix 3C
+l_inf,78.854,NA,Female,NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,NA,NA,Hanselman et al. 2007 Appendix 3C
+k,0.153,NA,Female,NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,NA,NA,Hanselman et al. 2007 Appendix 3C
+t0,-5.348,NA,Female,NOAA Longline,1981-1993,Southeast Slope,Length-based LVB,NA,NA,Hanselman et al. 2007 Appendix 3C
+l_inf,80.919,NA,Female,NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,515,NA,Hanselman et al. 2007 Appendix 3C
+k,0.268,NA,Female,NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,515,NA,Hanselman et al. 2007 Appendix 3C
+t0,-0.854,NA,Female,NOAA Longline,1996-2004,Southeast Slope,Length-based LVB,515,NA,Hanselman et al. 2007 Appendix 3C
+a,1.24e-5,NA,Male,NOAA Longline,1996-2004,Coastwide,Allometric,4889,NA,Hanselman et al. 2007 Appendix 3C
+b,2.96,NA,Male,NOAA Longline,1996-2004,Coastwide,Allometric,4889,NA,Hanselman et al. 2007 Appendix 3C
+a,1.01e-5,NA,Female,NOAA Longline,1996-2004,Coastwide,Allometric,5767,NA,Hanselman et al. 2007 Appendix 3C
+b,3.015,NA,Female,NOAA Longline,1996-2004,Coastwide,Allometric,5767,NA,Hanselman et al. 2007 Appendix 3C
+w_inf,3.162,NA,Male,NOAA Longline,1996-2004,Coastwide,Weight-based LVB,4889,NA,Hanselman et al. 2007 Appendix 3C
+k,0.356,NA,Male,NOAA Longline,1996-2004,Coastwide,Weight-based LVB,4889,NA,Hanselman et al. 2007 Appendix 3C
+t0,-1.129,NA,Male,NOAA Longline,1996-2004,Coastwide,Weight-based LVB,4889,NA,Hanselman et al. 2007 Appendix 3C
+w_inf,5.471,NA,Female,NOAA Longline,1996-2004,Coastwide,Weight-based LVB,5767,NA,Hanselman et al. 2007 Appendix 3C
+k,0.238,NA,Female,NOAA Longline,1996-2004,Coastwide,Weight-based LVB,5767,NA,Hanselman et al. 2007 Appendix 3C
+t0,-1.387,NA,Female,NOAA Longline,1996-2004,Coastwide,Weight-based LVB,5767,NA,Hanselman et al. 2007 Appendix 3C

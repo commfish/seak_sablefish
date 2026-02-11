@@ -1,0 +1,1709 @@
+<?xml version="1.0" encoding="UTF-8"?><metadata>
+<idinfo>
+<citation>
+<citeinfo>
+<origin/>
+<pubdate>20170801</pubdate>
+<title>Groundfish_Statistical_Areas_2001</title>
+<geoform>vector digital data</geoform>
+<onlink>https://services.arcgis.com/VdkVOAHovLuozJG4/arcgis/rest/services/Groundfish_Statistical_Areas_2001/FeatureServer</onlink>
+</citeinfo>
+</citation>
+<descript>
+<abstract>This metadata report applies to the 2001 ADF&amp;G Groundfish Statistical Areas. Statistical areas are polygons that divide the waters of the State of Alaska and the adjacent Exclusive Economic Zone (EEZ) into small units for the purpose of reporting and analyzing fishery harvest. Each statistical area is identified by a unique 6-digit number. Groundfish statistical areas are based on a grid that measures one-half degree latitude by one degree of longitude and can be divided by lines defined in ADF&amp;G regulations, and further subdivided based on prominent landmarks or points of land. All lines are referenced to the NAD83 datum. This revised version of the groundfish statistical areas became effective January 1, 2001. Many statistical areas were changed or subdivided to better match state and federal fishery areas. In these cases, the previous statistical area codes were retired and the revised statistical areas were assigned new numbers. If you need to compare to retired statistical areas, you will need to refer to previous versions of the groundfish statistical areas. This project received funding under award NA15NMF4270272 from NOAA Fisheries Service, in cooperation with the Saltonstall-Kennedy Grant Program. The statements, findings, conclusions, and recommendations are those of the author(s) and do not necessarily reflect the views of NOAA Fisheries</abstract>
+<purpose>Participants in Alaska commercial fisheries are required to report the statistical area where their harvest occurs. In combination with reports on the harvest species, poundage and etc., these data are useful to analyze and visualize spatial patterns</purpose>
+</descript>
+<status>
+<progress>Complete</progress>
+<update>As needed</update>
+</status>
+<spdom>
+<bounding>
+<westbc>-180</westbc>
+<eastbc>180</eastbc>
+<northbc>68.499998</northbc>
+<southbc>47.499999</southbc>
+</bounding>
+</spdom>
+<keywords>
+<theme>
+<themekt>ISO 19115 Topic Categories</themekt>
+<themekey>environment</themekey>
+<themekey>oceans</themekey>
+</theme>
+<theme>
+<themekt>None</themekt>
+<themekey>Alaska Department of Fish and Game</themekey>
+<themekey>commercial fisheries</themekey>
+<themekey>ADF&amp;G</themekey>
+<themekey>statistical areas</themekey>
+<themekey>groundfish</themekey>
+</theme>
+</keywords>
+<accconst>None</accconst>
+<useconst>THE STATE OF ALASKA, DEPARTMENT OF FISH AND GAME, MAKES NO EXPRESS OR IMPLIED WARRANTIES (INCLUDING WARRANTIES OF MERCHANTABILITY AND FITNESS) WITH RESPECT TO THE ACCURACY, CHARACTER, FUNCTION, OR CAPABILITIES OF THE DATA, SERVICES, OR PRODUCTS OR THEIR APPROPRIATENESS FOR ANY PARTICULAR PURPOSE. The Department of Fish and Game is not liable for any direct, incidental, indirect, special, compensatory, consequential or other damages suffered by the user or any other person or entity from the use of or failure of the data, services, or products even if the Department of Fish and Game has been advised of the possibility of such potential loss or damage. The entire risk as to the results of the use of the data, services, or products is assumed by the user.Data may be subject to periodic change without prior notification. To ensure receipt of the most current information, please refer requests to the ADF&amp;G Open Data website. Users may not reproduce or distribute these data without explicit consent of the Alaska Department of Fish and Game.These data are provided for general visual reference and to aid users in generating various natural resource analyses and products. There are no constraints to accessing these data, other than the limitations or constraints associated with a specific dataset or set forth herein. It is strongly recommended that careful attention be paid to the contents of the metadata file associated with these data.Any hardcopy or electronic products utilizing these data shall clearly indicate their source. If the user has modified the data in any way, the user must describe the modifications they have performed. The user agrees not to misrepresent these data, nor to imply that the Alaska Department of Fish and Game approved any changes they made.</useconst>
+<ptcontac>
+<cntinfo>
+<cntorgp>
+<cntorg>Alaska Department of Fish and Game</cntorg>
+<cntper>Division of Commercial Fisheries</cntper>
+</cntorgp>
+<cntpos>GIS Representative</cntpos>
+<cntaddr>
+<addrtype>mailing</addrtype>
+<city>Juneau</city>
+<state>Alaska</state>
+<postal>99811</postal>
+</cntaddr>
+<cntvoice>NA</cntvoice>
+<cntemail>dfg.dcf.gis@alaska.gov</cntemail>
+</cntinfo>
+</ptcontac>
+<datacred>Alaska Department of Fish and Game, Commercial Fisheries Division</datacred>
+<native>Microsoft Windows 7 Version 6.1 (Build 7601) Service Pack 1; Esri ArcGIS 10.5.1.7333</native>
+</idinfo>
+<dataqual>
+<logic>The Record Accuracy measure is intended to ensure that all attribute records are accurate.</logic>
+<complete>The Record Completeness measure is intended to ensure that all atrribute records are complete. This measure does not include data correctness, only record completion.</complete>
+<posacc>
+<horizpa>
+<horizpar>The Polygon Accuracy measure is intended to ensure that statistical area polygons are accurate.</horizpar>
+<qhorizpa>
+<horizpae>Regulatory coordinates (e.g., Registration Areas, Districts, Subdistricts) were recorded from the 2015 - 2016 Alaska Fish and Game Laws and Regulations, and plotted over the groundfish statistical area feature class (PVG_Statewide_2001). Statitical area boundaries that follow regualtory boundaries were aligned to regulatory coordinates. All polygons were examined for accuracy by regional staff (Regional Supervisors, Fishery Coordinators, Biologists, Regional GIS Representatives). Specific coordinates and regualtory authority can be found on the ADF&amp;G Commercial Fisheries Available Statistical Area Coordinates confluence page (https://www.admin.adfg.state.ak.us/confluence/pages/viewpage.action?pageId=63897806).</horizpae>
+</qhorizpa>
+</horizpa>
+</posacc>
+<lineage>
+<srcinfo>
+<srccite>
+<citeinfo>
+<pubdate>20010101</pubdate>
+<title>PVG_STAT</title>
+</citeinfo>
+</srccite>
+<typesrc>None</typesrc>
+<srccitea>PVG_STAT</srccitea>
+<srccontr>The source data for the coastline was "Alaska Coastline 1:63,360", published by the Alaska Department of Natural Resources, Land Records Section, on 02/11/1998.</srccontr>
+</srcinfo>
+<procstep>
+<procdesc>The original statistical area lines were converted from a shape file to an Arc/Info coverage. Then each line in this coverage was coded based on its type (e.g. coastline, 3-nautical-mile-line, statistical area grid line, land-based point-to-point statistical area line, and fixed regulatory line). (T. Haverland)</procdesc>
+<procdate>20000209</procdate>
+</procstep>
+<procstep>
+<procdesc>Lines were converted from NAD27 to NAD83. Some of the lines in this coverage were based on hard lines of latitude or longitude (statistical area grid lines and regulatory lines), therefore the coverage could not be converted to NAD83 as a whole. The statistical area grid lines and regulatory lines had to be separated from the other line types and defined as referenced to the NAD83 datum with no conversion. The remaining lines were converted to NAD83 using Arc/Infos PROJECT command, and all line types were appended into one coverage (gnd14ap). Then this coverage was edited to fix dangles, overshoots, missing or incorrect arcs, and other line topological errors. (T. Haverland)</procdesc>
+<procdate>20000915</procdate>
+</procstep>
+<procstep>
+<procdesc>Polygon centroids were added to the line coverage gnd29ed from pvg_stat. Polygon topology was built and the coverage was edited. (T. Haverland)</procdesc>
+<procdate>20000926</procdate>
+</procstep>
+<procstep>
+<procdesc>Projected coverage to geographic and created shapefile. Merged shapefile with pvsstat1 and pvsdist1 so that shapefile contained all valid groundfish and shellfish statistical areas plus district-wide statistical areas for Southeast Alaska (these statistical areas (e.g. 010100) were used historically to record groundfish and shellfish catch when only the district was known. Added attributes to shapefile and populated using values from pvg_stat and from a spreadsheet created by G. Smith. Edited attributes. Created final shapefiles pvg_stat_2001 and pvi_stat_2001 so that each shapefile contains all current valid statistical areas for the groundfish and shellfish fisheries respectively. (T. Haverland)</procdesc>
+<procdate>20001122</procdate>
+</procstep>
+<procstep>
+<procdesc>Polygons were split to create new statistical areas. In some cases, the new lines were digitized by the area offices and sent to ADF&amp;G CF HQ as a MapInfo table or ArcView shape files. In others, the changes were based on coordinates in ADF&amp;G and Federal regulations. The old statistical area numbers were retired and new numbers assigned. (T. Haverland)</procdesc>
+<procdate>20001122</procdate>
+</procstep>
+<procstep>
+<procdesc>Coastal statistical area polygons were clipped to the 1: 63,360 resolution shoreline published by the Alaska Department of Natural Resources (1998-02-11) (L. Hulbert and S. Larsen)</procdesc>
+<procdate>20161011</procdate>
+</procstep>
+<procstep>
+<procdesc>Simplified the geometry of polygons. Many polygons contained multiple verteces that did not alter the overall line shape. These vertexes were individually examined, and deleted on a case by case basis. (S. Larsen)</procdesc>
+<procdate>20161013</procdate>
+</procstep>
+<procstep>
+<procdesc>Attribute table structure revised, and records completed. Records for regulatory boundaries (e.g., Registration Area, District) were filled using the 2015-2016 Alaska Fish and Game Laws and Regulations (S. Larsen)</procdesc>
+<procdate>20161028</procdate>
+</procstep>
+<procstep>
+<procdesc>Some state waters statistical area polygons were edited to remove non-necessary waterbodies. Specific changes and authority are as follows: 395902, 385902 (approved by K. Bush 10/24/2016) 456002, 456003, 446002, 446003 (approved by C. Russ 10/25/2016) 666802, 646732, 616432, 676532, 626403, 616432, 616402, 666432 (no response as of 11/1/2016. Edits made)</procdesc>
+<procdate>20161101</procdate>
+</procstep>
+</lineage>
+</dataqual>
+<spdoinfo>
+<direct>Vector</direct>
+<ptvctinf>
+<sdtsterm>
+<sdtstype>GT-polygon composed of chains</sdtstype>
+<ptvctcnt>1738</ptvctcnt>
+</sdtsterm>
+</ptvctinf>
+</spdoinfo>
+<eainfo>
+<detailed>
+<enttyp>
+<enttypl>PVG_Statewide_2001_WGS1984</enttypl>
+<enttypd>Commercial Groundfish Fishery Statistical Areas valid as of 1/1/2001</enttypd>
+<enttypds>Alaska Department of Fish and Game</enttypds>
+</enttyp>
+<attr>
+<attrlabl>OBJECTID</attrlabl>
+<attrdef>Internal feature number.</attrdef>
+<attrdefs>Esri</attrdefs>
+<attrdomv>
+					<udom>Sequential unique whole numbers that are automatically generated.</udom>
+				</attrdomv>
+</attr>
+<attr>
+<attrlabl>Shape</attrlabl>
+<attrdef>Feature geometry.</attrdef>
+<attrdefs>Esri</attrdefs>
+<attrdomv>
+					<udom>Coordinates defining the features.</udom>
+				</attrdomv>
+</attr>
+<attr>
+<attrlabl>STAT_AREA</attrlabl>
+<attrdef>A statistical area indicates the physical location where a fishery harvest is made.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>Ranges from 305431 to 925130</edomv>
+						<edomvd>Identified with a unique 6-digit number.</edomvd>
+						<edomvds>Alaska Department of Fish and Game Commercial Fisheries Division</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>FISHERY_GROUP_CODE</attrlabl>
+<attrdef>One of the four major fishery groups aggregated by species type.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>G</edomv>
+						<edomvd>Groundfish</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>REGION_CODE</attrlabl>
+<attrdef>A term used by the ADF&amp;G to divide the management of commercial fishery resources in Alaska. Regions are divided on a state level and are the highest division of management in ADF&amp;G.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>1</edomv>
+						<edomvd>Southeast</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>2</edomv>
+						<edomvd>Southcentral</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>3</edomv>
+						<edomvd>Arctic-Yukon-Kuskokwim</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>4</edomv>
+						<edomvd>Westward</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>&lt;Null&gt;</edomv>
+						<edomvd>Not applicable. Usually refers to international waters, which are outside of state authority</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>REGISTRATION_AREA_CODE</attrlabl>
+<attrdef>A one letter code which refers to a physical area within an ADF&amp;G Region. Registration Areas are used for commercial fishery management purposes.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>A</edomv>
+						<edomvd>Eastern Gulf of Alaska</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>E</edomv>
+						<edomvd>Prince William Sound</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>H</edomv>
+						<edomvd>Cook Inlet</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>K</edomv>
+						<edomvd>Kodiak</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>L</edomv>
+						<edomvd>Chignik</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>M</edomv>
+						<edomvd>South Alaska Peninsula</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>O</edomv>
+						<edomvd>Bering Sea-Aleutian Islands</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Y</edomv>
+						<edomvd>Chuckchi-Beaufort</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>GIS_SERIES_NAME</attrlabl>
+<attrdef>Name of the GIS series that a feature class belongs to.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>Groundfish</edomv>
+						<edomvd>Feature classes associated with commercial groundfish fisheries</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>GIS_SERIES_CODE</attrlabl>
+<attrdef>One letter code that corresponds to name of the GIS series that a feature class belongs to.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>G</edomv>
+						<edomvd>Groundfish</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>REGISTRATION_LOCATION_ABBR</attrlabl>
+<attrdef>An ADF&amp;G abbreviation used to refer to a collection of Statistical Areas. Often grouped by Registration Area and a combination of other subdivisions.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>AFOGK</edomv>
+						<edomvd>Afognak</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>AISD</edomv>
+						<edomvd>Aleutian Islands District</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>BSEA</edomv>
+						<edomvd>Bering Sea District</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>CHIGB</edomv>
+						<edomvd>Chignik Bay District</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>CHUK</edomv>
+						<edomvd>Chuckchi and Beafort Seas</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>CSEO</edomv>
+						<edomvd>Central Southeast Outside Management Area</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>ESIDE</edomv>
+						<edomvd>East Side</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>EYKT</edomv>
+						<edomvd>East Yakutat Management Area</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>IBS</edomv>
+						<edomvd>Icy Bay Management Area</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>MDLAN</edomv>
+						<edomvd>Mainland</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>MITRO</edomv>
+						<edomvd>Mitrofania</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>MSAPE</edomv>
+						<edomvd>South Alaska Peninsula Eastern District</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>MSAPW</edomv>
+						<edomvd>South Alaska Peninsula Western District</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>NORTE</edomv>
+						<edomvd>Northeast</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>NSEI</edomv>
+						<edomvd>Northern Southeast Inside Management Area</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>NSEO</edomv>
+						<edomvd>Northern Southeast Outside Management Area</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>PWSE</edomv>
+						<edomvd>Prince William Sound Eastern Outer Coast State Waters</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>PWSI</edomv>
+						<edomvd>Prince William Sound Internal Waters</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>PWSW</edomv>
+						<edomvd>Prince William Sound Western Outer Coast State Waters</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>SEAST</edomv>
+						<edomvd>Southeast</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>SSEI</edomv>
+						<edomvd>Southern Southeast Inside Management Area</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>SSEIW</edomv>
+						<edomvd>Southern Southeast Inside Waters</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>SSEO</edomv>
+						<edomvd>Southern Southeast Outside Management Area</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>SSEOC</edomv>
+						<edomvd>Southern Southeast Outer Coast</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>SUTWK</edomv>
+						<edomvd>Sutwick Island</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>SWEST</edomv>
+						<edomvd>Southwest</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>WSIDE</edomv>
+						<edomvd>West Side</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>DISTRICT_NAME</attrlabl>
+<attrdef>A physical area defined in regulations, used for commercial fishery management.  Districts are located within Registration Areas.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>Afognak District</edomv>
+						<edomvd>Afognak District</edomvd>
+						<edomvds>5AAC 28.404 (a)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Aleutian Islands District</edomv>
+						<edomvd>Aleutian Islands District</edomvd>
+						<edomvds>5 AAC 28.605 (a)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Bering Sea District</edomv>
+						<edomvd>Bering Sea District</edomvd>
+						<edomvds>5 AAC 28.605 (b)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Chignik Bay District</edomv>
+						<edomvd>Chignik Bay District</edomvd>
+						<edomvds>5 AAC 28.505 (b)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Cook Inlet District</edomv>
+						<edomvd>Cook Inlet District</edomvd>
+						<edomvds>5 AAC 28.305 (a)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Eastern District</edomv>
+						<edomvd>Eastern District</edomvd>
+						<edomvds>5 AAC 28.555 (1)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Inside District</edomv>
+						<edomvd>Inside District</edomvd>
+						<edomvds>5 AAC 28.205 (a)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Mainland District</edomv>
+						<edomvd>Mainland District</edomvd>
+						<edomvds>5AAC 28.404 (g)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Mitrofania District</edomv>
+						<edomvd>Mitrofania District</edomvd>
+						<edomvds>5 AAC 28.505 (c)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>North Gulf  District</edomv>
+						<edomvd>North Gulf District</edomvd>
+						<edomvds>5 AAC 28.305 (b)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Northeast District</edomv>
+						<edomvd>Northeast District</edomvd>
+						<edomvds>5AAC 28.404 (b)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Outside District</edomv>
+						<edomvd>Outside District</edomvd>
+						<edomvds>5 AAC 28.205 (b)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Southeast District</edomv>
+						<edomvd>Southeast District</edomvd>
+						<edomvds>5AAC 28.404 (c)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Southwest District</edomv>
+						<edomvd>Southwest District</edomvd>
+						<edomvds>5AAC 28.404 (e)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Sutwik Island District</edomv>
+						<edomvd>Sutwik Island District</edomvd>
+						<edomvds>5 AAC 28.505 (a)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Western District</edomv>
+						<edomvd>Western District</edomvd>
+						<edomvds>5 AAC 28.555 (2)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Westside District</edomv>
+						<edomvd>Westside District</edomvd>
+						<edomvds>5AAC 28.404 (f)</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>SUBDISTRICT_NAME</attrlabl>
+<attrdef>A physical area defined in regulations, used for commercial fishery management.  Subdistricts are located within Districts.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>Southern Southeast Inside Subdistrict</edomv>
+						<edomvd>Southern Southeast Inside Subdistrict</edomvd>
+						<edomvds>5 AAC 28.105 (1)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Southeast Outside Subdistrict</edomv>
+						<edomvd>Southeast Outside Subdistrict</edomvd>
+						<edomvds>5 AAC 28.105 (4)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Northern Southeast Inside Subdistrict</edomv>
+						<edomvd>Northern Southeast Inside Subdistrict</edomvd>
+						<edomvds>5 AAC 28.105 (2)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Icy Bay Subdistrict</edomv>
+						<edomvd>Icy Bay Subdistrict</edomvd>
+						<edomvds>5 AAC 28.105 (3)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Dutch Harbor Subdistrict</edomv>
+						<edomvd>Dutch Harbor Subdistrict</edomvd>
+						<edomvds>5 AAC 28.648</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Aleutian Islands Subdistrict</edomv>
+						<edomvd>Aleutian Islands Subdistrict</edomvd>
+						<edomvds>5 AAC 28.647(a)(1)</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>REGISTRATION_AREA_ID</attrlabl>
+<attrdef>An auto generated number used to refer to the physical bounds of a Registration Area during a particular time frame.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>Sequential numbering system with infinite maximum value.</udom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>SECTOR_NAME</attrlabl>
+<attrdef>A physical area defined in regulations, used for commercial fishery management.  Sectors are located within Subdivisions.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>Southern Southeast Outer Coast Sector</edomv>
+						<edomvd>Southern Southeast Outer Coast Sector</edomvd>
+						<edomvds>5 AAC 28.105 (d)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Southern Southeast Internal Waters Sector</edomv>
+						<edomvd>Southern Southeast Internal Waters Sector</edomvd>
+						<edomvds>5 AAC 28.105 (d)</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>DISTRICT_CODE</attrlabl>
+<attrdef>A code used to refer to a district.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>There are no District Codes used in this dataset.</udom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>DISTRICT_ID</attrlabl>
+<attrdef>An auto generated number used to refer to the physical bounds of a District during a particular time frame.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>Sequential numbering system with infinite maximum value.</udom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>FMP_AREA_CODE</attrlabl>
+<attrdef>A code used to refer to the federal Fishery Management Plan that covers this physical area.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>BSAI</edomv>
+						<edomvd>Bering Sea Aleutian Islands</edomvd>
+						<edomvds>National Oceanic and Atmospheric Administration</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>GOA</edomv>
+						<edomvd>Gulf of Alaska</edomvd>
+						<edomvds>National Oceanic and Atmospheric Administration</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>SUBDISTRICT_CODE</attrlabl>
+<attrdef>A series of letters used to refer to a subdistrict.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>SSEI</edomv>
+						<edomvd>Southern Southeast Inside Subdistrict</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>NSEI</edomv>
+						<edomvd>Northern Southeast Inside Subdistrict</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>IBS</edomv>
+						<edomvd>Icy Bay Subdistrict</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>SUBDISTRICT_ID</attrlabl>
+<attrdef>An auto generated number used to refer to the physical bounds of a Subdistrict during a particular time frame.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>Sequential numbering system with infinite maximum value.</udom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>NMFS_REPORTING_AREA_CODE</attrlabl>
+<attrdef>A code used to refer to federal statistical areas.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>518</edomv>
+						<edomvd>Bogoslof District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Bering Sea and Aleutian Islands Management Areas</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>542</edomv>
+						<edomvd>Central Aleutian District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Bering Sea and Aleutian Islands Management Areas</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>620</edomv>
+						<edomvd>Central GOA Regulatory Area, Chirikof District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>630</edomv>
+						<edomvd>Central GOA Regulatory Area, Kodiak District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>400</edomv>
+						<edomvd>Chukchi Sea</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Bering Sea and Aleutian Islands Management Areas</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>550</edomv>
+						<edomvd>Donut Hole</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Bering Sea and Aleutian Islands Management Areas</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>541</edomv>
+						<edomvd>Eastern Aleutian District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Bering Sea and Aleutian Islands Management Areas</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>659</edomv>
+						<edomvd>Eastern GOA Regulatory Area, Southeast Inside District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>640</edomv>
+						<edomvd>Eastern GOA Regulatory Area, West Yakutat District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>649</edomv>
+						<edomvd>Prince William Sound</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>543</edomv>
+						<edomvd>Western Aleutian District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Bering Sea and Aleutian Islands Management Areas</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>610</edomv>
+						<edomvd>Western GOA Regulatory Area, Shumagin District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>650</edomv>
+						<edomvd>Eastern GOA Regulatory Area, Southeast Outside District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>SECTION_CODE</attrlabl>
+<attrdef>A series of letters used to refer to a Section</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>NSEO</edomv>
+						<edomvd>Northern Southeast Outside Section</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>EYKT</edomv>
+						<edomvd>East Yakutat Section</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>CSEO</edomv>
+						<edomvd>Central Southeast Outside Section</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>SECTION_ID</attrlabl>
+<attrdef>An auto generated number used to refer to the physical bounds of a Section during a particular time frame.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>Sequential numbering system with infinite maximum value.</udom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>IFQ_IPHC_AREA_CODE</attrlabl>
+<attrdef>IFQ Halibut regulatory areas defined by IPHC</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>2C</edomv>
+						<edomvd>IPHC Area 2C</edomvd>
+						<edomvds>International Pacific Halibut Commission</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>3A</edomv>
+						<edomvd>IPHC Area  3A</edomvd>
+						<edomvds>International Pacific Halibut Commission</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>3B</edomv>
+						<edomvd>IPHC Area 3B</edomvd>
+						<edomvds>International Pacific Halibut Commission</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>4A</edomv>
+						<edomvd>IPHC Area 4A</edomvd>
+						<edomvds>International Pacific Halibut Commission</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>4B</edomv>
+						<edomvd>IPHC Area 4B</edomvd>
+						<edomvds>International Pacific Halibut Commission</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>4C</edomv>
+						<edomvd>IPHC Area 4C</edomvd>
+						<edomvds>International Pacific Halibut Commission</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>4D</edomv>
+						<edomvd>IPHC Area 4D</edomvd>
+						<edomvds>International Pacific Halibut Commission</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>4E</edomv>
+						<edomvd>IPHC Area 4E</edomvd>
+						<edomvds>International Pacific Halibut Commission</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>CL</edomv>
+						<edomvd>Closed</edomvd>
+						<edomvds>International Pacific Halibut Commission</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>INSIDE_OUTSIDE_CODE</attrlabl>
+<attrdef>A code used to refer to statistical areas that fall within "Inside" the State Waters boundary or "Outside" the State Waters boundary.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>I</edomv>
+						<edomvd>Inside Waters</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>O</edomv>
+						<edomvd>Outside Waters</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>SECTOR_CODE</attrlabl>
+<attrdef>A code used to refer to a Sector</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>SSEI</edomv>
+						<edomvd>Southern Southeast Internal Waters Sector</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>IFQ_SABLEFISH_AREA_CODE</attrlabl>
+<attrdef>IFQ Sablefish Area as defined by NMFS.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>AI</edomv>
+						<edomvd>Aleutian Islands</edomvd>
+						<edomvds>Alaska Department of Fish</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>BS</edomv>
+						<edomvd>Bering Sea</edomvd>
+						<edomvds>Alaska Department of Fish</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>CG</edomv>
+						<edomvd>Central Gulf of Alaska</edomvd>
+						<edomvds>Alaska Department of Fish</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>ND</edomv>
+						<edomvd>Not part of an IFQ Sablefish Area</edomvd>
+						<edomvds>Alaska Department of Fish</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>SE</edomv>
+						<edomvd>Southeast Outside</edomvd>
+						<edomvds>Alaska Department of Fish</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>WG</edomv>
+						<edomvd>Western Gulf of Alaska</edomvd>
+						<edomvds>Alaska Department of Fish</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>WY</edomv>
+						<edomvd>West Yakutat</edomvd>
+						<edomvds>Alaska Department of Fish</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>NMFS_REPORTING_AREA_NAME</attrlabl>
+<attrdef>The name of a federal statsitical area</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>Bogoslof District</edomv>
+						<edomvd>Bogoslof District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Bering Sea and Aleutian Islands Management Areas</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Central Aleutian District</edomv>
+						<edomvd>Central Aleutian District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Bering Sea and Aleutian Islands Management Areas</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Central GOA Regulatory Area, Chirikof District</edomv>
+						<edomvd>Central GOA Regulatory Area, Chirikof District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Central GOA Regulatory Area, Kodiak District</edomv>
+						<edomvd>Central GOA Regulatory Area, Kodiak District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Chukchi Sea</edomv>
+						<edomvd>Chukchi Sea</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Bering Sea and Aleutian Islands Management Areas</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Donut Hole</edomv>
+						<edomvd>Donut Hole</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Bering Sea and Aleutian Islands Management Areas</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Eastern Aleutian District</edomv>
+						<edomvd>Eastern Aleutian District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Bering Sea and Aleutian Islands Management Areas</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Eastern GOA Regulatory Area, Southeast Inside District</edomv>
+						<edomvd>Eastern GOA Regulatory Area, Southeast Inside District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Eastern GOA Regulatory Area, Southeast Outside District</edomv>
+						<edomvd>Eastern GOA Regulatory Area, Southeast Outside District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Eastern GOA Regulatory Area, West Yakutat District</edomv>
+						<edomvd>Eastern GOA Regulatory Area, West Yakutat District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Prince William Sound</edomv>
+						<edomvd>Prince William Sound</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Western Aleutian District</edomv>
+						<edomvd>Western Aleutian District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Bering Sea and Aleutian Islands Management Areas</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Western GOA Regulatory Area, Shumagin District</edomv>
+						<edomvd>Western GOA Regulatory Area, Shumagin District</edomvd>
+						<edomvds>Fishery Management Plan for Groundfish of the Gulf of Alaska</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>NMFS_REPORTING_AREA_ID</attrlabl>
+<attrdef>An auto generated number used to refer to the physical bounds of a Subdistrict during a particular time frame.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>Sequential numbering system with infinite maximum value.</udom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>Shape_Length</attrlabl>
+<attrdef>Length of feature in internal units.</attrdef>
+<attrdefs>Esri</attrdefs>
+<attrdomv>
+					<udom>Positive real numbers that are automatically generated.</udom>
+				</attrdomv>
+</attr>
+<attr>
+<attrlabl>Shape_Area</attrlabl>
+<attrdef>Area of feature in internal units squared.</attrdef>
+<attrdefs>Esri</attrdefs>
+<attrdomv>
+					<udom>Positive real numbers that are automatically generated.</udom>
+				</attrdomv>
+</attr>
+<attr>
+<attrlabl>SECTION_NAME</attrlabl>
+<attrdef>A physical area defined in regulations, used for commercial fishery management.  Sections are located within Districts or Subdistricts.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>Western</edomv>
+						<edomvd>Western Section</edomvd>
+						<edomvds>5 AAC 28.205 (b)(2)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Southern Southeast Outside</edomv>
+						<edomvd>Southern Southeast Outside Section</edomvd>
+						<edomvds>5 AAC 28.105 (a)(4)(A)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Shumagin Islands</edomv>
+						<edomvd>Shumagin Islands Section</edomvd>
+						<edomvds>5 AAC 28.555 (1)(A)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Sanak Island</edomv>
+						<edomvd>Sanak Island Section</edomvd>
+						<edomvds>5 AAC 28.555 (1)(C)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Pavlof Bay</edomv>
+						<edomvd>Pavlof Bay Section</edomvd>
+						<edomvds>5 AAC 28.555 (1)(B)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Northen Southeast Outside</edomv>
+						<edomvd>Northen Southeast Outside Section</edomvd>
+						<edomvds>5 AAC 28.105 (a)(4)(C)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Knight Island</edomv>
+						<edomvd>Knight Island Section</edomvd>
+						<edomvds>5 AAC 28.263 (a)(2)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Hinchinbrook</edomv>
+						<edomvd>Hinchinbrook Section</edomvd>
+						<edomvds>5 AAC 28.263 (a)(3)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Eastern</edomv>
+						<edomvd>Eastern Section</edomvd>
+						<edomvds>5 AAC 28.205 (b)(1)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>East Yakutat</edomv>
+						<edomvd>East Yakutat Section</edomvd>
+						<edomvds>5 AAC 28.105 (a)(4)(D)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Central Southeast Outside</edomv>
+						<edomvd>Central Southeast Outside Section</edomvd>
+						<edomvds>5 AAC 28.105 (a)(4)(B)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Bainbridge</edomv>
+						<edomvd>Bainbridge Section</edomvd>
+						<edomvds>5 AAC 28.263 (a)(1)</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Adak</edomv>
+						<edomvd>Adak Section</edomvd>
+						<edomvds>5 AAC 28.647 (a)(2)</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>CREATE_DATE</attrlabl>
+<attrdef>Date a geometric feature was created.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>Calendar date</udom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>CREATOR</attrlabl>
+<attrdef>The name of the individual that created the dataset</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>First and last name of an individual</udom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>COAR_AREA_CODE</attrlabl>
+<attrdef>A one or two digit code used to refer to a specific Commercial Operators Annual Report</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>B</edomv>
+						<edomvd>COAR Area B</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>C</edomv>
+						<edomvd>COAR Area C</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>D</edomv>
+						<edomvd>COAR Area D</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>A1</edomv>
+						<edomvd>COAR Area A1</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>A2</edomv>
+						<edomvd>COAR Area A2</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>E1</edomv>
+						<edomvd>COAR Area E1</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>E2</edomv>
+						<edomvd>COAR Area E2</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>E3</edomv>
+						<edomvd>COAR Area E3</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>HL</edomv>
+						<edomvd>COAR Area HL</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>HU</edomv>
+						<edomvd>COAR Area HU</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>K</edomv>
+						<edomvd>COAR Area K</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>L</edomv>
+						<edomvd>COAR Area L</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>MS</edomv>
+						<edomvd>COAR Area MS</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>O</edomv>
+						<edomvd>COAR Area O</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>R</edomv>
+						<edomvd>COAR Area R</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>MN</edomv>
+						<edomvd>COAR Area MN</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>T</edomv>
+						<edomvd>COAR Area T</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>YU</edomv>
+						<edomvd>COAR Area YU</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>X</edomv>
+						<edomvd>COAR Area X</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Z</edomv>
+						<edomvd>COAR Area Z</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>YL</edomv>
+						<edomvd>COAR Area YL</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>W</edomv>
+						<edomvd>COAR Area W</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>FG</edomv>
+						<edomvd>COAR Area FG</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>FB</edomv>
+						<edomvd>COAR Area FB</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Q1</edomv>
+						<edomvd>COAR Area Q1</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Q2</edomv>
+						<edomvd>COAR Area Q2</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Q4</edomv>
+						<edomvd>COAR Area Q4</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>WATERS_CODE</attrlabl>
+<attrdef>A code used to refer to the level of government with jurisdiction over fishing activities in a physical geographic location.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>FED</edomv>
+						<edomvd>Federal Waters</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>INTL</edomv>
+						<edomvd>International Waters</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>STATE</edomv>
+						<edomvd>State Waters</edomvd>
+						<edomvds>Alaska Department of Fish and Game</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>EDIT_DATE</attrlabl>
+<attrdef>Date a geometric feature was edited.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>Calendar date</udom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>EDITOR</attrlabl>
+<attrdef>Username of the individual who edited a geometric feature</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>Username tied to an individual user.</udom>
+				</attrdomv>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>COMMENTS</attrlabl>
+<attrdef>Additional information about a features attributes.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>Additional information about a features attributes.</udom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>STAT_AREA_VERSION_ID</attrlabl>
+<attrdef>An auto generated number used to refer to the physical bounds of a Statistical Area during a particular time frame.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>Sequential numbering system with infinite maximum value.</udom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>GEOMETRY_START_DATE</attrlabl>
+<attrdef>Effective start date for a particular polygon. This field is intended to capture the effective start date for a given configuration of a statistical area.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>Date corresponding to the day, month, and year that a particular configuration of a statistical area was established. Usually corresponds to January 1st.</udom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>GEOMETRY_END_DATE</attrlabl>
+<attrdef>Effective end date for a particular polygon. This field is intended to capture the effective end date for a given configuration of a statistical area.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<udom>Date corresponding to the day, month, and year that a particular configuration of a statistical area was retired. Usually corresponds to December 31st.</udom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+<attr>
+<attrlabl>REGISTRATION_AREA_NAME</attrlabl>
+<attrdef>The name of a physical location described in regulations. Corresponds to the location that a commercial fishing vessel is registered to fish in.</attrdef>
+<attrdefs>Alaska Department of Fish and Game</attrdefs>
+<attrdomv>
+					<edom>
+						<edomv>Cook Inlet Area</edomv>
+						<edomvd>Cook Inlet Area</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Eastern Gulf of Alaska Area</edomv>
+						<edomvd>Eastern Gulf of Alaska Area</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Prince William Sound Area</edomv>
+						<edomvd>Prince William Sound Area</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Kodiak Area</edomv>
+						<edomvd>Kodiak Area</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Chignik Area</edomv>
+						<edomvd>Chignik Area</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>South Alaska Peninsula Area</edomv>
+						<edomvd>South Alaska Peninsula Area</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Bering Sea-Aleutian Islands Area</edomv>
+						<edomvd>Bering Sea-Aleutian Islands Area</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<attrdomv>
+					<edom>
+						<edomv>Chukchi-Beaufort Area</edomv>
+						<edomvd>Chukchi-Beaufort Area</edomvd>
+						<edomvds>5 AAC 28.005</edomvds>
+					</edom>
+				</attrdomv>
+<begdatea>2017-08-01</begdatea>
+<attrmfrq>009</attrmfrq>
+</attr>
+</detailed>
+</eainfo>
+<metainfo>
+<metd>20170804</metd>
+<metc>
+<cntinfo>
+<cntorgp>
+<cntorg>Alaska Department of Fish and Game</cntorg>
+<cntper>Division of Commercial Fisheries</cntper>
+</cntorgp>
+<cntpos>GIS Representative</cntpos>
+<cntaddr>
+<addrtype>mailing</addrtype>
+<city>Juneau</city>
+<state>Alaska</state>
+<postal>99811</postal>
+</cntaddr>
+<cntvoice>(907) 465-2376</cntvoice>
+<cntemail>dfg.dcf.gis@alaska.gov</cntemail>
+</cntinfo>
+</metc>
+<metstdn>FGDC Content Standard for Digital Geospatial Metadata</metstdn>
+<metstdv>FGDC-STD-001-1998</metstdv>
+<mettc>local time</mettc>
+</metainfo>
+</metadata>

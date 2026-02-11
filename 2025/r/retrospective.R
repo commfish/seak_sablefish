@@ -509,18 +509,18 @@ df<-SB
 min_year <- YEAR-21
 #y <- enquo(y)    #y<-enquo(spawn_biom)
 
-#df %>% 
- # group_by(retro) %>% 
-  #full_join(df %>% 
-     #         filter(retro == "retro_0") %>% 
-   #           #select(year, term = !!y),
-      #        select(year, term = spawn_biom),
-       #     by = "year") %>% 
-  #mutate(diff = (df$spawn_biom - df$term) / df$term * 100) %>% 
+df %>% 
+  group_by(retro) %>% 
+  full_join(df %>% 
+              filter(retro == "retro_0") %>% 
+              #select(year, term = !!y),
+              select(year, term = spawn_biom),
+            by = "year") %>% 
+  mutate(diff = (df$spawn_biom - df$term) / df$term * 100) %>% 
   # NOTE - join order_retro into df for plotting - this variable is external
   # to this function
-#  left_join(order_retro) %>% 
-#  filter(year >= min_year) -> df
+  left_join(order_retro) %>% 
+  filter(year >= min_year) -> df
 
 print(df,n=40)
 unique(df$term) #biomass estimates for each year from the terminal year model run
@@ -592,18 +592,18 @@ df<-rec
 min_year <- YEAR-21
 #y <- enquo(y)    #y<-enquo(spawn_biom)
 
-#df %>% 
-# group_by(retro) %>% 
-#full_join(df %>% 
-#    filter(retro == "retro_0") %>% 
+df %>% 
+  group_by(retro) %>% 
+  full_join(df %>% 
+              filter(retro == "retro_0") %>% 
               #select(year, term = !!y),
-#    select(year, term = rec),
-#  by = "year") %>% 
-# mutate(diff = (rec - term) / term * 100) %>% 
+              select(year, term = rec),
+            by = "year") %>% 
+  mutate(diff = (rec - term) / term * 100) %>% 
   # NOTE - join order_retro into df for plotting - this variable is external
   # to this function
-# left_join(order_retro) %>% 
-# filter(year >= min_year) -> df
+  left_join(order_retro) %>% 
+  filter(year >= min_year) -> df
 
 print(df,n=40)
 unique(df$term) #biomass estimates for each year from the terminal year model run

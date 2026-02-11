@@ -513,20 +513,6 @@ ggplot(as.data.frame(lencomps %>% filter(Sex == "Female")),
   geom_col(aes(color = Source),stat = "identity") +
   facet_wrap(year) 
 
-ggplot(mat_plot %>% filter(age <= 20)) +
-  geom_point(aes(x = age, y = prop_mature), colour = "black") +
-  geom_line(aes(x = age, y = prop_mature, group = 1), colour = "black") +
-  geom_segment(aes(x = a50, y = 0, xend = a50, yend = 0.50), 
-               lty = 2, col = "grey") +
-  geom_segment(aes(x = 2, y = 0.50, xend = a50, yend = 0.50), 
-               lty = 2, col = "grey") +
-  # a_50 labels
-  geom_text(aes(12, 0.5, label = a50_txt), 
-            colour = "black", parse = TRUE, family = "Times New Roman") +
-  scale_x_continuous(limits = c(rec_age, 20)) + # breaks = axis$breaks, 
-  # labels = age_labs2) +
-  labs(x = "Age", y = "\n\nProportion mature") -> len_plot
-
 
 # Age compositions ----
 

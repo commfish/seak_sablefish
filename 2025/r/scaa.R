@@ -41,17 +41,19 @@ source("r_helper/functions.r")
 source("r_helper/exp_functions.r")
 
 library(TMB) 
+
 # Manual inputs ----
 
 # These must be checked or updated annually!
 #TUNED_VER<-"fsel3_est_ssel_flat_wts"
 set.seed(9921)
+
 # if this is the first model run of the year set to NA:
-TUNED_VER<-NA
+# TUNED_VER<-NA
 
 # If you've tuned the model, use the tuned version you named and saved... 
-TUNED_VER<-"v23_3f_3s_2015"
-TUNED_VER<-"v24_3f_3s_2017"
+#TUNED_VER<-"v23_3f_3s_2015"
+#TUNED_VER<-"v24_3f_3s_2017"
 
 TUNED_VER <- "v23_3f_3s_2016"
 
@@ -119,7 +121,7 @@ tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model o
 rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 fsh_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
-srv_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
+srv_slx_switch <- 1 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
 comp_type <- 0    # Age  and length comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
 rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
@@ -230,6 +232,7 @@ Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
 
 # some other things
 }
+
 # User-defined fxns in functions.R
 #=====================================
 # Set time blocks for selectivity:
@@ -324,6 +327,7 @@ str(data)
 slx_pars
 parameters$log_fsh_slx_pars #(row = timeblock, column = parameter, array3 = sex (1=m, 2 = F))
 parameters$log_srv_slx_pars
+
 # Run model ----
 
 setwd(tmb_path)
@@ -340,7 +344,7 @@ if (agedat == "aggregated") {
   out <- TMBphase_v23(data, parameters, random = random_vars, 
                       model_name = "scaa_mod_v23", #model_name = "scaa_mod_dir_ev",
                       phase = FALSE,  
-                      newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+                      newtonsteps = 10, #3 make this zero initially for faster run times (using 5)
                       debug = FALSE, loopnum = 30)
 } else {
   out <- TMBphase_v24(data, parameters, random = random_vars, 
@@ -467,16 +471,16 @@ if (agedat == "aggregated") {
 
 like_sum
 
-write.csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR,"_",VER, ".csv"))
+write_csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR,"_",VER, ".csv"))
 
 # MLE figs ----
 
 # Fits to abundance indices, derived time series, and F. Use units = "imperial" or
 # "metric" to switch between units. tmb_path <- file.path(root, paste0(YEAR+1,"/tmb")) # location of cpp
 
-plot_ts(ts = ts, save = TRUE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
-plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
-plot_F(save = TRUE)
+plot_ts(ts = ts, save = FALSE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
+plot_derived_ts(ts = ts, save = FALSE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
+plot_F(save = FALSE)
 
 # Recruitment estimates
 logrbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
@@ -498,7 +502,7 @@ if (agedat == "aggregated") {
   agecomps <- reshape_age_disag()
 }
 
-plot_sel(save = TRUE)
+plot_sel(save = FALSE)
 # save slx values for initial inputs if desired; only works for deaggregated age comps
 new_slx <- save_slx(tidyrep,slx_pars,fsel=0, save=TRUE)
 slx_pars

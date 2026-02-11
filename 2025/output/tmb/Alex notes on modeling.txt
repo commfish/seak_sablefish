@@ -1,0 +1,5 @@
+2013 break fixed tuned has lowest NLL: 1957; rec ABC 1778803.19589378; failed convergence message
+2012 break fixed tuned has middle NLL : 1961;rec ABC 1742347.27146795; relative convergence message <- BEST MODEL in my opinion, because lower NLL (not the lowest tho), relative convergence, and lowest rec ABC (most conservative of these 3)
+2016 break fixed tuned has highest NLL: 1968; rec ABC 2080436.25; failed convergence message
+
+last year's rec ABC: 1809075
