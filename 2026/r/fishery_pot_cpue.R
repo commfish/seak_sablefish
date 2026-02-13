@@ -1,16 +1,18 @@
 
 # Fishery catch 1985-present, fishery CPUE 1997-present
 # Author: Phil Joy
-# Contact: philip.joy@alaska.gov
-# Last edited: April 2024
+# Updated by: Aaron Lambert
+# Contact: aaron.lambert@alaska.gov
+# Last edited: February 2026
 
-# Starting in 2023 this code replaces the old fishery CPUE calculations including
-# scripts titled fishery_catch_cpue.R (Jane's original) and fishery_catch_cpue_2022reboot.R
-# which was the script I used in 2022 as a patch from the old CPUE data.  This
-# script uses the CPUE data processed directly from OceanAK logbook and fish ticket
-# data.  The HARVEST in the first section still comes from the data querry set
-# up by Jane and Justin Priest.  
+# Purpose: This script is to analyze and standardize slinky pot gear for the NSEI
+#          Sablefish SCAA Assessment. 
+#          
+# Next Steps:  1. Begin analysis for creating a longline and potgear standardized index
+#                 for the assessment following Cheng et al 2023.
 
+
+# Load functions
 source("r_helper/helper.r")
 source("r_helper/functions.r")
 
@@ -31,10 +33,10 @@ random_check<-function(data){ #data<-pot_cpue
     year_check<-sample(year_list,1)
   }
   
-  data1<-data %>% filter(year == year_check)
+  data1 <-data %>% filter(year == year_check)
   
-  adfg_list<-unique(data1$Adfg)
-  adfg_check<-adfg_list[sample(length(adfg_list),1)]
+  adfg_list <- unique(data1$Adfg)
+  adfg_check <- adfg_list[sample(length(adfg_list),1)]
   
   data1<-data1 %>% filter(Adfg == adfg_check)
   
@@ -43,106 +45,107 @@ random_check<-function(data){ #data<-pot_cpue
   
   data1<-data1 %>% filter(sell_date == d_check)
   
-  stat_list<-unique(data1$Stat)
-  stat_check<-stat_list[sample(length(stat_list),1)]
+  # stat_list<-unique(data1$Stat)
+  # stat_check<-stat_list[sample(length(stat_list),1)]
   
   check<-as.data.frame(data %>% filter(sell_date == d_check,
-                                     Stat == stat_check,
+                                     # Stat == stat_check,
                                      year == year_check, #unique(Sable_ll_CPUE$Year)[rands[[1]][1]],
                                      Adfg == adfg_check))
   
   return(check)
 }
 
-# Read in data, standardize cpue, etc.
-read_csv(paste0(YEAR+1,"/data/fishery/fishery_pot_cpue_2022_", YEAR,".csv"), 
-         guess_max = 50000) -> pot_cpue #%>% 
+# Read in data that was cleaned in the fishery_cpue_prep.R script
+pot_cpue  <- read_csv(paste0(YEAR+1,"/data/fishery/fishery_pot_cpue_2022_", YEAR,".csv"), 
+                      guess_max = 50000) 
 
-colnames(pot_cpue)
+# Filter out duplicates
+pot_cpue <- unique(pot_cpue)
 
-#pot_cpue<-unique(pot_cpue)
+#Check that each line is a unique set
 random_check(pot_cpue)
 
 #data will still be stratified by set and some other variables so need to consolidate
 # data by year, sell_date, Adfg, Stat, 
 
-# 1) Look at cpue based on fish ticket landings... 
-pot_cpue_ftx <- unique(pot_cpue %>%
- group_by(year, sell_date, Adfg, Stat) %>%
-select(-set_date,-julian_day_set,-set_soak,-set_length,-set_depth,-set_no,
-        -logged_no,-logged_lbs,-disposition,
--set_depredation, #depredation not in 2022 pot logbooks...
-        -start_lat,-start_lon))
-random_check(pot_cpue_ftx) #should just be one row for each trip...
-histogram(ll_cpue_ftx$p_sets_depredated[ll_cpue_ftx$p_sets_depredated > 0])
-
-unique(pot_cpue_ftx$trip_set_targets)
-
-colnames(pot_cpue)
-nrow(pot_cpue)
-nrow(unique(pot_cpue))
-
-unique(pot_cpue$Stat); with(pot_cpue, table(Stat))
-unique(pot_cpue$multigear_trip)
-unique(pot_cpue$trip_recorded_releases); with(pot_cpue, table(year, trip_recorded_releases))
-unique(pot_cpue$depredation)
-unique(pot_cpue$pot_data)
-unique(pot_cpue$pot_space)
-unique(pot_cpue$line_diam)
-unique(pot_cpue$pot_dim)
-unique(pot_cpue$pot_type)
-unique(pot_cpue$pot_volume_m3)
-unique(pot_cpue$gear_name); str(pot_cpue$gear_name)
-
-with(pot_cpue, table(pot_volume_m3)) #; nrow(pot_cpue %>% filter (is.na(trip_soak)))
-with(pot_cpue, table(Stat))
-hist(pot_cpue$julian_day_sell); abline(v=226, col="red")
-hist(pot_cpue$no_pots_fished_on_trip)#; abline(v=15000, col="blue")
-hist(pot_cpue$no_pots_p_set) #; abline(v=15000, col="blue")
-nrow(pot_cpue)
-table(pot_cpue$pot_space)
-
-colnames(pot_cpue)
-
-nrow(pot_cpue_ftx %>% filter(Stat == "345803"))
-
-pot_cpue %>% 
+# # 1) Look at cpue based on fish ticket landings... 
+# pot_cpue_ftx <- unique(pot_cpue %>%
+#  group_by(year, sell_date, Adfg, Stat) %>%
+# select(-set_date,-julian_day_set,-set_soak,-set_length,-set_depth,-set_no,
+#         -logged_no,-logged_lbs,-disposition,
+# -set_depredation, #depredation not in 2022 pot logbooks...
+#         -start_lat,-start_lon))
+# random_check(pot_cpue_ftx) #should just be one row for each trip...
+# histogram(ll_cpue_ftx$p_sets_depredated[ll_cpue_ftx$p_sets_depredated > 0])
+# 
+# unique(pot_cpue_ftx$trip_set_targets)
+# 
+# colnames(pot_cpue)
+# nrow(pot_cpue)
+# nrow(unique(pot_cpue))
+# 
+# unique(pot_cpue$Stat); with(pot_cpue, table(Stat))
+# unique(pot_cpue$multigear_trip)
+# unique(pot_cpue$trip_recorded_releases); with(pot_cpue, table(year, trip_recorded_releases))
+# unique(pot_cpue$depredation)
+# unique(pot_cpue$pot_data)
+# unique(pot_cpue$pot_space)
+# unique(pot_cpue$line_diam)
+# unique(pot_cpue$pot_dim)
+# unique(pot_cpue$pot_type)
+# unique(pot_cpue$pot_volume_m3)
+# unique(pot_cpue$gear_name); str(pot_cpue$gear_name)
+# 
+# with(pot_cpue, table(pot_volume_m3)) #; nrow(pot_cpue %>% filter (is.na(trip_soak)))
+# with(pot_cpue, table(Stat))
+# hist(pot_cpue$julian_day_sell); abline(v=226, col="red")
+# hist(pot_cpue$no_pots_fished_on_trip)#; abline(v=15000, col="blue")
+# hist(pot_cpue$no_pots_p_set) #; abline(v=15000, col="blue")
+# nrow(pot_cpue)
+# table(pot_cpue$pot_space)
+# 
+# colnames(pot_cpue)
+# 
+# nrow(pot_cpue_ftx %>% filter(Stat == "345803"))
+pot_cpue_ftx <- pot_cpue %>% 
   #filter(depredation == "No depredation" | is.na(depredation)) %>% 
   filter(#trip_set_targets == "all_Sablefish",   # only use trips that were dedicated to sablefish... but not yet...
-           !is.na(sell_date) & 
-           #!is.na(mean_hook_spacing) & #!is.na(hook_space) & 
-           !is.na(sable_lbs_set) &
-          # !is.na(start_lon) & !is.na(start_lon) & #remove this because this is at the set level... 
-           !is.na(set_soak) & !is.na(set_depth) &
-           #!is.na(mean_hook_size) &   #!is.na(hook_size) &
-           #hook_size != "MIX" &
-             set_soak > 0 & #!is.na(set_soak) & # soak time in hrs
-           julian_day_sell > 226 #& # if there were special projects before the fishery opened
-           #no_hooks_p_set < 15000 & # 15000 in Kray's scripts - 14370 is the 75th percentile
-           # limit analysis to Chatham Strait and Frederick Sounds where the
-           # majority of fishing occurs
-           # target = 710 &
-            #Stat areas not used in 2024: but you might bring this back!?!
-           #Stat %in% c("345603", "345631", "345702",
-          #             "335701", "345701", "345731", "345803")
-          ) %>% 
+    !is.na(sell_date) & 
+      #!is.na(mean_hook_spacing) & #!is.na(hook_space) & 
+      !is.na(sable_lbs_set) &
+      # !is.na(start_lon) & !is.na(start_lon) & #remove this because this is at the set level... 
+      !is.na(set_soak) & !is.na(set_depth) &
+      #!is.na(mean_hook_size) &   #!is.na(hook_size) &
+      #hook_size != "MIX" &
+      set_soak > 0 & #!is.na(set_soak) & # soak time in hrs
+      julian_day_sell > 226 #& # if there were special projects before the fishery opened
+    #no_hooks_p_set < 15000 & # 15000 in Kray's scripts - 14370 is the 75th percentile
+    # limit analysis to Chatham Strait and Frederick Sounds where the
+    # majority of fishing occurs
+    # target = 710 &
+    #Stat areas not used in 2024: but you might bring this back!?!
+    #Stat %in% c("345603", "345631", "345702",
+    #             "335701", "345701", "345731", "345803")
+  ) %>% 
   
   mutate(Year = factor(year), 
          #Gear = factor(gear),
          Adfg = factor(Adfg),
+         StatArea = factor(log_stat_area),
          #Stat = factor(Stat),
          #Stat = fct_relevel(Stat,
-        #                    c("345702", "335701", # Frederick Sound
-                            # Chatham south to north
-        #                    "345603", "345631", "345701", "345731", "345803")),
+         #                    c("345702", "335701", # Frederick Sound
+         # Chatham south to north
+         #                    "345603", "345631", "345701", "345731", "345803")),
          #Depr_sum = ifelse(p_sets_depredated == 0, "none",
-        #                   ifelse(p_sets_depredated == 1, "all sets", 
-        #                          ifelse(p_sets_depredated > 0 & p_sets_depredated <= 0.25,
-        #                                 "0-25% of sets",
+         #                   ifelse(p_sets_depredated == 1, "all sets", 
+         #                          ifelse(p_sets_depredated > 0 & p_sets_depredated <= 0.25,
+         #                                 "0-25% of sets",
          #                                ifelse(p_sets_depredated > 0.25 & p_sets_depredated <= 0.5,
-          #                                      "25-50% of sets",
-           #                                     ifelse(p_sets_depredated > 0.5 & p_sets_depredated <= 0.75,
-            #                                           "50-75% of sets","75-100%"))))),
+         #                                      "25-50% of sets",
+         #                                     ifelse(p_sets_depredated > 0.5 & p_sets_depredated <= 0.75,
+         #                                           "50-75% of sets","75-100%"))))),
          
          #Hook_size = factor(hook_size),  #might be worth treating as numeric? 
          #Mean_hook_size = mean_size, 
@@ -166,25 +169,31 @@ pot_cpue %>%
     total_vessels = n_distinct(Adfg),
     # Total unique trips per year
     total_trips = n_distinct(trip_no)) %>% 
-  ungroup() -> pot_cpue_ftx
+  ungroup()
+
 
 random_check(pot_cpue_ftx)
 nrow(unique(pot_cpue_ftx))
 view(pot_cpue_ftx)
 
-pot_cpue_ftx %>% 
+# Look at trips and vessels by year
+trips_and_vessels <- pot_cpue_ftx %>% 
   select(year, Vessels = total_vessels, Trips = total_trips) %>% 
   gather(Variable, Count, -year) %>% 
-  distinct() -> trips_and_vessels; trips_and_vessels
-trips_and_vessels %>%
+  distinct()
+
+# Plot trips and vessels
+trips_vessels <- trips_and_vessels %>%
   ggplot(aes(x = year, y = Count)) +
   geom_line() +
   geom_point(size = 1) +
   facet_wrap(~ Variable, ncol = 1, scales = "free") +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   labs(x = "", y = "") +
-  ylim(0, NA) -> trips_vessels
+  ylim(0, NA) +
+  theme_clean()
 
+# Save the plot
 trips_vessels
 ggsave(plot = trips_vessels, paste0(YEAR+1,"/figures/potfishery_tripandvessel_trends_2022_", YEAR, ".png"), 
        dpi=300, height=6, width=5, units="in")
@@ -313,16 +322,16 @@ pot_cpue_ftx_clean <-pot_cpue_ftx %>%
          #Depr_sum == "none"
          ) 
 # Long right tail
-ggplot(pot_cpue_ftx_clean, aes(std_cpue)) + geom_density(alpha = 0.6, fill = 4)
+ggplot(pot_cpue_ftx, aes(std_cpue)) + geom_density(alpha = 0.6, fill = 4)
 ggplot(pot_cpue_ftx_clean, aes(std_cpue)) + geom_histogram(alpha = 0.6, fill = 4)
 # Better, but still not normal with log transformation
-ggplot(pot_cpue_ftx_clean, aes(log(std_cpue + 0.1))) + geom_density(alpha = 0.4, fill = 4)
+ggplot(pot_cpue_ftx, aes(log(std_cpue + 0.1))) + geom_density(alpha = 0.4, fill = 4)
 ggplot(pot_cpue_ftx_clean, aes(log(std_cpue + 0.1))) + geom_histogram(alpha = 0.4, fill = 4)
 # Following Jenny Stahl and Ben Williams' work in the SSEI, increase CPUE by 10%
 # of the mean per Cambell et al 1996 and Cambell 2004. Back-transform with
 # exp(cpue - mean(fsh_cpue$std_cpue) * 0.1)
-pot_cpue_ftx_clean %>% 
-  mutate(cpue = log(std_cpue + (mean(pot_cpue_ftx_clean$std_cpue, na.rm=T) * 0.1))) -> pot_cpue_ftx_clean
+pot_cpue_ftx %>% 
+  mutate(cpue = log(std_cpue + (mean(pot_cpue_ftx$std_cpue, na.rm=T) * 0.1))) -> pot_cpue_ftx_clean
 
 ggplot(pot_cpue_ftx_clean, aes(cpue)) + geom_density(alpha = 0.4, fill = 4)
 ggplot(pot_cpue_ftx_clean, aes(cpue)) + geom_histogram(alpha = 0.4, fill = 4)
