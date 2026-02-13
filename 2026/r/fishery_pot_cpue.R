@@ -17,7 +17,7 @@ source("r_helper/functions.r")
 # if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
 # Most recent year of data
-YEAR <- 2023
+YEAR <- 2025
 
 # POT Logbook/CPUE data  ----
 random_check<-function(data){ #data<-pot_cpue
@@ -53,10 +53,13 @@ random_check<-function(data){ #data<-pot_cpue
   
   return(check)
 }
+
 # Read in data, standardize cpue, etc.
 read_csv(paste0(YEAR+1,"/data/fishery/fishery_pot_cpue_2022_", YEAR,".csv"), 
          guess_max = 50000) -> pot_cpue #%>% 
+
 colnames(pot_cpue)
+
 #pot_cpue<-unique(pot_cpue)
 random_check(pot_cpue)
 
@@ -64,14 +67,14 @@ random_check(pot_cpue)
 # data by year, sell_date, Adfg, Stat, 
 
 # 1) Look at cpue based on fish ticket landings... 
-#pot_cpue_ftx <- unique(pot_cpue %>% 
-#  group_by(year, sell_date, Adfg, Stat) %>% 
-  #select(-set_date,-julian_day_set,-set_soak,-set_length,-set_depth,-set_no,
-#         -logged_no,-logged_lbs,-disposition,
-         #-set_depredation, #depredation not in 2022 pot logbooks... 
-#         -start_lat,-start_lon))
-#random_check(pot_cpue_ftx) #should just be one row for each trip... 
-#histogram(ll_cpue_ftx$p_sets_depredated[ll_cpue_ftx$p_sets_depredated > 0])
+pot_cpue_ftx <- unique(pot_cpue %>%
+ group_by(year, sell_date, Adfg, Stat) %>%
+select(-set_date,-julian_day_set,-set_soak,-set_length,-set_depth,-set_no,
+        -logged_no,-logged_lbs,-disposition,
+-set_depredation, #depredation not in 2022 pot logbooks...
+        -start_lat,-start_lon))
+random_check(pot_cpue_ftx) #should just be one row for each trip...
+histogram(ll_cpue_ftx$p_sets_depredated[ll_cpue_ftx$p_sets_depredated > 0])
 
 unique(pot_cpue_ftx$trip_set_targets)
 

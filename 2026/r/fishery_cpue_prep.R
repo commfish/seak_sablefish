@@ -7,24 +7,30 @@
 # prepare datasets for CPUE analyses 
 
 # Author: Rhea Ehresmann & Phil Joy
-# Updated: 3/19/24
+# Updated: 2/12/26
+# Contact: aaron.lambert@alaska.gov
 
 # Packages
 library(pacman)
 p_load(dplyr, ggplot2, tidyverse, sf, lubridate, tibble, janitor, stringr, readr, data.table)
 
-YEAR <- 2023
-#-------------------------------------------------------------------------------------------------------------
-# Notes on Data and Metadata
-#-------------------------------------------------------------------------------------------------------------
-# Source data from OceanAK:
-# The 3 logbook outputs are saved in OceanAK: /Shared Folders/Commercial Fisheries/Region 1/GroundFish/User Reports/Queries for Sablefish Assessment/DDR/Chatham Sablefish Assessment 
-# and include 2. Fishery Logbooks for CPUE (longline and pot) -- fishticket_report, catch_report, and gear_report. This link should take you to it: 
-## https://oceanak.dfg.alaska.local/analytics/saw.dll?Portal&PortalPath=%2Fshared%2FCommercial%20Fisheries%2FRegion%20I%2FGroundFish%2FUser%20Reports%2FQueries%20for%20Sablefish%20Assessment%2FDDR%2FChatham%20Sablefish%20Assessment
+# Most recent year of data
+YEAR <- 2025
 
-#### ATTENTION!!!!!!
-## TO AVOID ISSUES WITH DATES, YOU MUST SAVE THE CSV FILES ABOVE AS "CSV (Comma delimited)" NOT "CSV UTF-8 (Comma delimited)" WHICH IS 
-##  HOW THEY WILL DOWNLOAD FROM OCEANAK!!
+#*********************************************************************************
+# Notes on Data and Metadata
+#*********************************************************************************
+# Source data from OceanAK:
+# The 3 logbook outputs are saved in OceanAK: /Shared Folders/Commercial Fisheries/Region 1/GroundFish/User Reports/Queries 
+# for Sablefish Assessment/DDR/Chatham Sablefish Assessment and include 
+# 2. Fishery Logbooks for CPUE (longline and pot) -- fishticket_report, catch_report, and gear_report. 
+# This link should take you to it: 
+# https://oceanak.dfg.alaska.local/analytics/saw.dll?Portal&PortalPath=%2Fshared%2FCommercial%20Fisheries%2
+# FRegion%20I%2FGroundFish%2FUser%20Reports%2FQueries%20for%20Sablefish%20Assessment%2FDDR%2FChatham%20Sablefish%20Assessment
+
+# ATTENTION!!!!!!
+# TO AVOID ISSUES WITH DATES, YOU MUST SAVE THE CSV FILES ABOVE AS "CSV (Comma delimited)" NOT "CSV UTF-8 (Comma delimited)" WHICH IS 
+# HOW THEY WILL DOWNLOAD FROM OCEANAK!!
 
 ### NOTE!!! catch_report and gear_report outputs **DO NOT** have the correct permits because the
 # database is not set up to show multiple permits for those subject areas (i.e., both B halibut and C sablefish permits), so 
@@ -49,9 +55,9 @@ YEAR <- 2023
 # 92-retained for bait/not sold, 95-personal use/not sold, 98-discarded at sea, 99-discard onshore/not sold, and some blanks 
 # as disposition wasn't always a required field 
 
-#-------------------------------------------------------------------------------------------------------------
-# fish ticket data by trip level 
-#-------------------------------------------------------------------------------------------------------------
+#*******************************************************************************
+# fish ticket data by trip level------------------------------------------------ 
+#*******************************************************************************
 # Shows fish ticket data joined with appropriate year, trip, and project from OceanAK report
 # Notes: we don't have halibut fish tickets prior to 2006!
 # Do not use STAT AREA from this fish ticket data -- always use the STAT AREA info from the gear_report from the logbook data directly
@@ -60,8 +66,13 @@ YEAR <- 2023
 # needs to be added in here to keep it in the data and just make calculations
 # based on the logbook data. Data was not available in 2024 until late March so 
 # I did not have time to explore this further. The 2025 assessment should revisit this! 
+# 
+# AR says that stat area will be joined in a later step (Aaron 2026)
 
-ftx <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/CPUE_dat_24_revisions/fishticket_report.csv")) %>% 
+# Load in the fish ticket data
+# This is from the sale of fish to the processor
+# *** Do not use stat_area from fish ticket data because it's incomplete and wrong! ***
+ftx <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/fishticket_report.csv")) %>% 
   clean_names() %>%  
   mutate(date_left_port = as.Date(date_left_port, format = "%m/%d/%Y"),
          ft_sell_date = as.Date(sell_date, format = "%m/%d/%Y"),
@@ -72,48 +83,60 @@ ftx <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/CPUE_dat_24_revisions/fish
 #                          "335701", "345701", "345731", "345803")) %>% # remove survey harvest fish tickets
   select(year, trip_number, project_code, ft_adfg_number = adfg_number, vessel_name, elandings_trip_num, ticket_number, cfec_fishery_code, 
          cfec_permit_number, permit_holder, ft_sell_date, harvest_code, delivery_code, ft_dispo_code = disposition_code,
-         ft_species = species, ft_rnd_lbs = round_pounds, ft_stat = stat_area) ## do not use stat_area from fish ticket data -- it's incomplete and wrong! 
+         ft_species = species, ft_rnd_lbs = round_pounds)
 
-unique(ftx$ft_stat)
-
-## longline trip fish tickets for cpue join later 
-## NOTE: pulling fish tickets with sablefish only and getting rid of harvest code, delivery code, and dispo fields
-## feel free to add those in or apply filters here for what you want -- I'm keeping it simple because once you add in those
-## fields, your lines for each trip start stacking up and creates a mess when you join with the tidy logbook data 
+# Filter the fish tickets for longline and sablefish (Code 602)
+# NOTE: pulling fish tickets with sablefish only and getting rid of harvest code, delivery code, and dispo fields
+# feel free to add those in or apply filters here for what you want -- I'm keeping it simple because once you add in those
+# fields, your lines for each trip start stacking up and creates a mess when you join with the tidy logbook data 
 ftx_ll_cpue <- ftx %>% 
   filter(ft_species == "Sablefish", 
          project_code == 602) %>% 
-  select(year, trip_number, project_code, ft_adfg_number, ft_stat, vessel_name, ticket_number, cfec_fishery_code, cfec_permit_number, 
+  select(year, trip_number, project_code, ft_adfg_number, #ft_stat, 
+         vessel_name, ticket_number, cfec_fishery_code, cfec_permit_number, 
          ft_sell_date, ft_sable_rnd_lbs = ft_rnd_lbs, ft_dispo_code, harvest_code) %>%
   group_by(year,trip_number,ft_sell_date) %>%
   mutate(trip_landing = sum(ft_sable_rnd_lbs))
 
-data.frame(ftx_ll_cpue)
-## pot trip fish tickets for cpue join later 
+# Filter the fish tickets by pot gear (Code 617)
 ftx_pot_cpue <- ftx %>% 
   filter(ft_species == "Sablefish", 
          project_code == 617) %>% 
-  select(year, trip_number, project_code, ft_adfg_number, ft_stat, vessel_name, ticket_number, cfec_fishery_code, cfec_permit_number, 
-         ft_sell_date, ft_sable_rnd_lbs = ft_rnd_lbs, ft_dispo_code, harvest_code) %>%
+  select(year, 
+         trip_number,
+         project_code,
+         ft_adfg_number, 
+         #ft_stat, 
+         vessel_name, 
+         ticket_number, 
+         cfec_fishery_code,
+         cfec_permit_number, 
+         ft_sell_date, 
+         ft_sable_rnd_lbs = ft_rnd_lbs, 
+         ft_dispo_code, 
+         harvest_code) %>%
   group_by(year,trip_number,ft_sell_date) %>%
   mutate(trip_landing = sum(ft_sable_rnd_lbs))
 
-## mixed trip fish tickets for cpue join later 
+# Filter for mixed trip fish tickets for cpue join later 
+# Aaron: I think mixed is refering to target species. I.e, Halibut and Sablefish
 ftx_mixed_cpue <- ftx %>% 
   filter(ft_species == "Sablefish", 
          project_code == 631) %>% 
-  select(year, trip_number, project_code, ft_adfg_number, ft_stat, vessel_name, ticket_number, cfec_fishery_code, cfec_permit_number, 
+  select(year, trip_number, project_code, ft_adfg_number, #ft_stat, 
+         vessel_name, ticket_number, cfec_fishery_code, cfec_permit_number, 
          ft_sell_date, ft_sable_rnd_lbs = ft_rnd_lbs, ft_dispo_code, harvest_code) %>%
   group_by(year,trip_number,ft_sell_date) %>%
   mutate(trip_landing = sum(ft_sable_rnd_lbs))
 
 
-#-------------------------------------------------------------------------------------------------------------
-# catch data by effort level 
-#-------------------------------------------------------------------------------------------------------------
-#Unique row for each effort that includes depredation and catch for all species  
+#**************************************************************************************
+# Catch data by effort level ----------------------------------------------------------
+#**************************************************************************************
 
-catch <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/CPUE_dat_24_revisions/catch_report.csv")) %>% 
+# Loads in the Catch data
+# Unique row for each effort that includes depredation and catch for all species  
+catch <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/catch_report.csv")) %>% 
   clean_names() %>% 
 #  filter(groundfish_management_area_code %in% c("345603", "345631", "345702", # removed in 2024 because filtered out already:
 #                                                "335701", "345701", "345731", "345803")) %>%
@@ -127,7 +150,7 @@ catch <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/CPUE_dat_24_revisions/ca
                                log_dispo == "Released" ~ "released",
                                log_dispo == "" ~ "no_catch", 
                                TRUE ~ "released_quota_limit"),
-         number_of_skates_impacted = ifelse(is.na(number_of_skates_impacted),0,number_of_skates_impacted)) %>% 
+         number_of_skates_impacted = ifelse(is.na(number_of_skates_impacted),0,number_of_skates_impacted)) %>% # want to keep NAs
   group_by(across(c(year:log_dispo))) %>% 
   ## add up numbers and round lbs for each species/group by set
   summarise(log_numbers = sum(log_numbers), 
@@ -135,13 +158,15 @@ catch <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/CPUE_dat_24_revisions/ca
   ## spread columns to make it easier to see so each effort is one row 
   pivot_wider(names_from = c(log_species, log_dispo), values_from = c(log_numbers, log_rnd_lbs)) 
 
-colnames(catch)
-#-------------------------------------------------------------------------------------------------------------
-# gear configuration data by effort level 
-#-------------------------------------------------------------------------------------------------------------
-# Unique row for each effort that includes gear configurations for each set as well as set/haul data and target species 
+# colnames(catch)
 
-gear <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/CPUE_dat_24_revisions/gear_report.csv"), na.strings = c("", " ", "NA")) %>% 
+#**************************************************************************************
+# Gear configuration data by effort level ---------------------------------------------
+#**************************************************************************************
+
+# Load in the gear data
+# Unique row for each effort that includes gear configurations for each set as well as set/haul data and target species 
+gear <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/gear_report.csv"), na.strings = c("", " ", "NA")) %>% 
   clean_names() %>% 
 #  filter(groundfish_stat_area %in% c("345603", "345631", "345702", # removed in 2024 because filtered out already:
 #                                     "335701", "345701", "345731", "345803")) %>%
@@ -176,38 +201,42 @@ gear <- read.csv(paste0(YEAR+1,"/data/fishery/raw_data/CPUE_dat_24_revisions/gea
   ## separate those data into new columns labeled _1 and _2 for all the different gear configs (there are at most 2 configs per effort) 
   separate_wider_delim(cols = c(gear_target_species_code:pot_dimensions), delim = ";", names_sep = "_", too_few = "align_start") 
 
-colnames(gear)
-unique(gear$log_stat_area)
-#-------------------------------------------------------------------------------------------------------------
-# join gear config and catch data by effort level so every effort is its own row -- this all logbook data now!
-#-------------------------------------------------------------------------------------------------------------
-# join the effort catch and effort gear dfs so that now every effort of every trip has its own row - this is all trips
+# colnames(gear)
+# unique(gear$log_stat_area)
+
+#*********************************************************************************
+# Join gear and catch data ----
+# *** This is all logbook data now! ***
+#*********************************************************************************
+# 
+# Join the effort catch and effort gear dfs so that now every effort of every trip has its own row - this is all trips
 all_effort_data <- gear %>% 
   left_join(catch) %>%
   group_by(year, trip_number, project_code) %>% 
   ## add column for number of sets to join with fish ticket data later 
-  mutate(set.count = n_distinct(effort_number)) %>% ungroup() 
+  mutate(set.count = n_distinct(effort_number)) %>% 
+  ungroup() 
 
-## longline trip logbook data only for cpue   
+# Longline trip logbook data only for cpue   
 ll_log <- all_effort_data %>% 
   filter(project_code == 602) %>% 
   ## remove pot gear columns 
-  select(-c(pot_line_diam_1:pot_dimensions_2)) 
+  select(-c(pot_line_diam_1:pot_dimensions_2)) %>%
+  filter(trip_target_species_combined == 710) # Changed 2025 to be sets that targeted sablefish only
 
-## pot trip logbook data only for cpue 
+# Pot trip logbook data only for cpue 
 pot_log <- all_effort_data %>%
   filter(project_code == 617) %>% 
   ## remove longline gear columns
   select(-c(longline_system_code_1:num_of_hooks_2))
 
-## mixed trip logbook data only for cpue 
+# Mixed trip logbook data only for cpue 
 mixed_log <- all_effort_data %>%
   filter(project_code == 631) 
   
-#-------------------------------------------------------------------------------------------------------------
-# Longline logbook prep for CPUE -- right now each row = one unique effort and this code manipulates logbooks
-# data based on fishery_cpue_fr_OceanAK_ftx_lb_dat.R file step #13 lines 377-421 
-#-------------------------------------------------------------------------------------------------------------
+#**************************************************************************************
+# Longline logbook prep for CPUE ------------------------------------------------------
+#**************************************************************************************
 
 log_ll_cpue <- ll_log %>% 
   ## Get numbers of hooks when num_of_hooks not available...
@@ -305,22 +334,24 @@ log_ll_cpue <- ll_log %>%
          #for analyzing CPUE versus things like hook size will want
          #to filter out multi_config
          mean_trip_depth_fm = mean(average_depth_fathoms)) 
+
 ## Next line of code in Phil's data pulls in whole weights from FT data, so merge FT data next 
-unique()
-#-------------------------------------------------------------------------------------------------------------
-# Longline logbook join with fish ticket data (you can merge this earlier but it will change 1 unique effort/row!) 
+
+#**************************************************************************************
+# Longline logbook join with fish ticket data -----------------------------------------
+# *** You can merge this earlier but it will change 1 unique effort/row! ***
 # Refer to Line 422 in fishery_cpue_fr_OceanAK_ftx_lb_dat.R file from here onward 
-#-------------------------------------------------------------------------------------------------------------
+#**************************************************************************************
+
 ## Join logbook data with fish ticket data 
 ll_cpue_log_ftx <- log_ll_cpue %>% 
   full_join(ftx_ll_cpue, by = c("year", "trip_number", "project_code")) %>% 
   relocate(c(114:120), .before = trip_target_species_combined)
 
 ## Format and save for cpue exam and calculation: 
-
-ll_cpue_log_ftx %>% filter(effort_target_species_code_1 == 710) %>% 
+ll_cpue <- ll_cpue_log_ftx %>% filter(effort_target_species_code_1 == 710) %>% 
   group_by(year,trip_number,adfg_number,
-           #log_stat_area,
+           log_stat_area, # Changed 2025 - AR -added this
            ft_sell_date) %>%
   mutate(
          harvest_code = list(unique(harvest_code)), #need to get rid of harvest code so that we combine all catches from that trip, even if they were overages... 
@@ -328,14 +359,16 @@ ll_cpue_log_ftx %>% filter(effort_target_species_code_1 == 710) %>%
          ticket_number = list(unique(ticket_number)), #sometimes a trip has more than one ticket so need to combined... 
          cfec_permit_number = list(unique(cfec_permit_number)), #sometimes a trip has more than one permit number so need to combined...
          stat_area_count_log = length(unique(log_stat_area)),
-         stat_area_count_ft = length(unique(ft_stat)),
+         #stat_area_count_ft = length(unique(ft_stat)),
          set_count = length(unique(effort_number)),
          set_count_match = ifelse(set_count == set.count,"Match","Mismatch"),
          trip_catch = trip_landing #sum(unique(ft_sable_rnd_lbs)),
          #success_sets = length(log_rnd_lbs_sablefish_retained[!is.na(log_rnd_lbs_sablefish_retained)]),
          #set_record_mismatch = ifelse(set_count == success_sets,"Match","Mismatch")
          ) %>%
-  select(-c(ft_sable_rnd_lbs,ft_stat,log_stat_area)) %>% unique() %>% 
+  select(-c(ft_sable_rnd_lbs #,ft_stat,
+            # log_stat_area
+            )) %>% unique() %>% 
   mutate(trip_soak_time = sum(set_soak_time),
          trip_km_fished = sum(set_km_fished),
          trip_hooks_exact = sum(set_hook_count_exact),
@@ -370,18 +403,18 @@ ll_cpue_log_ftx %>% filter(effort_target_species_code_1 == 710) %>%
                                  set_catch / log_numbers_sablefish_retained,
                                  NA),
     meanset_vs_trip_cpue_ratio = mean(sable_lbs_set, na.rm=T) / trip_sable_lbs_set
-  ) -> ll_cpue
+  ) 
 
-colnames(ll_cpue)
-
-# format for existing cpue scrips
-ll_cpue %>% 
-  mutate(set_date = as.Date(time_set, c("%m/%d/%Y %H:%M"), tz="UTC"),
+# Format for next step in CPUE analysis and Standardization
+cpue_for_analysis <- ll_cpue %>% 
+  mutate(set_date = as.Date(time_set, format = "%m/%d/%Y %H:%M"),
          sell_date = ft_sell_date,
-         julian_day_set = yday(set_date),
-         julian_day_sell = yday(sell_date),
+         julian_day_set = lubridate::yday(set_date),
+         julian_day_sell = lubridate::yday(sell_date),
          tm_hauled = parse_date_time(time_hauled, c("%m/%d/%Y %H:%M")),
+         #tm_hauled = mdy_hm(time_hauled),
          t_set = parse_date_time(time_set, c("%m/%d/%Y %H:%M")),
+         #t_set = mdy_hm(time_set),
          set_soak = set_soak_time,
          set_length = set_km_fished,
          
@@ -452,27 +485,32 @@ ll_cpue %>%
          set_target_2 = effort_target_species_2,
          trip_target = trip_target_species_code_1,
          trip_target_2 = trip_target_species_code_2,
-         meanset_vs_trip_cpue_ratio) -> cpue_for_analysis
+         meanset_vs_trip_cpue_ratio)
 
+# View(cpue_for_analysis)
+
+# Save the formated dataframe from directly above
 write_csv(cpue_for_analysis, paste0(YEAR+1,"/data/fishery/fishery_ll_cpue_",
                          min(cpue_for_analysis$year), "_", max(cpue_for_analysis$year), ".csv"))
 
-#save for legacy for 2025 and forward
+# Save in legacy for next year
 write_csv(cpue_for_analysis, paste0("legacy_data/fishery/fishery_ll_cpue_",
                          min(cpue_for_analysis$year), "_", max(cpue_for_analysis$year), ".csv"))
 
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# Pot CPUE:
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
+
+#**************************************************************************************
+# Pot CPUE ----------------------------------------------------------------------------
+#**************************************************************************************
 str(pot_log)
 unique(pot_log$pot_dimensions_1)
 with(pot_log, table(pot_dimensions_1))
-# one weird pot_dimentsion to examine? 24x42x60
 
-pot_log <- pot_log %>% mutate(pot_dim_raw1 = pot_dimensions_1,
-                                  pot_dim_raw2 = pot_dimensions_1) %>%
+# one weird pot_dimension to examine? 24x42x60
+
+# Caluclate pot volume and number of pots lost
+pot_log <- pot_log %>% 
+  mutate(pot_dim_raw1 = pot_dimensions_1,
+         pot_dim_raw2 = pot_dimensions_1) %>%
   extract(pot_dim_raw1, c("pot_diam","pot_len"),"([\\d.]+)[^\\d.]+([\\d.]+)", convert = TRUE) %>%
   extract(pot_dim_raw2, c("pot_len1","pot_diam1","pot_diam2"),"([\\d.]+)[^\\d.]+([\\d.]+)[^\\d.]+([\\d.]+)", convert = TRUE) %>%
   mutate(pot_volume_m3 = ifelse(pot_type_1 == "Slinky",
@@ -483,16 +521,17 @@ pot_log <- pot_log %>% mutate(pot_dim_raw1 = pot_dimensions_1,
          num_of_pots_lost_1 = ifelse(is.na(num_of_pots_lost_1),0,num_of_pots_lost_1),
          num_of_pots_lost_2 = ifelse(is.na(num_of_pots_lost_2),0,num_of_pots_lost_2)) #0.00001639*
 
-unique(pot_log$Pot_Volume_m3)
-hist(as.numeric(pot_log$num_of_pots_set_1), breaks = 100)
-hist(as.numeric(pot_log$num_of_pots_lost_1), breaks = 100)
-ugh22 <- pot_log %>% filter(year == 2022) 
-unique(ugh22$num_of_pots_set_1)
-unique(ugh22$num_of_pots_lost_1)
-ugh23 <- pot_log %>% filter(year == 2023) 
-unique(ugh23$num_of_pots_set_1)
-unique(ugh23$num_of_pots_lost_1)
+# unique(pot_log$Pot_Volume_m3)
+# hist(as.numeric(pot_log$num_of_pots_set_1), breaks = 100)
+# hist(as.numeric(pot_log$num_of_pots_lost_1), breaks = 100)
+# ugh22 <- pot_log %>% filter(year == 2022) 
+# unique(ugh22$num_of_pots_set_1)
+# unique(ugh22$num_of_pots_lost_1)
+# ugh23 <- pot_log %>% filter(year == 2023) 
+# unique(ugh23$num_of_pots_set_1)
+# unique(ugh23$num_of_pots_lost_1)
 
+# Join pot log book data with fish ticket data
 pot_cpue_log_ftx <- pot_log %>% 
   full_join(ftx_pot_cpue, by = c("year", "trip_number", "project_code")) %>% 
   mutate(#across(where(is.character),as.factor),
@@ -511,23 +550,24 @@ pot_cpue_log_ftx <- pot_log %>%
                                             .default = "all_retained"),
          across(where(is.character),as.factor)
          )
-  #relocate(c(114:120), .before = trip_target_species_combined)
-colnames(pot_cpue_log_ftx)
-hist(pot_cpue_log_ftx$num_of_pots_set_1, breaks = 100)
-hist(pot_cpue_log_ftx$num_of_pots_lost_1, breaks = 100)
+  
+#relocate(c(114:120), .before = trip_target_species_combined)
+# colnames(pot_cpue_log_ftx)
+# hist(pot_cpue_log_ftx$num_of_pots_set_1, breaks = 100)
+# hist(pot_cpue_log_ftx$num_of_pots_lost_1, breaks = 100)
+# 
+# ugh22 <- pot_cpue_log_ftx %>% filter(year == 2022) 
+# unique(ugh22$num_of_pots_set_1)
+# unique(ugh22$num_of_pots_lost_1)
+# ugh23 <- pot_cpue_log_ftx %>% filter(year == 2023) 
+# unique(ugh23$num_of_pots_set_1)
+# unique(ugh23$num_of_pots_lost_1)
 
-ugh22 <- pot_cpue_log_ftx %>% filter(year == 2022) 
-unique(ugh22$num_of_pots_set_1)
-unique(ugh22$num_of_pots_lost_1)
-ugh23 <- pot_cpue_log_ftx %>% filter(year == 2023) 
-unique(ugh23$num_of_pots_set_1)
-unique(ugh23$num_of_pots_lost_1)
-## Format and save for cpue exam and calculation: 
-str(pot_cpue_log_ftx)
-
-pot_cpue_log_ftx %>% filter(effort_target_species_code_1 == 710) %>% 
+# Prep for CPUE analysis
+pot_cpue <- pot_cpue_log_ftx %>% 
+  filter(effort_target_species_code_1 == 710) %>% 
   group_by(year,trip_number,adfg_number,
-           #log_stat_area,
+           log_stat_area,
            ft_sell_date) %>%
   mutate(
     harvest_code = list(unique(harvest_code)), #need to get rid of harvest code so that we combine all catches from that trip, even if they were overages... 
@@ -535,14 +575,16 @@ pot_cpue_log_ftx %>% filter(effort_target_species_code_1 == 710) %>%
     ticket_number = list(unique(ticket_number)), #sometimes a trip has more than one ticket so need to combined... 
     cfec_permit_number = list(unique(cfec_permit_number)), #sometimes a trip has more than one permit number so need to combined...
     stat_area_count_log = length(unique(log_stat_area)),
-    stat_area_count_ft = length(unique(ft_stat)),
+    #stat_area_count_ft = length(unique(ft_stat)),
     set_count = length(unique(effort_number)),
     set_count_match = ifelse(set_count == set.count,"Match","Mismatch"),
     trip_catch = trip_landing #sum(unique(ft_sable_rnd_lbs)),
     #success_sets = length(log_rnd_lbs_sablefish_retained[!is.na(log_rnd_lbs_sablefish_retained)]),
     #set_record_mismatch = ifelse(set_count == success_sets,"Match","Mismatch")
   ) %>%
-  select(-c(ft_sable_rnd_lbs,ft_stat,log_stat_area)) %>% unique() %>% 
+  select(-c(ft_sable_rnd_lbs)) %>% 
+  #ft_stat,
+  #log_stat_area)) %>% unique() %>% 
   mutate(trip_soak_time = sum(soak_time_hrs),
          trip_km_fished = sum(set_length_km),
          trip_pots = sum(num_of_pots_set_1),
@@ -581,85 +623,88 @@ pot_cpue_log_ftx %>% filter(effort_target_species_code_1 == 710) %>%
                                       NA),
          meanset_vs_trip_cpue_ratio = mean(sable_lbs_set, na.rm=T) / trip_sable_lbs_set,
          lb_p_pot = set_catch / (num_of_pots_set_1-num_of_pots_lost_1)
-  ) -> pot_cpue
+  ) 
 
-colnames(pot_cpue)
-hist(pot_cpue$num_of_pots_set_1, breaks = 100)
-hist(pot_cpue$num_of_pots_lost_1, breaks = 100)
-hist(pot_cpue$pots_p_set, breaks = 100)
-hist(pot_cpue$set_catch)
-hist(pot_cpue$lb_p_pot, breaks = 50)
-hist(pot_cpue$trip_landing, breaks = 50)
-unique(pot_cpue$trip_landing)
-pot_cpue %>% filter(lb_p_pot > 15000) %>% data.frame()
-cpue_for_analysis %>% filter(year == 2023, trip_no == 4102, Adfg == "31796")
 
-hist(pot_cpue$num_of_pots_set_2, breaks = 100)
-hist(pot_cpue$num_of_pots_lost_2, breaks = 100)
+# colnames(pot_cpue)
+# hist(pot_cpue$num_of_pots_set_1, breaks = 100)
+# hist(pot_cpue$num_of_pots_lost_1, breaks = 100)
+# hist(pot_cpue$pots_p_set, breaks = 100)
+# hist(pot_cpue$set_catch)
+# hist(pot_cpue$lb_p_pot, breaks = 50)
+# hist(pot_cpue$trip_landing, breaks = 50)
+# unique(pot_cpue$trip_landing)
+# pot_cpue %>% filter(lb_p_pot > 15000) %>% data.frame()
+# cpue_for_analysis %>% filter(year == 2023, trip_no == 4102, Adfg == "31796")
+# 
+# hist(pot_cpue$num_of_pots_set_2, breaks = 100)
+# hist(pot_cpue$num_of_pots_lost_2, breaks = 100)
+# 
+# ugh22 <- pot_cpue %>% filter(year == 2022) 
+# unique(ugh22$num_of_pots_set_1)
+# unique(ugh22$num_of_pots_lost_1)
+# unique(ugh22$lb_p_pot)
+# ugh23 <- pot_cpue %>% filter(year == 2023) 
+# unique(ugh23$num_of_pots_set_1)
+# unique(ugh23$num_of_pots_lost_1)
+# unique(ugh23$lb_p_pot)
+# 
+# #checking things out code in brackets... 
+# {rands <- random_check(pot_cpue)
+# 
+# check<-as.data.frame(pot_cpue %>% filter(ft_sell_date == rands[[3]][1],
+#                                                 #log_stat_area == rands[[4]][1],
+#                                                 year == rands[[1]][1], #unique(Sable_ll_CPUE$Year)[rands[[1]][1]],
+#                                                 ft_adfg_number == rands[[2]][1])); nrow(check)
+# check$set_catch / check$trip_sable_lbs_set
+# 
+# difference <- setdiff(as.vector(check[1,]),as.vector(check[2,]))
+# print(difference)
+# 
+# check$trip_catch
+# check$set_catch
+# sum(check$set_catch, na.rm=T)
+# check$set_catch2
+# sum(check$set_catch2)
+# 
+# mean(check$sable_lbs_set, na.rm=T)
+# unique(check$trip_sable_lbs_set)
+# 
+# check$ft_dispo_code
+# check$harvest_code
+# check$ticket_number
+# check$cfec_permit_number
+# 
+# check$trip_km_fished
+# sum(check$set_length_km)
+# 
+# check$trip_soak_time
+# sum(check$soak_time_hrs)
+# 
+# check$trip_pots
+# sum(check$num_of_pots_set_1)
+# 
+# check$lbs_sablefish_retained
+# check$numbers_sablefish_retained
+# check$log_rnd_lbs_sablefish_retained
+# check$log_numbers_sablefish_retained
+# 
+# check$no_sablefish_released
+# check$no_sablefish_released_quota_limit
+# check$log_numbers_sablefish_released
+# check$log_numbers_sablefish_released_quota_limit
+# 
+# check$lbs_sablefish_released
+# check$lbs_sablefish_released_quota_limit
+# check$log_rnd_lbs_sablefish_released
+# check$log_rnd_lbs_sablefish_released_quota_limit}
 
-ugh22 <- pot_cpue %>% filter(year == 2022) 
-unique(ugh22$num_of_pots_set_1)
-unique(ugh22$num_of_pots_lost_1)
-unique(ugh22$lb_p_pot)
-ugh23 <- pot_cpue %>% filter(year == 2023) 
-unique(ugh23$num_of_pots_set_1)
-unique(ugh23$num_of_pots_lost_1)
-unique(ugh23$lb_p_pot)
-#checking things out code in brackets... 
-{rands <- random_check(pot_cpue)
-
-check<-as.data.frame(pot_cpue %>% filter(ft_sell_date == rands[[3]][1],
-                                                #log_stat_area == rands[[4]][1],
-                                                year == rands[[1]][1], #unique(Sable_ll_CPUE$Year)[rands[[1]][1]],
-                                                ft_adfg_number == rands[[2]][1])); nrow(check)
-check$set_catch / check$trip_sable_lbs_set
-
-difference <- setdiff(as.vector(check[1,]),as.vector(check[2,]))
-print(difference)
-
-check$trip_catch
-check$set_catch
-sum(check$set_catch, na.rm=T)
-check$set_catch2
-sum(check$set_catch2)
-
-mean(check$sable_lbs_set, na.rm=T)
-unique(check$trip_sable_lbs_set)
-
-check$ft_dispo_code
-check$harvest_code
-check$ticket_number
-check$cfec_permit_number
-
-check$trip_km_fished
-sum(check$set_length_km)
-
-check$trip_soak_time
-sum(check$soak_time_hrs)
-
-check$trip_pots
-sum(check$num_of_pots_set_1)
-
-check$lbs_sablefish_retained
-check$numbers_sablefish_retained
-check$log_rnd_lbs_sablefish_retained
-check$log_numbers_sablefish_retained
-
-check$no_sablefish_released
-check$no_sablefish_released_quota_limit
-check$log_numbers_sablefish_released
-check$log_numbers_sablefish_released_quota_limit
-
-check$lbs_sablefish_released
-check$lbs_sablefish_released_quota_limit
-check$log_rnd_lbs_sablefish_released
-check$log_rnd_lbs_sablefish_released_quota_limit}
-
-pot_cpue %>%
+# Prep for analysis in following R scripts
+pot_eff <- pot_cpue %>%
   mutate(set_date = as.Date(time_set,c("%Y-%m-%d %H:%M:%S"), tz="UTC" ),
          julian_day_set = yday(set_date),
          julian_day_sell  = yday(ft_sell_date),
-          gear_name = factor(trip_gear),
+         gear_name = factor(trip_gear),
          set_depth_m = 1.8288 * average_depth_fathoms,
          trip_depth  = 1.8288*mean_trip_depth_fm,
          pot_space_1 = 0.3048*pot_spacing_1,  #(convert to meters)
@@ -671,12 +716,12 @@ pot_cpue %>%
          pot_dim_2 = factor(pot_dimensions_2),
          pot_type_2 = factor(pot_type_2),
          
-        # no_pots_fished_on_trip = trip_pots,
-        # no_pots_p_set = total_pots/set.count,
+         # no_pots_fished_on_trip = trip_pots,
+         # no_pots_p_set = total_pots/set.count,
          
          sable_lbs_set = set_catch,
          sable_lbs_pot = lbs_p_pot
-         ) %>%
+  ) %>%
   select(year,set_date, sell_date = ft_sell_date, julian_day_set, julian_day_sell,
          trip_no = trip_number,
          Adfg = adfg_number,
@@ -699,21 +744,27 @@ pot_cpue %>%
          disposition = ft_dispo_code,
          catch = set_catch,
          sable_lbs_set, sable_lbs_pot
-         ) -> pot_eff
+  ) 
 
-#save for 2023 assessment...
+
+# Save for this year
 write_csv(pot_eff, paste0(YEAR+1,"/data/fishery/fishery_pot_cpue_",
                           min(pot_eff$year), "_", max(pot_eff$year), ".csv"))
 
-#save for legacy for 2024 and forward
+# Save for legacy
 write_csv(pot_eff, paste0("legacy_data/fishery/fishery_pot_cpue_",
                           min(pot_eff$year), "_", max(pot_eff$year), ".csv"))
 
 
 
-#-------------------------------------------------------------------------------
-#-==============================================================================
-#-------------------------------------------------------------------------------
+#**************************************************************************************
+# Legacy Scrap ------------------------------------------------------------------------
+# As of 2026, it appears that all the exploration below is complete and incorporated
+# in the current code above or in the ll_cpue r scripts. I am retaining it for now, even though 
+# it is available in past years folders just in case I need it. In 2027, look at cleaning this up 
+# better for future people working on the assessment.
+#**************************************************************************************
+
 # CODE DEVELOPMENT SCRAP:
 random_check<-function(data){ #data<-mixed_targets
   #length(unique(Sable_ll_CPUE$Year))
@@ -776,7 +827,8 @@ nrow(ll_cpue_log_ftx %>% filter(is.na(log_rnd_lbs_sablefish_retained)))/nrow(ll_
 nrow(ll_cpue_log_ftx %>% filter(is.na(log_numbers_sablefish_retained)))/nrow(ll_cpue_log_ftx)
 nrow(ll_cpue_log_ftx %>% filter(is.na(log_rnd_lbs_sablefish_retained) &
                                   is.na(log_numbers_sablefish_retained)))/nrow(ll_cpue_log_ftx) #Exciting! Rhea's new data seems to indicate that 98.4% of log book data has either numbers or lbs recorded... 
-#-------------------------------------------------------------------------------
+
+#
 # Adding in initial cpue calculations from trip level data:
 unique(ll_cpue_log_ftx$trip_target_species_code_1)
 
@@ -791,7 +843,7 @@ ll_cpue_log_ftx %>% filter(effort_target_species_code_1 == 710) %>% #only sets t
          ticket_number = list(unique(ticket_number)), #sometimes a trip has more than one ticket so need to combined... 
          cfec_permit_number = list(unique(cfec_permit_number)), #sometimes a trip has more than one permit number so need to combined...
          stat_area_count_log = length(unique(log_stat_area)),
-         stat_area_count_ft = length(unique(ft_stat)),
+         #stat_area_count_ft = length(unique(ft_stat)),
          set_count = length(unique(effort_number)),
          set_count_match = ifelse(set_count == set.count,"Match","Mismatch"),
          trip_catch = trip_landing, #sum(unique(ft_sable_rnd_lbs)),
@@ -806,7 +858,8 @@ ll_cpue_log_ftx %>% filter(effort_target_species_code_1 == 710) %>% #only sets t
          multigear_trip = ifelse(multi_gear_config == "single_config","No","Yes"),
          skip_acc = ifelse(!is.na(log_rnd_lbs_sablefish_retained),
                            (sum(log_rnd_lbs_sablefish_retained )/ unique(trip_catch)),NA)) %>%
-  select(-c(ft_sable_rnd_lbs,ft_stat,log_stat_area)) %>% unique() -> trip_cpue
+  select(-c(ft_sable_rnd_lbs,#ft_stat,
+            log_stat_area)) %>% unique() -> trip_cpue
 
 # calculate set level cpue
 set_cpue <- trip_cpue %>% group_by(year,trip_number,adfg_number,
@@ -856,7 +909,7 @@ nrow(ll_cpue %>% filter(set_record_mismatch == "Mismatch"))/nrow(ll_cpue)
 
 ll_cpue %>% filter(is.na(set_catch2)) -> bad
 bad$year
-#---------------------------------------------------------------------------------
+
 # Code development checks:
 nrow(set_cpue %>% filter(stat_area_match == "Mismatch")) / nrow(set_cpue)
 nrow(set_cpue %>% filter(target_match == "Mismatch")) / nrow(set_cpue) #targets usually match, but on occasion a halibut trip had some efforts targeting sablefish
@@ -997,9 +1050,10 @@ length(unique(check3$time_set))
 unique(check3$trip_target_species_code_1)
 unique(check3$effort_target_species_code_1)
 unique(check3$gear_target_species_code_1)
-#-------------------------------------------------------------------------------------------------------------
-# FLAGS FOR PHIL 
-#-------------------------------------------------------------------------------------------------------------
+
+#**************************************************************************************
+# FLAGS FOR PHIL ----------------------------------------------------------------------
+#**************************************************************************************
 
 ## pre.lbs_per_set should be split by gear proportional to set instead of split evenly by set count? 
 
@@ -1036,9 +1090,8 @@ unique(check3$gear_target_species_code_1)
 
 
 
-###################################################################################################
-### QAQC Code that checks for fish ticket trips to logbook trips 
-###################################################################################################
+
+# QAQC Code that checks for fish ticket trips to logbook trips 
 # look for fish tickets that don't have corresponding logbooks and logbooks that report fish tickets but the fish tickets are missing 
 unique_ftx <- ftx %>% 
   group_by(year, trip_number, project_code, ticket_number) %>%
@@ -1048,7 +1101,7 @@ unique_ftx <- ftx %>%
   distinct() 
 
 unique_gear <- gear %>% 
-  group_by(year, trip_number, project_code, log_tickets) %>% 
+  group_by(year, trip_number, project_code, log_tickets) %>%  
   select(year, trip_number, project_code, log_tickets) %>% 
   separate_longer_delim(log_tickets, delim = ", ") %>% 
   mutate(ticket_number = as.character(log_tickets), 

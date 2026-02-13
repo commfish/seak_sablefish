@@ -1,8 +1,8 @@
 
 # Fishery catch 1985-present, fishery CPUE 1997-present
-# Author: Phil Joy
-# Contact: philip.joy@alaska.gov
-# Last edited: Feb 2023
+# Author: Aaron Lambert
+# Contact: aaron.lambert@alaska.gov
+# Last edited: Feb 2026
 
 # Starting in 2023 this code replaces the old fishery CPUE calculations including
 # scripts titled fishery_catch_cpue.R (Jane's original) and fishery_catch_cpue_2022reboot.R
