@@ -19,7 +19,7 @@ source("r_helper/functions.r")
 if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 library("AICcmodavg")
 
-YEAR <- 2024 # most recent year of data
+YEAR <- 2025 # most recent year of data
 
 # VERSION 2 (2020): ----
 
@@ -41,9 +41,9 @@ srv_cpue %>% filter(skate_condition_cde != "02") %>%
 valid<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
   distinct(skate_comments) #%>% View() # any red flags? #2021: Yes, maybe... lets look
 sharks<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
-  filter(grepl("shark",skate_comments)) %>% View()
+  filter(grepl("shark",skate_comments)) 
 snarl<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
-  filter(grepl("snarl",skate_comments)) %>% View()
+  filter(grepl("snarl",skate_comments)) 
 valid2<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
   distinct(skate_comments) %>%
   filter(!grepl("shark",skate_comments)) %>% 
@@ -56,14 +56,14 @@ nrow(valid)
 
 #Jane's check
 srv_cpue %>% filter(skate_condition_cde != "02") %>% 
-  distinct(set_comments) %>% View() # any red flags?
+  distinct(set_comments)  # any red flags?
 
 srv_cpue %>% filter(no_hooks < 0)
 srv_cpue %>% filter(year >= 1997 & c(is.na(no_hooks) | no_hooks == 0)) # there should be none
 
 #Phil's 2021 checks...
 sharks2<-srv_cpue %>% filter(skate_condition_cde != "02") %>% 
-  filter(grepl("shark",set_comments)) %>% View()
+  filter(grepl("shark",set_comments))
 
 # This should be none. these are data entry errors I used a hard code fix, sent
 # error to Rhea and Aaron 20200205 to fix in database. As of 2021 it was still
@@ -77,7 +77,7 @@ srv_cpue %>% filter(is.na(Adfg))
 srv_cpue <- srv_cpue %>% mutate(Adfg = ifelse(is.na(Adfg), 55900, Adfg))
 
 # Data clean up
-srv_cpue  %>% 
+srv_cpue <- srv_cpue  %>% 
   filter(year >= 1997 & 
            # Mike Vaughn 2018-03-06: Sets (aka subsets with 12 or more invalid
            # hooks are subset condition code "02" or invalid)
@@ -113,10 +113,11 @@ srv_cpue  %>%
          shark = ifelse(grepl("sleeper|Sleeper|shark|sharks|slleepers", skate_comments) | 
                           grepl("sleeper|Sleepershark|sharks", set_comments), 1, 
                         ifelse(sleeper_shark > 0, 1, 0))) %>% 
-  rename(shortspine_thornyhead = idiot) -> srv_cpue
+  rename(shortspine_thornyhead = idiot)
+
 
 # Calculate the set (aka station) level cpue
-srv_cpue %>% 
+srv_cpue <- srv_cpue %>% 
   # Summarize data at the set (or station) level
   group_by(year, Vessel, Station_no) %>% # julian_day, soak, depth, slope, Stat, end_lat, end_lon, clotheslined, shark) %>% 
   mutate(bare = sum(bare),
@@ -147,7 +148,8 @@ srv_cpue %>%
   mutate(n_set = length(unique(Station_no)),
          cpue = mean(set_cpue),
          sd = round(sd(set_cpue), 4),
-         se = round(sd / sqrt(n_set), 4)) -> srv_cpue
+         se = round(sd / sqrt(n_set), 4)) 
+
 #  view(srv_cpue)
 # Sablefish-specific dataframe for analysis
 sable <- srv_cpue %>% 
@@ -160,11 +162,12 @@ sable <- srv_cpue %>%
          Clotheslined = factor(clotheslined),
          Shark = factor(shark)) 
 
-srv_cpue %>% 
+srv_sum <-srv_cpue %>% 
   ungroup() %>% 
   filter(hook_accounting == "sablefish") %>% 
   distinct(year, std_cpue = cpue, sd, se) %>% 
-  arrange(year) -> srv_sum #; view(srv_sum)
+  arrange(year) 
+
 
 srv_sum %>% print(n = Inf)
 
@@ -172,23 +175,26 @@ srv_sum %>% print(n = Inf)
 write_csv(srv_sum, paste0(YEAR+1,"/output/srvcpue_", min(srv_cpue$year), "_", YEAR, ".csv"))
 
 # Percent change in compared to a ten year rolling average
-srv_sum %>% 
+srv_lt <- srv_sum %>% 
   rename(srv_cpue = std_cpue) %>% 
   filter(year > YEAR - 10 & year <= YEAR) %>% 
   mutate(lt_mean = mean(srv_cpue),
          perc_change_lt = (srv_cpue - lt_mean) / lt_mean * 100,
          eval_lt = ifelse(perc_change_lt < 0, "decrease", "increase")) %>% 
-  filter(year == YEAR) -> srv_lt; srv_lt
+  filter(year == YEAR)
+srv_lt
 
 # Percent change from last year
-srv_sum %>% 
+srv_ly <- srv_sum %>% 
   rename(srv_cpue = std_cpue) %>%
   filter(year >= YEAR - 1 & year <= YEAR) %>%
   select(year, srv_cpue) %>% 
   mutate(year2 = ifelse(year == YEAR, "thisyr", "lastyr")) %>% 
   reshape2::dcast("srv_cpue" ~ year2, value.var = "srv_cpue") %>% 
   mutate(perc_change_ly = (thisyr - lastyr) / lastyr * 100,
-         eval_ly = ifelse(perc_change_ly < 0, "decreased", "increased")) -> srv_ly; srv_ly
+         eval_ly = ifelse(perc_change_ly < 0, "decreased", "increased"))
+srv_ly
+
 
 # figures
 # axis <- tickr(data = srv_sum, var = year, to = 3)

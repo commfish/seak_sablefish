@@ -182,7 +182,8 @@ unique(ll_cpue$set_depredation)
 # ll_cpue_ftx <- ll_cpue_depr_filter %>% 
 # 
 ll_cpue_ftx <- ll_cpue %>% 
-  filter(set_depredation %in% c("No depredation", "No depredation data")) %>% 
+  filter(set_depredation %in% c("No depredation", "No depredation data"),
+         log_stat_area %in% c(345631,345603,345702,345803,345701,345731,335701)) %>% 
   mutate(no_hooks_p_set = set_hook_count_best_available) %>% 
   filter(multi_gear_config == "single_config" &   #get rid of trips that reported 2 gear configurations
            #trip_set_targets == "all_Sablefish",   # only use trips that were dedicated to sablefish... but not yet...
@@ -213,10 +214,10 @@ ll_cpue_ftx <- ll_cpue %>%
          Trip = factor(trip_no),
          StatArea = factor(log_stat_area),
          #Stat = factor(Stat),
-         #Stat = fct_relevel(Stat,
-         #                    c("345702", "335701", # Frederick Sound
+         StatArea = fct_relevel(StatArea,
+                            c("345702", "335701", # Frederick Sound
          # Chatham south to north
-         #                    "345603", "345631", "345701", "345731", "345803")),
+                            "345603", "345631", "345701", "345731", "345803")),
          Depr_sum = ifelse(p_sets_depredated == 0, "none",
                            ifelse(p_sets_depredated == 1, "all sets", 
                                   ifelse(p_sets_depredated > 0 & p_sets_depredated <= 0.25,
@@ -684,11 +685,15 @@ modsum0 %>% arrange(-rsq)
 # End of AR Analysis ------------------------------------------------------------
 #****************************************************************************
 # Model fit with all variables
-global<-bam(cpue ~ Year + Gear + hook_size + s(StatArea,bs="re", by = dum) + s(set_depth, k=4) + s(soak_p_set, k=4) + 
-              s(Adfg, bs='re', by = dum) +
-              s(julian_day_sell, k=4) + s(set_length),
-            data=cpue_exam, gamma=1.4)
+# global<-bam(cpue ~ Year + Gear + hook_size + s(StatArea,bs="re", by = dum) + s(set_depth, k=4) + s(soak_p_set, k=4) + 
+#               s(Adfg, bs='re', by = dum) +
+#               s(julian_day_sell, k=4) + s(set_length),
+#             data=cpue_exam, gamma=1.4)
 
+global <- bam(cpue ~ Year + Gear + hook_size + StatArea + s(set_depth, k=4) + s(soak_p_set, k=4) + 
+                 Adfg +
+                 s(julian_day_sell, k=4) + s(set_length),
+               data=cpue_exam, gamma=1.4)
 # AIC chooses global in 2025 and 2026
 AIC(global)
 
@@ -870,8 +875,8 @@ plot.gam(global)
 str(diag(vcov.gam(global)))
 
 # Compare the models
-model.list<-list(global,m1,m2,m3,m4,m5)
-names(model.list)<-c("global","m1","m2","m3","m4","m5")
+model.list<-list(global,m1,m2,m3,m4)
+names(model.list)<-c("global","m1","m2","m3","m4")
 names(model.list[1])
 modsum<-data.frame(); j<-1
 for (i in model.list) {
@@ -928,9 +933,7 @@ std_dat <- expand.grid(year = unique(cpue_exam$Year),
   mutate(Year = factor(year))
 
 #checking my code with Jane's... checks out :)
-preds<-predict.bam(global, type="response", std_dat, se = TRUE)
-
-str(preds); head(preds)
+pred_cpue<-predict.bam(global, type="response", std_dat, se = TRUE)
 
 #Put the standardized CPUE and SE into the data frame and convert to
 #backtransformed (bt) CPUE
