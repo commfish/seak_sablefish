@@ -1,17 +1,18 @@
 # Northern Southeast Inside Waters (NSEI) sablefish (*Anoplopoma fimbria*) stock assessment
 
-*Please note that Phil Joy (philip.joy@alaska.gov) resigned this position in April 2024. Contact Rhea Ehresmann (rhea.ehresmann@alaska.gov) or Chris Siddon (chris.siddon@alaska.gov) with questions until a new biometrician has been assigned to this assessment. The 2024 assessment has been completed and the report will be posted in the repository once finalized.*
-
 *Fishery data needed for the assessment but not available from this repository is available on the Sitka Groundfish drive.* ***M:/SABLEFISH/CHATHAM/SCAA_Fishery_Data_for_new_bio_2024.***
 
 ## Assessment authors:
 
 * 2019-2021: Jane Sullivan, now with NOAA. Development of the original SCAA model that replaced the SPR model used previously in this assessment. Original model and code archived in branch *"seak_sablefish_thru2021_original_JS"*
 * 2022-2024: Phil Joy, now with ADF&G Sport Fish Division. SCAA development including selectivity development, random effects and fishery CPUE standardization.
+* 2026-current: Aaron Lambert, ADF&G Commercial Fish Division. SCAA code updates and model exploration.
 
-Last updated: July 2024
+Last updated: March 2026
 
 ## Reports
+2025 forecast: https://www.adfg.alaska.gov/FedAidPDFs/RIR.1J.2025.23.pdf
+
 2024 forecast: [git word document](https://github.com/commfish/seak_sablefish/blob/master/2024/text/RIR.1J.2024.XX_NSEI_v3%20DRAFT%200724.docx).  Please note that as of August 2023 the ADF&G publication department is undergoing revisions and publications have been temporarily suspended.  Please cite the github for this report until official publications are made available. 
 
 2023 forecast: [git word document](https://github.com/commfish/seak_sablefish/blob/master/2023/text/RIR.1J.2023.XX_NSEI_Final.docx).  Please note that as of August 2023 the ADF&G publication department is undergoing revisions and publications have been temporarily suspended.  Please cite the github for this report until official publications are made available. 
