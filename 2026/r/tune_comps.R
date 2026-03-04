@@ -27,7 +27,7 @@
 # Set up ----
 
 # most recent year of data
-YEAR <- 2024
+YEAR <- 2025
 
 source("r_helper/helper.r")
 source("r_helper/functions.r")
@@ -42,10 +42,11 @@ tmb_dat <- file.path(root, paste0(YEAR+1,"/data/tmb_inputs")) # location of tmb 
 tmb_path <- file.path(root, paste0(YEAR+1,"/tmb")) # location of cpp
 tmbfigs <- file.path(root, paste0(YEAR+1,"/figures/tmb")) # location where model figs are saved
 tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model output is saved
-# New loading for 2024
-IND_SIGMA<-FALSE
 
-SLX_OPT<-0 #switch for loading appropriate initial values: 1 is the old (base) mode in 2023
+# New loading for 2024
+IND_SIGMA <- FALSE
+
+SLX_OPT <- 0 #switch for loading appropriate initial values: 1 is the old (base) mode in 2023
 #0 is for the new slx time blocks...
 
 SLX_INITS <- 1 # Do you want to use the selectivity values from the federal assessment (0) or 
@@ -56,26 +57,26 @@ SLX_INITS <- 1 # Do you want to use the selectivity values from the federal asse
 agedat <- "aggregated" 
 
 {
-  rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
+  rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
   slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
   fsh_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
-  srv_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
+  srv_slx_switch <- 1 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
   comp_type <- 0    # Age  and length comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
   spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
-  rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
   M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
   ev_type <- 0     # extra variance in indices; 0 = none, 1 = estimated
   tmp_debug <- FALSE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
 }
 
 {
+  # Time series
   if (IND_SIGMA == TRUE) {
     ts <- read_csv(paste0(tmb_dat, "/abd_indices_truesig3_", YEAR, ".csv"))
   } else {
     ts <- read_csv(paste0(tmb_dat, "/abd_indices_", YEAR, ".csv"))
   }
-  # time series
   
+  # Age data
   if (agedat == "disaggregated") {
     age <- read_csv(paste0(tmb_dat, "/agecomps_bysex_", YEAR, ".csv"))  # age comps
   } else {
@@ -116,7 +117,8 @@ agedat <- "aggregated"
     #need to add in new selectivity block since not there last year
     #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_NEW_SLX2.csv"))
     #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, "_srv_slx.csv"))
-    inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_v23_3f_3s_2016_TUNED.csv"))
+    # inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_v23_3f_3s_new_2026.csv"))
+    inits <- read_csv(paste0(tmb_dat, "/inits_for_v23_3f_3s_2016_TUNED_2025.csv"))
     #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, "_srv_fsh_slx3.csv"))
   }
   
@@ -161,10 +163,10 @@ agedat <- "aggregated"
   rec_devs_inits <- tmp_inits %>% pull(rec_devs_inits)
   Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
 }
-#-------------------------------------------------------------------------------
-#=====================================
+
+#******************************************************************************
 # Set time blocks for selectivity:
-srv_blocks <- c(1999,2016) # years are last years of time blocks
+srv_blocks <- c(1999,2015) # years are last years of time blocks
 fsh_blocks <- c(1994,2021)
 
 {
@@ -186,11 +188,13 @@ fsh_blocks <- c(1994,2021)
   fsh_blks[length(fsh_blocks)+1] <- max(ts$index)
   f_blk_ct<-length(fsh_blks)
 }
-#=====================================
+
+#*************************************************************
 # *** Checking sensitivity to fishery CPUE data versions
-VER<-"v23" #too unstable; could not tune
-VER <- "v23_3f_2s"
-VER <- "v23_3f_3s_2016"
+# VER<-"v23" #too unstable; could not tune
+# VER <- "v23_3f_2s"
+# VER <- "v23_3f_3s_2016_new"
+VER <- "v23_3f_3s_2015_new"
 #-------------------------------------------------------------------------------
 # Load data and parameters
 # If base model
@@ -201,8 +205,10 @@ if (agedat == "aggregated") {
   data <- build_data_sexyage(ts = ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
   parameters <- build_parameters_v24(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 }
+
 # random variables
 random_vars <- build_random_vars() # random effects still in development
+
 #-------------------------------------------------------------------------------
 # Run model ----
 set.seed(5923)
@@ -222,18 +228,22 @@ for(iter in 1:niter) { #iter<-2
   # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
   if (agedat == "aggregated") {
     out <- TMBphase_v23(data, parameters, random = random_vars, 
-                        model_name = "scaa_mod_v23", #model_name = "scaa_mod_dir_ev",
+                        model_name = "scaa_mod_v23_Aaron2", #model_name = "scaa_mod_dir_ev",
                         phase = FALSE,  
-                        newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+                        newtonsteps = 0, #3 make this zero initially for faster run times (using 5)
                         debug = FALSE, loopnum = 30)
     rep <- out$rep
+    cat(paste0("This is iteration = ", iter,"\nThe gradient = ", max(abs(rep$gradient.fixed))))  
     
     if (max(abs(rep$gradient.fixed)) > 0.001) {
-      out <- TMBphase_v23(data, parameters, random = random_vars, 
-                              model_name = "scaa_mod_v23", phase = FALSE, 
+      out <- TMBphase_v23(data, parameters, random = random_vars,
+                              model_name = "scaa_mod_v23", phase = FALSE,
                               newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                               debug = FALSE, loopnum = 30)
+
+    cat(paste0("This is iteration = ", iter,"\nThe gradient = ", max(abs(rep$gradient.fixed))))
     }
+    
   } else {
     out <- TMBphase_v24(data, parameters, random = random_vars, 
                             model_name = "scaa_mod_v24", #model_name = "scaa_mod_dir_ev",
@@ -253,6 +263,7 @@ for(iter in 1:niter) { #iter<-2
   obj <- out$obj # TMB model object
   opt <- out$opt # fit
   rep <- out$rep 
+  
   # Quick look at MLE results
   best <- obj$env$last.par.best 
 
@@ -384,6 +395,8 @@ for(iter in 1:niter) { #iter<-2
     data$effn_srv_age <- array(dim = c(nrow = nrow(pred_srv_age), 1, nsex),
                                data = c(rep(new_effn_srv_age[,1],  nrow(pred_srv_age)), rep(new_effn_srv_age[,2],  nrow(pred_srv_age))))
   }
+  
+  cat(paste0("\nThis is iteration = ",iter))
 }
 
 #-------------------------------------------------------------------------------
@@ -454,81 +467,5 @@ if (agedat == "aggregated") {
                 mutate(effn = ifelse(srv_len$Sex == "Male", tune_srv_len[niter,1], tune_srv_len[niter,2]))) %>% 
     write_csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR,"_", VER, ".csv"))
 }
-
-#-------------------------------------------------------------------------------
-################################################################################
-#-------------------------------------------------------------------------------
-
-# Compare tuned to data...
-# or don't... we've just changed the effective sample size... 
-tuned_age<-read.csv(paste0(tmb_dat, "/tuned_agecomps_", YEAR, "_", VER, ".csv"))
-tuned_len<-read.csv(paste0(tmb_dat, "/tuned_lencomps_", YEAR, "_", VER, ".csv"))
-
-age <- read_csv(paste0(tmb_dat, "/agecomps_", YEAR, ".csv"))          # age comps
-len <- read_csv(paste0(tmb_dat, "/lencomps_", YEAR, ".csv"))  
-
-colnames(tuned_age)<- colnames(age)
-colnames(tuned_len)<- colnames(len)
-
-age_comp<-age %>% mutate(derivation = "raw") %>%
-  bind_rows(tuned_age %>% mutate(derivation = "tuned"))
-
-len_comp<-len %>% mutate(derivation = "raw") %>%
-  bind_rows(tuned_len %>% mutate(derivation = "tuned"))
-
-str(age_comp)
-age_comp %>% filter(year == 2010) %>% data.frame()
-tuned_age %>% filter(year == 2010) %>% data.frame()
-age %>% filter(year == 2010) %>% data.frame()
-
-age_comp %>% 
-  pivot_longer(cols=c(as.character(seq(2,31,1))),
-               names_to = "age",
-               values_to = "proportion") %>% 
-  data.frame() -> age_comp
-
-ggplot(age_comp %>% filter(Source == "Fishery") %>%
-         mutate(age = as.numeric(age))) + 
-  geom_col(aes(x = age, y = proportion, 
-               fill = derivation, col=derivation),
-           position = position_dodge(width = 0.8)) +
-  facet_wrap(.~year)
-
-ggplot(age_comp %>% filter(Source == "Survey") %>%
-         mutate(age = as.numeric(age))) + 
-  geom_col(aes(x = age, y = proportion, 
-               fill = derivation, col=derivation),
-           position = position_dodge(width = 0.8)) +
-  facet_wrap(.~year)
-
-unique(len_comp$Source)
-ggplot(len_comp %>% filter(Source == "fsh_len",
-                           Sex == "Female")) + 
-  geom_col(aes(x = length_bin, y = proportion, 
-               fill = derivation, col=derivation),
-           position = position_dodge(width = 2)) +
-  facet_wrap(.~year)
-
-ggplot(len_comp %>% filter(Source == "srv_len",
-                           Sex == "Female")) + 
-  geom_col(aes(x = length_bin, y = proportion, 
-               fill = derivation, col=derivation),
-           position = position_dodge(width = 2)) +
-  facet_wrap(.~year)
-
-ggplot(len_comp %>% filter(Source == "fsh_len",
-                           Sex == "Male")) + 
-  geom_col(aes(x = length_bin, y = proportion, 
-               fill = derivation, col=derivation),
-           position = position_dodge(width = 2)) +
-  facet_wrap(.~year)
-
-ggplot(len_comp %>% filter(Source == "srv_len",
-                           Sex == "Male")) + 
-  geom_col(aes(x = length_bin, y = proportion, 
-               fill = derivation, col=derivation),
-           position = position_dodge(width = 2)) +
-  facet_wrap(.~year)
-
 
 

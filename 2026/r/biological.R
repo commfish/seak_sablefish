@@ -961,7 +961,7 @@ pred<-cbind(pred,c(rep(tidy(ll22_male_fit)$estimate[1],nrow(pred)/4),
 
 
 colnames(pred)<-c("length","Gear","Sex","allom_a","allom_b")
-pred<-as.data.frame(pred)
+pred <-as.data.frame(pred)
 pred$length<-as.numeric(pred$length)
 pred$allom_a<-as.numeric(pred$allom_a)
 pred$allom_b<-as.numeric(pred$allom_b)
@@ -1620,6 +1620,7 @@ merge(mature_results %>%
   mutate(mu_a_50 = mean(a_50),
          mu_l_50 = mean(l_50)) -> mat_50_year
 data.frame(mat_50_year)
+
 # trends in L50 and a50 by year
 ggplot(mat_50_year, aes(x = year, y = l_50)) +
   geom_point() +
@@ -1717,10 +1718,10 @@ b1 <- fit_length$coefficients[2]
 (L50 <- round(-b0/b1, 1))
 
 # a50
-(a50 <- age_pred %>% 
-  right_join(data.frame(length = L50)) %>% 
-  group_by(length) %>% 
-  dplyr::summarise(a50 = round(mean(age), 1)) %>% 
+(a50 <- age_pred %>%
+  right_join(data.frame(length = L50)) %>%
+  group_by(length) %>%
+  dplyr::summarise(a50 = round(mean(age), 1)) %>%
     pull(a50))
 
 (kmat <- round(((coef(fit_length)[1] + coef(fit_length)[2]*len) / (len - L50))[1], 2))

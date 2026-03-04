@@ -32,10 +32,11 @@
 # and starting values for estimated parameters.
 # DOUBLE CHECK THAT EVERYTHING ALIGNS APPROPRIATELY!!!! 
 
-#-----------------------------------------------------------------------------------
+#*********************************************************************************
 
 # library(tmbstan)
 # library(shinystan)
+# 
 source("r_helper/helper.r")
 source("r_helper/functions.r")
 source("r_helper/exp_functions.r")
@@ -46,22 +47,21 @@ library(TMB)
 # These must be checked or updated annually!
 #TUNED_VER<-"fsel3_est_ssel_flat_wts"
 set.seed(9921)
+
 # if this is the first model run of the year set to NA:
-TUNED_VER<-NA
+# TUNED_VER <- "v23_3f_3s_2016_new"
+TUNED_VER <- "v23_3f_3s_2015_new"
 
 # If you've tuned the model, use the tuned version you named and saved... 
-TUNED_VER<-"v23_3f_3s_2015"
-TUNED_VER<-"v24_3f_3s_2017"
+# TUNED_VER <-""
 
-TUNED_VER <- "v23_3f_3s_2016"
-
-IND_SIGMA<-FALSE # turn to true if you want to use true sigma's for the indices.
+IND_SIGMA <- FALSE # turn to true if you want to use true sigma's for the indices.
             # right now they are inflated to help with data weighting and fitting the model
             # eventually it would be nice to use the true sigmas and estimate the
             # extra variance within the models. It is coded with the tau terms so
             # it can be explored.
 
-SLX_OPT<-0 #switch for loading appropriate initial values: 1 is the old (base) mode in 2023
+SLX_OPT <- 0 #switch for loading appropriate initial values: 1 is the old (base) mode in 2023
            #0 is for the new slx time blocks...
 
 SLX_INITS <- 1 # Do you want to use the selectivity values from the federal assessment (0) or 
@@ -76,27 +76,27 @@ agedat <- "aggregated" # age comp data: "aggregated" (sexes combined, v23) or "d
 
 # most recent year of data (YEAR+1 should be the forecast year)
 {
-YEAR <- 2024
+YEAR <- 2025
 
 # Last years ABC, mortality from discards, and F_ABC values - manually input
 # from previous assessment! Double check these values with the summary table.
 # Note that in years when the recommended ABC = maxABC, there will be repeats
 # (previous years values commented out for reference/check)
-LYR_maxABC <- 1833775 #1573109 for 2023 #1595932#for 2022: 1255056 #pj22; 1280406 #1058037 # maxABC for YEAR (ABC under F50)
-LYR_recABC <- 1809075 #1573109 #1443314#for 2022: 1255056 #pj22 1216743 #1058037 # recommended ABC for YEAR
-LYR_wastage <-75682  #69522 #72190 #59017 #pj22; 57716 #19142 # wastage for YEAR (this is only defined under maxABC b/c it's included in the calculation of maxABC for the 2020 forecast and beyond)
-LYR_maxF_ABC <- 0.062 #0.059 #0.0617#0.0611 #pjj22 (same as Rec ABC in 21 report?) ;  0.0765 #0.0632 # F50 for YEAR
-LYR_F_ABC <- 0.061 #0.063 #0.0559 #0.0611 #pj22, 0.0659 #0.0632 # F under the recommended ABC
+LYR_maxABC <- 2099895#1833775 #1573109 for 2023 #1595932#for 2022: 1255056 #pj22; 1280406 #1058037 # maxABC for YEAR (ABC under F50)
+LYR_recABC <- 2080436#1809075 #1573109 #1443314#for 2022: 1255056 #pj22 1216743 #1058037 # recommended ABC for YEAR
+LYR_wastage <- 81270#75682#69522 #72190 #59017 #pj22; 57716 #19142 # wastage for YEAR (this is only defined under maxABC b/c it's included in the calculation of maxABC for the 2020 forecast and beyond)
+LYR_maxF_ABC <- 0.061#0.062 #0.059 #0.0617#0.0611 #pjj22 (same as Rec ABC in 21 report?) ;  0.0765 #0.0632 # F50 for YEAR
+LYR_F_ABC <- 0.061#0.061 #0.063 #0.0559 #0.0611 #pj22, 0.0659 #0.0632 # F under the recommended ABC
 
 # Last years projected biomass and SPR - the old assessment framework didn't
 # report these. They are reported in 2020 and will be reported for
 # comparison moving forward similar to federal assessment. These values are
 # reported in assessment summary table
 
-LYR_proj_age2plus <- 61986177 #51975426 #51885665 #for 2022: 43357877 #pj22; 48513401 # projected age-2+ biomass
-LYR_proj_fSSB <- 24518584 #19836111 #19714244 #for 2022:15278067 #pj22; 15679118 # projected female spawning biomass
-LYR_SB100 <- 30388516 #28434171 #28995917 #for 2022:26775615 #pj22; 24853774 # unfished equilibrium female spawning biomass (SPR = 100)
-LYR_SB50 <- 15194258 #14217085 #14497958 #for 2022:13387807 #pj22; 12426887 # equilibrium female spawning biomass under F50 (SPR = 50)
+LYR_proj_age2plus <- 68857964#61986177 #51975426 #51885665 #for 2022: 43357877 #pj22; 48513401 # projected age-2+ biomass
+LYR_proj_fSSB <- 27519502#24518584 #19836111 #19714244 #for 2022:15278067 #pj22; 15679118 # projected female spawning biomass
+LYR_SB100 <- 30736010#30388516 #28434171 #28995917 #for 2022:26775615 #pj22; 24853774 # unfished equilibrium female spawning biomass (SPR = 100)
+LYR_SB50 <- 15368005#15194258 #14217085 #14497958 #for 2022:13387807 #pj22; 12426887 # equilibrium female spawning biomass under F50 (SPR = 50)
 
 # Set up ----
 
@@ -116,13 +116,12 @@ tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model o
 
 # Model switches
 {
-rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
+rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 fsh_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
-srv_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
+srv_slx_switch <- 1 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
 comp_type <- 0    # Age  and length comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
 spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
-rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
 M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
 ev_type <- 0     # extra variance in indices; 0 = none, 1 = estimated
 tmp_debug <- FALSE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
@@ -180,7 +179,8 @@ if (SLX_OPT == 1) {
   inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_base.csv"))
 } else {
   #need to add in new selectivity block since not there last year
-  inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_v23_3f_3s_2016_TUNED.csv"))
+  # inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_v23_3f_3s_2016_TUNED.csv"))
+  inits <- read_csv(paste0(tmb_dat, "/inits_for_v23_3f_3s_2016_TUNED_2025.csv"))
   #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_NEW_SLX2.csv"))
   #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, "_srv_slx.csv"))
   #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_2fsh_3srv.csv"))
@@ -228,13 +228,15 @@ tmp_inits <- data.frame(year = c(YEAR - length(rec_devs_inits)+1):YEAR,
 rec_devs_inits <- tmp_inits %>% pull(rec_devs_inits)
 Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
 
-# some other things
 }
+
+#*****************************************************************************
 # User-defined fxns in functions.R
-#=====================================
 # Set time blocks for selectivity:
-srv_blocks <- c(1999,2016) # years are last years of time blocks not counting last year of time series
+srv_blocks <- c(1999,2015) # years are last years of time blocks not counting last year of time series
 fsh_blocks <- c(1994,2021)
+
+# fsh_blocks <- c(1994)
 
 {
   srv_blks <- vector()
@@ -256,52 +258,52 @@ fsh_blks[length(fsh_blocks)+1] <- max(ts$index)
 f_blk_ct<-length(fsh_blks)
 }
 
-#=====================================
-# *** model development
+#*****************************************************************************
+# Model development ---------------------------------------------------------
 # Note _ST = semi-tuned. In these runs I used tuned comp effective sample sizes (ess)
 # from a different model since differnt models find similar ess. These models are
 # NOT final and simply allow me to check convergence on a nearly tuned model and, 
 # more importantly, allow for fewer iterations to fully tune the model.
-VER <- "v23" #"last year's model with 2 est srv slx and 2 fixed fsh slx.
-VER<-"v23_ST" #"last year's model with 2 est srv slx and 2 fixed fsh slx.
-VER <- "v23_TUNED" #could not tune. Too unstable. 
-VER <- "v23_3f_2s_ST" # 3 fixed fsh slx, 3rd time block for '22 and '23 when pot fishery started
-VER <- "v23_3f_2s_TUNED"  #could not tune. Too unstable.
-VER <- "v23_3f_3s_2015"
+# VER <- "v23" #"last year's model with 2 est srv slx and 2 fixed fsh slx.
+# VER<-"v23_ST" #"last year's model with 2 est srv slx and 2 fixed fsh slx.
+# VER <- "v23_TUNED" #could not tune. Too unstable. 
+# VER <- "v23_3f_2s_ST" # 3 fixed fsh slx, 3rd time block for '22 and '23 when pot fishery started
+# VER <- "v23_3f_2s_TUNED"  #could not tune. Too unstable.
 VER <- "v23_3f_3s_2015_TUNED"
-VER <- "v23_3f_3s_2016" # starting in 2025 with this one
-VER <- "v23_3f_3s_2016_TUNED"
-VER <- "v23_3f_3s_2017"
-VER <- "v23_3f_3s_2017_TUNED"
-VER <- "v23_3f_3s_2018"
-VER <- "v23_3f_3s_2018_TUNED"
-VER <- "v23_3f_3s_2019"
-VER <- "v23_3f_3s_2019_TUNED"
+# VER <- "v23_3f_3s_2015_TUNED"
+# VER <- "v23_3f_3s_2016_new_Tuned" 
+# VER <- "v23_2f_3s"
+# VER <- "v23_3f_3s_2017"
+# VER <- "v23_3f_3s_2017_TUNED"
+# VER <- "v23_3f_3s_2018"
+# VER <- "v23_3f_3s_2018_TUNED"
+# VER <- "v23_3f_3s_2019"
+# VER <- "v23_3f_3s_2019_TUNED"
 
 # Lets call the disaggregated age comps (v24) v24
 # Sex aggregated models from v23.
 # Also, where do we want to add the time blocks on survey slx...
-VER <- "v24_2f_2s_ST" #just 2 srv slx time blocks
-VER <- "v24_3f_2s_ST" # 3 fixed fsh slx, 3rd time block for '22 and '23 when pot fishery started
-VER <- "v24_3f_2s_TUNED"  #could not tune. Too unstable.
-VER <- "v24_3f_3s_2015"
-VER <- "v24_3f_3s_2015_TUNED"
-VER <- "v24_3f_3s_2016"
-VER <- "v24_3f_3s_2016_TUNED"
-VER <- "v24_3f_3s_2017"
-VER <- "v24_3f_3s_2017_TUNED"
-VER <- "v24_3f_3s_2018"
-VER <- "v24_3f_3s_2018_TUNED"
-VER <- "v24_3f_3s_2019"
-VER <- "v24_3f_3s_2019_TUNED"
+# VER <- "v24_2f_2s_ST" #just 2 srv slx time blocks
+# VER <- "v24_3f_2s_ST" # 3 fixed fsh slx, 3rd time block for '22 and '23 when pot fishery started
+# VER <- "v24_3f_2s_TUNED"  #could not tune. Too unstable.
+# VER <- "v24_3f_3s_2015"
+# VER <- "v24_3f_3s_2015_TUNED"
+# VER <- "v24_3f_3s_2016"
+# VER <- "v24_3f_3s_2016_TUNED"
+# VER <- "v24_3f_3s_2017"
+# VER <- "v24_3f_3s_2017_TUNED"
+# VER <- "v24_3f_3s_2018"
+# VER <- "v24_3f_3s_2018_TUNED"
+# VER <- "v24_3f_3s_2019"
+# VER <- "v24_3f_3s_2019_TUNED"
 
 #try to estimate fsh_slx in last time block: 
-VER <- "v24_3f1e_3s_2017_ST" # unestimable fsh_slx
-VER <- "v23_3f1e_3s_2016_ST" # estimate bt se are enormous
-
-# trying an extra survey time block because a little weird in a few years
-VER <- "v23_3f_4s_15_18_ST"
-VER <- "v24_3f_4s_15_18_ST"
+# VER <- "v24_3f1e_3s_2017_ST" # unestimable fsh_slx
+# VER <- "v23_3f1e_3s_2016_ST" # estimate bt se are enormous
+# 
+# # trying an extra survey time block because a little weird in a few years
+# VER <- "v23_3f_4s_15_18_ST"
+# VER <- "v24_3f_4s_15_18_ST"
 
 
 # then run the tuned versions... 
@@ -315,6 +317,7 @@ if (agedat == "aggregated") {
   data <- build_data_v24(ts = ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
   parameters <- build_parameters_v24(rec_devs_inits = rec_devs_inits, Fdevs_inits = Fdevs_inits)
 }
+
 # random variables
 random_vars <- build_random_vars() # random effects still in development
 
@@ -324,6 +327,7 @@ str(data)
 slx_pars
 parameters$log_fsh_slx_pars #(row = timeblock, column = parameter, array3 = sex (1=m, 2 = F))
 parameters$log_srv_slx_pars
+
 # Run model ----
 
 setwd(tmb_path)
@@ -338,7 +342,7 @@ setwd(tmb_path)
 
 if (agedat == "aggregated") {
   out <- TMBphase_v23(data, parameters, random = random_vars, 
-                      model_name = "scaa_mod_v23", #model_name = "scaa_mod_dir_ev",
+                      model_name = "scaa_mod_v23_Aaron2", #model_name = "scaa_mod_dir_ev",
                       phase = FALSE,  
                       newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                       debug = FALSE, loopnum = 30)
@@ -365,7 +369,10 @@ best <- obj$env$last.par.best # maximum likelihood estimates
 
 # MLE results ----
 
-# MLE parameter estimates and standard errors in useable format. Saves output to
+# Save the output for model plotting comparison
+saveRDS(out,file = paste0(tmbout,"/",VER,".RDS"))
+
+# MLE parameter estimates and standard errors in usable format. Saves output to
 # tmbout and starting vals for next year to tmb_dat by default. See functions.R
 
 # NOTE: If you want to save your last run from the tune_comps.R rather than rerunning the model 
@@ -375,14 +382,15 @@ best <- obj$env$last.par.best # maximum likelihood estimates
 #tmbfigs <- "C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2024/figures/tmb"
 #tmb_path <- "C:/Users/pjjoy/Documents/Groundfish Biometrics/Sablefish/seak_sablefish/2024/tmb"
 
-tidyrep <- save_mle(save = FALSE,
-                    save_inits = FALSE) 
+tidyrep <- save_mle(save = TRUE,
+                    save_inits = TRUE) 
 
 # MLE likelihood components
 obj$report(best)$obj_fun
 obj$report(best)$priors
 obj$report(best)$prior_M # should be 0 as long as M is not estimated 
 
+# Get total model likelihood
 dat_like <- sum(obj$report(best)$catch_like,
                 obj$report(best)$index_like[1], 
                 obj$report(best)$index_like[2],
@@ -390,13 +398,8 @@ dat_like <- sum(obj$report(best)$catch_like,
                 obj$report(best)$age_like[1], obj$report(best)$age_like[2],
                 sum(obj$report(best)$fsh_len_like),  sum(obj$report(best)$srv_len_like))
 
-sum(obj$report()$catch_like,
-    obj$report()$index_like[1], 
-    obj$report()$index_like[2],
-    obj$report()$index_like[3],
-    obj$report()$age_like[1], obj$report()$age_like[2],
-    sum(obj$report()$fsh_len_like),  sum(obj$report()$srv_len_like))
-
+# Get individual model componenets likelihood and calc the prop of the total 
+# lieklihood.
 if (agedat == "aggregated") {
   like_sum <- data.frame(like = c("Catch", 
                                   "Fishery CPUE", 
@@ -465,20 +468,27 @@ if (agedat == "aggregated") {
     rename(`Likelihood component` = like, Likelihood = value, `Percent of data likelihood` = perc)
 }
 
+# Takel a look
 like_sum
 
+# Save for the assessment
 write.csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR,"_",VER, ".csv"))
 
-# MLE figs ----
+# Model output figs ----
 
 # Fits to abundance indices, derived time series, and F. Use units = "imperial" or
 # "metric" to switch between units. tmb_path <- file.path(root, paste0(YEAR+1,"/tmb")) # location of cpp
 
-plot_ts(ts = ts, save = TRUE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
+# Fit to catch, fsh CPUE, srv CPUE, and total abundance (MR)
+plot_ts(ts = ts, save = FALSE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
+
+# Plots of recruits, Spawning Biomass, Exploitable abundance
 plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
+
+# Timesries of F and harvest rate
 plot_F(save = TRUE)
 
-# Recruitment estimates
+# Recruitment estimates (tidyrep is the parameter estimate df with SE)
 logrbar <- tidyrep %>% filter(Parameter == "log_rbar") %>% pull(Estimate)
 logrdevs <- tidyrep %>% filter(grepl("log_rec_devs", Parameter)) %>% pull(Estimate)
 rec <- data.frame(year = syr:lyr,
@@ -486,23 +496,29 @@ rec <- data.frame(year = syr:lyr,
 # Add brood year
 rec <- rec %>% 
   mutate(brood_year = year - rec_age)
+
+# Look at specific years. These listed here are known large/small recruitment events
 rec
 rec %>% filter(brood_year == 2014) %>% pull(rec)
 rec %>% filter(brood_year == 2015) %>% pull(rec)
 rec %>% filter(brood_year == 2016) %>% pull(rec)
 rec %>% filter(brood_year == 1978) %>% pull(rec)
 
+# Get age comp obs and pred for plotting
 if (agedat == "aggregated") {
   agecomps <- reshape_age()
 } else {
   agecomps <- reshape_age_disag()
 }
 
+# Plot selectivity
 plot_sel(save = TRUE)
+
 # save slx values for initial inputs if desired; only works for deaggregated age comps
 new_slx <- save_slx(tidyrep,slx_pars,fsel=0, save=TRUE)
 slx_pars
 
+# Plot fits to age and look for reidual patterns
 if (agedat == "aggregated") {
   plot_age_resids() # Fits to age comps
   barplot_age("Survey")
@@ -515,6 +531,7 @@ if (agedat == "aggregated") {
   barplot_age_disag("Fishery", sex = "Male")
 }
 
+# Plot fits to length comps and residual analysis
 lencomps <- reshape_len()
 plot_len_resids()
 barplot_len("Survey", sex = "Female")
@@ -531,6 +548,7 @@ ABC <- ABC %>%
   mutate(year = c(unique(ts$year), max(ts$year)+1)) %>% 
   pivot_longer(-year, names_to = "Fxx", values_to = "ABC")
 
+# Get F50 ABC by year and the associated F value
 ABC %>% filter(Fxx == 0.5) %>% data.frame()
 
 # Current (YEAR + 1) maximum ABC under F50
@@ -559,7 +577,7 @@ write_csv(ABC %>% left_join(wastage), paste0(tmbfigs, "/abc_wastage_", YEAR,"_",
 # Percent changes and differences for ABC and wastage (used in assessment text)
 round((maxABC_diff <- (maxABC - LYR_recABC) / LYR_recABC) * 100, 1)
 round(maxABC - LYR_recABC,0)
-round((wastage_maxABC - LYR_wastage)/ LYR_wastage * 100, 1)
+round(((wastage_maxABC - LYR_wastage)/ LYR_wastage) * 100, 1)
 round((maxF_ABC - LYR_F_ABC) / LYR_F_ABC * 100, 1)
 
 # Constant 15% change management procedure:
@@ -577,7 +595,7 @@ round(recABC-LYR_recABC,0)
 # for constrained ABC
 
 #CHECK for unstable recruitment issues.  In 2023 we discovered a bug in the code
-# that was cuasing unstable estimates.  Fixed now, but check every year as the model
+# that was causing unstable estimates.  Fixed now, but check every year as the model
 # is refined and developed.  When these were messed up we got different values everytime
 # they were called.  These loops should produce identical results with realistic numbers
 obj$report()$pred_rec
@@ -637,6 +655,7 @@ if(recABC == maxABC) {
   (F_ABC <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = recABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
   (F_ABC <- uniroot(catch_to_F, interval = c(0.01, 1.9), N = N, catch = recABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
 }
+
 #(F_ABCtest <- uniroot(catch_to_F, interval = c(0.03, 1.6), N = N, catch = maxABC, nat_mort = nat_mort, F_to_catch = F_to_catch)$root*0.5)
 #PJ22: this function is producing different F_ABC than that coming out of TMB code!!!
 #PJ23: yup, still not working. 0.087 here but 0.063 from TMB outbput... 
@@ -661,7 +680,6 @@ obj$report(best)$tot_biom[nyr] * 2.20462
 # Unfished/fished SSB  str(obj$report(best))
 # *** Something f'ed up here... same call gives different results when you repeat...
 # *** gives different multiples of whats happening... DO NOT UNDERSTAND!!!
-
 obj$report(best)$SBPR
 data$Fxx_levels
 
@@ -691,6 +709,7 @@ if(M_type == 1){
     pull(Estimate) %>%
     exp()
 }  
+
 # Percent of forecasted ssb 2014 year class makes up
 # Projected total female spawning biomass
 f_ssb <- obj$report(best)$spawn_biom[nyr+1,] * 2.20462
@@ -700,25 +719,28 @@ round(f_ssb[index_2014] / sum(f_ssb) * 100, 1)
 tmp <- data.frame(ssb = f_ssb,
            age = 2:31) %>% 
   mutate(year_class = (YEAR+1) - age,
-         perc = ssb / sum(f_ssb),
-         label = ifelse(perc > 0.01, paste0(year_class), NA)) 
+         perc = (ssb / sum(f_ssb)*100),
+         label = ifelse(perc > 1, paste0(year_class), NA)
+         # label = year_class
+         ) 
 
 tmp %>% 
   ggplot(aes(x = year_class, y = ssb / 1e6, size = perc, label = label)) +
   geom_point() +
   geom_text(position = position_nudge(y = .2)) +
-  scale_size(labels = scales::percent) +
+  scale_size(breaks = seq(0,100,10), labels = seq(0,100,10)) +
   labs(x = "Year class", y = "SSB (kt)", size = paste0("Percent\ncontribution\nto the ", YEAR+1, "\nSSB"))
 
 ggsave(paste0(tmbfigs, "/percentSSB_bycohort_",VER,"_", YEAR, ".png"),
        dpi=300, height=6, width=8, units="in")
 
 breaks <- c(seq(min(tmp$year_class),max(tmp$year_class),1))
+
 tmp %>% filter(!is.na(label)) %>% mutate(sum(perc)) %>%
-  ggplot() + geom_col(aes(y=perc, x= year_class)) +
+  ggplot() + geom_col(aes(y=perc/100, x= factor(year_class))) +
   labs(x = "year class", y = "Proportion of biomass") +
-  scale_x_discrete(limits = c(breaks),
-                   breaks = c(breaks)) + 
+  scale_x_discrete(limits = c(factor(breaks)),
+                   breaks = c(factor(breaks))) + 
   theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1))
 
 ggsave(paste0(tmbfigs, "/percentSSB_bycohort_2_",VER,"_", YEAR, ".png"),
@@ -736,6 +758,7 @@ retro_mgt <- ABC %>%
   rename(Fspr = Fxx)
 
 df <- data.frame(year = 1990:YEAR+1)
+
 # xaxis <- tickr(df, year, 5)
 ggplot() +
   geom_area(data = retro_mgt %>% filter(year > 2000 & Fspr == "0.5"),
@@ -880,10 +903,8 @@ res <- c(paste0("Summary of percent changes and differences between ", YEAR, " a
 
 write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR,"_",VER,  ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
 
-# You could continue to append any variables of interest to the SCAA report.
-
-
-#===================================================================================
+#****************************************************************************
+# You could continue to append any variables of interest to the SCAA report.---
 
 # Data request May 2020 ----
 

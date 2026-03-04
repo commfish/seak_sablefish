@@ -1,7 +1,7 @@
 # Data prep for statistical catch-at-age model
-# Author: Spencer Weinstein and Alex Reich
-# Contact: spencer.weinstein@alaska.gov
-# Last edited: March 2024
+# Author: Aaron Lambert
+# Contact: aaron.lambert@alaska.gov
+# Last edited: March 2026
 
 # Model is sex-structured, catch, fishery and survey CPUE, fishery and survey
 # weight-at-age, fishery and survey age compositions (sexes combined due to
@@ -13,7 +13,7 @@ source("r_helper/helper.r")
 source("r_helper/functions.r")
 
 syr <- 1975
-lyr <- YEAR <- 2024
+lyr <- YEAR <- 2025
 nyr <- length(syr:lyr)
 
 rec_age <- 2
@@ -28,13 +28,15 @@ nage <- length(rec_age:plus_group)
 # in reconstructing a long biomass time series.
 
 histcatch <- read_csv(paste0("legacy_data/fishery/nsei_historicalsablecatch_nosource_carlile_1907_2000.csv"))
+
 names(histcatch) <- c("year", "catch")
+
 histcatch <- histcatch %>% 
   # Convert round/whole lbs to mt
   mutate(catch = catch * 0.000453592) %>% 
   filter(year >= 1975 & year <= 1985)
 
-read_csv(paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"), 
+catch <- read_csv(paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"), 
                        guess_max = 50000) %>% 
   filter(year > 1985) %>% 
   group_by(year) %>% 
@@ -49,7 +51,7 @@ read_csv(paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"),
          lower_catch = exp(ln_catch - std)) %>% 
   select(-c(std, ln_catch)) %>% 
   filter(year >= syr) %>% 
-  arrange(year) -> catch
+  arrange(year) 
 
 # Fishery CPUE ----
 # in 2023 we are switching to a fully standardized fishery cpue index from the longline fishery
@@ -58,13 +60,11 @@ read_csv(paste0(YEAR+1,"/data/fishery/nseiharvest_ifdb_1969_", lyr,".csv"),
 # models or very strange results.  The goal is to have the "tau terms (extra varriance) estimated
 # within the model, but could could not be implemented in 2023.  For now we are still using the inflated sigmas.
 
-read_csv(paste0(YEAR+1,"/output/ll_cpue_fullstand_1980_",YEAR,".csv")) -> fsh_cpue 
+fsh_cpue <- read_csv(paste0(YEAR+1,"/output/ll_cpue_fullstand_1980_",YEAR,".csv"))
 
-# or, since we're still waiting on the 2023 data as of 3/4/23 we'll need to run the
-# model for now with no new cpue estimate:
-
-#read_csv(paste0(YEAR,"/output/ll_cpue_fullstand_1980_",YEAR-1,".csv")) -> fsh_cpue
-
+# Get CPUE in the correct units (kg/hook), log transform CPUE, get intervals for plotting,
+# and sigmas for fishery CPUE. Pre 1997 sigma is larger because it is prior to current
+# sampling protocol.
 fsh_cpue <- fsh_cpue %>% mutate(fsh_cpue = fsh_cpue * 0.453592,
                                 q975 = fsh_cpue + 1.96*se* 0.453592,
                                 ln_fsh_cpue = log(fsh_cpue),
@@ -85,11 +85,10 @@ fsh_cpue <- fsh_cpue %>% mutate(fsh_cpue = fsh_cpue * 0.453592,
                                #lower_fsh_cpue = lower) %>% 
   select(year, fsh_cpue, sigma_fsh_cpue, #truesigma_fsh_cpue = var, 
          upper_fsh_cpue, lower_fsh_cpue)
-view(fsh_cpue)
+# view(fsh_cpue)
 
 # Survey CPUE: 
-
-read_csv(paste0(YEAR+1,"/output/srvcpue_1997_", YEAR, ".csv")) %>% 
+srv_cpue  <- read_csv(paste0(YEAR+1,"/output/srvcpue_1997_", YEAR, ".csv")) %>% 
   rename(srv_cpue = std_cpue) %>% 
   # assuming lognormal distribution, use relative se as model input sigma
   mutate(#sigma_srv_cpue = se / srv_cpue, # relative standard error too low! 
@@ -104,14 +103,14 @@ read_csv(paste0(YEAR+1,"/output/srvcpue_1997_", YEAR, ".csv")) %>%
          lower_srv_cpue = exp(ln_srv_cpue - std )) %>% 
          #upper_srv_cpue = srv_cpue + 1.96*sigma_srv_cpue,
          #lower_srv_cpue = srv_cpue - 1.96*sigma_srv_cpue) %>% 
-  select(-c(sd, se, ln_srv_cpue, std, true_sig, q975)) -> srv_cpue 
+  select(-c(sd, se, ln_srv_cpue, std, true_sig, q975))
 
 # Mark-recapture index ----
 # was there a mark-recapture experiment this year?
 MRq <- "No"
 
 if (MRq == "Yes") {
-  read_csv(paste0(YEAR+1,"/output/mr_index_", YEAR, ".csv")) %>% 
+  mr <- read_csv(paste0(YEAR+1,"/output/mr_index_", YEAR, ".csv")) %>% 
     select(year, mr = estimate, sd, q025, q975) %>% 
     mutate(# sigma_mr = sigma_mr / mr,
       sigma_mr = 0.05,
@@ -124,10 +123,11 @@ if (MRq == "Yes") {
       lower_mr = exp(ln_mr - std)) %>% 
     #upper_mr = q975,
     #lower_mr = q025) %>% 
-    select(-c(std, ln_mr, q025, q975, sd)) -> mr
+    select(-c(std, ln_mr, q025, q975, sd))
 } else {
   last_MR <- read_csv(paste0(YEAR,"/output/mr_index_", YEAR-1, ".csv")) 
-  last_MR %>% 
+  
+  mr<- last_MR %>% 
     select(year, mr = estimate, sd, q025, q975) %>% 
     mutate(# sigma_mr = sigma_mr / mr,
       sigma_mr = 0.05,
@@ -140,7 +140,7 @@ if (MRq == "Yes") {
       lower_mr = exp(ln_mr - std)) %>% 
     #upper_mr = q975,
     #lower_mr = q025) %>% 
-    select(-c(std, ln_mr, q025, q975, sd)) -> mr
+    select(-c(std, ln_mr, q025, q975, sd)) 
   
   #save this here so next year it can be found...
   write_csv(last_MR, paste0(YEAR+1,"/output/mr_index_", YEAR, ".csv"))
@@ -153,13 +153,12 @@ full_join(catch, fsh_cpue) %>%
   full_join(mr) %>% 
   mutate(index = year - min(year)) -> ts
 
-view(ts)
+# view(ts)
 
 write_csv(ts, paste0(YEAR+1,"/data/tmb_inputs/abd_indices_", YEAR, ".csv"))
 
 
 # Figure for industry mtg
-# axis <- tickr(data.frame(year = 2005:YEAR), year, 3)
 read_csv(paste0(YEAR+1,"/output/mr_index_", YEAR, ".csv")) %>% 
   # mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
   # pad(interval = "year") %>% 
@@ -196,9 +195,9 @@ mr %>%
 mr_lt
 
 # Percent change from last mr estimate
-years_since_last<-2 # last done in 2022 - double check this
-thisyr <- 2024
-lastyr <- 2023
+years_since_last<-3 # last done in 2022 - double check this
+thisyr <- 2025
+lastyr <- 2022
 
 mr %>% 
   filter(year >= YEAR - years_since_last & year <= YEAR) %>%
@@ -229,6 +228,7 @@ catch %>%
   expand_limits(y = 0) +
   labs(x = "", y = "\n\nCatch\n(round mt)") +
   theme(axis.title.y = element_text(angle=0)) -> catch_plot
+
 catch_plot
 
 ggplot(fsh_cpue) +
@@ -248,6 +248,7 @@ ggplot(fsh_cpue) +
   expand_limits(y = 0) +
   labs(x = "", y = "\n\nFishery CPUE\n(round lb/hook)") +
   theme(axis.title.y = element_text(angle=0)) -> fsh_cpue_plot
+
 fsh_cpue_plot
 
 ggplot(data = srv_cpue) +
@@ -260,6 +261,7 @@ ggplot(data = srv_cpue) +
   expand_limits(y = 0) +
   labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL) +
   theme(axis.title.y = element_text(angle=0)) -> srv_cpue_plot
+
 srv_cpue_plot
 
 mr %>% 
@@ -294,26 +296,25 @@ ggsave(paste0(YEAR+1,"/figures/tmb/abd_indices_", YEAR, "V2.png"),
        dpi=300, height=10, width=7.7, units="in")
 
 
-#==========================================================================
+#*****************************************************************************
 # Biological data ----
 
 # Fishery biological data
-read_csv(paste0(YEAR+1,"/data/fishery/fishery_bio_2000_", YEAR,".csv"), 
+fsh_bio <- read_csv(paste0(YEAR+1,"/data/fishery/fishery_bio_2000_", YEAR,".csv"), 
          guess_max = 50000) %>%
   mutate(Year = factor(year),
-         Sex = factor(Sex)) -> fsh_bio
+         Sex = factor(Sex)) 
 
 # Survey biological data
-read_csv(paste0(YEAR+1,"/data/survey/llsrv_bio_1988_", lyr,".csv"), 
+srv_bio <- read_csv(paste0(YEAR+1,"/data/survey/llsrv_bio_1988_", lyr,".csv"), 
          guess_max = 50000) %>%
   mutate(Year = factor(year),
-         Sex = factor(Sex)) -> srv_bio
+         Sex = factor(Sex))
 
 # Weight-at-age ----
-
 waa <- read_csv(paste0(YEAR+1,"/output/pred_waa_plsgrp", plus_group, "_", YEAR, ".csv"))
 
-waa %>% 
+waa <- waa %>% 
   mutate(Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
                                       "9", "10", "11", "12", "13", "14", "15",
                                       "16", "17", "18", "19", "20", "21", "22",
@@ -323,17 +324,17 @@ waa %>%
                                  "9", "10", "11", "12", "13", "14", "15",
                                  "16", "17", "18", "19", "20", "21", "22",
                                  "23", "24", "25", "26", "27", "28", "29", "30",
-                                 "31+"))) -> waa
+                                 "31+")))
 
 waa2 <- waa %>% arrange(Source, Sex, age)
+
 write_csv(waa2, paste0(YEAR+1,"/data/tmb_inputs/waa_", YEAR, ".csv"))
 
 # Proportion mature -----
+mat <- read_csv(paste0(YEAR+1,"/output/fem_maturityatage_llsrv_plsgrp", plus_group, "_", YEAR, ".csv"), 
+         guess_max = 50000)
 
-read_csv(paste0(YEAR+1,"/output/fem_maturityatage_llsrv_plsgrp", plus_group, "_", YEAR, ".csv"), 
-         guess_max = 50000) -> mat
-
-mat %>% 
+mat <- mat %>% 
   filter(age <= plus_group)  %>% 
   rename(prop_mature = probability) %>% 
   mutate(Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
@@ -345,13 +346,12 @@ mat %>%
                                  "9", "10", "11", "12", "13", "14", "15",
                                  "16", "17", "18", "19", "20", "21", "22",
                                  "23", "24", "25", "26", "27", "28", "29", "30",
-                                 "31+"))) -> mat
+                                 "31+"))) 
 
 # Sex ratio ----
 
-# proportion female at age in the survey
-
-srv_bio %>% 
+# Proportion female at age in the survey
+byage <- srv_bio %>% 
   filter(age %in% c(rec_age:plus_group-1)) %>% 
   ungroup() %>% 
   select(Sex, age) %>% 
@@ -373,25 +373,27 @@ srv_bio %>%
               count(Sex) %>% 
               mutate(proportion = round(n / sum(n), 2),
                      age = plus_group) %>% 
-              filter(Sex == "Female")) -> byage
+              filter(Sex == "Female")) 
 
-# get generalized additive model fits and predictions
+# Get generalized additive model fits and predictions
 srv_fitage <- gam(I(Sex == "Female") ~ s(age), 
                   data = filter(srv_bio, age %in% rec_age:plus_group, 
                                 Sex %in% c("Female", "Male")),
                   family = "binomial")
+
 summary(srv_fitage) #note that this relationship is signifcant, but with a tiny r2
 
 srv_predage <- predict(srv_fitage, newdata = data.frame(age = rec_age:plus_group),
                        type = "response", se = TRUE)
 
-bind_cols(
+byage <- bind_cols(
   byage,
   #do.call cbinds each vector in the predict() output list 
-  as_tibble(do.call(cbind, srv_predage))) -> byage
-view(byage)
+  as_tibble(do.call(cbind, srv_predage)))
 
-byage %>% 
+# view(byage)
+
+byage <- byage %>% 
   rename(prop_fem = proportion) %>% 
   mutate(Age = factor(age, levels = c("2", "3", "4", "5", "6", "7", "8",
                                       "9", "10", "11", "12", "13", "14", "15",
@@ -402,7 +404,7 @@ byage %>%
                                  "9", "10", "11", "12", "13", "14", "15",
                                  "16", "17", "18", "19", "20", "21", "22",
                                  "23", "24", "25", "26", "27", "28", "29", "30",
-                                 "31+"))) -> byage
+                                 "31+")))
 full_join(byage %>% 
             select(age, prop_fem = fit),
           mat %>% 
@@ -419,22 +421,24 @@ age_labs <- c("2", "", "", "", "6", "", "", "", "10", "", "", "", "14", "",
 library(wesanderson); names(wes_palettes)
 pal <- wes_palette("GrandBudapest1", 4, type = "discrete")
 
-ggplot(waa %>% 
-         filter(! (Sex %in% c("Combined"))) %>% 
-         droplevels() %>% 
-         mutate(group = paste(Sex, Source)), 
-       aes(x = Age, y = round_kg * 2.20462, shape = Sex, 
-           linetype = Sex, colour = Source, group = group)) +
+waa_plot <- ggplot(waa %>% 
+                     filter(! (Sex %in% c("Combined"))) %>% 
+                     droplevels() %>% 
+                     mutate(group = paste(Sex, Source)), 
+                   aes(x = Age, y = round_kg * 2.20462, shape = Sex, 
+                       linetype = Sex, colour = Source, group = group)) +
   geom_point() +
   geom_line() + 
-  scale_colour_manual(values = pal) +
+  # scale_colour_manual(values = pal) +
+  scale_color_colorblind()+
   #scale_colour_grey() +
   expand_limits(y = c(0, 7)) +
   labs(x ="Age", y = "\n\nMean weight (lb)", colour = NULL, shape = NULL, linetype = NULL) +
   scale_x_discrete(breaks = unique(waa$Age), labels = age_labs) +
   theme(legend.position = c(.1, .8),
-        legend.spacing.y = unit(0, "cm")) -> waa_plot
-waa_plot 
+        legend.spacing.y = unit(0, "cm")) 
+
+waa_plot
 
 # Equation text for plotting values of a_50 (from biological.R)
 (a50 <- read_csv(paste0(YEAR+1,"/output/maturity_param_", YEAR)) %>% 
@@ -451,24 +455,25 @@ mat_plot <- mat %>% filter(age <= 20)
 # age_labs2 <- c("2", "", "", "", "6", "", "", "", "10", "", "", "", "14", "",
               # "", "", "18", "", "") 
 
-ggplot(mat_plot %>% filter(age <= 20)) +
+mat_plot2 <- ggplot(mat_plot %>% filter(age <= 20)) +
   geom_point(aes(x = age, y = prop_mature), colour = "black") +
   geom_line(aes(x = age, y = prop_mature, group = 1), colour = "black") +
-  geom_segment(aes(x = a50, y = 0, xend = a50, yend = 0.50), 
+  geom_segment(aes(x = a50, y = 0, xend = 5.9, yend = 0.50), 
                lty = 2, col = "grey") +
-  geom_segment(aes(x = 2, y = 0.50, xend = a50, yend = 0.50), 
+  geom_segment(aes(x = 2, y = 0.50, xend = 5.9, yend = 0.50), 
                lty = 2, col = "grey") +
   # a_50 labels
-  geom_text(aes(12, 0.5, label = a50_txt), 
+  geom_text(aes(12, 0.5, label = "paste(italic(a[50]), \" = \", \"5.9\")"), 
             colour = "black", parse = TRUE, family = "Times New Roman") +
   scale_x_continuous(limits = c(rec_age, 20)) + # breaks = axis$breaks, 
-                     # labels = age_labs2) +
-  labs(x = "Age", y = "\n\nProportion mature") -> mat_plot
-mat_plot
+  # labels = age_labs2) +
+  labs(x = "Age", y = "\n\nProportion mature")
 
-# axis <- tickr(byage, age, 1)
 
-ggplot(byage, aes(x = Age)) +
+mat_plot2
+
+# Proportion of mature females by age with model prediction
+prop_fem <- ggplot(byage, aes(x = Age)) +
   geom_line(aes(y = fit, group = 1), colour = "black") +
   geom_ribbon(aes(ymin = fit - se.fit*2, ymax = fit + se.fit*2, group = 1), 
               alpha = 0.2, fill = "black", colour = NA) +
@@ -476,15 +481,16 @@ ggplot(byage, aes(x = Age)) +
   expand_limits(y = c(0.3, 0.6)) +
   scale_x_discrete(breaks = unique(waa$Age), labels = age_labs) +
   labs(x = "Age", y = "\n\nProportion female") +
-  geom_hline(yintercept = 0.5, lty = 2, col = "grey") -> prop_fem
+  geom_hline(yintercept = 0.5, lty = 2, col = "grey")
+
 prop_fem
 
-bottom_plot <- plot_grid(mat_plot, prop_fem, ncol = 2, align = 'hv', labels = c('(B)', '(C)'))
+bottom_plot <- plot_grid(mat_plot2, prop_fem, ncol = 2, align = 'hv', labels = c('(B)', '(C)'))
 bottom_plot
 plot_grid(waa_plot, bottom_plot, nrow = 2, rel_widths = c(1, 1), labels = c('(A)', ''))
 
 # Drop sex ratios since it's not used in SCAA model when sex-structured
-plot_grid(waa_plot, mat_plot, nrow = 2, rel_widths = c(1, 1), labels = c('(A)', '(B)'))
+plot_grid(waa_plot, mat_plot2, nrow = 2, rel_widths = c(1, 1), labels = c('(A)', '(B)'))
 
 ggsave(paste0(YEAR+1,"/figures/tmb/bio_dat_", YEAR, ".png"), dpi=300, height=10, width=7.5, units="in")
 
@@ -513,19 +519,19 @@ ggplot(as.data.frame(lencomps %>% filter(Sex == "Female")),
   geom_col(aes(color = Source),stat = "identity") +
   facet_wrap(year) 
 
-ggplot(mat_plot %>% filter(age <= 20)) +
-  geom_point(aes(x = age, y = prop_mature), colour = "black") +
-  geom_line(aes(x = age, y = prop_mature, group = 1), colour = "black") +
-  geom_segment(aes(x = a50, y = 0, xend = a50, yend = 0.50), 
-               lty = 2, col = "grey") +
-  geom_segment(aes(x = 2, y = 0.50, xend = a50, yend = 0.50), 
-               lty = 2, col = "grey") +
-  # a_50 labels
-  geom_text(aes(12, 0.5, label = a50_txt), 
-            colour = "black", parse = TRUE, family = "Times New Roman") +
-  scale_x_continuous(limits = c(rec_age, 20)) + # breaks = axis$breaks, 
-  # labels = age_labs2) +
-  labs(x = "Age", y = "\n\nProportion mature") -> len_plot
+# ggplot(mat_plot %>% filter(age <= 20)) +
+#   geom_point(aes(x = age, y = prop_mature), colour = "black") +
+#   geom_line(aes(x = age, y = prop_mature, group = 1), colour = "black") +
+#   geom_segment(aes(x = a50, y = 0, xend = a50, yend = 0.50), 
+#                lty = 2, col = "grey") +
+#   geom_segment(aes(x = 2, y = 0.50, xend = a50, yend = 0.50), 
+#                lty = 2, col = "grey") +
+#   # a_50 labels
+#   geom_text(aes(12, 0.5, label = a50_txt), 
+#             colour = "black", parse = TRUE, family = "Times New Roman") +
+#   scale_x_continuous(limits = c(rec_age, 20)) + # breaks = axis$breaks, 
+#   # labels = age_labs2) +
+#   labs(x = "Age", y = "\n\nProportion mature") -> len_plot
 
 
 # Age compositions ----
@@ -584,61 +590,62 @@ ggplot(agecomps, aes(x = year, y = age, size = proportion)) +
 
 ggsave(paste0(YEAR+1,"/figures/tmb/agecomps_", YEAR, ".png"), dpi = 300, height = 7, width = 9, units = "in")
 
-agecomps %>% 
+agecomps <- agecomps %>% 
   left_join(data.frame(year = syr:lyr) %>% 
-              mutate(index = year - min(year))) -> agecomps
+              mutate(index = year - min(year)))  
 
 # Add in effective sample size. For now effn = sqrt(n) until tuning methods can
 # be developed.
-full_join(select(agecomps, -n), n_agecomps) %>%
-  mutate(effn = sqrt(n)) -> agecomps
+agecomps <- full_join(select(agecomps, -n), n_agecomps) %>%
+  mutate(effn = sqrt(n))
 
 # Reshape
-agecomps %>% reshape2::dcast(year + index + Source + n + effn ~ age, value.var = "proportion") -> agecomps
+agecomps <- agecomps %>% reshape2::dcast(year + index + Source + n + effn ~ age, value.var = "proportion") 
 agecomps[is.na(agecomps)] <- 0
 
 agecomps <- agecomps %>% arrange(Source, year)
 
 write_csv(agecomps, paste0(YEAR+1,"/data/tmb_inputs/agecomps_", YEAR, ".csv"))
 
-#------------
-# Sex deaggregated age comps... 
+#****************************************************************************
+# Sex disaggregated age comps... 
 colnames(fsh_bio)
+
 # Fishery
-fsh_bio %>% 
+fsh_comps_sex <- fsh_bio %>% 
   select(year, age, Sex) %>% 
   filter(year >= 2002 & !is.na(age)) %>% 
   droplevels() %>% 
   mutate(age = ifelse(age > plus_group, plus_group, age)) %>%
-  filter(age >= rec_age & age <= plus_group ) -> fsh_comps_sex 
+  filter(age >= rec_age & age <= plus_group ) 
 
-fsh_comps_sex %>% 
+fsh_comps_sex <- fsh_comps_sex %>% 
   count(year, age, Sex) %>%
   group_by(year, Sex) %>% 
   mutate(proportion = round(n / sum(n), 5),
-         Source = "Fishery") -> fsh_comps_sex
+         Source = "Fishery")
 
 fsh_comps_sex %>% group_by(Sex,year) %>%
   summarize(check1 = sum(proportion))
 
 # Survey
-srv_bio %>% 
+srv_comps_sex <- srv_bio %>% 
   select(year, age, Sex) %>% 
   filter(year >= 1997 & !is.na(age)) %>% 
   droplevels() %>% 
   mutate(age = ifelse(age > plus_group, plus_group, age)) %>%
-  filter(age >= rec_age & age <= plus_group ) -> srv_comps_sex  
+  filter(age >= rec_age & age <= plus_group ) 
 
-srv_comps_sex %>% 
+srv_comps_sex <- srv_comps_sex %>% 
   count(year, age, Sex) %>%
   group_by(year, Sex) %>% 
   mutate(proportion = round(n / sum(n), 5),
-         Source = "Survey") -> srv_comps_sex
+         Source = "Survey") 
 
 srv_comps_sex %>% group_by(Sex,year) %>%
   dplyr::summarize(check1 = sum(proportion))
 
-bind_rows(fsh_comps_sex, srv_comps_sex) -> agecomps_sex
+agecomps_sex <- bind_rows(fsh_comps_sex, srv_comps_sex) 
 
 # Check that they sum to 1
 agecomps_sex %>% 
@@ -647,16 +654,16 @@ agecomps_sex %>%
   filter(proportion > 1.0001) # should be none of these!
 
 # Sample sizes 
-agecomps_sex %>% 
+n_agecomps_sex <- agecomps_sex %>% 
   group_by(year, Source, Sex) %>% 
-  dplyr::summarize(n = sum(n)) -> n_agecomps_sex
+  dplyr::summarize(n = sum(n))
 
 # axisx <- tickr(agecomps, year, 5)
 
 ggplot(agecomps_sex %>% filter(!is.na(Sex)),
        aes(x = year, y = age, size = proportion, fill = Sex, colour = Sex)) +
 #  geom_point(shape = 21, colour = "black", fill = "black") +
-  geom_point(shape = 21, alpha = 0.3) +
+  geom_point(shape = 21, alpha = 0.59) +
   scale_size(range = c(0, 4)) +
   facet_wrap(~ Source) +
   labs(x = '\nYear', y = 'Observed age\n') +
@@ -666,9 +673,9 @@ ggplot(agecomps_sex %>% filter(!is.na(Sex)),
 
 ggsave(paste0(YEAR+1,"/figures/tmb/agecomps_sex_", YEAR, ".png"), dpi = 300, height = 7, width = 9, units = "in")
 
-agecomps_sex %>% filter(!is.na(Sex)) %>%
+agecomps_sex <- agecomps_sex %>% filter(!is.na(Sex)) %>%
   left_join(data.frame(year = syr:lyr) %>% 
-              mutate(index = year - min(year))) -> agecomps_sex
+              mutate(index = year - min(year)))
 
 
 # Add in effective sample size. For now effn = sqrt(n) until tuning methods can
@@ -678,18 +685,20 @@ full_join(select(agecomps_sex, -n),
   mutate(effn = sqrt(n)) -> agecomps_sex
 
 # Reshape
-agecomps_sex %>% reshape2::dcast(year + index + Sex + Source + n + effn ~ age, value.var = "proportion") -> agecomps_sex
+agecomps_sex <- agecomps_sex %>% 
+  reshape2::dcast(year + index + Sex + Source + n + effn ~ age, 
+                                                 value.var = "proportion")
 agecomps_sex[is.na(agecomps_sex)] <- 0
 
 agecomps_sex <- agecomps_sex %>% arrange(Source, year, Sex)
 
 write_csv(agecomps_sex, paste0(YEAR+1,"/data/tmb_inputs/agecomps_bysex_", YEAR, ".csv"))
 
-#-------------------------------------------------------------------------------
+#*****************************************************************************
 
 # Data source by year ----
-view(ts)
-ts %>% 
+# view(ts)
+df <- ts %>% 
   ungroup() %>% 
   gather("Source", "value", c(catch, fsh_cpue, srv_cpue, mr), na.rm = TRUE) %>% 
   select(year, Source) %>% 
@@ -703,21 +712,21 @@ ts %>%
                                 `Survey CPUE` = Source == "srv_cpue",
                                 `Fishery CPUE` = Source == "fsh_cpue",
                                 `Catch` = Source == "catch",
-                                .ordered = TRUE)) -> df
+                                .ordered = TRUE))
 
-df %>% 
+df <- df %>% 
   mutate(value = ifelse(year == YEAR & 
                           # data were used previously for the
                           # mark-recapture + yield per recruit (YPR) model
                           Source %in% c("Mark-recapture", "Fishery ages"),
-                        "1", "0")) -> df
-view(df)
+                        "1", "0")) 
+
 # axisx <- tickr(df, year, 5)
 
 ggplot(df, aes(x = year, y = Source)) +
   geom_point(shape = 21, colour = "black", fill = "black", size = 2) +
-  labs(x = NULL, y = NULL) #+
-  # scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) 
+  labs(x = NULL, y = NULL) +
+  scale_x_continuous(breaks = seq(1975,2025,5), labels = seq(1975,2025,5))
 
 ggsave(paste0(YEAR+1,"/figures/tmb/sable_data_all_", YEAR, ".png"),
        dpi=300, height=4, width=6, units="in")
@@ -857,6 +866,7 @@ ggplot() +
             vjust = 1, size = 2) -> size 
 
 size
+
 ret_sex <- ret %>% filter(Sex %in% c("Female", "Male"))
 
 # axis <- tickr(ret_sex, age, 5)
@@ -981,10 +991,10 @@ waa_laa %>% filter(Source == "LL survey") %>%
 # TWO SELECTIVITY PERIODS FOR THE FISHERY. 
 
 sel <- read_csv(paste0(YEAR+1,"/data/fed_selectivity_2022.csv"))
+
 view(sel)
 
 unique(sel$fleet)
-
  
 sel <- sel %>% 
   filter(fleet %in% c("Dom LL Survey Female", 
