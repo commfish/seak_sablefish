@@ -50,7 +50,8 @@ set.seed(9921)
 
 # if this is the first model run of the year set to NA:
 # TUNED_VER <- "v23_3f_3s_2016_new"
-TUNED_VER <- "v23_3f_3s_2015_new"
+# TUNED_VER <- "v23_3f_3s_2015_new"
+TUNED_VER <- NA
 
 # If you've tuned the model, use the tuned version you named and saved... 
 # TUNED_VER <-""
@@ -116,7 +117,7 @@ tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model o
 
 # Model switches
 {
-rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
+rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects 
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 fsh_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
 srv_slx_switch <- 1 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
@@ -233,7 +234,7 @@ Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
 #*****************************************************************************
 # User-defined fxns in functions.R
 # Set time blocks for selectivity:
-srv_blocks <- c(1999,2015) # years are last years of time blocks not counting last year of time series
+srv_blocks <- c(1999,2016) # years are last years of time blocks not counting last year of time series
 fsh_blocks <- c(1994,2021)
 
 # fsh_blocks <- c(1994)
@@ -269,9 +270,9 @@ f_blk_ct<-length(fsh_blks)
 # VER <- "v23_TUNED" #could not tune. Too unstable. 
 # VER <- "v23_3f_2s_ST" # 3 fixed fsh slx, 3rd time block for '22 and '23 when pot fishery started
 # VER <- "v23_3f_2s_TUNED"  #could not tune. Too unstable.
-VER <- "v23_3f_3s_2015_TUNED"
 # VER <- "v23_3f_3s_2015_TUNED"
-# VER <- "v23_3f_3s_2016_new_Tuned" 
+# VER <- "v23_3f_3s_2015_TUNED"
+VER <- "v23_3f_3s_2016_new_RE"
 # VER <- "v23_2f_3s"
 # VER <- "v23_3f_3s_2017"
 # VER <- "v23_3f_3s_2017_TUNED"
@@ -344,7 +345,7 @@ if (agedat == "aggregated") {
   out <- TMBphase_v23(data, parameters, random = random_vars, 
                       model_name = "scaa_mod_v23_Aaron2", #model_name = "scaa_mod_dir_ev",
                       phase = FALSE,  
-                      newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+                      newtonsteps = 10, #3 make this zero initially for faster run times (using 5)
                       debug = FALSE, loopnum = 30)
 } else {
   out <- TMBphase_v24(data, parameters, random = random_vars, 

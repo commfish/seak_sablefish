@@ -1292,10 +1292,9 @@ Type objective_function<Type>::operator() ()
     for(int x = 0; x < n_Fxx; x++) {
       for(int k = 0; k < nsex; k++) {
         for(int j = 0; j < nage; j++) {
-          // Landed catch component - use fishery weight-at-age
+          // Landed catch component uses fishery weight-at-age
           ABC(i,x) += data_fsh_waa(0,j,k) * N(i,j,k) * sel_Fxx(x,j,k) * retention(0,j,k) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
           
-          // Dead discards component - use fishery weight-at-age
           wastage(i,x) += data_fsh_waa(0,j,k) * N(i,j,k) * sel_Fxx(x,j,k) * dmr(nyr-1,j,k) * (Type(1.0) - retention(0,j,k)) * (Type(1.0) - S_Fxx(x,j,k)) / Z_Fxx(x,j,k);
         }
       }
