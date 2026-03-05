@@ -68,6 +68,9 @@ agedat <- "aggregated"
   tmp_debug <- FALSE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
 }
 
+# Switch to run the model using random effects for log recruitment deviates
+if(rec_type==1){model.switch <- "log_rec_devs"}else{model.switch <- NULL}
+
 {
   # Time series
   if (IND_SIGMA == TRUE) {
@@ -166,7 +169,7 @@ agedat <- "aggregated"
 
 #******************************************************************************
 # Set time blocks for selectivity:
-srv_blocks <- c(1999,2015) # years are last years of time blocks
+srv_blocks <- c(1999,2017) # years are last years of time blocks
 fsh_blocks <- c(1994,2021)
 
 {
@@ -194,7 +197,7 @@ fsh_blocks <- c(1994,2021)
 # VER<-"v23" #too unstable; could not tune
 # VER <- "v23_3f_2s"
 # VER <- "v23_3f_3s_2016_new"
-VER <- "v23_3f_3s_2015_new"
+VER <- "v23_3f_3s_2017_new"
 #-------------------------------------------------------------------------------
 # Load data and parameters
 # If base model
@@ -228,21 +231,21 @@ for(iter in 1:niter) { #iter<-2
   # MLE, phased estimation (phase = TRUE) or not (phase = FALSE)
   if (agedat == "aggregated") {
     out <- TMBphase_v23(data, parameters, random = random_vars, 
-                        model_name = "scaa_mod_v23_Aaron2", #model_name = "scaa_mod_dir_ev",
+                        model_name = "scaa_mod_v23_Aaron2",random.switch = model.switch, #model_name = "scaa_mod_dir_ev",
                         phase = FALSE,  
-                        newtonsteps = 0, #3 make this zero initially for faster run times (using 5)
+                        newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                         debug = FALSE, loopnum = 30)
     rep <- out$rep
     cat(paste0("This is iteration = ", iter,"\nThe gradient = ", max(abs(rep$gradient.fixed))))  
     
-    if (max(abs(rep$gradient.fixed)) > 0.001) {
-      out <- TMBphase_v23(data, parameters, random = random_vars,
-                              model_name = "scaa_mod_v23", phase = FALSE,
-                              newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
-                              debug = FALSE, loopnum = 30)
-
-    cat(paste0("This is iteration = ", iter,"\nThe gradient = ", max(abs(rep$gradient.fixed))))
-    }
+    # if (max(abs(rep$gradient.fixed)) > 0.001) {
+    #   out <- TMBphase_v23(data, parameters, random = random_vars,
+    #                           model_name = "scaa_mod_v23", phase = FALSE,
+    #                           newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+    #                           debug = FALSE, loopnum = 30)
+    # 
+    # cat(paste0("This is iteration = ", iter,"\nThe gradient = ", max(abs(rep$gradient.fixed))))
+    # }
     
   } else {
     out <- TMBphase_v24(data, parameters, random = random_vars, 

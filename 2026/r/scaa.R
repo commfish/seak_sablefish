@@ -51,7 +51,7 @@ set.seed(9921)
 # if this is the first model run of the year set to NA:
 # TUNED_VER <- "v23_3f_3s_2016_new"
 # TUNED_VER <- "v23_3f_3s_2015_new"
-TUNED_VER <- NA
+TUNED_VER <- "v23_3f_3s_2017_new"
 
 # If you've tuned the model, use the tuned version you named and saved... 
 # TUNED_VER <-""
@@ -117,7 +117,7 @@ tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model o
 
 # Model switches
 {
-rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects 
+rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects. Aaron: Should be set to 0. Random effects are not working as of 2026
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 fsh_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
 srv_slx_switch <- 1 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
@@ -127,6 +127,9 @@ M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
 ev_type <- 0     # extra variance in indices; 0 = none, 1 = estimated
 tmp_debug <- FALSE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
 }
+
+# Switch to run the model using random effects for log recruitment deviates
+if(rec_type==1){model.switch <- "log_rec_devs"}else{model.switch <- NULL}
 
 # Load prepped data from scaa_dataprep.R
 {
@@ -234,7 +237,7 @@ Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
 #*****************************************************************************
 # User-defined fxns in functions.R
 # Set time blocks for selectivity:
-srv_blocks <- c(1999,2016) # years are last years of time blocks not counting last year of time series
+srv_blocks <- c(1999,2017) # years are last years of time blocks not counting last year of time series
 fsh_blocks <- c(1994,2021)
 
 # fsh_blocks <- c(1994)
@@ -272,7 +275,7 @@ f_blk_ct<-length(fsh_blks)
 # VER <- "v23_3f_2s_TUNED"  #could not tune. Too unstable.
 # VER <- "v23_3f_3s_2015_TUNED"
 # VER <- "v23_3f_3s_2015_TUNED"
-VER <- "v23_3f_3s_2016_new_RE"
+VER <- "v23_3f_3s_2017_TUNED"
 # VER <- "v23_2f_3s"
 # VER <- "v23_3f_3s_2017"
 # VER <- "v23_3f_3s_2017_TUNED"
@@ -342,10 +345,12 @@ setwd(tmb_path)
 # (4) Debug mode with debug = TRUE (will need to uncomment out obj_fun = dummy * dummy; )
 
 if (agedat == "aggregated") {
-  out <- TMBphase_v23(data, parameters, random = random_vars, 
+  out <- TMBphase_v23(data, parameters,
+                      random = random_vars,
+                      random.switch = model.switch,
                       model_name = "scaa_mod_v23_Aaron2", #model_name = "scaa_mod_dir_ev",
                       phase = FALSE,  
-                      newtonsteps = 10, #3 make this zero initially for faster run times (using 5)
+                      newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                       debug = FALSE, loopnum = 30)
 } else {
   out <- TMBphase_v24(data, parameters, random = random_vars, 
@@ -481,7 +486,7 @@ write.csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR,"_",VER, ".cs
 # "metric" to switch between units. tmb_path <- file.path(root, paste0(YEAR+1,"/tmb")) # location of cpp
 
 # Fit to catch, fsh CPUE, srv CPUE, and total abundance (MR)
-plot_ts(ts = ts, save = FALSE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
+plot_ts(ts = ts, save = TRUE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
 
 # Plots of recruits, Spawning Biomass, Exploitable abundance
 plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)

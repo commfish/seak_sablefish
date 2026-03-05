@@ -1157,7 +1157,7 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
     params_use <- parameters
     
     # Fit the model
-    obj <- TMB::MakeADFun(data,params_use,random=NULL,
+    obj <- TMB::MakeADFun(data,params_use,random=model.switch,
                           DLL=DLL_use,map=map_use)  
     
     TMB::newtonOption(obj,smartsearch=FALSE)
@@ -1298,7 +1298,7 @@ TMBphase <- function(data, parameters, random, model_name, phase = FALSE,
       if (phase_cur>1) params_use <- obj$env$parList(obj$env$last.par.best)
       
       # Fit the model
-      obj <- TMB::MakeADFun(data,params_use,random=NULL, 
+      obj <- TMB::MakeADFun(data,params_use,random=model.switch, 
                             DLL=DLL_use,map=map_use)  
       
       TMB::newtonOption(obj,smartsearch=FALSE)
@@ -2716,7 +2716,7 @@ build_bounds_v23 <- function(param_list = NULL, data_list){
 
 
 TMBphase_v23 <- function(data, parameters, random, model_name, phase = FALSE,
-                         optimizer = "nlminb", debug = FALSE, loopnum = 3, newtonsteps = 0) {
+                         optimizer = "nlminb", debug = FALSE, loopnum = 3, newtonsteps = 0, random.switch=NULL) {
   
   # Debug function
   # random <-  random_vars# <- NULL
@@ -2740,6 +2740,12 @@ TMBphase_v23 <- function(data, parameters, random, model_name, phase = FALSE,
     # if not using random effects, assign log_sigma_r an NA in the map so it's not estimated
     if (data$random_rec == FALSE) {
       map_use$log_sigma_r <- fill_vals(parameters$log_sigma_r, NA)
+    }
+    
+    # When using random effects, DON'T include log_rec_devs in the map
+    if(rec_type == 1) {
+      # Remove log_rec_devs from map if it exists
+      map_use$log_rec_devs <- NULL
     }
     
     # if natural mortality is fixed, assign log_M an NA in the map so its not
@@ -2893,7 +2899,7 @@ TMBphase_v23 <- function(data, parameters, random, model_name, phase = FALSE,
     params_use <- parameters
     
     # Fit the model
-    obj <- TMB::MakeADFun(data,params_use,random=NULL,
+    obj <- TMB::MakeADFun(data,params_use,random=model.switch,
                           DLL=DLL_use,map=map_use)  
     
     TMB::newtonOption(obj,smartsearch=FALSE)
@@ -3037,7 +3043,7 @@ TMBphase_v23 <- function(data, parameters, random, model_name, phase = FALSE,
       if (phase_cur>1) params_use <- obj$env$parList(obj$env$last.par.best)
       
       # Fit the model
-      obj <- TMB::MakeADFun(data,params_use,random=NULL, 
+      obj <- TMB::MakeADFun(data,params_use,random=random.switch, 
                             DLL=DLL_use,map=map_use)  
       
       TMB::newtonOption(obj,smartsearch=FALSE)
@@ -4927,7 +4933,7 @@ TMBphase_v24 <- function(data, parameters, random, model_name, phase = FALSE,
     params_use <- parameters
     
     # Fit the model
-    obj <- TMB::MakeADFun(data,params_use,random=NULL,
+    obj <- TMB::MakeADFun(data,params_use,random=model.switch,
                           DLL=DLL_use,map=map_use)  
     
     TMB::newtonOption(obj,smartsearch=FALSE)
@@ -5064,7 +5070,7 @@ TMBphase_v24 <- function(data, parameters, random, model_name, phase = FALSE,
       if (phase_cur>1) params_use <- obj$env$parList(obj$env$last.par.best)
       
       # Fit the model
-      obj <- TMB::MakeADFun(data,params_use,random=NULL, 
+      obj <- TMB::MakeADFun(data,params_use,random=model.switch, 
                             DLL=DLL_use,map=map_use)  
       
       TMB::newtonOption(obj,smartsearch=FALSE)
