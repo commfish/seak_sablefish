@@ -1,6 +1,12 @@
+# Current Author: Aaron Lambert, ADFG
+# 
 # Retrospective analysis
-
-# Last updated April 2024 by Phil Joy
+# Purpose: This is a script to perform retrospective analysis of models using
+#          Mohns Rho. This works by iteratively removing years and refitting and tuning
+#          the model and extracting values of interest to compare to the prediction from 
+#          the current years model.
+#          
+# Last updated March 2026 by Aaron Lambert
 
 # Set up ----
 set.seed(9921)
@@ -9,9 +15,10 @@ source("r_helper/helper.r")
 source("r_helper/functions.r")
 source("r_helper/exp_functions.r")
 
-YEAR <- 2024 # most recent year of data
+YEAR <- 2025 # most recent year of data
 
-VER<-"v23_3f_3s_2016_TUNED"
+VER <-"v23_3f_3s_2015_new_TUNED"
+
 # Directory setup
 root <- getwd() # project root
 tmb_dat <- file.path(root, paste0(YEAR+1,"/data/tmb_inputs")) # location of tmb model data inputs
@@ -26,8 +33,8 @@ dir.create(retro_dir, showWarnings = FALSE)
 
 library(TMB) 
 
-TUNED_VER<-NA
-TUNED_VER<-"v23_3f_3s_2016"
+# TUNED_VER<-NA
+TUNED_VER<-"v23_3f_3s_2015_new"
 
 IND_SIGMA<-FALSE
 
@@ -44,17 +51,19 @@ agedat <- "aggregated" # age comp data: "aggregated" (sexes combined, v23) or "d
 # most recent year of data (YEAR+1 should be the forecast year)
 # Model switches
 {
-  rec_type <- 1     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
+  rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects (still under development)
   slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
   fsh_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
-  srv_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
+  srv_slx_switch <- 1 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
   comp_type <- 0    # Age  and length comp likelihood (not currently developed for len comps): 0 = multinomial, 1 = Dirichlet-multinomial
   spr_rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
-  rec_type <- 1 # SPR equilbrium recruitment: 0 = arithmetic mean, 1 = geometric mean, 2 = median (not coded yet)
   M_type <- 0       # Natural mortality: 0 = fixed, 1 = estimated with a prior
   ev_type <- 0     # extra variance in indices; 0 = none, 1 = estimated
   tmp_debug <- FALSE         # Shuts off estimation of selectivity pars - once selectivity can be estimated, turn to FALSE
 }
+
+# Switch to run the model using random effects for log recruitment deviates
+if(rec_type==1){model.switch <- "log_rec_devs"}else{model.switch <- NULL}
 
 # Load prepped data from scaa_dataprep.R
 {
@@ -110,7 +119,8 @@ agedat <- "aggregated" # age comp data: "aggregated" (sexes combined, v23) or "d
     #need to add in new selectivity block since not there last year
     #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_NEW_SLX2.csv"))
     #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, "_srv_slx.csv"))
-    inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR+1, "_v23_3f_3s_2016_TUNED.csv"))
+    inits <- read_csv(paste0(tmb_dat, "/inits_for_v23_3f_3s_2016_TUNED_2025.csv"))
+    
     #inits <- read_csv(paste0(tmb_dat, "/inits_for_", YEAR, "_srv_fsh_slx3.csv"))
   }
   
@@ -161,7 +171,7 @@ agedat <- "aggregated" # age comp data: "aggregated" (sexes combined, v23) or "d
 #-------------------------------------------------------------------------------
 #=====================================
 # Set time blocks for selectivity:
-srv_blocks <- c(1999,2016) # years are last years of time blocks
+srv_blocks <- c(1999,2015) # years are last years of time blocks
 fsh_blocks <- c(1994,2021)
 
 #--------------------------------------------------------------------------------
@@ -171,6 +181,7 @@ tune_iters <- 2
 
 # Retrospective ----
 set.seed(9921)
+
 # Store output from each restrospective peel:
 rec_ls <- list()        # recruitment time series
 SB_ls <- list()         # spawning stock biomass
@@ -241,7 +252,7 @@ for(i in 1:length(retro)){  #i<-1
   #data <- build_data_exp(ts = iter_ts)
   if (agedat == "aggregated") {
     data <- build_data_v23(ts = iter_ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
-    parameters <- build_parameters_v23(rec_devs_inits = iter_rec_devs_inits, 
+    parameters <- build_parameters_v23(rec_devs_inits = iter_rec_devs_inits,  
                                        Fdevs_inits = iter_Fdevs_inits)
   } else {
     data <- build_data_v24(ts = iter_ts, weights=FALSE)   #TRUE means fixed weights, FALSE = flat weights (all wts = 1)
@@ -257,11 +268,11 @@ for(i in 1:length(retro)){  #i<-1
     #insert tuning step if necessary...
   if (agedat == "aggregated") {
     if (TUNE == TRUE) {
-      #try(invisible(capture.output(out<-tune_it(niter=tune_iters,modelname="scaa_mod_v23",
+      # try(invisible(capture.output(out<-tune_it(niter=tune_iters,modelname="scaa_mod_v23",
       #                                          newtonsteps=3, wt_opt = FALSE),
       #                             type="message")),silent=TRUE)
-      out<-tune_it(niter=tune_iters,modelname="scaa_mod_v23",
-                   newtonsteps=5, wt_opt = FALSE)
+      out<-tune_it(niter=tune_iters,modelname="scaa_mod_v23_Aaron2",
+                   newtonsteps=0, wt_opt = FALSE)
       
     } else {
       #try(invisible(capture.output(out <- TMBphase_v23(data, parameters, random = random_vars, 
@@ -294,6 +305,9 @@ for(i in 1:length(retro)){  #i<-1
   opt <- out$opt # fit
   rep <- out$rep # sdreport
   best <- obj$env$last.par.best
+  
+  print(rep)
+  print(paste0("This is iteration:",i))
   
   # save MLE estimates
   tidyrep <- save_mle(path = iter_dir, save_inits = FALSE, year = lyr, save=TRUE)
@@ -358,6 +372,8 @@ for(i in 1:length(retro)){  #i<-1
   # check on max gradient component
   mgc_ls[[i]] <- data.frame(retro = paste0("retro_", retro[i]),
                                     mgc = max(rep$gradient.fixed))  
+  
+  
 }
 
 #-------------------------------------------------------------------------------

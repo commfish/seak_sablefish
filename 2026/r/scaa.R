@@ -275,7 +275,7 @@ f_blk_ct<-length(fsh_blks)
 # VER <- "v23_3f_2s_TUNED"  #could not tune. Too unstable.
 # VER <- "v23_3f_3s_2015_TUNED"
 # VER <- "v23_3f_3s_2015_TUNED"
-VER <- "v23_3f_3s_2017_TUNED"
+VER <- "v23_3f_3s_2017_RE"
 # VER <- "v23_2f_3s"
 # VER <- "v23_3f_3s_2017"
 # VER <- "v23_3f_3s_2017_TUNED"
@@ -332,6 +332,9 @@ slx_pars
 parameters$log_fsh_slx_pars #(row = timeblock, column = parameter, array3 = sex (1=m, 2 = F))
 parameters$log_srv_slx_pars
 
+
+# parameters$log_sigma_r <- log(.5)
+# parameters$log_rec_devs <- rep(0,nyr)
 # Run model ----
 
 setwd(tmb_path)
