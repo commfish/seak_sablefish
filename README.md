@@ -13,9 +13,9 @@ Last updated: March 2026
 ## Reports
 2025 forecast: https://www.adfg.alaska.gov/FedAidPDFs/RIR.1J.2025.23.pdf
 
-2024 forecast: [git word document](https://github.com/commfish/seak_sablefish/blob/master/2024/text/RIR.1J.2024.XX_NSEI_v3%20DRAFT%200724.docx).  Please note that as of August 2023 the ADF&G publication department is undergoing revisions and publications have been temporarily suspended.  Please cite the github for this report until official publications are made available. 
+2024 forecast: https://www.adfg.alaska.gov/FedAidPDFs/RIR.1J.2025.03.pdf
 
-2023 forecast: [git word document](https://github.com/commfish/seak_sablefish/blob/master/2023/text/RIR.1J.2023.XX_NSEI_Final.docx).  Please note that as of August 2023 the ADF&G publication department is undergoing revisions and publications have been temporarily suspended.  Please cite the github for this report until official publications are made available. 
+2023 forecast: https://www.adfg.alaska.gov/FedAidPDFs/RIR.1J.2025.02.pdf
 
 2022 forecast: http://www.adfg.alaska.gov/FedAidPDFs/RIR.1J.2022.19.pdf
 
