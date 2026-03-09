@@ -322,3 +322,4 @@ full_join(sum_catch,exvessel_value,by="year") %>%
   scale_colour_manual(values = c("red", "black"), guide = FALSE) +
   labs(x = "\nCatch (million round lb)", y = "Ex-vessel value (million USD)") +
   scale_y_continuous(limits = c(0,6))
+

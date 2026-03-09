@@ -522,7 +522,7 @@ if (agedat == "aggregated") {
 }
 
 # Plot selectivity
-plot_sel(save = TRUE)
+plot_sel(save = TRUE,path = tmbfigs)
 
 # save slx values for initial inputs if desired; only works for deaggregated age comps
 new_slx <- save_slx(tidyrep,slx_pars,fsel=0, save=TRUE)
