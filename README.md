@@ -54,7 +54,7 @@ The annual schedule for stock assessments, survey, fishery, and data processing 
 
 The SCAA model uses a combination of catch, longline survey and fishery CPUE, mark-recapture abundance estimates, length, and age data. Fisheries-independent data and inputs to the SCAA model are made available under [`data/`](https://github.com/commfish/seak_sablefish/tree/master/data) of this repository. Fisheries-dependent data are not made public to protect fishermen and processor confidentiality, but may be obtained through a formal data request to ADFG. Data are available for the following years:
 
-![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/available_data.jpg)
+![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/available_data.png)
 
 The following product recovery rates for sablefish were used:
 
