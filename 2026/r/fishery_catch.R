@@ -53,6 +53,7 @@ write_csv(exvessel_value, paste0("legacy_data/exvessel_value_",
                           YEAR+1, ".csv"))
 
 exvessel_value<-exvessel_value[,c(5,6)]
+
 #if new year not available, add in best est. from Aaron and groundfish crew....
 #2021 exvessel value ... add in manually and
 
@@ -149,11 +150,12 @@ port <- ggplot(port_catch, aes(x = year, y = perc, fill = Port)) +
   # add a line for EQS starting in 1994 (1997 in the SSEI).
   # geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  theme(legend.position = c(0.8,0.8),
+  theme(legend.position = "right",
+    # legend.position = c(0.8,0.8),
         legend.background = element_rect(color = "black", 
                                          fill = "white", 
                                          linetype = "solid")) +
-  labs(x = NULL, y = "Percent landings by port", fill = NULL)
+  labs(x = NULL, y = "Landings by port (%)", fill = NULL)
 
 # Put into one figure for reporting
 plot_grid(catch, port, ncol = 1, align = 'hv')
@@ -182,11 +184,11 @@ exvessel <- ggplot(exvessel_value, aes(x = year, y = exvessel_mil_usd)) +
   # geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
   scale_x_continuous(breaks = seq(1985,2022,5), labels = seq(1985,2022,5)) +
-  labs(x = NULL, y = "Ex-vessel value (million USD)\n") +
+  labs(x = NULL, y = "Ex-vessel value \n(million USD)\n") +
   ylim(c(0, 12.5)) +
   annotate("text", x = YEAR-7, y = 10, 
            label = pchange_evv,
-           size=8)
+           size=7)
 
 # Save th plot
 exvessel
@@ -230,31 +232,32 @@ gear <- ggplot(gear_catch, aes(x = year, y = perc, fill = Gear)) +
   # add a line for EQS starting in 1994 (1997 in the SSEI).
   # geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  theme(legend.position = c(0.8,0.8),
+  theme(legend.position = "right",
+    # legend.position = c(0.8,0.8),
         legend.background = element_rect(color = "black", 
                                          fill = "white", 
                                          linetype = "solid")) +
-  labs(x = NULL, y = "Percent Gear Type", fill = NULL) 
+  labs(x = NULL, y = "Catch by Gear Type (%)", fill = NULL) 
 
 # Plot catch by gear over time
-ggplot(sum_catch %>% 
-         filter(year >= 1985), 
-       aes(x = year, y = total_pounds/1e6)) +
-  geom_line(group=1) +
-  geom_point() +
-  geom_line(data = gear_catch %>% filter(year >=2021),
-            aes(x = year, y = pounds/1e6, colour = Gear, group = Gear)) +
-  geom_point(data = gear_catch %>% filter(year >=2021),
-            aes(x = year, y = pounds/1e6, colour = Gear, group = Gear)) +
-  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
-  scale_x_continuous(breaks = seq(1985,2022,5), labels = seq(1985,2022,5)) + 
-  scale_y_continuous(breaks = seq(0, 6, 1), limits = c(0, 6), labels = seq(0, 6, 1)) +
-  # add a line for EQS starting in 1994 (1997 in the SSEI).
-  geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
-  labs(x = NULL, y = "Catch (million round lb)\n") +
-  annotate("text", x = 2015, y = 5, 
-           label = pchange,
-           size=8)-> catch_bygear
+# ggplot(sum_catch %>% 
+#          filter(year >= 1985), 
+#        aes(x = year, y = total_pounds/1e6)) +
+#   geom_line(group=1) +
+#   geom_point() +
+#   geom_line(data = gear_catch %>% filter(year >=2021),
+#             aes(x = year, y = pounds/1e6, colour = Gear, group = Gear)) +
+#   geom_point(data = gear_catch %>% filter(year >=2021),
+#             aes(x = year, y = pounds/1e6, colour = Gear, group = Gear)) +
+#   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
+#   scale_x_continuous(breaks = seq(1985,2022,5), labels = seq(1985,2022,5)) + 
+#   scale_y_continuous(breaks = seq(0, 6, 1), limits = c(0, 6), labels = seq(0, 6, 1)) +
+#   # add a line for EQS starting in 1994 (1997 in the SSEI).
+#   geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
+#   labs(x = NULL, y = "Catch (million round lb)\n") +
+#   annotate("text", x = 2015, y = 5, 
+#            label = pchange,
+#            size=8)-> catch_bygear
 
 # Aarons favorite colorblind friendly pallette
 wong <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
@@ -275,16 +278,23 @@ catch_bygear <- ggplot(rbind(sum_catch %>% mutate(Gear = "Longline & Pot") %>%
   # add a line for EQS starting in 1994 (1997 in the SSEI).
   geom_vline(xintercept = 1993.5, lty = 5, colour = "grey") +
   labs(x = NULL, y = "Catch (million round lb)\n") +
-  annotate("text", x = 2015, y = 5, 
+  annotate("text", x = 2015, y = 5,
            label = pchange,
-           size=8) +
-  theme(legend.position = c(.2, .2)) 
+           size=7) +
+  # theme(legend.position = c(.2, .2)) 
+  theme(legend.position = "right")
 
 
 plot_grid(catch_bygear, port, exvessel,  ncol = 1, align = 'hv')
 
 ggsave(paste0(YEAR+1,"/figures/catch_exvesselvalue_", YEAR, "v34.png"),
        dpi=300, height=10, width=7, units="in") # figure to use in assessment 2025
+
+# Add a plot with the proportion of pot and ll gear
+plot_grid(gear,catch_bygear, port, exvessel,  ncol = 1, align = 'hv')
+
+ggsave(paste0(YEAR+1,"/figures/catch_exvesselvalue_", YEAR, "v35.png"),
+       dpi=300, height=8, width=7, units="in") 
 
 # Relationship between ex-vessel price and catch
 if(!require("ggrepel"))   install.packages("ggrepel") 

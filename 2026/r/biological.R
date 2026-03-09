@@ -1523,7 +1523,7 @@ pred <- broom::augment(x = fit_length_year,
 
 #Length-based maturity curves - 2019 and 2020 appear to have early
 #age-at-maturation relative to other years
-ggplot() +
+fec_length_plot <- ggplot() +
   geom_line(data = pred, 
             aes(x = length, y = fitted, group = Year, colour = as.numeric(as.character(Year)))) +
   geom_line(data = pred_simple, aes(x = length, y = fitted, lty = "All years combined"),
@@ -1636,7 +1636,7 @@ merge(pred %>% mutate(year = Year), mat_50_year, by = "year") -> pred
 
 # Age-based maturity curves estimated from length-based maturity and vonB growth
 # curve (light blue lines are annual mean predictions, dark blue is the mean)
-ggplot() +
+fec_age_plot <- ggplot() +
   geom_line(data = pred, aes(x = age, y = fitted, group = Year, colour = as.numeric(as.character(Year)))) +  
   geom_line(data = pred_simple, aes(x = age, y = fitted, lty = "All years combined"),
             colour = "black", size = 1) +
@@ -1646,8 +1646,16 @@ ggplot() +
   labs(x = "\nAge (yr)", y = "Probability\n", colour = "Year", lty = NULL) +
   theme(legend.position = c(.8, .4)) 
 
+fec_age_plot
+
 ggsave(paste0(YEAR+1,"/figures/maturity_atage_byyear_srvfem_", YEAR, ".png"), 
        dpi=300, height=4, width=6, units="in")
+
+
+plot_grid(fec_age_plot,fec_age_plot, cols = 1)
+
+ggsave(paste0(YEAR+1,"/figures/maturity_atage_length_byyear_srvfem_", YEAR, ".png"), 
+       dpi=300, height=8, width=6, units="in")
 
 # Comparison with age-based maturity curve
 fit_age_year <- glm(Mature ~ age * Year, data = len_f, family = binomial)
@@ -2243,15 +2251,16 @@ agecompdat <- agecomps %>%
 # axisy <- tickr(agecompdat, age, 2)
 
 # Proportions across years in bubble plot for paper
-ggplot(data = agecompdat,
-       aes(x = year, y = age, size = proportion)) + #*FLAG* could swap size with proportion_scaled
+srv_bubble_plot <- ggplot(data = agecompdat,
+                          aes(x = year, y = age, size = proportion)) + #*FLAG* could swap size with proportion_scaled
   geom_point(shape = 21, fill = "black", colour = "black") +
   scale_size(range = c(0, 4)) +
   facet_wrap(~ Sex) +
-  labs(x = "\nYear", y = "Observed age\n") +
+  labs(x = "\nYear", y = "Survey observed age\n") +
   guides(size = FALSE)# +
   # scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
   # scale_y_continuous(breaks = axisy$breaks, labels = axisy$labels)
+srv_bubble_plot
 
 ggsave(paste0(YEAR+1,"/figures/bubble_survey_agecomp_byyear.png"), dpi=300, height=5, width=7.5, units="in")
 
@@ -2266,19 +2275,24 @@ agecompdat <- agecomps %>%
 # axisx <- tickr(agecompdat, year, 3)
 # axisy <- tickr(agecompdat, age, 5)
 
-ggplot(data = agecompdat,
-       aes(x = year, y = age, size = proportion)) + #*FLAG* could swap size with proportion_scaled
+fsh_bubble_plot <- ggplot(data = agecompdat,
+                          aes(x = year, y = age, size = proportion)) + #*FLAG* could swap size with proportion_scaled
   geom_point(shape = 21, colour = "black", fill = "black") +
   scale_size(range = c(0, 4)) +
   facet_wrap(~ Sex) +
-  labs(x = "\nYear", y = "Observed age\n") +
+  labs(x = "", y = "Fishery observed age\n") +
   guides(size = FALSE) #+
   # scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
   # scale_y_continuous(breaks = axisy$breaks, labels = axisy$labels)
+fsh_bubble_plot
 
 ggsave(paste0(YEAR+1,"/figures/bubble_fishery_agecomp_byyear.png"), 
        dpi=300, height=5, width=7.5, units="in")
 
+plot_grid(fsh_bubble_plot,srv_bubble_plot, ncol = 1)
+
+ggsave(paste0(YEAR+1,"/figures/bubble_both_agecomp_byyear.png"), 
+       dpi=300, height=9, width=7.5, units="in")
 #****************************************************************************
 # Length compositions -------------------------------------------------------
 # Pers. comm. K. Fenske 2018-01-05: NMFS uses length bins 41, 43, 45 ... 99.
@@ -2355,7 +2369,7 @@ lencomps %>%
   group_by(Source, Sex, year) %>% 
   summarise(sum(proportion)) %>% View()
 
-write_csv(lencomps, paste0(YEAR+1,"/output/lengthcomps_", YEAR, ".csv"))
+# write_csv(lencomps, paste0(YEAR+1,"/output/lengthcomps_", YEAR, ".csv"))
 
 str(lendat)
 # Get the mean length comps

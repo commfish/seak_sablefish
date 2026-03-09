@@ -1157,10 +1157,13 @@ fig.9 <- ggplot(cpue_ts_multi) +
   geom_ribbon(aes(year, ymin = lower, ymax = upper, fill = CPUE),
               # geom_ribbon(aes(year, ymin = cpue - var, ymax = cpue + var),
               alpha = 0.4) +
+  scale_fill_colorblind()+
+  scale_color_colorblind()+
   # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) + 
   #lims(y = c(0, 1.5)) +
   #lims(y = c(-0.5, 1.5)) +
-  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") 
+  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  theme(legend.position = "top")
 
 fig.9
 
@@ -1169,6 +1172,7 @@ fig.9
 
 ggsave(paste0(YEAR+1,"/figures/ll_cpue_nom_1980_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
+
 # Write to file
 write_csv(nom_cpue_ts, paste0(YEAR+1,"/output/ll_cpue_nom_", min(nom_cpue_ts$year), "_", YEAR, ".csv"))
 

@@ -51,7 +51,7 @@ set.seed(9921)
 # if this is the first model run of the year set to NA:
 # TUNED_VER <- "v23_3f_3s_2016_new"
 # TUNED_VER <- "v23_3f_3s_2015_new"
-TUNED_VER <- "v23_3f_3s_2017_new"
+TUNED_VER <- "v23_3f_3s_2016_new"
 
 # If you've tuned the model, use the tuned version you named and saved... 
 # TUNED_VER <-""
@@ -237,7 +237,7 @@ Fdevs_inits <- tmp_inits %>% pull(Fdevs_inits)
 #*****************************************************************************
 # User-defined fxns in functions.R
 # Set time blocks for selectivity:
-srv_blocks <- c(1999,2017) # years are last years of time blocks not counting last year of time series
+srv_blocks <- c(1999,2016) # years are last years of time blocks not counting last year of time series
 fsh_blocks <- c(1994,2021)
 
 # fsh_blocks <- c(1994)
@@ -275,7 +275,7 @@ f_blk_ct<-length(fsh_blks)
 # VER <- "v23_3f_2s_TUNED"  #could not tune. Too unstable.
 # VER <- "v23_3f_3s_2015_TUNED"
 # VER <- "v23_3f_3s_2015_TUNED"
-VER <- "v23_3f_3s_2017_RE"
+VER <- "v23_3f_3s_2016_FINAL"
 # VER <- "v23_2f_3s"
 # VER <- "v23_3f_3s_2017"
 # VER <- "v23_3f_3s_2017_TUNED"
@@ -363,6 +363,10 @@ if (agedat == "aggregated") {
                           debug = FALSE, loopnum = 30)
 }
 
+# Save the output for model plotting comparison
+# saveRDS(out,file = paste0(tmbout,"/",VER,".RDS"))
+out <- readRDS(file = paste0(tmbout,"/v23_3f_3s_2016_new_Tuned.RDS"))
+
 obj <- out$obj # TMB model object
 opt <- out$opt # fit
 rep <- out$rep # sdreport
@@ -377,9 +381,6 @@ rep
 best <- obj$env$last.par.best # maximum likelihood estimates
 
 # MLE results ----
-
-# Save the output for model plotting comparison
-saveRDS(out,file = paste0(tmbout,"/",VER,".RDS"))
 
 # MLE parameter estimates and standard errors in usable format. Saves output to
 # tmbout and starting vals for next year to tmb_dat by default. See functions.R
@@ -527,7 +528,7 @@ plot_sel(save = TRUE)
 new_slx <- save_slx(tidyrep,slx_pars,fsel=0, save=TRUE)
 slx_pars
 
-# Plot fits to age and look for reidual patterns
+# Plot fits to age and look for residual patterns
 if (agedat == "aggregated") {
   plot_age_resids() # Fits to age comps
   barplot_age("Survey")
