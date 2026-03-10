@@ -44,6 +44,8 @@ source("r_helper/exp_functions.r")
 library(TMB) 
 # Manual inputs ----
 
+setwd("C:/Users/awlambert/Desktop/seak_sablefish")
+
 # These must be checked or updated annually!
 #TUNED_VER<-"fsel3_est_ssel_flat_wts"
 set.seed(9921)
@@ -51,7 +53,7 @@ set.seed(9921)
 # if this is the first model run of the year set to NA:
 # TUNED_VER <- "v23_3f_3s_2016_new"
 # TUNED_VER <- "v23_3f_3s_2015_new"
-TUNED_VER <- "v23_3f_3s_2016_new"
+TUNED_VER <- "v23_3f_3s_2016_old"
 
 # If you've tuned the model, use the tuned version you named and saved... 
 # TUNED_VER <-""
@@ -275,7 +277,7 @@ f_blk_ct<-length(fsh_blks)
 # VER <- "v23_3f_2s_TUNED"  #could not tune. Too unstable.
 # VER <- "v23_3f_3s_2015_TUNED"
 # VER <- "v23_3f_3s_2015_TUNED"
-VER <- "v23_3f_3s_2016_FINAL"
+VER <- "v23_3f_3s_2016_OLD_FINAL"
 # VER <- "v23_2f_3s"
 # VER <- "v23_3f_3s_2017"
 # VER <- "v23_3f_3s_2017_TUNED"
@@ -351,9 +353,9 @@ if (agedat == "aggregated") {
   out <- TMBphase_v23(data, parameters,
                       random = random_vars,
                       random.switch = model.switch,
-                      model_name = "scaa_mod_v23_Aaron2", #model_name = "scaa_mod_dir_ev",
+                      model_name = "scaa_mod_v23", #model_name = "scaa_mod_dir_ev",
                       phase = FALSE,  
-                      newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
+                      newtonsteps = 1, #3 make this zero initially for faster run times (using 5)
                       debug = FALSE, loopnum = 30)
 } else {
   out <- TMBphase_v24(data, parameters, random = random_vars, 
@@ -365,8 +367,36 @@ if (agedat == "aggregated") {
 
 # Save the output for model plotting comparison
 # saveRDS(out,file = paste0(tmbout,"/",VER,".RDS"))
-out <- readRDS(file = paste0(tmbout,"/v23_3f_3s_2016_new_Tuned.RDS"))
+out <- readRDS(file = paste0(tmbout,"/tmbv23_3f_3s_2016_old_Tuned.RDS"))
 
+
+# Check convergence and continue optimizing if convergence is iffy
+
+# Check what you have
+cat("Initial convergence:", out$opt$convergence, "\n")
+cat("Initial objective:", out$opt$objective, "\n")
+
+# Restart if needed.... convergence = 0 is confidently converged
+if(out$opt$convergence != 0) {
+  cat("Restarting...\n")
+  
+  # Re-optimize
+  out$opt <- nlminb(out$opt$par, out$obj$fn, out$obj$gr,
+                    control = list(eval.max = 10000, iter.max = 10000))
+  
+  # Regenerate ALL results with best parameters
+  # out$rep <- out$obj$report(best_par)
+  out$rep <- sdreport(out$obj)
+  # out$sdrep <- sdreport(out$obj)
+  
+  cat("New convergence:", out$opt$convergence, "\n")
+  cat("New objective:", out$opt$objective, "\n")
+  
+  # Check gradient
+  cat("Max gradient:", max(abs(out$rep$gradient.fixed)), "\n")
+}
+
+# Extract what we need for gradient, params, estimates...
 obj <- out$obj # TMB model object
 opt <- out$opt # fit
 rep <- out$rep # sdreport
@@ -490,7 +520,7 @@ write.csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR,"_",VER, ".cs
 # "metric" to switch between units. tmb_path <- file.path(root, paste0(YEAR+1,"/tmb")) # location of cpp
 
 # Fit to catch, fsh CPUE, srv CPUE, and total abundance (MR)
-plot_ts(ts = ts, save = TRUE, units = "imperial", plot_variance = FALSE, path = tmbfigs)
+plot_ts(ts = ts, save = F, units = "imperial", plot_variance = FALSE, path = tmbfigs)
 
 # Plots of recruits, Spawning Biomass, Exploitable abundance
 plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
@@ -911,7 +941,8 @@ res <- c(paste0("Summary of percent changes and differences between ", YEAR, " a
                 "Percent difference between recomended F_ABCs: ", "\n",
                 round((F_ABC_schwag - LYR_F_ABC) / LYR_F_ABC * 100, 1), "%", "\n")
 
-write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR,"_",VER,  ".csv"), sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
+write.table(res, file = paste0(tmbout, "/scaa_brps_", YEAR,"_",VER,  ".csv"),
+            sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE, eol = "\n", append = TRUE)
 
 #****************************************************************************
 # You could continue to append any variables of interest to the SCAA report.---
