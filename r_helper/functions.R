@@ -2548,8 +2548,8 @@ plot_sel <- function(save = TRUE, path = tmbfigs) {
   
   sel <- sel %>% 
     mutate(`Time blocks` = paste0(start_year, "-", end_year),
-           age = as.numeric(Age)) %>% 
-    filter(age <= 21)
+           age = as.numeric(Age)+2) %>% # add two to get into the state assessment space (fed selex was on 0 to 29)
+    filter(age <= 23)
   
   # axis <- tickr(sel, age, 3)
   #nrow(blks_sel[blks_sel$Selectivity == "Fishery"])

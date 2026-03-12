@@ -53,7 +53,7 @@ set.seed(9921)
 # if this is the first model run of the year set to NA:
 # TUNED_VER <- "v23_3f_3s_2016_new"
 # TUNED_VER <- "v23_3f_3s_2015_new"
-TUNED_VER <- "v23_3f_3s_2016_old"
+TUNED_VER <- "v23_3f_3s_2016_new"
 
 # If you've tuned the model, use the tuned version you named and saved... 
 # TUNED_VER <-""
@@ -277,7 +277,7 @@ f_blk_ct<-length(fsh_blks)
 # VER <- "v23_3f_2s_TUNED"  #could not tune. Too unstable.
 # VER <- "v23_3f_3s_2015_TUNED"
 # VER <- "v23_3f_3s_2015_TUNED"
-VER <- "v23_3f_3s_2016_OLD_FINAL"
+VER <- "v23_3f_3s_2016_NEW_FINAL"
 # VER <- "v23_2f_3s"
 # VER <- "v23_3f_3s_2017"
 # VER <- "v23_3f_3s_2017_TUNED"
@@ -353,7 +353,7 @@ if (agedat == "aggregated") {
   out <- TMBphase_v23(data, parameters,
                       random = random_vars,
                       random.switch = model.switch,
-                      model_name = "scaa_mod_v23", #model_name = "scaa_mod_dir_ev",
+                      model_name = "scaa_mod_v23_Aaron2", #model_name = "scaa_mod_dir_ev",
                       phase = FALSE,  
                       newtonsteps = 1, #3 make this zero initially for faster run times (using 5)
                       debug = FALSE, loopnum = 30)
@@ -367,7 +367,11 @@ if (agedat == "aggregated") {
 
 # Save the output for model plotting comparison
 # saveRDS(out,file = paste0(tmbout,"/",VER,".RDS"))
-out <- readRDS(file = paste0(tmbout,"/tmbv23_3f_3s_2016_old_Tuned.RDS"))
+# 
+# If loading a previous model output, you need to reload the model to get the
+# best parameter estimate below.
+dyn.load(dynlib(paste0(tmb_path,"/scaa_mod_v23_Aaron2")))
+out <- readRDS(file = paste0(tmbout,"/v23_3f_3s_2016_new_Tuned.RDS"))
 
 
 # Check convergence and continue optimizing if convergence is iffy
@@ -382,7 +386,7 @@ if(out$opt$convergence != 0) {
   
   # Re-optimize
   out$opt <- nlminb(out$opt$par, out$obj$fn, out$obj$gr,
-                    control = list(eval.max = 10000, iter.max = 10000))
+                    control = list(eval.max = 100000, iter.max = 100000))
   
   # Regenerate ALL results with best parameters
   # out$rep <- out$obj$report(best_par)
