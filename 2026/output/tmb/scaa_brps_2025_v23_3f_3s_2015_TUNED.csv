@@ -2,7 +2,7 @@ STATISTICAL CATCH-AT-AGE MODEL RESULTS FOR NSEI SABLEFISH
 
 Report produced by scaa.R
 Developed by Jane Sullivan, ummjane@gmail.comContact: philip.joy@alaska.gov or rhea.ehresmann@alaska.gov
-Report generated: 2026-03-03
+Report generated: 2026-03-12
 
 Model diagnostics
 Number of parameters:,
@@ -10,7 +10,7 @@ Number of parameters:,
 Negative log likelihood:,
 2078
 Maximum gradient component:,
-0.00408460314610175
+0.00348153227069409
 
 ALL VARIABLES REPORTED IN ROUND LB UNLESS OTHERWISE SPECIFIED
 
@@ -37,39 +37,39 @@ F under recommended ABC:
 
 Summary of 2026 (current year's) Biological Reference Points
 Projected age-2 biomass: 
-63626406.3189132
+63626410.2202366
 Projected female spawning biomass: 
-25643363.6165917
+25643364.9683471
 Unfished equilibrium female spawning biomass (SPR = 100): 
-29900047.9785509
+29900049.910664
 Equilibrium female spawning biomass under F50 (SPR = 50): 
-14950023.9892754
+14950024.9553366
 Max ABC: 
-2866308.51792184
+2866308.67284082
 Recommended ABC: 
 2392501.4
 Mortality from fishery discards under max ABC: 
-164087.8729637
+164087.885444746
 max F_ABC = F_50: 
-0.0717587806387408
+0.0717587806386993
 F under recommended ABC: 
-0.0598968959785793
+0.0598968927412219
 
 Summary of percent changes and differences between 2025 and 2026 Biological Reference Points
 Difference between projected age-2+ biomass (round lb): 
--5231558
+-5231554
 Percent difference between projected age-2+ biomass: 
 -7.6%
 Difference between projected female spawning biomass (round lb): 
--1876138
+-1876137
 Percent difference between projected female spawning biomass: 
 -6.8%
 Difference between Unfished equilibrium female spawning biomass (round lb): 
--835962
+-835960
 Percent difference between Unfished equilibrium female spawning biomass: 
 -2.7%
 Difference between equilibrium female spawning biomass under F50 (round lb): 
--417981
+-417980
 Percent difference between equilibrium female spawning biomass under F50: 
 -2.7%
 Difference between max ABCs (round lb): 

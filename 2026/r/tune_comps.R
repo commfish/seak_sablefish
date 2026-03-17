@@ -169,7 +169,7 @@ if(rec_type==1){model.switch <- "log_rec_devs"}else{model.switch <- NULL}
 
 #******************************************************************************
 # Set time blocks for selectivity:
-srv_blocks <- c(1999,2017) # years are last years of time blocks
+srv_blocks <- c(1999,2016) # years are last years of time blocks
 fsh_blocks <- c(1994,2021)
 
 {
@@ -197,7 +197,7 @@ fsh_blocks <- c(1994,2021)
 # VER<-"v23" #too unstable; could not tune
 # VER <- "v23_3f_2s"
 # VER <- "v23_3f_3s_2016_new"
-VER <- "v23_3f_3s_2017_new"
+VER <- "v23_3f_3s_2016_new2"
 #-------------------------------------------------------------------------------
 # Load data and parameters
 # If base model

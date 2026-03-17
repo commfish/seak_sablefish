@@ -33,6 +33,7 @@
 # DOUBLE CHECK THAT EVERYTHING ALIGNS APPROPRIATELY!!!! 
 
 #*********************************************************************************
+setwd("C:/Users/awlambert/Desktop/seak_sablefish")
 
 # library(tmbstan)
 # library(shinystan)
@@ -44,8 +45,6 @@ source("r_helper/exp_functions.r")
 library(TMB) 
 # Manual inputs ----
 
-setwd("C:/Users/awlambert/Desktop/seak_sablefish")
-
 # These must be checked or updated annually!
 #TUNED_VER<-"fsel3_est_ssel_flat_wts"
 set.seed(9921)
@@ -53,7 +52,7 @@ set.seed(9921)
 # if this is the first model run of the year set to NA:
 # TUNED_VER <- "v23_3f_3s_2016_new"
 # TUNED_VER <- "v23_3f_3s_2015_new"
-TUNED_VER <- "v23_3f_3s_2016_new"
+TUNED_VER <- "v23_3f_3s_2016_new2"
 
 # If you've tuned the model, use the tuned version you named and saved... 
 # TUNED_VER <-""
@@ -119,7 +118,7 @@ tmbout <- file.path(root, paste0(YEAR+1,"/output/tmb")) # location where model o
 
 # Model switches
 {
-rec_type <- 0     # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects. Aaron: Should be set to 0. Random effects are not working as of 2026
+rec_type <- 0  # Recruitment: 0 = penalized likelihood (fixed sigma_r), 1 = random effects. Aaron: Should be set to 0. Random effects are not working as of 2026
 slx_type <- 1     # Selectivity: 0 = a50, a95 logistic; 1 = a50, slope logistic
 fsh_slx_switch <- 0 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
 srv_slx_switch <- 1 # Estimate Fishery selectivity? 0 = fixed, 1 = estimated
@@ -277,11 +276,11 @@ f_blk_ct<-length(fsh_blks)
 # VER <- "v23_3f_2s_TUNED"  #could not tune. Too unstable.
 # VER <- "v23_3f_3s_2015_TUNED"
 # VER <- "v23_3f_3s_2015_TUNED"
-VER <- "v23_3f_3s_2016_NEW_FINAL"
+# VER <- "v23_3f_3s_2016_NEW_FINAL"
 # VER <- "v23_2f_3s"
 # VER <- "v23_3f_3s_2017"
 # VER <- "v23_3f_3s_2017_TUNED"
-# VER <- "v23_3f_3s_2018"
+VER <- "v23_3f_3s_2016_TUNED2"
 # VER <- "v23_3f_3s_2018_TUNED"
 # VER <- "v23_3f_3s_2019"
 # VER <- "v23_3f_3s_2019_TUNED"
@@ -334,6 +333,16 @@ slx_pars
 parameters$log_fsh_slx_pars #(row = timeblock, column = parameter, array3 = sex (1=m, 2 = F))
 parameters$log_srv_slx_pars
 
+# This is for trying to get actual RE working in the model.
+# Trying different starting values
+# # Load the pseudo-RE estimates ( These are from PJ's pseudo RE model run)
+# pseudo_init <- readRDS(paste0(tmbout, "/pseudo_RE_estimates.RDS"))
+# # 
+# # # Set up parameters with these starting values
+# parameters$log_rec_devs <- pseudo_init$rec_devs
+# parameters$log_sigma_r <-  -.717 # Should be -0.717
+# # parameters$log_sigma_r <- log(0.5)
+
 
 # parameters$log_sigma_r <- log(.5)
 # parameters$log_rec_devs <- rep(0,nyr)
@@ -353,9 +362,9 @@ if (agedat == "aggregated") {
   out <- TMBphase_v23(data, parameters,
                       random = random_vars,
                       random.switch = model.switch,
-                      model_name = "scaa_mod_v23_Aaron2", #model_name = "scaa_mod_dir_ev",
+                      model_name = "scaa_mod_v23_Aaron3", #model_name = "scaa_mod_dir_ev",
                       phase = FALSE,  
-                      newtonsteps = 1, #3 make this zero initially for faster run times (using 5)
+                      newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                       debug = FALSE, loopnum = 30)
 } else {
   out <- TMBphase_v24(data, parameters, random = random_vars, 
@@ -365,17 +374,19 @@ if (agedat == "aggregated") {
                           debug = FALSE, loopnum = 30)
 }
 
+
 # Save the output for model plotting comparison
 # saveRDS(out,file = paste0(tmbout,"/",VER,".RDS"))
+
 # 
 # If loading a previous model output, you need to reload the model to get the
 # best parameter estimate below.
-dyn.load(dynlib(paste0(tmb_path,"/scaa_mod_v23_Aaron2")))
-out <- readRDS(file = paste0(tmbout,"/v23_3f_3s_2016_new_Tuned.RDS"))
+# dyn.load(dynlib(paste0(tmb_path,"/scaa_mod_v23_Aaron2")))
+# out <- readRDS(file = paste0(tmbout,"/v23_3f_3s_2016_new_Tuned.RDS"))
 
 
 # Check convergence and continue optimizing if convergence is iffy
-
+out$opt$message
 # Check what you have
 cat("Initial convergence:", out$opt$convergence, "\n")
 cat("Initial objective:", out$opt$objective, "\n")
