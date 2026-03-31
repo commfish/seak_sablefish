@@ -1,6 +1,6 @@
 # Northern Southeast Inside Waters (NSEI) sablefish (*Anoplopoma fimbria*) stock assessment
 
-*Fishery data needed for the assessment but not available from this repository is available on the Sitka Groundfish drive.* ***M:/SABLEFISH/CHATHAM/SCAA_Fishery_Data_for_new_bio_2024.***
+*Fishery data needed for the assessment but not available from this repository is available upon request.***
 
 ## Assessment authors:
 
