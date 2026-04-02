@@ -52,7 +52,7 @@ set.seed(9921)
 # if this is the first model run of the year set to NA:
 # TUNED_VER <- "v23_3f_3s_2016_new"
 # TUNED_VER <- "v23_3f_3s_2015_new"
-TUNED_VER <- "v23_3f_3s_2016_new2"
+TUNED_VER <- "v23_3f_3s_2016_new"
 
 # If you've tuned the model, use the tuned version you named and saved... 
 # TUNED_VER <-""
@@ -276,11 +276,11 @@ f_blk_ct<-length(fsh_blks)
 # VER <- "v23_3f_2s_TUNED"  #could not tune. Too unstable.
 # VER <- "v23_3f_3s_2015_TUNED"
 # VER <- "v23_3f_3s_2015_TUNED"
-# VER <- "v23_3f_3s_2016_NEW_FINAL"
+VER <- "v23_3f_3s_2016_NEW_FINAL"
 # VER <- "v23_2f_3s"
 # VER <- "v23_3f_3s_2017"
 # VER <- "v23_3f_3s_2017_TUNED"
-VER <- "v23_3f_3s_2016_TUNED2"
+# VER <- "v23_3f_3s_2016_TUNED2"
 # VER <- "v23_3f_3s_2018_TUNED"
 # VER <- "v23_3f_3s_2019"
 # VER <- "v23_3f_3s_2019_TUNED"
@@ -381,8 +381,8 @@ if (agedat == "aggregated") {
 # 
 # If loading a previous model output, you need to reload the model to get the
 # best parameter estimate below.
-# dyn.load(dynlib(paste0(tmb_path,"/scaa_mod_v23_Aaron2")))
-# out <- readRDS(file = paste0(tmbout,"/v23_3f_3s_2016_new_Tuned.RDS"))
+dyn.load(dynlib(paste0(tmb_path,"/scaa_mod_v23_Aaron2")))
+out <- readRDS(file = paste0(tmbout,"/v23_3f_3s_2016_new_Tuned.RDS"))
 
 
 # Check convergence and continue optimizing if convergence is iffy
@@ -535,7 +535,7 @@ write.csv(like_sum, paste0(tmbout, "/likelihood_components_", YEAR,"_",VER, ".cs
 # "metric" to switch between units. tmb_path <- file.path(root, paste0(YEAR+1,"/tmb")) # location of cpp
 
 # Fit to catch, fsh CPUE, srv CPUE, and total abundance (MR)
-plot_ts(ts = ts, save = F, units = "imperial", plot_variance = FALSE, path = tmbfigs)
+plot_ts(ts = ts, save = T, units = "imperial", plot_variance = FALSE, path = tmbfigs)
 
 # Plots of recruits, Spawning Biomass, Exploitable abundance
 plot_derived_ts(ts = ts, save = TRUE, path = tmbfigs, units = "imperial", plot_variance = FALSE)
