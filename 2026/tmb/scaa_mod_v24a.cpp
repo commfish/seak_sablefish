@@ -1,12 +1,14 @@
+// Version 24a
 
 // Sex-structured statistical catch-at-age model for NSEI sablefish that
 // includes catch, fishery and survey CPUE, mark-recapture abundance estimates,
 // fishery and survey weight-at-age, survey data about maturity-at-age and
-// proportions-at-age, and fishery and survey age and length compositions.
+// proportions-at-age, and fishery and survey age and length compositions 
+// disaggragated by sex.
 
 // Original Author: Jane Sullivan, ummjane@gmail.com
-// Current Driver: Phil Joy, philip.joy@alaska.gov
-// Last updated March 2023
+// Current Driver: Aaron Lambert, aaron.lambert@alaska.gov
+// Last updated March 2026
 
 #include <TMB.hpp>
 #include <numeric>
@@ -175,16 +177,16 @@ Type objective_function<Type>::operator() ()
   // Fishery age comps
   DATA_INTEGER(nyr_fsh_age)       // number of years 
   DATA_IVECTOR(yrs_fsh_age)       // vector of years
-  DATA_MATRIX(data_fsh_age)       // matrix of observations (year, age)
-  DATA_VECTOR(n_fsh_age)          // raw sample size for age comps
-  DATA_VECTOR(effn_fsh_age)       // effective sample size
+  DATA_ARRAY(data_fsh_age)       // array of observations (year, age, nsex)
+  DATA_ARRAY(n_fsh_age)          // raw sample size for age comps (nyr, 1, nsex) 
+  DATA_ARRAY(effn_fsh_age)       // effective sample size (nyr, 1, nsex)
   
   // Survey age comps
   DATA_INTEGER(nyr_srv_age)       // number of years
   DATA_IVECTOR(yrs_srv_age)       // vector of years
-  DATA_MATRIX(data_srv_age)       // matrix of observations (year, age)
-  DATA_VECTOR(n_srv_age)          // raw sample size for age comps
-  DATA_VECTOR(effn_srv_age)       // effective sample size
+  DATA_ARRAY(data_srv_age)       // array of observations (year, age, nsex)
+  DATA_ARRAY(n_srv_age)          // raw sample size for age comps (nyr, 1, nsex) 
+  DATA_ARRAY(effn_srv_age)       // effective sample size (nyr, 1, nsex)
   
   // Fishery length comps
   DATA_INTEGER(nyr_fsh_len)       // number of years 
@@ -242,8 +244,8 @@ Type objective_function<Type>::operator() ()
   
   //  Parameter related to effective sample size for Dirichlet-multinomial
   //  likelihood used for composition data. Eqn 11 in Thorson et al. 2017.
-  PARAMETER(log_fsh_theta); //ages... u
-  PARAMETER(log_srv_theta); //ages
+  PARAMETER_VECTOR(log_fsh_theta); //ages... u
+  PARAMETER_VECTOR(log_srv_theta); //ages
   PARAMETER_VECTOR(log_fsh_l_theta); 
   PARAMETER_VECTOR(log_srv_l_theta);
   //PARAMETER(log_fsh_l_theta); 
@@ -277,8 +279,8 @@ Type objective_function<Type>::operator() ()
   pred_srv_cpue.setZero();
   
   // Predicted age compositions
-  matrix<Type> pred_fsh_age(nyr_fsh_age, nage);     // Fishery (with ageing error)
-  matrix<Type> pred_srv_age(nyr_srv_age, nage);     // Survey (with ageing error)
+  array<Type> pred_fsh_age(nyr_fsh_age, nage, nsex);     // Fishery (with ageing error)
+  array<Type> pred_srv_age(nyr_srv_age, nage, nsex);     // Survey (with ageing error)
   
   pred_fsh_age.setZero();
   pred_srv_age.setZero();
@@ -398,18 +400,26 @@ Type objective_function<Type>::operator() ()
   vector<Type> index_like(3);   // Fishery cpue, survey cpue, MR estimates 
   index_like.setZero();
   
-  vector<Type> age_like(2);             // Fishery and survey age comps
+  //vector<Type> age_like(2);             // Fishery and survey age comps
+  vector<Type> fsh_age_like(nsex);      // Fishery age comps
+  vector<Type> srv_age_like(nsex);      // Survey age comps
   vector<Type> fsh_len_like(nsex);      // Fishery length comps
   vector<Type> srv_len_like(nsex);      // Survey length comps
-  age_like.setZero();
+  //age_like.setZero();
+  fsh_age_like.setZero();
+  srv_age_like.setZero();
   fsh_len_like.setZero();
   srv_len_like.setZero();
   
   // Offset for multinomial distribution that lets likelihood equal zero when obs = pred
-  vector<Type> offset(2);               // Age comps (both fsh and srv)
+  //vector<Type> offset(2);               // Age comps (both fsh and srv)
+  vector<Type> offset_fsh_age(nsex);    // Fishery length comps (sex-specific)
+  vector<Type> offset_srv_age(nsex);    // Survey length comp (sex-specific)
   vector<Type> offset_fsh_len(nsex);    // Fishery length comps (sex-specific)
   vector<Type> offset_srv_len(nsex);    // Survey length comp (sex-specific)
-  offset.setZero();
+  //offset.setZero();
+  offset_fsh_age.setZero();
+  offset_srv_age.setZero();
   offset_fsh_len.setZero();
   offset_srv_len.setZero();
   
@@ -529,22 +539,22 @@ Type objective_function<Type>::operator() ()
   // for (int k = 0; k < nsex; k++) {
   //   for (int i = 0; i < nyr; i++) {
   //     for (int j = 0; j < nage; j++) {
-  
-  // Fishing mortality by year, age, and sex. If discard mortality (dmr)
-  // and retention probability = 1, this eqn collapses to Fmort(i) *
-  // fsh_slx(i,j,k)
-  // F(i,j,k) = Fmort(i) * fsh_slx(i,j,k) * (retention(0,j,k) + dmr(i,j,k) * (Type(1.0) - retention(0,j,k)));
-  
-  // Total mortality by year, age, and sex
-  // Z(i,j,k) = M + F(i,j,k);
-  
-  // Survivorship by year, age, and sex
-  // S(i,j,k) = exp(Type(-1.0) * Z(i,j,k));
-  
+  //       
+  //       // Fishing mortality by year, age, and sex. If discard mortality (dmr)
+  //       // and retention probability = 1, this eqn collapses to Fmort(i) *
+  //       // fsh_slx(i,j,k)
+  //       F(i,j,k) = Fmort(i) * fsh_slx(i,j,k) * (retention(0,j,k) + dmr(i,j,k) * (Type(1.0) - retention(0,j,k)));
+  //       
+  //       // Total mortality by year, age, and sex
+  //       Z(i,j,k) = M + F(i,j,k);
+  //       
+  //       // Survivorship by year, age, and sex
+  //       S(i,j,k) = exp(Type(-1.0) * Z(i,j,k));
   //     }
   //   }
   // }
-  // Attempt to fix catch accounting
+  
+  // Aaron 2026: v24a fix for landed catch 
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
       for (int j = 0; j < nage; j++) {
@@ -563,7 +573,6 @@ Type objective_function<Type>::operator() ()
       }
     }
   }
-  
   
   // std::cout << Fmort << "\n";
   // std::cout << F << "\n";
@@ -593,6 +602,7 @@ Type objective_function<Type>::operator() ()
       }
     }
   }
+  
   // std::cout << survival_srv << "\n";
   // std::cout << survival_fsh << "\n";
   
@@ -603,20 +613,20 @@ Type objective_function<Type>::operator() ()
   // (assuming 50/50 sex ratio). Don't know what the standard practice is here.
   for (int k = 0; k < nsex; k++) {
     for (int j = 1; j < nage-1; j++) {
-      N(0,j,k) = exp(log_rinit - M * Type(j) + log_rinit_devs(j-1)) * Type(0.5); //sex_ratio(k,j);
+      N(0,j,k) = exp(log_rinit - M * Type(j) + log_rinit_devs(j-1)) * sex_ratio(k,j); //Type(0.5); //
     }
   }
   
   // Start year: plus group *FLAG* sex ratio from survey or 50/50 or ?
   for (int k = 0; k < nsex; k++) {
-    N(0,nage-1,k) = exp(log_rinit - M * Type(nage-1)) / (1 - exp(-M)) * Type(0.5); //sex_ratio(k,nage-1);
+    N(0,nage-1,k) = exp(log_rinit - M * Type(nage-1)) / (1 - exp(-M)) * sex_ratio(k,nage-1);//Type(0.5);
   }
   
   // Recruitment in all years (except the projected year) *FLAG* sex ratio from
   // survey or 50/50 or ?
   for (int k = 0; k < nsex; k++) {
     for (int i = 0; i < nyr; i++) {
-      N(i,0,k) = exp(log_rbar + log_rec_devs(i)) * Type(0.5); //sex_ratio(k,0);
+      N(i,0,k) = exp(log_rbar + log_rec_devs(i)) * sex_ratio(k,0);//Type(0.5);
     }
   }
   
@@ -642,7 +652,7 @@ Type objective_function<Type>::operator() ()
   // survey or 50/50 or ?
   for (int k = 0; k < nsex; k++) {
     for (int i = nyr-16; i <= nyr-2; i++) {
-      N(nyr,0,k) += exp(log_rbar + log_rec_devs(i)) * Type(0.5); //sex_ratio(k,0);
+      N(nyr,0,k) += exp(log_rbar + log_rec_devs(i)) * sex_ratio(k,0); //Type(0.5); //
     }
     N(nyr,0,k) /= Type(15.0);
   }
@@ -676,8 +686,8 @@ Type objective_function<Type>::operator() ()
         // // discards by year
         // D(i,j,k) = dmr(i,j,k) * (Type(1.0) - retention(0,j,k)) * N(i,j,k) * F(i,j,k) * (Type(1.0) - S(i,j,k)) / Z(i,j,k);
         // pred_wastage(i) += D(i,j,k) * data_srv_waa(0,j,k) / Type(1e3) ;           // in mt
-        // NEW CODE:
-        // Landed catch in numbers
+        // 
+        // Updated code with 2026 fix.
         L(i,j,k) = N(i,j,k) * F(i,j,k) * retention(0,j,k) * (Type(1.0) - S(i,j,k)) / Z(i,j,k);
         pred_landed(i) += L(i,j,k) * data_fsh_waa(0,j,k) / Type(1e3);
         
@@ -685,7 +695,7 @@ Type objective_function<Type>::operator() ()
         D(i,j,k) = N(i,j,k) * F(i,j,k) * dmr(i,j,k) * (Type(1.0) - retention(0,j,k)) * (Type(1.0) - S(i,j,k)) / Z(i,j,k);
         pred_wastage(i) += D(i,j,k) * data_fsh_waa(0,j,k) / Type(1e3);  // Also fix: use fsh_waa not srv_waa
         
-        // Total catch in numbers (if you still want to track this)
+        // Total catch including dead discards (this is not needed...)
         C(i,j,k) = L(i,j,k) + D(i,j,k);
         
       }
@@ -889,37 +899,64 @@ Type objective_function<Type>::operator() ()
   // Predicted fishery age compositions - for landed portion of the catch
   
   // Temporary variables for age comp calcs
-  Type sumL = 0;
-  vector<Type> sumL_age(nage);
-  vector<Type> sumN_age(nage);
+  //  Type sumL = 0;
+  matrix<Type> sumL_jk_age(nage,nsex);
+  vector<Type> sumL_age(nsex);
   
   for (int i = 0; i < nyr_fsh_age; i++) {
     
     // sumL = temporary variable, landed catch in numbers summed over age and
     // sex in a given year
-    sumL = 0;
+    //    sumL = 0;
+    sumL_jk_age.setZero(); //sumL_jk from length comp
+    sumL_age.setZero(); // sumL_k from length comp formulation
+    
     for (int k = 0; k < nsex; k++) {
       for (int j = 0; j < nage; j++) {
-        sumL += L(yrs_fsh_age(i),j,k);
+        //  sumL += L(yrs_fsh_age(i),j,k);
+        sumL_age(k) += L(yrs_fsh_age(i),j,k);          // numbers by sex
+        sumL_jk_age(j,k) += L(yrs_fsh_age(i),j,k);       // numbers by sex and age
       }
     }
     // sumL_age = temporary vector of landed catch in numbers by age in a given
     // year (combine sexes since we currently do not have sex-structured age
-    // comps)
-    sumL_age.setZero();
-    for (int k = 0; k < nsex; k++) {
-      for (int j = 0; j < nage; j++) {
-        sumL_age(j) += L(yrs_fsh_age(i),j,k);
-      }
-    }
+    // comps) X-ED OUT FOR SEXYAGE MODEL
+    //sumL_age.setZero(); // Don't think we need this here now that we are trying sex structured age comps.
+    //for (int k = 0; k < nsex; k++) {
+    //  for (int j = 0; j < nage; j++) {
+    //    sumL_age(j) += L(yrs_fsh_age(i),j,k); // numbers by age... 
+    //  }
+    //}
     
     // Get predicted age comps (proportions-at-age)
-    for (int j = 0; j < nage; j++) {
-      pred_fsh_age(i,j) = sumL_age(j) / sumL;
+    // REPLACE THIS ....
+    //for (int j = 0; j < nage; j++) {
+    //  pred_fsh_age(i,j) = sumL_age(j) / sumL;
+    //}
+    //WITH THIS I THINK
+    for (int k = 0; k < nsex; k++) {
+      for (int j = 0; j < nage; j++) {
+        pred_fsh_age(i,j,k) = sumL_jk_age(j,k) / sumL_age(k);  // Get predicted age comps (proportions-at-age)
+      }
     }
     // Loop over each year i
   }
-  pred_fsh_age = pred_fsh_age * ageing_error; // apply ageing error matrix
+  
+  // Need to extract sex specific matrices from array to apply age error matrices: 
+  matrix<Type> pred_fsh_age_f(nyr_fsh_age,nage);
+  matrix<Type> pred_fsh_age_m(nyr_fsh_age,nage);
+  pred_fsh_age_f.setZero();
+  pred_fsh_age_m.setZero();
+  
+  for (int i = 0; i < nyr_fsh_age; i++) {
+    for (int j = 0; j < nage; j++) {
+      pred_fsh_age_m(i,j) = pred_fsh_age(i,j,0);
+      pred_fsh_age_f(i,j) = pred_fsh_age(i,j,1);  // Get predicted age comps (proportions-at-age)
+    }
+  }
+  
+  pred_fsh_age_m = pred_fsh_age_m * ageing_error; // apply ageing error matrix
+  pred_fsh_age_f = pred_fsh_age_f * ageing_error; // apply ageing error matrix
   
   // std::cout << "Predicted fishery age comps\n" << pred_fsh_age << "\n";
   
@@ -934,25 +971,52 @@ Type objective_function<Type>::operator() ()
   //
   // Type tst_n = tst.size();
   // std::cout << "Length of tst vector\n" << tst_n << "\n";
-  
   // Predicted survey age compositions
+  matrix<Type> sumN_jk_age(nage,nsex);
+  vector<Type> sumN_age(nsex);
+  //vector<Type> sumN_age(nsex); // sumN_k from length comp formulation
+  
   for (int i = 0; i < nyr_srv_age; i++) {
     
     // sumN_age = temporary vector of catch in numbers by age in a given year
     // (combine sexes since we currently do not have sex-structured age comps)
-    sumN_age.setZero();
+    //sumN_age.setZero();
+    sumN_age.setZero();   // tmp variable for each year
+    sumN_jk_age.setZero();
+    
     for (int k = 0; k < nsex; k++) {
       for (int j = 0; j < nage; j++) {
-        sumN_age(j) += vuln_abd(yrs_srv_age(i),j,k);
+        //sumN_age(j) += vuln_abd(yrs_srv_age(i),j,k);
+        sumN_age(k) += vuln_abd(yrs_srv_age(i),j,k);          // numbers by sex
+        sumN_jk_age(j,k) += vuln_abd(yrs_srv_age(i),j,k);       // numbers by sex and age
       }
     }
     // Get predicted age comps (proportions-at-age)
-    for (int j = 0; j < nage; j++) {
-      pred_srv_age(i,j) = sumN_age(j) / tot_vuln_abd(yrs_srv_age(i));
+    //for (int j = 0; j < nage; j++) {
+    //  pred_srv_age(i,j) = sumN_age(j) / tot_vuln_abd(yrs_srv_age(i));
+    //}
+    for (int k = 0; k < nsex; k++) {
+      for (int j = 0; j < nage; j++) {
+        pred_srv_age(i,j,k) = sumN_jk_age(j,k) / sumN_age(k);  // Get predicted age comps (proportions-at-age)
+      }
     }
     // Loop over each year i
   }
-  pred_srv_age = pred_srv_age * ageing_error; // apply ageing error matrix
+  // Need to extract sex specific matrices from array to apply age error matrices: 
+  matrix<Type> pred_srv_age_f(nyr_srv_age,nage);
+  matrix<Type> pred_srv_age_m(nyr_srv_age,nage);
+  pred_srv_age_f.setZero();
+  pred_srv_age_m.setZero();
+  
+  for (int i = 0; i < nyr_srv_age; i++) {
+    for (int j = 0; j < nage; j++) {
+      pred_srv_age_m(i,j) = pred_srv_age(i,j,0);
+      pred_srv_age_f(i,j) = pred_srv_age(i,j,1);  // Get predicted age comps (proportions-at-age)
+    }
+  }
+  
+  pred_srv_age_m = pred_srv_age_m * ageing_error; // apply ageing error matrix
+  pred_srv_age_f = pred_srv_age_f * ageing_error; // apply ageing error matrix
   
   // // Test do the predicted age comps sum to 1
   // vector<Type> tst(nyr_srv_age);
@@ -1001,7 +1065,7 @@ Type objective_function<Type>::operator() ()
   
   matrix<Type> tmp_pred_fsh_obsage(nyr_fsh_len,nage);
   matrix<Type> tmp_fsh_agelen(nage,nlenbin);
-  matrix<Type> tmp_pred_fsh_len(nyr_fsh_len,nlenbin);//Changed from nyr_srv_len to fsh_len
+  matrix<Type> tmp_pred_fsh_len(nyr_srv_len,nlenbin);
   
   for (int k = 0; k < nsex; k++) {
     
@@ -1133,18 +1197,16 @@ Type objective_function<Type>::operator() ()
   
   // Populate numbers of potential spawners at age matrix - Note: for the Nspr
   // and SBPR calculations, the Federal assessment uses the equivalent of
-  // spr_Fxx instead of the scales Fxx. Not sure why. 
-  // Aaron: This is for the OLD Model that DID NOT include discard mortality
+  // spr_Fxx instead of the scales Fxx. Not sure why.
   // for(int x = 0; x <= n_Fxx; x++) {
-  // 
+  //   
   //   Nspr(x,0) = Type(1.0);    // Initialize SPR with 1
-  // 
+  //   
   //   // Survival equation by age
   //   for(int j = 1; j < nage - 1; j++) {
-  //     // Nspr(x,j) = Nspr(x,j-1) * exp(Type(-1.0) * (Fxx(x) * spr_fsh_slx(j-1) + M));
-  //       
+  //     Nspr(x,j) = Nspr(x,j-1) * exp(Type(-1.0) * (Fxx(x) * spr_fsh_slx(j-1) + M));
   //   }
-  // 
+  //   
   //   // Plus group
   //   Nspr(x,nage-1) = Nspr(x,nage-2) * exp(Type(-1.0) * (Fxx(x) * spr_fsh_slx(nage-2) + M)) /
   //     (Type(1.0) - exp(Type(-1.0) * (Fxx(x) * spr_fsh_slx(nage-1) + M)));
@@ -1167,7 +1229,6 @@ Type objective_function<Type>::operator() ()
       (Type(1.0) - exp(Type(-1.0) * (F_total_plus + M)));
   }
   
-  
   // Unfished spawning biomass per recruit
   for(int j = 0; j < nage; j++) {
     // SBPR(0) +=  Nspr(0,j) * prop_mature(j) * data_srv_waa(0,j,1) * survival_spawn(nyr-1,j,nsex-1); //Type(0.5) *
@@ -1180,15 +1241,12 @@ Type objective_function<Type>::operator() ()
       
       if (nsex == 1) { // single sex model uses prop_fem vector
         // SBPR(x) +=  Nspr(x,j) * prop_mature(j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M + Fxx(x) * spr_fsh_slx(j))); //prop_fem(j) *
-        // Aarons attempt to fix
         Type F_total = Fxx(x) * spr_fsh_slx(j) * (retention(0,j,nsex-1) + dmr(nyr-1,j,nsex-1) * (Type(1.0) - retention(0,j,nsex-1)));
         SBPR(x) += Nspr(x,j) * prop_mature(0,j) * data_srv_waa(0,j,1) *
           exp(Type(-1.0) * spawn_month * (M + F_total));
-        
       }
       if (nsex == 2) { // sex-structured model uses sex_ratio matrix
         // SBPR(x) += Nspr(x,j) * prop_mature(0,j) * data_srv_waa(0,j,1) * exp(Type(-1.0) * spawn_month * (M + Fxx(x) * spr_fsh_slx(j))); //sex_ratio(nsex-1,j) *
-        // Aarons Attempt to fix
         Type F_total = Fxx(x) * spr_fsh_slx(j) * (retention(0,j,nsex-1) + dmr(nyr-1,j,nsex-1) * (Type(1.0) - retention(0,j,nsex-1)));
         SBPR(x) += Nspr(x,j) * prop_mature(0,j) * data_srv_waa(0,j,1) *
           exp(Type(-1.0) * spawn_month * (M + F_total));
@@ -1252,7 +1310,6 @@ Type objective_function<Type>::operator() ()
   //       sel_Fxx(x,j,k) = Fxx(x+1) * fsh_slx(nyr-1,j,k) * (retention(0,j,k) + dmr(nyr-1,j,k) * (Type(1.0) - retention(0,j,k)));
   //       Z_Fxx(x,j,k) = M + sel_Fxx(x,j,k);    // Total instantaneous mortality at age
   //       S_Fxx(x,j,k) = exp(-Z_Fxx(x,j,k));                    // Total survival at age
-  //       
   //     }
   //   }
   // }
@@ -1287,7 +1344,7 @@ Type objective_function<Type>::operator() ()
   //     }
   //   }
   // }
-  // NEW CODE:
+  // 2026 Code fix:
   for(int i = 0; i <= nyr; i++) {
     for(int x = 0; x < n_Fxx; x++) {
       for(int k = 0; k < nsex; k++) {
@@ -1300,7 +1357,6 @@ Type objective_function<Type>::operator() ()
       }
     }
   }
-  
   // The final ABC is then the difference between the preliminary ABC and wastage estimates
   for(int i = 0; i <= nyr; i++) {
     for(int x = 0; x < n_Fxx; x++) {
@@ -1457,8 +1513,8 @@ Type objective_function<Type>::operator() ()
   }
   
   // Likelihood for fishery age compositions
-  Type fsh_theta = exp(log_fsh_theta);      // Dirichlet-multinomial parameter
-  vector<Type> neff_dm_fsh_age(nyr_fsh_age); //effective sample sizes calculated from DM
+  //Type fsh_theta = exp(log_fsh_theta);      // Dirichlet-multinomial parameter
+  //vector<Type> neff_dm_fsh_age(nyr_fsh_age); //effective sample sizes calculated from DM
   //vector<Type> sum1_fsh(nyr_fsh_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
   //vector<Type> sum2_fsh(nyr_fsh_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
   //fsh_theta.setZero();
@@ -1471,34 +1527,39 @@ Type objective_function<Type>::operator() ()
     
     for (int i = 0; i < nyr_fsh_age; i++) {
       for (int j = 0; j < nage; j++) {
-        
         // Offset
-        offset(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(data_fsh_age(i,j) + c);
+        //offset(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(data_fsh_age(i,j) + c);
+        offset_fsh_age(0) -= effn_fsh_age(i,0,0) * (data_fsh_age(i,j,0) + c) * log(data_fsh_age(i,j,0) + c);
+        offset_fsh_age(1) -= effn_fsh_age(i,0,1) * (data_fsh_age(i,j,1) + c) * log(data_fsh_age(i,j,1) + c);
         // Likelihood
-        age_like(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(pred_fsh_age(i,j) + c);
+        //age_like(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(pred_fsh_age(i,j) + c);
+        fsh_age_like(0) -= effn_fsh_age(i,0,0) * (data_fsh_age(i,j,0) + c) * log(pred_fsh_age_m(i,j) + c);
+        fsh_age_like(1) -= effn_fsh_age(i,0,1) * (data_fsh_age(i,j,1) + c) * log(pred_fsh_age_f(i,j) + c);
       }
     }
     
-    age_like(0) -= offset(0);     // subtract offset
-    age_like(0) *= wt_fsh_age;    // likelihood weight
+    for (int k = 0; k < nsex; k++) {
+      fsh_age_like(k) -= offset_fsh_age(k);     // subtract offset
+      fsh_age_like(k) *= wt_fsh_age;            // likelihood weight
+    }
     
     break;
     
   case 1: // Dirichlet-multinomial (D-M)
     
-    vector<Type> obs_fa_vec( nage );
-    vector<Type> pred_fa_vec( nage );
-    Type sampsize_fa; 
-    obs_fa_vec.setZero();
-    pred_fa_vec.setZero();
-    for (int i = 0; i < nyr_fsh_age; i++){
-      obs_fa_vec = data_fsh_age(i);
-      pred_fa_vec = pred_fsh_age(i);
-      sampsize_fa = n_fsh_age(i);
-      //sampsize_fa = effn_fsh_age(i);
-      age_like(0) -= ddirmult(obs_fa_vec, pred_fa_vec, sampsize_fa, log_fsh_theta, true );
-      neff_dm_fsh_age(i) = 1/(1+fsh_theta) + effn_fsh_age(i)*(fsh_theta/(1+fsh_theta));  //** need to implement this before done with dirichlet conversions
-    }
+    //  vector<Type> obs_fa_vec( nage );
+    //  vector<Type> pred_fa_vec( nage );
+    //  Type sampsize_fa; 
+    //    obs_fa_vec.setZero();
+    //    pred_fa_vec.setZero();
+    //  for (int i = 0; i < nyr_fsh_age; i++){
+    //    obs_fa_vec = data_fsh_age(i);
+    //    pred_fa_vec = pred_fsh_age(i);
+    //    sampsize_fa = n_fsh_age(i);
+    //sampsize_fa = effn_fsh_age(i);
+    //   age_like(0) -= ddirmult(obs_fa_vec, pred_fa_vec, sampsize_fa, log_fsh_theta, true );
+    //   neff_dm_fsh_age(i) = 1/(1+fsh_theta) + effn_fsh_age(i)*(fsh_theta/(1+fsh_theta));  //** need to implement this before done with dirichlet conversions
+    // }
     
     break;
     
@@ -1507,7 +1568,8 @@ Type objective_function<Type>::operator() ()
   }
   
   // Likelihood for survey age compositions
-  Type srv_theta = exp(log_srv_theta);      // Dirichlet-multinomial parameter
+  
+  //Type srv_theta = exp(log_srv_theta);      // Dirichlet-multinomial parameter
   //vector<Type> neff_dm_srv_age; //effective sample sizes calculated from DM
   //vector<Type> sum1_srv(nyr_srv_age);       // First sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
   //vector<Type> sum2_srv(nyr_srv_age);       // Second sum in D-M likelihood (log of Eqn 10, Thorson et al. 2017)
@@ -1523,31 +1585,38 @@ Type objective_function<Type>::operator() ()
     for (int i = 0; i < nyr_srv_age; i++) {
       for (int j = 0; j < nage; j++) {
         // Offset
-        offset(1) -= effn_srv_age(i) * (data_srv_age(i,j) + c) * log(data_srv_age(i,j) + c);
+        //offset(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(data_fsh_age(i,j) + c);
+        offset_srv_age(0) -= effn_srv_age(i,0,0) * (data_srv_age(i,j,0) + c) * log(data_srv_age(i,j,0) + c);
+        offset_srv_age(1) -= effn_srv_age(i,0,1) * (data_srv_age(i,j,1) + c) * log(data_srv_age(i,j,1) + c);
         // Likelihood
-        age_like(1) -= effn_srv_age(i) * (data_srv_age(i,j) + c) * log(pred_srv_age(i,j) + c);
+        //age_like(0) -= effn_fsh_age(i) * (data_fsh_age(i,j) + c) * log(pred_fsh_age(i,j) + c);
+        srv_age_like(0) -= effn_srv_age(i,0,0) * (data_srv_age(i,j,0) + c) * log(pred_srv_age_m(i,j) + c);
+        srv_age_like(1) -= effn_srv_age(i,0,1) * (data_srv_age(i,j,1) + c) * log(pred_srv_age_f(i,j) + c);
       }
     }
-    age_like(1) -= offset(1);     // subtract offset
-    age_like(1) *= wt_srv_age;    // likelihood weight
+    
+    for (int k = 0; k < nsex; k++) {
+      srv_age_like(k) -= offset_srv_age(k);     // subtract offset
+      srv_age_like(k) *= wt_srv_age;            // likelihood weight
+    }
     
     break;
     
   case 1: // Dirichlet-multinomial (D-M)
     
-    vector<Type> obs_sa_vec( nage );
-    vector<Type> pred_sa_vec( nage );
-    Type sampsize_sa; 
-    obs_sa_vec.setZero();
-    pred_sa_vec.setZero();
-    for (int i = 0; i < nyr_srv_age; i++){
-      obs_sa_vec = data_srv_age(i);
-      pred_sa_vec = pred_srv_age(i);
-      sampsize_sa = n_srv_age(i);
-      //sampsize_sa = effn_srv_age(i);
-      age_like(1) -= ddirmult(obs_sa_vec, pred_sa_vec, sampsize_sa, log_srv_theta, true );
-      //neff_dm_srv_age(i) = 1/(1+srv_theta) + effn_fsh_age(i)*(srv_theta/(1+srv_theta));
-    }
+    //    vector<Type> obs_sa_vec( nage );
+    //    vector<Type> pred_sa_vec( nage );
+    //    Type sampsize_sa; 
+    //      obs_sa_vec.setZero();
+    //      pred_sa_vec.setZero();
+    //    for (int i = 0; i < nyr_srv_age; i++){
+    //      obs_sa_vec = data_srv_age(i);
+    //      pred_sa_vec = pred_srv_age(i);
+    //      sampsize_sa = n_srv_age(i);
+    //sampsize_sa = effn_srv_age(i);
+    //      age_like(1) -= ddirmult(obs_sa_vec, pred_sa_vec, sampsize_sa, log_srv_theta, true );
+    //neff_dm_srv_age(i) = 1/(1+srv_theta) + effn_fsh_age(i)*(srv_theta/(1+srv_theta));
+    //    }
     
     break;
     
@@ -1560,7 +1629,7 @@ Type objective_function<Type>::operator() ()
   // std::cout << "Age comp likelihoods\n" << age_like << "\n";
   
   // Fishery length comps.
-  vector<Type> fsh_l_theta = exp(log_fsh_l_theta);   
+  // vector<Type> fsh_l_theta = exp(log_fsh_l_theta);   
   
   switch (comp_type) {
   
@@ -1582,45 +1651,45 @@ Type objective_function<Type>::operator() ()
     break;
     
   case 1: // Dirchlet multinomial
-    array<Type> temp_lenyr_obs(nyr_fsh_len,nlenbin);
-    array<Type> temp_lenyr_pred(nyr_fsh_len,nlenbin);
-    vector<Type> temp_ss(nyr_fsh_len);
-    vector<Type> obs_fl_vec( nlenbin );
-    vector<Type> pred_fl_vec( nlenbin );
-    Type sampsize_fl; 
-    obs_fl_vec.setZero();
-    pred_fl_vec.setZero();
+    //  array<Type> temp_lenyr_obs(nyr_fsh_len,nlenbin);
+    //  array<Type> temp_lenyr_pred(nyr_fsh_len,nlenbin);
+    //  vector<Type> temp_ss(nyr_fsh_len);
+    //  vector<Type> obs_fl_vec( nlenbin );
+    //  vector<Type> pred_fl_vec( nlenbin );
+    // Type sampsize_fl; 
+    //  obs_fl_vec.setZero();
+    //  pred_fl_vec.setZero();
     
-    for (int k = 0; k < nsex; k++) {
-      temp_lenyr_obs.setZero();
-      temp_lenyr_pred.setZero();
-      temp_ss.setZero();
-      for (int i = 0; i < nyr_fsh_len; i++){
-        temp_ss(i) = n_fsh_len(i,0,k)/3;
-        //temp_ss(i) = effn_fsh_len(i,0,k);
-      }
-      for (int i = 0; i < nyr_fsh_len; i++){
-        //temp_ss(i) = n_fsh_len(i,k);
-        for (int l = 0; l < nlenbin; l++) {
-          //extract sex specific length x year matrix
-          temp_lenyr_obs(i,l) = data_fsh_len(i,l,k);
-          temp_lenyr_pred(i,l) = pred_fsh_len(i,l,k);
-        }
-        obs_fl_vec = temp_lenyr_obs(i);
-        pred_fl_vec = temp_lenyr_pred(i);
-        sampsize_fl = temp_ss(i); //if this works should be able to get rid of little ss loop and just go with = n_fsh_len(i,0,k) ... maybe?
-        fsh_len_like(k) -= ddirmult(obs_fl_vec, pred_fl_vec, sampsize_fl, log_fsh_l_theta(k), true );
-        //fsh_len_like(k) -= ddirmult(obs_fl_vec, pred_fl_vec, sampsize_fl, log_fsh_l_theta(k), true );  
-        //n_effective(YearI) = 1/(1+theta) + n_samp(YearI)*(theta/(1+theta));  //** need to implement this before done with dirichlet conversions
-      }
-    }
+    //  for (int k = 0; k < nsex; k++) {
+    //    temp_lenyr_obs.setZero();
+    //    temp_lenyr_pred.setZero();
+    //    temp_ss.setZero();
+    //    for (int i = 0; i < nyr_fsh_len; i++){
+    //      temp_ss(i) = n_fsh_len(i,0,k)/3;
+    //temp_ss(i) = effn_fsh_len(i,0,k);
+    //    }
+    //    for (int i = 0; i < nyr_fsh_len; i++){
+    //temp_ss(i) = n_fsh_len(i,k);
+    //      for (int l = 0; l < nlenbin; l++) {
+    //extract sex specific length x year matrix
+    //        temp_lenyr_obs(i,l) = data_fsh_len(i,l,k);
+    //       temp_lenyr_pred(i,l) = pred_fsh_len(i,l,k);
+    //      }
+    //      obs_fl_vec = temp_lenyr_obs(i);
+    //      pred_fl_vec = temp_lenyr_pred(i);
+    //      sampsize_fl = temp_ss(i); //if this works should be able to get rid of little ss loop and just go with = n_fsh_len(i,0,k) ... maybe?
+    //      fsh_len_like(k) -= ddirmult(obs_fl_vec, pred_fl_vec, sampsize_fl, log_fsh_l_theta(k), true );
+    //      //fsh_len_like(k) -= ddirmult(obs_fl_vec, pred_fl_vec, sampsize_fl, log_fsh_l_theta(k), true );  
+    //      //n_effective(YearI) = 1/(1+theta) + n_samp(YearI)*(theta/(1+theta));  //** need to implement this before done with dirichlet conversions
+    //   }
+    //  }
     
     break;
     
   }
   
   // Survey length comps
-  vector<Type> srv_l_theta = exp(log_srv_l_theta);
+  //vector<Type> srv_l_theta = exp(log_srv_l_theta);
   
   switch (comp_type) {
   case 0: // Multinomial
@@ -1645,40 +1714,40 @@ Type objective_function<Type>::operator() ()
     break;
     
   case 1: // Dirchlet multinomial
-    array<Type> temp_lenyr_obs2(nyr_srv_len,nlenbin);
-    array<Type> temp_lenyr_pred2(nyr_srv_len,nlenbin);
-    vector<Type> temp_ss2(nyr_srv_len);
-    vector<Type> obs_sl_vec( nlenbin );
-    vector<Type> pred_sl_vec( nlenbin );
+    //  array<Type> temp_lenyr_obs2(nyr_srv_len,nlenbin);
+    //  array<Type> temp_lenyr_pred2(nyr_srv_len,nlenbin);
+    //  vector<Type> temp_ss2(nyr_srv_len);
+    //  vector<Type> obs_sl_vec( nlenbin );
+    //  vector<Type> pred_sl_vec( nlenbin );
     
-    Type sampsize_sl; 
-    obs_sl_vec.setZero();
-    pred_sl_vec.setZero();
+    //  Type sampsize_sl; 
+    //  obs_sl_vec.setZero();
+    //  pred_sl_vec.setZero();
     
-    for (int k = 0; k < nsex; k++) {
-      temp_lenyr_obs2.setZero();
-      temp_lenyr_pred2.setZero();
-      temp_ss2.setZero();
-      
-      for (int i = 0; i < nyr_srv_len; i++){
-        temp_ss2(i) = n_srv_len(i,0,k)/3;
-        //temp_ss2(i) = 200;
-        //temp_ss2(i) = effn_srv_len(i,0,k);
-      }
-      for (int i = 0; i < nyr_srv_len; i++){
-        for (int l = 0; l < nlenbin; l++) {
-          //extract sex specific length x year matrix
-          temp_lenyr_obs2(i,l) = data_srv_len(i,l,k);
-          temp_lenyr_pred2(i,l) = pred_srv_len(i,l,k);
-        }
-        obs_sl_vec = temp_lenyr_obs2(i);
-        pred_sl_vec = temp_lenyr_pred2(i);
-        sampsize_sl = temp_ss2(i); //if this works should be able to get rid of little ss loop and just go with = n_fsh_len(i,0,k) ... maybe?
-        srv_len_like(k) -= ddirmult(obs_sl_vec, pred_sl_vec, sampsize_sl, log_srv_l_theta(k), true );
-        //fsh_len_like(k) -= ddirmult(obs_fl_vec, pred_fl_vec, sampsize_fl, log_fsh_l_theta(k), true );  . 
-        //n_effective(YearI) = 1/(1+theta) + n_samp(YearI)*(theta/(1+theta));  //** need to implement this before done with dirichlet conversions
-      }
-    }
+    //  for (int k = 0; k < nsex; k++) {
+    //    temp_lenyr_obs2.setZero();
+    //    temp_lenyr_pred2.setZero();
+    //    temp_ss2.setZero();
+    
+    //    for (int i = 0; i < nyr_srv_len; i++){
+    //      temp_ss2(i) = n_srv_len(i,0,k)/3;
+    //temp_ss2(i) = 200;
+    //temp_ss2(i) = effn_srv_len(i,0,k);
+    //    }
+    //    for (int i = 0; i < nyr_srv_len; i++){
+    //      for (int l = 0; l < nlenbin; l++) {
+    //extract sex specific length x year matrix
+    //        temp_lenyr_obs2(i,l) = data_srv_len(i,l,k);
+    //       temp_lenyr_pred2(i,l) = pred_srv_len(i,l,k);
+    //      }
+    //      obs_sl_vec = temp_lenyr_obs2(i);
+    //      pred_sl_vec = temp_lenyr_pred2(i);
+    //      sampsize_sl = temp_ss2(i); //if this works should be able to get rid of little ss loop and just go with = n_fsh_len(i,0,k) ... maybe?
+    //      srv_len_like(k) -= ddirmult(obs_sl_vec, pred_sl_vec, sampsize_sl, log_srv_l_theta(k), true );
+    //      //fsh_len_like(k) -= ddirmult(obs_fl_vec, pred_fl_vec, sampsize_fl, log_fsh_l_theta(k), true );  . 
+    //n_effective(YearI) = 1/(1+theta) + n_samp(YearI)*(theta/(1+theta));  //** need to implement this before done with dirichlet conversions
+    //    }
+    //  }
     
     break;
   }
@@ -1714,12 +1783,11 @@ Type objective_function<Type>::operator() ()
     // Recruitment deviations
     for (int i = 0; i < nyr; i++) {
       rec_like += log(sigma_r) + Type(0.5) * square(log_rec_devs(i) - Type(0.5) * square(sigma_r)) / square(sigma_r);
-      // Should be equivalent to: rec_like -= dnorm(log_rec_dev(i) - Type(0.5) * square(sigma_r) , Type(0.0), sigma_r, true);
     }
     
     // Initial numbers-at-age (sage + 1 to plus group - 1)
     for (int j = 0; j < nage - 2; j++) {
-      rec_like += log(sigma_r) + Type(0.5) * square(log_rinit_devs(j) - Type(0.5) * square(sigma_r)) / square(sigma_r+.0000000000001);
+      rec_like += log(sigma_r) + Type(0.5) * square(log_rinit_devs(j) - Type(0.5) * square(sigma_r)) / square(sigma_r);
     }
     
     rec_like *= wt_rec_like;      // weight
@@ -1751,9 +1819,9 @@ Type objective_function<Type>::operator() ()
   obj_fun += index_like(0);     // Fishery cpue
   obj_fun += index_like(1);     // Survey cpue
   obj_fun += index_like(2);     // Mark-recapture abundance index
-  obj_fun += age_like(0);       // Fishery age compositions
-  obj_fun += age_like(1);       // Survey age compositions
   for (int k = 0; k < nsex; k++) {
+    obj_fun += fsh_age_like(k); // Fishery age comps
+    obj_fun += srv_age_like(k); // Survey age comps
     obj_fun += fsh_len_like(k); // Fishery length comps
     obj_fun += srv_len_like(k); // Survey length comps
   }
@@ -1778,7 +1846,11 @@ Type objective_function<Type>::operator() ()
   
   // Predicted compositions
   REPORT(pred_fsh_age);     // Fishery
+  REPORT(pred_fsh_age_m);
+  REPORT(pred_fsh_age_f);
   REPORT(pred_srv_age);     // Survey
+  REPORT(pred_srv_age_m);
+  REPORT(pred_srv_age_f);
   REPORT(pred_fsh_len);     // Fishery
   REPORT(pred_srv_len);     // Survey
   
@@ -1833,21 +1905,25 @@ Type objective_function<Type>::operator() ()
   REPORT(prior_M);          // M prior
   REPORT(catch_like);       // Catch
   REPORT(index_like);       // Abundance indices
-  REPORT(age_like);         // Age compositions
+  //  REPORT(age_like);         // Age compositions
+  REPORT(srv_age_like);     // Survey length composition likelihoods
+  REPORT(fsh_age_like);     // Fishery length composition likelihoods
   REPORT(srv_len_like);     // Survey length composition likelihoods
   REPORT(fsh_len_like);     // Fishery length composition likelihoods
   REPORT(rec_like);         // Recruitment deviations
   REPORT(fpen);             // Fishing mortality deviations
   REPORT(spr_pen);          // SPR penalty
   REPORT(obj_fun);          // Total objective function
-  REPORT(offset);           // Offsets for age comp multinomial
+  //  REPORT(offset);           // Offsets for age comp multinomial
+  REPORT(offset_srv_age);   // Offsets for survey age comp multinomial
+  REPORT(offset_fsh_age);   // Offsets for fishery age comp multinomial
   REPORT(offset_srv_len);   // Offsets for survey length comp multinomial
   REPORT(offset_fsh_len);   // Offsets for fishery length comp multinomial
-  REPORT(fsh_theta);
-  REPORT(neff_dm_fsh_age);
-  REPORT(srv_theta);
-  REPORT(fsh_l_theta);
-  REPORT(srv_l_theta);
+  //  REPORT(fsh_theta);
+  //  REPORT(neff_dm_fsh_age);
+  //  REPORT(srv_theta);
+  //  REPORT(fsh_l_theta);
+  //  REPORT(srv_l_theta);
   //REPORT(tau_fsh);
   //REPORT(tau_srv);
   REPORT(tau_mr);
