@@ -5,8 +5,8 @@
 # fishery and survey age and length compositions.
 
 # Original author: jane.sullivan@noaa.gov
-# Current driver: philip.joy@alaska.gov
-# Last updated March 2023
+# Current driver: aaron.lambert@alaska.gov
+# Last updated March 2026
 
 # The following libraries are used for running the SCAA as a Bayesian model,
 # which are still under development. A lot of the infrastructure has been
@@ -26,11 +26,19 @@
 # selectivity in the last time block while the rest will be fixed to the federal 
 # values. To change those settings you will have to change the maps in the TMBphase_v23 
 # and TMBphase_v24 functions.
+
 # The "build_parameter_v23" and "_v24" functions are build to handle up to 4 time 
 # blocks for fsh_slx and 4 time blocks for srv_slx. You may need to modify your 
 # slx_pars data appropriately... this will provide values for fixed parameters 
 # and starting values for estimated parameters.
 # DOUBLE CHECK THAT EVERYTHING ALIGNS APPROPRIATELY!!!! 
+
+# SCAA model v23 and v24 updated (now v23a and v24a) in 2026 to correctly calculate 
+# landed catch. Prior versions (can be found in the 2025 and earlier folders) incorrectly
+# applied retention and discard function twice and didn't incorporate discarding 
+# in the SPR calculation. 
+# 
+#****** NOTE!***** Recruit deviations random effects is not functional as of 2026.
 
 #*********************************************************************************
 setwd("C:/Users/awlambert/Desktop/seak_sablefish")
@@ -52,7 +60,8 @@ set.seed(9921)
 # if this is the first model run of the year set to NA:
 # TUNED_VER <- "v23_3f_3s_2016_new"
 # TUNED_VER <- "v23_3f_3s_2015_new"
-TUNED_VER <- "v23_3f_3s_2016_new"
+# TUNED_VER <- "v23_3f_3s_2016_new"
+TUNED_VER <- NA
 
 # If you've tuned the model, use the tuned version you named and saved... 
 # TUNED_VER <-""
@@ -276,7 +285,7 @@ f_blk_ct<-length(fsh_blks)
 # VER <- "v23_3f_2s_TUNED"  #could not tune. Too unstable.
 # VER <- "v23_3f_3s_2015_TUNED"
 # VER <- "v23_3f_3s_2015_TUNED"
-VER <- "v23_3f_3s_2016_NEW_FINAL"
+# VER <- "v23_3f_3s_2016_NEW_FINAL"
 # VER <- "v23_2f_3s"
 # VER <- "v23_3f_3s_2017"
 # VER <- "v23_3f_3s_2017_TUNED"
@@ -293,7 +302,7 @@ VER <- "v23_3f_3s_2016_NEW_FINAL"
 # VER <- "v24_3f_2s_TUNED"  #could not tune. Too unstable.
 # VER <- "v24_3f_3s_2015"
 # VER <- "v24_3f_3s_2015_TUNED"
-# VER <- "v24_3f_3s_2016"
+VER <- "v24_3f_3s_2016"
 # VER <- "v24_3f_3s_2016_TUNED"
 # VER <- "v24_3f_3s_2017"
 # VER <- "v24_3f_3s_2017_TUNED"
@@ -362,15 +371,15 @@ if (agedat == "aggregated") {
   out <- TMBphase_v23(data, parameters,
                       random = random_vars,
                       random.switch = model.switch,
-                      model_name = "scaa_mod_v23_Aaron3", #model_name = "scaa_mod_dir_ev",
+                      model_name = "scaa_mod_v23a", #model_name = "scaa_mod_dir_ev",
                       phase = FALSE,  
                       newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                       debug = FALSE, loopnum = 30)
 } else {
   out <- TMBphase_v24(data, parameters, random = random_vars, 
-                          model_name = "scaa_mod_v24", #model_name = "scaa_mod_dir_ev",
+                          model_name = "scaa_mod_v24a", #model_name = "scaa_mod_dir_ev",
                           phase = FALSE,  
-                          newtonsteps = 0, #3 make this zero initially for faster run times (using 5)
+                          newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                           debug = FALSE, loopnum = 30)
 }
 
@@ -381,8 +390,8 @@ if (agedat == "aggregated") {
 # 
 # If loading a previous model output, you need to reload the model to get the
 # best parameter estimate below.
-dyn.load(dynlib(paste0(tmb_path,"/scaa_mod_v23_Aaron2")))
-out <- readRDS(file = paste0(tmbout,"/v23_3f_3s_2016_new_Tuned.RDS"))
+# dyn.load(dynlib(paste0(tmb_path,"/scaa_mod_v23_Aaron2")))
+# out <- readRDS(file = paste0(tmbout,"/v23_3f_3s_2016_new_Tuned.RDS"))
 
 
 # Check convergence and continue optimizing if convergence is iffy
