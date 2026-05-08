@@ -107,7 +107,7 @@ Here is a summary of project codes in the data:
 
 The analyses underpinning the current stock assessment are found in the folder labelled with the most recent year.  Typically the assessment occurs between January and April and thus the most recent year will contain code and work that is in progress during that time frame.  The helper and function files are contained in their own folder [`r_helper/`](https://github.com/commfish/seak_sablefish/tree/master/r_helper).  The rest of the scripts necessary to run the assessment are contained in the appropriate year folder, as well as the legacy folder, and are described below.  The scripts should be run in the order listed.  
 
-![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/steps_to_run_assessment.jpg)
+![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/NSEI_SCAA_Workflow.jpg)
 
 **Description of R scripts:** Follow the order of these scripts to run the assessment...  
 1.  [`r_helper/helper.r`](https://github.com/commfish/seak_sablefish/blob/master/r_helper/helper.R): Sourced by most other R scripts in this project, includes libraries/dependecies and ggplot themes;
