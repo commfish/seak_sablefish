@@ -17,7 +17,7 @@ source("r_helper/exp_functions.r")
 
 YEAR <- 2025 # most recent year of data
 
-VER <-"v23_3f_3s_2015_new_TUNED"
+VER <-"v23_3f_3s_2016_new_TUNED"
 
 # Directory setup
 root <- getwd() # project root
@@ -423,16 +423,108 @@ if(rec_type == 1){
 ggsave(paste0(retro_dir,"/retro_Rsigma_", YEAR, ".png"),
        dpi=300, height=4, width=7, units="in")
 
+# This is the old code that incorrectly calculates Mohns rho based on the projection
+# in each peel instead of the terminal year estimate.
+# 
+# order_retro <- SB %>% 
+#   distinct(retro) %>% 
+#   mutate(order_retro = factor(order(nchar(retro), retro), ordered = TRUE))
+# 
+# # Function plots and saves retrospective plot (including traditional
+# # retrospective plot plus another that shows relative % diff between peel and
+# # terminal year estimate per Clark et al 2012), also calculates AFSC Mohn's Rho
+# make_retro <- function(df, y, min_year, y_lab, plot_lab) {   #df<-SB
+#   
+#   y <- enquo(y)    #y<-enquo(spawn_biom)
+#   
+#   df %>% 
+#     group_by(retro) %>% 
+#     full_join(df %>% 
+#                 filter(retro == "retro_0") %>% 
+#                 select(year, term = !!y),
+#               by = "year") %>% 
+#     mutate(diff = (!!y - term) / term * 100) %>% 
+#     # NOTE - join order_retro into df for plotting - this variable is external
+#     # to this function
+#     left_join(order_retro) %>% 
+#     filter(year >= min_year) -> df
+#   
+#   # Rho calculations
+#   df %>% 
+#     # Alaska Fisheries Science Center and Hurtado-Ferro et al. (2015) Mohn's rho
+#     # https://www.afsc.noaa.gov/REFM/stocks/Plan_Team/2013/Sept/Retrospectives_2013_final3.pdf
+#     # # mean over all peels (Estimate in peel year - reference estimate (current
+#     # # year's estimate) / reference estimate)
+#     filter(year == max(year)) %>% 
+#     mutate(m = (!!y - term) / term) %>% 
+#     ungroup() %>% 
+#     dplyr::summarize(mohns_rho = mean(m)) -> rhos
+#   
+#   mohns_rho <- pull(rhos, mohns_rho)
+#   rho_txt <- as.character(
+#     as.expression(substitute(
+#       paste("Mohn's ", italic(rho), " = ", xx),
+#       list(xx = formatC(mohns_rho, format = "f", digits = 2)))))
+#   
+#   axisx <- tickr(df, year, 5)
+# 
+#   # Conventional retrospective plot
+#   p1 <- ggplot() +
+#     geom_line(data = df, aes(x = year, y = !!y, col = order_retro, group = order_retro)) +
+#     geom_point(data = df %>%
+#                  group_by(order_retro) %>%
+#                  dplyr::summarise(year = max(year)) %>%
+#                  left_join(df),
+#                aes(x = year, y = !!y, col = order_retro)) +
+#     scale_colour_grey(guide = FALSE) +
+#     geom_text(aes(x = min_year + 6,
+#                   y = df %>%
+#                     ungroup() %>%
+#                     dplyr::summarize(txt_y = 0.9 * max(!!y)) %>%
+#                     pull(txt_y), label = rho_txt),
+#               colour = "black", parse = TRUE, family = "Times New Roman") +
+#     labs(x = NULL, y = y_lab) +
+#     scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
+#     # theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
+# 
+#   # Percent difference plot
+#   p2 <- ggplot(df) +
+#     # geom_hline(yintercept = 0, linetype = 2) +
+#     # geom_line(data = filter(df, retro != "retro_0"),
+#     geom_line(data = df,
+#               aes(x = year, y = diff, colour = order_retro, group = order_retro)) +
+#     geom_point(data = df %>%
+#                  group_by(order_retro) %>%
+#                  dplyr::summarise(year = max(year)) %>%
+#                  left_join(df),
+#                aes(x = year, y = diff, col = order_retro)) +
+#     scale_color_grey(guide = FALSE) +
+#     labs(x = NULL, y = "Percent change\nfrom terminal year") +
+#     scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
+#     # theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
+# 
+#   cowplot::plot_grid(p1, p2, align = "hv", nrow = 2) -> retro_plot
+# 
+#   ggsave(filename = paste0(retro_dir, "/retrospective_", plot_lab, "_", YEAR, ".png"), plot = retro_plot,
+#          dpi = 300, height = 5, width = 6, units = "in")
+# 
+#   print(retro_plot)
+#   return(df)
+# }
+
 order_retro <- SB %>% 
   distinct(retro) %>% 
   mutate(order_retro = factor(order(nchar(retro), retro), ordered = TRUE))
 
-# Function plots and saves retrospective plot (including traditional
-# retrospective plot plus another that shows relative % diff between peel and
-# terminal year estimate per Clark et al 2012), also calculates AFSC Mohn's Rho
-make_retro <- function(df, y, min_year, y_lab, plot_lab) {   #df<-SB
+make_retro <- function(df, y, min_year, y_lab, plot_lab) {
   
-  y <- enquo(y)    #y<-enquo(spawn_biom)
+  y <- enquo(y)
+  
+  # Drop projection year from each peel (last year = projection) 
+  df <- df %>%
+    group_by(retro) %>%
+    filter(year < max(year)) %>%
+    ungroup()
   
   df %>% 
     group_by(retro) %>% 
@@ -441,21 +533,19 @@ make_retro <- function(df, y, min_year, y_lab, plot_lab) {   #df<-SB
                 select(year, term = !!y),
               by = "year") %>% 
     mutate(diff = (!!y - term) / term * 100) %>% 
-    # NOTE - join order_retro into df for plotting - this variable is external
-    # to this function
     left_join(order_retro) %>% 
     filter(year >= min_year) -> df
   
-  # Rho calculations
-  df %>% 
-    # Alaska Fisheries Science Center and Hurtado-Ferro et al. (2015) Mohn's rho
-    # https://www.afsc.noaa.gov/REFM/stocks/Plan_Team/2013/Sept/Retrospectives_2013_final3.pdf
-    # # mean over all peels (Estimate in peel year - reference estimate (current
-    # # year's estimate) / reference estimate)
-    filter(year == max(year)) %>% 
-    mutate(m = (!!y - term) / term) %>% 
-    ungroup() %>% 
-    dplyr::summarize(mohns_rho = mean(m)) -> rhos
+  # Mohns rho
+  # Each peel's terminal year is max(year) within that peel
+  # Compare peel estimate at its terminal year vs. reference (retro_0) at same year
+  df %>%
+    filter(retro != "retro_0") %>%          # exclude terminal run from rho calc
+    group_by(retro) %>%
+    filter(year == max(year)) %>%           # terminal year of each peel
+    mutate(m = (!!y - term) / term) %>%
+    ungroup() %>%
+    dplyr::summarize(mohns_rho = mean(m, na.rm = TRUE)) -> rhos
   
   mohns_rho <- pull(rhos, mohns_rho)
   rho_txt <- as.character(
@@ -464,30 +554,30 @@ make_retro <- function(df, y, min_year, y_lab, plot_lab) {   #df<-SB
       list(xx = formatC(mohns_rho, format = "f", digits = 2)))))
   
   axisx <- tickr(df, year, 5)
-
-  # Conventional retrospective plot
+  
+  # Squid plot
   p1 <- ggplot() +
-    geom_line(data = df, aes(x = year, y = !!y, col = order_retro, group = order_retro)) +
+    geom_line(data = df,
+              aes(x = year, y = !!y, col = order_retro, group = order_retro)) +
     geom_point(data = df %>%
                  group_by(order_retro) %>%
                  dplyr::summarise(year = max(year)) %>%
                  left_join(df),
                aes(x = year, y = !!y, col = order_retro)) +
-    scale_colour_grey(guide = FALSE) +
+    scale_colour_grey(guide = "none") +
     geom_text(aes(x = min_year + 6,
                   y = df %>%
                     ungroup() %>%
-                    dplyr::summarize(txt_y = 0.9 * max(!!y)) %>%
-                    pull(txt_y), label = rho_txt),
+                    dplyr::summarize(txt_y = 0.9 * max(!!y, na.rm = TRUE)) %>%
+                    pull(txt_y),
+                  label = rho_txt),
               colour = "black", parse = TRUE, family = "Times New Roman") +
     labs(x = NULL, y = y_lab) +
-    scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
-    # theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
-
-  # Percent difference plot
+    scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels)
+  
+  # Percent diff plot
   p2 <- ggplot(df) +
-    # geom_hline(yintercept = 0, linetype = 2) +
-    # geom_line(data = filter(df, retro != "retro_0"),
+    geom_hline(yintercept = 0, linetype = 2, colour = "grey40") +
     geom_line(data = df,
               aes(x = year, y = diff, colour = order_retro, group = order_retro)) +
     geom_point(data = df %>%
@@ -495,16 +585,15 @@ make_retro <- function(df, y, min_year, y_lab, plot_lab) {   #df<-SB
                  dplyr::summarise(year = max(year)) %>%
                  left_join(df),
                aes(x = year, y = diff, col = order_retro)) +
-    scale_color_grey(guide = FALSE) +
+    scale_color_grey(guide = "none") +
     labs(x = NULL, y = "Percent change\nfrom terminal year") +
-    scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
-    # theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
-
+    scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels)
+  
   cowplot::plot_grid(p1, p2, align = "hv", nrow = 2) -> retro_plot
-
-  ggsave(filename = paste0(retro_dir, "/retrospective_", plot_lab, "_", YEAR, ".png"), plot = retro_plot,
-         dpi = 300, height = 5, width = 6, units = "in")
-
+  
+  ggsave(filename = paste0(retro_dir, "/retrospective_", plot_lab, "_", YEAR, ".png"),
+         plot = retro_plot, dpi = 300, height = 5, width = 6, units = "in")
+  
   print(retro_plot)
   return(df)
 }
@@ -518,173 +607,6 @@ SB_eg<-as.data.frame(SB); mean(SB_eg$diff/100)
 rec_eg<-as.data.frame(rec); mean(rec_eg$diff)
 
 #-------------------------------------------------------------------------------
-# Hand cranking the function to make sure things are doing what I think they should
-# be doing... 
-
-df<-SB
-min_year <- YEAR-21
-#y <- enquo(y)    #y<-enquo(spawn_biom)
-
-#df %>% 
- # group_by(retro) %>% 
-  #full_join(df %>% 
-     #         filter(retro == "retro_0") %>% 
-   #           #select(year, term = !!y),
-      #        select(year, term = spawn_biom),
-       #     by = "year") %>% 
-  #mutate(diff = (df$spawn_biom - df$term) / df$term * 100) %>% 
-  # NOTE - join order_retro into df for plotting - this variable is external
-  # to this function
-#  left_join(order_retro) %>% 
-#  filter(year >= min_year) -> df
-
-print(df,n=40)
-unique(df$term) #biomass estimates for each year from the terminal year model run
-# Rho calculations
-df %>% 
-  # Alaska Fisheries Science Center and Hurtado-Ferro et al. (2015) Mohn's rho
-  # https://www.afsc.noaa.gov/REFM/stocks/Plan_Team/2013/Sept/Retrospectives_2013_final3.pdf
-  # # mean over all peels (Estimate in peel year - reference estimate (current
-  # # year's estimate) / reference estimate)
-  filter(year == max(year)) %>% 
-  #mutate(m = (!!y - term) / term) %>% 
-  mutate(m = (spawn_biom - term) / term) %>% 
-  ungroup() %>% 
-  dplyr::summarize(mohns_rho = mean(m),
-                   mean_perc_diff = mean(diff)) -> rhos
-
-mohns_rho <- pull(rhos, mohns_rho)
-rho_txt <- as.character(
-  as.expression(substitute(
-    paste("Mohn's ", italic(rho), " = ", xx),
-    list(xx = formatC(mohns_rho, format = "f", digits = 3)))))
-
-axisx <- tickr(df, year, 5)
-y_lab <- "Spawning biomass\n(million lb)"
-plot_lab <- "spawn_biom"
-# Conventional retrospective plot
-p1 <- ggplot() +
-  geom_line(data = df, aes(x = year, y = spawn_biom, col = order_retro, group = order_retro)) +
-  geom_point(data = df %>%
-               group_by(order_retro) %>%
-               dplyr::summarise(year = max(year)) %>%
-               left_join(df),
-             aes(x = year, y = spawn_biom, col = order_retro)) +
-  scale_colour_grey(guide = FALSE) +
-  geom_text(aes(x = min_year + 6,
-                y = df %>%
-                  ungroup() %>%
-                  dplyr::summarize(txt_y = 0.9 * max(spawn_biom)) %>%
-                  pull(txt_y), label = rho_txt),
-            colour = "black", parse = TRUE, family = "Times New Roman") +
-  labs(x = NULL, y = y_lab) +
-  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
-# theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
-
-# Percent difference plot
-p2 <- ggplot(df) +
-  # geom_hline(yintercept = 0, linetype = 2) +
-  # geom_line(data = filter(df, retro != "retro_0"),
-  geom_line(data = df,
-            aes(x = year, y = diff, colour = order_retro, group = order_retro)) +
-  geom_point(data = df %>%
-               group_by(order_retro) %>%
-               dplyr::summarise(year = max(year)) %>%
-               left_join(df),
-             aes(x = year, y = diff, col = order_retro)) +
-  scale_color_grey(guide = FALSE) +
-  labs(x = NULL, y = "Percent change\nfrom terminal year") +
-  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
-# theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
-
-cowplot::plot_grid(p1, p2, align = "hv", nrow = 2) -> retro_plot
-
-ggsave(filename = paste0(retro_dir, "/retrospective_", plot_lab, "_", YEAR, ".png"), plot = retro_plot,
-       dpi = 300, height = 5, width = 6, units = "in")
-
-#-------------------------------------------------------------------------------
-##hand crank recruitment
-df<-rec
-min_year <- YEAR-21
-#y <- enquo(y)    #y<-enquo(spawn_biom)
-
-#df %>% 
-# group_by(retro) %>% 
-#full_join(df %>% 
-#    filter(retro == "retro_0") %>% 
-              #select(year, term = !!y),
-#    select(year, term = rec),
-#  by = "year") %>% 
-# mutate(diff = (rec - term) / term * 100) %>% 
-  # NOTE - join order_retro into df for plotting - this variable is external
-  # to this function
-# left_join(order_retro) %>% 
-# filter(year >= min_year) -> df
-
-print(df,n=40)
-unique(df$term) #biomass estimates for each year from the terminal year model run
-# Rho calculations
-df %>% 
-  # Alaska Fisheries Science Center and Hurtado-Ferro et al. (2015) Mohn's rho
-  # https://www.afsc.noaa.gov/REFM/stocks/Plan_Team/2013/Sept/Retrospectives_2013_final3.pdf
-  # # mean over all peels (Estimate in peel year - reference estimate (current
-  # # year's estimate) / reference estimate)
-  filter(year == max(year)) %>% 
-  #mutate(m = (!!y - term) / term) %>% 
-  mutate(m = (rec - term) / term) %>% 
-  ungroup() %>% 
-  dplyr::summarize(mohns_rho = mean(m),
-                   mean_perc_diff = mean(diff)) -> rhos
-
-mohns_rho <- pull(rhos, mohns_rho)
-rho_txt <- as.character(
-  as.expression(substitute(
-    paste("Mohn's ", italic(rho), " = ", xx),
-    list(xx = formatC(mohns_rho, format = "f", digits = 3)))))
-
-axisx <- tickr(df, year, 5)
-y_lab <- "Age-2 recruits\n(millions)"
-plot_lab <- "recruitment"
-
-# Conventional retrospective plot
-p1 <- ggplot() +
-  geom_line(data = df, aes(x = year, y = rec, col = order_retro, group = order_retro)) +
-  geom_point(data = df %>%
-               group_by(order_retro) %>%
-               dplyr::summarise(year = max(year)) %>%
-               left_join(df),
-             aes(x = year, y = rec, col = order_retro)) +
-  scale_colour_grey(guide = FALSE) +
-  geom_text(aes(x = min_year + 6,
-                y = df %>%
-                  ungroup() %>%
-                  dplyr::summarize(txt_y = 0.9 * max(rec)) %>%
-                  pull(txt_y), label = rho_txt),
-            colour = "black", parse = TRUE, family = "Times New Roman") +
-  labs(x = NULL, y = y_lab) +
-  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
-# theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
-
-# Percent difference plot
-p2 <- ggplot(df) +
-  # geom_hline(yintercept = 0, linetype = 2) +
-  # geom_line(data = filter(df, retro != "retro_0"),
-  geom_line(data = df,
-            aes(x = year, y = diff, colour = order_retro, group = order_retro)) +
-  geom_point(data = df %>%
-               group_by(order_retro) %>%
-               dplyr::summarise(year = max(year)) %>%
-               left_join(df),
-             aes(x = year, y = diff, col = order_retro)) +
-  scale_color_grey(guide = FALSE) +
-  labs(x = NULL, y = "Percent change\nfrom terminal year") +
-  scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) #+
-# theme(axis.title.y = element_text(vjust = 0.5, angle = 0))
-
-cowplot::plot_grid(p1, p2, align = "hv", nrow = 2) -> retro_plot
-
-ggsave(filename = paste0(retro_dir, "/retrospective_", plot_lab, "_", YEAR, ".png"), plot = retro_plot,
-       dpi = 300, height = 5, width = 6, units = "in")
 
 # Mohn's Rho ----
 

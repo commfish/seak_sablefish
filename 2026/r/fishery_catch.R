@@ -291,7 +291,8 @@ ggsave(paste0(YEAR+1,"/figures/catch_exvesselvalue_", YEAR, "v34.png"),
        dpi=300, height=10, width=7, units="in") # figure to use in assessment 2025
 
 # Add a plot with the proportion of pot and ll gear
-plot_grid(gear,catch_bygear, port, exvessel,  ncol = 1, align = 'hv')
+plot_grid(gear,catch_bygear, port, exvessel,  ncol = 1, align = 'hv', 
+          labels = c("a","b","c","d"), hjust = -4)
 
 ggsave(paste0(YEAR+1,"/figures/catch_exvesselvalue_", YEAR, "v35.png"),
        dpi=300, height=8, width=7, units="in") 

@@ -197,7 +197,7 @@ fsh_blocks <- c(1994,2021)
 # VER<-"v23" #too unstable; could not tune
 # VER <- "v23_3f_2s"
 # VER <- "v23_3f_3s_2016_new"
-VER <- "v23_3f_3s_2016_new2"
+VER <- "v23_3f_3s_2016_2024_fixed"
 #-------------------------------------------------------------------------------
 # Load data and parameters
 # If base model

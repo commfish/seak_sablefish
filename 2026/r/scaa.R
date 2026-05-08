@@ -61,7 +61,7 @@ set.seed(9921)
 # TUNED_VER <- "v23_3f_3s_2016_new"
 # TUNED_VER <- "v23_3f_3s_2015_new"
 # TUNED_VER <- "v23_3f_3s_2016_new"
-TUNED_VER <- NA
+TUNED_VER <- "v23_3f_3s_2016_2024_fixed"
 
 # If you've tuned the model, use the tuned version you named and saved... 
 # TUNED_VER <-""
@@ -285,7 +285,7 @@ f_blk_ct<-length(fsh_blks)
 # VER <- "v23_3f_2s_TUNED"  #could not tune. Too unstable.
 # VER <- "v23_3f_3s_2015_TUNED"
 # VER <- "v23_3f_3s_2015_TUNED"
-# VER <- "v23_3f_3s_2016_NEW_FINAL"
+VER <- "v23_3f_3s_2016_2024_fixed_FINAL"
 # VER <- "v23_2f_3s"
 # VER <- "v23_3f_3s_2017"
 # VER <- "v23_3f_3s_2017_TUNED"
@@ -302,7 +302,7 @@ f_blk_ct<-length(fsh_blks)
 # VER <- "v24_3f_2s_TUNED"  #could not tune. Too unstable.
 # VER <- "v24_3f_3s_2015"
 # VER <- "v24_3f_3s_2015_TUNED"
-VER <- "v24_3f_3s_2016"
+# VER <- "v24_3f_3s_2016_TUNED_FINAL"
 # VER <- "v24_3f_3s_2016_TUNED"
 # VER <- "v24_3f_3s_2017"
 # VER <- "v24_3f_3s_2017_TUNED"
@@ -352,6 +352,12 @@ parameters$log_srv_slx_pars
 # parameters$log_sigma_r <-  -.717 # Should be -0.717
 # # parameters$log_sigma_r <- log(0.5)
 
+# parameters$mr_logq <- NULL
+# parameters$log_tau_mr <- NULL
+
+
+
+# data$wt_mr <- 0# datNULLa$wt_mr <- 0
 
 # parameters$log_sigma_r <- log(.5)
 # parameters$log_rec_devs <- rep(0,nyr)
@@ -371,7 +377,7 @@ if (agedat == "aggregated") {
   out <- TMBphase_v23(data, parameters,
                       random = random_vars,
                       random.switch = model.switch,
-                      model_name = "scaa_mod_v23a", #model_name = "scaa_mod_dir_ev",
+                      model_name = "scaa_mod_v23_Aaron2", #model_name = "scaa_mod_dir_ev",
                       phase = FALSE,  
                       newtonsteps = 5, #3 make this zero initially for faster run times (using 5)
                       debug = FALSE, loopnum = 30)

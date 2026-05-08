@@ -102,7 +102,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,2,7,0.02555,2
 2022,LL survey,Male,2,3,0.00977,2
 2023,LL survey,Male,2,0,0,2
-2024,LL survey,Male,2,3,0.00282,2
+2024,LL survey,Male,2,1,0.00282,2
 2025,LL survey,Male,2,0,0,2
 1997,LL survey,Male,2,0,0,2
 1998,LL survey,Male,2,0,0,2
@@ -159,7 +159,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,2,8,0.01244,2
 2022,LL survey,Sex combined,2,14,0.02167,2
 2023,LL survey,Sex combined,2,2,0.00299,2
-2024,LL survey,Sex combined,2,3,0.00128,2
+2024,LL survey,Sex combined,2,1,0.00128,2
 2025,LL survey,Sex combined,2,0,0,2
 1997,LL survey,Sex combined,2,0,0,2
 1998,LL survey,Sex combined,2,1,0.00287,2
@@ -205,7 +205,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,3,0,0,3
 2011,LL survey,Female,3,14,0.03836,3
 2012,LL survey,Female,3,5,0.01235,3
-2013,LL survey,Female,3,1,0.00394,3
+2013,LL survey,Female,3,1,0.00392,3
 2014,LL survey,Female,3,0,0,3
 2015,LL survey,Female,3,7,0.024140000000000002,3
 2016,LL survey,Female,3,41,0.13016,3
@@ -216,7 +216,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,3,4,0.01084,3
 2022,LL survey,Female,3,14,0.0413,3
 2023,LL survey,Female,3,4,0.0109,3
-2024,LL survey,Female,3,12,0.00932,3
+2024,LL survey,Female,3,4,0.00932,3
 2025,LL survey,Female,3,1,0.00271,3
 1997,LL survey,Female,3,0,0,3
 1998,LL survey,Female,3,1,0.0051,3
@@ -275,7 +275,7 @@ year,Source,Sex,age,n,proportion,Age
 2023,LL survey,Male,3,2,0.00662,3
 2024,LL survey,Male,3,0,0,3
 2025,LL survey,Male,3,3,0.01115,3
-1997,LL survey,Male,3,1,0.00373,3
+1997,LL survey,Male,3,1,0.0037200000000000002,3
 1998,LL survey,Male,3,1,0.00654,3
 1999,LL survey,Male,3,7,0.04861,3
 2000,LL survey,Male,3,5,0.02874,3
@@ -319,7 +319,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,3,5,0.00826,3
 2011,LL survey,Sex combined,3,21,0.03107,3
 2012,LL survey,Sex combined,3,8,0.01105,3
-2013,LL survey,Sex combined,3,2,0.00375,3
+2013,LL survey,Sex combined,3,2,0.00374,3
 2014,LL survey,Sex combined,3,1,0.00179,3
 2015,LL survey,Sex combined,3,14,0.02851,3
 2016,LL survey,Sex combined,3,59,0.10688,3
@@ -330,7 +330,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,3,11,0.01711,3
 2022,LL survey,Sex combined,3,29,0.04489,3
 2023,LL survey,Sex combined,3,6,0.00897,3
-2024,LL survey,Sex combined,3,12,0.00511,3
+2024,LL survey,Sex combined,3,4,0.00511,3
 2025,LL survey,Sex combined,3,4,0.00627,3
 1997,LL survey,Sex combined,3,1,0.00192,3
 1998,LL survey,Sex combined,3,2,0.00573,3
@@ -376,7 +376,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,4,5,0.01562,4
 2011,LL survey,Female,4,12,0.03288,4
 2012,LL survey,Female,4,30,0.07407,4
-2013,LL survey,Female,4,2,0.00787,4
+2013,LL survey,Female,4,2,0.00784,4
 2014,LL survey,Female,4,3,0.01053,4
 2015,LL survey,Female,4,9,0.03103,4
 2016,LL survey,Female,4,22,0.06984,4
@@ -387,7 +387,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,4,17,0.04607,4
 2022,LL survey,Female,4,28,0.0826,4
 2023,LL survey,Female,4,31,0.08447,4
-2024,LL survey,Female,4,48,0.0373,4
+2024,LL survey,Female,4,16,0.0373,4
 2025,LL survey,Female,4,3,0.00813,4
 1997,LL survey,Female,4,4,0.01587,4
 1998,LL survey,Female,4,4,0.02041,4
@@ -444,9 +444,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,4,15,0.05474,4
 2022,LL survey,Male,4,17,0.05537,4
 2023,LL survey,Male,4,18,0.0596,4
-2024,LL survey,Male,4,90,0.08475,4
+2024,LL survey,Male,4,30,0.08475,4
 2025,LL survey,Male,4,5,0.01859,4
-1997,LL survey,Male,4,1,0.00373,4
+1997,LL survey,Male,4,1,0.0037200000000000002,4
 1998,LL survey,Male,4,4,0.02614,4
 1999,LL survey,Male,4,10,0.06944,4
 2000,LL survey,Male,4,8,0.04598,4
@@ -490,7 +490,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,4,5,0.00826,4
 2011,LL survey,Sex combined,4,23,0.03402,4
 2012,LL survey,Sex combined,4,54,0.07459,4
-2013,LL survey,Sex combined,4,5,0.00936,4
+2013,LL survey,Sex combined,4,5,0.00935,4
 2014,LL survey,Sex combined,4,4,0.00714,4
 2015,LL survey,Sex combined,4,28,0.05703,4
 2016,LL survey,Sex combined,4,38,0.06884,4
@@ -501,9 +501,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,4,32,0.04977,4
 2022,LL survey,Sex combined,4,45,0.06966,4
 2023,LL survey,Sex combined,4,49,0.07324,4
-2024,LL survey,Sex combined,4,138,0.05875,4
+2024,LL survey,Sex combined,4,46,0.05875,4
 2025,LL survey,Sex combined,4,8,0.01254,4
-1997,LL survey,Sex combined,4,5,0.00962,4
+1997,LL survey,Sex combined,4,5,0.0096,4
 1998,LL survey,Sex combined,4,8,0.02292,4
 1999,LL survey,Sex combined,4,21,0.07692,4
 2000,LL survey,Sex combined,4,25,0.06579,4
@@ -547,7 +547,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,5,7,0.02187,5
 2011,LL survey,Female,5,17,0.04658,5
 2012,LL survey,Female,5,48,0.11852,5
-2013,LL survey,Female,5,18,0.07087,5
+2013,LL survey,Female,5,18,0.07059,5
 2014,LL survey,Female,5,4,0.01404,5
 2015,LL survey,Female,5,16,0.05517,5
 2016,LL survey,Female,5,16,0.05079,5
@@ -558,7 +558,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,5,104,0.28184,5
 2022,LL survey,Female,5,46,0.13569,5
 2023,LL survey,Female,5,44,0.11989,5
-2024,LL survey,Female,5,162,0.12587,5
+2024,LL survey,Female,5,54,0.12587,5
 2025,LL survey,Female,5,20,0.0542,5
 1997,LL survey,Female,5,4,0.01587,5
 1998,LL survey,Female,5,9,0.04592,5
@@ -615,9 +615,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,5,84,0.30657,5
 2022,LL survey,Male,5,47,0.15309,5
 2023,LL survey,Male,5,34,0.11258,5
-2024,LL survey,Male,5,114,0.10734,5
+2024,LL survey,Male,5,38,0.10734,5
 2025,LL survey,Male,5,32,0.11896,5
-1997,LL survey,Male,5,1,0.00373,5
+1997,LL survey,Male,5,1,0.0037200000000000002,5
 1998,LL survey,Male,5,9,0.05882,5
 1999,LL survey,Male,5,4,0.02778,5
 2000,LL survey,Male,5,15,0.08621,5
@@ -661,7 +661,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,5,11,0.01818,5
 2011,LL survey,Sex combined,5,37,0.05473,5
 2012,LL survey,Sex combined,5,95,0.13122,5
-2013,LL survey,Sex combined,5,25,0.04682,5
+2013,LL survey,Sex combined,5,25,0.04673,5
 2014,LL survey,Sex combined,5,14,0.025,5
 2015,LL survey,Sex combined,5,31,0.06314,5
 2016,LL survey,Sex combined,5,31,0.05616,5
@@ -672,9 +672,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,5,188,0.29238,5
 2022,LL survey,Sex combined,5,93,0.14396,5
 2023,LL survey,Sex combined,5,78,0.11659,5
-2024,LL survey,Sex combined,5,276,0.1175,5
+2024,LL survey,Sex combined,5,92,0.1175,5
 2025,LL survey,Sex combined,5,52,0.0815,5
-1997,LL survey,Sex combined,5,5,0.00962,5
+1997,LL survey,Sex combined,5,5,0.0096,5
 1998,LL survey,Sex combined,5,18,0.05158,5
 1999,LL survey,Sex combined,5,15,0.05495,5
 2000,LL survey,Sex combined,5,37,0.09737,5
@@ -718,7 +718,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,6,8,0.025,6
 2011,LL survey,Female,6,23,0.06301,6
 2012,LL survey,Female,6,37,0.09136,6
-2013,LL survey,Female,6,28,0.11024,6
+2013,LL survey,Female,6,28,0.1098,6
 2014,LL survey,Female,6,16,0.05614,6
 2015,LL survey,Female,6,15,0.05172,6
 2016,LL survey,Female,6,19,0.06032,6
@@ -729,7 +729,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,6,108,0.29268,6
 2022,LL survey,Female,6,81,0.23894,6
 2023,LL survey,Female,6,68,0.18529,6
-2024,LL survey,Female,6,198,0.15385,6
+2024,LL survey,Female,6,66,0.15385,6
 2025,LL survey,Female,6,50,0.1355,6
 1997,LL survey,Female,6,12,0.04762,6
 1998,LL survey,Female,6,10,0.05102,6
@@ -786,9 +786,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,6,65,0.23723,6
 2022,LL survey,Male,6,75,0.2443,6
 2023,LL survey,Male,6,50,0.16556,6
-2024,LL survey,Male,6,159,0.14972,6
+2024,LL survey,Male,6,53,0.14972,6
 2025,LL survey,Male,6,52,0.19331,6
-1997,LL survey,Male,6,6,0.02239,6
+1997,LL survey,Male,6,6,0.0223,6
 1998,LL survey,Male,6,6,0.03922,6
 1999,LL survey,Male,6,11,0.07639,6
 2000,LL survey,Male,6,23,0.13218,6
@@ -832,7 +832,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,6,21,0.03471,6
 2011,LL survey,Sex combined,6,33,0.04882,6
 2012,LL survey,Sex combined,6,59,0.08149,6
-2013,LL survey,Sex combined,6,52,0.09738,6
+2013,LL survey,Sex combined,6,52,0.0972,6
 2014,LL survey,Sex combined,6,35,0.0625,6
 2015,LL survey,Sex combined,6,30,0.0611,6
 2016,LL survey,Sex combined,6,33,0.05978,6
@@ -843,9 +843,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,6,173,0.26905,6
 2022,LL survey,Sex combined,6,156,0.24149,6
 2023,LL survey,Sex combined,6,118,0.17638,6
-2024,LL survey,Sex combined,6,357,0.15198,6
+2024,LL survey,Sex combined,6,119,0.15198,6
 2025,LL survey,Sex combined,6,102,0.15987,6
-1997,LL survey,Sex combined,6,18,0.03462,6
+1997,LL survey,Sex combined,6,18,0.03455,6
 1998,LL survey,Sex combined,6,16,0.04585,6
 1999,LL survey,Sex combined,6,29,0.10623,6
 2000,LL survey,Sex combined,6,38,0.1,6
@@ -889,7 +889,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,7,10,0.03125,7
 2011,LL survey,Female,7,25,0.06849,7
 2012,LL survey,Female,7,27,0.06667,7
-2013,LL survey,Female,7,25,0.09843,7
+2013,LL survey,Female,7,26,0.10196,7
 2014,LL survey,Female,7,32,0.11228,7
 2015,LL survey,Female,7,25,0.08621,7
 2016,LL survey,Female,7,24,0.07619,7
@@ -900,7 +900,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,7,68,0.18428,7
 2022,LL survey,Female,7,56,0.16519,7
 2023,LL survey,Female,7,80,0.21798,7
-2024,LL survey,Female,7,252,0.1958,7
+2024,LL survey,Female,7,84,0.1958,7
 2025,LL survey,Female,7,63,0.17073,7
 1997,LL survey,Female,7,16,0.06349,7
 1998,LL survey,Female,7,8,0.04082,7
@@ -957,9 +957,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,7,33,0.12044,7
 2022,LL survey,Male,7,54,0.1759,7
 2023,LL survey,Male,7,70,0.23179,7
-2024,LL survey,Male,7,186,0.17514,7
+2024,LL survey,Male,7,62,0.17514,7
 2025,LL survey,Male,7,50,0.18587,7
-1997,LL survey,Male,7,10,0.03731,7
+1997,LL survey,Male,7,10,0.03717,7
 1998,LL survey,Male,7,4,0.02614,7
 1999,LL survey,Male,7,10,0.06944,7
 2000,LL survey,Male,7,17,0.0977,7
@@ -1003,7 +1003,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,7,21,0.03471,7
 2011,LL survey,Sex combined,7,43,0.06361,7
 2012,LL survey,Sex combined,7,39,0.05387,7
-2013,LL survey,Sex combined,7,58,0.10861,7
+2013,LL survey,Sex combined,7,59,0.11028,7
 2014,LL survey,Sex combined,7,45,0.08036,7
 2015,LL survey,Sex combined,7,41,0.0835,7
 2016,LL survey,Sex combined,7,38,0.06884,7
@@ -1014,9 +1014,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,7,101,0.15708,7
 2022,LL survey,Sex combined,7,110,0.17028,7
 2023,LL survey,Sex combined,7,150,0.22422,7
-2024,LL survey,Sex combined,7,438,0.18646,7
+2024,LL survey,Sex combined,7,146,0.18646,7
 2025,LL survey,Sex combined,7,113,0.17712,7
-1997,LL survey,Sex combined,7,26,0.05,7
+1997,LL survey,Sex combined,7,26,0.0499,7
 1998,LL survey,Sex combined,7,12,0.03438,7
 1999,LL survey,Sex combined,7,15,0.05495,7
 2000,LL survey,Sex combined,7,42,0.11053,7
@@ -1060,7 +1060,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,8,12,0.0375,8
 2011,LL survey,Female,8,29,0.07945,8
 2012,LL survey,Female,8,33,0.08148,8
-2013,LL survey,Female,8,16,0.06299,8
+2013,LL survey,Female,8,16,0.06275,8
 2014,LL survey,Female,8,36,0.12632,8
 2015,LL survey,Female,8,28,0.09655,8
 2016,LL survey,Female,8,15,0.04762,8
@@ -1071,7 +1071,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,8,28,0.07588,8
 2022,LL survey,Female,8,31,0.09145,8
 2023,LL survey,Female,8,63,0.17166,8
-2024,LL survey,Female,8,198,0.15385,8
+2024,LL survey,Female,8,66,0.15385,8
 2025,LL survey,Female,8,46,0.12466000000000001,8
 1997,LL survey,Female,8,16,0.06349,8
 1998,LL survey,Female,8,10,0.05102,8
@@ -1128,9 +1128,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,8,27,0.09854,8
 2022,LL survey,Male,8,27,0.08795,8
 2023,LL survey,Male,8,48,0.15894,8
-2024,LL survey,Male,8,168,0.15819,8
+2024,LL survey,Male,8,56,0.15819,8
 2025,LL survey,Male,8,20,0.07435,8
-1997,LL survey,Male,8,6,0.02239,8
+1997,LL survey,Male,8,6,0.0223,8
 1998,LL survey,Male,8,2,0.01307,8
 1999,LL survey,Male,8,6,0.04167,8
 2000,LL survey,Male,8,14,0.08046,8
@@ -1174,7 +1174,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,8,21,0.03471,8
 2011,LL survey,Sex combined,8,52,0.07692,8
 2012,LL survey,Sex combined,8,52,0.07182,8
-2013,LL survey,Sex combined,8,35,0.06554,8
+2013,LL survey,Sex combined,8,35,0.06542,8
 2014,LL survey,Sex combined,8,63,0.1125,8
 2015,LL survey,Sex combined,8,37,0.07536,8
 2016,LL survey,Sex combined,8,29,0.05254,8
@@ -1185,9 +1185,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,8,55,0.08554,8
 2022,LL survey,Sex combined,8,58,0.08978,8
 2023,LL survey,Sex combined,8,111,0.16592,8
-2024,LL survey,Sex combined,8,366,0.15581,8
+2024,LL survey,Sex combined,8,122,0.15581,8
 2025,LL survey,Sex combined,8,66,0.10345,8
-1997,LL survey,Sex combined,8,22,0.04231,8
+1997,LL survey,Sex combined,8,22,0.04223,8
 1998,LL survey,Sex combined,8,12,0.03438,8
 1999,LL survey,Sex combined,8,17,0.06227,8
 2000,LL survey,Sex combined,8,30,0.07895,8
@@ -1231,7 +1231,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,9,18,0.05625,9
 2011,LL survey,Female,9,21,0.05753,9
 2012,LL survey,Female,9,31,0.07654,9
-2013,LL survey,Female,9,20,0.07874,9
+2013,LL survey,Female,9,20,0.07843,9
 2014,LL survey,Female,9,20,0.07018,9
 2015,LL survey,Female,9,24,0.08276,9
 2016,LL survey,Female,9,15,0.04762,9
@@ -1242,7 +1242,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,9,12,0.03252,9
 2022,LL survey,Female,9,21,0.06195,9
 2023,LL survey,Female,9,34,0.09264,9
-2024,LL survey,Female,9,186,0.14452,9
+2024,LL survey,Female,9,62,0.14452,9
 2025,LL survey,Female,9,97,0.26287,9
 1997,LL survey,Female,9,14,0.05556,9
 1998,LL survey,Female,9,15,0.07653,9
@@ -1299,9 +1299,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,9,5,0.01825,9
 2022,LL survey,Male,9,15,0.04886,9
 2023,LL survey,Male,9,34,0.11258,9
-2024,LL survey,Male,9,126,0.11864,9
+2024,LL survey,Male,9,42,0.11864,9
 2025,LL survey,Male,9,66,0.24535,9
-1997,LL survey,Male,9,7,0.02612,9
+1997,LL survey,Male,9,7,0.02602,9
 1998,LL survey,Male,9,5,0.03268,9
 1999,LL survey,Male,9,6,0.04167,9
 2000,LL survey,Male,9,1,0.00575,9
@@ -1345,7 +1345,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,9,32,0.05289,9
 2011,LL survey,Sex combined,9,34,0.0503,9
 2012,LL survey,Sex combined,9,45,0.06215,9
-2013,LL survey,Sex combined,9,39,0.07303,9
+2013,LL survey,Sex combined,9,39,0.0729,9
 2014,LL survey,Sex combined,9,39,0.06964,9
 2015,LL survey,Sex combined,9,41,0.0835,9
 2016,LL survey,Sex combined,9,27,0.04891,9
@@ -1356,9 +1356,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,9,17,0.02644,9
 2022,LL survey,Sex combined,9,36,0.05573,9
 2023,LL survey,Sex combined,9,68,0.10164,9
-2024,LL survey,Sex combined,9,312,0.13282,9
+2024,LL survey,Sex combined,9,104,0.13282,9
 2025,LL survey,Sex combined,9,163,0.25549,9
-1997,LL survey,Sex combined,9,21,0.04038,9
+1997,LL survey,Sex combined,9,21,0.04031,9
 1998,LL survey,Sex combined,9,20,0.05731,9
 1999,LL survey,Sex combined,9,12,0.04396,9
 2000,LL survey,Sex combined,9,9,0.02368,9
@@ -1402,7 +1402,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,10,17,0.05312,10
 2011,LL survey,Female,10,17,0.04658,10
 2012,LL survey,Female,10,22,0.05432,10
-2013,LL survey,Female,10,16,0.06299,10
+2013,LL survey,Female,10,16,0.06275,10
 2014,LL survey,Female,10,25,0.08772,10
 2015,LL survey,Female,10,21,0.07241,10
 2016,LL survey,Female,10,19,0.06032,10
@@ -1413,7 +1413,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,10,3,0.00813,10
 2022,LL survey,Female,10,12,0.0354,10
 2023,LL survey,Female,10,12,0.0327,10
-2024,LL survey,Female,10,93,0.07226,10
+2024,LL survey,Female,10,31,0.07226,10
 2025,LL survey,Female,10,33,0.08943,10
 1997,LL survey,Female,10,12,0.04762,10
 1998,LL survey,Female,10,9,0.04592,10
@@ -1470,9 +1470,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,10,1,0.00365,10
 2022,LL survey,Male,10,7,0.0228,10
 2023,LL survey,Male,10,12,0.03974,10
-2024,LL survey,Male,10,57,0.05367,10
+2024,LL survey,Male,10,19,0.05367,10
 2025,LL survey,Male,10,17,0.0632,10
-1997,LL survey,Male,10,7,0.02612,10
+1997,LL survey,Male,10,7,0.02602,10
 1998,LL survey,Male,10,8,0.05229,10
 1999,LL survey,Male,10,4,0.02778,10
 2000,LL survey,Male,10,5,0.02874,10
@@ -1516,7 +1516,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,10,28,0.04628,10
 2011,LL survey,Sex combined,10,34,0.0503,10
 2012,LL survey,Sex combined,10,30,0.04144,10
-2013,LL survey,Sex combined,10,28,0.05243,10
+2013,LL survey,Sex combined,10,28,0.05234,10
 2014,LL survey,Sex combined,10,42,0.075,10
 2015,LL survey,Sex combined,10,27,0.05499,10
 2016,LL survey,Sex combined,10,29,0.05254,10
@@ -1527,9 +1527,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,10,4,0.00622,10
 2022,LL survey,Sex combined,10,19,0.02941,10
 2023,LL survey,Sex combined,10,24,0.03587,10
-2024,LL survey,Sex combined,10,150,0.06386,10
+2024,LL survey,Sex combined,10,50,0.06386,10
 2025,LL survey,Sex combined,10,50,0.07837,10
-1997,LL survey,Sex combined,10,19,0.03654,10
+1997,LL survey,Sex combined,10,19,0.03647,10
 1998,LL survey,Sex combined,10,17,0.04871,10
 1999,LL survey,Sex combined,10,7,0.02564,10
 2000,LL survey,Sex combined,10,14,0.03684,10
@@ -1573,7 +1573,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,11,23,0.07187,11
 2011,LL survey,Female,11,17,0.04658,11
 2012,LL survey,Female,11,15,0.03704,11
-2013,LL survey,Female,11,6,0.02362,11
+2013,LL survey,Female,11,6,0.02353,11
 2014,LL survey,Female,11,18,0.06316,11
 2015,LL survey,Female,11,18,0.06207,11
 2016,LL survey,Female,11,14,0.04444,11
@@ -1584,7 +1584,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,11,1,0.00271,11
 2022,LL survey,Female,11,6,0.0177,11
 2023,LL survey,Female,11,8,0.0218,11
-2024,LL survey,Female,11,39,0.0303,11
+2024,LL survey,Female,11,13,0.0303,11
 2025,LL survey,Female,11,20,0.0542,11
 1997,LL survey,Female,11,10,0.03968,11
 1998,LL survey,Female,11,7,0.03571,11
@@ -1641,9 +1641,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,11,1,0.00365,11
 2022,LL survey,Male,11,7,0.0228,11
 2023,LL survey,Male,11,9,0.0298,11
-2024,LL survey,Male,11,42,0.03955,11
+2024,LL survey,Male,11,14,0.03955,11
 2025,LL survey,Male,11,8,0.02974,11
-1997,LL survey,Male,11,9,0.03358,11
+1997,LL survey,Male,11,9,0.03346,11
 1998,LL survey,Male,11,2,0.01307,11
 1999,LL survey,Male,11,2,0.01389,11
 2000,LL survey,Male,11,5,0.02874,11
@@ -1687,7 +1687,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,11,43,0.07107,11
 2011,LL survey,Sex combined,11,29,0.0429,11
 2012,LL survey,Sex combined,11,27,0.03729,11
-2013,LL survey,Sex combined,11,23,0.04307,11
+2013,LL survey,Sex combined,11,23,0.04299,11
 2014,LL survey,Sex combined,11,35,0.0625,11
 2015,LL survey,Sex combined,11,28,0.05703,11
 2016,LL survey,Sex combined,11,22,0.03986,11
@@ -1698,9 +1698,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,11,2,0.00311,11
 2022,LL survey,Sex combined,11,13,0.02012,11
 2023,LL survey,Sex combined,11,17,0.02541,11
-2024,LL survey,Sex combined,11,81,0.03448,11
+2024,LL survey,Sex combined,11,27,0.03448,11
 2025,LL survey,Sex combined,11,28,0.04389,11
-1997,LL survey,Sex combined,11,19,0.03654,11
+1997,LL survey,Sex combined,11,19,0.03647,11
 1998,LL survey,Sex combined,11,9,0.02579,11
 1999,LL survey,Sex combined,11,4,0.01465,11
 2000,LL survey,Sex combined,11,13,0.03421,11
@@ -1744,7 +1744,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,12,31,0.09688,12
 2011,LL survey,Female,12,14,0.03836,12
 2012,LL survey,Female,12,19,0.04691,12
-2013,LL survey,Female,12,15,0.05906,12
+2013,LL survey,Female,12,15,0.05882,12
 2014,LL survey,Female,12,17,0.05965,12
 2015,LL survey,Female,12,23,0.07931,12
 2016,LL survey,Female,12,9,0.02857,12
@@ -1755,7 +1755,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,12,5,0.01355,12
 2022,LL survey,Female,12,7,0.02065,12
 2023,LL survey,Female,12,7,0.01907,12
-2024,LL survey,Female,12,18,0.01399,12
+2024,LL survey,Female,12,6,0.01399,12
 2025,LL survey,Female,12,17,0.04607,12
 1997,LL survey,Female,12,8,0.03175,12
 1998,LL survey,Female,12,7,0.03571,12
@@ -1812,9 +1812,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,12,1,0.00365,12
 2022,LL survey,Male,12,1,0.00326,12
 2023,LL survey,Male,12,3,0.00993,12
-2024,LL survey,Male,12,36,0.0339,12
+2024,LL survey,Male,12,12,0.0339,12
 2025,LL survey,Male,12,5,0.01859,12
-1997,LL survey,Male,12,9,0.03358,12
+1997,LL survey,Male,12,9,0.03346,12
 1998,LL survey,Male,12,4,0.02614,12
 1999,LL survey,Male,12,0,0,12
 2000,LL survey,Male,12,2,0.01149,12
@@ -1858,7 +1858,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,12,56,0.09256,12
 2011,LL survey,Sex combined,12,30,0.04438,12
 2012,LL survey,Sex combined,12,30,0.04144,12
-2013,LL survey,Sex combined,12,30,0.05618,12
+2013,LL survey,Sex combined,12,30,0.05607,12
 2014,LL survey,Sex combined,12,25,0.04464,12
 2015,LL survey,Sex combined,12,31,0.06314,12
 2016,LL survey,Sex combined,12,14,0.02536,12
@@ -1869,9 +1869,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,12,6,0.00933,12
 2022,LL survey,Sex combined,12,8,0.01238,12
 2023,LL survey,Sex combined,12,10,0.01495,12
-2024,LL survey,Sex combined,12,54,0.02299,12
+2024,LL survey,Sex combined,12,18,0.02299,12
 2025,LL survey,Sex combined,12,22,0.03448,12
-1997,LL survey,Sex combined,12,17,0.03269,12
+1997,LL survey,Sex combined,12,17,0.03263,12
 1998,LL survey,Sex combined,12,11,0.03152,12
 1999,LL survey,Sex combined,12,1,0.00366,12
 2000,LL survey,Sex combined,12,7,0.01842,12
@@ -1915,7 +1915,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,13,30,0.09375,13
 2011,LL survey,Female,13,22,0.06027,13
 2012,LL survey,Female,13,27,0.06667,13
-2013,LL survey,Female,13,15,0.05906,13
+2013,LL survey,Female,13,15,0.05882,13
 2014,LL survey,Female,13,8,0.02807,13
 2015,LL survey,Female,13,13,0.04483,13
 2016,LL survey,Female,13,13,0.04127,13
@@ -1926,7 +1926,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,13,0,0,13
 2022,LL survey,Female,13,1,0.00295,13
 2023,LL survey,Female,13,3,0.00817,13
-2024,LL survey,Female,13,18,0.01399,13
+2024,LL survey,Female,13,6,0.01399,13
 2025,LL survey,Female,13,4,0.01084,13
 1997,LL survey,Female,13,10,0.03968,13
 1998,LL survey,Female,13,8,0.04082,13
@@ -1983,9 +1983,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,13,1,0.00365,13
 2022,LL survey,Male,13,2,0.00651,13
 2023,LL survey,Male,13,4,0.01325,13
-2024,LL survey,Male,13,6,0.00565,13
+2024,LL survey,Male,13,2,0.00565,13
 2025,LL survey,Male,13,1,0.0037200000000000002,13
-1997,LL survey,Male,13,13,0.04851,13
+1997,LL survey,Male,13,13,0.04833,13
 1998,LL survey,Male,13,2,0.01307,13
 1999,LL survey,Male,13,2,0.01389,13
 2000,LL survey,Male,13,0,0,13
@@ -2029,7 +2029,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,13,49,0.08099,13
 2011,LL survey,Sex combined,13,40,0.05917,13
 2012,LL survey,Sex combined,13,44,0.06077,13
-2013,LL survey,Sex combined,13,30,0.05618,13
+2013,LL survey,Sex combined,13,30,0.05607,13
 2014,LL survey,Sex combined,13,18,0.03214,13
 2015,LL survey,Sex combined,13,17,0.03462,13
 2016,LL survey,Sex combined,13,16,0.02899,13
@@ -2040,9 +2040,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,13,1,0.00156,13
 2022,LL survey,Sex combined,13,3,0.00464,13
 2023,LL survey,Sex combined,13,7,0.01046,13
-2024,LL survey,Sex combined,13,24,0.01022,13
+2024,LL survey,Sex combined,13,8,0.01022,13
 2025,LL survey,Sex combined,13,5,0.00784,13
-1997,LL survey,Sex combined,13,23,0.04423,13
+1997,LL survey,Sex combined,13,23,0.04415,13
 1998,LL survey,Sex combined,13,10,0.02865,13
 1999,LL survey,Sex combined,13,6,0.02198,13
 2000,LL survey,Sex combined,13,6,0.01579,13
@@ -2086,7 +2086,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,14,25,0.07812,14
 2011,LL survey,Female,14,26,0.07123,14
 2012,LL survey,Female,14,22,0.05432,14
-2013,LL survey,Female,14,18,0.07087,14
+2013,LL survey,Female,14,18,0.07059,14
 2014,LL survey,Female,14,20,0.07018,14
 2015,LL survey,Female,14,12,0.04138,14
 2016,LL survey,Female,14,10,0.03175,14
@@ -2097,7 +2097,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,14,3,0.00813,14
 2022,LL survey,Female,14,4,0.0118,14
 2023,LL survey,Female,14,1,0.00272,14
-2024,LL survey,Female,14,3,0.00233,14
+2024,LL survey,Female,14,1,0.00233,14
 2025,LL survey,Female,14,5,0.01355,14
 1997,LL survey,Female,14,3,0.0119,14
 1998,LL survey,Female,14,5,0.02551,14
@@ -2154,9 +2154,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,14,1,0.00365,14
 2022,LL survey,Male,14,1,0.00326,14
 2023,LL survey,Male,14,1,0.00331,14
-2024,LL survey,Male,14,12,0.0113,14
+2024,LL survey,Male,14,4,0.0113,14
 2025,LL survey,Male,14,2,0.00743,14
-1997,LL survey,Male,14,9,0.03358,14
+1997,LL survey,Male,14,9,0.03346,14
 1998,LL survey,Male,14,1,0.00654,14
 1999,LL survey,Male,14,4,0.02778,14
 2000,LL survey,Male,14,4,0.02299,14
@@ -2200,7 +2200,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,14,37,0.06116,14
 2011,LL survey,Sex combined,14,37,0.05473,14
 2012,LL survey,Sex combined,14,38,0.05249,14
-2013,LL survey,Sex combined,14,26,0.04869,14
+2013,LL survey,Sex combined,14,26,0.0486,14
 2014,LL survey,Sex combined,14,30,0.05357,14
 2015,LL survey,Sex combined,14,26,0.05295,14
 2016,LL survey,Sex combined,14,18,0.03261,14
@@ -2211,9 +2211,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,14,4,0.00622,14
 2022,LL survey,Sex combined,14,5,0.00774,14
 2023,LL survey,Sex combined,14,2,0.00299,14
-2024,LL survey,Sex combined,14,15,0.00639,14
+2024,LL survey,Sex combined,14,5,0.00639,14
 2025,LL survey,Sex combined,14,7,0.01097,14
-1997,LL survey,Sex combined,14,12,0.02308,14
+1997,LL survey,Sex combined,14,12,0.02303,14
 1998,LL survey,Sex combined,14,6,0.01719,14
 1999,LL survey,Sex combined,14,4,0.01465,14
 2000,LL survey,Sex combined,14,6,0.01579,14
@@ -2257,7 +2257,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,15,22,0.06875,15
 2011,LL survey,Female,15,23,0.06301,15
 2012,LL survey,Female,15,23,0.05679,15
-2013,LL survey,Female,15,9,0.03543,15
+2013,LL survey,Female,15,9,0.03529,15
 2014,LL survey,Female,15,21,0.07368,15
 2015,LL survey,Female,15,11,0.03793,15
 2016,LL survey,Female,15,9,0.02857,15
@@ -2268,7 +2268,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,15,1,0.00271,15
 2022,LL survey,Female,15,0,0,15
 2023,LL survey,Female,15,2,0.00545,15
-2024,LL survey,Female,15,15,0.01166,15
+2024,LL survey,Female,15,5,0.01166,15
 2025,LL survey,Female,15,0,0,15
 1997,LL survey,Female,15,5,0.01984,15
 1998,LL survey,Female,15,7,0.03571,15
@@ -2325,9 +2325,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,15,3,0.01095,15
 2022,LL survey,Male,15,2,0.00651,15
 2023,LL survey,Male,15,3,0.00993,15
-2024,LL survey,Male,15,12,0.0113,15
+2024,LL survey,Male,15,4,0.0113,15
 2025,LL survey,Male,15,1,0.0037200000000000002,15
-1997,LL survey,Male,15,7,0.02612,15
+1997,LL survey,Male,15,7,0.02602,15
 1998,LL survey,Male,15,5,0.03268,15
 1999,LL survey,Male,15,4,0.02778,15
 2000,LL survey,Male,15,1,0.00575,15
@@ -2371,7 +2371,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,15,40,0.06612,15
 2011,LL survey,Sex combined,15,33,0.04882,15
 2012,LL survey,Sex combined,15,33,0.04558,15
-2013,LL survey,Sex combined,15,23,0.04307,15
+2013,LL survey,Sex combined,15,23,0.04299,15
 2014,LL survey,Sex combined,15,31,0.05536,15
 2015,LL survey,Sex combined,15,21,0.04277,15
 2016,LL survey,Sex combined,15,16,0.02899,15
@@ -2382,9 +2382,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,15,4,0.00622,15
 2022,LL survey,Sex combined,15,2,0.0031,15
 2023,LL survey,Sex combined,15,5,0.00747,15
-2024,LL survey,Sex combined,15,27,0.01149,15
+2024,LL survey,Sex combined,15,9,0.01149,15
 2025,LL survey,Sex combined,15,1,0.00157,15
-1997,LL survey,Sex combined,15,12,0.02308,15
+1997,LL survey,Sex combined,15,12,0.02303,15
 1998,LL survey,Sex combined,15,12,0.03438,15
 1999,LL survey,Sex combined,15,4,0.01465,15
 2000,LL survey,Sex combined,15,4,0.01053,15
@@ -2428,7 +2428,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,16,22,0.06875,16
 2011,LL survey,Female,16,19,0.05205,16
 2012,LL survey,Female,16,12,0.02963,16
-2013,LL survey,Female,16,15,0.05906,16
+2013,LL survey,Female,16,15,0.05882,16
 2014,LL survey,Female,16,15,0.05263,16
 2015,LL survey,Female,16,9,0.03103,16
 2016,LL survey,Female,16,8,0.0254,16
@@ -2439,7 +2439,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,16,0,0,16
 2022,LL survey,Female,16,1,0.00295,16
 2023,LL survey,Female,16,0,0,16
-2024,LL survey,Female,16,3,0.00233,16
+2024,LL survey,Female,16,1,0.00233,16
 2025,LL survey,Female,16,2,0.00542,16
 1997,LL survey,Female,16,5,0.01984,16
 1998,LL survey,Female,16,2,0.0102,16
@@ -2496,9 +2496,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,16,1,0.00365,16
 2022,LL survey,Male,16,1,0.00326,16
 2023,LL survey,Male,16,3,0.00993,16
-2024,LL survey,Male,16,6,0.00565,16
+2024,LL survey,Male,16,2,0.00565,16
 2025,LL survey,Male,16,4,0.01487,16
-1997,LL survey,Male,16,8,0.02985,16
+1997,LL survey,Male,16,8,0.02974,16
 1998,LL survey,Male,16,4,0.02614,16
 1999,LL survey,Male,16,5,0.03472,16
 2000,LL survey,Male,16,3,0.01724,16
@@ -2542,7 +2542,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,16,40,0.06612,16
 2011,LL survey,Sex combined,16,28,0.04142,16
 2012,LL survey,Sex combined,16,23,0.03177,16
-2013,LL survey,Sex combined,16,31,0.05805,16
+2013,LL survey,Sex combined,16,31,0.05794,16
 2014,LL survey,Sex combined,16,30,0.05357,16
 2015,LL survey,Sex combined,16,15,0.03055,16
 2016,LL survey,Sex combined,16,14,0.02536,16
@@ -2553,9 +2553,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,16,1,0.00156,16
 2022,LL survey,Sex combined,16,2,0.0031,16
 2023,LL survey,Sex combined,16,3,0.00448,16
-2024,LL survey,Sex combined,16,9,0.00383,16
+2024,LL survey,Sex combined,16,3,0.00383,16
 2025,LL survey,Sex combined,16,6,0.0094,16
-1997,LL survey,Sex combined,16,13,0.025,16
+1997,LL survey,Sex combined,16,13,0.02495,16
 1998,LL survey,Sex combined,16,6,0.01719,16
 1999,LL survey,Sex combined,16,8,0.0293,16
 2000,LL survey,Sex combined,16,7,0.01842,16
@@ -2599,7 +2599,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,17,13,0.04062,17
 2011,LL survey,Female,17,10,0.0274,17
 2012,LL survey,Female,17,8,0.01975,17
-2013,LL survey,Female,17,10,0.03937,17
+2013,LL survey,Female,17,10,0.03922,17
 2014,LL survey,Female,17,9,0.03158,17
 2015,LL survey,Female,17,12,0.04138,17
 2016,LL survey,Female,17,9,0.02857,17
@@ -2610,7 +2610,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,17,2,0.00542,17
 2022,LL survey,Female,17,1,0.00295,17
 2023,LL survey,Female,17,1,0.00272,17
-2024,LL survey,Female,17,6,0.00466,17
+2024,LL survey,Female,17,2,0.00466,17
 2025,LL survey,Female,17,0,0,17
 1997,LL survey,Female,17,9,0.03571,17
 1998,LL survey,Female,17,8,0.04082,17
@@ -2667,9 +2667,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,17,0,0,17
 2022,LL survey,Male,17,1,0.00326,17
 2023,LL survey,Male,17,0,0,17
-2024,LL survey,Male,17,3,0.00282,17
+2024,LL survey,Male,17,1,0.00282,17
 2025,LL survey,Male,17,0,0,17
-1997,LL survey,Male,17,12,0.04478,17
+1997,LL survey,Male,17,12,0.04461,17
 1998,LL survey,Male,17,8,0.05229,17
 1999,LL survey,Male,17,4,0.02778,17
 2000,LL survey,Male,17,1,0.00575,17
@@ -2713,7 +2713,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,17,24,0.03967,17
 2011,LL survey,Sex combined,17,24,0.0355,17
 2012,LL survey,Sex combined,17,17,0.02348,17
-2013,LL survey,Sex combined,17,24,0.04494,17
+2013,LL survey,Sex combined,17,24,0.04486,17
 2014,LL survey,Sex combined,17,19,0.03393,17
 2015,LL survey,Sex combined,17,16,0.03259,17
 2016,LL survey,Sex combined,17,17,0.0308,17
@@ -2724,9 +2724,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,17,2,0.00311,17
 2022,LL survey,Sex combined,17,2,0.0031,17
 2023,LL survey,Sex combined,17,1,0.00149,17
-2024,LL survey,Sex combined,17,9,0.00383,17
+2024,LL survey,Sex combined,17,3,0.00383,17
 2025,LL survey,Sex combined,17,0,0,17
-1997,LL survey,Sex combined,17,21,0.04038,17
+1997,LL survey,Sex combined,17,21,0.04031,17
 1998,LL survey,Sex combined,17,16,0.04585,17
 1999,LL survey,Sex combined,17,7,0.02564,17
 2000,LL survey,Sex combined,17,3,0.00789,17
@@ -2770,7 +2770,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,18,11,0.03438,18
 2011,LL survey,Female,18,11,0.03014,18
 2012,LL survey,Female,18,5,0.01235,18
-2013,LL survey,Female,18,7,0.02756,18
+2013,LL survey,Female,18,7,0.02745,18
 2014,LL survey,Female,18,2,0.00702,18
 2015,LL survey,Female,18,6,0.02069,18
 2016,LL survey,Female,18,7,0.02222,18
@@ -2838,9 +2838,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,18,4,0.0146,18
 2022,LL survey,Male,18,2,0.00651,18
 2023,LL survey,Male,18,1,0.00331,18
-2024,LL survey,Male,18,9,0.00847,18
+2024,LL survey,Male,18,3,0.00847,18
 2025,LL survey,Male,18,0,0,18
-1997,LL survey,Male,18,10,0.03731,18
+1997,LL survey,Male,18,10,0.03717,18
 1998,LL survey,Male,18,8,0.05229,18
 1999,LL survey,Male,18,4,0.02778,18
 2000,LL survey,Male,18,1,0.00575,18
@@ -2884,7 +2884,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,18,15,0.02479,18
 2011,LL survey,Sex combined,18,18,0.02663,18
 2012,LL survey,Sex combined,18,6,0.00829,18
-2013,LL survey,Sex combined,18,15,0.02809,18
+2013,LL survey,Sex combined,18,15,0.02804,18
 2014,LL survey,Sex combined,18,5,0.00893,18
 2015,LL survey,Sex combined,18,11,0.0224,18
 2016,LL survey,Sex combined,18,10,0.01812,18
@@ -2895,9 +2895,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,18,5,0.00778,18
 2022,LL survey,Sex combined,18,2,0.0031,18
 2023,LL survey,Sex combined,18,3,0.00448,18
-2024,LL survey,Sex combined,18,9,0.00383,18
+2024,LL survey,Sex combined,18,3,0.00383,18
 2025,LL survey,Sex combined,18,0,0,18
-1997,LL survey,Sex combined,18,17,0.03269,18
+1997,LL survey,Sex combined,18,17,0.03263,18
 1998,LL survey,Sex combined,18,22,0.06304,18
 1999,LL survey,Sex combined,18,6,0.02198,18
 2000,LL survey,Sex combined,18,3,0.00789,18
@@ -2941,7 +2941,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,19,4,0.0125,19
 2011,LL survey,Female,19,3,0.00822,19
 2012,LL survey,Female,19,7,0.01728,19
-2013,LL survey,Female,19,4,0.01575,19
+2013,LL survey,Female,19,4,0.01569,19
 2014,LL survey,Female,19,6,0.02105,19
 2015,LL survey,Female,19,7,0.024140000000000002,19
 2016,LL survey,Female,19,3,0.00952,19
@@ -2952,7 +2952,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,19,1,0.00271,19
 2022,LL survey,Female,19,2,0.0059,19
 2023,LL survey,Female,19,1,0.00272,19
-2024,LL survey,Female,19,12,0.00932,19
+2024,LL survey,Female,19,4,0.00932,19
 2025,LL survey,Female,19,1,0.00271,19
 1997,LL survey,Female,19,6,0.02381,19
 1998,LL survey,Female,19,10,0.05102,19
@@ -3009,9 +3009,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,19,0,0,19
 2022,LL survey,Male,19,3,0.00977,19
 2023,LL survey,Male,19,2,0.00662,19
-2024,LL survey,Male,19,6,0.00565,19
+2024,LL survey,Male,19,2,0.00565,19
 2025,LL survey,Male,19,0,0,19
-1997,LL survey,Male,19,14,0.05224,19
+1997,LL survey,Male,19,15,0.05576,19
 1998,LL survey,Male,19,5,0.03268,19
 1999,LL survey,Male,19,4,0.02778,19
 2000,LL survey,Male,19,2,0.01149,19
@@ -3055,7 +3055,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,19,13,0.02149,19
 2011,LL survey,Sex combined,19,7,0.01036,19
 2012,LL survey,Sex combined,19,15,0.02072,19
-2013,LL survey,Sex combined,19,4,0.00749,19
+2013,LL survey,Sex combined,19,4,0.00748,19
 2014,LL survey,Sex combined,19,12,0.02143,19
 2015,LL survey,Sex combined,19,8,0.01629,19
 2016,LL survey,Sex combined,19,10,0.01812,19
@@ -3066,9 +3066,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,19,1,0.00156,19
 2022,LL survey,Sex combined,19,5,0.00774,19
 2023,LL survey,Sex combined,19,3,0.00448,19
-2024,LL survey,Sex combined,19,18,0.00766,19
+2024,LL survey,Sex combined,19,6,0.00766,19
 2025,LL survey,Sex combined,19,1,0.00157,19
-1997,LL survey,Sex combined,19,20,0.03846,19
+1997,LL survey,Sex combined,19,21,0.04031,19
 1998,LL survey,Sex combined,19,15,0.04298,19
 1999,LL survey,Sex combined,19,9,0.03297,19
 2000,LL survey,Sex combined,19,5,0.01316,19
@@ -3112,7 +3112,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,20,4,0.0125,20
 2011,LL survey,Female,20,4,0.01096,20
 2012,LL survey,Female,20,4,0.00988,20
-2013,LL survey,Female,20,3,0.01181,20
+2013,LL survey,Female,20,3,0.01176,20
 2014,LL survey,Female,20,5,0.01754,20
 2015,LL survey,Female,20,7,0.024140000000000002,20
 2016,LL survey,Female,20,8,0.0254,20
@@ -3180,9 +3180,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,20,0,0,20
 2022,LL survey,Male,20,0,0,20
 2023,LL survey,Male,20,0,0,20
-2024,LL survey,Male,20,6,0.00565,20
+2024,LL survey,Male,20,2,0.00565,20
 2025,LL survey,Male,20,1,0.0037200000000000002,20
-1997,LL survey,Male,20,22,0.08209,20
+1997,LL survey,Male,20,22,0.08178,20
 1998,LL survey,Male,20,6,0.03922,20
 1999,LL survey,Male,20,7,0.04861,20
 2000,LL survey,Male,20,1,0.00575,20
@@ -3226,7 +3226,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,20,10,0.01653,20
 2011,LL survey,Sex combined,20,7,0.01036,20
 2012,LL survey,Sex combined,20,10,0.01381,20
-2013,LL survey,Sex combined,20,10,0.01873,20
+2013,LL survey,Sex combined,20,10,0.01869,20
 2014,LL survey,Sex combined,20,10,0.01786,20
 2015,LL survey,Sex combined,20,9,0.01833,20
 2016,LL survey,Sex combined,20,12,0.02174,20
@@ -3237,9 +3237,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,20,1,0.00156,20
 2022,LL survey,Sex combined,20,2,0.0031,20
 2023,LL survey,Sex combined,20,0,0,20
-2024,LL survey,Sex combined,20,6,0.00255,20
+2024,LL survey,Sex combined,20,2,0.00255,20
 2025,LL survey,Sex combined,20,3,0.0047,20
-1997,LL survey,Sex combined,20,43,0.08269,20
+1997,LL survey,Sex combined,20,43,0.08253,20
 1998,LL survey,Sex combined,20,9,0.02579,20
 1999,LL survey,Sex combined,20,10,0.03663,20
 2000,LL survey,Sex combined,20,4,0.01053,20
@@ -3283,7 +3283,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,21,2,0.00625,21
 2011,LL survey,Female,21,5,0.0137,21
 2012,LL survey,Female,21,3,0.00741,21
-2013,LL survey,Female,21,2,0.00787,21
+2013,LL survey,Female,21,2,0.00784,21
 2014,LL survey,Female,21,3,0.01053,21
 2015,LL survey,Female,21,2,0.0069,21
 2016,LL survey,Female,21,4,0.0127,21
@@ -3294,7 +3294,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,21,0,0,21
 2022,LL survey,Female,21,4,0.0118,21
 2023,LL survey,Female,21,0,0,21
-2024,LL survey,Female,21,3,0.00233,21
+2024,LL survey,Female,21,1,0.00233,21
 2025,LL survey,Female,21,0,0,21
 1997,LL survey,Female,21,14,0.05556,21
 1998,LL survey,Female,21,11,0.05612,21
@@ -3353,7 +3353,7 @@ year,Source,Sex,age,n,proportion,Age
 2023,LL survey,Male,21,0,0,21
 2024,LL survey,Male,21,0,0,21
 2025,LL survey,Male,21,0,0,21
-1997,LL survey,Male,21,16,0.0597,21
+1997,LL survey,Male,21,16,0.05948,21
 1998,LL survey,Male,21,7,0.04575,21
 1999,LL survey,Male,21,5,0.03472,21
 2000,LL survey,Male,21,5,0.02874,21
@@ -3397,7 +3397,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,21,10,0.01653,21
 2011,LL survey,Sex combined,21,12,0.01775,21
 2012,LL survey,Sex combined,21,5,0.00691,21
-2013,LL survey,Sex combined,21,3,0.00562,21
+2013,LL survey,Sex combined,21,3,0.00561,21
 2014,LL survey,Sex combined,21,6,0.01071,21
 2015,LL survey,Sex combined,21,3,0.00611,21
 2016,LL survey,Sex combined,21,7,0.01268,21
@@ -3408,9 +3408,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,21,3,0.00467,21
 2022,LL survey,Sex combined,21,5,0.00774,21
 2023,LL survey,Sex combined,21,0,0,21
-2024,LL survey,Sex combined,21,3,0.00128,21
+2024,LL survey,Sex combined,21,1,0.00128,21
 2025,LL survey,Sex combined,21,0,0,21
-1997,LL survey,Sex combined,21,30,0.05769,21
+1997,LL survey,Sex combined,21,30,0.05758,21
 1998,LL survey,Sex combined,21,18,0.05158,21
 1999,LL survey,Sex combined,21,10,0.03663,21
 2000,LL survey,Sex combined,21,12,0.03158,21
@@ -3454,7 +3454,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,22,5,0.01562,22
 2011,LL survey,Female,22,5,0.0137,22
 2012,LL survey,Female,22,1,0.00247,22
-2013,LL survey,Female,22,3,0.01181,22
+2013,LL survey,Female,22,3,0.01176,22
 2014,LL survey,Female,22,1,0.00351,22
 2015,LL survey,Female,22,3,0.01034,22
 2016,LL survey,Female,22,6,0.01905,22
@@ -3522,9 +3522,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,22,3,0.01095,22
 2022,LL survey,Male,22,4,0.01303,22
 2023,LL survey,Male,22,1,0.00331,22
-2024,LL survey,Male,22,3,0.00282,22
+2024,LL survey,Male,22,1,0.00282,22
 2025,LL survey,Male,22,1,0.0037200000000000002,22
-1997,LL survey,Male,22,12,0.04478,22
+1997,LL survey,Male,22,12,0.04461,22
 1998,LL survey,Male,22,10,0.06536,22
 1999,LL survey,Male,22,6,0.04167,22
 2000,LL survey,Male,22,9,0.05172,22
@@ -3568,7 +3568,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,22,11,0.01818,22
 2011,LL survey,Sex combined,22,9,0.01331,22
 2012,LL survey,Sex combined,22,2,0.00276,22
-2013,LL survey,Sex combined,22,3,0.00562,22
+2013,LL survey,Sex combined,22,3,0.00561,22
 2014,LL survey,Sex combined,22,5,0.00893,22
 2015,LL survey,Sex combined,22,5,0.01018,22
 2016,LL survey,Sex combined,22,13,0.02355,22
@@ -3579,9 +3579,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,22,4,0.00622,22
 2022,LL survey,Sex combined,22,6,0.00929,22
 2023,LL survey,Sex combined,22,4,0.00598,22
-2024,LL survey,Sex combined,22,3,0.00128,22
+2024,LL survey,Sex combined,22,1,0.00128,22
 2025,LL survey,Sex combined,22,2,0.00313,22
-1997,LL survey,Sex combined,22,24,0.04615,22
+1997,LL survey,Sex combined,22,24,0.04607,22
 1998,LL survey,Sex combined,22,18,0.05158,22
 1999,LL survey,Sex combined,22,10,0.03663,22
 2000,LL survey,Sex combined,22,15,0.03947,22
@@ -3625,7 +3625,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,23,2,0.00625,23
 2011,LL survey,Female,23,3,0.00822,23
 2012,LL survey,Female,23,0,0,23
-2013,LL survey,Female,23,2,0.00787,23
+2013,LL survey,Female,23,2,0.00784,23
 2014,LL survey,Female,23,3,0.01053,23
 2015,LL survey,Female,23,1,0.00345,23
 2016,LL survey,Female,23,5,0.01587,23
@@ -3695,7 +3695,7 @@ year,Source,Sex,age,n,proportion,Age
 2023,LL survey,Male,23,1,0.00331,23
 2024,LL survey,Male,23,0,0,23
 2025,LL survey,Male,23,1,0.0037200000000000002,23
-1997,LL survey,Male,23,20,0.07463,23
+1997,LL survey,Male,23,20,0.07435,23
 1998,LL survey,Male,23,5,0.03268,23
 1999,LL survey,Male,23,8,0.05556,23
 2000,LL survey,Male,23,9,0.05172,23
@@ -3739,7 +3739,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,23,7,0.01157,23
 2011,LL survey,Sex combined,23,5,0.0074,23
 2012,LL survey,Sex combined,23,6,0.00829,23
-2013,LL survey,Sex combined,23,4,0.00749,23
+2013,LL survey,Sex combined,23,4,0.00748,23
 2014,LL survey,Sex combined,23,8,0.01429,23
 2015,LL survey,Sex combined,23,4,0.00815,23
 2016,LL survey,Sex combined,23,8,0.01449,23
@@ -3752,7 +3752,7 @@ year,Source,Sex,age,n,proportion,Age
 2023,LL survey,Sex combined,23,1,0.00149,23
 2024,LL survey,Sex combined,23,0,0,23
 2025,LL survey,Sex combined,23,2,0.00313,23
-1997,LL survey,Sex combined,23,30,0.05769,23
+1997,LL survey,Sex combined,23,30,0.05758,23
 1998,LL survey,Sex combined,23,12,0.03438,23
 1999,LL survey,Sex combined,23,14,0.05128,23
 2000,LL survey,Sex combined,23,12,0.03158,23
@@ -3796,7 +3796,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,24,2,0.00625,24
 2011,LL survey,Female,24,1,0.00274,24
 2012,LL survey,Female,24,3,0.00741,24
-2013,LL survey,Female,24,2,0.00787,24
+2013,LL survey,Female,24,2,0.00784,24
 2014,LL survey,Female,24,3,0.01053,24
 2015,LL survey,Female,24,2,0.0069,24
 2016,LL survey,Female,24,2,0.00635,24
@@ -3864,9 +3864,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,24,0,0,24
 2022,LL survey,Male,24,2,0.00651,24
 2023,LL survey,Male,24,0,0,24
-2024,LL survey,Male,24,3,0.00282,24
+2024,LL survey,Male,24,1,0.00282,24
 2025,LL survey,Male,24,0,0,24
-1997,LL survey,Male,24,4,0.01493,24
+1997,LL survey,Male,24,4,0.01487,24
 1998,LL survey,Male,24,5,0.03268,24
 1999,LL survey,Male,24,6,0.04167,24
 2000,LL survey,Male,24,6,0.03448,24
@@ -3910,7 +3910,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,24,3,0.00496,24
 2011,LL survey,Sex combined,24,5,0.0074,24
 2012,LL survey,Sex combined,24,8,0.01105,24
-2013,LL survey,Sex combined,24,6,0.01124,24
+2013,LL survey,Sex combined,24,6,0.01121,24
 2014,LL survey,Sex combined,24,7,0.0125,24
 2015,LL survey,Sex combined,24,4,0.00815,24
 2016,LL survey,Sex combined,24,4,0.00725,24
@@ -3921,9 +3921,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,24,0,0,24
 2022,LL survey,Sex combined,24,2,0.0031,24
 2023,LL survey,Sex combined,24,0,0,24
-2024,LL survey,Sex combined,24,3,0.00128,24
+2024,LL survey,Sex combined,24,1,0.00128,24
 2025,LL survey,Sex combined,24,0,0,24
-1997,LL survey,Sex combined,24,14,0.02692,24
+1997,LL survey,Sex combined,24,14,0.02687,24
 1998,LL survey,Sex combined,24,12,0.03438,24
 1999,LL survey,Sex combined,24,6,0.02198,24
 2000,LL survey,Sex combined,24,11,0.02895,24
@@ -3967,7 +3967,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,25,2,0.00625,25
 2011,LL survey,Female,25,4,0.01096,25
 2012,LL survey,Female,25,3,0.00741,25
-2013,LL survey,Female,25,3,0.01181,25
+2013,LL survey,Female,25,3,0.01176,25
 2014,LL survey,Female,25,3,0.01053,25
 2015,LL survey,Female,25,2,0.0069,25
 2016,LL survey,Female,25,2,0.00635,25
@@ -3978,7 +3978,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,25,1,0.00271,25
 2022,LL survey,Female,25,1,0.00295,25
 2023,LL survey,Female,25,1,0.00272,25
-2024,LL survey,Female,25,6,0.00466,25
+2024,LL survey,Female,25,2,0.00466,25
 2025,LL survey,Female,25,1,0.00271,25
 1997,LL survey,Female,25,4,0.01587,25
 1998,LL survey,Female,25,1,0.0051,25
@@ -4037,7 +4037,7 @@ year,Source,Sex,age,n,proportion,Age
 2023,LL survey,Male,25,3,0.00993,25
 2024,LL survey,Male,25,0,0,25
 2025,LL survey,Male,25,0,0,25
-1997,LL survey,Male,25,4,0.01493,25
+1997,LL survey,Male,25,4,0.01487,25
 1998,LL survey,Male,25,1,0.00654,25
 1999,LL survey,Male,25,0,0,25
 2000,LL survey,Male,25,12,0.06897,25
@@ -4081,7 +4081,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,25,3,0.00496,25
 2011,LL survey,Sex combined,25,6,0.00888,25
 2012,LL survey,Sex combined,25,7,0.00967,25
-2013,LL survey,Sex combined,25,5,0.00936,25
+2013,LL survey,Sex combined,25,5,0.00935,25
 2014,LL survey,Sex combined,25,10,0.01786,25
 2015,LL survey,Sex combined,25,4,0.00815,25
 2016,LL survey,Sex combined,25,4,0.00725,25
@@ -4092,9 +4092,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,25,4,0.00622,25
 2022,LL survey,Sex combined,25,2,0.0031,25
 2023,LL survey,Sex combined,25,4,0.00598,25
-2024,LL survey,Sex combined,25,6,0.00255,25
+2024,LL survey,Sex combined,25,2,0.00255,25
 2025,LL survey,Sex combined,25,1,0.00157,25
-1997,LL survey,Sex combined,25,8,0.01538,25
+1997,LL survey,Sex combined,25,8,0.01536,25
 1998,LL survey,Sex combined,25,2,0.00573,25
 1999,LL survey,Sex combined,25,1,0.00366,25
 2000,LL survey,Sex combined,25,16,0.04211,25
@@ -4138,7 +4138,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,26,2,0.00625,26
 2011,LL survey,Female,26,4,0.01096,26
 2012,LL survey,Female,26,1,0.00247,26
-2013,LL survey,Female,26,2,0.00787,26
+2013,LL survey,Female,26,2,0.00784,26
 2014,LL survey,Female,26,1,0.00351,26
 2015,LL survey,Female,26,2,0.0069,26
 2016,LL survey,Female,26,1,0.00317,26
@@ -4149,7 +4149,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,26,1,0.00271,26
 2022,LL survey,Female,26,4,0.0118,26
 2023,LL survey,Female,26,0,0,26
-2024,LL survey,Female,26,3,0.00233,26
+2024,LL survey,Female,26,1,0.00233,26
 2025,LL survey,Female,26,0,0,26
 1997,LL survey,Female,26,6,0.02381,26
 1998,LL survey,Female,26,4,0.02041,26
@@ -4206,9 +4206,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,26,2,0.0073,26
 2022,LL survey,Male,26,2,0.00651,26
 2023,LL survey,Male,26,0,0,26
-2024,LL survey,Male,26,3,0.00282,26
+2024,LL survey,Male,26,1,0.00282,26
 2025,LL survey,Male,26,0,0,26
-1997,LL survey,Male,26,5,0.01866,26
+1997,LL survey,Male,26,5,0.01859,26
 1998,LL survey,Male,26,7,0.04575,26
 1999,LL survey,Male,26,1,0.00694,26
 2000,LL survey,Male,26,4,0.02299,26
@@ -4252,7 +4252,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,26,4,0.00661,26
 2011,LL survey,Sex combined,26,10,0.01479,26
 2012,LL survey,Sex combined,26,3,0.00414,26
-2013,LL survey,Sex combined,26,6,0.01124,26
+2013,LL survey,Sex combined,26,6,0.01121,26
 2014,LL survey,Sex combined,26,2,0.00357,26
 2015,LL survey,Sex combined,26,2,0.00407,26
 2016,LL survey,Sex combined,26,4,0.00725,26
@@ -4263,9 +4263,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,26,3,0.00467,26
 2022,LL survey,Sex combined,26,6,0.00929,26
 2023,LL survey,Sex combined,26,0,0,26
-2024,LL survey,Sex combined,26,6,0.00255,26
+2024,LL survey,Sex combined,26,2,0.00255,26
 2025,LL survey,Sex combined,26,0,0,26
-1997,LL survey,Sex combined,26,11,0.02115,26
+1997,LL survey,Sex combined,26,11,0.02111,26
 1998,LL survey,Sex combined,26,11,0.03152,26
 1999,LL survey,Sex combined,26,2,0.00733,26
 2000,LL survey,Sex combined,26,9,0.02368,26
@@ -4309,7 +4309,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,27,2,0.00625,27
 2011,LL survey,Female,27,1,0.00274,27
 2012,LL survey,Female,27,0,0,27
-2013,LL survey,Female,27,1,0.00394,27
+2013,LL survey,Female,27,1,0.00392,27
 2014,LL survey,Female,27,3,0.01053,27
 2015,LL survey,Female,27,3,0.01034,27
 2016,LL survey,Female,27,2,0.00635,27
@@ -4320,7 +4320,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,27,0,0,27
 2022,LL survey,Female,27,0,0,27
 2023,LL survey,Female,27,0,0,27
-2024,LL survey,Female,27,3,0.00233,27
+2024,LL survey,Female,27,1,0.00233,27
 2025,LL survey,Female,27,0,0,27
 1997,LL survey,Female,27,5,0.01984,27
 1998,LL survey,Female,27,2,0.0102,27
@@ -4379,7 +4379,7 @@ year,Source,Sex,age,n,proportion,Age
 2023,LL survey,Male,27,0,0,27
 2024,LL survey,Male,27,0,0,27
 2025,LL survey,Male,27,0,0,27
-1997,LL survey,Male,27,4,0.01493,27
+1997,LL survey,Male,27,4,0.01487,27
 1998,LL survey,Male,27,4,0.02614,27
 1999,LL survey,Male,27,1,0.00694,27
 2000,LL survey,Male,27,0,0,27
@@ -4434,9 +4434,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,27,2,0.00311,27
 2022,LL survey,Sex combined,27,3,0.00464,27
 2023,LL survey,Sex combined,27,0,0,27
-2024,LL survey,Sex combined,27,3,0.00128,27
+2024,LL survey,Sex combined,27,1,0.00128,27
 2025,LL survey,Sex combined,27,0,0,27
-1997,LL survey,Sex combined,27,9,0.01731,27
+1997,LL survey,Sex combined,27,9,0.01727,27
 1998,LL survey,Sex combined,27,6,0.01719,27
 1999,LL survey,Sex combined,27,1,0.00366,27
 2000,LL survey,Sex combined,27,1,0.00263,27
@@ -4491,7 +4491,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,28,0,0,28
 2022,LL survey,Female,28,1,0.00295,28
 2023,LL survey,Female,28,0,0,28
-2024,LL survey,Female,28,6,0.00466,28
+2024,LL survey,Female,28,2,0.00466,28
 2025,LL survey,Female,28,1,0.00271,28
 1997,LL survey,Female,28,6,0.02381,28
 1998,LL survey,Female,28,2,0.0102,28
@@ -4550,7 +4550,7 @@ year,Source,Sex,age,n,proportion,Age
 2023,LL survey,Male,28,0,0,28
 2024,LL survey,Male,28,0,0,28
 2025,LL survey,Male,28,0,0,28
-1997,LL survey,Male,28,1,0.00373,28
+1997,LL survey,Male,28,1,0.0037200000000000002,28
 1998,LL survey,Male,28,5,0.03268,28
 1999,LL survey,Male,28,2,0.01389,28
 2000,LL survey,Male,28,1,0.00575,28
@@ -4605,9 +4605,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,28,0,0,28
 2022,LL survey,Sex combined,28,4,0.00619,28
 2023,LL survey,Sex combined,28,0,0,28
-2024,LL survey,Sex combined,28,6,0.00255,28
+2024,LL survey,Sex combined,28,2,0.00255,28
 2025,LL survey,Sex combined,28,1,0.00157,28
-1997,LL survey,Sex combined,28,7,0.01346,28
+1997,LL survey,Sex combined,28,7,0.01344,28
 1998,LL survey,Sex combined,28,7,0.02006,28
 1999,LL survey,Sex combined,28,3,0.01099,28
 2000,LL survey,Sex combined,28,2,0.00526,28
@@ -4721,7 +4721,7 @@ year,Source,Sex,age,n,proportion,Age
 2023,LL survey,Male,29,0,0,29
 2024,LL survey,Male,29,0,0,29
 2025,LL survey,Male,29,0,0,29
-1997,LL survey,Male,29,2,0.00746,29
+1997,LL survey,Male,29,2,0.00743,29
 1998,LL survey,Male,29,3,0.01961,29
 1999,LL survey,Male,29,2,0.01389,29
 2000,LL survey,Male,29,0,0,29
@@ -4778,7 +4778,7 @@ year,Source,Sex,age,n,proportion,Age
 2023,LL survey,Sex combined,29,0,0,29
 2024,LL survey,Sex combined,29,0,0,29
 2025,LL survey,Sex combined,29,0,0,29
-1997,LL survey,Sex combined,29,5,0.00962,29
+1997,LL survey,Sex combined,29,5,0.0096,29
 1998,LL survey,Sex combined,29,3,0.0086,29
 1999,LL survey,Sex combined,29,4,0.01465,29
 2000,LL survey,Sex combined,29,0,0,29
@@ -4892,7 +4892,7 @@ year,Source,Sex,age,n,proportion,Age
 2023,LL survey,Male,30,0,0,30
 2024,LL survey,Male,30,0,0,30
 2025,LL survey,Male,30,0,0,30
-1997,LL survey,Male,30,4,0.01493,30
+1997,LL survey,Male,30,4,0.01487,30
 1998,LL survey,Male,30,5,0.03268,30
 1999,LL survey,Male,30,1,0.00694,30
 2000,LL survey,Male,30,2,0.01149,30
@@ -4949,7 +4949,7 @@ year,Source,Sex,age,n,proportion,Age
 2023,LL survey,Sex combined,30,0,0,30
 2024,LL survey,Sex combined,30,0,0,30
 2025,LL survey,Sex combined,30,0,0,30
-1997,LL survey,Sex combined,30,8,0.01538,30
+1997,LL survey,Sex combined,30,8,0.01536,30
 1998,LL survey,Sex combined,30,8,0.02292,30
 1999,LL survey,Sex combined,30,1,0.00366,30
 2000,LL survey,Sex combined,30,4,0.01053,30
@@ -4993,7 +4993,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Female,31,33,0.10312,31
 2011,LL survey,Female,31,26,0.07123,31
 2012,LL survey,Female,31,14,0.03457,31
-2013,LL survey,Female,31,11,0.04331,31
+2013,LL survey,Female,31,11,0.04314,31
 2014,LL survey,Female,31,7,0.02456,31
 2015,LL survey,Female,31,6,0.02069,31
 2016,LL survey,Female,31,12,0.0381,31
@@ -5004,7 +5004,7 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Female,31,3,0.00813,31
 2022,LL survey,Female,31,2,0.0059,31
 2023,LL survey,Female,31,0,0,31
-2024,LL survey,Female,31,3,0.00233,31
+2024,LL survey,Female,31,1,0.00233,31
 2025,LL survey,Female,31,1,0.00271,31
 1997,LL survey,Female,31,16,0.06349,31
 1998,LL survey,Female,31,13,0.06633,31
@@ -5061,9 +5061,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Male,31,3,0.01095,31
 2022,LL survey,Male,31,9,0.02932,31
 2023,LL survey,Male,31,3,0.00993,31
-2024,LL survey,Male,31,12,0.0113,31
+2024,LL survey,Male,31,4,0.0113,31
 2025,LL survey,Male,31,0,0,31
-1997,LL survey,Male,31,44,0.16418,31
+1997,LL survey,Male,31,44,0.16357,31
 1998,LL survey,Male,31,17,0.11111,31
 1999,LL survey,Male,31,12,0.08333,31
 2000,LL survey,Male,31,14,0.08046,31
@@ -5107,7 +5107,7 @@ year,Source,Sex,age,n,proportion,Age
 2010,LL survey,Sex combined,31,73,0.12066,31
 2011,LL survey,Sex combined,31,73,0.10799,31
 2012,LL survey,Sex combined,31,43,0.05939,31
-2013,LL survey,Sex combined,31,43,0.08052,31
+2013,LL survey,Sex combined,31,43,0.08037,31
 2014,LL survey,Sex combined,31,40,0.07143,31
 2015,LL survey,Sex combined,31,18,0.03666,31
 2016,LL survey,Sex combined,31,41,0.07428,31
@@ -5118,9 +5118,9 @@ year,Source,Sex,age,n,proportion,Age
 2021,LL survey,Sex combined,31,6,0.00933,31
 2022,LL survey,Sex combined,31,11,0.01703,31
 2023,LL survey,Sex combined,31,3,0.00448,31
-2024,LL survey,Sex combined,31,15,0.00639,31
+2024,LL survey,Sex combined,31,5,0.00639,31
 2025,LL survey,Sex combined,31,1,0.00157,31
-1997,LL survey,Sex combined,31,60,0.11538,31
+1997,LL survey,Sex combined,31,60,0.11516,31
 1998,LL survey,Sex combined,31,30,0.08596,31
 1999,LL survey,Sex combined,31,16,0.05861,31
 2000,LL survey,Sex combined,31,20,0.05263,31

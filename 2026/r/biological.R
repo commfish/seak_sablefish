@@ -13,6 +13,7 @@
 
 if(!require("fishmethods"))   install.packages("fishmethods") # use this package for growth modeling
 library(ggpubr)
+library(fishmethods)
 
 YEAR <- 2025
 rec_age <- 2
@@ -1454,7 +1455,7 @@ ggsave(paste0(YEAR+1,"/figures/compare_empirical_predicted_waa_", YEAR, ".png"),
 
 # Comparison of Hanselman et al. 2007 values with the Chatham Strait longline
 # survey. Units: length (cm), weight (kg), and age (yrs)
-lvb_comp < - bind_rows(allom_pars, lvb_pars %>% rename(SE = `Std. Error`)) %>% 
+lvb_comp <- bind_rows(allom_pars, lvb_pars %>% rename(SE = `Std. Error`)) %>% 
       mutate(Notes = "seak_sablefish/code/biological.r") %>% 
   bind_rows(noaa_lvb %>% rename(Notes = Source) %>% rename(Source = Survey))
 
@@ -1491,11 +1492,11 @@ len <- seq(0, 120, 0.05)
 (kmat <- round(((coef(fit_length)[1] + coef(fit_length)[2]*len) / (len - L50))[1], 2))
 
 plot(data = len_f, Mature ~ length)
-plot(fit_length)
+# plot(fit_length)
 
 # by year, for comparison
 fit_length_year <- glm(Mature ~ length * Year, data = len_f, family = binomial)
-plot(fit_length_year)
+# plot(fit_length_year)
 
 summary(fit_length_year)
 AIC(fit_length, fit_length_year)
@@ -1594,6 +1595,7 @@ age_pred <- seq(0, plus_group, by = 0.01)
 vb_pars <- lvb_pars %>% filter(Function == "Length-based LVB" &
                                  Sex == "Female" & 
                                  Source == "ADFG longline survey")
+
 age_pred <- data.frame(age = age_pred,
                        length = round(vb_pars$Estimate[1] * (1 - exp(- vb_pars$Estimate[2] * (age_pred - vb_pars$Estimate[3]))), 1))
 
@@ -2367,7 +2369,7 @@ lencomps <- expand.grid(year = unique(lencomps$year),
 # Check that they sum to 1
 lencomps %>% 
   group_by(Source, Sex, year) %>% 
-  summarise(sum(proportion)) %>% View()
+  summarise(sum(proportion)) 
 
 # write_csv(lencomps, paste0(YEAR+1,"/output/lengthcomps_", YEAR, ".csv"))
 
@@ -2664,7 +2666,7 @@ statcomps <- expand.grid(year = unique(statcomps$year),
 # Check that they sum to 1
 statcomps %>% 
   group_by(Stat, year) %>% 
-  summarise(sum(proportion)) %>% view
+  summarise(sum(proportion)) 
 
 labels <- statcomps %>% 
   group_by(year, Stat) %>% 

@@ -101,14 +101,14 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(p_srv_q)          // prior on survey catchability coefficient (on natural scale)
   //DATA_SCALAR(sigma_srv_q)      // sigma for survey q
   DATA_VECTOR(sigma_srv_q)      // sigma for survey q
-  DATA_SCALAR(p_mr_q)           // prior on mark-recapture catchability coefficient (on natural scale)
-  DATA_SCALAR(sigma_mr_q)       // sigma for mark-recapture q
+  // DATA_SCALAR(p_mr_q)           // prior on mark-recapture catchability coefficient (on natural scale)
+  // DATA_SCALAR(sigma_mr_q)       // sigma for mark-recapture q
   
   // Weights on likelihood componets("wt_" denotes weight)
   DATA_SCALAR(wt_catch)         // catch
   DATA_SCALAR(wt_fsh_cpue)      // fishery cpue
   DATA_SCALAR(wt_srv_cpue)      // soak survey
-  DATA_SCALAR(wt_mr)            // mark-recapture abundance  
+  // DATA_SCALAR(wt_mr)            // mark-recapture abundance  
   DATA_SCALAR(wt_fsh_age)       // fishery age comps
   DATA_SCALAR(wt_srv_age)       // survey age comps
   DATA_SCALAR(wt_fsh_len)       // fishery length comps
@@ -124,10 +124,10 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(sigma_catch)      // assumed CV of 5% for catch
   
   // Mark-recapture estimates
-  DATA_INTEGER(nyr_mr)          // number of years 
-  DATA_IVECTOR(yrs_mr)          // vector of years
-  DATA_VECTOR(data_mr)          // vector of estimates
-  DATA_VECTOR(sigma_mr)         // posterior SDs for mark-recapture estimates
+  // DATA_INTEGER(nyr_mr)          // number of years 
+  // DATA_IVECTOR(yrs_mr)          // vector of years
+  // DATA_VECTOR(data_mr)          // vector of estimates
+  // DATA_VECTOR(sigma_mr)         // posterior SDs for mark-recapture estimates
   
   // Fishery cpue
   DATA_INTEGER(nyr_fsh_cpue)    // number of years 
@@ -224,7 +224,7 @@ Type objective_function<Type>::operator() ()
   // Catchability
   PARAMETER_VECTOR(fsh_logq);     // fishery       
   PARAMETER_VECTOR(srv_logq);            // survey 
-  PARAMETER(mr_logq);             // mark-recapture 
+  // PARAMETER(mr_logq);             // mark-recapture 
   
   // Recruitment (rec_devs include a parameter for all ages in the inital yr plus age-2 in all yrs)
   PARAMETER(log_rbar);                // Mean recruitment
@@ -253,10 +253,10 @@ Type objective_function<Type>::operator() ()
   //Extra variance terms for indices
   PARAMETER(log_tau_fsh);
   //PARAMETER(log_tau_srv);
-  PARAMETER(log_tau_mr);
+  // PARAMETER(log_tau_mr);
   Type tau_fsh = exp(log_tau_fsh);  
   //Type tau_srv = exp(log_tau_srv);  
-  Type tau_mr = exp(log_tau_mr);  
+  // Type tau_mr = exp(log_tau_mr);  
   
   
   // **DERIVED QUANTITIES**
@@ -265,15 +265,15 @@ Type objective_function<Type>::operator() ()
   vector<Type> pred_catch(nyr);                 // Total catch biomass
   vector<Type> pred_landed(nyr);                // Landed catch biomass
   vector<Type> pred_wastage(nyr);               // Discarded biomass assumed dead
-  vector<Type> pred_mr(nyr_mr);                 // Mark-recapture index of abundance (only years with an estimate)
-  vector<Type> pred_mr_all(nyr);                // Mark-recapture index of abundance (all years!)
+  // vector<Type> pred_mr(nyr_mr);                 // Mark-recapture index of abundance (only years with an estimate)
+  // vector<Type> pred_mr_all(nyr);                // Mark-recapture index of abundance (all years!)
   vector<Type> pred_fsh_cpue(nyr_fsh_cpue);     // Fishery cpue
   vector<Type> pred_srv_cpue(nyr_srv_cpue);     // Survey cpue
   pred_catch.setZero();   
   pred_landed.setZero();  
   pred_wastage.setZero(); 
-  pred_mr.setZero();
-  pred_mr_all.setZero();
+  // pred_mr.setZero();
+  // pred_mr_all.setZero();
   pred_fsh_cpue.setZero();
   pred_srv_cpue.setZero();
   
@@ -387,7 +387,7 @@ Type objective_function<Type>::operator() ()
   wastage.setZero();
   
   // Priors, likelihoods, offsets, and penalty functions
-  vector<Type> priors(4);       // Priors for catchability coefficients; originally vector<Type> priors(3); 
+  vector<Type> priors(3);       // Priors for catchability coefficients; originally vector<Type> priors(3); 
   priors.setZero();
   Type prior_M = 0;             // Prior on natural mortality if estimated
   
@@ -396,7 +396,7 @@ Type objective_function<Type>::operator() ()
   Type fpen = 0;                // Penality for Fmort regularity
   Type spr_pen = 0;             // Penality for SPR-based reference points
   
-  vector<Type> index_like(3);   // Fishery cpue, survey cpue, MR estimates 
+  vector<Type> index_like(2);   // Fishery cpue, survey cpue, MR estimates 
   index_like.setZero();
   
   vector<Type> age_like(2);             // Fishery and survey age comps
@@ -838,17 +838,17 @@ Type objective_function<Type>::operator() ()
   // Predicted values
   
   // Mark-recapture catchability and predicted abundance (in millions)
-  Type mr_q = exp(mr_logq);
+  // Type mr_q = exp(mr_logq);
   
-  for (int i = 0; i < nyr_mr; i++) {
-    pred_mr(i) = mr_q * (tot_expl_abd(yrs_mr(i)) / Type(1e6)); // Just in years with a MR estimate
-  }
+  // for (int i = 0; i < nyr_mr; i++) {
+  //   pred_mr(i) = mr_q * (tot_expl_abd(yrs_mr(i)) / Type(1e6)); // Just in years with a MR estimate
+  // }
   // std::cout << "Predicted MR \n" << pred_mr << "\n";
   
-  for (int i = 0; i < nyr; i++) {
-    pred_mr_all(i) = mr_q * (tot_expl_abd(i) / Type(1e6)); // All years
-    //pred_mr_all(i) = (tot_expl_abd(i) / Type(1e6)); // All years
-  }
+  // for (int i = 0; i < nyr; i++) {
+  //   pred_mr_all(i) = mr_q * (tot_expl_abd(i) / Type(1e6)); // All years
+  //   //pred_mr_all(i) = (tot_expl_abd(i) / Type(1e6)); // All years
+  // }
   // std::cout << "Predicted MR for all years\n" << pred_mr_all << "\n";
   
   // Fishery catchability and predicted cpue - blocks for fishery correspond to
@@ -1359,7 +1359,7 @@ Type objective_function<Type>::operator() ()
   //priors(1) = square( log(srv_q / p_srv_q) ) / ( Type(2.0) * square(sigma_srv_q) );
   priors(1) = c;
   // Mark-recapture abundance estimate catchability coefficient
-  priors(2) = square( log(mr_q / p_mr_q) ) / ( Type(2.0) * square(sigma_mr_q) );
+  // priors(2) = square( log(mr_q / p_mr_q) ) / ( Type(2.0) * square(sigma_mr_q) );
   
   // std::cout << "priors\n" << priors << "\n";
   
@@ -1410,11 +1410,11 @@ Type objective_function<Type>::operator() ()
     index_like(1) *= wt_srv_cpue; // Likelihood weight
     
     // Mark-recapture index: lognormal
-    for (int i = 0; i < nyr_mr; i++) {
-      index_like(2) += square( log((data_mr(i) + c) / (pred_mr(i) + c)) ) /
-        (Type(2.0) * square(sigma_mr(i)));
-    }
-    index_like(2) *= wt_mr;        // Likelihood weight
+    // for (int i = 0; i < nyr_mr; i++) {
+    //   index_like(2) += square( log((data_mr(i) + c) / (pred_mr(i) + c)) ) /
+    //     (Type(2.0) * square(sigma_mr(i)));
+    // }
+    // index_like(2) *= wt_mr;        // Likelihood weight
     
     break;
     
@@ -1447,13 +1447,13 @@ Type objective_function<Type>::operator() ()
     //index_like(1) *= wt_srv_cpue; // Likelihood weight
     
     // Mark-recapture index: lognormal
-    for (int i = 0; i < nyr_mr; i++) {
-      index_like(2) += square( log((data_mr(i) + c) / (pred_mr(i) + c)) ) /
-        //(Type(2.0) * square(sigma_mr(i)));
-        //(Type(2.0) * (square(sigma_mr(i))+square(tau_mr)));
-        //(Type(2.0) * (square(sigma_mr(i))*square(tau_mr)));
-        (Type(2.0) * (square(sigma_mr(i)*tau_mr)));
-    }
+    // for (int i = 0; i < nyr_mr; i++) {
+    //   index_like(2) += square( log((data_mr(i) + c) / (pred_mr(i) + c)) ) /
+    //     //(Type(2.0) * square(sigma_mr(i)));
+    //     //(Type(2.0) * (square(sigma_mr(i))+square(tau_mr)));
+    //     //(Type(2.0) * (square(sigma_mr(i))*square(tau_mr)));
+    //     (Type(2.0) * (square(sigma_mr(i)*tau_mr)));
+    // }
     //index_like(2) *= wt_mr; 
     break;
   }
@@ -1747,12 +1747,12 @@ Type objective_function<Type>::operator() ()
   // Sum likelihood components
   obj_fun += priors(0);         // Fishery q
   obj_fun += priors(1);         // Survey q
-  obj_fun += priors(2);         // Mark-recapture abndance index q
+  // obj_fun += priors(2);         // Mark-recapture abndance index q
   obj_fun += prior_M;           // prior for natural mortality (if fixed this is 0)
   obj_fun += catch_like;        // Catch
   obj_fun += index_like(0);     // Fishery cpue
   obj_fun += index_like(1);     // Survey cpue
-  obj_fun += index_like(2);     // Mark-recapture abundance index
+  // obj_fun += index_like(2);     // Mark-recapture abundance index
   obj_fun += age_like(0);       // Fishery age compositions
   obj_fun += age_like(1);       // Survey age compositions
   for (int k = 0; k < nsex; k++) {
@@ -1773,8 +1773,8 @@ Type objective_function<Type>::operator() ()
   REPORT(pred_catch);       // Total catch
   REPORT(pred_landed);      // Landed catch
   REPORT(pred_wastage);     // Discarded catch assumed to die
-  REPORT(pred_mr);          // Mark-recapture index of abundance (only years with an estimate)
-  REPORT(pred_mr_all);      // Mark-recapture index of abundance (all years)
+  // REPORT(pred_mr);          // Mark-recapture index of abundance (only years with an estimate)
+  // REPORT(pred_mr_all);      // Mark-recapture index of abundance (all years)
   REPORT(pred_fsh_cpue);    // Fishery cpue
   REPORT(pred_srv_cpue);    // Survey cpue
   
@@ -1852,7 +1852,7 @@ Type objective_function<Type>::operator() ()
   REPORT(srv_l_theta);
   //REPORT(tau_fsh);
   //REPORT(tau_srv);
-  REPORT(tau_mr);
+  // REPORT(tau_mr);
   
   return(obj_fun);          
   

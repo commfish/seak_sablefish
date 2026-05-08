@@ -4,8 +4,8 @@ source("r_helper/functions.r")
 # if(!require("rms"))   install.packages("rms") # simple bootstrap confidence intervals
 
 # Most recent year of data
-YEAR <- 2023
-lyr<-2023
+YEAR <- 2025
+lyr<-2025
 
 fsh_cpue <- read_csv(paste0(YEAR+1,"/output/ll_cpue_fullstand_1980_", YEAR, ".csv"))
 
@@ -31,13 +31,16 @@ change <- as.character(round(pchange[4],1))
 ggplot(fsh_cpue %>% filter(year >=2000)) +
   geom_point(aes(year, fsh_cpue)) +
   geom_line(aes(year, fsh_cpue)) +
-  geom_ribbon(aes(year, ymin = lower, 
+  geom_errorbar(aes(year, ymin = lower, 
                   ymax = upper),
-              alpha = 0.2,  fill = "grey") +
-  labs(x = "", y = "Fishery CPUE (round lb per hook)\n") + 
+              alpha = 1,  color = "grey") +
+  # labs(x = "", y = "Fishery CPUE (round lb per hook)\n") +
+  labs(x = "", y = "") + 
+  scale_x_continuous(breaks = seq(2000,2025,5)) +
+  
 #  annotate("text", x = YEAR-2, y = max(fsh_cpue$fsh_cpue[fsh_cpue$year >= 2000])*1.1, label = paste0("",change,"%"), size = 7) + 
-  geom_text(x = YEAR-2, 
-            y = max(fsh_cpue$fsh_cpue[fsh_cpue$year > 2000]) * 1.05,
+  geom_text(x = YEAR-1, 
+            y = max(fsh_cpue$fsh_cpue[fsh_cpue$year > 2000]) * 1.4,
             label = paste0(ifelse(fsh_ly$eval_ly == "increased", "+", ""),
                            sprintf("%.0f%%", fsh_ly$perc_change_ly)), 
             size = 7) +
@@ -63,10 +66,12 @@ change <- as.character(round(pchange[4],0))
 ggplot(mr_ests %>% filter(year >=2000)) +
   geom_point(aes(year, estimate)) +
   geom_line(aes(year, estimate)) +
-  geom_ribbon(aes(year, ymin = q025, 
+  geom_errorbar(aes(year, ymin = q025, 
                   ymax = q975),
-              alpha = 0.2,  fill = "grey") +
-  labs(x = "", y = "Abundance (millions)\n") + 
+              alpha = 1,  color = "grey") +
+  # labs(x = "", y = "Abundance (millions)\n") +
+  labs(x = "", y = "") + 
+  
 #  annotate("text", x = YEAR-2, y = max(mr_ests$estimate)*1.1, label = paste0("",change,"%"), size = 7) + 
   scale_x_continuous(limits=c(2000,YEAR)) +
   theme(axis.text = element_text(size=15)) -> mr_trends
@@ -95,9 +100,9 @@ srv_cpue2000 <- srv_cpue %>% filter(year >= 2000)
 ggplot(data = srv_cpue2000, aes(x = year)) +
   geom_point(aes(y = std_cpue)) +
   geom_line(aes(y = std_cpue)) +
-  geom_ribbon(aes(year, ymin = std_cpue - sd, ymax = std_cpue + sd),
-              alpha = 0.2, col = "white", fill = "grey") +
-  # scale_x_continuous(breaks = axis$breaks, labels = axis$labels) +
+  geom_errorbar(aes(year, ymin = std_cpue - sd, ymax = std_cpue + sd),
+              alpha = 1, col = "gray") +
+  scale_x_continuous(breaks = seq(2000,2025,5)) +
   # lims(y = c(0, 0.45)) + 
   geom_text(x = YEAR-2, 
             y = 1.1 * max(srv_cpue2000$std_cpue),
@@ -105,10 +110,12 @@ ggplot(data = srv_cpue2000, aes(x = year)) +
                            sprintf("%.0f%%", srv_ly$perc_change_ly)), 
             size = 7) +
   theme(axis.text = element_text(size=15)) +
-  labs(x = NULL, y = "Survey CPUE (number per hook)\n") -> srv_trends
+  # labs(x = NULL, y = "Survey CPUE (number per hook)\n") -> srv_trends
+  labs(x = NULL, y = "") -> srv_trends
 
-#ggsave(paste0(YEAR+1,"/figures/npue_llsrv_", YEAR, ".png"), 
-#       dpi=300, height=4, width=7, units="in")
+
+ggsave(paste0(YEAR+1,"/figures/npue_llsrv_", YEAR, ".png"),
+      dpi=300, height=4, width=7, units="in")
 #-------------------------------------------------------------------------------
 plot_grid(srv_trends, mr_trends, fishery_trends, ncol = 1, align = 'hv') -> trends#, 
           #labels = c('(A)', '(B)', '(C)')) 
@@ -133,18 +140,18 @@ read_csv(paste0(YEAR+1,"/data/survey/llsrv_bio_1988_", lyr,".csv"),
 # Lengths ----
 
 # Fishery by sex
-fsh_bio %>% 
-  filter(!is.na(length) & !is.na(Sex)) %>% 
-  select(year, Sex, length) %>% 
-  mutate(Source = "Fishery") %>% 
-  bind_rows(srv_bio %>% 
-              filter(!is.na(length) & !is.na(Sex)) %>% 
-              select(year, Sex, length) %>% 
-              mutate(Source = "Survey")) %>% 
-  group_by(Source, year, Sex) %>% 
-  summarize(ecdf = 1 - ecdf(length)(63)) %>% 
-  group_by(Source, Sex) %>% 
-  mutate(std = (ecdf - mean(ecdf)) / sd(ecdf)) %>% 
+fsh_bio %>%
+  filter(!is.na(length) & !is.na(Sex)) %>%
+  select(year, Sex, length) %>%
+  mutate(Source = "Fishery") %>%
+  bind_rows(srv_bio %>%
+              filter(!is.na(length) & !is.na(Sex)) %>%
+              select(year, Sex, length) %>%
+              mutate(Source = "Survey")) %>%
+  group_by(Source, year, Sex) %>%
+  dplyr::summarise(ecdf = 1 - ecdf(length)(63)) %>%
+  group_by(Source, Sex) %>%
+  mutate(std = (ecdf - mean(ecdf)) / sd(ecdf)) %>%
   ggplot(aes(x = year, y = ecdf, col = Sex, lty = Source, group = interaction(Sex, Source))) +
   # geom_hline(yintercept = 0, lty = 2) +
   geom_line() +
@@ -163,7 +170,7 @@ fsh_bio %>%
               mutate(Source = "Survey")) %>% 
   filter(year >= 2005) %>%
   group_by(Source, year) %>% 
-  summarize(ecdf = (ecdf(weight)(3 / 0.63 / 2.20462)) * 100) %>% 
+  dplyr::summarize(ecdf = (ecdf(weight)(3 / 0.63 / 2.20462)) * 100) %>% 
   group_by(Source) %>% 
   mutate(std = (ecdf - mean(ecdf)) / sd(ecdf),
          mean = mean(ecdf)) -> df_fb 
@@ -174,13 +181,16 @@ ggplot(df_fb,aes(x = year, y = ecdf,col = Source)) +
   geom_line() +
   geom_point() +
   geom_line(aes(y = mean, col = Source), lty = 2) +
-  annotate("text", x = YEAR, y = df_fb$ecdf[df_fb$year == YEAR]*1.1, 
+  annotate("text", x = YEAR, y = df_fb$ecdf[df_fb$year == YEAR]*1.5, 
            label = paste0(round(df_fb$ecdf[df_fb$year == YEAR],0),"%"), 
-           size = 4, col = c("red","darkcyan")) + 
+           size = 4, colour = c("black","#E69F00")) + 
+  scale_color_colorblind(name = "")+
   # labs(x = NULL, y = NULL) +
-  labs(x = NULL, y = "Percent under 3 dressed lb")
+  labs(x = "Year", y = "Percent under 3 dressed lb")+
+  theme(text = element_text(size = 16),
+        legend.position = "top")
 
-ggsave(paste0(YEAR+1,"/figures/small_fish_",YEAR,".png"), width = 8, height = 3.5, dpi = 400, units = "in")
+ggsave(paste0(YEAR+1,"/figures/small_fish_",YEAR,".png"), width = 8, height = 6, dpi = 400, units = "in")
 
 # Lengths -----
 library("scales")
@@ -198,7 +208,7 @@ fsh_bio %>%
               mutate(Source = "Survey (total catch)")) %>% 
   filter(year >= 2005) %>%
   group_by(Source, year) %>% 
-  summarize(ecdf = (ecdf(length)(59))) %>% 
+  dplyr::summarize(ecdf = (ecdf(length)(59))) %>% 
   group_by(Source) %>% 
   mutate(std = (ecdf - mean(ecdf)) / sd(ecdf),
          mean = mean(ecdf)) -> smallfish #print(n=Inf)
@@ -244,7 +254,7 @@ fsh_bio %>%
               mutate(Source = "Survey")) %>% 
   filter(year >= 2005) %>%
   group_by(Source, year) %>% 
-  summarize(ecdf = (ecdf(age)(6)) * 100) %>% 
+  dplyr::summarize(ecdf = (ecdf(age)(6)) * 100) %>% 
   group_by(Source) %>% 
   mutate(std = (ecdf - mean(ecdf)) / sd(ecdf),
          mean = mean(ecdf)) %>% 
@@ -262,7 +272,7 @@ ggsave(paste0(YEAR+1,"/figures/small_fish_age_",YEAR,".png"), width = 8, height 
 fsh_bio %>% 
   filter(!is.na(length)) %>% 
   group_by(year) %>% 
-  summarize(ecdf =  ecdf(length)(63)) %>% 
+  dplyr::summarize(ecdf =  ecdf(length)(63)) %>% 
   ungroup() %>% 
   mutate(std = (ecdf - mean(ecdf)) / sd(ecdf)) %>% 
   ggplot(aes(x = year, y = std)) +
@@ -270,3 +280,4 @@ fsh_bio %>%
   geom_line() +
   geom_point() +
   labs(x = "Year", y = "Proportion fish <= 63 cm")
+

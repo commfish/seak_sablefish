@@ -216,8 +216,8 @@ catch %>%
   ggplot() + 
   geom_point(aes(year, catch)) +
   geom_line(aes(year, catch)) +
-  geom_ribbon(aes(year, ymin = lower_catch, ymax = upper_catch),
-              alpha = 0.2, fill = "black", colour = NA) +
+  geom_errorbar(aes(year, ymin = lower_catch, ymax = upper_catch),
+              alpha = 0.4, color = "black", colour = NA) +
   # Board implemented Limited Entry in 1985
   # geom_vline(xintercept = 1985, linetype = 2, colour = "grey") +
   # Board implemented Equal Quota Share in 1994
@@ -234,8 +234,8 @@ catch_plot
 ggplot(fsh_cpue) +
   geom_point(aes(year, fsh_cpue * 2.20462)) +#* 2.20462)) +
   geom_line(aes(year, fsh_cpue * 2.20462)) + #* 2.20462)) +
-  geom_ribbon(aes(year, ymin = lower_fsh_cpue * 2.20462 , ymax = upper_fsh_cpue * 2.20462),
-              alpha = 0.2, fill = "black", colour = NA) +
+  geom_errorbar(aes(year, ymin = lower_fsh_cpue * 2.20462 , ymax = upper_fsh_cpue * 2.20462),
+              alpha = 0.4, colour = "black") +
   #geom_ribbon(aes(year, ymin = lower_fsh_cpue  , ymax = upper_fsh_cpue ),
   #            alpha = 0.2, fill = "black", colour = NA) +
   # Board implemented Limitted Entry in 1985
@@ -243,7 +243,8 @@ ggplot(fsh_cpue) +
   # Board implemented Equal Quota Share in 1994
   geom_vline(xintercept = 1994, linetype = 2, colour = "grey") +
   #scale_x_continuous(limits = c(syr,lyr)) + #, breaks = axis$breaks, labels = axis$labels) +
-  scale_x_continuous(breaks = seq(1975,YEAR,5), labels = seq(1975,YEAR,5),limits = c(syr,lyr)) +
+  scale_x_continuous(breaks = seq(1975,YEAR,5), labels = seq(1975,YEAR,5)) +
+  coord_cartesian(xlim = c(syr, lyr)) +  
   # scale_y_continuous(limits = c(0, ))
   expand_limits(y = 0) +
   labs(x = "", y = "\n\nFishery CPUE\n(round lb/hook)") +
@@ -254,39 +255,53 @@ fsh_cpue_plot
 ggplot(data = srv_cpue) +
   geom_point(aes(year, srv_cpue)) +
   geom_line(aes(year, srv_cpue)) +
-  geom_ribbon(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue),
-              alpha = 0.2, fill = "black", colour = NA) +
- # scale_x_continuous(limits = c(syr,lyr)) + #, breaks = axis$breaks, labels = axis$labels) + 
-  scale_x_continuous(breaks = seq(1975,YEAR,5), labels = seq(1975,YEAR,5),limits = c(syr,lyr)) +
+  geom_errorbar(aes(year, ymin = lower_srv_cpue, ymax = upper_srv_cpue),
+                alpha = 0.4, colour = "black") +
+  scale_x_continuous(breaks = seq(1975, YEAR, 5), labels = seq(1975, YEAR, 5)) +
+  coord_cartesian(xlim = c(syr, lyr)) +   # clips the view without dropping data
   expand_limits(y = 0) +
   labs(y = "\n\nSurvey CPUE\n(number/hook)", x = NULL) +
-  theme(axis.title.y = element_text(angle=0)) -> srv_cpue_plot
+  theme(axis.title.y = element_text(angle = 0)) -> srv_cpue_plot
 
 srv_cpue_plot
 
-mr %>% 
-  # mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
-  # pad(interval = "year") %>% 
-  full_join(data.frame(year = 2005:lyr)) %>%
-  arrange(year) %>% 
-  mutate(#year = year(year),
-         Year = factor(year)) %>% 
-  gather("Abundance", "N", mr) %>% 
-  mutate(# interpolate the CI in missing years for plotting purposes
-         lower_mr = zoo::na.approx(lower_mr, maxgap = 20, rule = 2),
-         upper_mr = zoo::na.approx(upper_mr, maxgap = 20, rule = 2)) %>%
+# mr %>% 
+#   # mutate(year = as.Date(as.character(year), format = "%Y")) %>% 
+#   # pad(interval = "year") %>% 
+#   full_join(data.frame(year = 2005:lyr)) %>%
+#   arrange(year) %>% 
+#   mutate(#year = year(year),
+#          Year = factor(year)) %>% 
+#   gather("Abundance", "N", mr) %>% 
+#   mutate(# interpolate the CI in missing years for plotting purposes
+#          lower_mr = zoo::na.approx(lower_mr, maxgap = 20, rule = 2),
+#          upper_mr = zoo::na.approx(upper_mr, maxgap = 20, rule = 2)) %>%
+#   ggplot() +
+#   geom_ribbon(aes(x = year, ymin = lower_mr, ymax = upper_mr),
+#               alpha = 0.2, fill = "black", colour = NA) +
+#   geom_point(aes(x = year, y = N)) +
+#   geom_line(aes(x = year, y = N, group = Abundance)) +
+#  # scale_x_continuous(limits = c(syr,lyr)) +#, breaks = axis$breaks, 
+#                      # labels = axis$labels) +
+#   scale_x_continuous(breaks = seq(1975,YEAR,5), labels = seq(1975,YEAR,5),limits = c(syr,lyr)) +
+#   expand_limits(y = c(0, 5)) +
+#   labs(x = "", y = "\n\nAbundance\n(millions)") +
+#   theme(axis.title.y = element_text(angle=0)) -> mr_plot
+#   
+
+mr_plot <- mr %>% 
+  arrange(year) %>%
+  mutate(gap = c(0, diff(year)),
+         run = cumsum(gap > 1)) %>%   # new group ID whenever gap > 1 year
   ggplot() +
-  geom_ribbon(aes(x = year, ymin = lower_mr, ymax = upper_mr),
-              alpha = 0.2, fill = "black", colour = NA) +
-  geom_point(aes(x = year, y = N)) +
-  geom_line(aes(x = year, y = N, group = Abundance)) +
- # scale_x_continuous(limits = c(syr,lyr)) +#, breaks = axis$breaks, 
-                     # labels = axis$labels) +
-  scale_x_continuous(breaks = seq(1975,YEAR,5), labels = seq(1975,YEAR,5),limits = c(syr,lyr)) +
+  geom_errorbar(aes(x = year, ymin = lower_mr, ymax = upper_mr),
+                alpha = 0.4, colour = "black") +
+  geom_point(aes(x = year, y = mr)) +
+  geom_line(aes(x = year, y = mr, group = run)) +   # group breaks the line at gaps
+  scale_x_continuous(breaks = seq(1975, YEAR, 5), labels = seq(1975, YEAR, 5), limits = c(syr, lyr)) +
   expand_limits(y = c(0, 5)) +
   labs(x = "", y = "\n\nAbundance\n(millions)") +
-  theme(axis.title.y = element_text(angle=0)) -> mr_plot
-mr_plot
+  theme(axis.title.y = element_text(angle = 0))
   
 plot_grid(catch_plot, fsh_cpue_plot, srv_cpue_plot, mr_plot, ncol = 1, align = 'hv',
           labels = c('(A)', '(B)', '(C)', '(D)'))
@@ -441,13 +456,15 @@ waa_plot <- ggplot(waa %>%
 waa_plot
 
 # Equation text for plotting values of a_50 (from biological.R)
-(a50 <- read_csv(paste0(YEAR+1,"/output/maturity_param_", YEAR)) %>% 
-  pull(a50))
+# (a50 <- read_csv(paste0(YEAR+1,"/output/maturity_param_", YEAR)) %>% 
+#   pull(a50))
+# Linear interpolation between the two ages bracketing 0.5
+a50 <- approx(x = mat$prop_mature, y = mat$age, xout = 0.5)$y
 
 a50_txt <- as.character(
   as.expression(substitute(
     paste(italic(a[50]), " = ", xx),
-    list(xx = formatC(a50, format = "f", digits = 1)))))
+    list(xx = formatC(a50, format = "f", digits = 2)))))
 
 mat_plot <- mat %>% filter(age <= 20)
 # axis <- tickr(mat_plot, age, 1)
@@ -458,12 +475,12 @@ mat_plot <- mat %>% filter(age <= 20)
 mat_plot2 <- ggplot(mat_plot %>% filter(age <= 20)) +
   geom_point(aes(x = age, y = prop_mature), colour = "black") +
   geom_line(aes(x = age, y = prop_mature, group = 1), colour = "black") +
-  geom_segment(aes(x = a50, y = 0, xend = 5.9, yend = 0.50), 
+  geom_segment(aes(x = a50, y = 0, xend = 6.1, yend = 0.50), 
                lty = 2, col = "grey") +
-  geom_segment(aes(x = 2, y = 0.50, xend = 5.9, yend = 0.50), 
+  geom_segment(aes(x = 2, y = 0.50, xend = 6.1, yend = 0.50), 
                lty = 2, col = "grey") +
   # a_50 labels
-  geom_text(aes(12, 0.5, label = "paste(italic(a[50]), \" = \", \"5.9\")"), 
+  geom_text(aes(12, 0.5, label = "paste(italic(a[50]), \" = \", \"6.1\")"), 
             colour = "black", parse = TRUE, family = "Times New Roman") +
   scale_x_continuous(limits = c(rec_age, 20)) + # breaks = axis$breaks, 
   # labels = age_labs2) +
@@ -480,7 +497,7 @@ prop_fem <- ggplot(byage, aes(x = Age)) +
   geom_point(aes(y = prop_fem), colour = "black") +  
   expand_limits(y = c(0.3, 0.6)) +
   scale_x_discrete(breaks = unique(waa$Age), labels = age_labs) +
-  labs(x = "Age", y = "\n\nProportion female") +
+  labs(x = "Age", y = "\n\nProportion mature females") +
   geom_hline(yintercept = 0.5, lty = 2, col = "grey")
 
 prop_fem
@@ -586,9 +603,10 @@ ggplot(agecomps, aes(x = year, y = age, size = proportion)) +
   labs(x = '\nYear', y = 'Observed age\n') +
   guides(size = FALSE) +
   # scale_x_continuous(breaks = axisx$breaks, labels = axisx$labels) +
-  scale_y_continuous(breaks = unique(agecomps$age), labels = age_labs) 
+  scale_y_continuous(breaks = unique(agecomps$age), labels = age_labs) +
+  theme(text = element_text(size = 16))
 
-ggsave(paste0(YEAR+1,"/figures/tmb/agecomps_", YEAR, ".png"), dpi = 300, height = 7, width = 9, units = "in")
+ggsave(paste0(YEAR+1,"/figures/tmb/agecomps_", YEAR, ".png"), dpi = 300, height = 4, width = 6, units = "in")
 
 agecomps <- agecomps %>% 
   left_join(data.frame(year = syr:lyr) %>% 
@@ -992,7 +1010,7 @@ waa_laa %>% filter(Source == "LL survey") %>%
 
 sel <- read_csv(paste0(YEAR+1,"/data/fed_selectivity_2022.csv"))
 
-view(sel)
+# view(sel)
 
 unique(sel$fleet)
  
@@ -1019,7 +1037,7 @@ params <- sel %>%
   unnest(cols = c(a,b)) %>% 
   select(fleet, a, b)
 
-view(params)
+# view(params)
 #params_new<-params
 
 tmb_ages <- unique(sel$tmb_age)
