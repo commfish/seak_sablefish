@@ -109,7 +109,7 @@ The analyses underpinning the current stock assessment are found in the folder l
 
 ![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/NSEI_SCAA_Workflow.jpg)
 
-**Description of R scripts:** Follow the order of these scripts to run the assessment...  
+**Description of R scripts:** Many of these are deprecated or obsolete. Please refer to quickguide below for steps to run the model.  
 1.  [`r_helper/helper.r`](https://github.com/commfish/seak_sablefish/blob/master/r_helper/helper.R): Sourced by most other R scripts in this project, includes libraries/dependecies and ggplot themes;
 2.  [`r_helper/functions.r`](https://github.com/commfish/seak_sablefish/blob/master/r_helper/functions.R):  Sourced by most other R scripts in this project, includes user-defined functions; 
 3.  `2023/r/fishery_cpue_fr_OceanAK_ftx_lb_dat.R`: *Deprecated* Instructions on pulling fish ticket and logbook data from OceanAK, cleaning it and merging the two data sources for CPUE calculation for the 2023 assessment. *This has been replaced in 2024 by the next script listed;* 
@@ -133,6 +133,171 @@ The analyses underpinning the current stock assessment are found in the folder l
 
 The `.cpp file` for the SCAA model is found in `tmb/` folder in each YEAR folder.
 
+---
+# NSEI Sablefish SCAA — Quick Start
+
+Statistical catch-at-age model for NSEI sablefish stock assessment (ADF&G). Integrates catch, fishery/survey CPUE, mark-recapture estimates, weight-at-age, maturity-at-age, and age/length compositions via TMB.
+
+> **Model versions:** `scaa_mod_v23a` (sex-aggregated age comps) · `scaa_mod_v24a` (sex-disaggregated age comps)
+
+---
+
+
+## Workflow
+
+### — Data Preparation —
+
+**Step 1 · Clean raw data** &nbsp;`0_clean_data.R` & `fishery_cpue_prep.R`
+
+- Set `YEAR` to the most recent data year
+- Query fishery harvest from OceanAK (IFDB) and longline survey catch/effort
+- Standardize column names, units, and date formats
+- Save cleaned CSVs to `YEAR+1/data/`
+
+**Step 2 · Process biological data** &nbsp;`biological.R`
+
+- Fit length–weight allometry and von Bertalanffy growth curves by sex
+- Generate maturity-at-age schedules from survey samples
+- Compute mean weight-at-age for fishery and survey
+- Save `waa_YEAR.csv` and `maturity_sexratio_YEAR.csv` to `YEAR+1/data/tmb_inputs/`
+
+**Step 3 · Process abundance indices** &nbsp;`fishery_ll_cpue.R` , `fishery_pot_cpue.R`, `llsurvey_cpue.r` & `mark_recapture.r`
+
+- Standardize fishery CPUE from the longline index
+- Standardize fishery CPUE from the pot fishery (not used in 2026)
+- Process longline survey CPUE
+- Compile mark-recapture abundance estimates 
+   - only run in assessment years when mark-recapture (MR) occurs
+   - For example, in 2026 there was no MR, so for the 2026 assessment, this script was not ran or updated
+   - If the MR is conducted again in 2027, then this script should be ran to add another year to the MR dataset
+- Outputs feed directly into Step 4
+
+**Step 4 · Assemble TMB inputs** &nbsp;`scaa_datprep.R`
+
+- Set `YEAR`, `syr <- 1975`, `rec_age <- 2`, `plus_group <- 31`
+- Choose age comp format: `"aggregated"` → v23a, or `"disaggregated"` → v24a
+- Compile catch, CPUE, mark-recapture, age & length comps, WAA, maturity, ageing error matrix, and age-length key
+- Save all inputs to `YEAR+1/data/tmb_inputs/`
+
+---
+
+### — Model Fitting —
+
+**Step 5 · Run the stock assessment** &nbsp;`scaa.R`
+
+- Use this script to explore different model choices such as:
+   - Fishery time-blocks
+   - Survey time-blocks
+   - Selectivity choices
+   - Inclusion of model components
+- When a model is stable and you want a final output, move to tuning step below
+
+**Step 5 · Tune composition effective sample sizes** &nbsp;`tune_comps.R`
+
+- Set  `TUNED_VER` label
+   - This is called in the next step (Step 6) to generate plots and get stock status indicators
+- Run initial untuned model to get composition residuals
+- Call `tune_it()` — iterative McAllister-Ianelli (1997) reweighting
+- Repeat until effective sample sizes stabilize across iterations (default is 5 iterations)
+- Save `tuned_agecomps_YEAR_VER.csv` and `tuned_lencomps_YEAR_VER.csv`; saved as `TUNED_VER` label and called in step six
+
+**Step 6 · Run the stock assessment** &nbsp;`scaa.R`
+
+Update these values at the top of the script each year:
+```r
+YEAR         <- 20XX
+TUNED_VER    <- "v23_3f_3s_2016"   # NA if first run of the year; else, name from tuning step
+IND_SIGMA    <- FALSE               # TRUE = use true index sigmas
+agedat       <- "aggregated"        # "aggregated" (v23a) or "disaggregated" (v24a)
+
+# Previous year's values — from last assessment summary table
+LYR_maxABC       <- 1833775
+LYR_recABC       <- 1809075
+LYR_wastage      <- 75682
+LYR_maxF_ABC     <- 0.062
+LYR_proj_fSSB    <- 24518584
+```
+
+Model switches:
+```r
+rec_type <- 0         # 0 = recruitment penalized likelihood (fixed sigma_r), 1 = recruitment random effects.
+fsh_slx_switch <- 0   # 0 = fixed fishery selectivity, 1 = estimated
+srv_slx_switch <- 1   # 0 = fixed survey selectivity, 1 = estimated
+M_type         <- 0   # 0 = fixed natural mortality, 1 = estimated with prior
+comp_type      <- 0   # 0 = multinomial, 1 = Dirichlet-multinomial
+
+# Selectivity time block break years — verify slx_pars alignment before running
+srv_blocks <- c(1999, 2016)
+fsh_blocks <- c(1994, 2021)
+```
+
+Run the model:
+```r
+# Compile TMB template
+setwd(file.path(root, paste0(YEAR+1, "/tmb")))
+TMB::compile("scaa_mod_v23.cpp")
+dyn.load(dynlib("scaa_mod_v23"))
+
+# Build objects and fit
+data        <- build_data_v23(ts = ts)
+parameters  <- build_parameters_v23(rec_devs_inits, Fdevs_inits)
+out         <- TMBphase_v23(data, parameters, model_name = "scaa_mod_v23",
+                            phase = FALSE, newtonsteps = 5, loopnum = 30)
+
+# Check convergence — max gradient should be <= 0.001
+max(abs(out$rep$gradient.fixed))
+
+# Save output and next year's initial values
+save_mle(save = TRUE, save_inits = TRUE)
+```
+
+Generate figures and calculate ABC:
+```r
+plot_ts(ts = ts, save = TRUE, units = "imperial")
+plot_derived_ts(ts = ts, save = TRUE, units = "imperial")
+plot_sel(save = TRUE)
+plot_age_resids(); barplot_age("Survey"); barplot_age("Fishery")
+plot_len_resids(); barplot_len("Survey", sex = "Female"); barplot_len("Fishery", sex = "Male")
+
+# Maximum ABC under F50 (lbs)
+maxABC <- ABC %>% filter(Fxx == "0.5" & year == YEAR+1) %>% pull(ABC)
+```
+
+**Step 7 · Retrospective analysis** &nbsp;`retrospective.R`
+
+- Match `VER`, `TUNED_VER`, and **all** model switches to the finalized Step 6 run
+- Script loops over 10 years of data peels, re-fitting the model each time
+- Output saved to `YEAR+1/output/tmb/retrospective_VER/`
+- Review Mohn's rho for retrospective bias and model stability
+
+---
+
+## Key Outputs
+
+| File | Description |
+|------|-------------|
+| `output/tmb/tmb_params_mle_VER_YEAR.csv` | MLE parameter estimates and standard errors |
+| `data/tmb_inputs/inits_for_YEAR+1_VER.csv` | Starting values for next year's model run. Needs to manually be moved when starting assessment|
+| `output/tmb/scaa_brps_VER_YEAR.csv` | Stock status values, ABC and wastage for assessment tables|
+| `likelihood_components_YEAR_VER.csv` | Likelihood component breakdown |
+| `figures/` | All preprocessing figures from generated in other scripts|
+| `figures/tmb/` | All assessment figures from TMB SCAA model fitting|
+| `output/tmb/retrospective_VER/` | Retrospective peel results |
+
+---
+
+## Annual Checklist
+
+- [ ] `YEAR` updated in all scripts
+- [ ] New data queried from OceanAK and saved to `YEAR+1/data/`
+- [ ] Previous year's ABC, wastage, F, and biomass values updated in `scaa.R`
+- [ ] Selectivity time block years reviewed; `slx_pars` file verified
+- [ ] Compositions tuned and `TUNED_VER` set before final run
+- [ ] Convergence confirmed (max gradient ≤ 0.001)
+- [ ] `save_mle(save = TRUE, save_inits = TRUE)` run
+- [ ] Retrospective analysis completed and Mohn's rho reviewed
+
+---
 ## Session Info
 
 Last updated: March 2026
