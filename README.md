@@ -109,7 +109,7 @@ The analyses underpinning the current stock assessment are found in the folder l
 
 ![alt text](https://github.com/commfish/seak_sablefish/blob/master/readme/NSEI_SCAA_Workflow.jpg)
 
-**Description of R scripts:** Many of these are deprecated or obsolete. Please refer to quickguide below for steps to run the model.  
+**Description of R scripts:** Many of these are deprecated or obsolete. Please refer to quick start guide below for steps to run the model.  
 1.  [`r_helper/helper.r`](https://github.com/commfish/seak_sablefish/blob/master/r_helper/helper.R): Sourced by most other R scripts in this project, includes libraries/dependecies and ggplot themes;
 2.  [`r_helper/functions.r`](https://github.com/commfish/seak_sablefish/blob/master/r_helper/functions.R):  Sourced by most other R scripts in this project, includes user-defined functions; 
 3.  `2023/r/fishery_cpue_fr_OceanAK_ftx_lb_dat.R`: *Deprecated* Instructions on pulling fish ticket and logbook data from OceanAK, cleaning it and merging the two data sources for CPUE calculation for the 2023 assessment. *This has been replaced in 2024 by the next script listed;* 
@@ -136,7 +136,7 @@ The `.cpp file` for the SCAA model is found in `tmb/` folder in each YEAR folder
 ---
 # NSEI Sablefish SCAA — Quick Start
 
-Statistical catch-at-age model for NSEI sablefish stock assessment (ADF&G). Integrates catch, fishery/survey CPUE, mark-recapture estimates, weight-at-age, maturity-at-age, and age/length compositions via TMB.
+Statistical catch-at-age model for NSEI sablefish stock assessment that integrates catch, fishery/survey CPUE, mark-recapture estimates, weight-at-age, maturity-at-age, and age/length compositions via TMB.
 
 > **Model versions:** `scaa_mod_v23a` (sex-aggregated age comps) · `scaa_mod_v24a` (sex-disaggregated age comps)
 
