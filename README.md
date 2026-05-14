@@ -135,7 +135,7 @@ The `.cpp file` for the SCAA model is found in `tmb/` folder in each YEAR folder
 
 ## Session Info
 
-Last updated: March 2023
+Last updated: March 2026
 ```
 devtools::session_info()
 ─ Session info ─────────────────────────────────────────────────────────────────────────────────
