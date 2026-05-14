@@ -1,0 +1,8 @@
+The final model run for 2026 that is used in the Assessment is called:
+v23_3f_3s_2016_FINAL_2026_Model.RDS
+
+As the assessment document was almost finished, it was discovered that the 
+survey age data for 2024 was triplicated. The model was rerun with the corrected
+data and results were very similar to the final assessment model. These results are
+saved as:
+v23_3f_3s_2016_fixed_FINAL.RDS
